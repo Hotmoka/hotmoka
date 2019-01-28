@@ -8,8 +8,10 @@ import java.io.UncheckedIOException;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
+import java.util.logging.Logger;
 
 class JarInstrumentation {
+	private static final Logger LOGGER = Logger.getLogger(JarInstrumentation.class.getName());
 	private final static String SUFFIX = "_takamaka.jar";
 
 	public JarInstrumentation(String jarName, Program program) throws IOException {
@@ -22,11 +24,10 @@ class JarInstrumentation {
 		private final byte buffer[] = new byte[10240];
 
 		private Builder(String jarName, Program program) throws IOException {
-			System.out.println("Processing " + jarName);
-			File outputFile = new File(computeNameOfInstrumentedJar(jarName));
+			LOGGER.fine(() -> "Processing " + jarName);
 
 			try (final JarFile originalJar = this.originalJar = new JarFile(jarName);
-				 final JarOutputStream instrumentedJar = this.instrumentedJar = new JarOutputStream(new FileOutputStream(outputFile))) {
+				 final JarOutputStream instrumentedJar = this.instrumentedJar = new JarOutputStream(new FileOutputStream(new File(computeNameOfInstrumentedJar(jarName))))) {
 
 				originalJar.stream().forEach(this::addEntry);
 			}

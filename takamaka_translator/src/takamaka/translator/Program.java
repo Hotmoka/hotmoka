@@ -7,15 +7,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
 
 public class Program {
+	private static final Logger LOGGER = Logger.getLogger(Program.class.getName());
 	private final ConcurrentMap<String, JavaClass> classes = new ConcurrentHashMap<>();
 
 	public Program(Stream<String> jars) throws IOException {
+		LOGGER.fine("Building program");
+
 		try {
 			jars.forEach(this::processJar);
 		}
