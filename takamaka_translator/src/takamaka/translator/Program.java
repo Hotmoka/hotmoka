@@ -15,26 +15,37 @@ import org.apache.bcel.classfile.JavaClass;
 public class Program {
 	private final ConcurrentMap<String, JavaClass> classes = new ConcurrentHashMap<>();
 
-	public Program(Stream<JarFile> jars) {
-		jars.forEach(this::processJar);;
+	public Program(Stream<String> jars) throws IOException {
+		try {
+			jars.forEach(this::processJar);
+		}
+		catch (UncheckedIOException e) {
+			throw e.getCause();
+		}
 	}
 
 	public JavaClass get(String className) {
 		return classes.get(className);
 	}
 
-	private void processJar(JarFile jar) {
-		jar.stream()
-			.parallel()
-			.filter(Program::isClass)
-			.forEach(entry -> addClass(entry, jar));
+	private void processJar(String jar) {
+		try (final JarFile jarFile = new JarFile(jar)) {
+			jarFile.stream()
+				.parallel()
+				.filter(Program::isClass)
+				.forEach(entry -> addClass(entry, jarFile));
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	private void addClass(JarEntry entry, JarFile jar) {
 		try (final InputStream input = jar.getInputStream(entry)) {
 			String entryName = entry.getName();
 			JavaClass clazz = new ClassParser(input, entryName).parse();
-			if (clazz != classes.putIfAbsent(clazz.getClassName(), clazz))
+			JavaClass added = classes.putIfAbsent(clazz.getClassName(), clazz);
+			if (added != null && added != clazz)
 				throw new IllegalArgumentException("Class " + clazz.getClassName() + " is redefined in the jars");
 		}
 		catch (IOException e) {
