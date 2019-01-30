@@ -14,17 +14,20 @@ class JarInstrumentation {
 	private static final Logger LOGGER = Logger.getLogger(JarInstrumentation.class.getName());
 	private final static String SUFFIX = "_takamaka.jar";
 
-	public JarInstrumentation(String jarName, Program program) throws IOException {
-		new Builder(jarName, program);
+	JarInstrumentation(String jarName, Program program) throws IOException {
+		new Initializer(jarName, program);
 	}
 
-	private class Builder {
+	private class Initializer {
 		private final JarFile originalJar;
 		private final JarOutputStream instrumentedJar;
 		private final byte buffer[] = new byte[10240];
+		private final Program program;
 
-		private Builder(String jarName, Program program) throws IOException {
+		private Initializer(String jarName, Program program) throws IOException {
 			LOGGER.fine(() -> "Processing " + jarName);
+
+			this.program = program;
 
 			try (final JarFile originalJar = this.originalJar = new JarFile(jarName);
 				 final JarOutputStream instrumentedJar = this.instrumentedJar = new JarOutputStream(new FileOutputStream(new File(computeNameOfInstrumentedJar(jarName))))) {
@@ -42,7 +45,7 @@ class JarInstrumentation {
 				instrumentedJar.putNextEntry(new JarEntry(entryName));
 
 				if (entryName.endsWith(".class"))
-					new ClassInstrumentation(input, entryName, instrumentedJar);
+					new ClassInstrumentation(input, entryName, instrumentedJar, program);
 				else
 					addJarEntryUnchanged(input);
 			}
