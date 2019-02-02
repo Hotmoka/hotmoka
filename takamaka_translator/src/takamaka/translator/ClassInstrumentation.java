@@ -8,12 +8,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.jar.JarOutputStream;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.Constants;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Field;
@@ -23,6 +25,7 @@ import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.InstructionConst;
+import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
@@ -41,6 +44,9 @@ class ClassInstrumentation {
 	 * The order used for generating the parameters of the instrumented constructors.
 	 */
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName).thenComparing(field -> field.getType().toString());
+
+	private final static Type[] noTypes = new Type[0];
+	private final static String[] noStrings = new String[0];
 
 	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program) throws ClassFormatException, IOException {
 		LOGGER.fine(() -> "Instrumenting " + className);
@@ -64,6 +70,11 @@ class ClassInstrumentation {
 		 * The constant pool of the class being instrumented.
 		 */
 		private final ConstantPoolGen cpg;
+
+		/**
+		 * The object that can be used to build complex instructions.
+		 */
+		private final InstructionFactory factory;
 
 		/**
 		 * True if and only if <code>classGen</code> is a storage class.
@@ -92,11 +103,12 @@ class ClassInstrumentation {
 			this.classGen = classGen;
 			this.className = classGen.getClassName();
 			this.cpg = classGen.getConstantPool();
+			this.factory = new InstructionFactory(cpg);
 			this.program = program;
 			this.isStorage = isStorage(className);
 			if (isStorage)
 				collectPrimitiveNonTransientInstanceFieldsOf(className);
-			
+
 			instrument();
 		}
 
@@ -131,17 +143,88 @@ class ClassInstrumentation {
 		}
 
 		private void addConstructorForDeserializationFromBlockchain() {
-			InstructionList il = new InstructionList();
-			il.append(InstructionConst.RETURN);
-			
 			List<Type> args = new ArrayList<>();
 			List<String> names = new ArrayList<>();
+
+			// the parameters of the constructor start with a storage reference
+			// to the object being deserialized
 			args.add(new ObjectType(StorageReference.class.getName()));
 			names.add("storageReference");
-			//TODO
 
-			MethodGen constructor = new MethodGen(Const.ACC_PUBLIC | Const.ACC_SYNTHETIC, BasicType.VOID, args.toArray(new Type[0]), names.toArray(new String[0]), Const.CONSTRUCTOR_NAME, className, il, cpg);
+			// then there are the fields of the class and superclasses, with superclasses first
+			primitiveNonTransientInstanceFields.stream()
+				.flatMap(SortedSet::stream)
+				.map(Field::getType)
+				.forEachOrdered(args::add);
+
+			primitiveNonTransientInstanceFields.stream()
+				.flatMap(SortedSet::stream)
+				.map(Field::getName)
+				.forEachOrdered(names::add);
+
+			InstructionList il = new InstructionList();
+			int nextLocal = addCallToSuper(il);
+			addInitializationOfPrimitiveFields(il, nextLocal);
+			il.append(InstructionConst.RETURN);
+
+			MethodGen constructor = new MethodGen(Const.ACC_PUBLIC | Const.ACC_SYNTHETIC, BasicType.VOID, args.toArray(noTypes), names.toArray(noStrings), Const.CONSTRUCTOR_NAME, className, il, cpg);
 			classGen.addMethod(constructor.getMethod());
+		}
+
+		private int addCallToSuper(InstructionList il) {
+			List<Type> argsForSuperclasses = new ArrayList<>();
+			il.append(InstructionFactory.createThis());
+			argsForSuperclasses.add(new ObjectType(StorageReference.class.getName()));
+		
+			// the fields of the superclasses are passed into a call to super(...)
+			class PushLoad implements Consumer<Type> {
+				private int local = 1;
+		
+				@Override
+				public void accept(Type type) {
+					argsForSuperclasses.add(type);
+					il.append(InstructionFactory.createLoad(type, local));
+					local += type.getSize();
+				}
+			};
+		
+			PushLoad pushLoad = new PushLoad();
+			primitiveNonTransientInstanceFields.stream()
+				.limit(primitiveNonTransientInstanceFields.size() - 1)
+				.flatMap(SortedSet::stream)
+				.map(Field::getType)
+				.forEachOrdered(pushLoad);
+		
+			il.append(factory.createInvoke(className, Const.CONSTRUCTOR_NAME, BasicType.VOID, argsForSuperclasses.toArray(noTypes), Const.INVOKESPECIAL));
+		
+			return pushLoad.local;
+		}
+
+		private void addInitializationOfPrimitiveFields(InstructionList il, int nextLocal) {
+			Consumer<Field> pushField = new Consumer<Field>() {
+				private int local = nextLocal;
+
+				@Override
+				public void accept(Field field) {
+					Type type = field.getType();
+					int size = type.getSize();
+					il.append(InstructionFactory.createThis());
+					il.append(InstructionFactory.createLoad(type, local));
+					
+					// we reduce the size of the code for the frequent case of one slot values
+					if (size == 1)
+						il.append(InstructionConst.DUP2);
+					il.append(factory.createPutField(className, field.getName(), type));
+					if (size != 1) {
+						il.append(InstructionFactory.createThis());
+						il.append(InstructionFactory.createLoad(type, local));
+					}
+					il.append(factory.createPutField(className, OLD_PREFIX + field.getName(), type));
+					local += size;
+				}
+			};
+			
+			primitiveNonTransientInstanceFields.getLast().forEach(pushField);
 		}
 
 		private void collectPrimitiveNonTransientInstanceFieldsOf(String className) {
