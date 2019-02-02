@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
-import org.apache.bcel.Constants;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Field;
@@ -26,6 +25,7 @@ import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.InstructionConst;
 import org.apache.bcel.generic.InstructionFactory;
+import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
@@ -39,6 +39,8 @@ class ClassInstrumentation {
 	private final static Logger LOGGER = Logger.getLogger(ClassInstrumentation.class.getName());
 	private final static String OLD_PREFIX = "§old_";
 	private final static String IF_ALREADY_LOADED_PREFIX = "§ifAlreadyLoaded_";
+	private final static String ENSURE_LOADED_PREFIX = "§ensureLoaded_";
+	private final static String IN_STORAGE_NAME = "inStorage";
 
 	/**
 	 * The order used for generating the parameters of the instrumented constructors.
@@ -116,8 +118,31 @@ class ClassInstrumentation {
 			if (isStorage) {
 				addOldAndIfAlreadyLoadedFields();
 				addConstructorForDeserializationFromBlockchain();
+				addEnsureLoadedMethods();
 			}
 			//TODO
+		}
+
+		private void addEnsureLoadedMethods() {
+			referenceNonTransientInstanceFields.forEach(this::addEnsureLoadedMethodFor);
+		}
+
+		private void addEnsureLoadedMethodFor(Field field) {
+			InstructionList il = new InstructionList();
+			InstructionHandle _return = il.append(InstructionConst.RETURN);
+			il.insert(_return, InstructionFactory.createThis());
+			il.insert(_return, factory.createGetField(Storage.class.getName(), IN_STORAGE_NAME, BasicType.BOOLEAN));
+			il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
+			il.insert(_return, InstructionFactory.createThis());
+			il.insert(_return, factory.createGetField(className, IF_ALREADY_LOADED_PREFIX + field.getName(), BasicType.BOOLEAN));
+			il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFNE, _return));
+			il.insert(_return, InstructionFactory.createThis());
+			il.insert(_return, InstructionConst.ICONST_1);
+			il.insert(_return, factory.createPutField(className, IF_ALREADY_LOADED_PREFIX + field.getName(), BasicType.BOOLEAN));
+			//TODO
+
+			MethodGen ensureLoaded = new MethodGen(Const.ACC_PRIVATE | Const.ACC_SYNTHETIC, BasicType.VOID, noTypes, noStrings, ENSURE_LOADED_PREFIX + field.getName(), className, il, cpg);
+			classGen.addMethod(ensureLoaded.getMethod());
 		}
 
 		private void addOldAndIfAlreadyLoadedFields() {
