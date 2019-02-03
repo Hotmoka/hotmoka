@@ -41,14 +41,16 @@ class ClassInstrumentation {
 	private final static String IF_ALREADY_LOADED_PREFIX = "§ifAlreadyLoaded_";
 	private final static String ENSURE_LOADED_PREFIX = "§ensureLoaded_";
 	private final static String IN_STORAGE_NAME = "inStorage";
+	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastUpdateFor";
 
 	/**
 	 * The order used for generating the parameters of the instrumented constructors.
 	 */
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName).thenComparing(field -> field.getType().toString());
 
-	private final static Type[] noTypes = new Type[0];
-	private final static String[] noStrings = new String[0];
+	private final static Type[] NO_TYPES = new Type[0];
+	private final static String[] NO_STRINGS = new String[0];
+	private final static Type[] THREE_STRINGS = new Type[] { ObjectType.STRING, ObjectType.STRING, ObjectType.STRING };
 
 	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program) throws ClassFormatException, IOException {
 		LOGGER.fine(() -> "Instrumenting " + className);
@@ -137,11 +139,18 @@ class ClassInstrumentation {
 			il.insert(_return, factory.createGetField(className, IF_ALREADY_LOADED_PREFIX + field.getName(), BasicType.BOOLEAN));
 			il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFNE, _return));
 			il.insert(_return, InstructionFactory.createThis());
+			il.insert(_return, InstructionConst.DUP);
+			il.insert(_return, InstructionConst.DUP);
 			il.insert(_return, InstructionConst.ICONST_1);
 			il.insert(_return, factory.createPutField(className, IF_ALREADY_LOADED_PREFIX + field.getName(), BasicType.BOOLEAN));
-			//TODO
+			il.insert(_return, factory.createConstant(className));
+			il.insert(_return, factory.createConstant(field.getName()));
+			il.insert(_return, factory.createConstant(((ObjectType) field.getType()).getClassName()));
+			il.insert(_return, factory.createInvoke(className, DESERIALIZE_LAST_UPDATE_FOR, ObjectType.OBJECT, THREE_STRINGS, Const.INVOKEVIRTUAL));
+			il.insert(_return, factory.createCast(ObjectType.OBJECT, field.getType()));
+			il.insert(_return, factory.createPutField(className, OLD_PREFIX + field.getName(), field.getType()));
 
-			MethodGen ensureLoaded = new MethodGen(Const.ACC_PRIVATE | Const.ACC_SYNTHETIC, BasicType.VOID, noTypes, noStrings, ENSURE_LOADED_PREFIX + field.getName(), className, il, cpg);
+			MethodGen ensureLoaded = new MethodGen(Const.ACC_PRIVATE | Const.ACC_SYNTHETIC, BasicType.VOID, NO_TYPES, NO_STRINGS, ENSURE_LOADED_PREFIX + field.getName(), className, il, cpg);
 			classGen.addMethod(ensureLoaded.getMethod());
 		}
 
@@ -192,7 +201,7 @@ class ClassInstrumentation {
 			addInitializationOfPrimitiveFields(il, nextLocal);
 			il.append(InstructionConst.RETURN);
 
-			MethodGen constructor = new MethodGen(Const.ACC_PUBLIC | Const.ACC_SYNTHETIC, BasicType.VOID, args.toArray(noTypes), names.toArray(noStrings), Const.CONSTRUCTOR_NAME, className, il, cpg);
+			MethodGen constructor = new MethodGen(Const.ACC_PUBLIC | Const.ACC_SYNTHETIC, BasicType.VOID, args.toArray(NO_TYPES), names.toArray(NO_STRINGS), Const.CONSTRUCTOR_NAME, className, il, cpg);
 			classGen.addMethod(constructor.getMethod());
 		}
 
@@ -220,7 +229,7 @@ class ClassInstrumentation {
 				.map(Field::getType)
 				.forEachOrdered(pushLoad);
 		
-			il.append(factory.createInvoke(className, Const.CONSTRUCTOR_NAME, BasicType.VOID, argsForSuperclasses.toArray(noTypes), Const.INVOKESPECIAL));
+			il.append(factory.createInvoke(className, Const.CONSTRUCTOR_NAME, BasicType.VOID, argsForSuperclasses.toArray(NO_TYPES), Const.INVOKESPECIAL));
 		
 			return pushLoad.local;
 		}

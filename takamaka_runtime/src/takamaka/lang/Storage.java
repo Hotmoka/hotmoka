@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import takamaka.blockchain.Blockchain;
+import takamaka.blockchain.FieldReference;
 import takamaka.blockchain.StorageReference;
 import takamaka.blockchain.Update;
 
@@ -66,5 +67,9 @@ public abstract class Storage {
 			return ((Storage) s).extractUpdates(updates);
 		else
 			throw new RuntimeException("storage objects must implement Storage");
+	}
+
+	protected final Object deserializeLastUpdateFor(String definingClass, String name, String className) {
+		return blockchain.deserializeLastUpdateFor(storageReference, new FieldReference(definingClass, name, className));
 	}
 }

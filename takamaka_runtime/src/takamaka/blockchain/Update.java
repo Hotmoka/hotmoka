@@ -1,7 +1,6 @@
 package takamaka.blockchain;
 
 import takamaka.blockchain.types.BasicTypes;
-import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
 import takamaka.lang.Immutable;
@@ -24,6 +23,6 @@ public final class Update {
 	}
 
 	public static Update mkForClassTag(StorageReference object, String className) {
-		return new Update(object, new FieldReference(new ClassType(className), CLASS_TAG_FIELD_NAME, BasicTypes.STRING), new StringValue(className));
+		return new Update(object, new FieldReference(className, CLASS_TAG_FIELD_NAME, BasicTypes.STRING), new StringValue(className));
 	}
 }
