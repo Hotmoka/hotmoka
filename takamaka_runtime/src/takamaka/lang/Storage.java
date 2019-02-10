@@ -72,7 +72,7 @@ public abstract class Storage {
 	 * Utility method that will be used in subclasses to implement
 	 * method extractUpdates to recur on fields of reference type.
 	 */
-	protected final StorageReference recursiveExtract(Object s, Set<Update> updates) {
+	private StorageReference storageReferenceOfRecursiveExtract(Object s, Set<Update> updates) {
 		if (s == null)
 			return null;
 		else if (s instanceof Storage)
@@ -81,12 +81,24 @@ public abstract class Storage {
 			throw new RuntimeException("storage objects must implement Storage");
 	}
 
+	/**
+	 * Utility method that will be used in subclasses to implement
+	 * method extractUpdates to recur on fields of reference type.
+	 */
+	protected final void recursiveExtract(Object s, Set<Update> updates) {
+		if (s != null)
+			if (s instanceof Storage)
+				((Storage) s).extractUpdates(updates);
+			else
+				throw new RuntimeException("storage objects must implement Storage");
+	}
+
 	protected final Object deserializeLastUpdateFor(String definingClass, String name, String className) {
 		return blockchain.deserializeLastUpdateFor(storageReference, new FieldReference(definingClass, name, className));
 	}
 
 	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, String fieldClassName, Object s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), recursiveExtract(s, updates)));
+		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), storageReferenceOfRecursiveExtract(s, updates)));
 	}
 
 	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, BigInteger s) {

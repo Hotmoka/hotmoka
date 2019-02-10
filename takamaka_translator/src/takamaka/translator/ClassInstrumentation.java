@@ -3,11 +3,9 @@ package takamaka.translator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -35,7 +33,6 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import takamaka.blockchain.StorageReference;
-import takamaka.blockchain.Update;
 import takamaka.lang.Storage;
 
 class ClassInstrumentation {
@@ -46,6 +43,7 @@ class ClassInstrumentation {
 	private final static String GETTER_PREFIX = "§get_";
 	private final static String PUTTER_PREFIX = "§put_";
 	private final static String EXTRACT_UPDATES = "extractUpdates";
+	private final static String RECURSIVE_EXTRACT = "recursiveExtract";
 	private final static String ADD_UPDATES_FOR = "addUpdatesFor";
 	private final static String IN_STORAGE_NAME = "inStorage";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastUpdateFor";
@@ -61,6 +59,7 @@ class ClassInstrumentation {
 	private final static Type[] ONLY_SET = new Type[] { new ObjectType("java.util.Set") };
 	private final static ObjectType STORAGE_REFERENCE_OT = new ObjectType( StorageReference.class.getName());
 	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { STORAGE_REFERENCE_OT, ObjectType.STRING, ObjectType.STRING, new ObjectType("java.util.Set") };
+	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, new ObjectType("java.util.Set") };
 
 	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program) throws ClassFormatException, IOException {
 		LOGGER.fine(() -> "Instrumenting " + className);
@@ -158,8 +157,40 @@ class ClassInstrumentation {
 		}
 
 		private InstructionHandle addUpdateExtractionForReferenceField(Field field, InstructionList il, InstructionHandle end) {
-			// TODO Auto-generated method stub
-			return null;
+			ObjectType type = (ObjectType) field.getType();
+
+			List<Type> args = new ArrayList<>();
+			for (Type arg: ADD_UPDATES_FOR_ARGS)
+				args.add(arg);
+			args.add(ObjectType.STRING);
+			args.add(ObjectType.OBJECT);
+
+			InstructionHandle recursiveExtract = il.insert(end, InstructionFactory.createThis());
+			il.insert(end, InstructionConst.DUP);
+			il.insert(end, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
+			il.insert(end, InstructionConst.ALOAD_1);
+			il.insert(end, factory.createInvoke(Storage.class.getName(), RECURSIVE_EXTRACT, Type.VOID, RECURSIVE_EXTRACT_ARGS, Const.INVOKESPECIAL));
+			
+			InstructionHandle addUpdatesFor = il.insert(recursiveExtract, InstructionConst.ALOAD_2);
+			il.insert(recursiveExtract, factory.createConstant(className));
+			il.insert(recursiveExtract, factory.createConstant(field.getName()));
+			il.insert(recursiveExtract, InstructionConst.ALOAD_1);
+			il.insert(recursiveExtract, factory.createConstant(type.getClassName()));
+			il.insert(recursiveExtract, InstructionFactory.createThis());
+			il.insert(recursiveExtract, factory.createGetField(className, field.getName(), type));
+			il.insert(recursiveExtract, factory.createInvoke(Storage.class.getName(), ADD_UPDATES_FOR, Type.VOID, args.toArray(NO_TYPES), Const.INVOKESPECIAL));
+
+			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createThis());
+			il.insert(addUpdatesFor, factory.createGetField(Storage.class.getName(), IN_STORAGE_NAME, BasicType.BOOLEAN));
+			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
+			il.insert(addUpdatesFor, InstructionFactory.createThis());
+			il.insert(addUpdatesFor, InstructionConst.DUP);
+			il.insert(addUpdatesFor, factory.createGetField(className, field.getName(), type));
+			il.insert(addUpdatesFor, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
+
+			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract));
+			
+			return start;
 		}
 
 		private InstructionHandle addUpdateExtractionForPrimitiveField(Field field, InstructionList il, InstructionHandle end) {
@@ -187,11 +218,11 @@ class ClassInstrumentation {
 			il.insert(addUpdatesFor, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
 
 			if (field.getType().equals(Type.DOUBLE)) {
-				il.insert(addUpdatesFor, InstructionConst.DCMPL); //TODO check
+				il.insert(addUpdatesFor, InstructionConst.DCMPL);
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
 			else if (field.getType().equals(Type.FLOAT)) {
-				il.insert(addUpdatesFor, InstructionConst.FCMPL); //TODO check
+				il.insert(addUpdatesFor, InstructionConst.FCMPL);
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
 			else if (field.getType().equals(Type.LONG)) {
