@@ -63,14 +63,12 @@ public abstract class Storage {
 	 * 
 	 * @param updates the set where storage updates will be collected
 	 * @param seen the storage references of the objects already considered during the scan of the storage
-	 * @return The storage reference used for this object in blockchain.
 	 */
-	protected StorageReference extractUpdates(Set<Update> updates, Set<StorageReference> seen) {
+	protected void extractUpdates(Set<Update> updates, Set<StorageReference> seen) {
 		if (!inStorage)
 			updates.add(Update.mkForClassTag(storageReference, getClass().getName()));
 
 		// subclasses will override and add updates to their instance fields
-		return storageReference;
 	}
 
 	/**
@@ -91,7 +89,7 @@ public abstract class Storage {
 		return blockchain.deserializeLastUpdateFor(storageReference, new FieldReference(definingClass, name, className));
 	}
 
-	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, String fieldClassName, Object s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, String fieldClassName, Object s) {
 		// these values are not recursively followed
 		if (s == null)
 			updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), null));
@@ -100,44 +98,46 @@ public abstract class Storage {
 		else if (s instanceof BigInteger)
 			updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), new BigIntegerValue((BigInteger) s)));
 		else if (s instanceof Storage)
-			if (seen.add(((Storage) s).storageReference))
+			if (seen.add(((Storage) s).storageReference)) {
 				// general case, recursively followed
-				updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), ((Storage) s).extractUpdates(updates, seen)));
+				updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), ((Storage) s).storageReference));
+				((Storage) s).extractUpdates(updates, seen);
+			}
 			else
 				updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), storageReference));
 		else
 			throw new RuntimeException("a field of a storage object cannot hold a " + s.getClass().getName());
 	}
 
-	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
 		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), new BooleanValue(s)));
 	}
 
-	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, byte s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, byte s) {
 		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.BYTE), new ByteValue(s)));
 	}
 
-	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, char s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, char s) {
 		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.CHAR), new CharValue(s)));
 	}
 
-	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, double s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, double s) {
 		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), new DoubleValue(s)));
 	}
 
-	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, float s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, float s) {
 		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.FLOAT), new FloatValue(s)));
 	}
 
-	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, int s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, int s) {
 		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.INT), new IntValue(s)));
 	}
 
-	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, long s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, long s) {
 		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.LONG), new LongValue(s)));
 	}
 
-	protected final void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
 		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.SHORT), new ShortValue(s)));
 	}
 }
