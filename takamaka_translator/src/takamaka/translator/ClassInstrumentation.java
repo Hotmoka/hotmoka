@@ -2,10 +2,12 @@ package takamaka.translator;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -53,13 +55,14 @@ class ClassInstrumentation {
 	 */
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName).thenComparing(field -> field.getType().toString());
 
+	private final static ObjectType STORAGE_REFERENCE_OT = new ObjectType( StorageReference.class.getName());
+	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
 	private final static Type[] NO_TYPES = new Type[0];
 	private final static String[] NO_STRINGS = new String[0];
 	private final static Type[] THREE_STRINGS = new Type[] { ObjectType.STRING, ObjectType.STRING, ObjectType.STRING };
-	private final static Type[] ONLY_SET = new Type[] { new ObjectType("java.util.Set") };
-	private final static ObjectType STORAGE_REFERENCE_OT = new ObjectType( StorageReference.class.getName());
-	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { STORAGE_REFERENCE_OT, ObjectType.STRING, ObjectType.STRING, new ObjectType("java.util.Set") };
-	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, new ObjectType("java.util.Set") };
+	private final static Type[] TWO_SETS = new Type[] { SET_OT, SET_OT };
+	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { STORAGE_REFERENCE_OT, ObjectType.STRING, ObjectType.STRING, SET_OT };
+	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, SET_OT, SET_OT };
 
 	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program) throws ClassFormatException, IOException {
 		LOGGER.fine(() -> "Instrumenting " + className);
@@ -140,10 +143,11 @@ class ClassInstrumentation {
 			InstructionList il = new InstructionList();
 			il.append(InstructionFactory.createThis());
 			il.append(InstructionConst.ALOAD_1);
-			il.append(factory.createInvoke(classGen.getSuperclassName(), EXTRACT_UPDATES, STORAGE_REFERENCE_OT, ONLY_SET, Const.INVOKESPECIAL));
-			il.append(InstructionConst.ASTORE_2);
+			il.append(InstructionConst.ALOAD_2);
+			il.append(factory.createInvoke(classGen.getSuperclassName(), EXTRACT_UPDATES, STORAGE_REFERENCE_OT, TWO_SETS, Const.INVOKESPECIAL));
+			il.append(InstructionFactory.createStore(STORAGE_REFERENCE_OT, 3));
 
-			InstructionHandle end = il.append(InstructionConst.ALOAD_2);
+			InstructionHandle end = il.append(InstructionFactory.createLoad(STORAGE_REFERENCE_OT, 3));
 			il.append(InstructionFactory.createReturn(STORAGE_REFERENCE_OT));
 
 			for (Field field: primitiveNonTransientInstanceFields.getLast())
@@ -152,7 +156,7 @@ class ClassInstrumentation {
 			for (Field field: referenceNonTransientInstanceFields)
 				end = addUpdateExtractionForReferenceField(field, il, end);
 
-			MethodGen extractUpdates = new MethodGen(Const.ACC_PROTECTED | Const.ACC_SYNTHETIC, STORAGE_REFERENCE_OT, ONLY_SET, new String[] { "updates" }, EXTRACT_UPDATES, className, il, cpg);
+			MethodGen extractUpdates = new MethodGen(Const.ACC_PROTECTED | Const.ACC_SYNTHETIC, STORAGE_REFERENCE_OT, TWO_SETS, new String[] { "updates", "seen" }, EXTRACT_UPDATES, className, il, cpg);
 			classGen.addMethod(extractUpdates.getMethod());
 		}
 
@@ -162,19 +166,30 @@ class ClassInstrumentation {
 			List<Type> args = new ArrayList<>();
 			for (Type arg: ADD_UPDATES_FOR_ARGS)
 				args.add(arg);
+			args.add(SET_OT);
 			args.add(ObjectType.STRING);
 			args.add(ObjectType.OBJECT);
 
-			InstructionHandle recursiveExtract = il.insert(end, InstructionFactory.createThis());
-			il.insert(end, InstructionConst.DUP);
-			il.insert(end, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
-			il.insert(end, InstructionConst.ALOAD_1);
-			il.insert(end, factory.createInvoke(Storage.class.getName(), RECURSIVE_EXTRACT, Type.VOID, RECURSIVE_EXTRACT_ARGS, Const.INVOKESPECIAL));
-			
-			InstructionHandle addUpdatesFor = il.insert(recursiveExtract, InstructionConst.ALOAD_2);
+			InstructionHandle recursiveExtract;
+			// we deal with special cases where the call to a recursive extract is useless: this is just an optimization
+			if (type.equals(ObjectType.STRING) || type.getClassName().equals(BigInteger.class.getName()))
+				recursiveExtract = end;
+			else {
+				recursiveExtract = il.insert(end, InstructionFactory.createThis());
+				il.insert(end, InstructionConst.DUP);
+				il.insert(end, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
+				il.insert(end, InstructionConst.ALOAD_1);
+				il.insert(end, InstructionConst.ALOAD_2);
+				il.insert(end, factory.createInvoke(Storage.class.getName(), RECURSIVE_EXTRACT, Type.VOID, RECURSIVE_EXTRACT_ARGS, Const.INVOKESPECIAL));
+			}
+
+			InstructionHandle addUpdatesFor = il.insert(recursiveExtract, InstructionFactory.createThis());
+			il.insert(recursiveExtract, InstructionConst.DUP);
+			il.insert(recursiveExtract, factory.createGetField(Storage.class.getName(), "storageReference", STORAGE_REFERENCE_OT));
 			il.insert(recursiveExtract, factory.createConstant(className));
 			il.insert(recursiveExtract, factory.createConstant(field.getName()));
 			il.insert(recursiveExtract, InstructionConst.ALOAD_1);
+			il.insert(recursiveExtract, InstructionConst.ALOAD_2);
 			il.insert(recursiveExtract, factory.createConstant(type.getClassName()));
 			il.insert(recursiveExtract, InstructionFactory.createThis());
 			il.insert(recursiveExtract, factory.createGetField(className, field.getName(), type));
@@ -201,7 +216,9 @@ class ClassInstrumentation {
 				args.add(arg);
 			args.add(type);
 
-			InstructionHandle addUpdatesFor = il.insert(end, InstructionConst.ALOAD_2);
+			InstructionHandle addUpdatesFor = il.insert(end, InstructionFactory.createThis());
+			il.insert(end, InstructionConst.DUP);
+			il.insert(end, factory.createGetField(Storage.class.getName(), "storageReference", STORAGE_REFERENCE_OT));
 			il.insert(end, factory.createConstant(className));
 			il.insert(end, factory.createConstant(field.getName()));
 			il.insert(end, InstructionConst.ALOAD_1);

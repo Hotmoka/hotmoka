@@ -34,4 +34,14 @@ public final class StorageReference implements StorageValue {
 		this.transaction = transaction;
 		this.progressive = progressive;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof StorageReference && ((StorageReference) other).progressive == progressive && ((StorageReference) other).transaction.equals(transaction);
+	}
+
+	@Override
+	public int hashCode() {
+		return progressive ^ transaction.hashCode();
+	}
 }

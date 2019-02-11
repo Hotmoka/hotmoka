@@ -29,4 +29,14 @@ public final class TransactionReference {
 		this.blockNumber = blockNumber;
 		this.transactionNumber = transactionNumber;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof TransactionReference && ((TransactionReference) other).blockNumber == blockNumber && ((TransactionReference) other).transactionNumber == transactionNumber;
+	}
+
+	@Override
+	public int hashCode() {
+		return ((int) blockNumber) ^ transactionNumber;
+	}
 }
