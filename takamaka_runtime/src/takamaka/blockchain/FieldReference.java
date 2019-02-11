@@ -30,4 +30,9 @@ public final class FieldReference {
 	public FieldReference(String definingClass, String name, String className) {
 		this(new ClassType(definingClass), name, new ClassType(className));
 	}
+
+	@Override
+	public String toString() {
+		return definingClass.name + '.' + name;
+	}
 }

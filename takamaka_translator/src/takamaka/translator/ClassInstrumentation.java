@@ -59,11 +59,11 @@ class ClassInstrumentation {
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName).thenComparing(field -> field.getType().toString());
 
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
-	private final static String[] NO_STRINGS = new String[0];
+	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
 	private final static Type[] THREE_STRINGS = new Type[] { ObjectType.STRING, ObjectType.STRING, ObjectType.STRING };
-	private final static Type[] TWO_SETS = new Type[] { SET_OT, SET_OT };
+	private final static Type[] EXTRACT_UPDATES_ARGS = new Type[] { SET_OT, SET_OT, LIST_OT };
 	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { ObjectType.STRING, ObjectType.STRING, SET_OT };
-	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, SET_OT, SET_OT };
+	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, SET_OT, SET_OT, LIST_OT };
 
 	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program) throws ClassFormatException, IOException {
 		LOGGER.fine(() -> "Instrumenting " + className);
@@ -80,7 +80,7 @@ class ClassInstrumentation {
 		private final ClassGen classGen;
 
 		/**
-		 * The name of <code>classGen</code>.
+		 * The name of the class being instrumented.
 		 */
 		private final String className;
 
@@ -95,18 +95,18 @@ class ClassInstrumentation {
 		private final InstructionFactory factory;
 
 		/**
-		 * True if and only if <code>classGen</code> is a storage class.
+		 * True if and only if the class being instrumented is a storage class.
 		 */
 		private final boolean isStorage;
 
 		/**
-		 * The non-transient instance fields of primitive type defined in <code>classGen</code>
+		 * The non-transient instance fields of primitive type defined in the class being instrumented
 		 * and in its superclasses up to Storage (excluded). This is non-empty for storage classes only.
 		 */
 		private final LinkedList<SortedSet<Field>> primitiveNonTransientInstanceFields = new LinkedList<>();
 
 		/**
-		 * The non-transient instance fields of reference type defined in <code>classGen</code>
+		 * The non-transient instance fields of reference type defined in the class being instrumented
 		 * (superclasses are not considered). This is non-empty for storage classes only.
 		 */
 		private final SortedSet<Field> referenceNonTransientInstanceFields = new TreeSet<>(fieldOrder);
@@ -147,9 +147,10 @@ class ClassInstrumentation {
 			il.append(InstructionConst.DUP);
 			il.append(InstructionConst.ALOAD_1);
 			il.append(InstructionConst.ALOAD_2);
-			il.append(factory.createInvoke(classGen.getSuperclassName(), EXTRACT_UPDATES, Type.VOID, TWO_SETS, Const.INVOKESPECIAL));
+			il.append(InstructionFactory.createLoad(LIST_OT, 3));
+			il.append(factory.createInvoke(classGen.getSuperclassName(), EXTRACT_UPDATES, Type.VOID, EXTRACT_UPDATES_ARGS, Const.INVOKESPECIAL));
 			il.append(factory.createGetField(Storage.class.getName(), IN_STORAGE_NAME, Type.BOOLEAN));
-			il.append(InstructionFactory.createStore(Type.BOOLEAN, 3));
+			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
 
 			InstructionHandle end = il.append(InstructionConst.RETURN);
 
@@ -159,7 +160,7 @@ class ClassInstrumentation {
 			for (Field field: referenceNonTransientInstanceFields)
 				end = addUpdateExtractionForReferenceField(field, il, end);
 
-			MethodGen extractUpdates = new MethodGen(PROTECTED_SYNTHETIC, Type.VOID, TWO_SETS, new String[] { "updates", "seen" }, EXTRACT_UPDATES, className, il, cpg);
+			MethodGen extractUpdates = new MethodGen(PROTECTED_SYNTHETIC, Type.VOID, EXTRACT_UPDATES_ARGS, null, EXTRACT_UPDATES, className, il, cpg);
 			classGen.addMethod(extractUpdates.getMethod());
 		}
 
@@ -170,6 +171,7 @@ class ClassInstrumentation {
 			for (Type arg: ADD_UPDATES_FOR_ARGS)
 				args.add(arg);
 			args.add(SET_OT);
+			args.add(LIST_OT);
 			args.add(ObjectType.STRING);
 			args.add(ObjectType.OBJECT);
 
@@ -183,6 +185,7 @@ class ClassInstrumentation {
 				il.insert(end, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
 				il.insert(end, InstructionConst.ALOAD_1);
 				il.insert(end, InstructionConst.ALOAD_2);
+				il.insert(end, InstructionFactory.createLoad(LIST_OT, 3));
 				il.insert(end, factory.createInvoke(Storage.class.getName(), RECURSIVE_EXTRACT, Type.VOID, RECURSIVE_EXTRACT_ARGS, Const.INVOKESPECIAL));
 			}
 
@@ -191,12 +194,13 @@ class ClassInstrumentation {
 			il.insert(recursiveExtract, factory.createConstant(field.getName()));
 			il.insert(recursiveExtract, InstructionConst.ALOAD_1);
 			il.insert(recursiveExtract, InstructionConst.ALOAD_2);
+			il.insert(recursiveExtract, InstructionFactory.createLoad(LIST_OT, 3));
 			il.insert(recursiveExtract, factory.createConstant(type.getClassName()));
 			il.insert(recursiveExtract, InstructionFactory.createThis());
 			il.insert(recursiveExtract, factory.createGetField(className, field.getName(), type));
 			il.insert(recursiveExtract, factory.createInvoke(Storage.class.getName(), ADD_UPDATES_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
-			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 3));
+			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
 			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
 			il.insert(addUpdatesFor, InstructionFactory.createThis());
 			il.insert(addUpdatesFor, InstructionConst.DUP);
@@ -224,7 +228,7 @@ class ClassInstrumentation {
 			il.insert(end, factory.createGetField(className, field.getName(), type));
 			il.insert(end, factory.createInvoke(Storage.class.getName(), ADD_UPDATES_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
-			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 3));
+			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
 			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
 			il.insert(addUpdatesFor, InstructionFactory.createThis());
 			il.insert(addUpdatesFor, InstructionConst.DUP);
@@ -268,7 +272,7 @@ class ClassInstrumentation {
 			il.append(factory.createPutField(className, field.getName(), type));
 			il.append(InstructionConst.RETURN);
 
-			MethodGen putter = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, new Type[] { type }, new String[] { field.getName() }, PUTTER_PREFIX + field.getName(), className, il, cpg);
+			MethodGen putter = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, new Type[] { type }, null, PUTTER_PREFIX + field.getName(), className, il, cpg);
 			classGen.addMethod(putter.getMethod());
 		}
 
@@ -281,7 +285,7 @@ class ClassInstrumentation {
 			il.append(factory.createGetField(className, field.getName(), type));
 			il.append(InstructionFactory.createReturn(type));
 
-			MethodGen getter = new MethodGen(PRIVATE_SYNTHETIC, type, Type.NO_ARGS, NO_STRINGS, GETTER_PREFIX + field.getName(), className, il, cpg);
+			MethodGen getter = new MethodGen(PRIVATE_SYNTHETIC, type, Type.NO_ARGS, null, GETTER_PREFIX + field.getName(), className, il, cpg);
 			classGen.addMethod(getter.getMethod());
 		}
 
@@ -310,7 +314,7 @@ class ClassInstrumentation {
 			il.insert(_return, factory.createCast(ObjectType.OBJECT, field.getType()));
 			il.insert(_return, factory.createPutField(className, OLD_PREFIX + field.getName(), field.getType()));
 
-			MethodGen ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, NO_STRINGS, ENSURE_LOADED_PREFIX + field.getName(), className, il, cpg);
+			MethodGen ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null, ENSURE_LOADED_PREFIX + field.getName(), className, il, cpg);
 			classGen.addMethod(ensureLoaded.getMethod());
 		}
 
@@ -338,12 +342,10 @@ class ClassInstrumentation {
 
 		private void addConstructorForDeserializationFromBlockchain() {
 			List<Type> args = new ArrayList<>();
-			List<String> names = new ArrayList<>();
 
 			// the parameters of the constructor start with a storage reference
 			// to the object being deserialized
 			args.add(new ObjectType(StorageReference.class.getName()));
-			names.add("storageReference");
 
 			// then there are the fields of the class and superclasses, with superclasses first
 			primitiveNonTransientInstanceFields.stream()
@@ -351,17 +353,12 @@ class ClassInstrumentation {
 				.map(Field::getType)
 				.forEachOrdered(args::add);
 
-			primitiveNonTransientInstanceFields.stream()
-				.flatMap(SortedSet::stream)
-				.map(Field::getName)
-				.forEachOrdered(names::add);
-
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
 			addInitializationOfPrimitiveFields(il, nextLocal);
 			il.append(InstructionConst.RETURN);
 
-			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), names.toArray(NO_STRINGS), Const.CONSTRUCTOR_NAME, className, il, cpg);
+			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null, Const.CONSTRUCTOR_NAME, className, il, cpg);
 			classGen.addMethod(constructor.getMethod());
 		}
 

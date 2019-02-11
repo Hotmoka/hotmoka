@@ -1,8 +1,11 @@
 package takamaka.lang;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.FieldReference;
@@ -48,13 +51,19 @@ public abstract class Storage {
 	 * 
 	 * @return The updates.
 	 */
-	public final Set<Update> extractUpdates() {
+	public final Stream<Update> updates() {
 		Set<Update> result = new HashSet<>();
 		Set<StorageReference> seen = new HashSet<>();
 		seen.add(storageReference);
-		extractUpdates(result, seen);
+		List<Storage> workingSet = new ArrayList<>(16);
+		workingSet.add(this);
+
+		do {
+			workingSet.remove(workingSet.size() - 1).extractUpdates(result, seen, workingSet);
+		}
+		while (!workingSet.isEmpty());
 		
-		return result;
+		return result.stream();
 	}
 
 	/**
@@ -63,22 +72,24 @@ public abstract class Storage {
 	 * 
 	 * @param updates the set where storage updates will be collected
 	 * @param seen the storage references of the objects already considered during the scan of the storage
+	 * @param workingSet the list of storage objects that still need to be processed. This can get enlarged by a call to this method,
+	 *                   in order to simulate recursive calls without risking a Java stack overflow
 	 */
-	protected void extractUpdates(Set<Update> updates, Set<StorageReference> seen) {
+	protected void extractUpdates(Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet) {
 		if (!inStorage)
 			updates.add(Update.mkForClassTag(storageReference, getClass().getName()));
 
-		// subclasses will override and add updates to their instance fields
+		// subclasses will override, call this super-implementation and add potential updates to their instance fields
 	}
 
 	/**
 	 * Utility method that will be used in subclasses to implement
 	 * method extractUpdates to recur on the old value of fields of reference type.
 	 */
-	protected final void recursiveExtract(Object s, Set<Update> updates, Set<StorageReference> seen) {
+	protected final void recursiveExtract(Object s, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet) {
 		if (s instanceof Storage) {
 			if (seen.add(((Storage) s).storageReference))
-				((Storage) s).extractUpdates(updates, seen);
+				workingSet.add((Storage) s);
 		}
 		else if (s instanceof String || s instanceof BigInteger) {} // these types are not recursively followed
 		else if (s != null)
@@ -89,24 +100,29 @@ public abstract class Storage {
 		return blockchain.deserializeLastUpdateFor(storageReference, new FieldReference(definingClass, name, className));
 	}
 
-	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, String fieldClassName, Object s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet, String fieldClassName, Object s) {
 		// these values are not recursively followed
+		FieldReference field = new FieldReference(fieldDefiningClass, fieldName, fieldClassName);
+
 		if (s == null)
-			updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), null));
+			updates.add(Update.mk(storageReference, field, null));
 		else if (s instanceof String)
-			updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), new StringValue((String) s)));
+			updates.add(Update.mk(storageReference, field, new StringValue((String) s)));
 		else if (s instanceof BigInteger)
-			updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), new BigIntegerValue((BigInteger) s)));
-		else if (s instanceof Storage)
-			if (seen.add(((Storage) s).storageReference)) {
+			updates.add(Update.mk(storageReference, field, new BigIntegerValue((BigInteger) s)));
+		else if (s instanceof Storage) {
+			Storage storage = (Storage) s;
+
+			if (seen.add(storage.storageReference)) {
 				// general case, recursively followed
-				updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), ((Storage) s).storageReference));
-				((Storage) s).extractUpdates(updates, seen);
+				updates.add(Update.mk(storageReference, field, storage.storageReference));
+				workingSet.add(storage);
 			}
 			else
-				updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, fieldClassName), storageReference));
+				updates.add(Update.mk(storageReference, field, storageReference));
+		}
 		else
-			throw new RuntimeException("a field of a storage object cannot hold a " + s.getClass().getName());
+			throw new RuntimeException("field " + field + " of a storage class cannot hold a " + s.getClass().getName());
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
