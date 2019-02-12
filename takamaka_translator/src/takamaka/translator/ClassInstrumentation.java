@@ -15,22 +15,28 @@ import java.util.jar.JarOutputStream;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldGen;
+import org.apache.bcel.generic.FieldInstruction;
+import org.apache.bcel.generic.GETFIELD;
+import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
 import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
@@ -127,10 +133,15 @@ class ClassInstrumentation {
 			if (isStorage)
 				collectPrimitiveNonTransientInstanceFieldsOf(className);
 
-			instrument();
+			instrumentClass();
 		}
 
-		private void instrument() {
+		private void instrumentClass() {
+			// local instrumentations
+			Stream.of(classGen.getMethods())
+				.forEach(method -> classGen.replaceMethod(method, instrument(method)));
+
+			// global instrumentations
 			if (isStorage) {
 				addOldAndIfAlreadyLoadedFields();
 				addConstructorForDeserializationFromBlockchain();
@@ -138,7 +149,51 @@ class ClassInstrumentation {
 				addAccessorMethods();
 				addExtractUpdates();
 			}
-			//TODO
+		}
+
+		/**
+		 * Instrument a single method of the class.
+		 * 
+		 * @param method the method to instrument
+		 * @return the result of the instrumentation
+		 */
+		private Method instrument(Method method) {
+			MethodGen methodGen = new MethodGen(method, className, cpg);
+			replaceFieldAccessesWithAccessors(methodGen);
+			methodGen.setMaxLocals();
+			methodGen.setMaxStack();
+			return methodGen.getMethod();
+		}
+
+		/**
+		 * Replaces accesses to fields of storage classes with calls to accessor methods.
+		 * 
+		 * @param method the method where the replacement occurs
+		 */
+		private void replaceFieldAccessesWithAccessors(MethodGen method) {
+			InstructionList il = method.getInstructionList();
+			StreamSupport.stream(il.spliterator(), false)
+				.filter(ih -> isAccessToReferenceFieldInStorageClass(ih.getInstruction()))
+				.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
+		}
+
+		private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) {
+			ObjectType referencedClass = (ObjectType) fieldInstruction.getReferenceType(cpg);
+			Type fieldType = fieldInstruction.getFieldType(cpg);
+			String fieldName = fieldInstruction.getFieldName(cpg);
+
+			if (fieldInstruction instanceof GETFIELD)
+				// it is important to use an invokespecial, since fields cannot be redefined in Java
+				return factory.createInvoke(referencedClass.getClassName(), GETTER_PREFIX + fieldName, fieldType, Type.NO_ARGS, Const.INVOKESPECIAL);
+			else // PUTFIELD
+				// it is important to use an invokespecial, since fields cannot be redefined in Java
+				return factory.createInvoke(referencedClass.getClassName(), PUTTER_PREFIX + fieldName, Type.VOID, new Type[] { fieldType }, Const.INVOKESPECIAL);
+		}
+
+		private boolean isAccessToReferenceFieldInStorageClass(Instruction instruction) {
+			return (instruction instanceof GETFIELD || instruction instanceof PUTFIELD)
+				&& isStorage(((ObjectType) ((FieldInstruction) instruction).getReferenceType(cpg)).getClassName())
+				&& ((FieldInstruction) instruction).getFieldType(cpg) instanceof ReferenceType;
 		}
 
 		private void addExtractUpdates() {
@@ -272,8 +327,19 @@ class ClassInstrumentation {
 			il.append(factory.createPutField(className, field.getName(), type));
 			il.append(InstructionConst.RETURN);
 
-			MethodGen putter = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, new Type[] { type }, null, PUTTER_PREFIX + field.getName(), className, il, cpg);
+			MethodGen putter = new MethodGen(modifiersFrom(field), BasicType.VOID, new Type[] { type }, null, PUTTER_PREFIX + field.getName(), className, il, cpg);
 			classGen.addMethod(putter.getMethod());
+		}
+
+		private short modifiersFrom(Field field) {
+			short modifiers = Const.ACC_SYNTHETIC;
+			if (field.isPrivate())
+				modifiers |= Const.ACC_PRIVATE;
+			else if (field.isProtected())
+				modifiers |= Const.ACC_PROTECTED;
+			else if (field.isPublic())
+				modifiers |= Const.ACC_PUBLIC;
+			return modifiers;
 		}
 
 		private void addGetterFor(Field field) {
@@ -285,7 +351,7 @@ class ClassInstrumentation {
 			il.append(factory.createGetField(className, field.getName(), type));
 			il.append(InstructionFactory.createReturn(type));
 
-			MethodGen getter = new MethodGen(PRIVATE_SYNTHETIC, type, Type.NO_ARGS, null, GETTER_PREFIX + field.getName(), className, il, cpg);
+			MethodGen getter = new MethodGen(modifiersFrom(field), type, Type.NO_ARGS, null, GETTER_PREFIX + field.getName(), className, il, cpg);
 			classGen.addMethod(getter.getMethod());
 		}
 
