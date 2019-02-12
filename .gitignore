@@ -5,6 +5,7 @@ takamaka_development/bin
 takamaka_runtime/bin
 takamaka_translator/bin
 voting/bin
+voting/dist
 coin/bin
 storage/bin
 crowd_funding/bin

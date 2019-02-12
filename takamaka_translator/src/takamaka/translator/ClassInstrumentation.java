@@ -23,6 +23,7 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.AnnotationEntryGen;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
@@ -41,6 +42,9 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import takamaka.blockchain.StorageReference;
+import takamaka.lang.Contract;
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
 import takamaka.lang.Storage;
 
 class ClassInstrumentation {
@@ -53,8 +57,14 @@ class ClassInstrumentation {
 	private final static String EXTRACT_UPDATES = "extractUpdates";
 	private final static String RECURSIVE_EXTRACT = "recursiveExtract";
 	private final static String ADD_UPDATES_FOR = "addUpdatesFor";
+	private final static String PAYABLE_ENTRY = "payableEntry";
+	private final static String ENTRY = "entry";
 	private final static String IN_STORAGE_NAME = "inStorage";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastUpdateFor";
+	private final static String ENTRY_CLASS_NAME_JB = 'L' + Entry.class.getName().replace('.', '/') + ';';
+	private final static String PAYABLE_CLASS_NAME_JB = 'L' + Payable.class.getName().replace('.', '/') + ';';
+	private final static String CONTRACT_CLASS_NAME = Contract.class.getName();
+	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
@@ -64,12 +74,15 @@ class ClassInstrumentation {
 	 */
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName).thenComparing(field -> field.getType().toString());
 
+	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
 	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
 	private final static Type[] THREE_STRINGS = new Type[] { ObjectType.STRING, ObjectType.STRING, ObjectType.STRING };
 	private final static Type[] EXTRACT_UPDATES_ARGS = new Type[] { SET_OT, SET_OT, LIST_OT };
 	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { ObjectType.STRING, ObjectType.STRING, SET_OT };
 	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, SET_OT, SET_OT, LIST_OT };
+	private final static Type[] ENTRY_ARGS = new Type[] { CONTRACT_OT };
+	private final static Type[] PAYABLE_ENTRY_ARGS = new Type[] { CONTRACT_OT, Type.INT };
 
 	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program) throws ClassFormatException, IOException {
 		LOGGER.fine(() -> "Instrumenting " + className);
@@ -106,6 +119,11 @@ class ClassInstrumentation {
 		private final boolean isStorage;
 
 		/**
+		 * True if and only if the class being instrumented is a contract class.
+		 */
+		private final boolean isContract;
+
+		/**
 		 * The non-transient instance fields of primitive type defined in the class being instrumented
 		 * and in its superclasses up to Storage (excluded). This is non-empty for storage classes only.
 		 */
@@ -130,6 +148,8 @@ class ClassInstrumentation {
 			this.factory = new InstructionFactory(cpg);
 			this.program = program;
 			this.isStorage = isStorage(className);
+			this.isContract = isContract(className);
+
 			if (isStorage)
 				collectPrimitiveNonTransientInstanceFieldsOf(className);
 
@@ -160,9 +180,75 @@ class ClassInstrumentation {
 		private Method instrument(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
 			replaceFieldAccessesWithAccessors(methodGen);
+			if (isContract && isEntry(methodGen))
+				instrumentEntry(methodGen);
+
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
 			return methodGen.getMethod();
+		}
+
+		private boolean isEntry(MethodGen method) {
+			return Stream.of(method.getAnnotationEntries())
+				.map(AnnotationEntryGen::getTypeName)
+				.anyMatch(ENTRY_CLASS_NAME_JB::equals);
+		}
+
+		private boolean isPayable(MethodGen method) {
+			return Stream.of(method.getAnnotationEntries())
+				.map(AnnotationEntryGen::getTypeName)
+				.anyMatch(PAYABLE_CLASS_NAME_JB::equals);
+		}
+
+		private void instrumentEntry(MethodGen method) {
+			// slotForCaller is the local variable used for the extra "caller" parameter;
+			// there is no need to shift the local variables one slot up, since the use
+			// of caller is limited to the prolog of the synthetic code
+			int slotForCaller = addCallerParameter(method);
+			setPayerAndBalance(method, slotForCaller);
+		}
+
+		private void setPayerAndBalance(MethodGen method, int slotForCaller) {
+			InstructionList il = method.getInstructionList();
+			boolean isPayable = isPayable(method);
+
+			if (isPayable) {
+				il.insert(factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, PAYABLE_ENTRY_ARGS, Const.INVOKESPECIAL));
+				il.insert(InstructionConst.ICONST_1);
+			}
+			else
+				il.insert(factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
+
+			il.insert(InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
+			il.insert(InstructionFactory.createThis());
+		}
+
+		/**
+		 * Adds an extra {@code caller} parameter to the given method.
+		 * 
+		 * @param method the method
+		 * @return the local variable used for the extra parameter
+		 */
+		private int addCallerParameter(MethodGen method) {
+			List<Type> args = new ArrayList<>();
+			int slotsForParameters = 0;
+			for (Type arg: method.getArgumentTypes()) {
+				args.add(arg);
+				slotsForParameters += arg.getSize();
+			}
+			args.add(CONTRACT_OT);
+			method.setArgumentTypes(args.toArray(Type.NO_ARGS));
+
+			String[] names = method.getArgumentNames();
+			if (names != null) {
+				List<String> namesAsList = new ArrayList<>();
+				for (String name: names)
+					namesAsList.add(name);
+				namesAsList.add("caller");
+				method.setArgumentNames(namesAsList.toArray(new String[namesAsList.size()]));
+			}
+
+			return slotsForParameters + 1;
 		}
 
 		/**
@@ -506,7 +592,7 @@ class ClassInstrumentation {
 		}
 
 		private boolean isStorage(String className) {
-			if (className.equals(Storage.class.getName()))
+			if (className.equals(STORAGE_CLASS_NAME))
 				return true;
 			else {
 				JavaClass clazz = program.get(className);
@@ -515,6 +601,20 @@ class ClassInstrumentation {
 				else {
 					String superclassName = clazz.getSuperclassName();
 					return superclassName != null && isStorage(superclassName);
+				}
+			}
+		}
+
+		private boolean isContract(String className) {
+			if (className.equals(CONTRACT_CLASS_NAME))
+				return true;
+			else {
+				JavaClass clazz = program.get(className);
+				if (clazz == null)
+					return false;
+				else {
+					String superclassName = clazz.getSuperclassName();
+					return superclassName != null && isContract(superclassName);
 				}
 			}
 		}
