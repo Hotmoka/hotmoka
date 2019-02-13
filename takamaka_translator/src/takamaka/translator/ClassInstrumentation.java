@@ -36,6 +36,7 @@ import org.apache.bcel.generic.InstructionConst;
 import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
@@ -160,7 +161,21 @@ class ClassInstrumentation {
 		}
 
 		private void instrumentClass() {
-			// local instrumentations
+			localInstrumentation();
+			globalInstrumentation();
+		}
+
+		private void globalInstrumentation() {
+			if (isStorage) {
+				addOldAndIfAlreadyLoadedFields();
+				addConstructorForDeserializationFromBlockchain();
+				addEnsureLoadedMethods();
+				addAccessorMethods();
+				addExtractUpdates();
+			}
+		}
+
+		private void localInstrumentation() {
 			Method[] methods = classGen.getMethods();
 
 			List<Method> instrumentedMethods =
@@ -171,15 +186,6 @@ class ClassInstrumentation {
 			int pos = 0;
 			for (Method instrumented: instrumentedMethods)
 				classGen.replaceMethod(methods[pos++], instrumented);
-
-			// global instrumentations
-			if (isStorage) {
-				addOldAndIfAlreadyLoadedFields();
-				addConstructorForDeserializationFromBlockchain();
-				addEnsureLoadedMethods();
-				addAccessorMethods();
-				addExtractUpdates();
-			}
 		}
 
 		/**
@@ -191,19 +197,59 @@ class ClassInstrumentation {
 		private Method instrument(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
 			replaceFieldAccessesWithAccessors(methodGen);
-			if (isContract && isEntry(method))
-				instrumentEntry(methodGen, isPayable(method));
+			addContractToCallsToEntries(methodGen);
+			if (isContract && isEntry(className, method.getName(), method.getSignature()))
+				instrumentEntry(methodGen, isPayable(className, method.getName(), method.getSignature()));
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
 			return methodGen.getMethod();
 		}
 
-		private boolean isEntry(Method method) {
-			return hasAnnotation(className, method, ENTRY_CLASS_NAME_JB);
+		private void addContractToCallsToEntries(MethodGen method) {
+			if (!method.isAbstract()) {
+				InstructionList il = method.getInstructionList();
+				List<InstructionHandle> callsToEntries =
+					StreamSupport.stream(il.spliterator(), false)
+						.filter(ih -> isCallToEntry(ih.getInstruction()))
+						.collect(Collectors.toList());
+
+				for (InstructionHandle ih: callsToEntries)
+					passContractToCallToEntry(il, ih);
+			}
 		}
 
-		private boolean hasAnnotation(String className, Method method, String annotationNameJB) {
+		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih) {
+			il.insert(ih, InstructionConst.ALOAD_0); // the calling contract must be inside "this"
+			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
+			Type[] args = invoke.getArgumentTypes(cpg);
+			Type[] argsWithContract = new Type[args.length + 1];
+			System.arraycopy(args, 0, argsWithContract, 0, args.length);
+			argsWithContract[args.length] = CONTRACT_OT;
+			InvokeInstruction replacement = factory.createInvoke
+					(invoke.getClassName(cpg), invoke.getMethodName(cpg),
+					invoke.getReturnType(cpg),
+					argsWithContract,
+					invoke.getOpcode());
+			ih.setInstruction(replacement);
+		}
+
+		private boolean isCallToEntry(Instruction instruction) {
+			if (instruction instanceof InvokeInstruction) {
+				InvokeInstruction invoke = (InvokeInstruction) instruction;
+				ReferenceType receiver = invoke.getReferenceType(cpg);
+				return receiver instanceof ObjectType &&
+					isEntry(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+			}
+			else
+				return false;
+		}
+
+		private boolean isEntry(String className, String methodName, String methodSignature) {
+			return hasAnnotation(className, methodName, methodSignature, ENTRY_CLASS_NAME_JB);
+		}
+
+		private boolean hasAnnotation(String className, String methodName, String methodSignature, String annotationNameJB) {
 			if (className.equals(OBJECT_CLASS_NAME))
 				return false;
 
@@ -212,24 +258,28 @@ class ClassInstrumentation {
 				return false;
 
 			Optional<Method> definition = Stream.of(clazz.getMethods())
-				.filter(m -> m.getName().equals(method.getName()))
-				.filter(m -> m.getSignature().equals(method.getSignature()))
+				.filter(m -> m.getName().equals(methodName))
+				.filter(m -> m.getSignature().equals(methodSignature))
 				.findAny();
 
-			if (definition.isPresent() &&
-				Stream.of(definition.get().getAnnotationEntries())
+			if (definition.isPresent()) {
+				if (Stream.of(definition.get().getAnnotationEntries())
 					.map(AnnotationEntry::getAnnotationType)
 					.anyMatch(annotationNameJB::equals))
-				return true;
+					return true;
 
-			return !method.isPrivate() && !method.getName().equals(Const.CONSTRUCTOR_NAME) &&
-				(hasAnnotation(clazz.getSuperclassName(), method, annotationNameJB) ||
+				if (definition.get().isPrivate())
+					return false;
+			}
+
+			return !methodName.equals(Const.CONSTRUCTOR_NAME) &&
+				(hasAnnotation(clazz.getSuperclassName(), methodName, methodSignature, annotationNameJB) ||
 				 Stream.of(clazz.getInterfaceNames())
-					.anyMatch(_interface -> hasAnnotation(_interface, method, annotationNameJB)));
+					.anyMatch(_interface -> hasAnnotation(_interface, methodName, methodSignature, annotationNameJB)));
 		}
 
-		private boolean isPayable(Method method) {
-			return hasAnnotation(className, method, PAYABLE_CLASS_NAME_JB);
+		private boolean isPayable(String className, String methodName, String methodSignature) {
+			return hasAnnotation(className, methodName, methodSignature, PAYABLE_CLASS_NAME_JB);
 		}
 
 		private void instrumentEntry(MethodGen method, boolean isPayable) {
