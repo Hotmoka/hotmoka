@@ -205,7 +205,8 @@ class ClassInstrumentation {
 			// there is no need to shift the local variables one slot up, since the use
 			// of caller is limited to the prolog of the synthetic code
 			int slotForCaller = addCallerParameter(method);
-			setPayerAndBalance(method, slotForCaller);
+			if (!method.isAbstract())
+				setPayerAndBalance(method, slotForCaller);
 		}
 
 		private void setPayerAndBalance(MethodGen method, int slotForCaller) {
@@ -257,10 +258,12 @@ class ClassInstrumentation {
 		 * @param method the method where the replacement occurs
 		 */
 		private void replaceFieldAccessesWithAccessors(MethodGen method) {
-			InstructionList il = method.getInstructionList();
-			StreamSupport.stream(il.spliterator(), false)
+			if (!method.isAbstract()) {
+				InstructionList il = method.getInstructionList();
+				StreamSupport.stream(il.spliterator(), false)
 				.filter(ih -> isAccessToReferenceFieldInStorageClass(ih.getInstruction()))
 				.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
+			}
 		}
 
 		private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) {

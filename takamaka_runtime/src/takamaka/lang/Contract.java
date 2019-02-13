@@ -6,7 +6,7 @@ import takamaka.util.StorageList;
 
 public abstract class Contract extends Storage {
 	private int balance;
-	private transient Contract payer;
+	private transient Contract caller;
 	private final StorageList<String> logs = new StorageList<>();
 
 	protected final void require(boolean condition, String message) {
@@ -25,18 +25,18 @@ public abstract class Contract extends Storage {
 		whom.balance += amount;
 	}
 
-	protected final void entry(Contract payer) {
-		require(this != payer, "@Entry can only be called from a distinct contract object");
-		this.payer = payer;
+	protected final void entry(Contract caller) {
+		require(this != caller, "@Entry can only be called from a distinct contract object");
+		this.caller = caller;
 	}
 
-	protected final void payableEntry(Contract payer, int amount) {
-		entry(payer);
-		payer.pay(this, amount);
+	protected final void payableEntry(Contract caller, int amount) {
+		entry(caller);
+		caller.pay(this, amount);
 	}
 
-	protected final Contract payer() {
-		return payer;
+	protected final Contract caller() {
+		return caller;
 	}
 
 	protected final void log(String tag, Object... objects) {

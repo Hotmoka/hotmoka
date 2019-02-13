@@ -17,7 +17,7 @@ public class Ballot extends Contract {
 	private final StorageList<Proposal> proposals = new StorageList<>();
 
 	public @Entry Ballot(String[] proposalNames) {
-		chairperson = payer();
+		chairperson = caller();
 		VotingPaper votingPaper = new VotingPaper();
 		votingPaper.giveRightToVote(); // the chairperson has right to vote
 		papers.put(chairperson, votingPaper);
@@ -28,7 +28,7 @@ public class Ballot extends Contract {
 	}
 
 	public @Entry void giveRightToVote(Contract to) {
-		require(payer() == chairperson, "Only the chairperson can give right to vote");
+		require(caller() == chairperson, "Only the chairperson can give right to vote");
 		VotingPaper paper = papers.get(to);
 		require(!paper.hasVoted(), "You already voted");
 		require(!paper.hasRightToVote(), "You already have right to vote.");
@@ -45,11 +45,11 @@ public class Ballot extends Contract {
 	public @Entry void delegate(Contract to) {
 		VotingPaper delegatedPaper = papers.get(to);
 		require(delegatedPaper.hasRightToVote(), "Your delegated has no right to vote.");
-		getVotingPaper(payer()).delegateTo(payer(), to);
+		getVotingPaper(caller()).delegateTo(caller(), to);
 	}
 
 	public @Entry void voteFor(int proposalIndex) {
-		getVotingPaper(payer()).voteFor(proposalIndex);
+		getVotingPaper(caller()).voteFor(proposalIndex);
     }
 
 	private int indexOfWinningProposal() {

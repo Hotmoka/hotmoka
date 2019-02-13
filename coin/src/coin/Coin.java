@@ -11,20 +11,20 @@ public class Coin extends Contract {
 	private final StorageMap<Contract, BigInteger> balances = new StorageMap<>(__ -> BigInteger.ZERO);
 
 	public @Entry Coin() {
-		minter = payer();
+		minter = caller();
     }
 
 	public @Entry void mint(Contract receiver, int amount) {
-        require(payer() == minter, "Only the minter can mint new coins");
+        require(caller() == minter, "Only the minter can mint new coins");
         require(amount < 1000, "You can mint up to 1000 coins at a time");
         balances.put(receiver, balances.get(receiver).add(BigInteger.valueOf(amount)));
     }
 
 	public @Entry void send(Contract receiver, int amount) {
 		BigInteger amountAsBigInteger = BigInteger.valueOf(amount);
-		require(balances.get(payer()).compareTo(amountAsBigInteger) <= 0, "Insufficient balance.");
-		balances.put(payer(), balances.get(payer()).subtract(amountAsBigInteger));
+		require(balances.get(caller()).compareTo(amountAsBigInteger) <= 0, "Insufficient balance.");
+		balances.put(caller(), balances.get(caller()).subtract(amountAsBigInteger));
         balances.put(receiver, balances.get(receiver).add(amountAsBigInteger));
-        log("Send", payer(), receiver, amount);
+        log("Send", caller(), receiver, amount);
     }
 }

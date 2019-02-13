@@ -15,7 +15,7 @@ public class Purchase extends Contract {
     // Ensure that `msg.value` is an even number.
 	public @Payable @Entry Purchase(int amount) {
 		require(amount % 2 == 0, "You must deposit an even amount of money.");
-		seller = payer();
+		seller = caller();
         value = amount / 2;
         state = State.Created;
     }
@@ -35,7 +35,7 @@ public class Purchase extends Contract {
     /// Abort the purchase and reclaim the money.
     /// Can only be called by the seller before the contract is locked.
 	public @Entry void abort() {
-        isSeller(payer());
+        isSeller(caller());
         inState(State.Created);
         log("Aborted.");
         state = State.Inactive;
@@ -49,14 +49,14 @@ public class Purchase extends Contract {
         inState(State.Created);
         require(amount == 2 * value);
         log("Purchase confirmed.");
-        buyer = payer();
+        buyer = caller();
         state = State.Locked;
     }
 
     /// Confirm that you (the buyer) received the item.
     /// This will release the locked money of both parties.
 	public @Entry void confirmReceived() {
-        isBuyer(payer());
+        isBuyer(caller());
         inState(State.Locked);
         log("Item received.");
         state = State.Inactive;

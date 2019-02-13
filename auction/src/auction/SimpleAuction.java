@@ -38,9 +38,9 @@ public class SimpleAuction extends Contract {
         	// pay cannot be redefined, hence there is no risk of reentrancy
         	pay(highestBidder, highestBid);
 
-        highestBidder = payer();
+        highestBidder = caller();
         highestBid = amount;
-        log("bid increased", payer(), amount);
+        log("bid increased", caller(), amount);
     }
 
     /// End the auction and send the highest bid to the beneficiary.

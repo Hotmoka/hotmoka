@@ -44,7 +44,7 @@ public class BlindAuction extends Contract {
     /// still make the required deposit. The same address can place multiple bids.
     public @Payable @Entry void bid(int amount, byte[] blindedBid) {
     	onlyBefore(biddingEnd);
-        bids.get(payer()).add(new Bid(blindedBid, amount));
+        bids.get(caller()).add(new Bid(blindedBid, amount));
     }
 
     private void onlyBefore(long when) {
@@ -61,7 +61,7 @@ public class BlindAuction extends Contract {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
 
-        StorageList<Bid> bids = this.bids.get(payer());
+        StorageList<Bid> bids = this.bids.get(caller());
         int length = bids.size();
         require(_values.length == length);
         require(_fake.length == length);
@@ -79,14 +79,14 @@ public class BlindAuction extends Contract {
                 continue;
 
             refund += bid.deposit;
-            if (!fake && bid.deposit >= value && placeBid(payer(), value))
+            if (!fake && bid.deposit >= value && placeBid(caller(), value))
             	refund -= value;
 
             // Make it impossible for the sender to re-claim the same deposit.
             bid.blindedBid = new byte[32];
         }
 
-        pay(payer(), refund);
+        pay(caller(), refund);
     }
 
     private boolean placeBid(Contract bidder, int value) {
