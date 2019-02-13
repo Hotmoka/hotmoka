@@ -13,6 +13,8 @@ crowd_funding/dist/
 auction/bin
 auction/dist/
 remote_purchase/bin
+test_contracts/bin
+test_contracts/dist/
 takamaka_translator/test_jars/*
 takamaka_runtime/dist/
 *.aux
