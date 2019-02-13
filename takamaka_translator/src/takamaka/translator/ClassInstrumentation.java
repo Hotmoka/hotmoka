@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -18,12 +19,12 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
-import org.apache.bcel.generic.AnnotationEntryGen;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
@@ -93,6 +94,8 @@ class ClassInstrumentation {
 
 	private class Initializer {
 
+		private static final String OBJECT_CLASS_NAME = "java.lang.Object";
+
 		/**
 		 * The class that is being instrumented.
 		 */
@@ -158,8 +161,16 @@ class ClassInstrumentation {
 
 		private void instrumentClass() {
 			// local instrumentations
-			Stream.of(classGen.getMethods())
-				.forEach(method -> classGen.replaceMethod(method, instrument(method)));
+			Method[] methods = classGen.getMethods();
+
+			List<Method> instrumentedMethods =
+				Stream.of(methods)
+					.map(this::instrument)
+					.collect(Collectors.toList());
+
+			int pos = 0;
+			for (Method instrumented: instrumentedMethods)
+				classGen.replaceMethod(methods[pos++], instrumented);
 
 			// global instrumentations
 			if (isStorage) {
@@ -180,42 +191,62 @@ class ClassInstrumentation {
 		private Method instrument(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
 			replaceFieldAccessesWithAccessors(methodGen);
-			if (isContract && isEntry(methodGen))
-				instrumentEntry(methodGen);
+			if (isContract && isEntry(method))
+				instrumentEntry(methodGen, isPayable(method));
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
 			return methodGen.getMethod();
 		}
 
-		private boolean isEntry(MethodGen method) {
-			return Stream.of(method.getAnnotationEntries())
-				.map(AnnotationEntryGen::getTypeName)
-				.anyMatch(ENTRY_CLASS_NAME_JB::equals);
+		private boolean isEntry(Method method) {
+			return hasAnnotation(className, method, ENTRY_CLASS_NAME_JB);
 		}
 
-		private boolean isPayable(MethodGen method) {
-			return Stream.of(method.getAnnotationEntries())
-				.map(AnnotationEntryGen::getTypeName)
-				.anyMatch(PAYABLE_CLASS_NAME_JB::equals);
+		private boolean hasAnnotation(String className, Method method, String annotationNameJB) {
+			if (className.equals(OBJECT_CLASS_NAME))
+				return false;
+
+			JavaClass clazz = program.get(className);
+			if (clazz == null)
+				return false;
+
+			Optional<Method> definition = Stream.of(clazz.getMethods())
+				.filter(m -> m.getName().equals(method.getName()))
+				.filter(m -> m.getSignature().equals(method.getSignature()))
+				.findAny();
+
+			if (definition.isPresent() &&
+				Stream.of(definition.get().getAnnotationEntries())
+					.map(AnnotationEntry::getAnnotationType)
+					.anyMatch(annotationNameJB::equals))
+				return true;
+
+			return !method.isPrivate() && !method.getName().equals(Const.CONSTRUCTOR_NAME) &&
+				(hasAnnotation(clazz.getSuperclassName(), method, annotationNameJB) ||
+				 Stream.of(clazz.getInterfaceNames())
+					.anyMatch(_interface -> hasAnnotation(_interface, method, annotationNameJB)));
 		}
 
-		private void instrumentEntry(MethodGen method) {
+		private boolean isPayable(Method method) {
+			return hasAnnotation(className, method, PAYABLE_CLASS_NAME_JB);
+		}
+
+		private void instrumentEntry(MethodGen method, boolean isPayable) {
 			// slotForCaller is the local variable used for the extra "caller" parameter;
 			// there is no need to shift the local variables one slot up, since the use
 			// of caller is limited to the prolog of the synthetic code
 			int slotForCaller = addCallerParameter(method);
 			if (!method.isAbstract())
-				setPayerAndBalance(method, slotForCaller);
+				setPayerAndBalance(method, slotForCaller, isPayable);
 		}
 
-		private void setPayerAndBalance(MethodGen method, int slotForCaller) {
+		private void setPayerAndBalance(MethodGen method, int slotForCaller, boolean isPayable) {
 			InstructionList il = method.getInstructionList();
-			boolean isPayable = isPayable(method);
 
 			if (isPayable) {
 				il.insert(factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, PAYABLE_ENTRY_ARGS, Const.INVOKESPECIAL));
-				il.insert(InstructionConst.ICONST_1);
+				il.insert(InstructionConst.ILOAD_1);
 			}
 			else
 				il.insert(factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
@@ -286,6 +317,10 @@ class ClassInstrumentation {
 		}
 
 		private void addExtractUpdates() {
+			if (primitiveNonTransientInstanceFields.getLast().isEmpty()
+					&& referenceNonTransientInstanceFields.isEmpty())
+				return;
+
 			InstructionList il = new InstructionList();
 			il.append(InstructionFactory.createThis());
 			il.append(InstructionConst.DUP);
@@ -520,11 +555,13 @@ class ClassInstrumentation {
 		private int addCallToSuper(InstructionList il) {
 			List<Type> argsForSuperclasses = new ArrayList<>();
 			il.append(InstructionFactory.createThis());
+			il.append(InstructionConst.ALOAD_1);
 			argsForSuperclasses.add(new ObjectType(StorageReference.class.getName()));
 		
 			// the fields of the superclasses are passed into a call to super(...)
 			class PushLoad implements Consumer<Type> {
-				private int local = 1;
+				// the first two slots are used for this and the storage reference
+				private int local = 2;
 		
 				@Override
 				public void accept(Type type) {
