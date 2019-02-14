@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -25,22 +26,33 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
+import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.GETFIELD;
+import org.apache.bcel.generic.GotoInstruction;
+import org.apache.bcel.generic.INVOKESPECIAL;
+import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
 import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
+import org.apache.bcel.generic.RET;
+import org.apache.bcel.generic.RETURN;
 import org.apache.bcel.generic.ReferenceType;
+import org.apache.bcel.generic.StackConsumer;
+import org.apache.bcel.generic.StackProducer;
+import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 import takamaka.blockchain.StorageReference;
@@ -293,16 +305,138 @@ class ClassInstrumentation {
 
 		private void setPayerAndBalance(MethodGen method, int slotForCaller, boolean isPayable) {
 			InstructionList il = method.getInstructionList();
+			InstructionHandle where = determineWhereToSetPayerAndBalance(il, method, slotForCaller);
+
+			il.insert(where, InstructionFactory.createThis());
+			il.insert(where, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
 
 			if (isPayable) {
-				il.insert(factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, PAYABLE_ENTRY_ARGS, Const.INVOKESPECIAL));
-				il.insert(InstructionConst.ILOAD_1);
+				il.insert(where, InstructionConst.ILOAD_1);
+				il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, PAYABLE_ENTRY_ARGS, Const.INVOKESPECIAL));
 			}
 			else
-				il.insert(factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
+				il.insert(where, factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
+		}
 
-			il.insert(InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
-			il.insert(InstructionFactory.createThis());
+		/**
+		 * Entries call {@code Contract.entry} or {@code Contract.payableEntry} at their beginning, to set the caller and
+		 * the balance of the called contract. In general, such call can be placed at the very beginning of the
+		 * code. The only problem is related to constructors, that require their code to start with a call
+		 * to a constructor of their superclass. In that case, this method finds the place where that
+		 * contractor of the superclass is called: after that, the call to {@code Contract.entry} or
+		 * {@code Contract.payableEntry} can be added.
+		 * 
+		 * @param il the list of instructions of the method
+		 * @param method the method
+		 * @param slotForCaller the local where the caller contract is passed to the method or constructor
+		 * @return the instruction before which the call to {@code Contract.entry} or {@code Contract.payableEntry} must be placed
+		 */
+		private InstructionHandle determineWhereToSetPayerAndBalance(InstructionList il, MethodGen method, int slotForCaller) {
+			InstructionHandle start = il.getStart();
+
+			if (method.getName().equals(Const.CONSTRUCTOR_NAME)) {
+				// we have to identify the call to the constructor of the superclass:
+				// the code of a constructor normally starts with an aload_0 whose value is consumed
+				// by a call to a constructor of the superclass. In the middle, slotForCaller is not expected
+				// to be modified. Note that this is the normal situation, as results from a normal
+				// Java compiler. In principle, the Java bytecode might instead do very weird things,
+				// including calling two constructors of the superclass at different places. In all such cases
+				// this method fails and rejects the code: such non-standard code is not supported by Takamaka
+				Instruction startInstruction = start.getInstruction();
+				if (startInstruction.getOpcode() == Const.ALOAD_0 ||
+						(startInstruction.getOpcode() == Const.ALOAD && ((LoadInstruction) startInstruction).getIndex() == 0)) {
+					Set<InstructionHandle> callsToConstructorsOfSuperclass = new HashSet<>();
+
+					class HeightAtBytecode {
+						private final InstructionHandle ih;
+						private final int stackHeightBeforeBytecode;
+
+						private HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
+							this.ih = ih;
+							this.stackHeightBeforeBytecode = stackHeightBeforeBytecode;
+						}
+
+						@Override
+						public String toString() {
+							return ih + " with " + stackHeightBeforeBytecode + " stack elements";
+						}
+
+						@Override
+						public boolean equals(Object other) {
+							return other instanceof HeightAtBytecode && ((HeightAtBytecode) other).ih == ih
+									&& ((HeightAtBytecode) other).stackHeightBeforeBytecode == stackHeightBeforeBytecode;
+						}
+
+						@Override
+						public int hashCode() {
+							return ih.getPosition() ^ stackHeightBeforeBytecode;
+						}
+					}
+
+					HeightAtBytecode seed = new HeightAtBytecode(start.getNext(), 1);
+					Set<HeightAtBytecode> seen = new HashSet<>();
+					seen.add(seed);
+					List<HeightAtBytecode> workingSet = new ArrayList<>();
+					workingSet.add(seed);
+
+					do {
+						HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
+						int stackHeightAfterBytecode = current.stackHeightBeforeBytecode;
+						Instruction bytecode = current.ih.getInstruction();
+
+						if (bytecode instanceof StoreInstruction) {
+							int modifiedLocal = ((StoreInstruction) bytecode).getIndex();
+							int size = ((StoreInstruction) bytecode).getType(cpg).getSize();
+							if (modifiedLocal == slotForCaller || (size == 2 && modifiedLocal == slotForCaller - 1))
+								throw new RuntimeException("Unexpected modification of local " + slotForCaller + " before initialization of " + className);
+						}
+
+						if (bytecode instanceof StackProducer)
+							stackHeightAfterBytecode += ((StackProducer) bytecode).produceStack(cpg);
+						if (bytecode instanceof StackConsumer)
+							stackHeightAfterBytecode -= ((StackConsumer) bytecode).consumeStack(cpg);
+
+						if (stackHeightAfterBytecode == 0) {
+							// found a consumer of the aload_0: is it really a call to a constructor of the superclass?
+							if (bytecode instanceof INVOKESPECIAL && ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(classGen.getSuperclassName())
+									&& ((INVOKESPECIAL) bytecode).getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
+								callsToConstructorsOfSuperclass.add(current.ih);
+							else
+								throw new RuntimeException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
+						}
+						else if (bytecode instanceof GotoInstruction) {
+							HeightAtBytecode added = new HeightAtBytecode(((GotoInstruction) bytecode).getTarget(), stackHeightAfterBytecode);
+							if (seen.add(added))
+								workingSet.add(added);
+						}
+						else if (bytecode instanceof IfInstruction) {
+							HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
+							if (seen.add(added))
+								workingSet.add(added);
+							added = new HeightAtBytecode(((IfInstruction) bytecode).getTarget(), stackHeightAfterBytecode);
+							if (seen.add(added))
+								workingSet.add(added);
+						}
+						else if (bytecode instanceof BranchInstruction || bytecode instanceof ATHROW || bytecode instanceof RETURN || bytecode instanceof RET)
+							throw new RuntimeException("Unexpected instruction " + bytecode + " before initialization of " + className);
+						else {
+							HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
+							if (seen.add(added))
+								workingSet.add(added);
+						}
+					}
+					while (!workingSet.isEmpty());
+
+					if (callsToConstructorsOfSuperclass.size() == 1)
+						return callsToConstructorsOfSuperclass.iterator().next().getNext();
+					else
+						throw new RuntimeException("Cannot identify single call to constructor of superclass inside a constructor ot " + className);
+				}
+				else
+					throw new RuntimeException("Constructor of " + className + " does not start with aload 0");
+			}
+			else
+				return start;
 		}
 
 		/**
