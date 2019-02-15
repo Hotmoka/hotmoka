@@ -129,8 +129,9 @@ draining \$50M from an Ethereum smart contract.
 This article presents a framework for smart contracts, with these advantages:
 %
 \begin{itemize}
-\item it allows one to use the Java programming language and its
-  large toolbelt for writing
+\item it allows one to use the Java programming language. its
+  large toolbelt and its features (exception handling, inner classes, lambda expressions,
+  method references, generics\ldots) for writing
   smart contracts. Java is a well-known language, which reduces
   the learning curve for new programmers of smart contracts;
 \item it minimizes the difference between storage and memory
@@ -142,7 +143,7 @@ This article presents a framework for smart contracts, with these advantages:
   new forms of communication between contracts and the
   development of real libraries in blockchain;
 \item it allows clients to run smart contracts in the Java Virtual
-  Machine, a reliable and highly optimised tool, implementing the most advanced
+  Machine (JVM), a reliable and highly optimised tool, implementing the most advanced
   techniques for fast execution of bytecode and for garbage
   collection~\cite{LindholmYBB14}.
 \end{itemize}
@@ -184,7 +185,7 @@ is not, as well as most methods from the reflection API that
 could be used to circumvent the white-list.
 Methods for concurrency are not white-listed since they could lead to
 non-determinism. Methods that access files or network are
-not white-listed, since their behaviour is client-dependent.
+not white-listed, since their behaviour is client-dependent and might hang.
 Currently, programmers cannot use static fields nor put arrays in storage classes.
 
 Takamaka software is written, verified and executed as follows:
@@ -312,7 +313,7 @@ It allows one to
 start a new campaign (method \<newCampaign>), that keeps in its
 list of campaigns
 (line~\ref{line:storage_list}). That list uses Takamaka's
-\<StorageList> class, that extends \<Storage> and can then be persisted to blockchain.
+\<StorageList> generic class, that extends \<Storage> and can then be persisted to blockchain.
 One can contribute to a campaign (\<contribute>),
 by specifying its progressive identifier,
 and can check if the goal of a campaign has been reached
@@ -438,7 +439,7 @@ field \<f2> of $r$, reflecting the history of the object,
 but only the latest update $\langle r,\<f2>,42\rangle$ is used.
 Reference fields, such as \<f1>, are lazily loaded, instead. Hence, \<f1> initially holds
 \<null> in RAM.
-As the transaction proceeds, in RAM and inside the Java Virtual Machine, and
+As the transaction proceeds, in RAM and inside the JVM, and
 as soon as the computation needs \<f1>,
 it gets assigned a heap reference $h'$ corresponding to the
 storage reference $r'$, since
@@ -539,13 +540,13 @@ recursively\footnote{The actual implementation of Takamaka allows storage object
   and \<java.math.BigInteger> as well, but this
   is not explained in this article, for simplicity.}, or class \<java.lang.Object>.
 The latter is used to support Java generics, that are erased into \<java.lang.Object>.
-However, Takamaka will check at run time that such objects hava actually storage class
+However, Takamaka will check at run time that such objects actually have storage class
 (see later, method \<recursiveExtract>).
 Class \<takamaka.lang.Storage> implements the basic machinery for keeping track of the
 storage reference of its instances. Namely, a storage object $o$,
 when in RAM, can be the deserialisation
 of an object $o'$ already persisted to blockchain, in which case its
-\<onStorage> field holds true and its
+\<inStorage> field holds true and its
 \<storageReference> field holds the storage
 reference to $o'$ (Fig.~\ref{fig:transaction}). But $o$ might instead be a brand new
 storage object, instantiated during the transaction being executed,
@@ -722,7 +723,7 @@ bytecodes \<getfield C.f1:D> with \<invokevirtual C.getF1():D>, and
 After the transformation, the only accesses to \<f1> occur inside \<getF1/putF1>.
 Note that \<putF1> must call \<ensureLoadedF1>, or otherwise the
 previous value \<oldF1> will not be set and updates to reachable locations
-will not be serialized later and will be lost.
+will not be serialised later and will be lost.
 
 The synthetic method \<extractUpdates> collects fields of \<this> updated after its creation
 and recurs on their value.
@@ -751,7 +752,7 @@ they will appear to have been reset.
 
 The introduction of fields, constructor and methods to storage classes
 might lead to name clashes if, for instance, a field named \<oldF1> already
-existed. To avoid this, the actual instrumentation will use
+existed. To avoid this, the actual instrumentation uses
 names that are illegal as Java identifiers but legal as Java bytecode identifiers.
 The details are irrelevant here.
 
@@ -829,7 +830,7 @@ by the serialisation mechanism of Sec.~\ref{sec:storage_classes}.
 The same happens for field \<logs> (line~\ref{line:logs_field}),
 that stores a list of logs
 populated by method \<log> (line~\ref{line:log_method}).
-Methods \<require> can be used to check for specific conditions from inside a contract.
+Method \<require> can be used to check for specific conditions from inside a contract.
 
 Takamaka calls method \<entry> (line~\ref{line:entry_method}) when an \<@Entry>
 of a contract is called from another contract object. Similarly, Takamaka calls
@@ -881,9 +882,9 @@ Takamaka verifies that it actually has a first formal parameter of type \<int>
 \section{Gas}\label{sec:gas}
 
 A transaction starts when a paying contract calls
-a public constructor or method of another contract.
+an entry of another contract.
 The caller must specify an amount of gas for the transaction.
-Takamaka will run the code of the constructor or method, withdrawing money
+Takamaka will run the code of the entry, withdrawing money
 from the paying contract, on the basis of the actual gas consumed
 during the execution of the code. If all gas is consumed before the end of
 the transaction, an unchecked \<takamaka.lang.OutOfGasException> is thrown.
@@ -895,12 +896,12 @@ the gas available for the transaction. If the gas becomes negative,
 on the instruction being instrumented, so that instructions of different
 execution cost can have different gas cost.
 
-Exceptions \<OutOfGasException>s cannot be caught:
+\<OutOfGasException>s cannot be caught:
 Takamaka extends every exception table in the code with an
 extra, initial handler for \<OutOfGasException>, that
-simply rethrows the exception.
+simply rethrows it.
 This prevents possible DOS attacks, that might catch the \<OutOfGasException>
-and lead to the execution of an infinite loop when the gas expires.
+and lead into an infinite loop when the gas expires.
 
 \section{Instrumentation and Code Verification}\label{sec:instrumentation}
 
@@ -941,7 +942,7 @@ Java library are called in the jars being installed in blockchain.
 \section{Conclusion}\label{sec:conclusion}
 
 The framework described in this article allows programmers
-to use of a well-known
+to use a well-known
 and modern programming language for developing smart contracts
 for blockchain.
 It allows one to use the large and well-known toolbelt available for Java.
@@ -952,7 +953,7 @@ objects, particulalry in the web, was at the same origin of the language and of 
 security primitives. Takamaka exploits the dynamic linking of jars and the
 verification guarantees of the JVM. However, it does not use the security capabilities of Java
 for web development, such as the sandbox approach for applets: white-listed methods are
-much more restrictive than the same sandbox. Moreover, Java provides object serialization
+much more restrictive than the same sandbox. Moreover, Java provided object serialization
 from its very beginning. This is not used (and black-listed) in Takamaka. Instead, Takamaka
 uses a specialized technique that serializes object updates only, to support blockchain scalability.
 
@@ -974,6 +975,24 @@ Aion~\cite{aion} has also support for smart contracts written in Java.
 The only example we could find~\cite{aion_example_contract} does not allow us to understand the real
 features of such contracts, but Aion's technology is evolving quickly.
 
+Takamaka has been devised to provide the standard security guarantees of
+a smart contract: determinism, since only white-listed library methods can be
+executed; termination, since gas is metered and the \<OutOfGasException> cannot
+be caught; and isolation, since the JVM enforces that Java's visibility
+modifiers are honored. Public data can instead be read with a blockchain
+explorer, since it is not natively encrypted. As in Ethereum, privacy can only be enforced
+by writing smart contracts that explicitly encrypt data.
+
+Scalability is a crucial aspect of blockchains. Compared to the Ethereum blockchain,
+Takamaka uses the JVM, that is more optimised than the EVM, but is also
+more heavy-weight at start-up. It is not sensible to start a JVM for each transaction.
+Instead, a single JVM must execute all transactions, sequentially or concurrently,
+as already proved possible by Aion. Another aspect of scalability is the size of the
+blockchain itself. A distinguishing feature of Takamaka is that it
+stores only the updates to storage objects. This should reduce the size of the blockchain,
+compared to solutions, such as Ethereum, that store the whole state resulting at the end of
+a transaction.
+
 The implementation of the framework requires the blockchain to be
 equipped with primitives to serialise and deserialise storage objects
 (Sec.~\ref{sec:storage}). Hence, it cannot be immediately implemented on
@@ -981,23 +1000,6 @@ the Ethereum blockchain. Our project continues now with the
 implementation of a blockchain that provides such primitives
 and with the actual evaluation of the framework.
 
-Takamaka has been devised to provide the standard security guarantees of
-a smart contract: determinism, since only white-listed library methods can be
-executed; termination, since gas is metered and the \<OutOfGasException> cannot
-be caught; and isolation, since the Java Virtual Machine enforces that Java's visibility
-modifiers are honored. Public data can instead be read with a blockchain
-explorer, since it is not natively encrypted. As in Ethereum, privacy can only be enforced
-by writing smart contracts that explicitly encrypt data.
-
-Scalability is a crucial aspect of blockchains. Compared to the Ethereum blockchain,
-Takamaka uses the JVM, that is more optimised than the Ethereum virtual machine, but is also
-more heavy-weight at start-up. It will not be possible to start a JVM for each transaction.
-Instead, a single JVM must execute all transactions, sequentially or concurrently,
-as already proved possible by Aion. Another aspect of scalability is the size of the
-blockchain itself. A distinguishing feature of Takamaka is that it
-stores only the updates to storage objects. This should reduce the size of the blockchain,
-compared to solutions, such as Ethereum, that store the whole state resulting at the end of
-a transaction.
 
 %\begin{center}
 %  \includegraphics[width=0.8\linewidth]{barrage_takamaka_1.jpg}
