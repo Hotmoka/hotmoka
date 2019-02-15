@@ -1,11 +1,12 @@
 package takamaka.lang;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 
 import takamaka.util.StorageList;
 
 public abstract class Contract extends Storage {
-	private int balance;
+	private BigInteger balance;
 	private transient Contract caller;
 	private final StorageList<String> logs = new StorageList<>();
 
@@ -14,15 +15,13 @@ public abstract class Contract extends Storage {
 			throw new RuntimeException(message);
 	}
 
-	protected final void require(boolean condition) {
-		require(condition, "");
-	}
-
 	protected final void pay(Contract whom, int amount) {
 		require(whom != null, "destination contract cannot be null");
-		require(balance < amount, "insufficient funds");
-		balance -= amount;
-		whom.balance += amount;
+		require(amount >= 0, "payed amount cannot be negative");
+		BigInteger amountAsBI = BigInteger.valueOf(amount);
+		require(balance.compareTo(amountAsBI) < 0, "insufficient funds");
+		balance = balance.subtract(amountAsBI);
+		whom.balance = whom.balance.add(amountAsBI);
 	}
 
 	protected final void entry(Contract caller) {
@@ -43,7 +42,7 @@ public abstract class Contract extends Storage {
 		logs.add(tag + ": " + Arrays.toString(objects));
 	}
 
-	protected final int balance() {
+	protected final BigInteger balance() {
 		return balance;
 	}
 }

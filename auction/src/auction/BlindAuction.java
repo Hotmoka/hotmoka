@@ -63,9 +63,9 @@ public class BlindAuction extends Contract {
 
         StorageList<Bid> bids = this.bids.get(caller());
         int length = bids.size();
-        require(_values.length == length);
-        require(_fake.length == length);
-        require(_secret.length == length);
+        require(_values.length == length, "inconsistent parameters size");
+        require(_fake.length == length, "inconsistent parameters size");
+        require(_secret.length == length, "inconsistent parameters size");
 
         int refund = 0;
         for (int i = 0; i < length; i++) {
@@ -106,7 +106,7 @@ public class BlindAuction extends Contract {
     /// End the auction and send the highest bid to the beneficiary.
     public void auctionEnd() {
         onlyAfter(revealEnd);
-        require(!ended);
+        require(!ended, "auction is already ended");
         log("Auction end.", highestBidder, highestBid);
         ended = true;
         pay(beneficiary, highestBid);

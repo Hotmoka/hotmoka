@@ -47,7 +47,7 @@ public class Purchase extends Contract {
     /// The money will be locked until confirmReceived is called.
 	public @Payable @Entry void confirmPurchase(int amount) {
         inState(State.Created);
-        require(amount == 2 * value);
+        require(amount == 2 * value, "amount must be twice as value");
         log("Purchase confirmed.");
         buyer = caller();
         state = State.Locked;

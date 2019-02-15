@@ -72,8 +72,8 @@ involved state transitions
 of a sort of \emph{world computer}, as in Ethereum.
 In the latter case, data structures, that form the state of \emph{contracts},
 are held in blockchain in successive versions,
-stored after each transaction. In both cases, transactions are
-programmed in a programming language that specifies their prerequisites
+stored after each transaction. In both cases, the semantics of transactions is
+given in a programming language that specifies prerequisites
 and outcome. Bitcoin uses a limited, low-level,
 Turing incomplete bytecode language that focus
 on cryptographic primitives, has no loops and
@@ -147,9 +147,11 @@ This article presents a framework for smart contracts, with these advantages:
   collection~\cite{LindholmYBB14}.
 \end{itemize}
 %
-This article describes the working principles of the framework. Instead,
-its actual implementation
-is starting now and will be subject of future work.
+This article describes the working principles of what can be described as a Java framework
+since it uses Java and its toolbelt as development language for smart contracts.
+Instead, its actual implementation
+is starting now and will be subject of future work, together with the evaluation of its actual
+usefulness and scalability.
 
 Sec.~\ref{sec:takamaka} introduces
 the framework, with an example of a Java smart contract,
@@ -225,7 +227,8 @@ every transaction).
 
 What follows is an example of a crowdfunding contract written in
 Takamaka,
-rephrased from a Solidity example~\cite{solidity}.
+literally translated from a Solidity example~\cite{solidity_crowd_funding},
+for comparison.
 It allows funders to support a campaign.
 Once a threshold has been reached,
 funds can be unlocked for that campaign.
@@ -261,12 +264,14 @@ The second class is \<CrowdFunding.java>:
   public class CrowdFunding extends Contract {
     private final StorageList<Campaign> campaigns = new StorageList<>();  §\label{line:storage_list}§
 
-    public void newCampaign(Contract beneficiary, int goal) {
+    public int newCampaign(Contract beneficiary, int goal) {
+      int campaignId = campaigns.size();
       campaigns.add(new Campaign(beneficiary, goal));
+      return campaignId;
     }
 
     public @Payable @Entry void contribute(int amount, int campaignID) {  §\label{line:payable}§
-      campaigns.elementAt(campaignID).addFunder(payer(), amount);
+      campaigns.elementAt(campaignID).addFunder(caller(), amount);
     }
 
     public boolean checkGoalReached(int campaignID) {
@@ -323,21 +328,22 @@ persisted to blockchain.
 
 Line~\ref{line:payable} shows a \<@Payable @Entry> contract method.
 When a contract calls an \<@Entry> method or constructor of another contract,
-it becomes its payer and can send money along.
-Takamaka checks that \<@Entry> methods belong
-to classes that extend \<takamaka.lang.Contract> and that they
-are only called from a distinct contract object.
+it becomes its caller and can send money along.
+Takamaka checks (statically) that \<@Entry> methods belong
+to classes that extend \<takamaka.lang.Contract> and (dynamically, see method
+\<entry> in Sec.~\ref{sec:contract})
+that they are only called from a distinct contract object.
 Inside \<@Entry> methods or constructors, it is possible to call method
-\<payer>, that returns the calling contract.
+\<caller>, that returns the calling contract.
 In general, a programmer will use \<@Entry> when she needs to identify
 the calling contract of a method, or when she wants to receive money from it.
 Namely, the annotation \<@Payable> can only be added to an \<@Entry> method or constructor.
-It means that the contract receives money from the \<payer> contract.
+It means that the contract receives money from the \<caller> contract.
 In our example, if another contract calls \<contribute>, it must specify an amount
 of money for the crowdfunding contract, through
 the \<int> first parameter of \<contribute>.
 Takamaka automatically transfers
-that money from \<payer> to the destination contract, at call time.
+that money from \<caller> to the destination contract, at call time.
 
 Takamaka applications, in jar format, are stored in blockchain. Namely, a
 transaction can store a jar with references to its dependencies, if any.
@@ -527,7 +533,14 @@ of a container object whose storage reference is $r$, as follows:
 
 Storage classes extend class \<takamaka.lang.Storage>.
 Since only such classes can be persisted to blockchain, it follows
-that the their instance fields must be primitive or have storage class, recursively.
+that the their instance fields must be primitive or have storage class,
+recursively\footnote{The actual implementation of Takamaka allows storage objects to have fields
+  that hold instances of type \<java.lang.String>
+  and \<java.math.BigInteger> as well, but this
+  is not explained in this article, for simplicity.}, or class \<java.lang.Object>.
+The latter is used to support Java generics, that are erased into \<java.lang.Object>.
+However, Takamaka will check at run time that such objects hava actually storage class
+(see later, method \<recursiveExtract>).
 Class \<takamaka.lang.Storage> implements the basic machinery for keeping track of the
 storage reference of its instances. Namely, a storage object $o$,
 when in RAM, can be the deserialisation
@@ -597,6 +610,9 @@ fields that belong to the state of a storage object: subclasses will
 the superclass only stores the class tag of the object, if it is not
 yet in storage (line~\ref{line:setClassTag}). This class tag will be
 used later, if the object will ever be deserialised (Sec.~\ref{sec:storage}).
+Note that subsequent uses will use the previous stored class tag
+and that programmers have no primitive to store updates in the blockchain. Hence,
+objects cannot change class overtime.
 
 Programmers write storage classes as
 perfectly normal Java classes that extend \<takamaka.lang.Storage>.
@@ -704,14 +720,18 @@ replaces, at lines~\ref{line:instrumented1} and~\ref{line:instrumented2},
 bytecodes \<getfield C.f1:D> with \<invokevirtual C.getF1():D>, and
 \<putfield C.f1:D> with \<invokevirtual C.putF1():void>~\cite{LindholmYBB14}.
 After the transformation, the only accesses to \<f1> occur inside \<getF1/putF1>.
+Note that \<putF1> must call \<ensureLoadedF1>, or otherwise the
+previous value \<oldF1> will not be set and updates to reachable locations
+will not be serialized later and will be lost.
 
 The synthetic method \<extractUpdates> collects fields of \<this> updated after its creation
 and recurs on their value.
 If \<this> was created during the transaction,
 then it was not \<inStorage> and the values of \emph{all}
-its fields is persisted.
+its fields are persisted.
 Otherwise, only its fields that changed their value since deserialisation
-must be persisted.
+must be persisted. Note that Java does not allow programmers to redefine the
+semantics of \<==>, hence \<extractUpdates> will identify all updates.
 Method \<extractUpdates> recurs on both the current value of reference fields
 (line~\ref{line:recursion1})
 and their original value in blockchain (line~\ref{line:recursion2}).
@@ -758,8 +778,8 @@ The superclass of all contracts tracks its balance and supports logging:
 %
 \begin{lstlisting}
 public abstract class Contract extends Storage {
-  private int balance; §\label{line:balance_field}§
-  private transient Contract payer; // not kept in blockchain  §\label{line:payer_field}§
+  private BigInteger balance; §\label{line:balance_field}§
+  private transient Contract caller; // not kept in blockchain  §\label{line:caller_field}§
   private final StorageList<String> logs = new StorageList<>(); §\label{line:logs_field}§
 
   protected final void require(boolean condition, String message) {
@@ -767,36 +787,34 @@ public abstract class Contract extends Storage {
       throw new RuntimeException(message);
   }
 
-  protected final void require(boolean condition) {
-    require(condition, "");
-  }
-
   protected final void pay(Contract whom, int amount) { §\label{line:pay_method}§
     require(whom != null, "destination contract cannot be null");
-    require(balance < amount, "insufficient funds");
-    balance -= amount;
-    whom.balance += amount;
+    require(amount >= 0, "payed amount cannot be negative");
+    BigInteger amountAsBI = BigInteger.valueOf(amount);
+    require(balance.compareTo(amountAsBI) < 0, "insufficient funds");
+    balance = balance.subtract(amountAsBI);
+    whom.balance = whom.balance.add(amountAsBI);
   }
 
-  protected final void entry(Contract payer) { §\label{line:entry_method}§
-    require(this != payer, "@Entry must be called by a distinct object");
-    this.payer = payer;
+  protected final void entry(Contract caller) { §\label{line:entry_method}§
+    require(this != caller, "@Entry must be called by a distinct object");
+    this.caller = caller;
   }
 
-  protected final void payableEntry(Contract payer, int amount) { §\label{line:payableEntry_method}§
-    entry(payer);
-    payer.pay(this, amount);
+  protected final void payableEntry(Contract caller, int amount) { §\label{line:payableEntry_method}§
+    entry(caller);
+    caller.pay(this, amount);
   }
 
-  protected final Contract payer() {
-    return payer;
+  protected final Contract caller() {
+    return caller;
   }
 
   protected final void log(String tag, Object... objects) { §\label{line:log_method}§
     logs.add(tag + ": " + Arrays.toString(objects));
   }
 
-  protected final int balance() { §\label{line:balance_method}§
+  protected final BigInteger balance() { §\label{line:balance_method}§
     return balance;
   }
 }
@@ -817,8 +835,8 @@ Takamaka calls method \<entry> (line~\ref{line:entry_method}) when an \<@Entry>
 of a contract is called from another contract object. Similarly, Takamaka calls
 \<payableEntry> (line~\ref{line:payableEntry_method}) when a \<@Payable @Entry> method is called.
 Method \<entry> checks that the callee (\<this>) and the
-caller (\<payer>) are distinct contract objects, then records the
-\<payer> of the callee. Method \<payableEntry> does the same and,
+caller (\<caller>) are distinct contract objects, then records the
+\<caller> of the callee. Method \<payableEntry> does the same and,
 moreover, transfers the given amount of money from caller to callee.
 Takamaka enforces that the programmer does not call these two methods directly.
 Instead, they are automatically called by code instrumentation.
@@ -929,13 +947,32 @@ for blockchain.
 It allows one to use the large and well-known toolbelt available for Java.
 It hides the distinction between storage and memory
 objects: the programmer must only extend the \<Storage> class for the
-former (Sec.~\ref{sec:storage_classes}).
+former (Sec.~\ref{sec:storage_classes}). The use of Java for distributed
+objects, particulalry in the web, was at the same origin of the language and of its
+security primitives. Takamaka exploits the dynamic linking of jars and the
+verification guarantees of the JVM. However, it does not use the security capabilities of Java
+for web development, such as the sandbox approach for applets: white-listed methods are
+much more restrictive than the same sandbox. Moreover, Java provides object serialization
+from its very beginning. This is not used (and black-listed) in Takamaka. Instead, Takamaka
+uses a specialized technique that serializes object updates only, to support blockchain scalability.
+
 What this article does is completely different from the use of Java
 to interact with an Ethereum node, which is already well possible
 with suitable libraries~\cite{web3j}; or from the use of Java to
-write an Ethereum node, which has already been done~\cite{ethereumj}.
+write an Ethereum node~\cite{ethereumj}.
 Instead, our work pushes Java inside the blockchain, as its programming
-language. We are not aware of any similar effort.
+language. NEO~\cite{neo} performs a similar task. NEO's smart contracts
+can be written in Java, C\# or Python and can only use library calls to the
+NEO's library, while Takamaka allows the use of a white-listed set of Java library methods.
+NEO's Java contracts
+are a collection of static methods that return \<Object> or \<byte[]>
+only~\cite{neo_contract}.
+Operations on storage must be coded explicitly through calls to NEO's library method
+\<Storage.Put>, while Takamaka makes this transparent to the programmer.
+That is, NEO uses Java only syntactically.
+Aion~\cite{aion} has also support for smart contracts written in Java.
+The only example we could find~\cite{aion_example_contract} does not allow us to understand the real
+features of such contracts, but Aion's technology is evolving quickly.
 
 The implementation of the framework requires the blockchain to be
 equipped with primitives to serialise and deserialise storage objects
@@ -943,6 +980,24 @@ equipped with primitives to serialise and deserialise storage objects
 the Ethereum blockchain. Our project continues now with the
 implementation of a blockchain that provides such primitives
 and with the actual evaluation of the framework.
+
+Takamaka has been devised to provide the standard security guarantees of
+a smart contract: determinism, since only white-listed library methods can be
+executed; termination, since gas is metered and the \<OutOfGasException> cannot
+be caught; and isolation, since the Java Virtual Machine enforces that Java's visibility
+modifiers are honored. Public data can instead be read with a blockchain
+explorer, since it is not natively encrypted. As in Ethereum, privacy can only be enforced
+by writing smart contracts that explicitly encrypt data.
+
+Scalability is a crucial aspect of blockchains. Compared to the Ethereum blockchain,
+Takamaka uses the JVM, that is more optimised than the Ethereum virtual machine, but is also
+more heavy-weight at start-up. It will not be possible to start a JVM for each transaction.
+Instead, a single JVM must execute all transactions, sequentially or concurrently,
+as already proved possible by Aion. Another aspect of scalability is the size of the
+blockchain itself. A distinguishing feature of Takamaka is that it
+stores only the updates to storage objects. This should reduce the size of the blockchain,
+compared to solutions, such as Ethereum, that store the whole state resulting at the end of
+a transaction.
 
 %\begin{center}
 %  \includegraphics[width=0.8\linewidth]{barrage_takamaka_1.jpg}

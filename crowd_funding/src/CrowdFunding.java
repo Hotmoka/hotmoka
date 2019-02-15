@@ -7,8 +7,10 @@ import takamaka.util.StorageList;
 public class CrowdFunding extends Contract {
 	private final StorageList<Campaign> campaigns = new StorageList<>();
 
-	public void newCampaign(Contract beneficiary, int goal) {
+	public int newCampaign(Contract beneficiary, int goal) {
+		int campaignId = campaigns.size();
 		campaigns.add(new Campaign(beneficiary, goal));
+		return campaignId;
 	}
 
 	public @Payable @Entry void contribute(int amount, int campaignID) {
