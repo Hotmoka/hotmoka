@@ -7,7 +7,7 @@ import takamaka.lang.Immutable;
  */
 
 @Immutable
-public final class TransactionReference {
+public final class TransactionReference implements Comparable<TransactionReference> {
 
 	/**
 	 * The number of the block holding the transaction.
@@ -28,6 +28,19 @@ public final class TransactionReference {
 	public TransactionReference(long blockNumber, short transactionNumber) {
 		this.blockNumber = blockNumber;
 		this.transactionNumber = transactionNumber;
+	}
+
+	@Override
+	public int compareTo(TransactionReference other) {
+		int diff = Long.compare(blockNumber, other.blockNumber);
+		if (diff != 0)
+			return diff;
+		else
+			return Short.compare(transactionNumber, other.transactionNumber);
+	}
+
+	public boolean isOlderThan(TransactionReference other) {
+		return compareTo(other) < 0;
 	}
 
 	@Override

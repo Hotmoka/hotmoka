@@ -18,5 +18,5 @@ public interface Blockchain {
 	 */
 	public Object deserializeLastUpdateFor(StorageReference reference, FieldReference field);
 	public TransactionReference addJarStoreTransaction(JarFile jar, Classpath... dependencies) throws TransactionException;
-	public TransactionReference addCodeExecutionTransaction(Classpath classpath, CodeReference sig, StorageValue[] pars) throws TransactionException;
+	public StorageValue addCodeExecutionTransaction(Classpath classpath, CodeReference sig, StorageValue... pars) throws TransactionException;
 }

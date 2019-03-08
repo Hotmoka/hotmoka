@@ -5,10 +5,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.jar.JarFile;
 
 import takamaka.blockchain.Blockchain;
@@ -23,10 +27,9 @@ import takamaka.lang.Storage;
 
 public class MemoryBlockchain implements Blockchain {
 	/**
-	 * The name used for the jars stored into the chain. A constant small name
-	 * keeps the chain small and avoids the risk of a long string injection.
+	 * The name used for the instrumented jars stored in the chain.
 	 */
-	public final String JAR_NAME = "a.jar";
+	public final String INSTRUMENTED_JAR_NAME = "instrumented.jar";
 
 	/**
 	 * The name used for the file describing the dependencies of a jar.
@@ -75,7 +78,15 @@ public class MemoryBlockchain implements Blockchain {
 
 	@Override
 	public TransactionReference addJarStoreTransaction(JarFile jar, Classpath... dependencies) throws TransactionException {
-		Path jarFile = getCurrentPathFor(JAR_NAME);
+		if (currentBlock == Long.MAX_VALUE && currentTransaction == transactionsPerBlock)
+			throw new TransactionException("No more transactions available in blockchain");
+
+		TransactionReference ref = getCurrentTransactionReference();
+		for (Classpath dependency: dependencies)
+			if (!dependency.transaction.isOlderThan(ref))
+				throw new TransactionException("A transaction can only depend on older transactions");
+
+		Path jarFile = getCurrentPathFor(getJarSimpleName(jar.getName()));
 
 		try {
 			Files.createDirectories(jarFile.getParent());
@@ -84,11 +95,22 @@ public class MemoryBlockchain implements Blockchain {
 			throw new TransactionException("Could not create transaction entry " + jarFile.getParent());
 		}
 
+		// the original jar file is stored in this blockchain, but not used;
+		// in a real blockchain, it is needed instead to reexecute and check the transaction
 		try {
 			Files.copy(Paths.get(jar.getName()), jarFile);
 		}
 		catch (IOException e) {
 			throw new TransactionException("Could not store jar into transaction entry " + jarFile);
+		}
+
+		Path instrumentedJarFile = getCurrentPathFor(INSTRUMENTED_JAR_NAME);
+		try {
+			// TODO: the instrumented jar must go here
+			Files.copy(Paths.get(jar.getName()), instrumentedJarFile);
+		}
+		catch (IOException e) {
+			throw new TransactionException("Could not store instrumented jar into transaction entry");
 		}
 
 		if (dependencies.length > 0) {
@@ -102,21 +124,74 @@ public class MemoryBlockchain implements Blockchain {
 			}
 		}
 
-		TransactionReference ref = new TransactionReference(currentBlock, currentTransaction);
 		moveToNextTransaction();
 		return ref;
+	}
+
+	private static String getJarSimpleName(String name) throws TransactionException {
+		if (!name.endsWith(".jar"))
+			throw new TransactionException("Jar name must end in .jar");
+
+		int last = name.lastIndexOf(File.separatorChar);
+		if (last >= 0)
+			name = name.substring(last + 1);
+
+		if (name.isEmpty())
+			throw new TransactionException("Jar name cannot be empty");
+		else if (name.length() > 100)
+			throw new TransactionException("Jar name cannot be longer than 100 characters");
+
+		return name;
+	}
+
+	@Override
+	public StorageValue addCodeExecutionTransaction(Classpath classpath, CodeReference sig, StorageValue... pars) throws TransactionException {
+		if (currentBlock == Long.MAX_VALUE && currentTransaction == transactionsPerBlock)
+			throw new TransactionException("No more transactions available in blockchain");
+
+		// create class loader
+		List<URL> urls = new ArrayList<>();
+		addURLs(classpath, urls);
+
+		System.out.println(urls);
+
+		// create thread running code
+		
+		// TODO Auto-generated method stub
+		moveToNextTransaction();
+		return null;
+	}
+
+	private void addURLs(Classpath classpath, List<URL> urls) throws TransactionException {
+		if (classpath.recursive) {
+			Path path = getPathFor(classpath.transaction, DEPENDENCIES_NAME);
+			if (Files.exists(path)) {
+				try {
+					Files.lines(path).forEachOrdered(System.out::println);
+				} catch (IOException e) {
+					throw new TransactionException("Cannot read dependencies from " + path);
+				}
+			}
+		}
+
+		Path path = getPathFor(classpath.transaction, INSTRUMENTED_JAR_NAME);
+		if (!Files.exists(path))
+			throw new TransactionException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
+
+		try {
+			urls.add(path.toFile().toURI().toURL());
+		}
+		catch (MalformedURLException e) {
+			throw new TransactionException("Found illegal classpath: " + e.getMessage());
+		}
 	}
 
 	private Path getCurrentPathFor(String fileName) {
 		return Paths.get(root.toString(), "b" + currentBlock, "t" + currentTransaction, fileName);
 	}
 
-	@Override
-	public TransactionReference addCodeExecutionTransaction(Classpath classpath, CodeReference sig, StorageValue[] pars) throws TransactionException {
-		// TODO Auto-generated method stub
-		TransactionReference ref = new TransactionReference(currentBlock, currentTransaction);
-		moveToNextTransaction();
-		return ref;
+	private Path getPathFor(TransactionReference ref, String fileName) {
+		return Paths.get(root.toString(), "b" + ref.blockNumber, "t" + ref.transactionNumber, fileName);
 	}
 
 	private void moveToNextTransaction() {
@@ -128,7 +203,8 @@ public class MemoryBlockchain implements Blockchain {
 
 	public static void main(String[] args) throws TransactionException, IOException {
 		Blockchain blockchain = new MemoryBlockchain(Paths.get("chain"), (short) 5);
-		TransactionReference runtime = blockchain.addJarStoreTransaction(new JarFile("../takamaka_runtime/dist/takamaka_runtime.jar"));
-		TransactionReference auction = blockchain.addJarStoreTransaction(new JarFile("../auction/dist/auction.jar"), new Classpath(runtime, true)); // true/false irrelevant here
+		TransactionReference test_contracts_dependency = blockchain.addJarStoreTransaction(new JarFile("../test_contracts_dependency/dist/test_contracts_dependency.jar"));
+		TransactionReference test_contracts = blockchain.addJarStoreTransaction(new JarFile("../test_contracts/dist/test_contracts.jar"), new Classpath(test_contracts_dependency, true)); // true/false irrelevant here
+		blockchain.addCodeExecutionTransaction(new Classpath(test_contracts, true), null);
 	}
 }
