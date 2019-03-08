@@ -25,7 +25,7 @@ public final class TransactionReference {
 	 * @param blockNumber The number of the block holding the transaction.
 	 * @param transactionNumber The number of the transaction inside the block.
 	 */
-	TransactionReference(long blockNumber, short transactionNumber, short progressive) {
+	public TransactionReference(long blockNumber, short transactionNumber) {
 		this.blockNumber = blockNumber;
 		this.transactionNumber = transactionNumber;
 	}
@@ -38,5 +38,10 @@ public final class TransactionReference {
 	@Override
 	public int hashCode() {
 		return ((int) blockNumber) ^ transactionNumber;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%016x%04x", blockNumber, transactionNumber);
 	}
 }

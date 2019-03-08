@@ -25,7 +25,7 @@ public final class Classpath {
 	 * @param transaction The transaction that stored the jar.
 	 * @param recursive True if the dependencies of the jar must be included in the classpath.
 	 */
-	Classpath(TransactionReference transaction, boolean recursive) {
+	public Classpath(TransactionReference transaction, boolean recursive) {
 		this.transaction = transaction;
 		this.recursive = recursive;
 	}

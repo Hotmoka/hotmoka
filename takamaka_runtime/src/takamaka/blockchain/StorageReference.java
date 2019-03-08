@@ -44,4 +44,9 @@ public final class StorageReference implements StorageValue {
 	public int hashCode() {
 		return progressive ^ transaction.hashCode();
 	}
+
+	@Override
+	public String toString() {
+		return String.format("%s%04x", transaction, progressive);
+	}
 }
