@@ -7,12 +7,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.jar.JarFile;
 
 import takamaka.blockchain.Blockchain;
@@ -29,12 +28,12 @@ public class MemoryBlockchain implements Blockchain {
 	/**
 	 * The name used for the instrumented jars stored in the chain.
 	 */
-	public final String INSTRUMENTED_JAR_NAME = "instrumented.jar";
+	public final static String INSTRUMENTED_JAR_NAME = "instrumented.jar";
 
 	/**
 	 * The name used for the file describing the dependencies of a jar.
 	 */
-	public final String DEPENDENCIES_NAME = "deps.txt";
+	public final static String DEPENDENCIES_NAME = "deps.txt";
 
 	private final Path root;
 	private final short transactionsPerBlock;
@@ -115,7 +114,7 @@ public class MemoryBlockchain implements Blockchain {
 
 		if (dependencies.length > 0) {
 			Path dependenciesFile = getCurrentPathFor(DEPENDENCIES_NAME);
-			try (final PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(dependenciesFile.toFile())))) {
+			try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(dependenciesFile.toFile())))) {
 				for (Classpath dependency: dependencies)
 					output.printf("%s;%b\n", dependency.transaction, dependency.recursive);
 			}
@@ -149,40 +148,68 @@ public class MemoryBlockchain implements Blockchain {
 		if (currentBlock == Long.MAX_VALUE && currentTransaction == transactionsPerBlock)
 			throw new TransactionException("No more transactions available in blockchain");
 
-		// create class loader
-		List<URL> urls = new ArrayList<>();
-		addURLs(classpath, urls);
+		CodeExecutor executor;
+		try (BlockchainClassLoader classLoader = new BlockchainClassLoader(classpath)) {
+			executor = new CodeExecutor(classLoader);
+			executor.start();
+			executor.join();
+		}
+		catch (InterruptedException e) {
+			throw new TransactionException("The transaction executor thread was unexpectedly interrupted");
+		}
+		catch (IOException e) {
+			throw new TransactionException("Cannot close the classloader for the transaction executor");
+		}
 
-		System.out.println(urls);
-
-		// create thread running code
-		
-		// TODO Auto-generated method stub
 		moveToNextTransaction();
 		return null;
 	}
 
-	private void addURLs(Classpath classpath, List<URL> urls) throws TransactionException {
-		if (classpath.recursive) {
-			Path path = getPathFor(classpath.transaction, DEPENDENCIES_NAME);
-			if (Files.exists(path)) {
-				try {
-					Files.lines(path).forEachOrdered(System.out::println);
-				} catch (IOException e) {
-					throw new TransactionException("Cannot read dependencies from " + path);
+	private class BlockchainClassLoader extends URLClassLoader {
+		private BlockchainClassLoader(Classpath classpath) throws TransactionException {
+			super(new URL[0], classpath.getClass().getClassLoader());
+			addURLs(classpath);
+		}
+
+		private void addURLs(Classpath classpath) throws TransactionException {
+			if (classpath.recursive) {
+				Path path = getPathFor(classpath.transaction, DEPENDENCIES_NAME);
+				if (Files.exists(path)) {
+					try {
+						for (String line: Files.readAllLines(path))
+							addURLs(new Classpath(line));
+					}
+					catch (IOException e) {
+						throw new TransactionException("Cannot read dependencies from " + path);
+					}
 				}
 			}
+
+			Path path = getPathFor(classpath.transaction, INSTRUMENTED_JAR_NAME);
+			if (!Files.exists(path))
+				throw new TransactionException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
+
+			try {
+				addURL(path.toFile().toURI().toURL());
+			}
+			catch (MalformedURLException e) {
+				throw new TransactionException("Found illegal classpath: " + e.getMessage());
+			}
+		}
+	}
+
+	private class CodeExecutor extends Thread {
+		private CodeExecutor(ClassLoader classLoader) {
+			setContextClassLoader(classLoader);
 		}
 
-		Path path = getPathFor(classpath.transaction, INSTRUMENTED_JAR_NAME);
-		if (!Files.exists(path))
-			throw new TransactionException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
-
-		try {
-			urls.add(path.toFile().toURI().toURL());
-		}
-		catch (MalformedURLException e) {
-			throw new TransactionException("Found illegal classpath: " + e.getMessage());
+		@Override
+		public void run() {
+			try {
+				System.out.println(getContextClassLoader().loadClass("takamaka.tests.ItalianTime"));
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

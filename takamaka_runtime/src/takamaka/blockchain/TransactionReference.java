@@ -30,6 +30,27 @@ public final class TransactionReference implements Comparable<TransactionReferen
 		this.transactionNumber = transactionNumber;
 	}
 
+	/**
+	 * Builds a transaction reference from a string. The format of the string is the
+	 * same that would be returned by {@code toString()}. Hence
+	 * {@code t.equals(new TransactionReference(t.toString()))} holds for
+	 * every {@code TransactionReference t}.
+	 * 
+	 * @param s the string
+	 * @throws NumberFormatException if the format of the string does not correspond
+	 *                               to a {@code TransactionReference}
+	 */
+	public TransactionReference(String s) throws NumberFormatException {
+		if (s == null || s.length() != 20)
+			throw new NumberFormatException("Illegal transaction reference format: " + s);
+
+		String blockPart = s.substring(0, 16);
+		String transactionPart = s.substring(16);
+		
+		this.blockNumber = Long.decode("0x" + blockPart);
+		this.transactionNumber = Short.decode("0x" + transactionPart);
+	}
+
 	@Override
 	public int compareTo(TransactionReference other) {
 		int diff = Long.compare(blockNumber, other.blockNumber);
