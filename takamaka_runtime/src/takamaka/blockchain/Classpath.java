@@ -52,7 +52,7 @@ public final class Classpath {
 
 	@Override
 	public String toString() {
-		return String.format("%s;%b\n", transaction, recursive);
+		return String.format("%s;%b", transaction, recursive);
 	}
 
 	@Override
