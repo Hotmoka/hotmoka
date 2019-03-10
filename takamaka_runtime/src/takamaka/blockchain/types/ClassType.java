@@ -9,4 +9,14 @@ public final class ClassType implements StorageType {
 	public ClassType(String name) {
 		this.name = name;
 	}
+
+	@Override
+	public String toString() {
+		return name;
+	}
+
+	@Override
+	public Class<?> toClass() throws ClassNotFoundException {
+		return Class.forName(name);
+	}
 }

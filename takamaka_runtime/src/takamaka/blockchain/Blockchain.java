@@ -7,7 +7,7 @@ import takamaka.lang.Storage;
 
 public interface Blockchain {
 	public TransactionReference getCurrentTransactionReference();
-	public Storage deserialize(StorageReference reference);
+	public Storage deserialize(StorageReference reference) throws TransactionException;
 	/**
 	 * Deserializes the value of the given reference type field from blockchain.
 	 * 
@@ -16,7 +16,20 @@ public interface Blockchain {
 	 * @return the value of the field. This might be a {@code Storage} but also some special types
 	 *         such as {@code String} and {@code BigInteger}
 	 */
-	public Object deserializeLastUpdateFor(StorageReference reference, FieldReference field);
+	public Object deserializeLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException;
 	public TransactionReference addJarStoreTransaction(JarFile jar, Classpath... dependencies) throws TransactionException;
-	public StorageValue addCodeExecutionTransaction(Classpath classpath, CodeReference sig, StorageValue... pars) throws TransactionException;
+
+	/**
+	 * Runs a constructor of an object stored in the blockchain.
+	 * 
+	 * @param classpath the class path where the code must be executed
+	 * @param constructor the constructor that must be called
+	 * @param actuals the actual arguments passed to the constructor
+	 * @return the created object, if the constructor was successfully executed, without exception
+	 * @throws TransactionException if the transaction could not be completed because of an internal error
+	 * @throws CodeExecutionException if the execution of the constructor failed with an exception (available as
+	 *                                {@code getCause()}. Note that, in this case, from the point of view of Takamaka
+	 *                                the transaction was successful and the exception is a problem of the smart contract
+	 */
+	public StorageReference addConstructorCallTransaction(Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 }

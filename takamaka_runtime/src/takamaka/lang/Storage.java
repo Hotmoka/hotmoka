@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.FieldReference;
 import takamaka.blockchain.StorageReference;
+import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.values.BigIntegerValue;
@@ -24,9 +25,9 @@ import takamaka.blockchain.values.ShortValue;
 import takamaka.blockchain.values.StringValue;
 
 public abstract class Storage {
-	protected final StorageReference storageReference;
+	public final StorageReference storageReference;
 	protected final boolean inStorage;
-	protected static Blockchain blockchain; //TODO = Blockchain.getInstance();
+	public static Blockchain blockchain; //TODO = Blockchain.getInstance();
 	private static short nextProgressive;
 
 	/**
@@ -96,7 +97,7 @@ public abstract class Storage {
 			throw new RuntimeException("a field of a storage object cannot hold a " + s.getClass().getName());
 	}
 
-	protected final Object deserializeLastUpdateFor(String definingClass, String name, String className) {
+	protected final Object deserializeLastUpdateFor(String definingClass, String name, String className) throws TransactionException {
 		return blockchain.deserializeLastUpdateFor(storageReference, new FieldReference(definingClass, name, className));
 	}
 

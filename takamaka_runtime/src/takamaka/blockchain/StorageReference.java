@@ -2,6 +2,7 @@ package takamaka.blockchain;
 
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Immutable;
+import takamaka.lang.Storage;
 
 /**
  * A storage reference is a reference to an object that lives in the blockchain.
@@ -48,5 +49,10 @@ public final class StorageReference implements StorageValue {
 	@Override
 	public String toString() {
 		return String.format("%s%04x", transaction, progressive);
+	}
+
+	@Override
+	public Storage deserialize(Blockchain blockchain) throws TransactionException {
+		return blockchain.deserialize(this);
 	}
 }
