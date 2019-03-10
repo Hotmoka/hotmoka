@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.jar.JarFile;
+import java.util.List;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
@@ -22,17 +22,19 @@ import takamaka.blockchain.StorageReference;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.lang.Storage;
+import takamaka.translator.JarInstrumentation;
+import takamaka.translator.Program;
 
 public class MemoryBlockchain extends AbstractBlockchain {
 	/**
 	 * The name used for the instrumented jars stored in the chain.
 	 */
-	public final static String INSTRUMENTED_JAR_NAME = "instrumented.jar";
+	public final static Path INSTRUMENTED_JAR_NAME = Paths.get("instrumented.jar");
 
 	/**
 	 * The name used for the file describing the dependencies of a jar.
 	 */
-	public final static String DEPENDENCIES_NAME = "deps.txt";
+	public final static Path DEPENDENCIES_NAME = Paths.get("deps.txt");
 
 	private final Path root;
 	private final short transactionsPerBlock;
@@ -45,11 +47,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 			throw new IllegalArgumentException("transactionsPerBlock must be positive");
 
 		// cleans the directory where the blockchain lives
-		if (Files.exists(root))
-			Files.walk(root)
-				.sorted(Comparator.reverseOrder())
-				.map(Path::toFile)
-				.forEach(File::delete);
+		ensureDeleted(root);
 
 		this.root = root;
 		this.transactionsPerBlock = transactionsPerBlock;
@@ -68,29 +66,39 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addJarStoreTransactionInternal(JarFile jar, Classpath... dependencies) throws TransactionException {
-		Path jarFile = getCurrentPathFor(getJarSimpleName(jar.getName()));
+	protected void addJarStoreTransactionInternal(Path jar, Classpath... dependencies) throws TransactionException {
+		Path jarName = jar.getFileName();
+		String jn = jarName.toString();
+		if (!jn.endsWith(".jar"))
+			throw new TransactionException("Jar file should end in .jar");
+
+		if (jn.length() > 100)
+			throw new TransactionException("Jar file name too long");
+
+		Program program = mkProgram(jar, dependencies);
+
+		Path original = getCurrentPathFor(jarName);
 	
 		try {
-			Files.createDirectories(jarFile.getParent());
+			ensureDeleted(original.getParent());
+			Files.createDirectories(original.getParent());
 		}
 		catch (IOException e) {
-			throw new TransactionException("Could not create transaction entry " + jarFile.getParent());
+			throw new TransactionException("Could not create transaction entry " + original.getParent());
 		}
 	
 		// the original jar file is stored in this blockchain, but not used;
 		// in a real blockchain, it is needed instead to reexecute and check the transaction
 		try {
-			Files.copy(Paths.get(jar.getName()), jarFile);
+			Files.copy(jar, original);
 		}
 		catch (IOException e) {
-			throw new TransactionException("Could not store jar into transaction entry " + jarFile);
+			throw new TransactionException("Could not store jar into transaction entry " + original);
 		}
 	
-		Path instrumentedJarFile = getCurrentPathFor(INSTRUMENTED_JAR_NAME);
+		Path instrumented = getCurrentPathFor(INSTRUMENTED_JAR_NAME);
 		try {
-			// TODO: the instrumented jar must go here
-			Files.copy(Paths.get(jar.getName()), instrumentedJarFile);
+			new JarInstrumentation(jar, instrumented, program);
 		}
 		catch (IOException e) {
 			throw new TransactionException("Could not store instrumented jar into transaction entry");
@@ -103,9 +111,31 @@ public class MemoryBlockchain extends AbstractBlockchain {
 					output.println(dependency);
 			}
 			catch (IOException e) {
-				throw new TransactionException("Could not store dependencies into transaction entry " + jarFile);
+				throw new TransactionException("Could not store dependencies into transaction entry " + original);
 			}
 		}
+	}
+
+	@Override
+	protected void extractPathsRecursively(Classpath classpath, List<Path> result) throws TransactionException {
+		if (classpath.recursive) {
+			Path path = getPathFor(classpath.transaction, DEPENDENCIES_NAME);
+			if (Files.exists(path)) {
+				try {
+					for (String line: Files.readAllLines(path))
+						extractPathsRecursively(new Classpath(line), result);
+				}
+				catch (IOException e) {
+					throw new TransactionException("Cannot read dependencies from " + path);
+				}
+			}
+		}
+
+		Path path = getPathFor(classpath.transaction, INSTRUMENTED_JAR_NAME);
+		if (!Files.exists(path))
+			throw new TransactionException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
+
+		result.add(path);
 	}
 
 	@Override
@@ -158,27 +188,19 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 	}
 
-	private static String getJarSimpleName(String name) throws TransactionException {
-		if (!name.endsWith(".jar"))
-			throw new TransactionException("Jar name must end in .jar");
-
-		int last = name.lastIndexOf(File.separatorChar);
-		if (last >= 0)
-			name = name.substring(last + 1);
-
-		if (name.isEmpty())
-			throw new TransactionException("Jar name cannot be empty");
-		else if (name.length() > 100)
-			throw new TransactionException("Jar name cannot be longer than 100 characters");
-
-		return name;
+	private Path getCurrentPathFor(Path fileName) {
+		return Paths.get(root.toString(), "b" + currentBlock, "t" + currentTransaction).resolve(fileName);
 	}
 
-	private Path getCurrentPathFor(String fileName) {
-		return Paths.get(root.toString(), "b" + currentBlock, "t" + currentTransaction, fileName);
+	private Path getPathFor(TransactionReference ref, Path fileName) {
+		return Paths.get(root.toString(), "b" + ref.blockNumber, "t" + ref.transactionNumber).resolve(fileName);
 	}
 
-	private Path getPathFor(TransactionReference ref, String fileName) {
-		return Paths.get(root.toString(), "b" + ref.blockNumber, "t" + ref.transactionNumber, fileName);
+	private static void ensureDeleted(Path root) throws IOException {
+		if (Files.exists(root))
+			Files.walk(root)
+				.sorted(Comparator.reverseOrder())
+				.map(Path::toFile)
+				.forEach(File::delete);
 	}
 }

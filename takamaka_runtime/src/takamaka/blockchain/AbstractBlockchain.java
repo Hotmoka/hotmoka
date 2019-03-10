@@ -1,15 +1,20 @@
 package takamaka.blockchain;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Storage;
+import takamaka.translator.Program;
 
 public abstract class AbstractBlockchain implements Blockchain {
 	protected long currentBlock;
@@ -33,7 +38,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(JarFile jar, Classpath... dependencies) throws TransactionException {
+	public final TransactionReference addJarStoreTransaction(Path jar, Classpath... dependencies) throws TransactionException {
 		checkNotFull();
 
 		TransactionReference ref = getCurrentTransactionReference();
@@ -46,8 +51,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		moveToNextTransaction();
 		return ref;
 	}
-
-	protected abstract void addJarStoreTransactionInternal(JarFile jar, Classpath... dependencies) throws TransactionException;
 
 	@Override
 	public final StorageReference addConstructorCallTransaction(Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
@@ -138,6 +141,25 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 	}
 
+	protected final Program mkProgram(Path jar, Classpath... dependencies) throws TransactionException {
+		List<Path> result = new ArrayList<>();
+		result.add(jar);
+
+		for (Classpath dependency: dependencies)
+			extractPathsRecursively(dependency, result);
+
+		try {
+			return new Program(result.stream());
+		}
+		catch (IOException e) {
+			throw new TransactionException("Cannot build set of all classes in class path", e);
+		}
+	}
+
+	protected abstract void extractPathsRecursively(Classpath classpath, List<Path> result) throws TransactionException;
+
+	protected abstract void addJarStoreTransactionInternal(Path jar, Classpath... dependencies) throws TransactionException;
+
 	protected abstract BlockchainClassLoader mkBlockchainClassLoader(Classpath classpath) throws TransactionException;
 
 	protected abstract boolean blockchainIsFull();
@@ -164,5 +186,4 @@ public abstract class AbstractBlockchain implements Blockchain {
 		if (blockchainIsFull())
 			throw new TransactionException("No more transactions available in blockchain");
 	}
-
 }

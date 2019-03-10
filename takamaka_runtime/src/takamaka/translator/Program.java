@@ -3,6 +3,7 @@ package takamaka.translator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.jar.JarEntry;
@@ -17,7 +18,7 @@ public class Program {
 	private static final Logger LOGGER = Logger.getLogger(Program.class.getName());
 	private final ConcurrentMap<String, JavaClass> classes = new ConcurrentHashMap<>();
 
-	public Program(Stream<String> jars) throws IOException {
+	public Program(Stream<Path> jars) throws IOException {
 		LOGGER.fine("Building program");
 
 		try {
@@ -32,8 +33,8 @@ public class Program {
 		return classes.get(className);
 	}
 
-	private void processJar(String jar) {
-		try (final JarFile jarFile = new JarFile(jar)) {
+	private void processJar(Path jar) {
+		try (JarFile jarFile = new JarFile(jar.toFile())) {
 			jarFile.stream()
 				.parallel()
 				.filter(Program::isClass)

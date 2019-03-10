@@ -4,7 +4,6 @@ import static takamaka.blockchain.types.BasicTypes.INT;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.jar.JarFile;
 
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
@@ -19,8 +18,8 @@ public class MemoryBlockchainTest {
 
 	public static void main(String[] args) throws TransactionException, IOException, CodeExecutionException {
 		Blockchain blockchain = new MemoryBlockchain(Paths.get("chain"), (short) 5);
-		TransactionReference test_contracts_dependency = blockchain.addJarStoreTransaction(new JarFile("../test_contracts_dependency/dist/test_contracts_dependency.jar"));
-		TransactionReference test_contracts = blockchain.addJarStoreTransaction(new JarFile("../test_contracts/dist/test_contracts.jar"), new Classpath(test_contracts_dependency, true)); // true/false irrelevant here
+		TransactionReference test_contracts_dependency = blockchain.addJarStoreTransaction(Paths.get("../test_contracts_dependency/dist/test_contracts_dependency.jar"));
+		TransactionReference test_contracts = blockchain.addJarStoreTransaction(Paths.get("../test_contracts/dist/test_contracts.jar"), new Classpath(test_contracts_dependency, true)); // true/false irrelevant here
 		Classpath classpath = new Classpath(test_contracts, true);
 
 		StorageReference italianTime = blockchain.addConstructorCallTransaction(classpath, new ConstructorReference("takamaka.tests.ItalianTime", INT, INT, INT),

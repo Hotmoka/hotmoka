@@ -1,6 +1,10 @@
 package takamaka.translator;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.commons.cli.CommandLine;
@@ -21,8 +25,17 @@ public class Translator {
 	    	CommandLine line = parser.parse(options, args);
 	    	String[] appJarNames = line.getOptionValues("app");
 		    Program program = new Program(Stream.concat(arrayToStream(appJarNames), arrayToStream(line.getOptionValues("lib"))));
-		    for (String appJarName: appJarNames)
-		    	new JarInstrumentation(appJarName, program);
+		    for (String appJarName: appJarNames) {
+		    	Path origin = Paths.get(appJarName);
+		    	Path parent = origin.getParent();
+		    	Path destination;
+		    	if (parent == null)
+		    		destination = Paths.get("instrumented.jar");
+		    	else
+		    		destination = parent.resolve("instrumented.jar");
+
+		    	new JarInstrumentation(origin, destination, program);
+		    }
 	    }
 	    catch (ParseException e) {
 	    	System.err.println("Syntax error: " + e.getMessage());
@@ -30,8 +43,13 @@ public class Translator {
 	    }
 	}
 
-	private static <T> Stream<T> arrayToStream(T[] array) {
-		return array != null ? Stream.of(array) : Stream.empty();
+	private static Stream<Path> arrayToStream(String[] array) {
+		List<Path> paths = new ArrayList<>();
+		if (array != null)
+			for (String s: array)
+				paths.add(Paths.get(s));
+
+		return paths.stream();
 	}
 
 	private static Options createOptions() {

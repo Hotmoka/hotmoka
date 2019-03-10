@@ -1,6 +1,6 @@
 package takamaka.blockchain;
 
-import java.util.jar.JarFile;
+import java.nio.file.Path;
 
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Storage;
@@ -17,7 +17,7 @@ public interface Blockchain {
 	 *         such as {@code String} and {@code BigInteger}
 	 */
 	public Object deserializeLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException;
-	public TransactionReference addJarStoreTransaction(JarFile jar, Classpath... dependencies) throws TransactionException;
+	public TransactionReference addJarStoreTransaction(Path jar, Classpath... dependencies) throws TransactionException;
 
 	/**
 	 * Runs a constructor of an object stored in the blockchain.
