@@ -26,6 +26,8 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.classfile.StackMap;
+import org.apache.bcel.classfile.StackMapEntry;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
@@ -67,7 +69,7 @@ class ClassInstrumentation {
 	private final static String IF_ALREADY_LOADED_PREFIX = "§ifAlreadyLoaded_";
 	private final static String ENSURE_LOADED_PREFIX = "§ensureLoaded_";
 	private final static String GETTER_PREFIX = "§get_";
-	private final static String PUTTER_PREFIX = "§put_";
+	private final static String SETTER_PREFIX = "§set_";
 	private final static String EXTRACT_UPDATES = "extractUpdates";
 	private final static String RECURSIVE_EXTRACT = "recursiveExtract";
 	private final static String ADD_UPDATES_FOR = "addUpdatesFor";
@@ -476,8 +478,8 @@ class ClassInstrumentation {
 			if (!method.isAbstract()) {
 				InstructionList il = method.getInstructionList();
 				StreamSupport.stream(il.spliterator(), false)
-				.filter(ih -> isAccessToReferenceFieldInStorageClass(ih.getInstruction()))
-				.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
+					.filter(ih -> isAccessToReferenceFieldInStorageClass(ih.getInstruction()))
+					.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
 			}
 		}
 
@@ -491,7 +493,7 @@ class ClassInstrumentation {
 				return factory.createInvoke(referencedClass.getClassName(), GETTER_PREFIX + fieldName, fieldType, Type.NO_ARGS, Const.INVOKESPECIAL);
 			else // PUTFIELD
 				// it is important to use an invokespecial, since fields cannot be redefined in Java
-				return factory.createInvoke(referencedClass.getClassName(), PUTTER_PREFIX + fieldName, Type.VOID, new Type[] { fieldType }, Const.INVOKESPECIAL);
+				return factory.createInvoke(referencedClass.getClassName(), SETTER_PREFIX + fieldName, Type.VOID, new Type[] { fieldType }, Const.INVOKESPECIAL);
 		}
 
 		private boolean isAccessToReferenceFieldInStorageClass(Instruction instruction) {
@@ -501,8 +503,7 @@ class ClassInstrumentation {
 		}
 
 		private void addExtractUpdates() {
-			if (primitiveNonTransientInstanceFields.getLast().isEmpty()
-					&& referenceNonTransientInstanceFields.isEmpty())
+			if (primitiveNonTransientInstanceFields.getLast().isEmpty() && referenceNonTransientInstanceFields.isEmpty())
 				return;
 
 			InstructionList il = new InstructionList();
@@ -524,6 +525,9 @@ class ClassInstrumentation {
 				end = addUpdateExtractionForReferenceField(field, il, end);
 
 			MethodGen extractUpdates = new MethodGen(PROTECTED_SYNTHETIC, Type.VOID, EXTRACT_UPDATES_ARGS, null, EXTRACT_UPDATES, className, il, cpg);
+			il.setPositions();
+			extractUpdates.setMaxLocals();
+			extractUpdates.setMaxStack();
 			classGen.addMethod(extractUpdates.getMethod());
 		}
 
@@ -564,13 +568,13 @@ class ClassInstrumentation {
 			il.insert(recursiveExtract, factory.createInvoke(Storage.class.getName(), ADD_UPDATES_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
-			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
+			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor)); //TODO: StackMap
 			il.insert(addUpdatesFor, InstructionFactory.createThis());
 			il.insert(addUpdatesFor, InstructionConst.DUP);
 			il.insert(addUpdatesFor, factory.createGetField(className, field.getName(), type));
 			il.insert(addUpdatesFor, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
 
-			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract));
+			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract)); //TODO: StackMap
 			
 			return start;
 		}
@@ -592,7 +596,7 @@ class ClassInstrumentation {
 			il.insert(end, factory.createInvoke(Storage.class.getName(), ADD_UPDATES_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
-			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
+			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor)); //TODO: StackMap
 			il.insert(addUpdatesFor, InstructionFactory.createThis());
 			il.insert(addUpdatesFor, InstructionConst.DUP);
 			il.insert(addUpdatesFor, factory.createGetField(className, field.getName(), type));
@@ -600,18 +604,18 @@ class ClassInstrumentation {
 
 			if (field.getType().equals(Type.DOUBLE)) {
 				il.insert(addUpdatesFor, InstructionConst.DCMPL);
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end)); //TODO: StackMap
 			}
 			else if (field.getType().equals(Type.FLOAT)) {
 				il.insert(addUpdatesFor, InstructionConst.FCMPL);
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end)); //TODO: StackMap
 			}
 			else if (field.getType().equals(Type.LONG)) {
 				il.insert(addUpdatesFor, InstructionConst.LCMP);
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end)); //TODO: StackMap
 			}
 			else
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ICMPEQ, end));
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ICMPEQ, end)); //TODO: StackMap
 			
 			return start;
 		}
@@ -622,10 +626,10 @@ class ClassInstrumentation {
 
 		private void addAccessorMethodsFor(Field field) {
 			addGetterFor(field);
-			addPutterFor(field);
+			addSetterFor(field);
 		}
 
-		private void addPutterFor(Field field) {
+		private void addSetterFor(Field field) {
 			Type type = field.getType();
 			InstructionList il = new InstructionList();
 			il.append(InstructionFactory.createThis());
@@ -635,8 +639,10 @@ class ClassInstrumentation {
 			il.append(factory.createPutField(className, field.getName(), type));
 			il.append(InstructionConst.RETURN);
 
-			MethodGen putter = new MethodGen(modifiersFrom(field), BasicType.VOID, new Type[] { type }, null, PUTTER_PREFIX + field.getName(), className, il, cpg);
-			classGen.addMethod(putter.getMethod());
+			MethodGen setter = new MethodGen(modifiersFrom(field), BasicType.VOID, new Type[] { type }, null, SETTER_PREFIX + field.getName(), className, il, cpg);
+			setter.setMaxLocals();
+			setter.setMaxStack();
+			classGen.addMethod(setter.getMethod());
 		}
 
 		private short modifiersFrom(Field field) {
@@ -660,6 +666,8 @@ class ClassInstrumentation {
 			il.append(InstructionFactory.createReturn(type));
 
 			MethodGen getter = new MethodGen(modifiersFrom(field), type, Type.NO_ARGS, null, GETTER_PREFIX + field.getName(), className, il, cpg);
+			getter.setMaxLocals();
+			getter.setMaxStack();
 			classGen.addMethod(getter.getMethod());
 		}
 
@@ -687,9 +695,28 @@ class ClassInstrumentation {
 			il.insert(_return, factory.createInvoke(className, DESERIALIZE_LAST_UPDATE_FOR, ObjectType.OBJECT, THREE_STRINGS, Const.INVOKEVIRTUAL));
 			il.insert(_return, factory.createCast(ObjectType.OBJECT, field.getType()));
 			il.insert(_return, factory.createPutField(className, OLD_PREFIX + field.getName(), field.getType()));
+			il.setPositions();
 
 			MethodGen ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null, ENSURE_LOADED_PREFIX + field.getName(), className, il, cpg);
+			ensureLoaded.setMaxLocals();
+			ensureLoaded.setMaxStack();
+			StackMap stackMap = mkStackMap(1, new StackMapEntry[] { mkSameStackMapEntry(_return.getPosition()) });
+			ensureLoaded.addAttribute(stackMap);
 			classGen.addMethod(ensureLoaded.getMethod());
+		}
+
+		private StackMap mkStackMap(int totalLength, StackMapEntry[] entries) {
+			int attribute_name_index = cpg.addUtf8("StackMapTable");
+			int attribute_length = 2 + totalLength;
+
+			return new StackMap(attribute_name_index, attribute_length, entries, cpg.getConstantPool());
+		}
+
+		private StackMapEntry mkSameStackMapEntry(int offset) {
+			if (offset >= Const.SAME_FRAME && offset <= Const.SAME_FRAME_MAX)
+				return new StackMapEntry(offset, offset, null, null, cpg.getConstantPool());
+			else
+				return new StackMapEntry(Const.SAME_FRAME_EXTENDED, offset, null, null, cpg.getConstantPool());
 		}
 
 		private void addOldAndIfAlreadyLoadedFields() {
@@ -733,6 +760,8 @@ class ClassInstrumentation {
 			il.append(InstructionConst.RETURN);
 
 			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null, Const.CONSTRUCTOR_NAME, className, il, cpg);
+			constructor.setMaxLocals();
+			constructor.setMaxStack();
 			classGen.addMethod(constructor.getMethod());
 		}
 
