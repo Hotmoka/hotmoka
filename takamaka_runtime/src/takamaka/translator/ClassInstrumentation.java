@@ -23,11 +23,13 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.StackMap;
 import org.apache.bcel.classfile.StackMapEntry;
+import org.apache.bcel.classfile.StackMapType;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
@@ -517,21 +519,35 @@ class ClassInstrumentation {
 			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
 
 			InstructionHandle end = il.append(InstructionConst.RETURN);
+			LinkedList<InstructionHandle> stackMapPositions = new LinkedList<>();
 
 			for (Field field: primitiveNonTransientInstanceFields.getLast())
-				end = addUpdateExtractionForPrimitiveField(field, il, end);
+				end = addUpdateExtractionForPrimitiveField(field, il, end, stackMapPositions);
 
 			for (Field field: referenceNonTransientInstanceFields)
-				end = addUpdateExtractionForReferenceField(field, il, end);
+				end = addUpdateExtractionForReferenceField(field, il, end, stackMapPositions);
 
 			MethodGen extractUpdates = new MethodGen(PROTECTED_SYNTHETIC, Type.VOID, EXTRACT_UPDATES_ARGS, null, EXTRACT_UPDATES, className, il, cpg);
 			il.setPositions();
 			extractUpdates.setMaxLocals();
 			extractUpdates.setMaxStack();
+
+			List<StackMapEntry> stackMapEntries = new ArrayList<>();
+			int lastPosition = -1;
+			for (InstructionHandle ih: stackMapPositions) {
+				if (lastPosition < 0)
+					stackMapEntries.add(mkSameStackMapEntryWithExtraIntLocal(ih.getPosition() - lastPosition - 1));
+				else
+					stackMapEntries.add(mkSameStackMapEntry(ih.getPosition() - lastPosition - 1));
+
+				lastPosition = ih.getPosition();
+			}
+
+			extractUpdates.addCodeAttribute(mkStackMap(4 + (stackMapEntries.size() - 1), stackMapEntries.toArray(new StackMapEntry[stackMapEntries.size()])));
 			classGen.addMethod(extractUpdates.getMethod());
 		}
 
-		private InstructionHandle addUpdateExtractionForReferenceField(Field field, InstructionList il, InstructionHandle end) {
+		private InstructionHandle addUpdateExtractionForReferenceField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
 			ObjectType type = (ObjectType) field.getType();
 
 			List<Type> args = new ArrayList<>();
@@ -568,18 +584,21 @@ class ClassInstrumentation {
 			il.insert(recursiveExtract, factory.createInvoke(Storage.class.getName(), ADD_UPDATES_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
-			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor)); //TODO: StackMap
+			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
 			il.insert(addUpdatesFor, InstructionFactory.createThis());
 			il.insert(addUpdatesFor, InstructionConst.DUP);
 			il.insert(addUpdatesFor, factory.createGetField(className, field.getName(), type));
 			il.insert(addUpdatesFor, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
 
-			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract)); //TODO: StackMap
-			
+			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract));
+
+			stackMapPositions.addFirst(recursiveExtract);
+			stackMapPositions.addFirst(addUpdatesFor);
+
 			return start;
 		}
 
-		private InstructionHandle addUpdateExtractionForPrimitiveField(Field field, InstructionList il, InstructionHandle end) {
+		private InstructionHandle addUpdateExtractionForPrimitiveField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
 			Type type = field.getType();
 
 			List<Type> args = new ArrayList<>();
@@ -596,27 +615,30 @@ class ClassInstrumentation {
 			il.insert(end, factory.createInvoke(Storage.class.getName(), ADD_UPDATES_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
-			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor)); //TODO: StackMap
+			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
 			il.insert(addUpdatesFor, InstructionFactory.createThis());
-			il.insert(addUpdatesFor, InstructionConst.DUP);
 			il.insert(addUpdatesFor, factory.createGetField(className, field.getName(), type));
+			il.insert(addUpdatesFor, InstructionFactory.createThis());
 			il.insert(addUpdatesFor, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
 
 			if (field.getType().equals(Type.DOUBLE)) {
 				il.insert(addUpdatesFor, InstructionConst.DCMPL);
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end)); //TODO: StackMap
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
 			else if (field.getType().equals(Type.FLOAT)) {
 				il.insert(addUpdatesFor, InstructionConst.FCMPL);
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end)); //TODO: StackMap
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
 			else if (field.getType().equals(Type.LONG)) {
 				il.insert(addUpdatesFor, InstructionConst.LCMP);
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end)); //TODO: StackMap
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
 			else
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ICMPEQ, end)); //TODO: StackMap
-			
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ICMPEQ, end));
+
+			stackMapPositions.addFirst(end);
+			stackMapPositions.addFirst(addUpdatesFor);
+
 			return start;
 		}
 
@@ -701,7 +723,7 @@ class ClassInstrumentation {
 			ensureLoaded.setMaxLocals();
 			ensureLoaded.setMaxStack();
 			StackMap stackMap = mkStackMap(1, new StackMapEntry[] { mkSameStackMapEntry(_return.getPosition()) });
-			ensureLoaded.addAttribute(stackMap);
+			ensureLoaded.addCodeAttribute(stackMap);
 			classGen.addMethod(ensureLoaded.getMethod());
 		}
 
@@ -717,6 +739,11 @@ class ClassInstrumentation {
 				return new StackMapEntry(offset, offset, null, null, cpg.getConstantPool());
 			else
 				return new StackMapEntry(Const.SAME_FRAME_EXTENDED, offset, null, null, cpg.getConstantPool());
+		}
+
+		private StackMapEntry mkSameStackMapEntryWithExtraIntLocal(int offset) {
+			ConstantPool cp = cpg.getConstantPool();
+			return new StackMapEntry(Const.APPEND_FRAME, offset, new StackMapType[] { new StackMapType(Const.ITEM_Integer, -1, cp) }, null, cp);
 		}
 
 		private void addOldAndIfAlreadyLoadedFields() {

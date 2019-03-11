@@ -1,13 +1,10 @@
 package takamaka.blockchain;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,7 +65,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		catch (InterruptedException e) {
 			throw new TransactionException("The transaction executor thread was unexpectedly interrupted");
 		}
-		catch (Exception e) {
+		catch (Throwable e) {
 			throw new TransactionException("Cannot complete the transaction", e);
 		}
 
@@ -124,7 +121,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				exception = e;
 				return;
 			}
-			catch (Exception e) {
+			catch (Throwable e) {
 				exception = new TransactionException("Could not call the constructor", e);
 				return;
 			}
@@ -135,7 +132,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			catch (InvocationTargetException e) {
 				exception = e.getCause();
 			}
-			catch (Exception e) {
+			catch (Throwable e) {
 				exception = new TransactionException("Could not call the constructor", e);
 			}
 		}
