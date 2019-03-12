@@ -2,10 +2,8 @@ package takamaka.lang;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.FieldReference;
@@ -50,21 +48,20 @@ public abstract class Storage {
 	 * Takamaka calls this to collect the updates to this object and to
 	 * the objects that are reachable from it.
 	 * 
+	 * @param result the set where the updates will be added
+	 * @param seen a set of storage references that have already been scanned
 	 * @return The updates.
 	 */
-	public final Stream<Update> updates() {
-		Set<Update> result = new HashSet<>();
-		Set<StorageReference> seen = new HashSet<>();
-		seen.add(storageReference);
-		List<Storage> workingSet = new ArrayList<>(16);
-		workingSet.add(this);
+	public final void updates(Set<Update> result, Set<StorageReference> seen) {
+		if (seen.add(storageReference)) {
+			List<Storage> workingSet = new ArrayList<>(16);
+			workingSet.add(this);
 
-		do {
-			workingSet.remove(workingSet.size() - 1).extractUpdates(result, seen, workingSet);
+			do {
+				workingSet.remove(workingSet.size() - 1).extractUpdates(result, seen, workingSet);
+			}
+			while (!workingSet.isEmpty());
 		}
-		while (!workingSet.isEmpty());
-		
-		return result.stream();
 	}
 
 	/**

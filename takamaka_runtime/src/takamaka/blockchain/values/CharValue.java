@@ -16,4 +16,19 @@ public final class CharValue implements StorageValue {
 	public Character deserialize(Blockchain blockchain) throws TransactionException {
 		return value;
 	}
+
+	@Override
+	public String toString() {
+		return Character.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof CharValue && ((CharValue) other).value == value;
+	}
+
+	@Override
+	public int hashCode() {
+		return value;
+	}
 }

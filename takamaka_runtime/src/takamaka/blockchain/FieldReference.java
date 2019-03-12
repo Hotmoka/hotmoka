@@ -32,6 +32,17 @@ public final class FieldReference {
 	}
 
 	@Override
+	public boolean equals(Object other) {
+		return other instanceof FieldReference && ((FieldReference) other).definingClass.equals(definingClass)
+			&& ((FieldReference) other).name.equals(name) && ((FieldReference) other).type.equals(type);
+	}
+
+	@Override
+	public int hashCode() {
+		return definingClass.hashCode() ^ name.hashCode() ^ type.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		return definingClass.name + '.' + name;
 	}

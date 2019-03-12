@@ -16,4 +16,19 @@ public final class ShortValue implements StorageValue {
 	public Short deserialize(Blockchain blockchain) throws TransactionException {
 		return value;
 	}
+
+	@Override
+	public String toString() {
+		return Short.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof ShortValue && ((ShortValue) other).value == value;
+	}
+
+	@Override
+	public int hashCode() {
+		return value;
+	}
 }

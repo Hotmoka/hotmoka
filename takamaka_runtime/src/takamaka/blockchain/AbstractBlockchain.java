@@ -5,8 +5,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageValue;
@@ -54,8 +57,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 		checkNotFull();
 
 		CodeExecutor executor;
+		Object[] deserializedActuals;
 		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
-			executor = new ConstructorExecutor(classLoader, constructor, actuals);
+			deserializedActuals = deserialize(actuals);
+			executor = new ConstructorExecutor(classLoader, constructor, deserializedActuals);
 			executor.start();
 			executor.join();
 		}
@@ -65,24 +70,52 @@ public abstract class AbstractBlockchain implements Blockchain {
 		catch (InterruptedException e) {
 			throw new TransactionException("The transaction executor thread was unexpectedly interrupted");
 		}
-		catch (Throwable e) {
-			throw new TransactionException("Cannot complete the transaction", e);
+		catch (Throwable t) {
+			throw new TransactionException("Cannot complete the transaction", t);
 		}
 
 		if (executor.exception instanceof TransactionException)
 			throw (TransactionException) executor.exception;
 
+		Storage newObject;
+
+		try {
+			newObject = (Storage) executor.result;
+			collectUpdates(deserializedActuals, newObject);
+		}
+		catch (Throwable t) {
+			throw new TransactionException("Cannot complete the transaction", t);
+		}
+
+		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
+		// hence we move further to the next transaction
 		moveToNextTransaction();
-		//TODO: store updates
+
 		if (executor.exception != null)
 			throw new CodeExecutionException("Constructor threw exception", executor.exception);
-		else
-			return (StorageReference) executor.result;
+
+		return newObject.storageReference;
+	}
+
+	private static Stream<Update> collectUpdates(Object[] deserializedActuals, Object result) {
+		List<Storage> potentiallyAffectedObjects = new ArrayList<>();
+		if (result instanceof Storage)
+			potentiallyAffectedObjects.add((Storage) result);
+
+		for (Object actual: deserializedActuals)
+			if (actual instanceof Storage)
+				potentiallyAffectedObjects.add((Storage) actual);
+
+		Set<StorageReference> seen = new HashSet<>();
+		Set<Update> updates = new HashSet<>();
+		potentiallyAffectedObjects.forEach(storage -> storage.updates(updates, seen));
+
+		return updates.stream();
 	}
 
 	private abstract class CodeExecutor extends Thread {
 		protected Throwable exception;
-		protected StorageValue result;
+		protected Object result;
 
 		private CodeExecutor(BlockchainClassLoader classLoader) {
 			setContextClassLoader(new ClassLoader(classLoader.getParent()) {
@@ -97,9 +130,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	private class ConstructorExecutor extends CodeExecutor {
 		private final ConstructorReference constructor;
-		private final StorageValue[] actuals;
+		private final Object[] actuals;
 
-		private ConstructorExecutor(BlockchainClassLoader classLoader, ConstructorReference constructor, StorageValue... actuals) {
+		private ConstructorExecutor(BlockchainClassLoader classLoader, ConstructorReference constructor, Object... actuals) {
 			super(classLoader);
 
 			this.constructor = constructor;
@@ -109,17 +142,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 		@Override
 		public void run() {
 			Constructor<?> constructorJVM;
-			Object[] deserializedActuals;
 
 			try {
 				Class<?> clazz = getContextClassLoader().loadClass(constructor.definingClass.name);
 				constructorJVM = clazz.getConstructor(formalsAsClass(constructor));
-				deserializedActuals = deserialize(actuals);
 				Storage.blockchain = AbstractBlockchain.this; // this blockchain will be used during the execution of the code
-			}
-			catch (TransactionException e) {
-				exception = e;
-				return;
 			}
 			catch (Throwable e) {
 				exception = new TransactionException("Could not call the constructor", e);
@@ -127,7 +154,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			}
 
 			try {
-				result = ((Storage) constructorJVM.newInstance(deserializedActuals)).storageReference;
+				result = ((Storage) constructorJVM.newInstance(actuals));
 			}
 			catch (InvocationTargetException e) {
 				exception = e.getCause();

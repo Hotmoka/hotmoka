@@ -18,4 +18,19 @@ public final class BigIntegerValue implements StorageValue {
 	public BigInteger deserialize(Blockchain blockchain) throws TransactionException {
 		return value;
 	}
+
+	@Override
+	public String toString() {
+		return value.toString();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof BigIntegerValue && ((BigIntegerValue) other).value.equals(value);
+	}
+
+	@Override
+	public int hashCode() {
+		return value.hashCode();
+	}
 }

@@ -16,4 +16,19 @@ public final class BooleanValue implements StorageValue {
 	public Boolean deserialize(Blockchain blockchain) throws TransactionException {
 		return value;
 	}
+
+	@Override
+	public String toString() {
+		return Boolean.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof BooleanValue && ((BooleanValue) other).value == value;
+	}
+
+	@Override
+	public int hashCode() {
+		return Boolean.hashCode(value);
+	}
 }

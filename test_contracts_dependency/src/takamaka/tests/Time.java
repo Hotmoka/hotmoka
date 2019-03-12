@@ -1,6 +1,5 @@
 package takamaka.tests;
 
-import takamaka.lang.Entry;
 import takamaka.lang.Storage;
 
 public abstract class Time extends Storage implements Comparable<Time> {
@@ -10,9 +9,9 @@ public abstract class Time extends Storage implements Comparable<Time> {
 		this.secondsFromStartOfDay = secondsFromStartOfDay;
 	}
 
-	public abstract @Entry Time after(int minutes);
+	public abstract Time after(int minutes);
 
-	public @Entry boolean isBeforeOrEqualTo(Time other) {
+	public boolean isBeforeOrEqualTo(Time other) {
 		return compareTo(other) <= 0;
 	}
 
@@ -31,5 +30,5 @@ public abstract class Time extends Storage implements Comparable<Time> {
 		return secondsFromStartOfDay - other.secondsFromStartOfDay;
 	}
 
-	public @Entry abstract String toString();
+	public abstract String toString();
 }

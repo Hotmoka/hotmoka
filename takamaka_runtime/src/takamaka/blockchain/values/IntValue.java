@@ -16,4 +16,19 @@ public final class IntValue implements StorageValue {
 	public Integer deserialize(Blockchain blockchain) throws TransactionException {
 		return value;
 	}
+
+	@Override
+	public String toString() {
+		return Integer.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof IntValue && ((IntValue) other).value == value;
+	}
+
+	@Override
+	public int hashCode() {
+		return value;
+	}
 }

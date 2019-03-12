@@ -18,6 +18,22 @@ public final class Update {
 		this.value = value;
 	}
 
+	@Override
+	public String toString() {
+		return object + "." + field.name + "=" + value;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof Update && ((Update) other).object.equals(object)
+				&& ((Update) other).field.equals(field) && ((Update) other).value.equals(value);
+	}
+
+	@Override
+	public int hashCode() {
+		return object.hashCode() ^ field.hashCode() ^ value.hashCode();
+	}
+
 	public static Update mk(StorageReference object, FieldReference field, StorageValue value) {
 		return new Update(object, field, value);
 	}

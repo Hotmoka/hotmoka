@@ -14,4 +14,19 @@ public final class NullValue implements StorageValue {
 	public Object deserialize(Blockchain blockchain) throws TransactionException {
 		return null;
 	}
+
+	@Override
+	public String toString() {
+		return "null";
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof NullValue;
+	}
+
+	@Override
+	public int hashCode() {
+		return 13011973;
+	}
 }

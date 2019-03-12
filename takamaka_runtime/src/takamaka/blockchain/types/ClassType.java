@@ -19,4 +19,14 @@ public final class ClassType implements StorageType {
 	public Class<?> toClass() throws ClassNotFoundException {
 		return Class.forName(name);
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof ClassType && ((ClassType) other).name.equals(name);
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
 }

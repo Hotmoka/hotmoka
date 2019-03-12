@@ -1,13 +1,11 @@
 package takamaka.tests;
 
-import takamaka.lang.Entry;
-
 public class AmericanTime extends Time {
 	public enum Period {
 		AM, PM
 	}
 
-	public @Entry AmericanTime(int hours, int minutes, int seconds, Period period) {
+	public AmericanTime(int hours, int minutes, int seconds, Period period) {
 		super(seconds + 60 * minutes + 3600 * translateHours(period, hours));
 
 		if (hours < 1 || hours > 12 || minutes < 0 || minutes >= 60 || seconds < 0 || seconds >= 60)

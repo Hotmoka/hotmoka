@@ -1,10 +1,8 @@
 package takamaka.tests;
 
-import takamaka.lang.Entry;
-
 public class ItalianTime extends Time {
 
-	public @Entry ItalianTime(int hours, int minutes, int seconds) {
+	public ItalianTime(int hours, int minutes, int seconds) {
 		super(seconds + 60 * minutes + 3600 * hours);
 
 		if (hours < 0 || hours >= 24 || minutes < 0 || minutes >= 60 || seconds < 0 || seconds >= 60)

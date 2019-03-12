@@ -74,7 +74,7 @@ class ClassInstrumentation {
 	private final static String SETTER_PREFIX = "§set_";
 	private final static String EXTRACT_UPDATES = "extractUpdates";
 	private final static String RECURSIVE_EXTRACT = "recursiveExtract";
-	private final static String ADD_UPDATES_FOR = "addUpdatesFor";
+	private final static String ADD_UPDATE_FOR = "addUpdateFor";
 	private final static String PAYABLE_ENTRY = "payableEntry";
 	private final static String ENTRY = "entry";
 	private final static String IN_STORAGE_NAME = "inStorage";
@@ -581,7 +581,7 @@ class ClassInstrumentation {
 			il.insert(recursiveExtract, factory.createConstant(type.getClassName()));
 			il.insert(recursiveExtract, InstructionFactory.createThis());
 			il.insert(recursiveExtract, factory.createGetField(className, field.getName(), type));
-			il.insert(recursiveExtract, factory.createInvoke(Storage.class.getName(), ADD_UPDATES_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
+			il.insert(recursiveExtract, factory.createInvoke(Storage.class.getName(), ADD_UPDATE_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
 			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
@@ -612,7 +612,7 @@ class ClassInstrumentation {
 			il.insert(end, InstructionConst.ALOAD_1);
 			il.insert(end, InstructionFactory.createThis());
 			il.insert(end, factory.createGetField(className, field.getName(), type));
-			il.insert(end, factory.createInvoke(Storage.class.getName(), ADD_UPDATES_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
+			il.insert(end, factory.createInvoke(Storage.class.getName(), ADD_UPDATE_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
 			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));

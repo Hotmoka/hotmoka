@@ -16,4 +16,19 @@ public final class DoubleValue implements StorageValue {
 	public Double deserialize(Blockchain blockchain) throws TransactionException {
 		return value;
 	}
+
+	@Override
+	public String toString() {
+		return Double.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof DoubleValue && ((DoubleValue) other).value == value;
+	}
+
+	@Override
+	public int hashCode() {
+		return Double.hashCode(value);
+	}
 }

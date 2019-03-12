@@ -16,4 +16,19 @@ public final class FloatValue implements StorageValue {
 	public Float deserialize(Blockchain blockchain) throws TransactionException {
 		return value;
 	}
+
+	@Override
+	public String toString() {
+		return Float.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof FloatValue && ((FloatValue) other).value == value;
+	}
+
+	@Override
+	public int hashCode() {
+		return Float.hashCode(value);
+	}
 }
