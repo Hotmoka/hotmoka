@@ -9,10 +9,10 @@ import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorReference;
-import takamaka.blockchain.StorageReference;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.values.IntValue;
+import takamaka.blockchain.values.StorageReference;
 
 public class MemoryBlockchainTest {
 

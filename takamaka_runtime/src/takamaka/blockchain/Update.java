@@ -1,12 +1,13 @@
 package takamaka.blockchain;
 
 import takamaka.blockchain.types.ClassType;
+import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
 import takamaka.lang.Immutable;
 
 @Immutable
-public final class Update {
+public final class Update implements Comparable<Update> {
 	public final StorageReference object;
 	public final FieldReference field;
 	public final StorageValue value;
@@ -40,5 +41,18 @@ public final class Update {
 
 	public static Update mkForClassTag(StorageReference object, String className) {
 		return new Update(object, new FieldReference(className, CLASS_TAG_FIELD_NAME, new ClassType(String.class.getName())), new StringValue(className));
+	}
+
+	@Override
+	public int compareTo(Update other) {
+		int diff = object.compareTo(other.object);
+		if (diff != 0)
+			return diff;
+
+		diff = field.compareTo(other.field);
+		if (diff != 0)
+			return diff;
+		else
+			return value.compareTo(other.value);
 	}
 }

@@ -7,7 +7,6 @@ import java.util.Set;
 
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.FieldReference;
-import takamaka.blockchain.StorageReference;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.types.BasicTypes;
@@ -20,6 +19,7 @@ import takamaka.blockchain.values.FloatValue;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.ShortValue;
+import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StringValue;
 
 public abstract class Storage {

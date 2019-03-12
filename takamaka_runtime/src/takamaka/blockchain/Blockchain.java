@@ -2,6 +2,7 @@ package takamaka.blockchain;
 
 import java.nio.file.Path;
 
+import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Storage;
 

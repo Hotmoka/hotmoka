@@ -29,4 +29,9 @@ public final class NullValue implements StorageValue {
 	public int hashCode() {
 		return 13011973;
 	}
+
+	@Override
+	public int compareTo(StorageValue other) {
+		return getClass().getName().compareTo(other.getClass().getName());
+	}
 }

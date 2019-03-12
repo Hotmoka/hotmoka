@@ -11,16 +11,21 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.SortedSet;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.Classpath;
+import takamaka.blockchain.ConstructorReference;
 import takamaka.blockchain.FieldReference;
-import takamaka.blockchain.StorageReference;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.Update;
+import takamaka.blockchain.values.StorageReference;
+import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Storage;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.Program;
@@ -35,6 +40,16 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	 * The name used for the file describing the dependencies of a jar.
 	 */
 	public final static Path DEPENDENCIES_NAME = Paths.get("deps.txt");
+
+	/**
+	 * The name used for the file describing the specification of a code execution transaction.
+	 */
+	public final static Path SPEC_NAME = Paths.get("spec.txt");
+
+	/**
+	 * The name used for the file containing the updates performed during a code execution transaction.
+	 */
+	public final static Path UPDATES_NAME = Paths.get("updates.txt");
 
 	private final Path root;
 	private final short transactionsPerBlock;
@@ -105,14 +120,53 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 	
 		if (dependencies.length > 0) {
-			Path dependenciesFile = getCurrentPathFor(DEPENDENCIES_NAME);
-			try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(dependenciesFile.toFile())))) {
+			Path dependenciesPath = getCurrentPathFor(DEPENDENCIES_NAME);
+			try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(dependenciesPath.toFile())))) {
 				for (Classpath dependency: dependencies)
 					output.println(dependency);
 			}
 			catch (IOException e) {
 				throw new TransactionException("Could not store dependencies into transaction entry " + original);
 			}
+		}
+	}
+
+	@Override
+	protected void addConstructorCallTransactionInternal
+		(Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates)
+		throws TransactionException {
+
+		Path specPath = getCurrentPathFor(SPEC_NAME);
+
+		try {
+			ensureDeleted(specPath.getParent());
+			Files.createDirectories(specPath.getParent());
+		}
+		catch (IOException e) {
+			throw new TransactionException("Could not create transaction entry " + specPath.getParent());
+		}
+
+		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(specPath.toFile())))) {
+			output.println("Constructor execution");
+			output.println("Class path: " + classpath);
+			output.println("Constructor: " + constructor);
+			output.println("actuals: " + Arrays.toString(actuals));
+			if (result != null)
+				output.println("result: " + result);
+			else
+				output.println("exception: " + exception.getClass().getName());
+		}
+		catch (IOException e) {
+			throw new TransactionException("Could not store specifiaction of the transaction", e);
+		}
+
+		Path updatesPath = getCurrentPathFor(UPDATES_NAME);
+
+		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(updatesPath.toFile())))) {
+			updates.forEach(output::println);
+		}
+		catch (IOException e) {
+			throw new TransactionException("Could not store specifiaction of the transaction", e);
 		}
 	}
 
@@ -143,6 +197,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		return currentBlock == Long.MAX_VALUE && currentTransaction == transactionsPerBlock;
 	}
 
+	@Override
 	protected void moveToNextTransaction() {
 		if (++currentTransaction == transactionsPerBlock) {
 			currentTransaction = 0;

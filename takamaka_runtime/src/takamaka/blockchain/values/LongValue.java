@@ -31,4 +31,13 @@ public final class LongValue implements StorageValue {
 	public int hashCode() {
 		return Long.hashCode(value);
 	}
+
+	@Override
+	public int compareTo(StorageValue other) {
+		int diff = getClass().getName().compareTo(other.getClass().getName());
+		if (diff != 0)
+			return diff;
+		else
+			return Long.compare(value, ((LongValue) other).value);
+	}
 }

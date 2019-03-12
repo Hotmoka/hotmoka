@@ -8,10 +8,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import takamaka.blockchain.types.StorageType;
+import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Storage;
 import takamaka.translator.Program;
@@ -78,14 +80,17 @@ public abstract class AbstractBlockchain implements Blockchain {
 			throw (TransactionException) executor.exception;
 
 		Storage newObject;
+		SortedSet<Update> updates;
 
 		try {
 			newObject = (Storage) executor.result;
-			collectUpdates(deserializedActuals, newObject);
+			updates = collectUpdates(deserializedActuals, newObject);
 		}
 		catch (Throwable t) {
 			throw new TransactionException("Cannot complete the transaction", t);
 		}
+
+		addConstructorCallTransactionInternal(classpath, constructor, actuals, StorageValue.serialize(newObject), executor.exception, updates);
 
 		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
 		// hence we move further to the next transaction
@@ -93,11 +98,22 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		if (executor.exception != null)
 			throw new CodeExecutionException("Constructor threw exception", executor.exception);
-
-		return newObject.storageReference;
+		else
+			return newObject.storageReference;
 	}
 
-	private static Stream<Update> collectUpdates(Object[] deserializedActuals, Object result) {
+	protected abstract void addConstructorCallTransactionInternal
+		(Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates)
+		throws TransactionException;
+
+	/**
+	 * Collects all updates reachable from the actual or from the result of a method call.
+	 * 
+	 * @param deserializedActuals the actuals; only {@code Storage} are relevant
+	 * @param result the result; relevant only if {@code Storage}
+	 * @return the ordered updates
+	 */
+	private static SortedSet<Update> collectUpdates(Object[] deserializedActuals, Object result) {
 		List<Storage> potentiallyAffectedObjects = new ArrayList<>();
 		if (result instanceof Storage)
 			potentiallyAffectedObjects.add((Storage) result);
@@ -107,10 +123,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 				potentiallyAffectedObjects.add((Storage) actual);
 
 		Set<StorageReference> seen = new HashSet<>();
-		Set<Update> updates = new HashSet<>();
+		SortedSet<Update> updates = new TreeSet<>();
 		potentiallyAffectedObjects.forEach(storage -> storage.updates(updates, seen));
 
-		return updates.stream();
+		return updates;
 	}
 
 	private abstract class CodeExecutor extends Thread {

@@ -29,4 +29,12 @@ public final class ClassType implements StorageType {
 	public int hashCode() {
 		return name.hashCode();
 	}
+
+	@Override
+	public int compareAgainst(StorageType other) {
+		if (other instanceof BasicTypes)
+			return 1;
+		else
+			return name.compareTo(((ClassType) other).name); // other instanceof ClassType
+	}
 }

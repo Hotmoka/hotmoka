@@ -30,4 +30,12 @@ public enum BasicTypes implements StorageType {
 		default: return double.class;
 		}
 	}
+
+	@Override
+	public int compareAgainst(StorageType other) {
+		if (other instanceof BasicTypes)
+			return compareTo((BasicTypes) other);
+		else
+			return -1; // other instanceof ClassType
+	}
 }

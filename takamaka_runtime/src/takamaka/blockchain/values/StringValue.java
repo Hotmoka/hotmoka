@@ -31,4 +31,13 @@ public final class StringValue implements StorageValue {
 	public int hashCode() {
 		return value.hashCode();
 	}
+
+	@Override
+	public int compareTo(StorageValue other) {
+		int diff = getClass().getName().compareTo(other.getClass().getName());
+		if (diff != 0)
+			return diff;
+		else
+			return value.compareTo(((StringValue) other).value);
+	}
 }

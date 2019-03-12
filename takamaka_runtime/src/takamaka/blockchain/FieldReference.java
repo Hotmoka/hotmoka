@@ -5,7 +5,7 @@ import takamaka.blockchain.types.StorageType;
 import takamaka.lang.Immutable;
 
 @Immutable
-public final class FieldReference {
+public final class FieldReference implements Comparable<FieldReference> {
 	public final ClassType definingClass;
 	public final String name;
 	public final StorageType type;
@@ -45,5 +45,18 @@ public final class FieldReference {
 	@Override
 	public String toString() {
 		return definingClass.name + '.' + name;
+	}
+
+	@Override
+	public int compareTo(FieldReference other) {
+		int diff = definingClass.compareAgainst(other.definingClass);
+		if (diff != 0)
+			return diff;
+
+		diff = name.compareTo(other.name);
+		if (diff != 0)
+			return diff;
+		else
+			return type.compareAgainst(other.type);
 	}
 }

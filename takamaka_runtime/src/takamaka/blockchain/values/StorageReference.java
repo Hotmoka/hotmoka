@@ -1,6 +1,8 @@
-package takamaka.blockchain;
+package takamaka.blockchain.values;
 
-import takamaka.blockchain.values.StorageValue;
+import takamaka.blockchain.Blockchain;
+import takamaka.blockchain.TransactionException;
+import takamaka.blockchain.TransactionReference;
 import takamaka.lang.Immutable;
 import takamaka.lang.Storage;
 
@@ -44,6 +46,19 @@ public final class StorageReference implements StorageValue {
 	@Override
 	public int hashCode() {
 		return progressive ^ transaction.hashCode();
+	}
+
+	@Override
+	public int compareTo(StorageValue other) {
+		int diff = getClass().getName().compareTo(other.getClass().getName());
+		if (diff != 0)
+			return diff;
+
+		diff = transaction.compareTo(((StorageReference) other).transaction);
+		if (diff != 0)
+			return diff;
+
+		return Short.compare(progressive, ((StorageReference) other).progressive);
 	}
 
 	@Override

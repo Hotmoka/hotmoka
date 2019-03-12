@@ -59,7 +59,7 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import takamaka.blockchain.StorageReference;
+import takamaka.blockchain.values.StorageReference;
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
