@@ -18,7 +18,7 @@ public enum BasicTypes implements StorageType {
 	}
 
 	@Override
-	public Class<?> toClass() {
+	public Class<?> toClass(ClassLoader classLoader) {
 		switch (this) {
 		case BOOLEAN: return boolean.class;
 		case BYTE: return byte.class;

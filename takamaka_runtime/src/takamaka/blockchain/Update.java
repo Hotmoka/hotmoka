@@ -1,10 +1,11 @@
 package takamaka.blockchain;
 
+import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
+import takamaka.blockchain.values.BooleanValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.blockchain.values.StringValue;
 import takamaka.lang.Immutable;
 
 @Immutable
@@ -13,7 +14,7 @@ public final class Update implements Comparable<Update> {
 	public final FieldReference field;
 	public final StorageValue value;
 	private final static String CLASS_TAG_FIELD_NAME = "@class";
-	private final static ClassType STRING_CLASS_TYPE = new ClassType("java.lang.String");
+	private final static BooleanValue VALUE_FOR_CLASS_TAG = new BooleanValue(true);
 
 	private Update(StorageReference object, FieldReference field, StorageValue value) {
 		this.object = object;
@@ -42,7 +43,7 @@ public final class Update implements Comparable<Update> {
 	}
 
 	public static Update mkForClassTag(StorageReference object, String className) {
-		return new Update(object, new FieldReference(className, CLASS_TAG_FIELD_NAME, STRING_CLASS_TYPE), new StringValue(className));
+		return new Update(object, new FieldReference(className, CLASS_TAG_FIELD_NAME, BasicTypes.BOOLEAN), VALUE_FOR_CLASS_TAG);
 	}
 
 	public static Update mkFromString(String s) {
@@ -55,6 +56,10 @@ public final class Update implements Comparable<Update> {
 		return new Update(new StorageReference(parts[0]),
 			new FieldReference(new ClassType(parts[1]), parts[2], type),
 			StorageValue.from(type, parts[4]));
+	}
+
+	public boolean isClassTag() {
+		return CLASS_TAG_FIELD_NAME.equals(field.name);
 	}
 
 	@Override

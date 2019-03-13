@@ -2,7 +2,8 @@ package takamaka.blockchain.values;
 
 import java.math.BigInteger;
 
-import takamaka.blockchain.Blockchain;
+import takamaka.blockchain.AbstractBlockchain;
+import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.TransactionException;
 import takamaka.lang.Immutable;
 
@@ -15,7 +16,7 @@ public final class BigIntegerValue implements StorageValue {
 	}
 
 	@Override
-	public BigInteger deserialize(Blockchain blockchain) throws TransactionException {
+	public BigInteger deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) throws TransactionException {
 		return value;
 	}
 

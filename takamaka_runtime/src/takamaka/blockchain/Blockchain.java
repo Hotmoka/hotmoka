@@ -4,11 +4,10 @@ import java.nio.file.Path;
 
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.lang.Storage;
 
 public interface Blockchain {
 	public TransactionReference getCurrentTransactionReference();
-	public Storage deserialize(StorageReference reference) throws TransactionException;
+
 	/**
 	 * Deserializes the value of the given reference type field from blockchain.
 	 * 

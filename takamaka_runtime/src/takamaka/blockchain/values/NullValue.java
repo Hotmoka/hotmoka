@@ -1,6 +1,7 @@
 package takamaka.blockchain.values;
 
-import takamaka.blockchain.Blockchain;
+import takamaka.blockchain.AbstractBlockchain;
+import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.TransactionException;
 import takamaka.lang.Immutable;
 
@@ -11,7 +12,7 @@ public final class NullValue implements StorageValue {
 	private NullValue() {}
 
 	@Override
-	public Object deserialize(Blockchain blockchain) throws TransactionException {
+	public Object deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) throws TransactionException {
 		return null;
 	}
 

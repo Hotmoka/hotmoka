@@ -13,7 +13,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.SortedSet;
 
 import takamaka.blockchain.AbstractBlockchain;
@@ -24,6 +27,9 @@ import takamaka.blockchain.FieldReference;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.Update;
+import takamaka.blockchain.types.BasicTypes;
+import takamaka.blockchain.types.ClassType;
+import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Storage;
@@ -69,9 +75,71 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	public Storage deserialize(StorageReference reference) {
-		// TODO Auto-generated method stub
-		return null;
+	protected Storage deserializeInternal(BlockchainClassLoader classLoader, StorageReference object) throws TransactionException {
+		try {
+			TransactionReference cursor = object.transaction;
+
+			Set<Update> updates = new HashSet<>();
+			do {
+				addPrimitiveUpdatesFor(object, cursor, updates);
+				cursor = previousTransacton(cursor);
+			}
+			while (!cursor.isOlderThan(object.transaction));
+
+			System.out.println(updates);
+
+			Optional<Update> classTag = updates.stream()
+				.filter(Update::isClassTag)
+				.findAny();
+			
+			if (!classTag.isPresent())
+				throw new TransactionException("No class tag found for " + object);
+
+			updates.remove(classTag.get());
+			String className = classTag.get().field.definingClass.name;
+
+			System.out.println("I should create a " + className);
+			System.out.println(updates);
+
+			// TODO Auto-generated method stub
+			return null;
+		}
+		catch (Throwable t) {
+			throw new TransactionException("Cannot deserialize storage reference " + object, t);
+		}
+	}
+
+	private void addPrimitiveUpdatesFor(StorageReference object, TransactionReference where, Set<Update> updates) throws IOException {
+		Path updatesPath = getPathFor(where, UPDATES_NAME);
+		if (Files.exists(updatesPath)) {
+			Files.lines(updatesPath)
+				.map(Update::mkFromString)
+				.filter(update -> update.object.equals(object) && !isLazilyLoaded(update.field.type))
+				.filter(update -> notAlreadyIn(update, updates))
+				.forEach(updates::add);
+		}
+	}
+
+	private static boolean isLazilyLoaded(StorageType type) {
+		if (type instanceof BasicTypes)
+			return false;
+
+		String className = ((ClassType) type).name;
+		return !className.equals("java.lang.String") && !className.equals("java.math.BigInteger");
+	}
+
+	private boolean notAlreadyIn(Update update, Set<Update> updates) {
+		return updates.stream().noneMatch(other -> other.object.equals(update.object) && other.field.equals(update.field));
+	}
+
+	private TransactionReference previousTransacton(TransactionReference cursor) throws IllegalArgumentException {
+		if (cursor.transactionNumber == 0)
+			if (cursor.blockNumber == 0)
+				throw new IllegalArgumentException("Transaction has no previous transaction");
+			else
+				return new TransactionReference(cursor.blockNumber - 1, (short) (transactionsPerBlock - 1));
+		else
+			return new TransactionReference(cursor.blockNumber, (short) (cursor.transactionNumber - 1));
 	}
 
 	@Override

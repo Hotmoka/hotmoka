@@ -16,8 +16,8 @@ public final class ClassType implements StorageType {
 	}
 
 	@Override
-	public Class<?> toClass() throws ClassNotFoundException {
-		return Class.forName(name);
+	public Class<?> toClass(ClassLoader classLoader) throws ClassNotFoundException {
+		return classLoader.loadClass(name);
 	}
 
 	@Override

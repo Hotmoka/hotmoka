@@ -11,6 +11,7 @@ import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorReference;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.StorageReference;
 
@@ -22,8 +23,10 @@ public class MemoryBlockchainTest {
 		TransactionReference test_contracts = blockchain.addJarStoreTransaction(Paths.get("../test_contracts/dist/test_contracts.jar"), new Classpath(test_contracts_dependency, true)); // true/false irrelevant here
 		Classpath classpath = new Classpath(test_contracts, true);
 
-		StorageReference italianTime = blockchain.addConstructorCallTransaction(classpath, new ConstructorReference("takamaka.tests.ItalianTime", INT, INT, INT),
+		StorageReference italianTimeRef = blockchain.addConstructorCallTransaction(classpath, new ConstructorReference("takamaka.tests.ItalianTime", INT, INT, INT),
 				new IntValue(13), new IntValue(25), new IntValue(40));
-		System.out.println(italianTime);
+		System.out.println(italianTimeRef);
+		StorageReference wrapperRef = blockchain.addConstructorCallTransaction(classpath, new ConstructorReference("takamaka.tests.Wrapper", new ClassType("takamaka.tests.Time")), italianTimeRef);
+		System.out.println(wrapperRef);
 	}
 }

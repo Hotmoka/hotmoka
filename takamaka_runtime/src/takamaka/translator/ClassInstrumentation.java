@@ -586,8 +586,8 @@ class ClassInstrumentation {
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
 			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
 			il.insert(addUpdatesFor, InstructionFactory.createThis());
-			il.insert(addUpdatesFor, InstructionConst.DUP);
 			il.insert(addUpdatesFor, factory.createGetField(className, field.getName(), type));
+			il.insert(addUpdatesFor, InstructionFactory.createThis());
 			il.insert(addUpdatesFor, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
 
 			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract));

@@ -27,10 +27,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return new TransactionReference(currentBlock, currentTransaction);
 	}
 
-	@Override
-	public Storage deserialize(StorageReference reference) throws TransactionException {
-		// TODO Auto-generated method stub
-		return null;
+	public final Storage deserialize(BlockchainClassLoader classLoader, StorageReference reference) throws TransactionException {
+		return deserializeInternal(classLoader, reference);
 	}
 
 	@Override
@@ -61,7 +59,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		CodeExecutor executor;
 		Object[] deserializedActuals;
 		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
-			deserializedActuals = deserialize(actuals);
+			deserializedActuals = deserialize(classLoader, actuals);
 			executor = new ConstructorExecutor(classLoader, constructor, deserializedActuals);
 			executor.start();
 			executor.join();
@@ -101,10 +99,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		else
 			return newObject.storageReference;
 	}
-
-	protected abstract void addConstructorCallTransactionInternal
-		(Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates)
-		throws TransactionException;
 
 	/**
 	 * Collects all updates reachable from the actual or from the result of a method call.
@@ -161,7 +155,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try {
 				Class<?> clazz = getContextClassLoader().loadClass(constructor.definingClass.name);
-				constructorJVM = clazz.getConstructor(formalsAsClass(constructor));
+				constructorJVM = clazz.getConstructor(formalsAsClass(getContextClassLoader(), constructor));
 				Storage.blockchain = AbstractBlockchain.this; // this blockchain will be used during the execution of the code
 			}
 			catch (Throwable e) {
@@ -198,7 +192,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract void extractPathsRecursively(Classpath classpath, List<Path> result) throws TransactionException;
 
+	protected abstract Storage deserializeInternal(BlockchainClassLoader classLoader, StorageReference reference) throws TransactionException;
+
 	protected abstract void addJarStoreTransactionInternal(Path jar, Classpath... dependencies) throws TransactionException;
+
+	protected abstract void addConstructorCallTransactionInternal
+		(Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates)
+		throws TransactionException;
 
 	protected abstract BlockchainClassLoader mkBlockchainClassLoader(Classpath classpath) throws TransactionException;
 
@@ -206,18 +206,18 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract void moveToNextTransaction();
 
-	private Class<?>[] formalsAsClass(CodeReference methodOrConstructor) throws ClassNotFoundException {
+	private Class<?>[] formalsAsClass(ClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-			classes.add(type.toClass());
+			classes.add(type.toClass(classLoader));
 	
 		return classes.toArray(new Class<?>[classes.size()]);
 	}
 
-	private Object[] deserialize(StorageValue[] actuals) throws TransactionException {
+	private Object[] deserialize(BlockchainClassLoader classLoader, StorageValue[] actuals) throws TransactionException {
 		Object[] deserialized = new Object[actuals.length];
 		for (int pos = 0; pos < actuals.length; pos++)
-			deserialized[pos] = actuals[pos].deserialize(this);
+			deserialized[pos] = actuals[pos].deserialize(classLoader, this);
 		
 		return deserialized;
 	}

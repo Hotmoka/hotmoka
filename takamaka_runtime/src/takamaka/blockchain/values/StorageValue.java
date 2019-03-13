@@ -2,7 +2,8 @@ package takamaka.blockchain.values;
 
 import java.math.BigInteger;
 
-import takamaka.blockchain.Blockchain;
+import takamaka.blockchain.AbstractBlockchain;
+import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
@@ -10,7 +11,7 @@ import takamaka.blockchain.types.StorageType;
 import takamaka.lang.Storage;
 
 public interface StorageValue extends Comparable<StorageValue> {
-	Object deserialize(Blockchain blockchain) throws TransactionException;
+	Object deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) throws TransactionException;
 
 	/**
 	 * Yields a storage value of a given type, from its string representation.
