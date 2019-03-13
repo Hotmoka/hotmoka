@@ -44,7 +44,7 @@ public final class FieldReference implements Comparable<FieldReference> {
 
 	@Override
 	public String toString() {
-		return definingClass.name + '.' + name;
+		return definingClass + ";" + name + ";" + type;
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package takamaka.blockchain;
 
 import takamaka.blockchain.types.ClassType;
+import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
@@ -12,6 +13,7 @@ public final class Update implements Comparable<Update> {
 	public final FieldReference field;
 	public final StorageValue value;
 	private final static String CLASS_TAG_FIELD_NAME = "@class";
+	private final static ClassType STRING_CLASS_TYPE = new ClassType("java.lang.String");
 
 	private Update(StorageReference object, FieldReference field, StorageValue value) {
 		this.object = object;
@@ -21,7 +23,7 @@ public final class Update implements Comparable<Update> {
 
 	@Override
 	public String toString() {
-		return object + "." + field.name + "=" + value;
+		return object + ";" + field + ";" + value;
 	}
 
 	@Override
@@ -40,7 +42,19 @@ public final class Update implements Comparable<Update> {
 	}
 
 	public static Update mkForClassTag(StorageReference object, String className) {
-		return new Update(object, new FieldReference(className, CLASS_TAG_FIELD_NAME, new ClassType(String.class.getName())), new StringValue(className));
+		return new Update(object, new FieldReference(className, CLASS_TAG_FIELD_NAME, STRING_CLASS_TYPE), new StringValue(className));
+	}
+
+	public static Update mkFromString(String s) {
+		String[] parts = s.split(";");
+		if (parts.length != 5)
+			throw new IllegalArgumentException("Illegal string format " + s);
+
+		StorageType type = StorageType.of(parts[3]);
+
+		return new Update(new StorageReference(parts[0]),
+			new FieldReference(new ClassType(parts[1]), parts[2], type),
+			StorageValue.from(type, parts[4]));
 	}
 
 	@Override

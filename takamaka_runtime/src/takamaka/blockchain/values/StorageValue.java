@@ -4,12 +4,75 @@ import java.math.BigInteger;
 
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.TransactionException;
+import takamaka.blockchain.types.BasicTypes;
+import takamaka.blockchain.types.ClassType;
+import takamaka.blockchain.types.StorageType;
 import takamaka.lang.Storage;
 
 public interface StorageValue extends Comparable<StorageValue> {
 	Object deserialize(Blockchain blockchain) throws TransactionException;
 
-	public static StorageValue serialize(Object object) throws IllegalArgumentException {
+	/**
+	 * Yields a storage value of a given type, from its string representation.
+	 * It always hold that {@code from(type, value.toString()).equals(value)},
+	 * if {@code value} has type {@code type}.
+	 * 
+	 * @param type the type of the value
+	 * @param s the string representation of the value
+	 * @return the value
+	 * @throws IllegalArgumentException if booleans or characters cannot be converted
+	 * @throws NumberFormatException if numerical values cannot be converted
+	 * @throws RuntimeException if an unexpected type is provided
+	 */
+	static StorageValue from(StorageType type, String s) {
+		if (s == null)
+			throw new IllegalArgumentException("The string to convert cannot be null");
+
+		if (type instanceof BasicTypes) {
+			switch ((BasicTypes) type) {
+			case BOOLEAN:
+				if (s.equals("true"))
+					return new BooleanValue(true);
+				else if (s.equals("false"))
+					return new BooleanValue(false);
+				else
+					throw new IllegalArgumentException("The string to convert is not a boolean");
+			case BYTE:
+				return new ByteValue(Byte.parseByte(s));
+			case CHAR:
+				if (s.length() != 1)
+					throw new IllegalArgumentException("The string to convert is not a character");
+				else
+					return new CharValue(s.charAt(0));
+			case DOUBLE:
+				return new DoubleValue(Double.parseDouble(s));
+			case FLOAT:
+				return new FloatValue(Float.parseFloat(s));
+			case INT:
+				return new IntValue(Integer.parseInt(s));
+			case LONG:
+				return new LongValue(Long.parseLong(s));
+			case SHORT:
+				return new ShortValue(Short.parseShort(s));
+			default:
+				throw new RuntimeException("Unexpected basic type " + type);
+			}
+		}
+		else if (type instanceof ClassType) {
+			switch (((ClassType) type).name) {
+			case "java.lang.String":
+				return new StringValue(s);
+			case "java.math.BIgInteger":
+				return new BigIntegerValue(new BigInteger(s, 10));
+			default:
+				return new StorageReference(s);
+			}
+		}
+
+		throw new RuntimeException("Unexpected type " + type);
+	}
+
+	static StorageValue serialize(Object object) throws IllegalArgumentException {
 		if (object instanceof Storage)
 			return ((Storage) object).storageReference;
 		else if (object instanceof BigInteger)

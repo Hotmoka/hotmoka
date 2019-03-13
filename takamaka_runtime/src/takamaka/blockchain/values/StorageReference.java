@@ -38,6 +38,29 @@ public final class StorageReference implements StorageValue {
 		this.progressive = progressive;
 	}
 
+	/**
+	 * Builds a storage reference from a string. The format of the string is the
+	 * same that would be returned by {@code toString()}. Hence
+	 * {@code r.equals(new StorageReference(s.toString()))} holds for
+	 * every {@code StorageReference r}.
+	 * 
+	 * @param s the string
+	 * @throws NumberFormatException if the format of the string does not correspond
+	 *                               to a {@code StorageReference}
+	 */
+	public StorageReference(String s) throws NumberFormatException {
+		int length;
+
+		if (s == null || (length = s.length()) < 4)
+			throw new NumberFormatException("Illegal transaction reference format: " + s);
+
+		String transactionPart = s.substring(0, length - 4);
+		String progressivePart = s.substring(length - 4);
+		
+		this.transaction = new TransactionReference(transactionPart);
+		this.progressive = Short.decode("0x" + progressivePart);
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof StorageReference && ((StorageReference) other).progressive == progressive && ((StorageReference) other).transaction.equals(transaction);

@@ -157,7 +157,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 				output.println("exception: " + exception.getClass().getName());
 		}
 		catch (IOException e) {
-			throw new TransactionException("Could not store specifiaction of the transaction", e);
+			throw new TransactionException("Could not store the specification of the transaction", e);
 		}
 
 		Path updatesPath = getCurrentPathFor(UPDATES_NAME);
@@ -165,8 +165,8 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(updatesPath.toFile())))) {
 			updates.forEach(output::println);
 		}
-		catch (IOException e) {
-			throw new TransactionException("Could not store specifiaction of the transaction", e);
+		catch (Throwable t) {
+			throw new TransactionException("Could not store the updates of the transaction", t);
 		}
 	}
 
