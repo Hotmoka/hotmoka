@@ -818,7 +818,7 @@ class ClassInstrumentation {
 				.map(Field::getType)
 				.forEachOrdered(pushLoad);
 		
-			il.append(factory.createInvoke(className, Const.CONSTRUCTOR_NAME, BasicType.VOID, argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
+			il.append(factory.createInvoke(classGen.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID, argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 		
 			return pushLoad.local;
 		}

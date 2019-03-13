@@ -1,5 +1,7 @@
 package takamaka.blockchain.types;
 
+import takamaka.blockchain.BlockchainClassLoader;
+
 public enum BasicTypes implements StorageType {
 	BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE;
 
@@ -18,7 +20,7 @@ public enum BasicTypes implements StorageType {
 	}
 
 	@Override
-	public Class<?> toClass(ClassLoader classLoader) {
+	public Class<?> toClass(BlockchainClassLoader classLoader) {
 		switch (this) {
 		case BOOLEAN: return boolean.class;
 		case BYTE: return byte.class;

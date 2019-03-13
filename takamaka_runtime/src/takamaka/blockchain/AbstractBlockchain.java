@@ -5,8 +5,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -28,7 +30,74 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	public final Storage deserialize(BlockchainClassLoader classLoader, StorageReference reference) throws TransactionException {
-		return deserializeInternal(classLoader, reference);
+		// this comparator puts updates in the order required for the parameter
+		// of the deserialization constructor of storage objects: fields of superclasses first;
+		// for the same class, fields are ordered by name and then by type
+		Comparator<Update> updateComparator = new Comparator<Update>() {
+
+			@Override
+			public int compare(Update update1, Update update2) {
+				FieldReference field1 = update1.field;
+				FieldReference field2 = update2.field;
+
+				try {
+					Class<?> clazz1 = classLoader.loadClass(field1.definingClass.name);
+					Class<?> clazz2 = classLoader.loadClass(field2.definingClass.name);
+					if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
+						return -1;
+					else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
+						return 1;
+					else if (clazz1 == clazz2) {
+						int diff = field1.name.compareTo(field2.name);
+						if (diff != 0)
+							return diff;
+						else
+							return field1.type.toString().compareTo(field2.type.toString());
+					}
+					else
+						throw new IllegalStateException("Updates are not on the same supeclass chain");
+				}
+				catch (ClassNotFoundException e) {
+					throw new IllegalStateException(e);
+				}
+			}
+		};
+
+		try {
+			SortedSet<Update> updates = new TreeSet<>(updateComparator);
+			collectUpdatesFor(reference, updates);
+
+			Optional<Update> classTag = updates.stream()
+					.filter(Update::isClassTag)
+					.findAny();
+
+			if (!classTag.isPresent())
+				throw new TransactionException("No class tag found for " + reference);
+
+			String className = classTag.get().field.definingClass.name;
+			List<Class<?>> formals = new ArrayList<>();
+			List<Object> actuals = new ArrayList<>();
+			// the constructor for deserialization has a first parameter
+			// that receives the storage reference of the object
+			formals.add(StorageReference.class);
+			actuals.add(reference);
+
+			for (Update update: updates)
+				if (!update.isClassTag()) {
+					formals.add(update.field.type.toClass(classLoader));
+					actuals.add(update.value.deserialize(classLoader, this));
+				}
+
+			Class<?> clazz = classLoader.loadClass(className);
+			Constructor<?> constructor = clazz.getConstructor(formals.toArray(new Class<?>[formals.size()]));
+			return (Storage) constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
+		}
+		catch (TransactionException e) {
+			throw e;
+		}
+		catch (Throwable t) {
+			throw new TransactionException("Could not deserialize " + reference, t);
+		}
 	}
 
 	@Override
@@ -126,8 +195,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	private abstract class CodeExecutor extends Thread {
 		protected Throwable exception;
 		protected Object result;
+		protected final BlockchainClassLoader classLoader;
 
 		private CodeExecutor(BlockchainClassLoader classLoader) {
+			this.classLoader = classLoader;
+
 			setContextClassLoader(new ClassLoader(classLoader.getParent()) {
 
 				@Override
@@ -154,8 +226,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 			Constructor<?> constructorJVM;
 
 			try {
-				Class<?> clazz = getContextClassLoader().loadClass(constructor.definingClass.name);
-				constructorJVM = clazz.getConstructor(formalsAsClass(getContextClassLoader(), constructor));
+				Class<?> clazz = classLoader.loadClass(constructor.definingClass.name);
+				constructorJVM = clazz.getConstructor(formalsAsClass(classLoader, constructor));
 				Storage.blockchain = AbstractBlockchain.this; // this blockchain will be used during the execution of the code
 			}
 			catch (Throwable e) {
@@ -192,7 +264,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract void extractPathsRecursively(Classpath classpath, List<Path> result) throws TransactionException;
 
-	protected abstract Storage deserializeInternal(BlockchainClassLoader classLoader, StorageReference reference) throws TransactionException;
+	protected abstract void collectUpdatesFor(StorageReference reference, Set<Update> where) throws TransactionException;
 
 	protected abstract void addJarStoreTransactionInternal(Path jar, Classpath... dependencies) throws TransactionException;
 
@@ -206,7 +278,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract void moveToNextTransaction();
 
-	private Class<?>[] formalsAsClass(ClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
+	private Class<?>[] formalsAsClass(BlockchainClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
 			classes.add(type.toClass(classLoader));

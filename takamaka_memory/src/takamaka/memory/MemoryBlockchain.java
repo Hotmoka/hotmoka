@@ -13,9 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -32,7 +30,6 @@ import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.lang.Storage;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.Program;
 
@@ -75,37 +72,18 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected Storage deserializeInternal(BlockchainClassLoader classLoader, StorageReference object) throws TransactionException {
+	protected void collectUpdatesFor(StorageReference reference, Set<Update> where) throws TransactionException {
 		try {
-			TransactionReference cursor = object.transaction;
+			TransactionReference cursor = reference.transaction;
 
-			Set<Update> updates = new HashSet<>();
 			do {
-				addPrimitiveUpdatesFor(object, cursor, updates);
+				addPrimitiveUpdatesFor(reference, cursor, where);
 				cursor = previousTransacton(cursor);
 			}
-			while (!cursor.isOlderThan(object.transaction));
-
-			System.out.println(updates);
-
-			Optional<Update> classTag = updates.stream()
-				.filter(Update::isClassTag)
-				.findAny();
-			
-			if (!classTag.isPresent())
-				throw new TransactionException("No class tag found for " + object);
-
-			updates.remove(classTag.get());
-			String className = classTag.get().field.definingClass.name;
-
-			System.out.println("I should create a " + className);
-			System.out.println(updates);
-
-			// TODO Auto-generated method stub
-			return null;
+			while (!cursor.isOlderThan(reference.transaction));
 		}
 		catch (Throwable t) {
-			throw new TransactionException("Cannot deserialize storage reference " + object, t);
+			throw new TransactionException("Cannot deserialize storage reference " + reference, t);
 		}
 	}
 

@@ -1,7 +1,9 @@
 package takamaka.blockchain.types;
 
+import takamaka.blockchain.BlockchainClassLoader;
+
 public interface StorageType {
-	Class<?> toClass(ClassLoader classLoader) throws ClassNotFoundException;
+	Class<?> toClass(BlockchainClassLoader classLoader) throws ClassNotFoundException;
 	
 	// this cannot be called compareTo since conflicts with the implicit
 	// compareTo in the enum BasicTypes

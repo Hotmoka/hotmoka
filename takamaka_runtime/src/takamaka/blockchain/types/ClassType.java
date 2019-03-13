@@ -1,5 +1,6 @@
 package takamaka.blockchain.types;
 
+import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.lang.Immutable;
 
 @Immutable
@@ -16,7 +17,7 @@ public final class ClassType implements StorageType {
 	}
 
 	@Override
-	public Class<?> toClass(ClassLoader classLoader) throws ClassNotFoundException {
+	public Class<?> toClass(BlockchainClassLoader classLoader) throws ClassNotFoundException {
 		return classLoader.loadClass(name);
 	}
 
