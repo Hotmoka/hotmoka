@@ -40,4 +40,9 @@ public enum BasicTypes implements StorageType {
 		else
 			return -1; // other instanceof ClassType
 	}
+
+	@Override
+	public boolean isLazilyLoaded() {
+		return false;
+	}
 }

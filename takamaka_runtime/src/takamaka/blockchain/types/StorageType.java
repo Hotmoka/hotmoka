@@ -29,4 +29,12 @@ public interface StorageType {
 		default: return new ClassType(s);
 		}
 	}
+
+	/**
+	 * Determines if a field of this type of a storage object is not loaded
+	 * at deserialization time, but only when and if is accessed.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	boolean isLazilyLoaded();
 }

@@ -22,12 +22,10 @@ import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.ConstructorReference;
 import takamaka.blockchain.FieldReference;
+import takamaka.blockchain.MethodReference;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.Update;
-import takamaka.blockchain.types.BasicTypes;
-import takamaka.blockchain.types.ClassType;
-import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.translator.JarInstrumentation;
@@ -78,7 +76,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 
 			do {
 				addPrimitiveUpdatesFor(reference, cursor, where);
-				cursor = previousTransacton(cursor);
+				cursor = previousTransaction(cursor);
 			}
 			while (!cursor.isOlderThan(reference.transaction));
 		}
@@ -89,28 +87,18 @@ public class MemoryBlockchain extends AbstractBlockchain {
 
 	private void addPrimitiveUpdatesFor(StorageReference object, TransactionReference where, Set<Update> updates) throws IOException {
 		Path updatesPath = getPathFor(where, UPDATES_NAME);
-		if (Files.exists(updatesPath)) {
+		if (Files.exists(updatesPath))
 			Files.lines(updatesPath)
 				.map(Update::mkFromString)
-				.filter(update -> update.object.equals(object) && !isLazilyLoaded(update.field.type))
-				.filter(update -> notAlreadyIn(update, updates))
+				.filter(update -> update.object.equals(object) && !update.field.type.isLazilyLoaded() && notAlreadyIn(update, updates))
 				.forEach(updates::add);
-		}
 	}
 
-	private static boolean isLazilyLoaded(StorageType type) {
-		if (type instanceof BasicTypes)
-			return false;
-
-		String className = ((ClassType) type).name;
-		return !className.equals("java.lang.String") && !className.equals("java.math.BigInteger");
-	}
-
-	private boolean notAlreadyIn(Update update, Set<Update> updates) {
+	private static boolean notAlreadyIn(Update update, Set<Update> updates) {
 		return updates.stream().noneMatch(other -> other.object.equals(update.object) && other.field.equals(update.field));
 	}
 
-	private TransactionReference previousTransacton(TransactionReference cursor) throws IllegalArgumentException {
+	private TransactionReference previousTransaction(TransactionReference cursor) throws IllegalArgumentException {
 		if (cursor.transactionNumber == 0)
 			if (cursor.blockNumber == 0)
 				throw new IllegalArgumentException("Transaction has no previous transaction");
@@ -182,6 +170,36 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		(Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates)
 		throws TransactionException {
 
+		String spec = "Constructor execution\n";
+		spec += "Class path: " + classpath + "\n";
+		spec += "Constructor: " + constructor + "\n";
+		spec += "actuals: " + Arrays.toString(actuals) + "\n";
+		if (result != null)
+			spec += "result: " + result + "\n";
+		else
+			spec += "exception: " + exception.getClass().getName() + "\n";
+
+		addCodeExecutionTransactionInternal(spec, updates);
+	}
+
+	@Override
+	protected void addInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method,
+			StorageValue receiver, StorageValue[] actuals, StorageValue result, Throwable exception,
+			SortedSet<Update> updates) throws TransactionException {
+
+		String spec = "Instance method execution\n";
+		spec += "Class path: " + classpath + "\n";
+		spec += "Method: " + method + "\n";
+		spec += "actuals: " + Arrays.toString(actuals) + "\n";
+		if (result != null)
+			spec += "result: " + result + "\n";
+		else
+			spec += "exception: " + exception.getClass().getName() + "\n";
+
+		addCodeExecutionTransactionInternal(spec, updates);
+	}
+
+	private void addCodeExecutionTransactionInternal(String spec, SortedSet<Update> updates) throws TransactionException {
 		Path specPath = getCurrentPathFor(SPEC_NAME);
 
 		try {
@@ -193,14 +211,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 
 		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(specPath.toFile())))) {
-			output.println("Constructor execution");
-			output.println("Class path: " + classpath);
-			output.println("Constructor: " + constructor);
-			output.println("actuals: " + Arrays.toString(actuals));
-			if (result != null)
-				output.println("result: " + result);
-			else
-				output.println("exception: " + exception.getClass().getName());
+			output.println(spec);
 		}
 		catch (IOException e) {
 			throw new TransactionException("Could not store the specification of the transaction", e);

@@ -10,6 +10,7 @@ import takamaka.blockchain.FieldReference;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.types.BasicTypes;
+import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.BigIntegerValue;
 import takamaka.blockchain.values.BooleanValue;
 import takamaka.blockchain.values.ByteValue;
@@ -18,6 +19,7 @@ import takamaka.blockchain.values.DoubleValue;
 import takamaka.blockchain.values.FloatValue;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.LongValue;
+import takamaka.blockchain.values.NullValue;
 import takamaka.blockchain.values.ShortValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StringValue;
@@ -103,11 +105,7 @@ public abstract class Storage {
 		FieldReference field = new FieldReference(fieldDefiningClass, fieldName, fieldClassName);
 
 		if (s == null)
-			updates.add(Update.mk(storageReference, field, null));
-		else if (s instanceof String)
-			updates.add(Update.mk(storageReference, field, new StringValue((String) s)));
-		else if (s instanceof BigInteger)
-			updates.add(Update.mk(storageReference, field, new BigIntegerValue((BigInteger) s)));
+			updates.add(Update.mk(storageReference, field, NullValue.INSTANCE));
 		else if (s instanceof Storage) {
 			Storage storage = (Storage) s;
 
@@ -153,5 +151,13 @@ public abstract class Storage {
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
 		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.SHORT), new ShortValue(s)));
+	}
+
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, String s) {
+		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, ClassType.STRING), s == null ? NullValue.INSTANCE : new StringValue(s)));
+	}
+
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, BigInteger bi) {
+		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER), bi == null ? NullValue.INSTANCE : new BigIntegerValue(bi)));
 	}
 }

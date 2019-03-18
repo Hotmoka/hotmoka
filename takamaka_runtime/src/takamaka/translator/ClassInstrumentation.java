@@ -144,16 +144,19 @@ class ClassInstrumentation {
 		private final boolean isContract;
 
 		/**
-		 * The non-transient instance fields of primitive type defined in the class being instrumented
-		 * and in its superclasses up to Storage (excluded). This is non-empty for storage classes only.
+		 * The non-transient instance fields of primitive type or of special reference types that are
+		 * allowed in storage objects (such as {@code String} and {@code BigInteger}). They are
+		 * defined in the class being instrumented or in its superclasses
+		 * up to {@code Storage} (excluded). This set is non-empty for storage classes only.
 		 */
-		private final LinkedList<SortedSet<Field>> primitiveNonTransientInstanceFields = new LinkedList<>();
+		private final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
 
 		/**
-		 * The non-transient instance fields of reference type defined in the class being instrumented
-		 * (superclasses are not considered). This is non-empty for storage classes only.
+		 * The non-transient instance fields of type {@code Storage} or subclass, defined
+		 * in the class being instrumented (superclasses are not considered). This set
+		 * is non-empty for storage classes only.
 		 */
-		private final SortedSet<Field> referenceNonTransientInstanceFields = new TreeSet<>(fieldOrder);
+		private final SortedSet<Field> lazyNonTransientInstanceFields = new TreeSet<>(fieldOrder);
 
 		/**
 		 * The program that collects the classes under instrumentation and those of the
@@ -171,7 +174,7 @@ class ClassInstrumentation {
 			this.isContract = isContract(className);
 
 			if (isStorage)
-				collectPrimitiveNonTransientInstanceFieldsOf(className);
+				collectEagerNonTransientInstanceFieldsOf(className);
 
 			instrumentClass();
 		}
@@ -244,9 +247,7 @@ class ClassInstrumentation {
 			argsWithContract[args.length] = CONTRACT_OT;
 			InvokeInstruction replacement = factory.createInvoke
 					(invoke.getClassName(cpg), invoke.getMethodName(cpg),
-					invoke.getReturnType(cpg),
-					argsWithContract,
-					invoke.getOpcode());
+					invoke.getReturnType(cpg), argsWithContract, invoke.getOpcode());
 			ih.setInstruction(replacement);
 		}
 
@@ -274,8 +275,7 @@ class ClassInstrumentation {
 				return false;
 
 			Optional<Method> definition = Stream.of(clazz.getMethods())
-				.filter(m -> m.getName().equals(methodName))
-				.filter(m -> m.getSignature().equals(methodSignature))
+				.filter(m -> m.getName().equals(methodName) && m.getSignature().equals(methodSignature))
 				.findAny();
 
 			if (definition.isPresent()) {
@@ -480,7 +480,7 @@ class ClassInstrumentation {
 			if (!method.isAbstract()) {
 				InstructionList il = method.getInstructionList();
 				StreamSupport.stream(il.spliterator(), false)
-					.filter(ih -> isAccessToReferenceFieldInStorageClass(ih.getInstruction()))
+					.filter(ih -> isAccessToLazilyLoadedFieldInStorageClass(ih.getInstruction()))
 					.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
 			}
 		}
@@ -498,14 +498,14 @@ class ClassInstrumentation {
 				return factory.createInvoke(referencedClass.getClassName(), SETTER_PREFIX + fieldName, Type.VOID, new Type[] { fieldType }, Const.INVOKESPECIAL);
 		}
 
-		private boolean isAccessToReferenceFieldInStorageClass(Instruction instruction) {
+		private boolean isAccessToLazilyLoadedFieldInStorageClass(Instruction instruction) {
 			return (instruction instanceof GETFIELD || instruction instanceof PUTFIELD)
 				&& isStorage(((ObjectType) ((FieldInstruction) instruction).getReferenceType(cpg)).getClassName())
-				&& ((FieldInstruction) instruction).getFieldType(cpg) instanceof ReferenceType;
+				&& isLazilyLoaded(((FieldInstruction) instruction).getFieldType(cpg));
 		}
 
 		private void addExtractUpdates() {
-			if (primitiveNonTransientInstanceFields.getLast().isEmpty() && referenceNonTransientInstanceFields.isEmpty())
+			if (eagerNonTransientInstanceFields.getLast().isEmpty() && lazyNonTransientInstanceFields.isEmpty())
 				return;
 
 			InstructionList il = new InstructionList();
@@ -521,11 +521,11 @@ class ClassInstrumentation {
 			InstructionHandle end = il.append(InstructionConst.RETURN);
 			LinkedList<InstructionHandle> stackMapPositions = new LinkedList<>();
 
-			for (Field field: primitiveNonTransientInstanceFields.getLast())
-				end = addUpdateExtractionForPrimitiveField(field, il, end, stackMapPositions);
+			for (Field field: eagerNonTransientInstanceFields.getLast())
+				end = addUpdateExtractionForEagerField(field, il, end, stackMapPositions);
 
-			for (Field field: referenceNonTransientInstanceFields)
-				end = addUpdateExtractionForReferenceField(field, il, end, stackMapPositions);
+			for (Field field: lazyNonTransientInstanceFields)
+				end = addUpdateExtractionForLazyField(field, il, end, stackMapPositions);
 
 			MethodGen extractUpdates = new MethodGen(PROTECTED_SYNTHETIC, Type.VOID, EXTRACT_UPDATES_ARGS, null, EXTRACT_UPDATES, className, il, cpg);
 			il.setPositions();
@@ -547,7 +547,7 @@ class ClassInstrumentation {
 			classGen.addMethod(extractUpdates.getMethod());
 		}
 
-		private InstructionHandle addUpdateExtractionForReferenceField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
+		private InstructionHandle addUpdateExtractionForLazyField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
 			ObjectType type = (ObjectType) field.getType();
 
 			List<Type> args = new ArrayList<>();
@@ -598,7 +598,7 @@ class ClassInstrumentation {
 			return start;
 		}
 
-		private InstructionHandle addUpdateExtractionForPrimitiveField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
+		private InstructionHandle addUpdateExtractionForEagerField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
 			Type type = field.getType();
 
 			List<Type> args = new ArrayList<>();
@@ -633,8 +633,10 @@ class ClassInstrumentation {
 				il.insert(addUpdatesFor, InstructionConst.LCMP);
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
-			else
+			else if (field.getType().equals(Type.INT))
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ICMPEQ, end));
+			else
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, end));
 
 			stackMapPositions.addFirst(end);
 			stackMapPositions.addFirst(addUpdatesFor);
@@ -643,7 +645,7 @@ class ClassInstrumentation {
 		}
 
 		private void addAccessorMethods() {
-			referenceNonTransientInstanceFields.forEach(this::addAccessorMethodsFor);
+			lazyNonTransientInstanceFields.forEach(this::addAccessorMethodsFor);
 		}
 
 		private void addAccessorMethodsFor(Field field) {
@@ -694,7 +696,7 @@ class ClassInstrumentation {
 		}
 
 		private void addEnsureLoadedMethods() {
-			referenceNonTransientInstanceFields.forEach(this::addEnsureLoadedMethodFor);
+			lazyNonTransientInstanceFields.forEach(this::addEnsureLoadedMethodFor);
 		}
 
 		private void addEnsureLoadedMethodFor(Field field) {
@@ -747,10 +749,10 @@ class ClassInstrumentation {
 		}
 
 		private void addOldAndIfAlreadyLoadedFields() {
-			for (Field field: primitiveNonTransientInstanceFields.getLast())
+			for (Field field: eagerNonTransientInstanceFields.getLast())
 				addOldFieldFor(field);
 
-			for (Field field: referenceNonTransientInstanceFields) {
+			for (Field field: lazyNonTransientInstanceFields) {
 				addOldFieldFor(field);
 				addIfAlreadyLoadedFieldFor(field);
 			}
@@ -776,14 +778,14 @@ class ClassInstrumentation {
 			args.add(new ObjectType(StorageReference.class.getName()));
 
 			// then there are the fields of the class and superclasses, with superclasses first
-			primitiveNonTransientInstanceFields.stream()
+			eagerNonTransientInstanceFields.stream()
 				.flatMap(SortedSet::stream)
 				.map(Field::getType)
 				.forEachOrdered(args::add);
 
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
-			addInitializationOfPrimitiveFields(il, nextLocal);
+			addInitializationOfEagerFields(il, nextLocal);
 			il.append(InstructionConst.RETURN);
 
 			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null, Const.CONSTRUCTOR_NAME, className, il, cpg);
@@ -812,8 +814,8 @@ class ClassInstrumentation {
 			};
 		
 			PushLoad pushLoad = new PushLoad();
-			primitiveNonTransientInstanceFields.stream()
-				.limit(primitiveNonTransientInstanceFields.size() - 1)
+			eagerNonTransientInstanceFields.stream()
+				.limit(eagerNonTransientInstanceFields.size() - 1)
 				.flatMap(SortedSet::stream)
 				.map(Field::getType)
 				.forEachOrdered(pushLoad);
@@ -823,7 +825,7 @@ class ClassInstrumentation {
 			return pushLoad.local;
 		}
 
-		private void addInitializationOfPrimitiveFields(InstructionList il, int nextLocal) {
+		private void addInitializationOfEagerFields(InstructionList il, int nextLocal) {
 			Consumer<Field> pushField = new Consumer<Field>() {
 				private int local = nextLocal;
 
@@ -847,28 +849,34 @@ class ClassInstrumentation {
 				}
 			};
 			
-			primitiveNonTransientInstanceFields.getLast().forEach(pushField);
+			eagerNonTransientInstanceFields.getLast().forEach(pushField);
 		}
 
-		private void collectPrimitiveNonTransientInstanceFieldsOf(String className) {
+		private void collectEagerNonTransientInstanceFieldsOf(String className) {
 			if (!className.equals(Storage.class.getName())) {
 				JavaClass clazz = program.get(className);
 				if (clazz != null) {
 					// we put at the beginning the fields of the superclasses
-					collectPrimitiveNonTransientInstanceFieldsOf(clazz.getSuperclassName());
+					collectEagerNonTransientInstanceFieldsOf(clazz.getSuperclassName());
 
-					// then the fields of className, in order
-					primitiveNonTransientInstanceFields.add(Stream.of(clazz.getFields())
-						.filter(field -> !field.isStatic() && !field.isTransient() && field.getType() instanceof BasicType)
+					// then the eager fields of className, in order
+					eagerNonTransientInstanceFields.add(Stream.of(clazz.getFields())
+						.filter(field -> !field.isStatic() && !field.isTransient() && !isLazilyLoaded(field.getType()))
 						.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
 
-					// we collect reference fields as well, but only for the class being instrumented
+					// we collect lazy fields as well, but only for the class being instrumented
 					if (className.equals(this.className))
 						Stream.of(clazz.getFields())
-							.filter(field -> !field.isStatic() && !field.isTransient() && field.getType() instanceof ReferenceType)
-							.forEach(referenceNonTransientInstanceFields::add);
+							.filter(field -> !field.isStatic() && !field.isTransient() && isLazilyLoaded(field.getType()))
+							.forEach(lazyNonTransientInstanceFields::add);
 				}
 			}
+		}
+
+		private boolean isLazilyLoaded(Type type) {
+			String className;
+			return !(type instanceof BasicType ||
+				(type instanceof ObjectType && ((className = ((ObjectType) type).getClassName()).equals("java.lang.String") || className.equals("java.math.BigInteger"))));
 		}
 
 		private boolean isStorage(String className) {

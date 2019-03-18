@@ -60,6 +60,9 @@ public interface StorageValue extends Comparable<StorageValue> {
 			}
 		}
 		else if (type instanceof ClassType) {
+			if (s.equals("null"))
+				return NullValue.INSTANCE;
+
 			switch (((ClassType) type).name) {
 			case "java.lang.String":
 				return new StringValue(s);
