@@ -55,7 +55,7 @@ public final class Update implements Comparable<Update> {
 
 		return new Update(new StorageReference(parts[0]),
 			new FieldReference(new ClassType(parts[1]), parts[2], type),
-			StorageValue.from(type, parts[4]));
+			StorageValue.of(type, parts[4]));
 	}
 
 	public boolean isClassTag() {

@@ -718,6 +718,8 @@ class ClassInstrumentation {
 			il.insert(_return, factory.createConstant(((ObjectType) field.getType()).getClassName()));
 			il.insert(_return, factory.createInvoke(className, DESERIALIZE_LAST_UPDATE_FOR, ObjectType.OBJECT, THREE_STRINGS, Const.INVOKEVIRTUAL));
 			il.insert(_return, factory.createCast(ObjectType.OBJECT, field.getType()));
+			il.insert(_return, InstructionConst.DUP2);
+			il.insert(_return, factory.createPutField(className, field.getName(), field.getType()));
 			il.insert(_return, factory.createPutField(className, OLD_PREFIX + field.getName(), field.getType()));
 			il.setPositions();
 

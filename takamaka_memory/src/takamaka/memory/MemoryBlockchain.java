@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -85,6 +86,42 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 	}
 
+	@Override
+	protected Update getLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException {
+		try {
+			TransactionReference cursor = reference.transaction;
+
+			do {
+				Update update = getLastUpdateFor(reference, field, cursor);
+				if (update != null)
+					return update;
+
+				cursor = previousTransaction(cursor);
+			}
+			while (!cursor.isOlderThan(reference.transaction));
+		}
+		catch (Throwable t) {
+			throw new TransactionException("Cannot deserialize storage reference " + reference, t);
+		}
+
+		throw new TransactionException("Did not find the last update for " + field + " of " + reference);
+	}
+
+	private Update getLastUpdateFor(StorageReference reference, FieldReference field, TransactionReference cursor) throws IOException {
+		Path updatesPath = getPathFor(reference.transaction, UPDATES_NAME);
+		if (Files.exists(updatesPath)) {
+			Optional<Update> result = Files.lines(updatesPath)
+				.map(Update::mkFromString)
+				.filter(update -> update.object.equals(reference) && update.field.equals(field))
+				.findAny();
+
+			if (result.isPresent())
+				return result.get();
+		}
+
+		return null;
+	}
+
 	private void addPrimitiveUpdatesFor(StorageReference object, TransactionReference where, Set<Update> updates) throws IOException {
 		Path updatesPath = getPathFor(where, UPDATES_NAME);
 		if (Files.exists(updatesPath))
@@ -106,12 +143,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 				return new TransactionReference(cursor.blockNumber - 1, (short) (transactionsPerBlock - 1));
 		else
 			return new TransactionReference(cursor.blockNumber, (short) (cursor.transactionNumber - 1));
-	}
-
-	@Override
-	public Object deserializeLastUpdateFor(StorageReference reference, FieldReference field) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	@Override
@@ -211,7 +242,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 
 		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(specPath.toFile())))) {
-			output.println(spec);
+			output.print(spec);
 		}
 		catch (IOException e) {
 			throw new TransactionException("Could not store the specification of the transaction", e);

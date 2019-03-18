@@ -686,7 +686,7 @@ in Fig.~\ref{fig:transaction}:
 
     private void ensureLoadedF1() {
       if (inStorage && !f1AlreadyLoaded) {
-        oldF1 = (D) blockchain.deserializeLastUpdateFor
+        f1 = oldF1 = (D) blockchain.deserializeLastUpdateFor
                                     (storageReference, "C.f1:D");
         f1AlreadyLoaded = true;
       }

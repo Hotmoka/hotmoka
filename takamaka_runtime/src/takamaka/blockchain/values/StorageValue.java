@@ -25,7 +25,7 @@ public interface StorageValue extends Comparable<StorageValue> {
 	 * @throws NumberFormatException if numerical values cannot be converted
 	 * @throws RuntimeException if an unexpected type is provided
 	 */
-	static StorageValue from(StorageType type, String s) {
+	static StorageValue of(StorageType type, String s) {
 		if (s == null)
 			throw new IllegalArgumentException("The string to convert cannot be null");
 
@@ -62,15 +62,12 @@ public interface StorageValue extends Comparable<StorageValue> {
 		else if (type instanceof ClassType) {
 			if (s.equals("null"))
 				return NullValue.INSTANCE;
-
-			switch (((ClassType) type).name) {
-			case "java.lang.String":
+			else if (type.equals(ClassType.STRING))
 				return new StringValue(s);
-			case "java.math.BIgInteger":
+			else if (type.equals(ClassType.BIG_INTEGER))
 				return new BigIntegerValue(new BigInteger(s, 10));
-			default:
+			else
 				return new StorageReference(s);
-			}
 		}
 
 		throw new RuntimeException("Unexpected type " + type);

@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import takamaka.blockchain.Blockchain;
+import takamaka.blockchain.AbstractBlockchain;
+import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.FieldReference;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.Update;
@@ -27,9 +28,20 @@ import takamaka.blockchain.values.StringValue;
 public abstract class Storage {
 	public final StorageReference storageReference;
 	protected final boolean inStorage;
-	public static Blockchain blockchain; //TODO = Blockchain.getInstance();
+	private static AbstractBlockchain blockchain;
+	private static BlockchainClassLoader classLoader;
 	private static short nextProgressive;
 
+	/**
+	 * Resets class data at the beginning of a transaction.
+	 * 
+	 * @param blockchain the blockchain used for the new transaction
+	 */
+	public static void init(AbstractBlockchain blockchain, BlockchainClassLoader classLoader) {
+		Storage.blockchain = blockchain;
+		Storage.classLoader = classLoader;
+		nextProgressive = 0;
+	}
 	/**
 	 * Constructor used by the programmer to build objects not yet in storage
 	 */
@@ -97,7 +109,7 @@ public abstract class Storage {
 	}
 
 	protected final Object deserializeLastUpdateFor(String definingClass, String name, String className) throws TransactionException {
-		return blockchain.deserializeLastUpdateFor(storageReference, new FieldReference(definingClass, name, className));
+		return blockchain.deserializeLastUpdateFor(classLoader, storageReference, new FieldReference(definingClass, name, className));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet, String fieldClassName, Object s) {

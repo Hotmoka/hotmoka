@@ -8,15 +8,6 @@ import takamaka.blockchain.values.StorageValue;
 public interface Blockchain {
 	public TransactionReference getCurrentTransactionReference();
 
-	/**
-	 * Deserializes the value of the given reference type field from blockchain.
-	 * 
-	 * @param reference the storage reference of the object holding the field
-	 * @param field the field
-	 * @return the value of the field. This might be a {@code Storage} but also some special types
-	 *         such as {@code String} and {@code BigInteger}
-	 */
-	public Object deserializeLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException;
 	public TransactionReference addJarStoreTransaction(Path jar, Classpath... dependencies) throws TransactionException;
 
 	/**

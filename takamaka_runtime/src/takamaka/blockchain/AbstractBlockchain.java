@@ -102,11 +102,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 	}
 
-	@Override
-	public Object deserializeLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException {
-		// TODO Auto-generated method stub
-		return null;
+	public Object deserializeLastUpdateFor(BlockchainClassLoader classLoader, StorageReference reference, FieldReference field) throws TransactionException {
+		try {
+			return getLastUpdateFor(reference, field).value.deserialize(classLoader, this);
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "Could not deserialize " + reference);
+		}
 	}
+
+	protected abstract Update getLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException;
 
 	@Override
 	public final TransactionReference addJarStoreTransaction(Path jar, Classpath... dependencies) throws TransactionException {
@@ -271,19 +276,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		@Override
 		public void run() {
-			Constructor<?> constructorJVM;
-
 			try {
 				Class<?> clazz = classLoader.loadClass(constructor.definingClass.name);
-				constructorJVM = clazz.getConstructor(formalsAsClass(classLoader, constructor));
-				Storage.blockchain = AbstractBlockchain.this; // this blockchain will be used during the execution of the code
-			}
-			catch (Throwable e) {
-				exception = new TransactionException("Could not call the constructor", e);
-				return;
-			}
-
-			try {
+				Constructor<?> constructorJVM = clazz.getConstructor(formalsAsClass(classLoader, constructor));
+				Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
 				result = ((Storage) constructorJVM.newInstance(actuals));
 			}
 			catch (InvocationTargetException e) {
@@ -310,19 +306,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		@Override
 		public void run() {
-			Method methodJVM;
-
 			try {
 				Class<?> clazz = classLoader.loadClass(method.definingClass.name);
-				methodJVM = clazz.getMethod(method.methodName, formalsAsClass(classLoader, method));
-				Storage.blockchain = AbstractBlockchain.this; // this blockchain will be used during the execution of the code
-			}
-			catch (Throwable e) {
-				exception = new TransactionException("Could not call the method", e);
-				return;
-			}
-
-			try {
+				Method methodJVM = clazz.getMethod(method.methodName, formalsAsClass(classLoader, method));
+				Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
 				result = methodJVM.invoke(receiver, actuals);
 			}
 			catch (InvocationTargetException e) {
@@ -330,6 +317,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			}
 			catch (Throwable e) {
 				exception = new TransactionException("Could not call the method", e);
+				return;
 			}
 		}
 	}
@@ -345,7 +333,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			return new Program(result.stream());
 		}
 		catch (IOException e) {
-			throw new TransactionException("Cannot build set of all classes in class path", e);
+			throw new TransactionException("Cannot build the set of all classes in the class path", e);
 		}
 	}
 
