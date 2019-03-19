@@ -5,27 +5,18 @@ import takamaka.lang.Payable;
 
 public class Sub extends Super {
 
+	public Sub() {
+		super(13);
+	}
+
 	public @Entry @Payable Sub(int amount) {
 		super(amount > 10 ? 13 : 17); // ok
 	}
 
-	public Sub(boolean b) {
-		super(b); // exception at run time
-	}
-
-	public @Entry Sub() {
-		super(true); // exception at run time
-	}
-
-	@Override
+	@Override @Entry
 	public void m1() { // this is implicitly @Entry by inheritance
 		super.m1(); // exception at run time
 		System.out.println("Sub.m1");
-	}
-
-	@Override @Entry // this cannot become @Entry: error at compile time
-	public void m2() {
-		super.m2();
 	}
 
 	@Override
@@ -40,12 +31,8 @@ public class Sub extends Super {
 
 	public void m5() {
 		super.m2(); // ok
-		caller(); // error at compile time
-		Sub c = new Sub();
-		c.caller(); // error at compile time
+		new Sub(13);
 	}
 
-	public static @Entry void m6() {} // error at compile time
-
-	public @Payable void m7() {} // error at compile time
+	public static void ms() {}
 }

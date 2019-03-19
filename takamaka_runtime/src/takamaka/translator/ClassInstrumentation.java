@@ -21,6 +21,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AnnotationEntry;
+import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.ConstantPool;
@@ -134,7 +135,8 @@ class ClassInstrumentation {
 		private final InstructionFactory factory;
 
 		/**
-		 * True if and only if the class being instrumented is a storage class.
+		 * True if and only if the class being instrumented is a storage class, distinct
+		 * form {@code Storage} itself, that must not be instrumented.
 		 */
 		private final boolean isStorage;
 
@@ -147,7 +149,9 @@ class ClassInstrumentation {
 		 * The non-transient instance fields of primitive type or of special reference types that are
 		 * allowed in storage objects (such as {@code String} and {@code BigInteger}). They are
 		 * defined in the class being instrumented or in its superclasses
-		 * up to {@code Storage} (excluded). This set is non-empty for storage classes only.
+		 * up to {@code Storage} (excluded). This list is non-empty for storage classes only.
+		 * The first set in the list are the fields of the topmost class; the last are the fields
+		 * of the class being considered.
 		 */
 		private final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
 
@@ -170,11 +174,11 @@ class ClassInstrumentation {
 			this.cpg = classGen.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
 			this.program = program;
-			this.isStorage = isStorage(className);
+			this.isStorage = !className.equals(Storage.class.getName()) && isStorage(className);
 			this.isContract = isContract(className);
 
 			if (isStorage)
-				collectEagerNonTransientInstanceFieldsOf(className);
+				collectNonTransientInstanceFieldsOf(className);
 
 			instrumentClass();
 		}
@@ -216,16 +220,26 @@ class ClassInstrumentation {
 		private Method instrument(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
 			replaceFieldAccessesWithAccessors(methodGen);
-			addContractToCallsToEntries(methodGen);
+			StackMap stackMap = getStackMapAttribute(methodGen);
+			addContractToCallsToEntries(methodGen, stackMap);
+
 			if (isContract && isEntry(className, method.getName(), method.getSignature()))
-				instrumentEntry(methodGen, isPayable(className, method.getName(), method.getSignature()));
+				instrumentEntry(methodGen, isPayable(className, method.getName(), method.getSignature()), stackMap);
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
 			return methodGen.getMethod();
 		}
 
-		private void addContractToCallsToEntries(MethodGen method) {
+		private StackMap getStackMapAttribute(MethodGen methodGen) {
+			for (Attribute attribute: methodGen.getCodeAttributes())
+				if (attribute instanceof StackMap)
+					return (StackMap) attribute;
+
+			return null;
+		}
+
+		private void addContractToCallsToEntries(MethodGen method, StackMap stackMap) {
 			if (!method.isAbstract()) {
 				InstructionList il = method.getInstructionList();
 				List<InstructionHandle> callsToEntries =
@@ -234,12 +248,14 @@ class ClassInstrumentation {
 						.collect(Collectors.toList());
 
 				for (InstructionHandle ih: callsToEntries)
-					passContractToCallToEntry(il, ih);
+					passContractToCallToEntry(il, ih, stackMap);
 			}
 		}
 
-		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih) {
-			il.insert(ih, InstructionConst.ALOAD_0); // the calling contract must be inside "this"
+		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, StackMap stackMap) {
+			InstructionHandle aload0 = il.insert(ih, InstructionConst.ALOAD_0); // the calling contract must be inside "this"
+			il.setPositions();
+			updateAfterAdditionOf(aload0, stackMap);
 			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
 			Type[] args = invoke.getArgumentTypes(cpg);
 			Type[] argsWithContract = new Type[args.length + 1];
@@ -249,6 +265,23 @@ class ClassInstrumentation {
 					(invoke.getClassName(cpg), invoke.getMethodName(cpg),
 					invoke.getReturnType(cpg), argsWithContract, invoke.getOpcode());
 			ih.setInstruction(replacement);
+		}
+
+		private void updateAfterAdditionOf(InstructionHandle ih, StackMap stackMap) {
+			if (stackMap != null) {
+				StackMapEntry[] entries = stackMap.getStackMap();
+				int start = 0;
+				for (StackMapEntry entry: entries) {
+					int end = start == 0 ? entry.getByteCodeOffset() : (start + entry.getByteCodeOffset() + 1);
+
+					if (ih.getPosition() >= start && ih.getPosition() <= end)
+						entry.updateByteCodeOffset(ih.getInstruction().getLength());
+
+					start = end;
+				}
+
+				stackMap.setStackMap(entries);
+			}
 		}
 
 		private boolean isCallToEntry(Instruction instruction) {
@@ -298,28 +331,71 @@ class ClassInstrumentation {
 			return hasAnnotation(className, methodName, methodSignature, PAYABLE_CLASS_NAME_JB);
 		}
 
-		private void instrumentEntry(MethodGen method, boolean isPayable) {
+		private void instrumentEntry(MethodGen method, boolean isPayable, StackMap stackMap) {
 			// slotForCaller is the local variable used for the extra "caller" parameter;
 			// there is no need to shift the local variables one slot up, since the use
 			// of caller is limited to the prolog of the synthetic code
 			int slotForCaller = addCallerParameter(method);
 			if (!method.isAbstract())
-				setPayerAndBalance(method, slotForCaller, isPayable);
+				setPayerAndBalance(method, slotForCaller, isPayable, stackMap);
 		}
 
-		private void setPayerAndBalance(MethodGen method, int slotForCaller, boolean isPayable) {
+		private void setPayerAndBalance(MethodGen method, int slotForCaller, boolean isPayable, StackMap stackMap) {
 			InstructionList il = method.getInstructionList();
 			InstructionHandle where = determineWhereToSetPayerAndBalance(il, method, slotForCaller);
+			InstructionHandle start = il.getStart();
+			InstructionHandle ih;
 
-			il.insert(where, InstructionFactory.createThis());
-			il.insert(where, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
+			boolean needsTemp = where != start;
+			if (needsTemp) {
+				ih = il.insert(factory.createPutStatic(CONTRACT_CLASS_NAME, "temp", CONTRACT_OT));
+				il.setPositions();
+				updateAfterAdditionOf(ih, stackMap);
+				ih = il.insert(InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
+				il.setPositions();
+				updateAfterAdditionOf(ih, stackMap);
+				addChopOneLocal(start, stackMap);
+			}
+
+			ih = il.insert(where, InstructionFactory.createThis());
+			il.setPositions();
+			updateAfterAdditionOf(ih, stackMap);
+			if (needsTemp)
+				ih = il.insert(where, factory.createGetStatic(CONTRACT_CLASS_NAME, "temp", CONTRACT_OT));
+			else
+				ih = il.insert(where, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
+			il.setPositions();
+			updateAfterAdditionOf(ih, stackMap);
 
 			if (isPayable) {
-				il.insert(where, InstructionConst.ILOAD_1);
-				il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, PAYABLE_ENTRY_ARGS, Const.INVOKESPECIAL));
+				ih = il.insert(where, InstructionConst.ILOAD_1);
+				il.setPositions();
+				updateAfterAdditionOf(ih, stackMap);
+				ih = il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, PAYABLE_ENTRY_ARGS, Const.INVOKESPECIAL));
+				il.setPositions();
+				updateAfterAdditionOf(ih, stackMap);
 			}
-			else
-				il.insert(where, factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
+			else {
+				ih = il.insert(where, factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
+				il.setPositions();
+				updateAfterAdditionOf(ih, stackMap);
+			}
+
+			if (!needsTemp)
+				addChopOneLocal(start, stackMap);
+		}
+
+		private void addChopOneLocal(InstructionHandle where, StackMap stackMap) {
+			if (stackMap != null) {
+				StackMapEntry[] entries = stackMap.getStackMap();
+				StackMapEntry[] newEntries = new StackMapEntry[entries.length + 1];
+				System.arraycopy(entries, 0, newEntries, 1, entries.length);
+				newEntries[0] = new StackMapEntry(Const.CHOP_FRAME_MAX, where.getPosition(), null, null, cpg.getConstantPool());
+				if (newEntries.length > 1)
+					newEntries[1].updateByteCodeOffset(-where.getPosition() - 1);
+
+				stackMap.setStackMap(newEntries);
+			}
 		}
 
 		/**
@@ -785,6 +861,9 @@ class ClassInstrumentation {
 				.map(Field::getType)
 				.forEachOrdered(args::add);
 
+			if (className.equals("takamaka.tests.Sub")) {
+				System.out.println(eagerNonTransientInstanceFields);
+			}
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
 			addInitializationOfEagerFields(il, nextLocal);
@@ -828,7 +907,7 @@ class ClassInstrumentation {
 		}
 
 		private void addInitializationOfEagerFields(InstructionList il, int nextLocal) {
-			Consumer<Field> pushField = new Consumer<Field>() {
+			Consumer<Field> putField = new Consumer<Field>() {
 				private int local = nextLocal;
 
 				@Override
@@ -851,28 +930,32 @@ class ClassInstrumentation {
 				}
 			};
 			
-			eagerNonTransientInstanceFields.getLast().forEach(pushField);
+			eagerNonTransientInstanceFields.getLast().forEach(putField);
 		}
 
-		private void collectEagerNonTransientInstanceFieldsOf(String className) {
+		private void collectNonTransientInstanceFieldsOf(String className) {
 			if (!className.equals(Storage.class.getName())) {
 				JavaClass clazz = program.get(className);
 				if (clazz != null) {
 					// we put at the beginning the fields of the superclasses
-					collectEagerNonTransientInstanceFieldsOf(clazz.getSuperclassName());
+					collectNonTransientInstanceFieldsOf(clazz.getSuperclassName());
 
 					// then the eager fields of className, in order
 					eagerNonTransientInstanceFields.add(Stream.of(clazz.getFields())
-						.filter(field -> !field.isStatic() && !field.isTransient() && !isLazilyLoaded(field.getType()))
-						.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
+							.filter(field -> !field.isStatic() && !field.isTransient() && !isAddedByTakamaka(field) && !isLazilyLoaded(field.getType()))
+							.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
 
 					// we collect lazy fields as well, but only for the class being instrumented
 					if (className.equals(this.className))
 						Stream.of(clazz.getFields())
-							.filter(field -> !field.isStatic() && !field.isTransient() && isLazilyLoaded(field.getType()))
+							.filter(field -> !field.isStatic() && !field.isTransient() && !isAddedByTakamaka(field) && isLazilyLoaded(field.getType()))
 							.forEach(lazyNonTransientInstanceFields::add);
 				}
 			}
+		}
+
+		private boolean isAddedByTakamaka(Field field) {
+			return field.getName().startsWith("§");
 		}
 
 		private boolean isLazilyLoaded(Type type) {

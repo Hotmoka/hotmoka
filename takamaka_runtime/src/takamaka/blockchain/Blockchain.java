@@ -6,8 +6,6 @@ import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 
 public interface Blockchain {
-	public TransactionReference getCurrentTransactionReference();
-
 	public TransactionReference addJarStoreTransaction(Path jar, Classpath... dependencies) throws TransactionException;
 
 	/**
