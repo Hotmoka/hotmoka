@@ -4,19 +4,21 @@ import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.LoggableContract;
 import takamaka.lang.Payable;
+import takamaka.lang.PayableContract;
 
 public class Purchase extends LoggableContract {
 	private static enum State { Created, Locked, Inactive };
 
 	private final int value; // the value of the item that is sold
-	private final Contract seller;
-	private Contract buyer;
+	private final PayableContract seller;
+	private PayableContract buyer;
 	private State state;
 
-    // Ensure that `msg.value` is an even number.
+    // Ensure that the received money is an even number.
 	public @Payable @Entry Purchase(int amount) {
 		require(amount % 2 == 0, "You must deposit an even amount of money.");
-		seller = caller();
+		require(caller() instanceof PayableContract, "The caller must be payable");
+		seller = (PayableContract) caller();
         value = amount / 2;
         state = State.Created;
     }
@@ -40,7 +42,7 @@ public class Purchase extends LoggableContract {
         inState(State.Created);
         log("Aborted.");
         state = State.Inactive;
-        pay(seller, value * 2);
+        seller.receive(value * 2);
     }
 
     /// Confirm the purchase as buyer.
@@ -49,8 +51,9 @@ public class Purchase extends LoggableContract {
 	public @Payable @Entry void confirmPurchase(int amount) {
         inState(State.Created);
         require(amount == 2 * value, "amount must be twice as value");
+        require(caller() instanceof PayableContract, "Buyer must be payable");
         log("Purchase confirmed.");
-        buyer = caller();
+        buyer = (PayableContract) caller();
         state = State.Locked;
     }
 
@@ -61,7 +64,7 @@ public class Purchase extends LoggableContract {
         inState(State.Locked);
         log("Item received.");
         state = State.Inactive;
-        pay(buyer, value);
-        pay(seller, value * 3);
+        buyer.receive(value);
+        seller.receive(value * 3);
     }
 }

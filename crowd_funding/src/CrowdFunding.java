@@ -1,13 +1,14 @@
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
+import takamaka.lang.PayableContract;
 import takamaka.lang.Storage;
 import takamaka.util.StorageList;
 
 public class CrowdFunding extends Contract {
 	private final StorageList<Campaign> campaigns = new StorageList<>();
 
-	public int newCampaign(Contract beneficiary, int goal) {
+	public int newCampaign(PayableContract beneficiary, int goal) {
 		int campaignId = campaigns.size();
 		campaigns.add(new Campaign(beneficiary, goal));
 		return campaignId;
@@ -21,13 +22,17 @@ public class CrowdFunding extends Contract {
 		return campaigns.elementAt(campaignID).payIfGoalReached();
 	}
 
+	private void pay(PayableContract whom, int amount) {
+		whom.receive(amount);
+	}
+
 	private class Campaign extends Storage {
-		private final Contract beneficiary;
+		private final PayableContract beneficiary;
 		private final int fundingGoal;
 		private final StorageList<Funder> funders = new StorageList<>();
 		private int amount;
 
-		private Campaign(Contract beneficiary, int fundingGoal) {
+		private Campaign(PayableContract beneficiary, int fundingGoal) {
 			this.beneficiary = beneficiary;
 			this.fundingGoal = fundingGoal;
 		}

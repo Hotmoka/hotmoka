@@ -77,15 +77,13 @@ public class MemoryBlockchainTest {
 			System.out.println(" 7: " + e.getCause());
 		}
 
-		StorageReference subRef = blockchain.addConstructorCallTransaction(classpath, new ConstructorReference("takamaka.tests.Sub"));
-		System.out.println(" 8: " + subRef);
+		StorageReference subRef1 = blockchain.addConstructorCallTransaction(classpath, new ConstructorReference("takamaka.tests.Sub"));
+		System.out.println(" 8: " + subRef1);
 
 		// we try to call Sub.m1(): it does not exist since an @Entry requires an implicit Contract parameter
 		try {
 			blockchain.addInstanceMethodCallTransaction
-			(classpath,
-					new MethodReference("takamaka.tests.Sub", "m1"),
-					subRef);
+				(classpath, new MethodReference("takamaka.tests.Sub", "m1"), subRef1);
 		}
 		catch (TransactionException e) {
 			System.out.println(" 9: " + e.getCause());
@@ -96,7 +94,7 @@ public class MemoryBlockchainTest {
 			blockchain.addInstanceMethodCallTransaction
 				(classpath,
 					new MethodReference("takamaka.tests.Sub", "m1", new ClassType("takamaka.lang.Contract")),
-					subRef, NullValue.INSTANCE);
+					subRef1, NullValue.INSTANCE);
 		}
 		catch (TransactionException e) {
 			System.out.println("10: " + e.getCause());
@@ -105,9 +103,7 @@ public class MemoryBlockchainTest {
 		// we try to call a static method in the wrong way
 		try {
 			blockchain.addInstanceMethodCallTransaction
-			(classpath,
-					new MethodReference("takamaka.tests.Sub", "ms"),
-					subRef);
+				(classpath, new MethodReference("takamaka.tests.Sub", "ms"), subRef1);
 		}
 		catch (TransactionException e) {
 			System.out.println("11: " + e.getCause());
@@ -126,5 +122,23 @@ public class MemoryBlockchainTest {
 		catch (TransactionException e) {
 			System.out.println("13: " + e.getCause());
 		}
+
+		// we call the constructor Sub(int): it is @Entry but the caller has not enough funds
+		try {
+			blockchain.addEntryConstructorCallTransaction
+				(classpath,
+				new ConstructorReference("takamaka.tests.Sub", BasicTypes.INT),
+				subRef1, new IntValue(1973));
+		}
+		catch (CodeExecutionException e) {
+			System.out.println("14: " + e.getCause());
+		}
+
+		// we call the constructor Sub(int): this time we do not transfer money
+		StorageReference subRef2 = blockchain.addEntryConstructorCallTransaction
+			(classpath,
+			new ConstructorReference("takamaka.tests.Sub", BasicTypes.INT),
+			subRef1, new IntValue(0));
+		System.out.println("15: " + subRef2);
 	}
 }

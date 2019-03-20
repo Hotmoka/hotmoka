@@ -159,7 +159,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			throw new TransactionException("Cannot complete the transaction", t);
 		}
 
-		addConstructorCallTransactionInternal(classpath, constructor, actuals, StorageValue.serialize(newObject), executor.exception, updates);
+		addConstructorCallTransactionInternal(classpath, constructor, actuals, executor.exception == null ? StorageValue.serialize(newObject) : null, executor.exception, updates);
 
 		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
 		// hence we move further to the next transaction
@@ -172,7 +172,50 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public StorageValue addInstanceMethodCallTransaction(Classpath classpath, MethodReference method, StorageValue receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	public final StorageReference addEntryConstructorCallTransaction(Classpath classpath, ConstructorReference constructor, StorageReference caller, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		checkNotFull();
+
+		CodeExecutor executor;
+		Object[] deserializedActuals;
+		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
+			deserializedActuals = deserialize(classLoader, actuals);
+			Storage deserializedCaller = caller.deserialize(classLoader, this);
+			executor = new EntryConstructorExecutor(classLoader, constructor, deserializedCaller, deserializedActuals);
+			executor.start();
+			executor.join();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+		}
+
+		if (executor.exception instanceof TransactionException)
+			throw (TransactionException) executor.exception;
+
+		Storage newObject;
+		SortedSet<Update> updates;
+
+		try {
+			newObject = (Storage) executor.result;
+			updates = collectUpdates(deserializedActuals, null, newObject);
+		}
+		catch (Throwable t) {
+			throw new TransactionException("Cannot complete the transaction", t);
+		}
+
+		addConstructorCallTransactionInternal(classpath, constructor, actuals, executor.exception == null ? StorageValue.serialize(newObject) : null, executor.exception, updates);
+
+		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
+		// hence we move further to the next transaction
+		moveToNextTransaction();
+
+		if (executor.exception != null)
+			throw new CodeExecutionException("Constructor threw exception", executor.exception);
+		else
+			return newObject.storageReference;
+	}
+
+	@Override
+	public final StorageValue addInstanceMethodCallTransaction(Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		checkNotFull();
 
 		CodeExecutor executor;
@@ -198,7 +241,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		try {
 			result = executor.result;
 			updates = collectUpdates(deserializedActuals, receiver, result);
-			serializedResult = StorageValue.serialize(result);
+			serializedResult = executor.exception == null ? StorageValue.serialize(result) : null;
 		}
 		catch (Throwable t) {
 			throw new TransactionException("Cannot complete the transaction", t);
@@ -221,7 +264,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			SortedSet<Update> updates) throws TransactionException;
 
 	@Override
-	public StorageValue addStaticMethodCallTransaction(Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	public final StorageValue addStaticMethodCallTransaction(Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		checkNotFull();
 
 		CodeExecutor executor;
@@ -246,7 +289,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		try {
 			result = executor.result;
 			updates = collectUpdates(deserializedActuals, null, result);
-			serializedResult = StorageValue.serialize(result);
+			serializedResult = executor.exception == null ? StorageValue.serialize(result) : null;
 		}
 		catch (Throwable t) {
 			throw new TransactionException("Cannot complete the transaction", t);
@@ -337,8 +380,39 @@ public abstract class AbstractBlockchain implements Blockchain {
 			catch (InvocationTargetException e) {
 				exception = e.getCause();
 			}
-			catch (Throwable e) {
-				exception = new TransactionException("Could not call the constructor", e);
+			catch (Throwable t) {
+				exception = wrapAsTransactionException(t, "Could not call the constructor");
+			}
+		}
+	}
+
+	private class EntryConstructorExecutor extends CodeExecutor {
+		private final ConstructorReference constructor;
+		private final Object[] actuals;
+
+		private EntryConstructorExecutor(BlockchainClassLoader classLoader, ConstructorReference constructor, Storage caller, Object... actuals) {
+			super(classLoader);
+
+			this.constructor = constructor;
+			this.actuals = addTrailingCaller(actuals, caller);
+		}
+
+		@Override
+		public void run() {
+			try {
+				Class<?> clazz = classLoader.loadClass(constructor.definingClass.name);
+				Constructor<?> constructorJVM = clazz.getConstructor(formalsAsClassWithTrailingContract(classLoader, constructor));
+				if (!constructorJVM.isAnnotationPresent(Entry.class))
+					throw new NoSuchMethodException("Can only call an @Entry constructor: use addConstructorCallTransaction instead");
+
+				Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
+				result = ((Storage) constructorJVM.newInstance(actuals));
+			}
+			catch (InvocationTargetException e) {
+				exception = e.getCause();
+			}
+			catch (Throwable t) {
+				exception = wrapAsTransactionException(t, "Could not call the constructor");
 			}
 		}
 	}
@@ -374,9 +448,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 			catch (InvocationTargetException e) {
 				exception = e.getCause();
 			}
-			catch (Throwable e) {
-				exception = new TransactionException("Could not call the method", e);
-				return;
+			catch (Throwable t) {
+				exception = wrapAsTransactionException(t, "Could not call the method");
 			}
 		}
 	}
@@ -407,9 +480,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 			catch (InvocationTargetException e) {
 				exception = e.getCause();
 			}
-			catch (Throwable e) {
-				exception = new TransactionException("Could not call the method", e);
-				return;
+			catch (Throwable t) {
+				exception = wrapAsTransactionException(t, "Could not call the method");
 			}
 		}
 	}
@@ -452,12 +524,30 @@ public abstract class AbstractBlockchain implements Blockchain {
 			return new TransactionException(message, t);
 	}
 
-	private Class<?>[] formalsAsClass(BlockchainClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
+	private static Class<?>[] formalsAsClass(BlockchainClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
 			classes.add(type.toClass(classLoader));
 	
 		return classes.toArray(new Class<?>[classes.size()]);
+	}
+
+	private static Class<?>[] formalsAsClassWithTrailingContract(BlockchainClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
+		List<Class<?>> classes = new ArrayList<>();
+		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
+			classes.add(type.toClass(classLoader));
+
+		classes.add(classLoader.loadClass("takamaka.lang.Contract"));
+
+		return classes.toArray(new Class<?>[classes.size()]);
+	}
+
+	private static Object[] addTrailingCaller(Object[] actuals, Storage caller) {
+		Object[] result = new Object[actuals.length + 1];
+		System.arraycopy(actuals, 0, result, 0, actuals.length);
+		result[actuals.length] = caller;
+
+		return result;
 	}
 
 	private Object[] deserialize(BlockchainClassLoader classLoader, StorageValue[] actuals) throws TransactionException {

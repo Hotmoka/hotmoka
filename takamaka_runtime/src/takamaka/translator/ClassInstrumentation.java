@@ -582,9 +582,15 @@ class ClassInstrumentation {
 		}
 
 		private boolean isAccessToLazilyLoadedFieldInStorageClass(Instruction instruction) {
-			return (instruction instanceof GETFIELD || instruction instanceof PUTFIELD)
-				&& isStorage(((ObjectType) ((FieldInstruction) instruction).getReferenceType(cpg)).getClassName())
-				&& isLazilyLoaded(((FieldInstruction) instruction).getFieldType(cpg));
+			if (instruction instanceof GETFIELD || instruction instanceof PUTFIELD) {
+				FieldInstruction fi = (FieldInstruction) instruction;
+
+				ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
+				String receiverClassName = receiverType.getClassName();
+				return isStorage(receiverClassName) && isLazilyLoaded(fi.getFieldType(cpg)) && !isTransient(receiverClassName, fi.getFieldName(cpg), fi.getFieldType(cpg));
+			}
+			else
+				return false;
 		}
 
 		private void addExtractUpdates() {
@@ -979,6 +985,23 @@ class ClassInstrumentation {
 					String superclassName = clazz.getSuperclassName();
 					return superclassName != null && isStorage(superclassName);
 				}
+			}
+		}
+
+		private boolean isTransient(String className, String fieldName, Type fieldType) {
+			JavaClass clazz = program.get(className);
+			if (clazz == null)
+				return false;
+
+			for (Field field: clazz.getFields())
+				if (field.getName().equals(fieldName) && field.getType().equals(fieldType))
+					return field.isTransient();
+
+			if (className.equals(STORAGE_CLASS_NAME) || className.equals(CONTRACT_CLASS_NAME))
+				return false;
+			else {
+				String superclassName = clazz.getSuperclassName();
+				return superclassName != null && isTransient(superclassName, fieldName, fieldType);
 			}
 		}
 

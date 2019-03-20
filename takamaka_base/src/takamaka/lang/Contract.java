@@ -18,11 +18,11 @@ public abstract class Contract extends Storage {
 			throw new RuntimeException(message);
 	}
 
-	protected final void pay(Contract whom, int amount) {
+	private void pay(Contract whom, int amount) {
 		require(whom != null, "destination contract cannot be null");
 		require(amount >= 0, "payed amount cannot be negative");
 		BigInteger amountAsBI = BigInteger.valueOf(amount);
-		require(balance.compareTo(amountAsBI) < 0, "insufficient funds");
+		require(balance.compareTo(amountAsBI) >= 0, "insufficient funds");
 		balance = balance.subtract(amountAsBI);
 		whom.balance = whom.balance.add(amountAsBI);
 	}
