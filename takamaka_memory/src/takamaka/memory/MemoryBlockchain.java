@@ -205,11 +205,11 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		String spec = "Constructor execution\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Constructor: " + constructor + "\n";
-		spec += "actuals: " + Arrays.toString(actuals) + "\n";
+		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
 		if (result != null)
-			spec += "result: " + result + "\n";
+			spec += "Constructed object: " + result + "\n";
 		else
-			spec += "exception: " + exception.getClass().getName() + "\n";
+			spec += "Exception: " + exception.getClass().getName() + "\n";
 
 		addCodeExecutionTransactionInternal(spec, updates);
 	}
@@ -222,11 +222,29 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		String spec = "Instance method execution\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Method: " + method + "\n";
-		spec += "actuals: " + Arrays.toString(actuals) + "\n";
+		spec += "Receiver: " + receiver;
+		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
 		if (result != null)
-			spec += "result: " + result + "\n";
+			spec += "Result: " + result + "\n";
 		else
-			spec += "exception: " + exception.getClass().getName() + "\n";
+			spec += "Exception: " + exception.getClass().getName() + "\n";
+
+		addCodeExecutionTransactionInternal(spec, updates);
+	}
+
+	@Override
+	protected void addStaticMethodCallTransactionInternal(Classpath classpath, MethodReference method,
+			StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates)
+			throws TransactionException {
+
+		String spec = "Static method execution\n";
+		spec += "Class path: " + classpath + "\n";
+		spec += "Method: " + method + "\n";
+		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
+		if (result != null)
+			spec += "Result: " + result + "\n";
+		else
+			spec += "Exception: " + exception.getClass().getName() + "\n";
 
 		addCodeExecutionTransactionInternal(spec, updates);
 	}

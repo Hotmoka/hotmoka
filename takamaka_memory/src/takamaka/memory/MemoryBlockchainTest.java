@@ -20,6 +20,7 @@ import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.NullValue;
 import takamaka.blockchain.values.StorageReference;
+import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
 
 public class MemoryBlockchainTest {
@@ -110,6 +111,20 @@ public class MemoryBlockchainTest {
 		}
 		catch (TransactionException e) {
 			System.out.println("11: " + e.getCause());
+		}
+
+		// we call it in the correct way
+		StorageValue o = blockchain.addStaticMethodCallTransaction
+			(classpath, new MethodReference("takamaka.tests.Sub", "ms"));
+		System.out.println("12: " + o); /// we will get null since the method is void
+
+		// we try to call an instance method as it it was static
+		try {
+			blockchain.addStaticMethodCallTransaction
+				(classpath, new MethodReference("takamaka.tests.Sub", "m5"));
+		}
+		catch (TransactionException e) {
+			System.out.println("13: " + e.getCause());
 		}
 	}
 }

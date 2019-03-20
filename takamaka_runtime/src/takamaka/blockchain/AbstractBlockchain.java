@@ -180,7 +180,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
 			Object deserializedReceiver = receiver.deserialize(classLoader, this);
 			deserializedActuals = deserialize(classLoader, actuals);
-			executor = new MethodExecutor(classLoader, method, deserializedReceiver, deserializedActuals);
+			executor = new InstanceMethodExecutor(classLoader, method, deserializedReceiver, deserializedActuals);
 			executor.start();
 			executor.join();
 		}
@@ -218,6 +218,54 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract void addInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method,
 			StorageValue receiver, StorageValue[] actuals, StorageValue result, Throwable exception,
+			SortedSet<Update> updates) throws TransactionException;
+
+	@Override
+	public StorageValue addStaticMethodCallTransaction(Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		checkNotFull();
+
+		CodeExecutor executor;
+		Object[] deserializedActuals;
+		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
+			deserializedActuals = deserialize(classLoader, actuals);
+			executor = new StaticMethodExecutor(classLoader, method, deserializedActuals);
+			executor.start();
+			executor.join();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+		}
+
+		if (executor.exception instanceof TransactionException)
+			throw (TransactionException) executor.exception;
+
+		Object result;
+		SortedSet<Update> updates;
+		StorageValue serializedResult;
+
+		try {
+			result = executor.result;
+			updates = collectUpdates(deserializedActuals, null, result);
+			serializedResult = StorageValue.serialize(result);
+		}
+		catch (Throwable t) {
+			throw new TransactionException("Cannot complete the transaction", t);
+		}
+
+		addStaticMethodCallTransactionInternal(classpath, method, actuals, serializedResult, executor.exception, updates);
+
+		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
+		// hence we move further to the next transaction
+		moveToNextTransaction();
+
+		if (executor.exception != null)
+			throw new CodeExecutionException("Method threw exception", executor.exception);
+		else
+			return serializedResult;
+	}
+
+	protected abstract void addStaticMethodCallTransactionInternal(Classpath classpath, MethodReference method,
+			StorageValue[] actuals, StorageValue result, Throwable exception,
 			SortedSet<Update> updates) throws TransactionException;
 
 	/**
@@ -295,12 +343,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 	}
 
-	private class MethodExecutor extends CodeExecutor {
+	private class InstanceMethodExecutor extends CodeExecutor {
 		private final MethodReference method;
 		private final Object receiver;
 		private final Object[] actuals;
 
-		private MethodExecutor(BlockchainClassLoader classLoader, MethodReference method, Object receiver, Object... actuals) {
+		private InstanceMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, Object receiver, Object... actuals) {
 			super(classLoader);
 
 			this.method = method;
@@ -322,6 +370,39 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 				Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
 				result = methodJVM.invoke(receiver, actuals);
+			}
+			catch (InvocationTargetException e) {
+				exception = e.getCause();
+			}
+			catch (Throwable e) {
+				exception = new TransactionException("Could not call the method", e);
+				return;
+			}
+		}
+	}
+
+	private class StaticMethodExecutor extends CodeExecutor {
+		private final MethodReference method;
+		private final Object[] actuals;
+
+		private StaticMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, Object... actuals) {
+			super(classLoader);
+
+			this.method = method;
+			this.actuals = actuals;
+		}
+
+		@Override
+		public void run() {
+			try {
+				Class<?> clazz = classLoader.loadClass(method.definingClass.name);
+				Method methodJVM = clazz.getMethod(method.methodName, formalsAsClass(classLoader, method));
+
+				if (!Modifier.isStatic(methodJVM.getModifiers()))
+					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
+
+				Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
+				result = methodJVM.invoke(null, actuals);
 			}
 			catch (InvocationTargetException e) {
 				exception = e.getCause();
