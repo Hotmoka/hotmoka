@@ -4,9 +4,10 @@ import java.math.BigInteger;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
+import takamaka.lang.LoggableContract;
 import takamaka.util.StorageMap;
 
-public class Coin extends Contract {
+public class Coin extends LoggableContract {
 	private final Contract minter;
 	private final StorageMap<Contract, BigInteger> balances = new StorageMap<>(__ -> BigInteger.ZERO);
 

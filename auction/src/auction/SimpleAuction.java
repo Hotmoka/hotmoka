@@ -2,9 +2,10 @@ package auction;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
+import takamaka.lang.LoggableContract;
 import takamaka.lang.Payable;
 
-public class SimpleAuction extends Contract {
+public class SimpleAuction extends LoggableContract {
     // Parameters of the auction
 	private final Contract beneficiary;
 	private final long auctionEnd;

@@ -44,10 +44,10 @@ public final class Classpath {
 			throw new NumberFormatException("Illegal Classpath format: " + s);
 
 		String transactionPart = s.substring(0, 20);
-		String recursivePart = s.substring(20);
+		String recursivePart = s.substring(21);
 
 		this.transaction = new TransactionReference(transactionPart);
-		this.recursive = Boolean.getBoolean(recursivePart);
+		this.recursive = Boolean.parseBoolean(recursivePart);
 	}
 
 	@Override

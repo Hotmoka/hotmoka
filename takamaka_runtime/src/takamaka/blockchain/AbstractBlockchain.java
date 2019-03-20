@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -25,7 +24,6 @@ import takamaka.lang.Storage;
 import takamaka.translator.Program;
 
 public abstract class AbstractBlockchain implements Blockchain {
-	private static final Path INSTRUMENTED_TAKAMAKA_RUNTIME = Paths.get("..", "takamaka_runtime", "dist", "instrumented.jar"); //TODO
 	protected long currentBlock;
 	protected short currentTransaction;
 
@@ -283,7 +281,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				Class<?> clazz = classLoader.loadClass(constructor.definingClass.name);
 				Constructor<?> constructorJVM = clazz.getConstructor(formalsAsClass(classLoader, constructor));
 				if (constructorJVM.isAnnotationPresent(Entry.class))
-					throw new NoSuchMethodException("Cannot call an @Entry constructor: use addEntryConstructorCallTransaction for that");
+					throw new NoSuchMethodException("Cannot call an @Entry constructor: use addEntryConstructorCallTransaction instead");
 
 				Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
 				result = ((Storage) constructorJVM.newInstance(actuals));
@@ -317,10 +315,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 				Method methodJVM = clazz.getMethod(method.methodName, formalsAsClass(classLoader, method));
 
 				if (methodJVM.isAnnotationPresent(Entry.class))
-					throw new NoSuchMethodException("Cannot call an @Entry method: use addEntryInstanceMethodCallTransaction for that");
+					throw new NoSuchMethodException("Cannot call an @Entry method: use addEntryInstanceMethodCallTransaction instead");
 
 				if (Modifier.isStatic(methodJVM.getModifiers()))
-					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction for that");
+					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
 
 				Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
 				result = methodJVM.invoke(receiver, actuals);
@@ -338,9 +336,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	protected final Program mkProgram(Path jar, Classpath... dependencies) throws TransactionException {
 		List<Path> result = new ArrayList<>();
 		result.add(jar);
-		// we add the instrumented jar of the Takamaka runtime, since it is needed to resolve the
-		// superclasses of the user classes in jar. They will not be instrumented
-		result.add(INSTRUMENTED_TAKAMAKA_RUNTIME);
 
 		for (Classpath dependency: dependencies)
 			extractPathsRecursively(dependency, result);

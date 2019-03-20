@@ -2,9 +2,10 @@ package purchase;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
+import takamaka.lang.LoggableContract;
 import takamaka.lang.Payable;
 
-public class Purchase extends Contract {
+public class Purchase extends LoggableContract {
 	private static enum State { Created, Locked, Inactive };
 
 	private final int value; // the value of the item that is sold

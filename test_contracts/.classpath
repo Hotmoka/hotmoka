@@ -8,5 +8,6 @@
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_runtime"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/test_contracts_dependency"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_base"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

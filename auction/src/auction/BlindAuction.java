@@ -5,12 +5,13 @@ import java.util.Arrays;
 import takamaka.crypto.Keccak256;
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
+import takamaka.lang.LoggableContract;
 import takamaka.lang.Payable;
 import takamaka.lang.Storage;
 import takamaka.util.StorageList;
 import takamaka.util.StorageMap;
 
-public class BlindAuction extends Contract {
+public class BlindAuction extends LoggableContract {
     private static class Bid extends Storage {
         private byte[] blindedBid; // 32 bytes hash
         private final int deposit;

@@ -26,8 +26,9 @@ public class MemoryBlockchainTest {
 
 	public static void main(String[] args) throws TransactionException, IOException, CodeExecutionException {
 		Blockchain blockchain = new MemoryBlockchain(Paths.get("chain"), (short) 5);
-		TransactionReference test_contracts_dependency = blockchain.addJarStoreTransaction(Paths.get("../test_contracts_dependency/dist/test_contracts_dependency.jar"));
-		TransactionReference test_contracts = blockchain.addJarStoreTransaction(Paths.get("../test_contracts/dist/test_contracts.jar"), new Classpath(test_contracts_dependency, true)); // true/false irrelevant here
+		TransactionReference takamaka_utils = blockchain.addJarStoreTransaction(Paths.get("../takamaka_base/dist/takamaka_base.jar"));
+		TransactionReference test_contracts_dependency = blockchain.addJarStoreTransaction(Paths.get("../test_contracts_dependency/dist/test_contracts_dependency.jar"), new Classpath(takamaka_utils, true)); // true/false irrelevant here
+		TransactionReference test_contracts = blockchain.addJarStoreTransaction(Paths.get("../test_contracts/dist/test_contracts.jar"), new Classpath(test_contracts_dependency, true)); // true relevant here
 		Classpath classpath = new Classpath(test_contracts, true);
 
 		StorageReference italianTimeRef = blockchain.addConstructorCallTransaction(classpath, new ConstructorReference("takamaka.tests.ItalianTime", INT, INT, INT),

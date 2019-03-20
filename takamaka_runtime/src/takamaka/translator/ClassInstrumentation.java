@@ -27,6 +27,7 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.LocalVariableTypeTable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.StackMap;
 import org.apache.bcel.classfile.StackMapEntry;
@@ -61,7 +62,6 @@ import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 import takamaka.blockchain.values.StorageReference;
-import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.lang.Storage;
@@ -82,7 +82,7 @@ class ClassInstrumentation {
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastUpdateFor";
 	private final static String ENTRY_CLASS_NAME_JB = 'L' + Entry.class.getName().replace('.', '/') + ';';
 	private final static String PAYABLE_CLASS_NAME_JB = 'L' + Payable.class.getName().replace('.', '/') + ';';
-	private final static String CONTRACT_CLASS_NAME = Contract.class.getName();
+	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
@@ -228,6 +228,13 @@ class ClassInstrumentation {
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
+
+			for (Attribute attribute: methodGen.getCodeAttributes())
+				if (attribute instanceof LocalVariableTypeTable) {
+					System.out.println("Rimuovo " + attribute);
+					methodGen.removeCodeAttribute(attribute);
+				}
+
 			return methodGen.getMethod();
 		}
 
@@ -861,9 +868,6 @@ class ClassInstrumentation {
 				.map(Field::getType)
 				.forEachOrdered(args::add);
 
-			if (className.equals("takamaka.tests.Sub")) {
-				System.out.println(eagerNonTransientInstanceFields);
-			}
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
 			addInitializationOfEagerFields(il, nextLocal);
@@ -934,7 +938,7 @@ class ClassInstrumentation {
 		}
 
 		private void collectNonTransientInstanceFieldsOf(String className) {
-			if (!className.equals(Storage.class.getName())) {
+			if (!className.equals(STORAGE_CLASS_NAME)) {
 				JavaClass clazz = program.get(className);
 				if (clazz != null) {
 					// we put at the beginning the fields of the superclasses
@@ -965,7 +969,7 @@ class ClassInstrumentation {
 		}
 
 		private boolean isStorage(String className) {
-			if (className.equals(STORAGE_CLASS_NAME))
+			if (className.equals(STORAGE_CLASS_NAME) || className.equals(CONTRACT_CLASS_NAME))
 				return true;
 			else {
 				JavaClass clazz = program.get(className);

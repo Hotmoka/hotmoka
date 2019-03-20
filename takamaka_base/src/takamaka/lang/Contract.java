@@ -1,34 +1,16 @@
 package takamaka.lang;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
-import takamaka.blockchain.Update;
-import takamaka.blockchain.values.StorageReference;
-import takamaka.util.StorageList;
 
 public abstract class Contract extends Storage {
 	private BigInteger balance;
-	private BigInteger oldBalance;
+	private transient Contract caller;
+
 	// used for the instrumentation of @Entry constructors
 	protected static Contract temp;
-	private transient Contract caller;
-	private final StorageList<String> logs = new StorageList<>();
-	private final static String CONTRACT_CLASS_NAME = Contract.class.getName();
 
 	protected Contract() {
 		this.balance = BigInteger.ZERO;
-	}
-
-	/**
-	 * Constructor for deserialization.
-	 */
-	protected Contract(StorageReference storageReference, BigInteger balance) {
-		super(storageReference);
-
-		this.balance = this.oldBalance = balance;
 	}
 
 	protected final void require(boolean condition, String message) {
@@ -59,20 +41,7 @@ public abstract class Contract extends Storage {
 		return caller;
 	}
 
-	protected final void log(String tag, Object... objects) {
-		logs.add(tag + ": " + Arrays.toString(objects));
-	}
-
 	protected final BigInteger balance() {
 		return balance;
-	}
-
-	@Override
-	protected void extractUpdates(Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet) {
-		super.extractUpdates(updates, seen, workingSet);
-		if (!inStorage || balance != oldBalance)
-			addUpdateFor(CONTRACT_CLASS_NAME, "balance", updates, balance);
-
-		// subclasses will override, call this super-implementation and add potential updates to their instance fields
 	}
 }

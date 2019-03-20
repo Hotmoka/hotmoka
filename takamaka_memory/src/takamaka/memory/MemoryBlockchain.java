@@ -65,6 +65,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 
 		// cleans the directory where the blockchain lives
 		ensureDeleted(root);
+		Files.createDirectories(root);
 
 		this.root = root;
 		this.transactionsPerBlock = transactionsPerBlock;
@@ -303,11 +304,16 @@ public class MemoryBlockchain extends AbstractBlockchain {
 			super(new URL[0], classpath.getClass().getClassLoader());
 			addURLs(classpath);
 		}
-	
+
+		@Override
+		public Class<?> loadClass(String name) throws ClassNotFoundException {
+			return super.loadClass(name);
+		}
+
 		private void addURLs(Classpath classpath) throws TransactionException {
 			if (classpath.recursive) {
 				Path path = getPathFor(classpath.transaction, DEPENDENCIES_NAME);
-				if (Files.exists(path)) {
+				if (Files.exists(path))
 					try {
 						for (String line: Files.readAllLines(path))
 							addURLs(new Classpath(line));
@@ -315,7 +321,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 					catch (IOException e) {
 						throw new TransactionException("Cannot read dependencies from " + path);
 					}
-				}
 			}
 	
 			Path path = getPathFor(classpath.transaction, INSTRUMENTED_JAR_NAME);
