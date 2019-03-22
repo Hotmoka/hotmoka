@@ -74,13 +74,13 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	@Override
 	protected void collectUpdatesFor(StorageReference reference, Set<Update> where) throws TransactionException {
 		try {
-			TransactionReference cursor = reference.transaction;
+			TransactionReference cursor = getCurrentTransactionReference();
 
 			do {
-				addPrimitiveUpdatesFor(reference, cursor, where);
 				cursor = previousTransaction(cursor);
+				addPrimitiveUpdatesFor(reference, cursor, where);
 			}
-			while (!cursor.isOlderThan(reference.transaction));
+			while (!cursor.equals(reference.transaction));
 		}
 		catch (Throwable t) {
 			throw new TransactionException("Cannot deserialize storage reference " + reference, t);
@@ -128,12 +128,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		if (Files.exists(updatesPath))
 			Files.lines(updatesPath)
 				.map(Update::mkFromString)
-				.filter(update -> update.object.equals(object) && !update.field.type.isLazilyLoaded() && notAlreadyIn(update, updates))
+				.filter(update -> update.object.equals(object) && !update.field.type.isLazilyLoaded() && !isAlreadyIn(update, updates))
 				.forEach(updates::add);
 	}
 
-	private static boolean notAlreadyIn(Update update, Set<Update> updates) {
-		return updates.stream().noneMatch(other -> other.object.equals(update.object) && other.field.equals(update.field));
+	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
+		return updates.stream().anyMatch(other -> other.object.equals(update.object) && other.field.equals(update.field));
 	}
 
 	private TransactionReference previousTransaction(TransactionReference cursor) throws IllegalArgumentException {
@@ -215,6 +215,24 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
+	protected void addEntryConstructorCallTransactionInternal(Classpath classpath, ConstructorReference constructor,
+			StorageReference caller, StorageValue[] actuals, StorageValue result, Throwable exception,
+			SortedSet<Update> updates) throws TransactionException {
+		
+		String spec = "@Entry Constructor execution\n";
+		spec += "Class path: " + classpath + "\n";
+		spec += "Constructor: " + constructor + "\n";
+		spec += "Caller: " + caller + "\n";
+		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
+		if (result != null)
+			spec += "Constructed object: " + result + "\n";
+		else
+			spec += "Exception: " + exception.getClass().getName() + "\n";
+
+		addCodeExecutionTransactionInternal(spec, updates);
+	}
+
+	@Override
 	protected void addInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method,
 			StorageValue receiver, StorageValue[] actuals, StorageValue result, Throwable exception,
 			SortedSet<Update> updates) throws TransactionException {
@@ -222,7 +240,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		String spec = "Instance method execution\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Method: " + method + "\n";
-		spec += "Receiver: " + receiver;
+		spec += "Receiver: " + receiver + "\n";
 		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
 		if (result != null)
 			spec += "Result: " + result + "\n";
@@ -230,6 +248,25 @@ public class MemoryBlockchain extends AbstractBlockchain {
 			spec += "Exception: " + exception.getClass().getName() + "\n";
 
 		addCodeExecutionTransactionInternal(spec, updates);
+	}
+
+	@Override
+	protected void addEntryInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method,
+			StorageReference caller, StorageValue receiver, StorageValue[] actuals, StorageValue result,
+			Throwable exception, SortedSet<Update> updates) throws TransactionException {
+
+		String spec = "@Entry instance method execution\n";
+		spec += "Class path: " + classpath + "\n";
+		spec += "Method: " + method + "\n";
+		spec += "Caller: " + caller + "\n";
+		spec += "Receiver: " + receiver + "\n";
+		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
+		if (result != null)
+			spec += "Result: " + result + "\n";
+		else
+			spec += "Exception: " + exception.getClass().getName() + "\n";
+
+		addCodeExecutionTransactionInternal(spec, updates);		
 	}
 
 	@Override

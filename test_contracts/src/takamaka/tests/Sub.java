@@ -19,14 +19,14 @@ public class Sub extends Super {
 		System.out.println("Sub.m1");
 	}
 
-	@Override
-	public void m3() { // this is implicitly @Entry
+	@Override @Entry
+	public void m3() {
 		System.out.println("Sub.m3 with caller " + caller());
 	}
 
-	@Override
-	public void m4(int amount) { // this is implicitly @Payable @Entry
-		System.out.println("Sub.m4 receives " + amount + " coins from " + caller());
+	@Override @Payable @Entry
+	public String m4(int amount) {
+		return "Sub.m4 receives " + amount + " coins from " + caller();
 	}
 
 	public void m5() {

@@ -34,8 +34,8 @@ public class SubWithErrors extends Super {
 	}
 
 	@Override
-	public void m4(int amount) { // this is implicitly @Payable @Entry
-		System.out.println("Sub.m4 receives " + amount + " coins from " + caller());
+	public String m4(int amount) { // this is implicitly @Payable @Entry
+		return "Sub.m4 receives " + amount + " coins from " + caller();
 	}
 
 	public void m5() {

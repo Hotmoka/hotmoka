@@ -27,6 +27,7 @@ public interface Blockchain {
 	 * 
 	 * @param classpath the class path where the code must be executed
 	 * @param constructor the constructor that must be called
+	 * @param the caller contract of the entry
 	 * @param actuals the actual arguments passed to the constructor
 	 * @return the created object, if the constructor was successfully executed, without exception
 	 * @throws TransactionException if the transaction could not be completed because of an internal error
@@ -66,4 +67,21 @@ public interface Blockchain {
 	 *                                the transaction was successful and the exception is a programmer's problem
 	 */
 	public StorageValue addStaticMethodCallTransaction(Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException;
+
+	/**
+	 * Runs an {@code @@Entry} instance method of an object stored in the blockchain.
+	 * 
+	 * @param classpath the class path where the code must be executed
+	 * @param method the method that must be called
+	 * @param the caller contract of the entry
+	 * @param receiver the object whose method is called
+	 * @param actuals the actual arguments passed to the constructor
+	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
+	 *         declared to return {@code void}, this result will be {@code null}
+	 * @throws TransactionException if the transaction could not be completed because of an internal error
+	 * @throws CodeExecutionException if the execution of the method failed with an exception (available as
+	 *                                {@code getCause()}. Note that, in this case, from the point of view of Takamaka
+	 *                                the transaction was successful and the exception is a programmer's problem
+	 */
+	public StorageValue addEntryInstanceMethodCallTransaction(Classpath classpath, MethodReference method, StorageReference caller, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 }

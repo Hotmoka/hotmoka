@@ -140,5 +140,15 @@ public class MemoryBlockchainTest {
 			new ConstructorReference("takamaka.tests.Sub", BasicTypes.INT),
 			subRef1, new IntValue(0));
 		System.out.println("15: " + subRef2);
+
+		// we call the entry Sub.print(Time)
+		o = blockchain.addEntryInstanceMethodCallTransaction
+			(classpath, new MethodReference("takamaka.tests.Sub", "print", new ClassType("takamaka.tests.Time")), subRef1, subRef2, italianTimeRef);
+		System.out.println("16: " + o); /// we will get null since the method is void
+		
+		// we call the entry Sub.m4(13)
+		o = blockchain.addEntryInstanceMethodCallTransaction
+			(classpath, new MethodReference("takamaka.tests.Sub", "m4", BasicTypes.INT), subRef2, subRef1, new IntValue(0));
+		System.out.println("17: " + o);
 	}
 }
