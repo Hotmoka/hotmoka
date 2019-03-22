@@ -1,11 +1,11 @@
 package auction;
 
+import takamaka.lang.Contract;
 import takamaka.lang.Entry;
-import takamaka.lang.LoggableContract;
 import takamaka.lang.Payable;
 import takamaka.lang.PayableContract;
 
-public class SimpleAuction extends LoggableContract {
+public class SimpleAuction extends Contract {
     // Parameters of the auction
 	private final PayableContract beneficiary;
 	private final long auctionEnd;
@@ -42,7 +42,7 @@ public class SimpleAuction extends LoggableContract {
 
         highestBidder = (PayableContract) caller();
         highestBid = amount;
-        log("bid increased", caller(), amount);
+        event("bid increased", caller(), amount);
     }
 
     /// End the auction and send the highest bid to the beneficiary.
@@ -51,7 +51,7 @@ public class SimpleAuction extends LoggableContract {
         require(!ended, "auctionEnd has already been called.");
 
         ended = true;
-        log("auction end", highestBidder, highestBid);
+        event("auction end", highestBidder, highestBid);
 
         beneficiary.receive(highestBid);
     }

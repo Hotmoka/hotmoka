@@ -4,10 +4,9 @@ import java.math.BigInteger;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
-import takamaka.lang.LoggableContract;
 import takamaka.util.StorageMap;
 
-public class Coin extends LoggableContract {
+public class Coin extends Contract {
 	private final Contract minter;
 	private final StorageMap<Contract, BigInteger> balances = new StorageMap<>(__ -> BigInteger.ZERO);
 
@@ -26,6 +25,6 @@ public class Coin extends LoggableContract {
 		require(balances.get(caller()).compareTo(amountAsBigInteger) <= 0, "Insufficient balance.");
 		balances.put(caller(), balances.get(caller()).subtract(amountAsBigInteger));
         balances.put(receiver, balances.get(receiver).add(amountAsBigInteger));
-        log("Send", caller(), receiver, amount);
+        event("Send", caller(), receiver, amount);
     }
 }

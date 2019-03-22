@@ -2,6 +2,7 @@ package takamaka.lang;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -33,7 +34,7 @@ public abstract class Storage {
 	private static short nextProgressive;
 
 	/**
-	 * Resets class data at the beginning of a transaction.
+	 * Resets static data at the beginning of a transaction.
 	 * 
 	 * @param blockchain the blockchain used for the new transaction
 	 */
@@ -56,6 +57,10 @@ public abstract class Storage {
 	protected Storage(StorageReference storageReference) {
 		this.inStorage = true;
 		this.storageReference = storageReference;
+	}
+
+	protected final void event(String tag, Object... objects) {
+		blockchain.event(tag + ": " + Arrays.toString(objects));
 	}
 
 	/**

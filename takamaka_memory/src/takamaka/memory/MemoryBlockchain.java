@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.function.Consumer;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
@@ -29,8 +31,6 @@ import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.translator.JarInstrumentation;
-import takamaka.translator.Program;
 
 public class MemoryBlockchain extends AbstractBlockchain {
 	/**
@@ -46,12 +46,17 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	/**
 	 * The name used for the file describing the specification of a code execution transaction.
 	 */
-	public final static Path SPEC_NAME = Paths.get("spec.txt");
+	public final static Path SPEC_NAME = Paths.get("specification.txt");
 
 	/**
 	 * The name used for the file containing the updates performed during a code execution transaction.
 	 */
 	public final static Path UPDATES_NAME = Paths.get("updates.txt");
+
+	/**
+	 * The name used for the file containing the events triggered during a code execution transaction.
+	 */
+	public final static Path EVENTS_NAME = Paths.get("events.txt");
 
 	private final Path root;
 	private final short transactionsPerBlock;
@@ -147,62 +152,51 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addJarStoreTransactionInternal(Path jar, Classpath... dependencies) throws TransactionException {
-		Path jarName = jar.getFileName();
-		String jn = jarName.toString();
-		if (!jn.endsWith(".jar"))
-			throw new TransactionException("Jar file should end in .jar");
+	protected void addGameteCreationTransactionInternal(Classpath takamakaBase, BigInteger initialAmount, StorageReference gamete, SortedSet<Update> updates) throws TransactionException {
+		String spec = "Gamete creation transaction\n";
+		spec += "Classpath: " + takamakaBase + "\n";
+		spec += "Initial amount: " + initialAmount + "\n";
+		spec += "Gamete: " + gamete + "\n";
+		
+		dumpTransactionSpec(spec);
+		dumpTransactionUpdates(updates);
+	}
 
-		if (jn.length() > 100)
-			throw new TransactionException("Jar file name too long");
-
-		Program program = mkProgram(jar, dependencies);
-
-		Path original = getCurrentPathFor(jarName);
-	
+	@Override
+	protected void addJarStoreTransactionInternal(Path jar, Consumer<Path> instrumentedJarCreator, Classpath... dependencies) throws TransactionException {
 		try {
+			Path original = getCurrentPathFor(jar.getFileName());
+
 			ensureDeleted(original.getParent());
 			Files.createDirectories(original.getParent());
-		}
-		catch (IOException e) {
-			throw new TransactionException("Could not create transaction entry " + original.getParent());
-		}
-	
-		// the original jar file is stored in this blockchain, but not used;
-		// in a real blockchain, it is needed instead to reexecute and check the transaction
-		try {
+
+			// the original jar file is stored in this blockchain, but not used;
+			// in a real blockchain, it is needed instead to reexecute and check the transaction
 			Files.copy(jar, original);
-		}
-		catch (IOException e) {
-			throw new TransactionException("Could not store jar into transaction entry " + original);
-		}
-	
-		Path instrumented = getCurrentPathFor(INSTRUMENTED_JAR_NAME);
-		try {
-			new JarInstrumentation(jar, instrumented, program);
-		}
-		catch (IOException e) {
-			throw new TransactionException("Could not store instrumented jar into transaction entry");
-		}
-	
-		if (dependencies.length > 0) {
-			Path dependenciesPath = getCurrentPathFor(DEPENDENCIES_NAME);
-			try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(dependenciesPath.toFile())))) {
-				for (Classpath dependency: dependencies)
-					output.println(dependency);
+
+			Path instrumented = getCurrentPathFor(INSTRUMENTED_JAR_NAME);
+			instrumentedJarCreator.accept(instrumented);
+
+			if (dependencies.length > 0) {
+				Path dependenciesPath = getCurrentPathFor(DEPENDENCIES_NAME);
+				try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(dependenciesPath.toFile())))) {
+					for (Classpath dependency: dependencies)
+						output.println(dependency);
+				}
 			}
-			catch (IOException e) {
-				throw new TransactionException("Could not store dependencies into transaction entry " + original);
-			}
+		}
+		catch (Throwable t) {
+			throw new TransactionException("Could not store the jar in the blockchain", t);
 		}
 	}
 
 	@Override
 	protected void addConstructorCallTransactionInternal
-		(Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates)
+		(StorageReference caller, Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates, List<String> events)
 		throws TransactionException {
 
 		String spec = "Constructor execution\n";
+		spec += "Caller: " + caller + "\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Constructor: " + constructor + "\n";
 		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
@@ -211,33 +205,33 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		else
 			spec += "Exception: " + exception.getClass().getName() + "\n";
 
-		addCodeExecutionTransactionInternal(spec, updates);
+		addCodeExecutionTransactionInternal(spec, updates, events);
 	}
 
 	@Override
-	protected void addEntryConstructorCallTransactionInternal(Classpath classpath, ConstructorReference constructor,
-			StorageReference caller, StorageValue[] actuals, StorageValue result, Throwable exception,
-			SortedSet<Update> updates) throws TransactionException {
+	protected void addEntryConstructorCallTransactionInternal(StorageReference caller, Classpath classpath, ConstructorReference constructor,
+			StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates, List<String> events) throws TransactionException {
 		
 		String spec = "@Entry Constructor execution\n";
+		spec += "Caller: " + caller + "\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Constructor: " + constructor + "\n";
-		spec += "Caller: " + caller + "\n";
 		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
 		if (result != null)
 			spec += "Constructed object: " + result + "\n";
 		else
 			spec += "Exception: " + exception.getClass().getName() + "\n";
 
-		addCodeExecutionTransactionInternal(spec, updates);
+		addCodeExecutionTransactionInternal(spec, updates, events);
 	}
 
 	@Override
-	protected void addInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method,
+	protected void addInstanceMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
 			StorageValue receiver, StorageValue[] actuals, StorageValue result, Throwable exception,
-			SortedSet<Update> updates) throws TransactionException {
+			SortedSet<Update> updates, List<String> events) throws TransactionException {
 
 		String spec = "Instance method execution\n";
+		spec += "Caller: " + caller + "\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Method: " + method + "\n";
 		spec += "Receiver: " + receiver + "\n";
@@ -247,13 +241,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		else
 			spec += "Exception: " + exception.getClass().getName() + "\n";
 
-		addCodeExecutionTransactionInternal(spec, updates);
+		addCodeExecutionTransactionInternal(spec, updates, events);
 	}
 
 	@Override
-	protected void addEntryInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method,
-			StorageReference caller, StorageValue receiver, StorageValue[] actuals, StorageValue result,
-			Throwable exception, SortedSet<Update> updates) throws TransactionException {
+	protected void addEntryInstanceMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
+			StorageValue receiver, StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates, List<String> events) throws TransactionException {
 
 		String spec = "@Entry instance method execution\n";
 		spec += "Class path: " + classpath + "\n";
@@ -266,15 +259,16 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		else
 			spec += "Exception: " + exception.getClass().getName() + "\n";
 
-		addCodeExecutionTransactionInternal(spec, updates);		
+		addCodeExecutionTransactionInternal(spec, updates, events);		
 	}
 
 	@Override
-	protected void addStaticMethodCallTransactionInternal(Classpath classpath, MethodReference method,
-			StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates)
+	protected void addStaticMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
+			StorageValue[] actuals, StorageValue result, Throwable exception, SortedSet<Update> updates, List<String> events)
 			throws TransactionException {
 
 		String spec = "Static method execution\n";
+		spec += "Caller: " + caller + "\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Method: " + method + "\n";
 		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
@@ -283,10 +277,38 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		else
 			spec += "Exception: " + exception.getClass().getName() + "\n";
 
-		addCodeExecutionTransactionInternal(spec, updates);
+		addCodeExecutionTransactionInternal(spec, updates, events);
 	}
 
-	private void addCodeExecutionTransactionInternal(String spec, SortedSet<Update> updates) throws TransactionException {
+	private void addCodeExecutionTransactionInternal(String spec, SortedSet<Update> updates, List<String> events) throws TransactionException {
+		dumpTransactionSpec(spec);
+		dumpTransactionUpdates(updates);
+		dumpTransactionEvents(updates);
+	}
+
+	private void dumpTransactionEvents(SortedSet<Update> updates) throws TransactionException {
+		Path eventsPath = getCurrentPathFor(EVENTS_NAME);
+
+		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(eventsPath.toFile())))) {
+			updates.forEach(output::println);
+		}
+		catch (Throwable t) {
+			throw new TransactionException("Could not store the events of the transaction", t);
+		}
+	}
+
+	private void dumpTransactionUpdates(SortedSet<Update> updates) throws TransactionException {
+		Path updatesPath = getCurrentPathFor(UPDATES_NAME);
+
+		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(updatesPath.toFile())))) {
+			updates.forEach(output::println);
+		}
+		catch (Throwable t) {
+			throw new TransactionException("Could not store the updates of the transaction", t);
+		}
+	}
+
+	private void dumpTransactionSpec(String spec) throws TransactionException {
 		Path specPath = getCurrentPathFor(SPEC_NAME);
 
 		try {
@@ -303,35 +325,20 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		catch (IOException e) {
 			throw new TransactionException("Could not store the specification of the transaction", e);
 		}
-
-		Path updatesPath = getCurrentPathFor(UPDATES_NAME);
-
-		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(updatesPath.toFile())))) {
-			updates.forEach(output::println);
-		}
-		catch (Throwable t) {
-			throw new TransactionException("Could not store the updates of the transaction", t);
-		}
 	}
 
 	@Override
-	protected void extractPathsRecursively(Classpath classpath, List<Path> result) throws TransactionException {
+	protected void extractPathsRecursively(Classpath classpath, List<Path> result) throws IOException {
 		if (classpath.recursive) {
 			Path path = getPathFor(classpath.transaction, DEPENDENCIES_NAME);
-			if (Files.exists(path)) {
-				try {
-					for (String line: Files.readAllLines(path))
-						extractPathsRecursively(new Classpath(line), result);
-				}
-				catch (IOException e) {
-					throw new TransactionException("Cannot read dependencies from " + path);
-				}
-			}
+			if (Files.exists(path))
+				for (String line: Files.readAllLines(path))
+					extractPathsRecursively(new Classpath(line), result);
 		}
 
 		Path path = getPathFor(classpath.transaction, INSTRUMENTED_JAR_NAME);
 		if (!Files.exists(path))
-			throw new TransactionException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
+			throw new IOException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
 
 		result.add(path);
 	}

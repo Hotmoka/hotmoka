@@ -2,11 +2,10 @@ package purchase;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
-import takamaka.lang.LoggableContract;
 import takamaka.lang.Payable;
 import takamaka.lang.PayableContract;
 
-public class Purchase extends LoggableContract {
+public class Purchase extends Contract {
 	private static enum State { Created, Locked, Inactive };
 
 	private final int value; // the value of the item that is sold
@@ -40,7 +39,7 @@ public class Purchase extends LoggableContract {
 	public @Entry void abort() {
         isSeller(caller());
         inState(State.Created);
-        log("Aborted.");
+        event("Aborted.");
         state = State.Inactive;
         seller.receive(value * 2);
     }
@@ -52,7 +51,7 @@ public class Purchase extends LoggableContract {
         inState(State.Created);
         require(amount == 2 * value, "amount must be twice as value");
         require(caller() instanceof PayableContract, "Buyer must be payable");
-        log("Purchase confirmed.");
+        event("Purchase confirmed.");
         buyer = (PayableContract) caller();
         state = State.Locked;
     }
@@ -62,7 +61,7 @@ public class Purchase extends LoggableContract {
 	public @Entry void confirmReceived() {
         isBuyer(caller());
         inState(State.Locked);
-        log("Item received.");
+        event("Item received.");
         state = State.Inactive;
         buyer.receive(value);
         seller.receive(value * 3);

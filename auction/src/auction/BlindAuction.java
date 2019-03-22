@@ -3,15 +3,15 @@ package auction;
 import java.util.Arrays;
 
 import takamaka.crypto.Keccak256;
+import takamaka.lang.Contract;
 import takamaka.lang.Entry;
-import takamaka.lang.LoggableContract;
 import takamaka.lang.Payable;
 import takamaka.lang.PayableContract;
 import takamaka.lang.Storage;
 import takamaka.util.StorageList;
 import takamaka.util.StorageMap;
 
-public class BlindAuction extends LoggableContract {
+public class BlindAuction extends Contract {
     private static class Bid extends Storage {
         private byte[] blindedBid; // 32 bytes hash
         private final int deposit;
@@ -110,7 +110,7 @@ public class BlindAuction extends LoggableContract {
     public void auctionEnd() {
         onlyAfter(revealEnd);
         require(!ended, "auction is already ended");
-        log("Auction end.", highestBidder, highestBid);
+        event("Auction end.", highestBidder, highestBid);
         ended = true;
         beneficiary.receive(highestBid);
     }

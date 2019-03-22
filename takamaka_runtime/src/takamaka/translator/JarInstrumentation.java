@@ -13,17 +13,17 @@ import java.util.logging.Logger;
 public class JarInstrumentation {
 	private static final Logger LOGGER = Logger.getLogger(JarInstrumentation.class.getName());
 
-	public JarInstrumentation(Path origin, Path destination, Program program) throws IOException {
+	public JarInstrumentation(Path origin, Path destination, Program program) {
 		new Initializer(origin, destination, program);
 	}
 
 	private class Initializer {
 		private final JarFile originalJar;
 		private final JarOutputStream instrumentedJar;
-		private final byte buffer[] = new byte[10240];
+		//private final byte buffer[] = new byte[10240];
 		private final Program program;
 
-		private Initializer(Path origin, Path destination, Program program) throws IOException {
+		private Initializer(Path origin, Path destination, Program program) {
 			LOGGER.fine(() -> "Processing " + origin);
 
 			this.program = program;
@@ -33,8 +33,8 @@ public class JarInstrumentation {
 
 				originalJar.stream().forEach(this::addEntry);
 			}
-			catch (UncheckedIOException e) {
-				throw e.getCause();
+			catch (IOException e) {
+				throw new UncheckedIOException(e);
 			}
 		}
 
@@ -46,17 +46,17 @@ public class JarInstrumentation {
 				if (entryName.endsWith(".class"))
 					new ClassInstrumentation(input, entryName, instrumentedJar, program);
 				else
-					addJarEntryUnchanged(input);
+					LOGGER.info(() -> "Dropping non-class file " + entryName);
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}
 		}
 
-		private void addJarEntryUnchanged(InputStream input) throws IOException {
+		/*private void addJarEntryUnchanged(InputStream input) throws IOException {
 			int nRead;
 			while ((nRead = input.read(buffer, 0, buffer.length)) > 0)
 				instrumentedJar.write(buffer, 0, nRead);
-		}
+		}*/
 	}
 }

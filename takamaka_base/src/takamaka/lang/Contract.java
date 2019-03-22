@@ -19,7 +19,6 @@ public abstract class Contract extends Storage {
 	}
 
 	private void pay(Contract whom, int amount) {
-		require(whom != null, "destination contract cannot be null");
 		require(amount >= 0, "payed amount cannot be negative");
 		BigInteger amountAsBI = BigInteger.valueOf(amount);
 		require(balance.compareTo(amountAsBI) >= 0, "insufficient funds");
@@ -28,7 +27,7 @@ public abstract class Contract extends Storage {
 	}
 
 	protected final void entry(Contract caller) {
-		require(this != caller, "@Entry can only be called from a distinct contract object");
+		require(this != caller, "An @Entry can only be called from a distinct contract object");
 		this.caller = caller;
 	}
 
@@ -43,5 +42,10 @@ public abstract class Contract extends Storage {
 
 	protected final BigInteger balance() {
 		return balance;
+	}
+
+	@Override
+	public String toString() {
+		return "a contract";
 	}
 }
