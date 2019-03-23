@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,8 +41,24 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	private final List<String> events = new ArrayList<>();
 
+	/**
+	 * Adds an event to those occurred during the execution of the last transaction.
+	 * 
+	 * @param event the event description
+	 */
+	public void event(String event) {
+		events.add(event);
+	}
+
+	public final TransactionReference getCurrentTransactionReference() {
+		return new TransactionReference(currentBlock, currentTransaction);
+	}
+
 	@Override
-	public final StorageReference setAsInitialized(Classpath takamakaBase, BigInteger initialAmount) throws TransactionException {
+	public final StorageReference addGameteCreationTransaction(Classpath takamakaBase, BigInteger initialAmount) throws TransactionException {
+		if (isInitialized)
+			throw new TransactionException("Blockchain already initialized");
+
 		checkNotFull();
 
 		Storage gamete;
@@ -53,13 +70,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 			gamete = (Storage) gameteClass.newInstance();
 			// we set the balance field of the gamete
 			Field balanceField = contractClass.getDeclaredField("balance");
-			balanceField.setAccessible(true); // since it is private
+			balanceField.setAccessible(true); // since the field is private
 			balanceField.set(gamete, initialAmount);
 			SortedSet<Update> updates = collectUpdates(new Storage[0], null, null, gamete);
-			addGameteCreationTransactionInternal(takamakaBase, initialAmount, gamete.storageReference, updates);
+			StorageReference gameteRef = gamete.storageReference;
+			addGameteCreationTransactionInternal(takamakaBase, initialAmount, gameteRef, updates);
 			moveToNextTransaction();
 			isInitialized = true;
-			return gamete.storageReference;
+			return gameteRef;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
@@ -68,33 +86,37 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract void addGameteCreationTransactionInternal(Classpath takamakaBase, BigInteger initialAmount, StorageReference gamete, SortedSet<Update> updates) throws TransactionException;
 
-	public final TransactionReference getCurrentTransactionReference() {
-		return new TransactionReference(currentBlock, currentTransaction);
-	}
-
 	@Override
 	public final TransactionReference addJarStoreInitialTransaction(Path jar, Classpath... dependencies) throws TransactionException {
 		if (isInitialized)
 			throw new TransactionException("Blockchain already initialized");
 
-		return addJarStoreTransactionCommon(jar, dependencies);
+		TransactionReference jarReference = addJarStoreTransactionCommon(jar, dependencies);
+		moveToNextTransaction();
+		return jarReference;
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(StorageReference caller, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException {
-		checkNotFull();
-
+	public final TransactionReference addJarStoreTransaction(StorageReference caller, long gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException {
 		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
+			checkNotFull();
 			Storage deserializedCaller = caller.deserialize(classLoader, this);
 			checkIsExternallyOwned(deserializedCaller);
+			decreaseBalanceOrSetToZero(deserializedCaller, GasCosts.BASE_TRANSACTION_COST);
+			if (gas > GasCosts.BASE_TRANSACTION_COST)
+				decreaseBalance(deserializedCaller, gas - GasCosts.BASE_TRANSACTION_COST);
+			Gas.init(gas);
+			Gas.charge(GasCosts.BASE_TRANSACTION_COST);
+			Gas.charge((long) (dependencies.length * GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
+			Gas.charge((long) (Files.size(jar) * GasCosts.GAS_PER_BYTE_IN_JAR));
+			TransactionReference jarReference = addJarStoreTransactionCommon(jar, dependencies);
+			increaseBalance(deserializedCaller, Gas.remaining());
+			moveToNextTransaction();
+			return jarReference;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
 		}
-
-		TransactionReference ref = addJarStoreTransactionCommon(jar, dependencies);
-		// TODO: update balance of caller
-		return ref;
 	}
 
 	private TransactionReference addJarStoreTransactionCommon(Path jar, Classpath... dependencies) throws TransactionException {
@@ -115,52 +137,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		addJarStoreTransactionInternal(jar, path -> new JarInstrumentation(jar, path, mkProgram(jar, dependencies)), dependencies);
 
-		moveToNextTransaction();
 		return ref;
 	}
 
 	@Override
-	public final StorageReference addConstructorCallTransaction(StorageReference caller, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		checkNotFull();
-
-		CodeExecutor executor;
-		Object[] deserializedActuals;
-		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
-			Storage deserializedCaller = caller.deserialize(classLoader, this);
-			checkIsExternallyOwned(deserializedCaller);
-			deserializedActuals = deserialize(classLoader, actuals);
-			executor = new ConstructorExecutor(classLoader, constructor, deserializedActuals);
-			executor.start();
-			executor.join();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
-
-		if (executor.exception instanceof TransactionException)
-			throw (TransactionException) executor.exception;
-
-		Storage newObject;
-		SortedSet<Update> updates;
-
-		try {
-			newObject = (Storage) executor.result;
-			updates = collectUpdates(deserializedActuals, null, null, newObject);
-		}
-		catch (Throwable t) {
-			throw new TransactionException("Cannot complete the transaction", t);
-		}
-
-		addConstructorCallTransactionInternal(caller, classpath, constructor, actuals, executor.exception == null ? StorageValue.serialize(newObject) : null, executor.exception, updates, events);
-
-		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
-		// hence we move further to the next transaction
-		moveToNextTransaction();
-
-		if (executor.exception != null)
-			throw new CodeExecutionException("Constructor threw exception", executor.exception);
-		else
-			return newObject.storageReference;
+	public final StorageReference addConstructorCallTransaction(StorageReference caller, long gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		return (StorageReference) transaction(caller, gas, classpath,
+				(classLoader, deserializedCaller) -> new ConstructorExecutor(classLoader, constructor, deserialize(classLoader, actuals)),
+				executor -> addConstructorCallTransactionInternal(caller, classpath, constructor, actuals, executor.exception == null ? StorageValue.serialize(executor.result) : null, executor.exception, executor.updates(), events));
 	}
 
 	protected abstract void addConstructorCallTransactionInternal
@@ -168,48 +152,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 		throws TransactionException;
 
 	@Override
-	public final StorageReference addEntryConstructorCallTransaction(StorageReference caller, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		checkNotFull();
-
-		CodeExecutor executor;
-		Storage deserializedCaller;
-		Object[] deserializedActuals;
-		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
-			deserializedActuals = deserialize(classLoader, actuals);
-			deserializedCaller = caller.deserialize(classLoader, this);
-			checkIsExternallyOwned(deserializedCaller);
-			executor = new EntryConstructorExecutor(classLoader, constructor, deserializedCaller, deserializedActuals);
-			executor.start();
-			executor.join();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
-
-		if (executor.exception instanceof TransactionException)
-			throw (TransactionException) executor.exception;
-
-		Storage newObject;
-		SortedSet<Update> updates;
-
-		try {
-			newObject = (Storage) executor.result;
-			updates = collectUpdates(deserializedActuals, deserializedCaller, null, newObject);
-		}
-		catch (Throwable t) {
-			throw new TransactionException("Cannot complete the transaction", t);
-		}
-
-		addEntryConstructorCallTransactionInternal(caller, classpath, constructor, actuals, executor.exception == null ? StorageValue.serialize(newObject) : null, executor.exception, updates, events);
-
-		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
-		// hence we move further to the next transaction
-		moveToNextTransaction();
-
-		if (executor.exception != null)
-			throw new CodeExecutionException("Constructor threw exception", executor.exception);
-		else
-			return newObject.storageReference;
+	public final StorageReference addEntryConstructorCallTransaction(StorageReference caller, long gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		return (StorageReference) transaction(caller, gas, classpath,
+				(classLoader, deserializedCaller) -> new EntryConstructorExecutor(classLoader, constructor, deserializedCaller, deserialize(classLoader, actuals)),
+				executor -> addEntryConstructorCallTransactionInternal(caller, classpath, constructor, actuals, executor.exception == null ? StorageValue.serialize(executor.result) : null, executor.exception, executor.updates(), events));
 	}
 
 	protected abstract void addEntryConstructorCallTransactionInternal
@@ -217,51 +163,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 		throws TransactionException;
 
 	@Override
-	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		checkNotFull();
-
-		CodeExecutor executor;
-		Storage deserializedReceiver;
-		Object[] deserializedActuals;
-		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
-			Storage deserializedCaller = caller.deserialize(classLoader, this);
-			checkIsExternallyOwned(deserializedCaller);
-			deserializedReceiver = receiver.deserialize(classLoader, this);
-			deserializedActuals = deserialize(classLoader, actuals);
-			executor = new InstanceMethodExecutor(classLoader, method, deserializedReceiver, deserializedActuals);
-			executor.start();
-			executor.join();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
-
-		if (executor.exception instanceof TransactionException)
-			throw (TransactionException) executor.exception;
-
-		Object result;
-		SortedSet<Update> updates;
-		StorageValue serializedResult;
-
-		try {
-			result = executor.result;
-			updates = collectUpdates(deserializedActuals, null, deserializedReceiver, result);
-			serializedResult = executor.exception == null ? StorageValue.serialize(result) : null;
-		}
-		catch (Throwable t) {
-			throw new TransactionException("Cannot complete the transaction", t);
-		}
-
-		addInstanceMethodCallTransactionInternal(caller, classpath, method, receiver, actuals, serializedResult, executor.exception, updates, events);
-
-		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
-		// hence we move further to the next transaction
-		moveToNextTransaction();
-
-		if (executor.exception != null)
-			throw new CodeExecutionException("Method threw exception", executor.exception);
-		else
-			return serializedResult;
+	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		return transaction(caller, gas, classpath,
+				(classLoader, deserializedCaller) -> new InstanceMethodExecutor(classLoader, method, receiver.deserialize(classLoader, this), deserialize(classLoader, actuals)),
+				executor -> addInstanceMethodCallTransactionInternal(caller, classpath, method, receiver, actuals, executor.exception == null ? StorageValue.serialize(executor.result) : null, executor.exception, executor.updates(), events));
 	}
 
 	protected abstract void addInstanceMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
@@ -269,51 +174,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 			SortedSet<Update> updates, List<String> events) throws TransactionException;
 
 	@Override
-	public final StorageValue addEntryInstanceMethodCallTransaction(StorageReference caller, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		checkNotFull();
-
-		CodeExecutor executor;
-		Storage deserializedReceiver, deserializedCaller;
-		Object[] deserializedActuals;
-		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
-			deserializedCaller = caller.deserialize(classLoader, this);
-			checkIsExternallyOwned(deserializedCaller);
-			deserializedReceiver = receiver.deserialize(classLoader, this);
-			deserializedActuals = deserialize(classLoader, actuals);
-			executor = new EntryInstanceMethodExecutor(classLoader, method, deserializedCaller, deserializedReceiver, deserializedActuals);
-			executor.start();
-			executor.join();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
-
-		if (executor.exception instanceof TransactionException)
-			throw (TransactionException) executor.exception;
-
-		Object result;
-		SortedSet<Update> updates;
-		StorageValue serializedResult;
-
-		try {
-			result = executor.result;
-			updates = collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result);
-			serializedResult = executor.exception == null ? StorageValue.serialize(result) : null;
-		}
-		catch (Throwable t) {
-			throw new TransactionException("Cannot complete the transaction", t);
-		}
-
-		addEntryInstanceMethodCallTransactionInternal(caller, classpath, method, receiver, actuals, serializedResult, executor.exception, updates, events);
-
-		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
-		// hence we move further to the next transaction
-		moveToNextTransaction();
-
-		if (executor.exception != null)
-			throw new CodeExecutionException("Method threw exception", executor.exception);
-		else
-			return serializedResult;
+	public final StorageValue addEntryInstanceMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		return transaction(caller, gas, classpath,
+				(classLoader, deserializedCaller) -> new EntryInstanceMethodExecutor(classLoader, method, deserializedCaller, receiver.deserialize(classLoader, this), deserialize(classLoader, actuals)),
+				executor -> addEntryInstanceMethodCallTransactionInternal(caller, classpath, method, receiver, actuals, executor.exception == null ? StorageValue.serialize(executor.result) : null, executor.exception, executor.updates(), events));
 	}
 
 	protected abstract void addEntryInstanceMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
@@ -321,54 +185,58 @@ public abstract class AbstractBlockchain implements Blockchain {
 			SortedSet<Update> updates, List<String> events) throws TransactionException;
 
 	@Override
-	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		checkNotFull();
-
-		CodeExecutor executor;
-		Object[] deserializedActuals;
-		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
-			Storage deserializedCaller = caller.deserialize(classLoader, this);
-			checkIsExternallyOwned(deserializedCaller);
-			deserializedActuals = deserialize(classLoader, actuals);
-			executor = new StaticMethodExecutor(classLoader, method, deserializedActuals);
-			executor.start();
-			executor.join();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
-
-		if (executor.exception instanceof TransactionException)
-			throw (TransactionException) executor.exception;
-
-		Object result;
-		SortedSet<Update> updates;
-		StorageValue serializedResult;
-
-		try {
-			result = executor.result;
-			updates = collectUpdates(deserializedActuals, null, null, result);
-			serializedResult = executor.exception == null ? StorageValue.serialize(result) : null;
-		}
-		catch (Throwable t) {
-			throw new TransactionException("Cannot complete the transaction", t);
-		}
-
-		addStaticMethodCallTransactionInternal(caller, classpath, method, actuals, serializedResult, executor.exception, updates, events);
-
-		// the transaction was successful, regardless of the fact that the constructor might have thrown an exception,
-		// hence we move further to the next transaction
-		moveToNextTransaction();
-
-		if (executor.exception != null)
-			throw new CodeExecutionException("Method threw exception", executor.exception);
-		else
-			return serializedResult;
+	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		return transaction(caller, gas, classpath,
+				(classLoader, deserializedCaller) -> new StaticMethodExecutor(classLoader, method, deserialize(classLoader, actuals)),
+				executor -> addStaticMethodCallTransactionInternal(caller, classpath, method, actuals, executor.exception == null ? StorageValue.serialize(executor.result) : null, executor.exception, executor.updates(), events));
 	}
 
 	protected abstract void addStaticMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
 			StorageValue[] actuals, StorageValue result, Throwable exception,
 			SortedSet<Update> updates, List<String> events) throws TransactionException;
+
+	private interface ExecutorProducer {
+		CodeExecutor produce(BlockchainClassLoader classLoader, Storage caller) throws TransactionException;
+	}
+
+	private interface TransactionFinalizer {
+		void finalize(CodeExecutor executor) throws TransactionException;
+	}
+
+	private StorageValue transaction(StorageReference caller, long gas, Classpath classpath, ExecutorProducer executorProducer, TransactionFinalizer finalizer) throws TransactionException, CodeExecutionException {
+		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
+			checkNotFull();
+			Storage deserializedCaller = caller.deserialize(classLoader, this);
+			checkIsExternallyOwned(deserializedCaller);
+			decreaseBalanceOrSetToZero(deserializedCaller, GasCosts.BASE_TRANSACTION_COST);
+			if (gas > GasCosts.BASE_TRANSACTION_COST)
+				decreaseBalance(deserializedCaller, gas - GasCosts.BASE_TRANSACTION_COST);
+			Gas.init(gas);
+			Gas.charge(GasCosts.BASE_TRANSACTION_COST);
+
+			CodeExecutor executor = executorProducer.produce(classLoader, deserializedCaller);
+			executor.start();
+			executor.join();
+
+			if (executor.exception instanceof TransactionException)
+				throw (TransactionException) executor.exception;
+
+			finalizer.finalize(executor);
+			increaseBalance(deserializedCaller, Gas.remaining());
+			moveToNextTransaction();
+
+			if (executor.exception != null)
+				throw new CodeExecutionException("Code execution threw exception", executor.exception);
+			else
+				return StorageValue.serialize(executor.result);
+		}
+		catch (CodeExecutionException e) {
+			throw e; // do not wrap into a TransactionException
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+		}
+	}
 
 	public final Storage deserialize(BlockchainClassLoader classLoader, StorageReference reference) throws TransactionException {
 		// this comparator puts updates in the order required for the parameter
@@ -453,6 +321,50 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract Update getLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException;
 
+	private void decreaseBalanceOrSetToZero(Storage eoa, long gas)
+			throws InsufficientFundsException, ClassNotFoundException, NoSuchFieldException,
+			SecurityException, IllegalArgumentException, IllegalAccessException {
+	
+		BigInteger delta = GasCosts.toCoin(gas);
+		Class<?> contractClass = eoa.getClass().getClassLoader().loadClass(CONTRACT_NAME);
+		Field balanceField = contractClass.getDeclaredField("balance");
+		balanceField.setAccessible(true); // since the field is private
+		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
+		if (previousBalance.compareTo(delta) < 0) {
+			balanceField.set(eoa, BigInteger.ZERO);
+			throw new InsufficientFundsException();
+		}
+		else
+			balanceField.set(eoa, previousBalance.subtract(delta));
+	}
+
+	private void decreaseBalance(Storage eoa, long gas)
+			throws InsufficientFundsException, ClassNotFoundException, NoSuchFieldException,
+			SecurityException, IllegalArgumentException, IllegalAccessException {
+	
+		BigInteger delta = GasCosts.toCoin(gas);
+		Class<?> contractClass = eoa.getClass().getClassLoader().loadClass(CONTRACT_NAME);
+		Field balanceField = contractClass.getDeclaredField("balance");
+		balanceField.setAccessible(true); // since the field is private
+		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
+		if (previousBalance.compareTo(delta) < 0)
+			throw new InsufficientFundsException();
+		else
+			balanceField.set(eoa, previousBalance.subtract(delta));
+	}
+
+	private void increaseBalance(Storage eoa, long gas)
+			throws ClassNotFoundException, NoSuchFieldException,
+			SecurityException, IllegalArgumentException, IllegalAccessException {
+	
+		BigInteger delta = GasCosts.toCoin(gas);
+		Class<?> contractClass = eoa.getClass().getClassLoader().loadClass(CONTRACT_NAME);
+		Field balanceField = contractClass.getDeclaredField("balance");
+		balanceField.setAccessible(true); // since the field is private
+		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
+		balanceField.set(eoa, previousBalance.add(delta));
+	}
+
 	private void checkIsExternallyOwned(Storage deserializedCaller) {
 		if (!deserializedCaller.getClass().getName().equals(EXTERNALLY_OWNED_ACCOUNT_NAME))
 			throw new IllegalArgumentException("Only an externally owned contract can start a transaction");
@@ -503,6 +415,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 				}
 			});
 		}
+
+		protected abstract SortedSet<Update> updates();
 	}
 
 	private class ConstructorExecutor extends CodeExecutor {
@@ -534,16 +448,23 @@ public abstract class AbstractBlockchain implements Blockchain {
 				exception = wrapAsTransactionException(t, "Could not call the constructor");
 			}
 		}
+
+		@Override
+		protected SortedSet<Update> updates() {
+			return AbstractBlockchain.collectUpdates(actuals, null, null, result);
+		}
 	}
 
 	private class EntryConstructorExecutor extends CodeExecutor {
 		private final ConstructorReference constructor;
+		private final Storage caller;
 		private final Object[] actuals;
 
 		private EntryConstructorExecutor(BlockchainClassLoader classLoader, ConstructorReference constructor, Storage caller, Object... actuals) {
 			super(classLoader);
 
 			this.constructor = constructor;
+			this.caller = caller;
 			this.actuals = addTrailingCaller(actuals, caller);
 		}
 
@@ -565,14 +486,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 				exception = wrapAsTransactionException(t, "Could not call the constructor");
 			}
 		}
+
+		@Override
+		protected SortedSet<Update> updates() {
+			return AbstractBlockchain.collectUpdates(actuals, caller, null, result);
+		}
 	}
 
 	private class InstanceMethodExecutor extends CodeExecutor {
 		private final MethodReference method;
-		private final Object receiver;
+		private final Storage receiver;
 		private final Object[] actuals;
 
-		private InstanceMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, Object receiver, Object... actuals) {
+		private InstanceMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, Storage receiver, Object... actuals) {
 			super(classLoader);
 
 			this.method = method;
@@ -602,11 +528,17 @@ public abstract class AbstractBlockchain implements Blockchain {
 				exception = wrapAsTransactionException(t, "Could not call the method");
 			}
 		}
+
+		@Override
+		protected SortedSet<Update> updates() {
+			return AbstractBlockchain.collectUpdates(actuals, null, receiver, result);
+		}
 	}
 
 	private class EntryInstanceMethodExecutor extends CodeExecutor {
 		private final MethodReference method;
-		private final Object receiver;
+		private final Storage caller;
+		private final Storage receiver;
 		private final Object[] actuals;
 
 		private EntryInstanceMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, Storage caller, Storage receiver, Object... actuals) {
@@ -614,6 +546,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			this.method = method;
 			this.receiver = receiver;
+			this.caller = caller;
 			this.actuals = addTrailingCaller(actuals, caller);
 		}
 
@@ -638,6 +571,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 			catch (Throwable t) {
 				exception = wrapAsTransactionException(t, "Could not call the method");
 			}
+		}
+
+		@Override
+		protected SortedSet<Update> updates() {
+			return AbstractBlockchain.collectUpdates(actuals, caller, receiver, result);
 		}
 	}
 
@@ -670,6 +608,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 			catch (Throwable t) {
 				exception = wrapAsTransactionException(t, "Could not call the method");
 			}
+		}
+
+		@Override
+		protected SortedSet<Update> updates() {
+			return AbstractBlockchain.collectUpdates(actuals, null, null, result);
 		}
 	}
 
@@ -749,14 +692,5 @@ public abstract class AbstractBlockchain implements Blockchain {
 	private void initTransaction(BlockchainClassLoader classLoader) {
 		Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
 		events.clear();
-	}
-
-	/**
-	 * Adds an event to those occurred during the execution of the last transaction.
-	 * 
-	 * @param event the event description
-	 */
-	public void event(String event) {
-		events.add(event);
 	}
 }

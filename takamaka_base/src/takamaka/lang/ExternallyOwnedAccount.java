@@ -13,4 +13,9 @@ public final class ExternallyOwnedAccount extends PayableContract {
 	 * @param initialAmount the initial fund
 	 */
 	public @Entry @Payable ExternallyOwnedAccount(int initialAmount) {}
+
+	@Override
+	public String toString() {
+		return "an externally owned account";
+	}
 }

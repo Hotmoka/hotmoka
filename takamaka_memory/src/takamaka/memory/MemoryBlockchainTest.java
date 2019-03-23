@@ -5,6 +5,7 @@ import static takamaka.blockchain.types.BasicTypes.INT;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Paths;
+import java.util.concurrent.Callable;
 
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
@@ -20,140 +21,109 @@ import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.NullValue;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
 
 public class MemoryBlockchainTest {
+	private static int counter;
+
+	private static <T> T run(String from, String message, Callable<T> what) {
+		try {
+			T result = what.call();
+			System.out.printf("[%8s] %2d: %40s = %s\n", from, counter++, message, result);
+			return result;
+		}
+		catch (Exception e) {
+			System.out.printf("[%8s] %2d: %40s raises %s since %s\n", from, counter++, message, e, e.getCause());
+			return null;
+		}
+	}
 
 	public static void main(String[] args) throws TransactionException, IOException, CodeExecutionException {
 		Blockchain blockchain = new MemoryBlockchain(Paths.get("chain"), (short) 5);
 
 		// we need at least the base Takamaka classes in the blockchain
-		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(Paths.get("../takamaka_base/dist/takamaka_base.jar"));
-		Classpath takamakaBaseClasspath = new Classpath(takamaka_base, false);
-		StorageReference gamete = blockchain.setAsInitialized(takamakaBaseClasspath, BigInteger.valueOf(100000));
-
-		TransactionReference test_contracts_dependency = blockchain.addJarStoreTransaction(gamete, takamakaBaseClasspath, Paths.get("../test_contracts_dependency/dist/test_contracts_dependency.jar"), new Classpath(takamaka_base, true)); // true/false irrelevant here
-		TransactionReference test_contracts = blockchain.addJarStoreTransaction(gamete, takamakaBaseClasspath, Paths.get("../test_contracts/dist/test_contracts.jar"), new Classpath(test_contracts_dependency, true)); // true relevant here
+		TransactionReference takamaka_base = run("", "takamaka_base.jar", () -> blockchain.addJarStoreInitialTransaction(Paths.get("../takamaka_base/dist/takamaka_base.jar")));
+		Classpath takamakaBaseClasspath = new Classpath(takamaka_base, false);  // true/false irrelevant here
+		StorageReference gamete = run("", "gamete", () -> blockchain.addGameteCreationTransaction(takamakaBaseClasspath, BigInteger.valueOf(100000)));
+		TransactionReference test_contracts_dependency = run("gamete", "test_contract_dependency.jar", () -> blockchain.addJarStoreTransaction(gamete, 10000, takamakaBaseClasspath, Paths.get("../test_contracts_dependency/dist/test_contracts_dependency.jar"), takamakaBaseClasspath));
+		TransactionReference test_contracts = run("gamete", "test_contracts.jar", () -> blockchain.addJarStoreTransaction(gamete, 10000, takamakaBaseClasspath, Paths.get("../test_contracts/dist/test_contracts.jar"), new Classpath(test_contracts_dependency, true))); // true relevant here
 		Classpath classpath = new Classpath(test_contracts, true);
 
-		StorageReference italianTimeRef = blockchain.addConstructorCallTransaction(gamete, classpath, new ConstructorReference("takamaka.tests.ItalianTime", INT, INT, INT),
-				new IntValue(13), new IntValue(25), new IntValue(40));
-		System.out.println(" 1: " + italianTimeRef);
-		StorageReference wrapper1Ref = blockchain.addConstructorCallTransaction
-				(gamete, classpath,
+		StorageReference italianTime = run("gamete", "italianTime = new ItalianTime(13,25,40)", () -> blockchain.addConstructorCallTransaction(gamete, 100, classpath, new ConstructorReference("takamaka.tests.ItalianTime", INT, INT, INT),
+				new IntValue(13), new IntValue(25), new IntValue(40)));
+		StorageReference wrapper1 = run("gamete", "wrapper1 = new Wrapper(italianTime)", () -> blockchain.addConstructorCallTransaction
+				(gamete, 100, classpath,
 				new ConstructorReference("takamaka.tests.Wrapper", new ClassType("takamaka.tests.Time")),
-				italianTimeRef);
-		System.out.println(" 2: " + wrapper1Ref);
-		StringValue toString1 = (StringValue) blockchain.addInstanceMethodCallTransaction
-			(gamete, classpath,
+				italianTime));
+		run("gamete", "wrapper1.toString()", () -> (StringValue) blockchain.addInstanceMethodCallTransaction
+			(gamete, 100, classpath,
 			new MethodReference(ClassType.OBJECT, "toString"),
-			wrapper1Ref);
-		System.out.println(" 3: " + toString1);
-		StorageReference wrapper2Ref = blockchain.addConstructorCallTransaction
-				(gamete, classpath,
+			wrapper1));
+		StorageReference wrapper2 = run("gamete", "wrapper2 = new Wrapper(italianTime,\"hello\",13011973,12345L)", () -> blockchain.addConstructorCallTransaction
+				(gamete, 100, classpath,
 				new ConstructorReference("takamaka.tests.Wrapper", new ClassType("takamaka.tests.Time"), ClassType.STRING, ClassType.BIG_INTEGER, BasicTypes.LONG),
-				italianTimeRef, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(13011973)), new LongValue(12345L));
-		System.out.println(" 4: " + wrapper2Ref);
-		StringValue toString2 = (StringValue) blockchain.addInstanceMethodCallTransaction
-				(gamete, classpath,
+				italianTime, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(13011973)), new LongValue(12345L)));
+		run("gamete", "wrapper2.toString()", () -> (StringValue) blockchain.addInstanceMethodCallTransaction
+				(gamete, 100, classpath,
 				new MethodReference(ClassType.OBJECT, "toString"),
-				wrapper2Ref);
-		System.out.println(" 5: " + toString2);
+				wrapper2));
 		// we try to call the constructor Sub(int): it does not exist since an @Entry requires an implicit Contract parameter
-		try {
-			blockchain.addConstructorCallTransaction
-				(gamete, classpath,
-				new ConstructorReference("takamaka.tests.Sub", BasicTypes.INT),
-				new IntValue(1973));
-		}
-		catch (TransactionException e) {
-			System.out.println(" 6: " + e.getCause());
-		}
+		run("gamete", "new Sub(1973)", () -> blockchain.addConstructorCallTransaction
+			(gamete, 100, classpath,
+			new ConstructorReference("takamaka.tests.Sub", INT),
+			new IntValue(1973)));
 
 		// we try to call the constructor Sub(int,Contract): it exists but it is an entry, hence cannot be called this way
-		try {
-			blockchain.addConstructorCallTransaction
-				(gamete, classpath,
-					new ConstructorReference("takamaka.tests.Sub", BasicTypes.INT, new ClassType("takamaka.lang.Contract")),
-					new IntValue(1973), NullValue.INSTANCE);
-		}
-		catch (TransactionException e) {
-			System.out.println(" 7: " + e.getCause());
-		}
+		run("gamete", "new Sub(1973, null)", () -> blockchain.addConstructorCallTransaction
+			(gamete, 100, classpath,
+			new ConstructorReference("takamaka.tests.Sub", INT, new ClassType("takamaka.lang.Contract")),
+			new IntValue(1973), NullValue.INSTANCE));
 
-		StorageReference subRef1 = blockchain.addConstructorCallTransaction(gamete, classpath, new ConstructorReference("takamaka.tests.Sub"));
-		System.out.println(" 8: " + subRef1);
-
+		StorageReference sub1 = run("gamete", "sub1 = new Sub()", () -> blockchain.addConstructorCallTransaction(gamete, 100, classpath, new ConstructorReference("takamaka.tests.Sub")));
 		// we try to call Sub.m1(): it does not exist since an @Entry requires an implicit Contract parameter
-		try {
-			blockchain.addInstanceMethodCallTransaction
-				(gamete, classpath, new MethodReference("takamaka.tests.Sub", "m1"), subRef1);
-		}
-		catch (TransactionException e) {
-			System.out.println(" 9: " + e.getCause());
-		}
+		run("gamete", "sub1.m1()", () -> blockchain.addInstanceMethodCallTransaction
+				(gamete, 100, classpath, new MethodReference("takamaka.tests.Sub", "m1"), sub1));
 
 		// we try to call Sub.m1(Contract): it exists but it is an entry, hence cannot be called this way
-		try {
-			blockchain.addInstanceMethodCallTransaction
-				(gamete, classpath,
+		run("gamete", "sub1.m1(null)", () -> blockchain.addInstanceMethodCallTransaction
+				(gamete, 100, classpath,
 					new MethodReference("takamaka.tests.Sub", "m1", new ClassType("takamaka.lang.Contract")),
-					subRef1, NullValue.INSTANCE);
-		}
-		catch (TransactionException e) {
-			System.out.println("10: " + e.getCause());
-		}
+					sub1, NullValue.INSTANCE));
 
 		// we try to call a static method in the wrong way
-		try {
-			blockchain.addInstanceMethodCallTransaction
-				(gamete, classpath, new MethodReference("takamaka.tests.Sub", "ms"), subRef1);
-		}
-		catch (TransactionException e) {
-			System.out.println("11: " + e.getCause());
-		}
+		run("gamete", "sub1.ms()", () -> blockchain.addInstanceMethodCallTransaction
+				(gamete, 100, classpath, new MethodReference("takamaka.tests.Sub", "ms"), sub1));
 
 		// we call it in the correct way
-		StorageValue o = blockchain.addStaticMethodCallTransaction
-			(gamete, classpath, new MethodReference("takamaka.tests.Sub", "ms"));
-		System.out.println("12: " + o); /// we will get null since the method is void
+		run("gamete", "Sub.ms()", () -> blockchain.addStaticMethodCallTransaction
+			(gamete, 100, classpath, new MethodReference("takamaka.tests.Sub", "ms")));
 
-		// we try to call an instance method as it it was static
-		try {
-			blockchain.addStaticMethodCallTransaction
-				(gamete, classpath, new MethodReference("takamaka.tests.Sub", "m5"));
-		}
-		catch (TransactionException e) {
-			System.out.println("13: " + e.getCause());
-		}
+		// we try to call an instance method as if it were static
+		run("gamete", "Sub.m5()", () -> blockchain.addStaticMethodCallTransaction
+				(gamete, 100, classpath, new MethodReference("takamaka.tests.Sub", "m5")));
+
+		StorageReference eoa = run("gamete", "eoa = new ExternallyOwnedAccount()",
+				() -> blockchain.addConstructorCallTransaction(gamete, 100, classpath,
+				new ConstructorReference("takamaka.lang.ExternallyOwnedAccount")));
 
 		// we call the constructor Sub(int): it is @Entry but the caller has not enough funds
-		try {
-			blockchain.addEntryConstructorCallTransaction
-				(gamete, classpath,
-				new ConstructorReference("takamaka.tests.Sub", BasicTypes.INT),
-				new IntValue(1973));
-		}
-		catch (CodeExecutionException e) {
-			System.out.println("14: " + e.getCause());
-		}
+		run("eoa", "new Sub(1973)", () -> blockchain.addEntryConstructorCallTransaction
+				(eoa, 100, classpath,
+				new ConstructorReference("takamaka.tests.Sub", INT),
+				new IntValue(1973)));
 
-		// we call the constructor Sub(int): this time we do not transfer money
-		StorageReference subRef2 = blockchain.addEntryConstructorCallTransaction
-			(gamete, classpath,
-			new ConstructorReference("takamaka.tests.Sub", BasicTypes.INT),
-			new IntValue(0));
-		System.out.println("15: " + subRef2);
+		// we recharge the previous caller
+		run("gamete", "eoa.receive(2000)", () -> blockchain.addEntryInstanceMethodCallTransaction
+				(gamete, 100, classpath, new MethodReference("takamaka.lang.PayableContract", "receive", INT), eoa, new IntValue(2000)));
 
-		// we call the entry Sub.print(Time)
-		o = blockchain.addEntryInstanceMethodCallTransaction
-			(gamete, classpath, new MethodReference("takamaka.tests.Sub", "print", new ClassType("takamaka.tests.Time")), subRef2, italianTimeRef);
-		System.out.println("16: " + o); /// we will get null since the method is void
+		// it has enough funds now
+		StorageReference sub2 = run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addEntryConstructorCallTransaction
+				(eoa, 100, classpath, new ConstructorReference("takamaka.tests.Sub", INT), new IntValue(1973)));
+
+		run("gamete", "sub2.print(italianTime)", () -> blockchain.addEntryInstanceMethodCallTransaction
+			(gamete, 100, classpath, new MethodReference("takamaka.tests.Sub", "print", new ClassType("takamaka.tests.Time")), sub2, italianTime));
 		
-		// we call the entry Sub.m4(13)
-		o = blockchain.addEntryInstanceMethodCallTransaction
-			(gamete, classpath, new MethodReference("takamaka.tests.Sub", "m4", BasicTypes.INT), subRef1, new IntValue(13));
-		System.out.println("17: " + o);
+		run("gamete", "sub1.m4(13)", () -> blockchain.addEntryInstanceMethodCallTransaction
+			(gamete, 100, classpath, new MethodReference("takamaka.tests.Sub", "m4", INT), sub1, new IntValue(13)));
 	}
 }
