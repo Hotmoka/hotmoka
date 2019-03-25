@@ -192,11 +192,11 @@ public class MemoryBlockchain extends AbstractBlockchain {
 
 	@Override
 	protected void addConstructorCallTransactionInternal
-		(StorageReference caller, Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, CodeExecutor executor)
+		(Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, CodeExecutor executor)
 		throws Exception {
 
 		String spec = "Constructor execution\n";
-		spec += "Caller: " + caller + "\n";
+		spec += "Caller: " + executor.getCaller() + "\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Constructor: " + constructor + "\n";
 		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
@@ -211,11 +211,11 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addEntryConstructorCallTransactionInternal(StorageReference caller, Classpath classpath, ConstructorReference constructor,
+	protected void addEntryConstructorCallTransactionInternal(Classpath classpath, ConstructorReference constructor,
 			StorageValue[] actuals, CodeExecutor executor) throws Exception {
 		
 		String spec = "@Entry Constructor execution\n";
-		spec += "Caller: " + caller + "\n";
+		spec += "Caller: " + executor.getCaller() + "\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Constructor: " + constructor + "\n";
 		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
@@ -230,14 +230,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addInstanceMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
-			StorageValue receiver, StorageValue[] actuals, CodeExecutor executor) throws Exception {
-
+	protected void addInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method, StorageValue[] actuals, CodeExecutor executor) throws Exception {
 		String spec = "Instance method execution\n";
-		spec += "Caller: " + caller + "\n";
+		spec += "Caller: " + executor.getCaller() + "\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Method: " + method + "\n";
-		spec += "Receiver: " + receiver + "\n";
+		spec += "Receiver: " + executor.getReceiver() + "\n";
 		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
 		StorageValue result = executor.getResult();
 		if (result != null)
@@ -250,14 +248,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addEntryInstanceMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
-			StorageValue receiver, StorageValue[] actuals, CodeExecutor executor) throws Exception {
-
+	protected void addEntryInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method, StorageValue[] actuals, CodeExecutor executor) throws Exception {
 		String spec = "@Entry instance method execution\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Method: " + method + "\n";
-		spec += "Caller: " + caller + "\n";
-		spec += "Receiver: " + receiver + "\n";
+		spec += "Caller: " + executor.getCaller() + "\n";
+		spec += "Receiver: " + executor.getReceiver() + "\n";
 		spec += "Actuals: " + Arrays.toString(actuals) + "\n";
 		StorageValue result = executor.getResult();
 		if (result != null)
@@ -270,9 +266,9 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addStaticMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method, StorageValue[] actuals, CodeExecutor executor) throws Exception {
+	protected void addStaticMethodCallTransactionInternal(Classpath classpath, MethodReference method, StorageValue[] actuals, CodeExecutor executor) throws Exception {
 		String spec = "Static method execution\n";
-		spec += "Caller: " + caller + "\n";
+		spec += "Caller: " + executor.getCaller() + "\n";
 		spec += "Class path: " + classpath + "\n";
 		spec += "Method: " + method + "\n";
 		spec += "Actuals: " + Arrays.toString(actuals) + "\n";

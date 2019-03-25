@@ -152,56 +152,55 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final StorageReference addConstructorCallTransaction(StorageReference caller, long gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return (StorageReference) transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new ConstructorExecutor(classLoader, constructor, deserializedCaller, gas, deserialize(classLoader, actuals)),
-				executor -> addConstructorCallTransactionInternal(caller, classpath, constructor, actuals, executor));
+				(classLoader, deserializedCaller) -> new ConstructorExecutor(classLoader, constructor, caller, deserializedCaller, gas, deserialize(classLoader, actuals)),
+				executor -> addConstructorCallTransactionInternal(classpath, constructor, actuals, executor));
 	}
 
 	protected abstract void addConstructorCallTransactionInternal
-		(StorageReference caller, Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, CodeExecutor executor)
+		(Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, CodeExecutor executor)
 		throws Exception;
 
 	@Override
 	public final StorageReference addEntryConstructorCallTransaction(StorageReference caller, long gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return (StorageReference) transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new EntryConstructorExecutor(classLoader, constructor, deserializedCaller, gas, deserialize(classLoader, actuals)),
-				executor -> addEntryConstructorCallTransactionInternal(caller, classpath, constructor, actuals, executor));
+				(classLoader, deserializedCaller) -> new EntryConstructorExecutor(classLoader, constructor, caller, deserializedCaller, gas, deserialize(classLoader, actuals)),
+				executor -> addEntryConstructorCallTransactionInternal(classpath, constructor, actuals, executor));
 	}
 
 	protected abstract void addEntryConstructorCallTransactionInternal
-		(StorageReference caller, Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, CodeExecutor executor)
+		(Classpath classpath, ConstructorReference constructor, StorageValue[] actuals, CodeExecutor executor)
 		throws Exception;
 
 	@Override
 	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new InstanceMethodExecutor(classLoader, method, deserializedCaller, gas, receiver.deserialize(classLoader, this), deserialize(classLoader, actuals)),
-				executor -> addInstanceMethodCallTransactionInternal(caller, classpath, method, receiver, actuals, executor));
+				(classLoader, deserializedCaller) -> new InstanceMethodExecutor(classLoader, method, caller, deserializedCaller, gas, receiver, deserialize(classLoader, actuals)),
+				executor -> addInstanceMethodCallTransactionInternal(classpath, method, actuals, executor));
 	}
 
-	protected abstract void addInstanceMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
-			StorageValue receiver, StorageValue[] actuals, CodeExecutor executor) throws Exception;
+	protected abstract void addInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method, StorageValue[] actuals, CodeExecutor executor) throws Exception;
 
 	@Override
 	public final StorageValue addEntryInstanceMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new EntryInstanceMethodExecutor(classLoader, method, deserializedCaller, gas, receiver.deserialize(classLoader, this), deserialize(classLoader, actuals)),
-				executor -> addEntryInstanceMethodCallTransactionInternal(caller, classpath, method, receiver, actuals, executor));
+				(classLoader, deserializedCaller) -> new EntryInstanceMethodExecutor(classLoader, method, caller, deserializedCaller, gas, receiver, deserialize(classLoader, actuals)),
+				executor -> addEntryInstanceMethodCallTransactionInternal(classpath, method, actuals, executor));
 	}
 
-	protected abstract void addEntryInstanceMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method,
-			StorageValue receiver, StorageValue[] actuals, CodeExecutor executor) throws Exception;
+	protected abstract void addEntryInstanceMethodCallTransactionInternal(Classpath classpath, MethodReference method,
+			StorageValue[] actuals, CodeExecutor executor) throws Exception;
 
 	@Override
 	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new StaticMethodExecutor(classLoader, method, deserializedCaller, gas, deserialize(classLoader, actuals)),
-				executor -> addStaticMethodCallTransactionInternal(caller, classpath, method, actuals, executor));
+				(classLoader, deserializedCaller) -> new StaticMethodExecutor(classLoader, method, caller, deserializedCaller, gas, deserialize(classLoader, actuals)),
+				executor -> addStaticMethodCallTransactionInternal(classpath, method, actuals, executor));
 	}
 
-	protected abstract void addStaticMethodCallTransactionInternal(StorageReference caller, Classpath classpath, MethodReference method, StorageValue[] actuals, CodeExecutor executor) throws Exception;
+	protected abstract void addStaticMethodCallTransactionInternal(Classpath classpath, MethodReference method, StorageValue[] actuals, CodeExecutor executor) throws Exception;
 
 	private interface ExecutorProducer {
-		CodeExecutor produce(BlockchainClassLoader classLoader, Storage caller) throws Exception;
+		CodeExecutor produce(BlockchainClassLoader classLoader, Storage deserializedCaller) throws Exception;
 	}
 
 	private interface TransactionFinalizer {
@@ -390,12 +389,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected Throwable exception;
 		protected Object result;
 		protected final BlockchainClassLoader classLoader;
-		protected final Storage caller;
+		protected final StorageReference caller;
+		protected final Storage deserializedCaller;
 		protected final long gas;
 
-		private CodeExecutor(BlockchainClassLoader classLoader, Storage caller, long gas) {
+		private CodeExecutor(BlockchainClassLoader classLoader, StorageReference caller, Storage deseralizedCaller, long gas) throws Exception {
 			this.classLoader = classLoader;
 			this.caller = caller;
+			this.deserializedCaller = deseralizedCaller;
 			this.gas = gas;
 
 			setContextClassLoader(new ClassLoader(classLoader.getParent()) {
@@ -415,6 +416,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 			return exception == null ? StorageValue.serialize(result) : null;
 		}
 
+		public final StorageReference getCaller() {
+			return caller;
+		}
+
+		public StorageReference getReceiver() {
+			return null;
+		}
+
 		public abstract SortedSet<Update> updates();
 
 		public final List<String> events() {
@@ -430,8 +439,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		private final ConstructorReference constructor;
 		private final Object[] actuals;
 
-		private ConstructorExecutor(BlockchainClassLoader classLoader, ConstructorReference constructor, Storage caller, long gas, Object... actuals) {
-			super(classLoader, caller, gas);
+		private ConstructorExecutor(BlockchainClassLoader classLoader, ConstructorReference constructor, StorageReference caller, Storage deserializedCaller, long gas, Object... actuals) throws Exception {
+			super(classLoader, caller, deserializedCaller, gas);
 
 			this.constructor = constructor;
 			this.actuals = actuals;
@@ -458,7 +467,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		@Override
 		public SortedSet<Update> updates() {
-			return collectUpdates(actuals, caller, null, result);
+			return collectUpdates(actuals, deserializedCaller, null, result);
 		}
 	}
 
@@ -466,11 +475,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 		private final ConstructorReference constructor;
 		private final Object[] actuals;
 
-		private EntryConstructorExecutor(BlockchainClassLoader classLoader, ConstructorReference constructor, Storage caller, long gas, Object... actuals) {
-			super(classLoader, caller, gas);
+		private EntryConstructorExecutor(BlockchainClassLoader classLoader, ConstructorReference constructor, StorageReference caller, Storage deserializedCaller, long gas, Object... actuals) throws Exception {
+			super(classLoader, caller, deserializedCaller, gas);
 
 			this.constructor = constructor;
-			this.actuals = addTrailingCaller(actuals, caller);
+			this.actuals = addTrailingCaller(actuals, deserializedCaller);
 		}
 
 		@Override
@@ -494,20 +503,22 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		@Override
 		public SortedSet<Update> updates() {
-			return collectUpdates(actuals, caller, null, result);
+			return collectUpdates(actuals, deserializedCaller, null, result);
 		}
 	}
 
 	private class InstanceMethodExecutor extends CodeExecutor {
 		private final MethodReference method;
-		private final Storage receiver;
+		private final StorageReference receiver;
+		private final Storage deserializedReceiver;
 		private final Object[] actuals;
 
-		private InstanceMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, Storage caller, long gas, Storage receiver, Object... actuals) {
-			super(classLoader, caller, gas);
+		private InstanceMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, long gas, StorageReference receiver, Object... actuals) throws Exception {
+			super(classLoader, caller, deserializedCaller, gas);
 
 			this.method = method;
 			this.receiver = receiver;
+			this.deserializedReceiver = receiver.deserialize(classLoader, AbstractBlockchain.this);
 			this.actuals = actuals;
 		}
 
@@ -524,7 +535,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
 
 				initTransaction(classLoader);
-				result = methodJVM.invoke(receiver, actuals);
+				result = methodJVM.invoke(deserializedReceiver, actuals);
 			}
 			catch (InvocationTargetException e) {
 				exception = e.getCause();
@@ -535,22 +546,29 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		@Override
+		public StorageReference getReceiver() {
+			return receiver;
+		}
+
+		@Override
 		public SortedSet<Update> updates() {
-			return collectUpdates(actuals, caller, receiver, result);
+			return collectUpdates(actuals, deserializedCaller, deserializedReceiver, result);
 		}
 	}
 
 	private class EntryInstanceMethodExecutor extends CodeExecutor {
 		private final MethodReference method;
-		private final Storage receiver;
-		private final Object[] actuals;
+		private final StorageReference receiver;
+		private final Storage deserializedReceiver;
+		private final Object[] deserializedActuals;
 
-		private EntryInstanceMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, Storage caller, long gas, Storage receiver, Object... actuals) {
-			super(classLoader, caller, gas);
+		private EntryInstanceMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, long gas, StorageReference receiver, Object... deserializedActuals) throws Exception {
+			super(classLoader, caller, deserializedCaller, gas);
 
 			this.method = method;
 			this.receiver = receiver;
-			this.actuals = addTrailingCaller(actuals, caller);
+			this.deserializedReceiver = receiver.deserialize(classLoader, AbstractBlockchain.this);
+			this.deserializedActuals = addTrailingCaller(deserializedActuals, deserializedCaller);
 		}
 
 		@Override
@@ -566,7 +584,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					throw new NoSuchMethodException("Can only call an @Entry method: use addInstanceMethodCallTransaction instead");
 
 				initTransaction(classLoader);
-				result = methodJVM.invoke(receiver, actuals);
+				result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
 				exception = e.getCause();
@@ -576,9 +594,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 			}
 		}
 
+		public StorageReference getReceiver() {
+			return receiver;
+		}
+
 		@Override
 		public SortedSet<Update> updates() {
-			return collectUpdates(actuals, caller, receiver, result);
+			return collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result);
 		}
 	}
 
@@ -586,8 +608,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		private final MethodReference method;
 		private final Object[] actuals;
 
-		private StaticMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, Storage caller, long gas, Object... actuals) {
-			super(classLoader, caller, gas);
+		private StaticMethodExecutor(BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, long gas, Object... actuals) throws Exception {
+			super(classLoader, caller, deserializedCaller, gas);
 
 			this.method = method;
 			this.actuals = actuals;
@@ -615,7 +637,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		@Override
 		public SortedSet<Update> updates() {
-			return collectUpdates(actuals, caller, null, result);
+			return collectUpdates(actuals, deserializedCaller, null, result);
 		}
 	}
 

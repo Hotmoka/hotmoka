@@ -32,8 +32,8 @@ public class MemoryBlockchainTest {
 			System.out.printf("[%8s] %2d: %40s = %s\n", from, counter++, message, result);
 			return result;
 		}
-		catch (Exception e) {
-			System.out.printf("[%8s] %2d: %40s raises %s since %s\n", from, counter++, message, e, e.getCause());
+		catch (Throwable t) {
+			System.out.printf("[%8s] %2d: %40s raises %s since %s\n", from, counter++, message, t, t.getCause());
 			return null;
 		}
 	}
@@ -112,16 +112,18 @@ public class MemoryBlockchainTest {
 				new ConstructorReference("takamaka.tests.Sub", INT),
 				new IntValue(1973)));
 
-		// we recharge the previous caller
+		// we recharge eoa
 		run("gamete", "eoa.receive(2000)", () -> blockchain.addEntryInstanceMethodCallTransaction
 				(gamete, 20000, classpath, new MethodReference("takamaka.lang.PayableContract", "receive", INT), eoa, new IntValue(2000)));
 
-		// it has enough funds now
-		StorageReference sub2 = run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addEntryConstructorCallTransaction
-				(eoa, 20000, classpath, new ConstructorReference("takamaka.tests.Sub", INT), new IntValue(1973)));
+		// still not enough funds since we are promising too much gas
+		run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addEntryConstructorCallTransaction
+			(eoa, 20000, classpath, new ConstructorReference("takamaka.tests.Sub", INT), new IntValue(1973)));
 
-		blockchain.addEntryInstanceMethodCallTransaction
-		(gamete, 20000, classpath, new MethodReference("takamaka.tests.Sub", "print", new ClassType("takamaka.tests.Time")), sub2, italianTime);
+		// now it's ok
+		StorageReference sub2 = run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addEntryConstructorCallTransaction
+			(eoa, 150, classpath, new ConstructorReference("takamaka.tests.Sub", INT), new IntValue(1973)));
+
 		run("gamete", "sub2.print(italianTime)", () -> blockchain.addEntryInstanceMethodCallTransaction
 			(gamete, 20000, classpath, new MethodReference("takamaka.tests.Sub", "print", new ClassType("takamaka.tests.Time")), sub2, italianTime));
 		
