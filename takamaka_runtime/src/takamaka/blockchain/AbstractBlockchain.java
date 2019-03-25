@@ -24,6 +24,7 @@ import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Storage;
+import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.Program;
 
@@ -455,12 +456,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 				catch (NoSuchMethodException e) {
 					// if not found, we try to add the trailing types that characterize the @Entry constructors
 					try {
-						constructorJVM = clazz.getConstructor(formalsAsClassWithTrailingContract(classLoader, methodOrConstructor));
+						constructorJVM = clazz.getConstructor(formalsAsClassForEntry(classLoader, methodOrConstructor));
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the constructor as the user sees it
 					}
-					deserializedActuals = addTrailingCaller(deserializedActuals, deserializedCaller);
+					deserializedActuals = addExtraActualsForEntry(deserializedActuals, deserializedCaller);
 				}
 
 				initTransaction(classLoader);
@@ -500,12 +501,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 				catch (NoSuchMethodException e) {
 					// if not found, we try to add the trailing types that characterize the @Entry methods
 					try {
-						methodJVM = clazz.getMethod(methodName, formalsAsClassWithTrailingContract(classLoader, methodOrConstructor));
+						methodJVM = clazz.getMethod(methodName, formalsAsClassForEntry(classLoader, methodOrConstructor));
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the method as the user sees it
 					}
-					deserializedActuals = addTrailingCaller(deserializedActuals, deserializedCaller);
+					deserializedActuals = addExtraActualsForEntry(deserializedActuals, deserializedCaller);
 				}
 
 				if (Modifier.isStatic(methodJVM.getModifiers()))
@@ -599,20 +600,22 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return classes.toArray(new Class<?>[classes.size()]);
 	}
 
-	private static Class<?>[] formalsAsClassWithTrailingContract(BlockchainClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
+	private static Class<?>[] formalsAsClassForEntry(BlockchainClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
 			classes.add(type.toClass(classLoader));
 
 		classes.add(classLoader.loadClass("takamaka.lang.Contract"));
+		classes.add(Dummy.class);
 
 		return classes.toArray(new Class<?>[classes.size()]);
 	}
 
-	private static Object[] addTrailingCaller(Object[] actuals, Storage caller) {
-		Object[] result = new Object[actuals.length + 1];
+	private static Object[] addExtraActualsForEntry(Object[] actuals, Storage caller) {
+		Object[] result = new Object[actuals.length + 2];
 		System.arraycopy(actuals, 0, result, 0, actuals.length);
 		result[actuals.length] = caller;
+		result[actuals.length + 1] = null; // Dummy is not used
 
 		return result;
 	}

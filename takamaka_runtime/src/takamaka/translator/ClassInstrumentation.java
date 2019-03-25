@@ -83,6 +83,7 @@ class ClassInstrumentation {
 	private final static String ENTRY_CLASS_NAME_JB = 'L' + Entry.class.getName().replace('.', '/') + ';';
 	private final static String PAYABLE_CLASS_NAME_JB = 'L' + Payable.class.getName().replace('.', '/') + ';';
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
+	private final static String DUMMY_CLASS_NAME = Dummy.class.getName();
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
@@ -96,6 +97,7 @@ class ClassInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
 	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
+	private final static ObjectType DUMMY_OT = new ObjectType(DUMMY_CLASS_NAME);
 	private final static Type[] THREE_STRINGS = new Type[] { ObjectType.STRING, ObjectType.STRING, ObjectType.STRING };
 	private final static Type[] EXTRACT_UPDATES_ARGS = new Type[] { SET_OT, SET_OT, LIST_OT };
 	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { ObjectType.STRING, ObjectType.STRING, SET_OT };
@@ -260,18 +262,26 @@ class ClassInstrumentation {
 		}
 
 		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, StackMap stackMap) {
-			InstructionHandle aload0 = il.insert(ih, InstructionConst.ALOAD_0); // the calling contract must be inside "this"
-			il.setPositions();
-			updateAfterAdditionOf(aload0, stackMap);
 			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
 			Type[] args = invoke.getArgumentTypes(cpg);
-			Type[] argsWithContract = new Type[args.length + 1];
+			Type[] argsWithContract = new Type[args.length + 2];
 			System.arraycopy(args, 0, argsWithContract, 0, args.length);
 			argsWithContract[args.length] = CONTRACT_OT;
-			InvokeInstruction replacement = factory.createInvoke
+			argsWithContract[args.length + 1] = DUMMY_OT;
+
+			// we add the extra instructions after ih, so that potential jumps to ih will execute them
+			InstructionHandle invokeWithExtras = il.append(ih, factory.createInvoke
 					(invoke.getClassName(cpg), invoke.getMethodName(cpg),
-					invoke.getReturnType(cpg), argsWithContract, invoke.getOpcode());
-			ih.setInstruction(replacement);
+					invoke.getReturnType(cpg), argsWithContract, invoke.getOpcode()));
+			il.setPositions();
+			updateAfterAdditionOf(invokeWithExtras, stackMap);
+			InstructionHandle aconst_null = il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
+			il.setPositions();
+			updateAfterAdditionOf(aconst_null, stackMap);
+			InstructionHandle aload0 = il.append(ih, InstructionConst.ALOAD_0); // the calling contract must be inside "this"
+			il.setPositions();
+			updateAfterAdditionOf(aload0, stackMap);
+			ih.setInstruction(InstructionConst.NOP);
 		}
 
 		private void updateAfterAdditionOf(InstructionHandle ih, StackMap stackMap) {
@@ -342,7 +352,7 @@ class ClassInstrumentation {
 			// slotForCaller is the local variable used for the extra "caller" parameter;
 			// there is no need to shift the local variables one slot up, since the use
 			// of caller is limited to the prolog of the synthetic code
-			int slotForCaller = addCallerParameter(method);
+			int slotForCaller = addExtraParameters(method);
 			if (!method.isAbstract())
 				setPayerAndBalance(method, slotForCaller, isPayable, stackMap);
 		}
@@ -361,7 +371,7 @@ class ClassInstrumentation {
 				ih = il.insert(InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
 				il.setPositions();
 				updateAfterAdditionOf(ih, stackMap);
-				addChopOneLocal(start, stackMap);
+				addChopTwoLocals(start, stackMap);
 			}
 
 			ih = il.insert(where, InstructionFactory.createThis());
@@ -389,15 +399,15 @@ class ClassInstrumentation {
 			}
 
 			if (!needsTemp)
-				addChopOneLocal(start, stackMap);
+				addChopTwoLocals(start, stackMap);
 		}
 
-		private void addChopOneLocal(InstructionHandle where, StackMap stackMap) {
+		private void addChopTwoLocals(InstructionHandle where, StackMap stackMap) {
 			if (stackMap != null) {
 				StackMapEntry[] entries = stackMap.getStackMap();
 				StackMapEntry[] newEntries = new StackMapEntry[entries.length + 1];
 				System.arraycopy(entries, 0, newEntries, 1, entries.length);
-				newEntries[0] = new StackMapEntry(Const.CHOP_FRAME_MAX, where.getPosition(), null, null, cpg.getConstantPool());
+				newEntries[0] = new StackMapEntry(Const.CHOP_FRAME_MAX - 1, where.getPosition(), null, null, cpg.getConstantPool());
 				if (newEntries.length > 1)
 					newEntries[1].updateByteCodeOffset(-where.getPosition() - 1);
 
@@ -532,7 +542,7 @@ class ClassInstrumentation {
 		 * @param method the method
 		 * @return the local variable used for the extra parameter
 		 */
-		private int addCallerParameter(MethodGen method) {
+		private int addExtraParameters(MethodGen method) {
 			List<Type> args = new ArrayList<>();
 			int slotsForParameters = 0;
 			for (Type arg: method.getArgumentTypes()) {
@@ -540,6 +550,7 @@ class ClassInstrumentation {
 				slotsForParameters += arg.getSize();
 			}
 			args.add(CONTRACT_OT);
+			args.add(DUMMY_OT);
 			method.setArgumentTypes(args.toArray(Type.NO_ARGS));
 
 			String[] names = method.getArgumentNames();
@@ -548,6 +559,7 @@ class ClassInstrumentation {
 				for (String name: names)
 					namesAsList.add(name);
 				namesAsList.add("caller");
+				namesAsList.add("unused");
 				method.setArgumentNames(namesAsList.toArray(new String[namesAsList.size()]));
 			}
 
