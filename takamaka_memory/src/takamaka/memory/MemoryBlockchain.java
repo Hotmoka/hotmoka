@@ -207,23 +207,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addEntryConstructorCallTransactionInternal(CodeExecutor executor) throws Exception {
-		String spec = "@Entry Constructor execution\n";
-		spec += "Caller: " + executor.getCaller() + "\n";
-		spec += "Class path: " + executor.getClasspath() + "\n";
-		spec += "Constructor: " + executor.getMethodOrConstructor() + "\n";
-		spec += "Actuals: " + Arrays.toString(executor.getActuals()) + "\n";
-		StorageValue result = executor.getResult();
-		if (result != null)
-			spec += "Constructed object: " + result + "\n";
-		else
-			spec += "Exception: " + executor.getException().getClass().getName() + "\n";
-		spec += "Gas consumed: " + executor.gasConsumed() + "\n";
-
-		addCodeExecutionTransactionInternal(spec, executor.updates(), executor.events());
-	}
-
-	@Override
 	protected void addInstanceMethodCallTransactionInternal(CodeExecutor executor) throws Exception {
 		String spec = "Instance method execution\n";
 		spec += "Caller: " + executor.getCaller() + "\n";
@@ -239,24 +222,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		spec += "Gas consumed: " + executor.gasConsumed() + "\n";
 
 		addCodeExecutionTransactionInternal(spec, executor.updates(), executor.events());
-	}
-
-	@Override
-	protected void addEntryInstanceMethodCallTransactionInternal(CodeExecutor executor) throws Exception {
-		String spec = "@Entry instance method execution\n";
-		spec += "Class path: " + executor.getClasspath() + "\n";
-		spec += "Method: " + executor.getMethodOrConstructor() + "\n";
-		spec += "Caller: " + executor.getCaller() + "\n";
-		spec += "Receiver: " + executor.getReceiver() + "\n";
-		spec += "Actuals: " + Arrays.toString(executor.getActuals()) + "\n";
-		StorageValue result = executor.getResult();
-		if (result != null)
-			spec += "Result: " + result + "\n";
-		else
-			spec += "Exception: " + executor.getException().getClass().getName() + "\n";
-		spec += "Gas consumed: " + executor.gasConsumed() + "\n";
-
-		addCodeExecutionTransactionInternal(spec, executor.updates(), executor.events());		
 	}
 
 	@Override

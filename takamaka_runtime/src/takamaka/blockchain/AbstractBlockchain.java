@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.lang.Entry;
 import takamaka.lang.Storage;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.Program;
@@ -158,28 +157,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 	protected abstract void addConstructorCallTransactionInternal(CodeExecutor executor) throws Exception;
 
 	@Override
-	public final StorageReference addEntryConstructorCallTransaction(StorageReference caller, long gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return (StorageReference) transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new EntryConstructorExecutor(classpath, classLoader, constructor, caller, deserializedCaller, gas, actuals));
-	}
-
-	protected abstract void addEntryConstructorCallTransactionInternal(CodeExecutor executor) throws Exception;
-
-	@Override
 	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return transaction(caller, gas, classpath,
 				(classLoader, deserializedCaller) -> new InstanceMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, receiver, actuals));
 	}
 
 	protected abstract void addInstanceMethodCallTransactionInternal(CodeExecutor executor) throws Exception;
-
-	@Override
-	public final StorageValue addEntryInstanceMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new EntryInstanceMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, receiver, actuals));
-	}
-
-	protected abstract void addEntryInstanceMethodCallTransactionInternal(CodeExecutor executor) throws Exception;
 
 	@Override
 	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
@@ -462,9 +445,23 @@ public abstract class AbstractBlockchain implements Blockchain {
 		public void run() {
 			try {
 				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
-				Constructor<?> constructorJVM = clazz.getConstructor(formalsAsClass(classLoader, methodOrConstructor));
-				if (constructorJVM.isAnnotationPresent(Entry.class))
-					throw new NoSuchMethodException("Cannot call an @Entry constructor: use addEntryConstructorCallTransaction instead");
+				Constructor<?> constructorJVM;
+				Object[] deserializedActuals = this.deserializedActuals;
+
+				try {
+					// we first try to call the constructor with exactly the parameter types explicitly provided
+					constructorJVM = clazz.getConstructor(formalsAsClass(classLoader, methodOrConstructor));
+				}
+				catch (NoSuchMethodException e) {
+					// if not found, we try to add the trailing types that characterize the @Entry constructors
+					try {
+						constructorJVM = clazz.getConstructor(formalsAsClassWithTrailingContract(classLoader, methodOrConstructor));
+					}
+					catch (NoSuchMethodException ee) {
+						throw e; // the message must be relative to the constructor as the user sees it
+					}
+					deserializedActuals = addTrailingCaller(deserializedActuals, deserializedCaller);
+				}
 
 				initTransaction(classLoader);
 				result = ((Storage) constructorJVM.newInstance(deserializedActuals));
@@ -483,36 +480,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 	}
 
-	private class EntryConstructorExecutor extends CodeExecutor {
-		private EntryConstructorExecutor(Classpath classpath, BlockchainClassLoader classLoader, ConstructorReference constructor, StorageReference caller, Storage deserializedCaller, long gas, StorageValue... actuals) throws Exception {
-			super(classpath, classLoader, caller, deserializedCaller, gas, constructor, null, actuals);
-		}
-
-		@Override
-		public void run() {
-			try {
-				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
-				Constructor<?> constructorJVM = clazz.getConstructor(formalsAsClassWithTrailingContract(classLoader, methodOrConstructor));
-				if (!constructorJVM.isAnnotationPresent(Entry.class))
-					throw new NoSuchMethodException("Can only call an @Entry constructor: use addConstructorCallTransaction instead");
-
-				initTransaction(classLoader);
-				result = ((Storage) constructorJVM.newInstance(addTrailingCaller(deserializedActuals, deserializedCaller)));
-			}
-			catch (InvocationTargetException e) {
-				exception = e.getCause();
-			}
-			catch (Throwable t) {
-				exception = wrapAsTransactionException(t, "Could not call the constructor");
-			}
-		}
-
-		@Override
-		protected void addTransactionInternal() throws Exception {
-			addEntryConstructorCallTransactionInternal(this);
-		}
-	}
-
 	private class InstanceMethodExecutor extends CodeExecutor {
 		private InstanceMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, long gas, StorageReference receiver, StorageValue... actuals) throws Exception {
 			super(classpath, classLoader, caller, deserializedCaller, gas, method, receiver, actuals);
@@ -522,10 +489,24 @@ public abstract class AbstractBlockchain implements Blockchain {
 		public void run() {
 			try {
 				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
-				Method methodJVM = clazz.getMethod(((MethodReference) methodOrConstructor).methodName, formalsAsClass(classLoader, methodOrConstructor));
+				String methodName = ((MethodReference) methodOrConstructor).methodName;
+				Method methodJVM;
+				Object[] deserializedActuals = this.deserializedActuals;
 
-				if (methodJVM.isAnnotationPresent(Entry.class))
-					throw new NoSuchMethodException("Cannot call an @Entry method: use addEntryInstanceMethodCallTransaction instead");
+				try {
+					// we first try to call the method with exactly the parameter types explicitly provided
+					methodJVM = clazz.getMethod(methodName, formalsAsClass(classLoader, methodOrConstructor));
+				}
+				catch (NoSuchMethodException e) {
+					// if not found, we try to add the trailing types that characterize the @Entry methods
+					try {
+						methodJVM = clazz.getMethod(methodName, formalsAsClassWithTrailingContract(classLoader, methodOrConstructor));
+					}
+					catch (NoSuchMethodException ee) {
+						throw e; // the message must be relative to the method as the user sees it
+					}
+					deserializedActuals = addTrailingCaller(deserializedActuals, deserializedCaller);
+				}
 
 				if (Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
@@ -544,40 +525,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		@Override
 		protected void addTransactionInternal() throws Exception {
 			addInstanceMethodCallTransactionInternal(this);
-		}
-	}
-
-	private class EntryInstanceMethodExecutor extends CodeExecutor {
-		private EntryInstanceMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, long gas, StorageReference receiver, StorageValue... actuals) throws Exception {
-			super(classpath, classLoader, caller, deserializedCaller, gas, method, receiver, actuals);
-		}
-
-		@Override
-		public void run() {
-			try {
-				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
-				Method methodJVM = clazz.getMethod(((MethodReference) methodOrConstructor).methodName, formalsAsClassWithTrailingContract(classLoader, methodOrConstructor));
-
-				if (Modifier.isStatic(methodJVM.getModifiers()))
-					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
-
-				if (!methodJVM.isAnnotationPresent(Entry.class))
-					throw new NoSuchMethodException("Can only call an @Entry method: use addInstanceMethodCallTransaction instead");
-
-				initTransaction(classLoader);
-				result = methodJVM.invoke(deserializedReceiver, addTrailingCaller(deserializedActuals, deserializedCaller));
-			}
-			catch (InvocationTargetException e) {
-				exception = e.getCause();
-			}
-			catch (Throwable t) {
-				exception = wrapAsTransactionException(t, "Could not call the method");
-			}
-		}
-
-		@Override
-		protected void addTransactionInternal() throws Exception {
-			addEntryInstanceMethodCallTransactionInternal(this);
 		}
 	}
 

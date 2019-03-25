@@ -19,7 +19,6 @@ import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.BigIntegerValue;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.LongValue;
-import takamaka.blockchain.values.NullValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StringValue;
 
@@ -67,28 +66,14 @@ public class MemoryBlockchainTest {
 				(gamete, 20000, classpath,
 				new MethodReference(ClassType.OBJECT, "toString"),
 				wrapper2));
-		// we try to call the constructor Sub(int): it does not exist since an @Entry requires an implicit Contract parameter
+		// we call the @Entry constructor Sub(int)
 		run("gamete", "new Sub(1973)", () -> blockchain.addConstructorCallTransaction
-			(gamete, 20000, classpath,
-			new ConstructorReference("takamaka.tests.Sub", INT),
-			new IntValue(1973)));
-
-		// we try to call the constructor Sub(int,Contract): it exists but it is an entry, hence cannot be called this way
-		run("gamete", "new Sub(1973, null)", () -> blockchain.addConstructorCallTransaction
-			(gamete, 20000, classpath,
-			new ConstructorReference("takamaka.tests.Sub", INT, new ClassType("takamaka.lang.Contract")),
-			new IntValue(1973), NullValue.INSTANCE));
+			(gamete, 20000, classpath, new ConstructorReference("takamaka.tests.Sub", INT), new IntValue(1973)));
 
 		StorageReference sub1 = run("gamete", "sub1 = new Sub()", () -> blockchain.addConstructorCallTransaction(gamete, 100, classpath, new ConstructorReference("takamaka.tests.Sub")));
-		// we try to call Sub.m1(): it does not exist since an @Entry requires an implicit Contract parameter
+		// we try to call Sub.m1(): it is an entry that goes into a runtime exception
 		run("gamete", "sub1.m1()", () -> blockchain.addInstanceMethodCallTransaction
 				(gamete, 20000, classpath, new MethodReference("takamaka.tests.Sub", "m1"), sub1));
-
-		// we try to call Sub.m1(Contract): it exists but it is an entry, hence cannot be called this way
-		run("gamete", "sub1.m1(null)", () -> blockchain.addInstanceMethodCallTransaction
-				(gamete, 20000, classpath,
-					new MethodReference("takamaka.tests.Sub", "m1", new ClassType("takamaka.lang.Contract")),
-					sub1, NullValue.INSTANCE));
 
 		// we try to call a static method in the wrong way
 		run("gamete", "sub1.ms()", () -> blockchain.addInstanceMethodCallTransaction
@@ -103,31 +88,28 @@ public class MemoryBlockchainTest {
 				(gamete, 20000, classpath, new MethodReference("takamaka.tests.Sub", "m5")));
 
 		StorageReference eoa = run("gamete", "eoa = new ExternallyOwnedAccount()",
-				() -> blockchain.addConstructorCallTransaction(gamete, 20000, classpath,
-				new ConstructorReference("takamaka.lang.ExternallyOwnedAccount")));
+				() -> blockchain.addConstructorCallTransaction(gamete, 20000, classpath, new ConstructorReference("takamaka.lang.ExternallyOwnedAccount")));
 
 		// we call the constructor Sub(int): it is @Entry but the caller has not enough funds
-		run("eoa", "new Sub(1973)", () -> blockchain.addEntryConstructorCallTransaction
-				(eoa, 20000, classpath,
-				new ConstructorReference("takamaka.tests.Sub", INT),
-				new IntValue(1973)));
+		run("eoa", "new Sub(1973)", () -> blockchain.addConstructorCallTransaction
+				(eoa, 20000, classpath, new ConstructorReference("takamaka.tests.Sub", INT), new IntValue(1973)));
 
 		// we recharge eoa
-		run("gamete", "eoa.receive(2000)", () -> blockchain.addEntryInstanceMethodCallTransaction
+		run("gamete", "eoa.receive(2000)", () -> blockchain.addInstanceMethodCallTransaction
 				(gamete, 20000, classpath, new MethodReference("takamaka.lang.PayableContract", "receive", INT), eoa, new IntValue(2000)));
 
 		// still not enough funds since we are promising too much gas
-		run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addEntryConstructorCallTransaction
+		run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addConstructorCallTransaction
 			(eoa, 20000, classpath, new ConstructorReference("takamaka.tests.Sub", INT), new IntValue(1973)));
 
 		// now it's ok
-		StorageReference sub2 = run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addEntryConstructorCallTransaction
+		StorageReference sub2 = run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addConstructorCallTransaction
 			(eoa, 150, classpath, new ConstructorReference("takamaka.tests.Sub", INT), new IntValue(1973)));
 
-		run("gamete", "sub2.print(italianTime)", () -> blockchain.addEntryInstanceMethodCallTransaction
+		run("gamete", "sub2.print(italianTime)", () -> blockchain.addInstanceMethodCallTransaction
 			(gamete, 20000, classpath, new MethodReference("takamaka.tests.Sub", "print", new ClassType("takamaka.tests.Time")), sub2, italianTime));
 		
-		run("gamete", "sub1.m4(13)", () -> blockchain.addEntryInstanceMethodCallTransaction
+		run("gamete", "sub1.m4(13)", () -> blockchain.addInstanceMethodCallTransaction
 			(gamete, 20000, classpath, new MethodReference("takamaka.tests.Sub", "m4", INT), sub1, new IntValue(13)));
 	}
 }

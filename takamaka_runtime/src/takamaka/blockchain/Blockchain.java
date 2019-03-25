@@ -45,7 +45,7 @@ public interface Blockchain {
 	/**
 	 * Runs a constructor of a class.
 	 * 
-	 * @param the caller, externally owned contract
+	 * @param caller the externally owned caller contract
 	 * @param gas the maximal amount of gas that can be consumed by this transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param constructor the constructor that must be called
@@ -59,27 +59,11 @@ public interface Blockchain {
 	public StorageReference addConstructorCallTransaction(StorageReference caller, long gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 
 	/**
-	 * Runs an {@code @@Entry} constructor of a class.
-	 * 
-	 * @param caller the externally owned caller contract
-	 * @param gas the maximal amount of gas that can be consumed by this transaction
-	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
-	 * @param constructor the constructor that must be called
-	 * @param actuals the actual arguments passed to the constructor
-	 * @return the created object, if the constructor was successfully executed, without exception
-	 * @throws TransactionException if the transaction could not be completed because of an internal error
-	 * @throws CodeExecutionException if the execution of the constructor failed with an exception (available as
-	 *                                {@code getCause()}. Note that, in this case, from the point of view of Takamaka
-	 *                                the transaction was successful and the exception is a programmer's problem
-	 */
-	public StorageReference addEntryConstructorCallTransaction(StorageReference caller, long gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException;
-
-	/**
 	 * Runs an instance method of an object stored in the blockchain.
 	 * 
 	 * @param caller the externally owned caller contract
 	 * @param gas the maximal amount of gas that can be consumed by this transaction
-	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param classpath the class path where caller, receiver and actual parameters can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param receiver the object whose method is called
 	 * @param actuals the actual arguments passed to the constructor
@@ -108,22 +92,4 @@ public interface Blockchain {
 	 *                                the transaction was successful and the exception is a programmer's problem
 	 */
 	public StorageValue addStaticMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException;
-
-	/**
-	 * Runs an {@code @@Entry} instance method of an object stored in the blockchain.
-	 * 
-	 * @param caller the externally owned caller contract
-	 * @param gas the maximal amount of gas that can be consumed by this transaction
-	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
-	 * @param method the method that must be called
-	 * @param receiver the object whose method is called
-	 * @param actuals the actual arguments passed to the constructor
-	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
-	 *         declared to return {@code void}, this result will be {@code null}
-	 * @throws TransactionException if the transaction could not be completed because of an internal error
-	 * @throws CodeExecutionException if the execution of the method failed with an exception (available as
-	 *                                {@code getCause()}. Note that, in this case, from the point of view of Takamaka
-	 *                                the transaction was successful and the exception is a programmer's problem
-	 */
-	public StorageValue addEntryInstanceMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 }
