@@ -12,8 +12,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -39,6 +41,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * The events accumulated during the ongoing transaction.
 	 */
 	private final List<String> events = new ArrayList<>();
+
+	/**
+	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
+	 * repeated deserialization of the same storage reference yields the same object.
+	 */
+	private final Map<StorageReference, Storage> cache = new HashMap<>();
 
 	/**
 	 * Adds an event to those occurred during the execution of the last transaction.
@@ -211,6 +219,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	public final Storage deserialize(BlockchainClassLoader classLoader, StorageReference reference) throws TransactionException {
+		try {
+			return cache.computeIfAbsent(reference, _reference -> deserializeAnew(classLoader, _reference));
+		}
+		catch (RuntimeException e) {
+			throw wrapAsTransactionException(e.getCause(), "Cannot deserialize " + reference);
+		}
+	}
+
+	private Storage deserializeAnew(BlockchainClassLoader classLoader, StorageReference reference) {
 		// this comparator puts updates in the order required for the parameter
 		// of the deserialization constructor of storage objects: fields of superclasses first;
 		// for the same class, fields are ordered by name and then by type
@@ -278,7 +295,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			return (Storage) constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Could not deserialize " + reference);
+			throw new RuntimeException(t);
 		}
 	}
 
@@ -636,5 +653,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 	private void initTransaction(BlockchainClassLoader classLoader) {
 		Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
 		events.clear();
+		// the cache must be cleaned at least when a transaction failed and partial state of objects should be thrown away;
+		// for the moment, we do it always
+		cache.clear();
 	}
 }

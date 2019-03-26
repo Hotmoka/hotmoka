@@ -17,7 +17,8 @@ public final class BigIntegerValue implements StorageValue {
 
 	@Override
 	public BigInteger deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) throws TransactionException {
-		return value;
+		// we clone the value, so that the alias behavior of values coming from outside the blockchain is fixed
+		return new BigInteger(value.toString());
 	}
 
 	@Override

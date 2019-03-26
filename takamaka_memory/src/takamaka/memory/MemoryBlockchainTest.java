@@ -22,6 +22,12 @@ import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StringValue;
 
+/**
+ * This test assumes the existence of the following compiled projects:
+ * ../takamaka_base/dist/takamaka_base.jar
+ * ../test_contracts/dist/test_contracts.jar
+ * ../test_contracts_dependency/dist/test_contracts_dependency.jar
+ */
 public class MemoryBlockchainTest {
 	private static int counter;
 
@@ -111,5 +117,33 @@ public class MemoryBlockchainTest {
 		
 		run("gamete", "sub1.m4(13)", () -> blockchain.addInstanceMethodCallTransaction
 			(gamete, 20000, classpath, new MethodReference("takamaka.tests.Sub", "m4", INT), sub1, new IntValue(13)));
+
+		// alias tests
+		ClassType alias = new ClassType("takamaka.tests.Alias");
+		StorageReference a1 = run("gamete", "a1 = new Alias()", () -> blockchain.addConstructorCallTransaction(gamete, 1000, classpath, new ConstructorReference(alias)));
+		StorageReference a2 = run("gamete", "a2 = new Alias()", () -> blockchain.addConstructorCallTransaction(gamete, 1000, classpath, new ConstructorReference(alias)));
+
+		// this test should return false
+		run("gamete", "a1.test(a1, a2)", () -> blockchain.addInstanceMethodCallTransaction(gamete, 1000, classpath, new MethodReference(alias, "test", alias, alias), a1, a1, a2));
+		// this test should return true
+		run("gamete", "a1.test(a1, a1)", () -> blockchain.addInstanceMethodCallTransaction(gamete, 1000, classpath, new MethodReference(alias, "test", alias, alias), a1, a1, a1));
+
+		StringValue s1 = new StringValue("hello");
+		StringValue s2 = new StringValue("hello");
+		ClassType string = new ClassType("java.lang.String");
+
+		// this test should return false
+		run("gamete", "a1.test(s1, s2)", () -> blockchain.addInstanceMethodCallTransaction(gamete, 1000, classpath, new MethodReference(alias, "test", string, string), a1, s1, s2));
+		// this test should return false since String parameters are considered different
+		run("gamete", "a1.test(s1, s1)", () -> blockchain.addInstanceMethodCallTransaction(gamete, 1000, classpath, new MethodReference(alias, "test", string, string), a1, s1, s1));		
+
+		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13));
+		BigIntegerValue bi2 = new BigIntegerValue(BigInteger.valueOf(13));
+		ClassType bigInteger = new ClassType("java.math.BigInteger");
+
+		// this test should return false
+		run("gamete", "a1.test(bi1, bi2)", () -> blockchain.addInstanceMethodCallTransaction(gamete, 1000, classpath, new MethodReference(alias, "test", bigInteger, bigInteger), a1, bi1, bi2));
+		// this test should return false since BigInteger parameters are considered different
+		run("gamete", "a1.test(bi1, bi1)", () -> blockchain.addInstanceMethodCallTransaction(gamete, 1000, classpath, new MethodReference(alias, "test", bigInteger, bigInteger), a1, bi1, bi1));		
 	}
 }
