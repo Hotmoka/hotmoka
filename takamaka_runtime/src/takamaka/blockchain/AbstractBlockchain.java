@@ -188,6 +188,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	private StorageValue transaction(StorageReference caller, long gas, Classpath classpath, ExecutorProducer executorProducer) throws TransactionException, CodeExecutionException {
 		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
 			checkNotFull();
+			initTransaction(classLoader);
 			Storage deserializedCaller = caller.deserialize(classLoader, this);
 			checkIsExternallyOwned(deserializedCaller);
 			Gas.init(gas);
@@ -481,7 +482,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 					deserializedActuals = addExtraActualsForEntry(deserializedActuals, deserializedCaller);
 				}
 
-				initTransaction(classLoader);
 				result = ((Storage) constructorJVM.newInstance(deserializedActuals));
 			}
 			catch (InvocationTargetException e) {
@@ -529,7 +529,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 				if (Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
 
-				initTransaction(classLoader);
 				result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
@@ -560,7 +559,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 				if (!Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
 
-				initTransaction(classLoader);
 				result = methodJVM.invoke(null, deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
