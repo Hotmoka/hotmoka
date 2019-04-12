@@ -103,7 +103,6 @@ class ClassInstrumentation {
 	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { ObjectType.STRING, ObjectType.STRING, SET_OT };
 	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, SET_OT, SET_OT, LIST_OT };
 	private final static Type[] ENTRY_ARGS = new Type[] { CONTRACT_OT };
-	private final static Type[] PAYABLE_ENTRY_ARGS = new Type[] { CONTRACT_OT, Type.INT };
 
 	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program) throws ClassFormatException, IOException {
 		LOGGER.fine(() -> "Instrumenting " + className);
@@ -385,10 +384,13 @@ class ClassInstrumentation {
 			updateAfterAdditionOf(ih, stackMap);
 
 			if (isPayable) {
-				ih = il.insert(where, InstructionConst.ILOAD_1);
+				// a payable entry method can have a first argument of type int/long/BigInteger
+				Type amountType = method.getArgumentType(0);
+				ih = il.insert(where, InstructionFactory.createLoad(amountType, 1));
 				il.setPositions();
 				updateAfterAdditionOf(ih, stackMap);
-				ih = il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, PAYABLE_ENTRY_ARGS, Const.INVOKESPECIAL));
+				Type[] paybleEntryArgs = new Type[] { CONTRACT_OT, amountType };
+				ih = il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, paybleEntryArgs, Const.INVOKESPECIAL));
 				il.setPositions();
 				updateAfterAdditionOf(ih, stackMap);
 			}

@@ -1,5 +1,7 @@
 package takamaka.tests;
 
+import java.math.BigInteger;
+
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 
@@ -34,8 +36,18 @@ public class SubWithErrors extends Super {
 	}
 
 	@Override
-	public String m4(int amount) { // this is implicitly @Payable @Entry
+	public String m4(int amount) {
 		return "Sub.m4 receives " + amount + " coins from " + caller();
+	}
+
+	@Override
+	public String m4_1(long amount) {
+		return "Sub.m4_1 receives " + amount + " coins from " + caller();
+	}
+
+	@Override
+	public String m4_2(BigInteger amount) {
+		return "Sub.m4_2 receives " + amount + " coins from " + caller();
 	}
 
 	public void m5() {

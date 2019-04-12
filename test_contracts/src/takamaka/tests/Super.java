@@ -1,5 +1,7 @@
 package takamaka.tests;
 
+import java.math.BigInteger;
+
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
@@ -16,6 +18,8 @@ public abstract class Super extends Contract {
 	public void m2() {}
 	public abstract @Entry void m3();
 	public abstract @Entry @Payable String m4(int amount);
+	public abstract @Entry @Payable String m4_1(long amount);
+	public abstract @Entry @Payable String m4_2(BigInteger amount);
 	public @Entry void print(Time time) {
 		s = time.toString();
 	}

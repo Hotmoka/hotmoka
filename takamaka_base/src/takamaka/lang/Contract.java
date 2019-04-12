@@ -20,14 +20,13 @@ public abstract class Contract extends Storage {
 			throw new RuntimeException(message);
 	}
 
-	private void pay(Contract whom, int amount) {
-		require(amount >= 0, "payed amount cannot be negative");
-		BigInteger amountAsBI = BigInteger.valueOf(amount);
-		if (balance.compareTo(amountAsBI) < 0)
+	private void pay(Contract whom, BigInteger amount) {
+		require(amount.signum() >= 0, "payed amount cannot be negative");
+		if (balance.compareTo(amount) < 0)
 			throw new InsufficientFundsException();
 
-		balance = balance.subtract(amountAsBI);
-		whom.balance = whom.balance.add(amountAsBI);
+		balance = balance.subtract(amount);
+		whom.balance = whom.balance.add(amount);
 	}
 
 	protected final void entry(Contract caller) {
@@ -35,9 +34,17 @@ public abstract class Contract extends Storage {
 		this.caller = caller;
 	}
 
-	protected final void payableEntry(Contract caller, int amount) {
+	protected final void payableEntry(Contract caller, BigInteger amount) {
 		entry(caller);
 		caller.pay(this, amount);
+	}
+
+	protected final void payableEntry(Contract caller, int amount) {
+		payableEntry(caller, BigInteger.valueOf(amount));
+	}
+
+	protected final void payableEntry(Contract caller, long amount) {
+		payableEntry(caller, BigInteger.valueOf(amount));
 	}
 
 	protected final Contract caller() {

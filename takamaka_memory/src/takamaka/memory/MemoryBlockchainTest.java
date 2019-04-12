@@ -1,6 +1,7 @@
 package takamaka.memory;
 
 import static takamaka.blockchain.types.BasicTypes.INT;
+import static takamaka.blockchain.types.BasicTypes.LONG;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -122,6 +123,13 @@ public class MemoryBlockchainTest {
 		run("gamete", "sub1.m4(13)", () -> blockchain.addInstanceMethodCallTransaction
 			(gamete, BigInteger.valueOf(20000), classpath, new MethodReference("takamaka.tests.Sub", "m4", INT), sub1, new IntValue(13)));
 
+		run("gamete", "sub1.m4_1(13L)", () -> blockchain.addInstanceMethodCallTransaction
+			(gamete, BigInteger.valueOf(20000), classpath, new MethodReference("takamaka.tests.Sub", "m4_1", LONG), sub1, new LongValue(13L)));
+
+		ClassType bigInteger = new ClassType("java.math.BigInteger");
+		run("gamete", "sub1.m4_2(BigInteger.valueOf(13))", () -> blockchain.addInstanceMethodCallTransaction
+			(gamete, BigInteger.valueOf(20000), classpath, new MethodReference("takamaka.tests.Sub", "m4_2", bigInteger), sub1, new BigIntegerValue(BigInteger.valueOf(13))));
+
 		// alias tests
 		ClassType alias = new ClassType("takamaka.tests.Alias");
 		StorageReference a1 = run("gamete", "a1 = new Alias()", () -> blockchain.addConstructorCallTransaction(gamete, BigInteger.valueOf(1000), classpath, new ConstructorReference(alias)));
@@ -143,7 +151,6 @@ public class MemoryBlockchainTest {
 
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13));
 		BigIntegerValue bi2 = new BigIntegerValue(BigInteger.valueOf(13));
-		ClassType bigInteger = new ClassType("java.math.BigInteger");
 
 		// this test should return false
 		run("gamete", "a1.test(bi1, bi2)", () -> blockchain.addInstanceMethodCallTransaction(gamete, BigInteger.valueOf(1000), classpath, new MethodReference(alias, "test", bigInteger, bigInteger), a1, bi1, bi2));
