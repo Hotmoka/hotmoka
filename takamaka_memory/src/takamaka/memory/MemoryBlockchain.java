@@ -160,7 +160,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, Path jar, Path instrumented, SortedSet<Update> updates, long consumedGas, Classpath... dependencies) throws Exception {
+	protected void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, Path jar, Path instrumented, SortedSet<Update> updates, BigInteger consumedGas, Classpath... dependencies) throws Exception {
 		String spec;
 		if (caller != null)
 			spec = "Jar installation\n";

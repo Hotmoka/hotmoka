@@ -40,7 +40,7 @@ public interface Blockchain {
 	 * @return the reference to the transaction that can be used to refer to this jar in a class path or as future dependency of other jars
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
-	public TransactionReference addJarStoreTransaction(StorageReference caller, long gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException;
+	public TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException;
 
 	/**
 	 * Runs a constructor of a class.
@@ -56,7 +56,7 @@ public interface Blockchain {
 	 *                                {@code getCause()}. Note that, in this case, from the point of view of Takamaka
 	 *                                the transaction was successful and the exception is a programmer's problem
 	 */
-	public StorageReference addConstructorCallTransaction(StorageReference caller, long gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException;
+	public StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 
 	/**
 	 * Runs an instance method of an object stored in the blockchain.
@@ -74,7 +74,7 @@ public interface Blockchain {
 	 *                                {@code getCause()}. Note that, in this case, from the point of view of Takamaka
 	 *                                the transaction was successful and the exception is a programmer's problem
 	 */
-	public StorageValue addInstanceMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException;
+	public StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 
 	/**
 	 * Runs a static method of a class.
@@ -91,5 +91,5 @@ public interface Blockchain {
 	 *                                {@code getCause()}. Note that, in this case, from the point of view of Takamaka
 	 *                                the transaction was successful and the exception is a programmer's problem
 	 */
-	public StorageValue addStaticMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException;
+	public StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 }

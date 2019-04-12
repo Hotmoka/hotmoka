@@ -99,7 +99,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 			if (isInitialized)
 				throw new TransactionException("Blockchain already initialized");
 
-			TransactionReference jarReference = addJarStoreTransactionCommon(null, null, 0L, null, jar, dependencies);
+			Gas.init(BigInteger.ZERO);
+			TransactionReference jarReference = addJarStoreTransactionCommon(null, null, BigInteger.ZERO, null, jar, dependencies);
 			commitCurrentTransaction();
 			return jarReference;
 		}
@@ -109,7 +110,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(StorageReference caller, long gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException {
+	public final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException {
 		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
 			checkNotFull();
 			Storage deserializedCaller = caller.deserialize(classLoader, this);
@@ -128,7 +129,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 	}
 
-	private TransactionReference addJarStoreTransactionCommon(StorageReference caller, Classpath classpath, long gas, Storage deserializedCaller, Path jar, Classpath... dependencies) throws Exception {
+	private TransactionReference addJarStoreTransactionCommon(StorageReference caller, Classpath classpath, BigInteger gas, Storage deserializedCaller, Path jar, Classpath... dependencies) throws Exception {
 		checkNotFull();
 
 		Path jarName = jar.getFileName();
@@ -150,15 +151,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 		if (deserializedCaller != null)
 			increaseBalance(deserializedCaller, Gas.remaining());
 
-		addJarStoreTransactionInternal(caller, classpath, jar, instrumented, collectUpdates(null, deserializedCaller, null, null), gas - Gas.remaining(), dependencies);
+		addJarStoreTransactionInternal(caller, classpath, jar, instrumented, collectUpdates(null, deserializedCaller, null, null), gas.subtract(Gas.remaining()), dependencies);
 
 		return ref;
 	}
 
-	protected abstract void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, Path jar, Path instrumented, SortedSet<Update> updates, long consumedGas, Classpath... dependencies) throws Exception;
+	protected abstract void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, Path jar, Path instrumented, SortedSet<Update> updates, BigInteger consumedGas, Classpath... dependencies) throws Exception;
 
 	@Override
-	public final StorageReference addConstructorCallTransaction(StorageReference caller, long gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	public final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return (StorageReference) transaction(caller, gas, classpath,
 				(classLoader, deserializedCaller) -> new ConstructorExecutor(classpath, classLoader, constructor, caller, deserializedCaller, gas, actuals));
 	}
@@ -166,7 +167,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	protected abstract void addConstructorCallTransactionInternal(CodeExecutor executor) throws Exception;
 
 	@Override
-	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return transaction(caller, gas, classpath,
 				(classLoader, deserializedCaller) -> new InstanceMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, receiver, actuals));
 	}
@@ -174,7 +175,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	protected abstract void addInstanceMethodCallTransactionInternal(CodeExecutor executor) throws Exception;
 
 	@Override
-	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, long gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return transaction(caller, gas, classpath,
 				(classLoader, deserializedCaller) -> new StaticMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, actuals));
 	}
@@ -185,7 +186,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		CodeExecutor produce(BlockchainClassLoader classLoader, Storage deserializedCaller) throws Exception;
 	}
 
-	private StorageValue transaction(StorageReference caller, long gas, Classpath classpath, ExecutorProducer executorProducer) throws TransactionException, CodeExecutionException {
+	private StorageValue transaction(StorageReference caller, BigInteger gas, Classpath classpath, ExecutorProducer executorProducer) throws TransactionException, CodeExecutionException {
 		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
 			checkNotFull();
 			initTransaction(classLoader);
@@ -311,7 +312,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract Update getLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException;
 
-	private void decreaseBalance(Storage eoa, long gas)
+	private void decreaseBalance(Storage eoa, BigInteger gas)
 			throws InsufficientFundsException, ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
@@ -326,7 +327,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			balanceField.set(eoa, previousBalance.subtract(delta));
 	}
 
-	private void increaseBalance(Storage eoa, long gas)
+	private void increaseBalance(Storage eoa, BigInteger gas)
 			throws ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
@@ -380,14 +381,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected final BlockchainClassLoader classLoader;
 		private final StorageReference caller;
 		protected final Storage deserializedCaller;
-		protected final long gas;
+		protected final BigInteger gas;
 		protected final CodeReference methodOrConstructor;
 		private final StorageReference receiver; // it might be null
 		protected final Storage deserializedReceiver; // it might be null
 		private final StorageValue[] actuals;
 		protected final Object[] deserializedActuals;
 
-		private CodeExecutor(Classpath classpath, BlockchainClassLoader classLoader, StorageReference caller, Storage deseralizedCaller, long gas, CodeReference methodOrConstructor, StorageReference receiver, StorageValue... actuals) throws Exception {
+		private CodeExecutor(Classpath classpath, BlockchainClassLoader classLoader, StorageReference caller, Storage deseralizedCaller, BigInteger gas, CodeReference methodOrConstructor, StorageReference receiver, StorageValue... actuals) throws Exception {
 			this.classpath = classpath;
 			this.classLoader = classLoader;
 			this.caller = caller;
@@ -408,7 +409,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			});
 		}
 
-		public final long getGas() {
+		public final BigInteger getGas() {
 			return gas;
 		}
 
@@ -448,15 +449,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 			return events;
 		}
 
-		public final long gasConsumed() {
-			return gas - Gas.remaining();
+		public final BigInteger gasConsumed() {
+			return gas.subtract(Gas.remaining());
 		}
 
 		protected abstract void addTransactionInternal() throws Exception;
 	}
 
 	private class ConstructorExecutor extends CodeExecutor {
-		private ConstructorExecutor(Classpath classpath, BlockchainClassLoader classLoader, ConstructorReference constructor, StorageReference caller, Storage deserializedCaller, long gas, StorageValue... actuals) throws Exception {
+		private ConstructorExecutor(Classpath classpath, BlockchainClassLoader classLoader, ConstructorReference constructor, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) throws Exception {
 			super(classpath, classLoader, caller, deserializedCaller, gas, constructor, null, actuals);
 		}
 
@@ -499,7 +500,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	private class InstanceMethodExecutor extends CodeExecutor {
-		private InstanceMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, long gas, StorageReference receiver, StorageValue... actuals) throws Exception {
+		private InstanceMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageReference receiver, StorageValue... actuals) throws Exception {
 			super(classpath, classLoader, caller, deserializedCaller, gas, method, receiver, actuals);
 		}
 
@@ -546,7 +547,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	private class StaticMethodExecutor extends CodeExecutor {
-		private StaticMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, long gas, StorageValue... actuals) throws Exception {
+		private StaticMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) throws Exception {
 			super(classpath, classLoader, caller, deserializedCaller, gas, method, null, actuals);
 		}
 

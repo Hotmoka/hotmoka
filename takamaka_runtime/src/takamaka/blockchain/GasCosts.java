@@ -24,7 +24,9 @@ public class GasCosts {
 	 */
 	public final static double GAS_PER_DEPENDENCY_OF_JAR = 1000f;
 
-	public static BigInteger toCoin(long gas) {
-		return BigInteger.valueOf((long)(gas * 0.1));
+	public static BigInteger toCoin(BigInteger gas) {
+		return gas.divide(TEN);
 	}
+
+	private final static BigInteger TEN = BigInteger.valueOf(10);
 }

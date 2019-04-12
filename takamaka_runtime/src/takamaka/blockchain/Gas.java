@@ -1,40 +1,41 @@
 package takamaka.blockchain;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 public final class Gas {
-	private static long gas;
-	private static List<Long> oldGas = new ArrayList<>();
+	private static BigInteger gas;
+	private static List<BigInteger> oldGas = new ArrayList<>();
 
-	static void init(long gas) {
+	static void init(BigInteger gas) {
 		Gas.gas = gas;
 		Gas.oldGas.clear();
 	}
 
-	public static long remaining() {
+	public static BigInteger remaining() {
 		return gas;
 	}
 
-	public static void charge(long amount) {
-		if (amount <= 0L)
+	public static void charge(BigInteger amount) {
+		if (amount.signum() <= 0)
 			throw new IllegalArgumentException("Gas can only decrease");
 
-		gas -= amount;
-		if (gas < 0L)
+		gas = gas.subtract(amount);
+		if (gas.signum() < 0)
 			throw new OutOfGasException(gas);
 	}
 
+	public static void charge(long amount) {
+		charge(BigInteger.valueOf(amount));
+	}
+
 	public static void charge(int amount) {
-		charge((long) amount);
+		charge(BigInteger.valueOf(amount));
 	}
 
-	public static void charge(float amount) {
-		charge((long) Math.ceil(amount));
-	}
-
-	public static <T> T withGas(long amount, Callable<T> what) throws Exception {
+	public static <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
 		charge(amount);
 		oldGas.add(gas);
 		gas = amount;
@@ -43,7 +44,7 @@ public final class Gas {
 			return what.call();
 		}
 		finally {
-			gas += oldGas.remove(oldGas.size() - 1);
+			gas = gas.add(oldGas.remove(oldGas.size() - 1));
 		}
 	}
 }
