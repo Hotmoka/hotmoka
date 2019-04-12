@@ -45,11 +45,12 @@ public final class StorageReference implements StorageValue {
 	 * {@code r.equals(new StorageReference(s.toString()))} holds for
 	 * every {@code StorageReference r}.
 	 * 
+	 * @param blokchain the blockchain for which the reference is being created
 	 * @param s the string
 	 * @throws NumberFormatException if the format of the string does not correspond
 	 *                               to a {@code StorageReference}
 	 */
-	public StorageReference(String s) throws NumberFormatException {
+	public StorageReference(AbstractBlockchain blokchain, String s) throws NumberFormatException {
 		int length;
 
 		if (s == null || (length = s.length()) < 4)
@@ -58,7 +59,7 @@ public final class StorageReference implements StorageValue {
 		String transactionPart = s.substring(0, length - 4);
 		String progressivePart = s.substring(length - 4);
 		
-		this.transaction = new TransactionReference(transactionPart);
+		this.transaction = blokchain.mkTransactionReferenceFrom(transactionPart);
 		this.progressive = Short.decode("0x" + progressivePart);
 	}
 

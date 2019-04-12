@@ -18,6 +18,7 @@ public interface StorageValue extends Comparable<StorageValue> {
 	 * It always hold that {@code from(type, value.toString()).equals(value)},
 	 * if {@code value} has type {@code type}.
 	 * 
+	 * @param blokchain the blokchain for which the value is being looked for
 	 * @param type the type of the value
 	 * @param s the string representation of the value
 	 * @return the value
@@ -25,7 +26,7 @@ public interface StorageValue extends Comparable<StorageValue> {
 	 * @throws NumberFormatException if numerical values cannot be converted
 	 * @throws RuntimeException if an unexpected type is provided
 	 */
-	static StorageValue of(StorageType type, String s) {
+	static StorageValue of(AbstractBlockchain blokchain, StorageType type, String s) {
 		if (s == null)
 			throw new IllegalArgumentException("The string to convert cannot be null");
 
@@ -67,7 +68,7 @@ public interface StorageValue extends Comparable<StorageValue> {
 			else if (type.equals(ClassType.BIG_INTEGER))
 				return new BigIntegerValue(new BigInteger(s, 10));
 			else
-				return new StorageReference(s);
+				return new StorageReference(blokchain, s);
 		}
 
 		throw new RuntimeException("Unexpected type " + type);

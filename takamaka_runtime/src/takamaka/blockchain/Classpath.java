@@ -35,18 +35,19 @@ public final class Classpath {
 	 * same that would be returned by {@code toString()}. Hence
 	 * {@code c.equals(new Classpath(c.toString()))} holds for every {@code Classpath c}.
 	 * 
+	 * @param blockchain the blockchain for which the classpath is being created
 	 * @param s the string
 	 * @throws NumberFormatException if the format of the string does not correspond
 	 *                               to a {@code Classpath}
 	 */
-	public Classpath(String s) throws NumberFormatException {
+	public Classpath(AbstractBlockchain blokchain, String s) throws NumberFormatException {
 		if (s == null || s.length() <= 21 || s.charAt(20) != ';')
 			throw new NumberFormatException("Illegal Classpath format: " + s);
 
 		String transactionPart = s.substring(0, 20);
 		String recursivePart = s.substring(21);
 
-		this.transaction = new TransactionReference(transactionPart);
+		this.transaction = blokchain.mkTransactionReferenceFrom(transactionPart);
 		this.recursive = Boolean.parseBoolean(recursivePart);
 	}
 

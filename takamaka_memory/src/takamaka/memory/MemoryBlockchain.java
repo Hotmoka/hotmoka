@@ -24,7 +24,6 @@ import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.FieldReference;
 import takamaka.blockchain.TransactionException;
-import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
@@ -57,6 +56,8 @@ public class MemoryBlockchain extends AbstractBlockchain {
 
 	private final Path root;
 	private final short transactionsPerBlock;
+	private long currentBlock;
+	private short currentTransaction;
 
 	public MemoryBlockchain(Path root, short transactionsPerBlock) throws IOException {
 		if (root == null)
@@ -74,9 +75,19 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
+	public MemoryTransactionReference getCurrentTransactionReference() {
+		return new MemoryTransactionReference(currentBlock, currentTransaction);
+	}
+
+	@Override
+	public takamaka.blockchain.TransactionReference mkTransactionReferenceFrom(String s) {
+		return new MemoryTransactionReference(s);
+	}
+
+	@Override
 	protected void collectUpdatesFor(StorageReference reference, Set<Update> where) throws TransactionException {
 		try {
-			TransactionReference cursor = getCurrentTransactionReference();
+			MemoryTransactionReference cursor = getCurrentTransactionReference();
 
 			do {
 				cursor = previousTransaction(cursor);
@@ -92,7 +103,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	@Override
 	protected Update getLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException {
 		try {
-			TransactionReference cursor = reference.transaction;
+			MemoryTransactionReference cursor = (MemoryTransactionReference) reference.transaction;
 
 			do {
 				Update update = getLastUpdateFor(reference, field, cursor);
@@ -110,11 +121,11 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		throw new TransactionException("Did not find the last update for " + field + " of " + reference);
 	}
 
-	private Update getLastUpdateFor(StorageReference reference, FieldReference field, TransactionReference cursor) throws IOException {
-		Path updatesPath = getPathFor(reference.transaction, UPDATES_NAME);
+	private Update getLastUpdateFor(StorageReference reference, FieldReference field, MemoryTransactionReference cursor) throws IOException {
+		Path updatesPath = getPathFor((MemoryTransactionReference) reference.transaction, UPDATES_NAME);
 		if (Files.exists(updatesPath)) {
 			Optional<Update> result = Files.lines(updatesPath)
-				.map(Update::mkFromString)
+				.map(line -> Update.mkFromString(this, line))
 				.filter(update -> update.object.equals(reference) && update.field.equals(field))
 				.findAny();
 
@@ -125,11 +136,11 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		return null;
 	}
 
-	private void addPrimitiveUpdatesFor(StorageReference object, TransactionReference where, Set<Update> updates) throws IOException {
+	private void addPrimitiveUpdatesFor(StorageReference object, MemoryTransactionReference where, Set<Update> updates) throws IOException {
 		Path updatesPath = getPathFor(where, UPDATES_NAME);
 		if (Files.exists(updatesPath))
 			Files.lines(updatesPath)
-				.map(Update::mkFromString)
+				.map(line -> Update.mkFromString(this, line))
 				.filter(update -> update.object.equals(object) && !update.field.type.isLazilyLoaded() && !isAlreadyIn(update, updates))
 				.forEach(updates::add);
 	}
@@ -138,14 +149,14 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		return updates.stream().anyMatch(other -> other.object.equals(update.object) && other.field.equals(update.field));
 	}
 
-	private TransactionReference previousTransaction(TransactionReference cursor) throws IllegalArgumentException {
+	private MemoryTransactionReference previousTransaction(MemoryTransactionReference cursor) throws IllegalArgumentException {
 		if (cursor.transactionNumber == 0)
 			if (cursor.blockNumber == 0)
 				throw new IllegalArgumentException("Transaction has no previous transaction");
 			else
-				return new TransactionReference(cursor.blockNumber - 1, (short) (transactionsPerBlock - 1));
+				return new MemoryTransactionReference(cursor.blockNumber - 1, (short) (transactionsPerBlock - 1));
 		else
-			return new TransactionReference(cursor.blockNumber, (short) (cursor.transactionNumber - 1));
+			return new MemoryTransactionReference(cursor.blockNumber, (short) (cursor.transactionNumber - 1));
 	}
 
 	@Override
@@ -286,13 +297,13 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	@Override
 	protected void extractPathsRecursively(Classpath classpath, List<Path> result) throws IOException {
 		if (classpath.recursive) {
-			Path path = getPathFor(classpath.transaction, DEPENDENCIES_NAME);
+			Path path = getPathFor((MemoryTransactionReference) classpath.transaction, DEPENDENCIES_NAME);
 			if (Files.exists(path))
 				for (String line: Files.readAllLines(path))
-					extractPathsRecursively(new Classpath(line), result);
+					extractPathsRecursively(new Classpath(this, line), result);
 		}
 
-		Path path = getPathFor(classpath.transaction, INSTRUMENTED_JAR_NAME);
+		Path path = getPathFor((MemoryTransactionReference) classpath.transaction, INSTRUMENTED_JAR_NAME);
 		if (!Files.exists(path))
 			throw new IOException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
 
@@ -330,18 +341,18 @@ public class MemoryBlockchain extends AbstractBlockchain {
 
 		private void addURLs(Classpath classpath) throws TransactionException {
 			if (classpath.recursive) {
-				Path path = getPathFor(classpath.transaction, DEPENDENCIES_NAME);
+				Path path = getPathFor((MemoryTransactionReference) classpath.transaction, DEPENDENCIES_NAME);
 				if (Files.exists(path))
 					try {
 						for (String line: Files.readAllLines(path))
-							addURLs(new Classpath(line));
+							addURLs(new Classpath(MemoryBlockchain.this, line));
 					}
 					catch (IOException e) {
 						throw new TransactionException("Cannot read dependencies from " + path);
 					}
 			}
 	
-			Path path = getPathFor(classpath.transaction, INSTRUMENTED_JAR_NAME);
+			Path path = getPathFor((MemoryTransactionReference) classpath.transaction, INSTRUMENTED_JAR_NAME);
 			if (!Files.exists(path))
 				throw new TransactionException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
 	
@@ -358,7 +369,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		return Paths.get(root.toString(), "b" + currentBlock, "t" + currentTransaction).resolve(fileName);
 	}
 
-	private Path getPathFor(TransactionReference ref, Path fileName) {
+	private Path getPathFor(MemoryTransactionReference ref, Path fileName) {
 		return Paths.get(root.toString(), "b" + ref.blockNumber, "t" + ref.transactionNumber).resolve(fileName);
 	}
 

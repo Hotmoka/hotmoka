@@ -46,16 +46,16 @@ public final class Update implements Comparable<Update> {
 		return new Update(object, new FieldReference(className, CLASS_TAG_FIELD_NAME, BasicTypes.BOOLEAN), VALUE_FOR_CLASS_TAG);
 	}
 
-	public static Update mkFromString(String s) {
+	public static Update mkFromString(AbstractBlockchain blockchain, String s) {
 		String[] parts = s.split(";");
 		if (parts.length != 5)
 			throw new IllegalArgumentException("Illegal string format " + s);
 
 		StorageType type = StorageType.of(parts[3]);
 
-		return new Update(new StorageReference(parts[0]),
+		return new Update(new StorageReference(blockchain, parts[0]),
 			new FieldReference(new ClassType(parts[1]), parts[2], type),
-			StorageValue.of(type, parts[4]));
+			StorageValue.of(blockchain, type, parts[4]));
 	}
 
 	public boolean isClassTag() {

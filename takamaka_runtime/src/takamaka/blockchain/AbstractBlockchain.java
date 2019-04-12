@@ -33,8 +33,6 @@ import takamaka.translator.Program;
 public abstract class AbstractBlockchain implements Blockchain {
 	private static final String CONTRACT_NAME = "takamaka.lang.Contract";
 	private static final String EXTERNALLY_OWNED_ACCOUNT_NAME = "takamaka.lang.ExternallyOwnedAccount";
-	protected long currentBlock;
-	protected short currentTransaction;
 	private boolean isInitialized = false;
 
 	/**
@@ -57,9 +55,21 @@ public abstract class AbstractBlockchain implements Blockchain {
 		events.add(event);
 	}
 
-	public final TransactionReference getCurrentTransactionReference() {
-		return new TransactionReference(currentBlock, currentTransaction);
-	}
+	/**
+	 * Yields the reference to the transaction currently being executed.
+	 * 
+	 * @return the reference
+	 */
+	public abstract TransactionReference getCurrentTransactionReference();
+
+	/**
+	 * Yields the transaction reference from its string representation.
+	 * It must hold that {@code r.equals(mkTransactionReferenceFromn(r.toString()))}.
+	 * 
+	 * @param s the string representation
+	 * @return the transaction reference
+	 */
+	public abstract TransactionReference mkTransactionReferenceFrom(String s);
 
 	@Override
 	public final StorageReference addGameteCreationTransaction(Classpath takamakaBase, BigInteger initialAmount) throws TransactionException {
