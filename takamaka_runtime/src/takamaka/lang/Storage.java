@@ -31,7 +31,7 @@ public abstract class Storage {
 	protected final boolean inStorage;
 	private static AbstractBlockchain blockchain;
 	private static BlockchainClassLoader classLoader;
-	private static short nextProgressive;
+	private static BigInteger nextProgressive;
 
 	/**
 	 * Resets static data at the beginning of a transaction.
@@ -41,14 +41,15 @@ public abstract class Storage {
 	public static void init(AbstractBlockchain blockchain, BlockchainClassLoader classLoader) {
 		Storage.blockchain = blockchain;
 		Storage.classLoader = classLoader;
-		nextProgressive = 0;
+		nextProgressive = BigInteger.ZERO;
 	}
 	/**
 	 * Constructor used by the programmer to build objects not yet in storage
 	 */
 	protected Storage() {
 		this.inStorage = false;
-		this.storageReference = new StorageReference(blockchain.getCurrentTransactionReference(), nextProgressive++);
+		this.storageReference = new StorageReference(blockchain.getCurrentTransactionReference(), nextProgressive);
+		nextProgressive = nextProgressive.add(BigInteger.ONE);
 	}
 
 	/**

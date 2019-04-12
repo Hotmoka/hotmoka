@@ -1,5 +1,7 @@
 package takamaka.blockchain.values;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.TransactionException;
@@ -25,7 +27,7 @@ public final class StorageReference implements StorageValue {
 	 * The progressive number of the object among those that have been created
 	 * during the same transaction.
 	 */
-	public final short progressive;
+	public final BigInteger progressive;
 
 	/**
 	 * Builds a storage reference.
@@ -34,7 +36,7 @@ public final class StorageReference implements StorageValue {
 	 * @param progressive The progressive number of the object among those that have been created
 	 *                    during the same transaction.
 	 */
-	public StorageReference(TransactionReference transaction, short progressive) {
+	public StorageReference(TransactionReference transaction, BigInteger progressive) {
 		this.transaction = transaction;
 		this.progressive = progressive;
 	}
@@ -51,26 +53,26 @@ public final class StorageReference implements StorageValue {
 	 *                               to a {@code StorageReference}
 	 */
 	public StorageReference(AbstractBlockchain blokchain, String s) throws NumberFormatException {
-		int length;
+		int index;
 
-		if (s == null || (length = s.length()) < 4)
+		if (s == null || (index = s.indexOf('@')) < 0)
 			throw new NumberFormatException("Illegal transaction reference format: " + s);
 
-		String transactionPart = s.substring(0, length - 4);
-		String progressivePart = s.substring(length - 4);
+		String transactionPart = s.substring(0, index);
+		String progressivePart = s.substring(index + 1);
 		
 		this.transaction = blokchain.mkTransactionReferenceFrom(transactionPart);
-		this.progressive = Short.decode("0x" + progressivePart);
+		this.progressive = new BigInteger(progressivePart);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof StorageReference && ((StorageReference) other).progressive == progressive && ((StorageReference) other).transaction.equals(transaction);
+		return other instanceof StorageReference && ((StorageReference) other).progressive.equals(progressive) && ((StorageReference) other).transaction.equals(transaction);
 	}
 
 	@Override
 	public int hashCode() {
-		return progressive ^ transaction.hashCode();
+		return progressive.hashCode() ^ transaction.hashCode();
 	}
 
 	@Override
@@ -83,12 +85,12 @@ public final class StorageReference implements StorageValue {
 		if (diff != 0)
 			return diff;
 
-		return Short.compare(progressive, ((StorageReference) other).progressive);
+		return progressive.compareTo(((StorageReference) other).progressive);
 	}
 
 	@Override
 	public String toString() {
-		return String.format("%s%04x", transaction, progressive);
+		return String.format("%s@%s", transaction, progressive);
 	}
 
 	@Override
