@@ -24,7 +24,7 @@ public final class Gas {
 
 		gas = gas.subtract(amount);
 		if (gas.signum() < 0)
-			throw new OutOfGasException(gas);
+			throw new OutOfGasError(gas);
 	}
 
 	public static void charge(long amount) {

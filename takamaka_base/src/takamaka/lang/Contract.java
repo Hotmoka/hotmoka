@@ -2,7 +2,7 @@ package takamaka.lang;
 
 import java.math.BigInteger;
 
-import takamaka.blockchain.InsufficientFundsException;
+import takamaka.blockchain.InsufficientFundsError;
 
 public abstract class Contract extends Storage {
 	private BigInteger balance;
@@ -23,7 +23,7 @@ public abstract class Contract extends Storage {
 	private void pay(Contract whom, BigInteger amount) {
 		require(amount.signum() >= 0, "payed amount cannot be negative");
 		if (balance.compareTo(amount) < 0)
-			throw new InsufficientFundsException();
+			throw new InsufficientFundsError();
 
 		balance = balance.subtract(amount);
 		whom.balance = whom.balance.add(amount);

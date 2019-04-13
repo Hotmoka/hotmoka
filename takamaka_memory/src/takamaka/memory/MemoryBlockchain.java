@@ -316,7 +316,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void commitCurrentTransaction() {
+	protected void increaseCurrentTransactionReference() {
 		if (++currentTransaction == transactionsPerBlock) {
 			currentTransaction = 0;
 			currentBlock++;

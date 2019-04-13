@@ -30,33 +30,52 @@ import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.Program;
 
+/**
+ * A generic implementation of a blockchain. Specific implementations can subclass this class
+ * and just implement the abstract template methods. The rest of code should work instead
+ * as an general layer for all blockchain implementations.
+ */
 public abstract class AbstractBlockchain implements Blockchain {
 	private static final String CONTRACT_NAME = "takamaka.lang.Contract";
 	private static final String EXTERNALLY_OWNED_ACCOUNT_NAME = "takamaka.lang.ExternallyOwnedAccount";
+
+	/**
+	 * The maximal length of an event message. This prevents spamming with long event messages.
+	 */
+	public final static int MAX_EVENT_LENGTH = 1000;
+
+	/**
+	 * The maximal length of the name of a jar installed in this blockchain, including its suffix.
+	 */
+	public final static int MAX_JAR_NAME_LENGTH = 100;
+
+	/**
+	 * A blockchain is initially under initialization. After the gamete has been created,
+	 * the blockchain passed into the initialized state.
+	 */
 	private boolean isInitialized = false;
 
 	/**
-	 * The events accumulated during the ongoing transaction.
+	 * The events accumulated during the current transaction. This is reset at each transaction.
 	 */
 	private final List<String> events = new ArrayList<>();
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
-	 * repeated deserialization of the same storage reference yields the same object.
+	 * repeated deserialization of the same storage reference yields the same object and can also
+	 * work as an efficiency measure. This is reset at each transaction since each transaction uses
+	 * a distinct class loader and each storage object keeps a reference to its class loader, as
+	 * always in Java.
 	 */
 	private final Map<StorageReference, Storage> cache = new HashMap<>();
 
-	/**
-	 * Adds an event to those occurred during the execution of the last transaction.
-	 * 
-	 * @param event the event description
-	 */
-	public void event(String event) {
-		events.add(event);
-	}
+	// ABSTRACT TEMPLATE METHODS
+	// Any implementation of a blockchain must implement the following and leave the rest unchanged
 
 	/**
 	 * Yields the reference to the transaction currently being executed.
+	 * If no transaction is currently under execution, this is the reference to the
+	 * next transaction that will be executed.
 	 * 
 	 * @return the reference
 	 */
@@ -64,12 +83,43 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	/**
 	 * Yields the transaction reference from its string representation.
-	 * It must hold that {@code r.equals(mkTransactionReferenceFromn(r.toString()))}.
+	 * It must hold that {@code r.equals(mkTransactionReferenceFrom(r.toString()))}.
 	 * 
 	 * @param s the string representation
 	 * @return the transaction reference
 	 */
 	public abstract TransactionReference mkTransactionReferenceFrom(String s);
+
+	/**
+	 * Specific implementation at the end of the successful creation of a gamete. Any blockchain implementation
+	 * has here the opportunity to deal with the result of the creation.
+	 * 
+	 * @param takamakaBase the reference to the jar containing the basic Takamaka classes
+	 * @param initialAmount the amount of coin provided to the gamete. This cannot be negative
+	 * @param gamete the reference to the gamete that has been created
+	 * @param updates the memory updates induced by the transaction. This includes at least
+	 *                those that describe the new gamete
+	 * @throws Exception if something goes wrong in this method. In that case, the gamete creation
+	 *                   transaction will be aborted
+	 */
+	protected abstract void addGameteCreationTransactionInternal(Classpath takamakaBase, BigInteger initialAmount, StorageReference gamete, SortedSet<Update> updates) throws Exception;
+
+	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
+
+	/**
+	 * Adds an event to those occurred during the execution of the current transaction.
+	 * 
+	 * @param event the event description
+	 * @throws IllegalArgumentException if the event is {@code null} or longer than {@link AbstractBlockchain#MAX_EVENT_LENGTH}
+	 */
+	public final void event(String event) {
+		if (event == null)
+			throw new IllegalArgumentException("Events cannot be null");
+		else if (event.length() > MAX_EVENT_LENGTH)
+			throw new IllegalArgumentException("Events cannot be longer than " + MAX_EVENT_LENGTH + " characters");
+
+		events.add(event);
+	}
 
 	@Override
 	public final StorageReference addGameteCreationTransaction(Classpath takamakaBase, BigInteger initialAmount) throws TransactionException {
@@ -92,7 +142,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			SortedSet<Update> updates = collectUpdates(null, null, null, gamete);
 			StorageReference gameteRef = gamete.storageReference;
 			addGameteCreationTransactionInternal(takamakaBase, initialAmount, gameteRef, updates);
-			commitCurrentTransaction();
+			increaseCurrentTransactionReference();
 			isInitialized = true;
 			return gameteRef;
 		}
@@ -100,8 +150,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
 		}
 	}
-
-	protected abstract void addGameteCreationTransactionInternal(Classpath takamakaBase, BigInteger initialAmount, StorageReference gamete, SortedSet<Update> updates) throws Exception;
 
 	@Override
 	public final TransactionReference addJarStoreInitialTransaction(Path jar, Classpath... dependencies) throws TransactionException {
@@ -111,7 +159,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			Gas.init(BigInteger.ZERO);
 			TransactionReference jarReference = addJarStoreTransactionCommon(null, null, BigInteger.ZERO, null, jar, dependencies);
-			commitCurrentTransaction();
+			increaseCurrentTransactionReference();
 			return jarReference;
 		}
 		catch (Throwable t) {
@@ -123,15 +171,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 	public final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException {
 		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
 			checkNotFull();
+			initTransaction(classLoader);
 			Storage deserializedCaller = caller.deserialize(classLoader, this);
-			checkIsExternallyOwned(deserializedCaller);
+			checkIsExternallyOwned(classLoader, deserializedCaller);
 			Gas.init(gas);
+
+			// we sell all gas first. What remains will be paid back at the end
 			decreaseBalance(deserializedCaller, gas);
+
 			Gas.charge(GasCosts.BASE_TRANSACTION_COST);
 			Gas.charge((long) (dependencies.length * GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
 			Gas.charge((long) (Files.size(jar) * GasCosts.GAS_PER_BYTE_IN_JAR));
 			TransactionReference jarReference = addJarStoreTransactionCommon(caller, classpath, gas, deserializedCaller, jar, dependencies);
-			commitCurrentTransaction();
+			increaseCurrentTransactionReference();
 			return jarReference;
 		}
 		catch (Throwable t) {
@@ -139,6 +191,20 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 	}
 
+	/**
+	 * Used by both {@link takamaka.blockchain.AbstractBlockchain#addJarStoreInitialTransaction(Path, Classpath...)} and
+	 * {@link takamaka.blockchain.AbstractBlockchain#addJarStoreTransaction(StorageReference, BigInteger, Classpath, Path, Classpath...)}
+	 * to perform common tasks.
+	 * 
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param classpath the class path where the {@code caller} is interpreted
+	 * @param gas the maximal amount of gas that can be consumed by the transaction
+	 * @param deserializedCaller the caller, after deserialization
+	 * @param jar the jar to install
+	 * @param dependencies the dependencies of the jar, already installed in this blockchain
+	 * @return the reference to the transaction, that can be used to refer to this jar in a class path or as future dependency of other jars
+	 * @throws Exception if something goes wrong. In that case, the transaction will be aborted
+	 */
 	private TransactionReference addJarStoreTransactionCommon(StorageReference caller, Classpath classpath, BigInteger gas, Storage deserializedCaller, Path jar, Classpath... dependencies) throws Exception {
 		checkNotFull();
 
@@ -147,14 +213,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 		if (!jn.endsWith(".jar"))
 			throw new TransactionException("Jar file should end in .jar");
 
-		if (jn.length() > 100)
-			throw new TransactionException("Jar file name too long");
+		if (jn.length() > MAX_JAR_NAME_LENGTH)
+			throw new TransactionException("Jar file name cannot be longer than " + MAX_JAR_NAME_LENGTH + " characters");
 
 		TransactionReference ref = getCurrentTransactionReference();
 		for (Classpath dependency: dependencies)
 			if (!dependency.transaction.isOlderThan(ref))
 				throw new TransactionException("A transaction can only depend on older transactions");
 
+		// we create a temporary file to hold the instrumented jar
 		Path instrumented = Files.createTempFile("instrumented", "jar");
 		new JarInstrumentation(jar, instrumented, mkProgram(jar, dependencies));
 	
@@ -201,7 +268,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			checkNotFull();
 			initTransaction(classLoader);
 			Storage deserializedCaller = caller.deserialize(classLoader, this);
-			checkIsExternallyOwned(deserializedCaller);
+			checkIsExternallyOwned(classLoader, deserializedCaller);
 			Gas.init(gas);
 			decreaseBalance(deserializedCaller, gas);
 			Gas.charge(GasCosts.BASE_TRANSACTION_COST);
@@ -215,7 +282,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			increaseBalance(deserializedCaller, Gas.remaining());
 			executor.addTransactionInternal();
-			commitCurrentTransaction();
+			increaseCurrentTransactionReference();
 
 			if (executor.exception != null)
 				throw new CodeExecutionException("Code execution threw exception", executor.exception);
@@ -322,8 +389,20 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract Update getLastUpdateFor(StorageReference reference, FieldReference field) throws TransactionException;
 
-	private void decreaseBalance(Storage eoa, BigInteger gas)
-			throws InsufficientFundsException, ClassNotFoundException, NoSuchFieldException,
+	/**
+	 * Sells the given amount of gas to the given externally owned account.
+	 * 
+	 * @param eoa the reference to the externally owned account
+	 * @param gas the gas to sell
+	 * @throws InsufficientFundsError if the account has not enough money to pay for the gas
+	 * @throws ClassNotFoundException if the balance of the account cannot be correctly modified
+	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
+	 * @throws SecurityException if the balance of the account cannot be correctly modified
+	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
+	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
+	 */
+	private static void decreaseBalance(Storage eoa, BigInteger gas)
+			throws InsufficientFundsError, ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
 		BigInteger delta = GasCosts.toCoin(gas);
@@ -332,12 +411,23 @@ public abstract class AbstractBlockchain implements Blockchain {
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
 		if (previousBalance.compareTo(delta) < 0)
-			throw new InsufficientFundsException();
+			throw new InsufficientFundsError();
 		else
 			balanceField.set(eoa, previousBalance.subtract(delta));
 	}
 
-	private void increaseBalance(Storage eoa, BigInteger gas)
+	/**
+	 * Buys back the given amount of gas from the given externally owned account.
+	 * 
+	 * @param eoa the reference to the externally owned account
+	 * @param gas the gas to buy back
+	 * @throws ClassNotFoundException if the balance of the account cannot be correctly modified
+	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
+	 * @throws SecurityException if the balance of the account cannot be correctly modified
+	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
+	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
+	 */
+	private static void increaseBalance(Storage eoa, BigInteger gas)
 			throws ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
@@ -349,13 +439,21 @@ public abstract class AbstractBlockchain implements Blockchain {
 		balanceField.set(eoa, previousBalance.add(delta));
 	}
 
-	private void checkIsExternallyOwned(Storage deserializedCaller) {
-		if (!deserializedCaller.getClass().getName().equals(EXTERNALLY_OWNED_ACCOUNT_NAME))
+	/**
+	 * Checks if the given object is an externally owned account or a subclass.
+	 * 
+	 * @param object the object to check
+	 * @throws ClassNotFoundException if the {@link takamaka.lang.ExternallyOwnedAccount} class cannot be found
+	 *                                in the class path of the transaction
+	 */
+	private static void checkIsExternallyOwned(BlockchainClassLoader classLoader, Storage object) throws ClassNotFoundException {
+		Class<?> eoaClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
+		if (!eoaClass.isAssignableFrom(object.getClass()))
 			throw new IllegalArgumentException("Only an externally owned contract can start a transaction");
 	}
 
 	/**
-	 * Collects all updates reachable from the actual or from the caller, receiver or result of a method call.
+	 * Collects all updates reachable from the actuals or from the caller, receiver or result of a method call.
 	 * 
 	 * @param actuals the actuals; only {@code Storage} are relevant; this might be {@code null}
 	 * @param caller the caller of an {@code @@Entry} method; this might be {@code null}
@@ -609,8 +707,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	protected abstract boolean blockchainIsFull();
 
-	protected abstract void commitCurrentTransaction();
+	protected abstract void increaseCurrentTransactionReference();
 
+	/**
+	 * Wraps the given throwable in a {@link takamaka.blockchain.TransactionException}, if it not
+	 * already an instance of that exception.
+	 * 
+	 * @param t the throwable to wrap
+	 * @param message the message added to the {@link takamaka.blockchain.TransactionException}, if wrapping occurs
+	 * @return the wrapped or original exception
+	 */
 	protected final static TransactionException wrapAsTransactionException(Throwable t, String message) {
 		if (t instanceof TransactionException)
 			return (TransactionException) t;

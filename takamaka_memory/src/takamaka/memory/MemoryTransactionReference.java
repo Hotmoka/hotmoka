@@ -4,20 +4,24 @@ import takamaka.blockchain.TransactionReference;
 import takamaka.lang.Immutable;
 
 /**
- * A transaction reference is a reference to a transaction in the blockchain.
- * They are comparable and ordered according to their occurrence in the blockchain.
+ * In the disk memory representation of a blockchain, a transaction can be
+ * uniquely identified by a pair block/transaction inside the block. A progressive
+ * identifier would also be fine.
  */
-
 @Immutable
 public final class MemoryTransactionReference extends TransactionReference {
 
 	/**
-	 * The number of the block holding the transaction.
+	 * The number of the block holding the transaction. Note that a {@code long}
+	 * does not support infinite blockchains. However, this is only a test implementation
+	 * of blockchain.
 	 */
 	public final long blockNumber;
 
 	/**
-	 * The number of the transaction inside the block.
+	 * The number of the transaction inside the block. Note that a {@code short}
+	 * does not support blockchains with really many transactions inside a single block.
+	 * However, this is only a test implementation of blockchain.
 	 */
 	public final short transactionNumber;
 
@@ -40,7 +44,7 @@ public final class MemoryTransactionReference extends TransactionReference {
 	 * 
 	 * @param s the string
 	 * @throws NumberFormatException if the format of the string does not correspond
-	 *                               to a {@code TransactionReference}
+	 *                               to a {@link takamaka.memory.MemoryTransactionReference}
 	 */
 	public MemoryTransactionReference(String s) throws NumberFormatException {
 		if (s == null || s.length() != 20)
