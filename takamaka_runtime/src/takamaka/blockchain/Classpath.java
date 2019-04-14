@@ -41,11 +41,12 @@ public final class Classpath {
 	 *                               to a {@code Classpath}
 	 */
 	public Classpath(AbstractBlockchain blokchain, String s) throws NumberFormatException {
-		if (s == null || s.length() <= 21 || s.charAt(20) != ';')
+		int semicolonPos;
+		if (s == null || (semicolonPos = s.indexOf(';')) < 0)
 			throw new NumberFormatException("Illegal Classpath format: " + s);
 
-		String transactionPart = s.substring(0, 20);
-		String recursivePart = s.substring(21);
+		String transactionPart = s.substring(0, semicolonPos);
+		String recursivePart = s.substring(semicolonPos + 1);
 
 		this.transaction = blokchain.mkTransactionReferenceFrom(transactionPart);
 		this.recursive = Boolean.parseBoolean(recursivePart);

@@ -2,7 +2,6 @@ package takamaka.blockchain.values;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
-import takamaka.blockchain.TransactionException;
 import takamaka.lang.Immutable;
 
 @Immutable
@@ -14,7 +13,7 @@ public final class IntValue implements StorageValue {
 	}
 
 	@Override
-	public Integer deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) throws TransactionException {
+	public Integer deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
 		return value;
 	}
 

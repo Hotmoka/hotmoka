@@ -4,7 +4,6 @@ import java.math.BigInteger;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
-import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.lang.Immutable;
 import takamaka.lang.Storage;
@@ -94,7 +93,7 @@ public final class StorageReference implements StorageValue {
 	}
 
 	@Override
-	public Storage deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) throws TransactionException {
+	public Storage deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
 		return blockchain.deserialize(classLoader, this);
 	}
 }

@@ -4,21 +4,32 @@ import java.math.BigInteger;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
-import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
 import takamaka.lang.Storage;
 
+/**
+ * A value that can be stored in the blockchain, passed as argument of an antry
+ * or returned from an entry.
+ */
 public interface StorageValue extends Comparable<StorageValue> {
-	Object deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) throws TransactionException;
+
+	/**
+	 * Yields the deserialization of this value.
+	 * 
+	 * @param classLoader the class loader that must be used for the definition of the storage classes
+	 * @param blockchain the blockchain for which the deserialization is performed
+	 * @return the deserialization
+	 */
+	Object deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain);
 
 	/**
 	 * Yields a storage value of a given type, from its string representation.
 	 * It always hold that {@code from(type, value.toString()).equals(value)},
 	 * if {@code value} has type {@code type}.
 	 * 
-	 * @param blokchain the blokchain for which the value is being looked for
+	 * @param blokchain the blockchain for which the value is being looked for
 	 * @param type the type of the value
 	 * @param s the string representation of the value
 	 * @return the value

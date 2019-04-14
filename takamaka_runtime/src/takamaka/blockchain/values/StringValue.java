@@ -1,10 +1,7 @@
 package takamaka.blockchain.values;
 
-import java.math.BigInteger;
-
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
-import takamaka.blockchain.TransactionException;
 import takamaka.lang.Immutable;
 
 @Immutable
@@ -16,7 +13,7 @@ public final class StringValue implements StorageValue {
 	}
 
 	@Override
-	public String deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) throws TransactionException {
+	public String deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
 		// we clone the value, so that the alias behavior of values coming from outside the blockchain is fixed
 		return new String(value);
 	}

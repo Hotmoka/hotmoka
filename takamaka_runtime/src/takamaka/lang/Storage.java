@@ -114,8 +114,8 @@ public abstract class Storage {
 			throw new RuntimeException("a field of a storage object cannot hold a " + s.getClass().getName());
 	}
 
-	protected final Object deserializeLastUpdateFor(String definingClass, String name, String className) throws TransactionException {
-		return blockchain.deserializeLastUpdateFor(classLoader, storageReference, new FieldReference(definingClass, name, className));
+	protected final Object deserializeLastUpdateFor(String definingClass, String name, String className) throws Exception {
+		return blockchain.deserializeLastLazyUpdateFor(classLoader, storageReference, new FieldReference(definingClass, name, className));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet, String fieldClassName, Object s) {

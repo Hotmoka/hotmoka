@@ -1,5 +1,7 @@
 package takamaka.memory;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.TransactionReference;
 import takamaka.lang.Immutable;
 
@@ -12,16 +14,12 @@ import takamaka.lang.Immutable;
 public final class MemoryTransactionReference extends TransactionReference {
 
 	/**
-	 * The number of the block holding the transaction. Note that a {@code long}
-	 * does not support infinite blockchains. However, this is only a test implementation
-	 * of blockchain.
+	 * The number of the block holding the transaction.
 	 */
-	public final long blockNumber;
+	public final BigInteger blockNumber;
 
 	/**
-	 * The number of the transaction inside the block. Note that a {@code short}
-	 * does not support blockchains with really many transactions inside a single block.
-	 * However, this is only a test implementation of blockchain.
+	 * The number of the transaction inside the block.
 	 */
 	public final short transactionNumber;
 
@@ -31,7 +29,7 @@ public final class MemoryTransactionReference extends TransactionReference {
 	 * @param blockNumber The number of the block holding the transaction.
 	 * @param transactionNumber The number of the transaction inside the block.
 	 */
-	public MemoryTransactionReference(long blockNumber, short transactionNumber) {
+	public MemoryTransactionReference(BigInteger blockNumber, short transactionNumber) {
 		this.blockNumber = blockNumber;
 		this.transactionNumber = transactionNumber;
 	}
@@ -47,13 +45,14 @@ public final class MemoryTransactionReference extends TransactionReference {
 	 *                               to a {@link takamaka.memory.MemoryTransactionReference}
 	 */
 	public MemoryTransactionReference(String s) throws NumberFormatException {
-		if (s == null || s.length() != 20)
+		int dollarPos;
+		if (s == null || (dollarPos = s.indexOf('$')) < 0)
 			throw new NumberFormatException("Illegal transaction reference format: " + s);
 
-		String blockPart = s.substring(0, 16);
-		String transactionPart = s.substring(16);
+		String blockPart = s.substring(0, dollarPos);
+		String transactionPart = s.substring(dollarPos + 1);
 		
-		this.blockNumber = Long.decode("0x" + blockPart);
+		this.blockNumber = new BigInteger(blockPart, 16);
 		this.transactionNumber = Short.decode("0x" + transactionPart);
 	}
 
@@ -61,7 +60,7 @@ public final class MemoryTransactionReference extends TransactionReference {
 	public int compareTo(TransactionReference other) {
 		MemoryTransactionReference otherAsTR = (MemoryTransactionReference) other;
 
-		int diff = Long.compare(blockNumber, otherAsTR.blockNumber);
+		int diff = blockNumber.compareTo(otherAsTR.blockNumber);
 		if (diff != 0)
 			return diff;
 		else
@@ -70,16 +69,16 @@ public final class MemoryTransactionReference extends TransactionReference {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof MemoryTransactionReference && ((MemoryTransactionReference) other).blockNumber == blockNumber && ((MemoryTransactionReference) other).transactionNumber == transactionNumber;
+		return other instanceof MemoryTransactionReference && ((MemoryTransactionReference) other).blockNumber.equals(blockNumber) && ((MemoryTransactionReference) other).transactionNumber == transactionNumber;
 	}
 
 	@Override
 	public int hashCode() {
-		return ((int) blockNumber) ^ transactionNumber;
+		return blockNumber.hashCode() ^ transactionNumber;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("%016x%04x", blockNumber, transactionNumber);
+		return String.format("%s$%04x", blockNumber.toString(16), transactionNumber);
 	}
 }
