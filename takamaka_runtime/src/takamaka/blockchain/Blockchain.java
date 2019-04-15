@@ -64,7 +64,7 @@ public interface Blockchain {
 	 * @return the created object, if the constructor was successfully executed, without exception
 	 * @throws TransactionException if the transaction could not be completed because of an internal error.
 	 *                              Note that internal errors include
-	 *                              {@link takamaka.blockchain.OutOfGasError} and {@link takamaka.blockchain.InsufficientFundsError}.
+	 *                              {@link takamaka.lang.OutOfGasError} and {@link takamaka.lang.InsufficientFundsError}.
 	 *                              If this occurs, the blockchain will be expanded
 	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed
 	 * @throws CodeExecutionException if the execution of the constructor failed with an exception that is not an instance of
@@ -74,7 +74,7 @@ public interface Blockchain {
 	 *                                This can only occur if the constructor is annotated as {@link takamaka.lang.ThrowsExceptions}. In all other cases,
 	 *                                a {@link takamaka.blockchain.TransactionException} is thrown
 	 */
-	public StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException;
+	public StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 
 	/**
 	 * Runs an instance method of an object stored in the blockchain.
@@ -89,7 +89,7 @@ public interface Blockchain {
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed because of an internal error.
 	 *                              Note that internal errors include
-	 *                              {@link takamaka.blockchain.OutOfGasError} and {@link takamaka.blockchain.InsufficientFundsError}.
+	 *                              {@link takamaka.lang.OutOfGasError} and {@link takamaka.lang.InsufficientFundsError}.
 	 *                              If this occurs, the blockchain will be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed
 	 * @throws CodeExecutionException if the execution of the method failed with an exception that is not an instance of
@@ -99,7 +99,7 @@ public interface Blockchain {
 	 *                                This can only occur if the method is annotated as {@link takamaka.lang.ThrowsExceptions}. In all other cases,
 	 *                                a {@link takamaka.blockchain.TransactionException} is thrown
 	 */
-	public StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException;
+	public StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 
 	/**
 	 * Runs a static method of a class.
@@ -113,7 +113,7 @@ public interface Blockchain {
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed because of an internal error.
 	 *                              Note that internal errors include
-	 *                              {@link takamaka.blockchain.OutOfGasError} and {@link takamaka.blockchain.InsufficientFundsError}.
+	 *                              {@link takamaka.lang.OutOfGasError} and {@link takamaka.lang.InsufficientFundsError}.
 	 *                              If this occurs, the blockchain will be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed
 	 * @throws CodeExecutionException if the execution of the method failed with an exception that is not an instance of
@@ -123,5 +123,5 @@ public interface Blockchain {
 	 *                                This can only occur if the method is annotated as {@link takamaka.lang.ThrowsExceptions}. In all other cases,
 	 *                                a {@link takamaka.blockchain.TransactionException} is thrown
 	 */
-	public StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException;
+	public StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException;
 }

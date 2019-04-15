@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import takamaka.lang.OutOfGasError;
+
 public final class Gas {
 	private static BigInteger gas;
 	private static List<BigInteger> oldGas = new ArrayList<>();

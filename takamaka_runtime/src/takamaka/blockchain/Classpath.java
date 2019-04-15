@@ -3,7 +3,7 @@ package takamaka.blockchain;
 import takamaka.lang.Immutable;
 
 /**
- * A classpath built from a given jar.
+ * A class path, that points to a given jar in the blockchain.
  */
 
 @Immutable
@@ -15,15 +15,15 @@ public final class Classpath {
 	public final TransactionReference transaction;
 
 	/**
-	 * True if the dependencies of the jar must be included in the classpath.
+	 * True if the dependencies of the jar must be included in the class path.
 	 */
 	public final boolean recursive;
 
 	/**
-	 * Builds a classpath.
+	 * Builds a class path.
 	 * 
-	 * @param transaction The transaction that stored the jar.
-	 * @param recursive True if the dependencies of the jar must be included in the classpath.
+	 * @param transaction The transaction that stored the jar
+	 * @param recursive True if the dependencies of the jar must be included in the class path
 	 */
 	public Classpath(TransactionReference transaction, boolean recursive) {
 		this.transaction = transaction;
@@ -31,24 +31,22 @@ public final class Classpath {
 	}
 
 	/**
-	 * Builds a classpath from a string. The format of the string is the
-	 * same that would be returned by {@code toString()}. Hence
+	 * Builds a class path from a string. The format of the string is the
+	 * same that would be returned by {@link takamaka.blockchain.Classpath#toString()}. Hence
 	 * {@code c.equals(new Classpath(c.toString()))} holds for every {@code Classpath c}.
 	 * 
-	 * @param blockchain the blockchain for which the classpath is being created
+	 * @param blockchain the blockchain for which the class path is being created
 	 * @param s the string
-	 * @throws NumberFormatException if the format of the string does not correspond
-	 *                               to a {@code Classpath}
 	 */
-	public Classpath(AbstractBlockchain blokchain, String s) throws NumberFormatException {
+	public Classpath(AbstractBlockchain blockchain, String s) {
 		int semicolonPos;
 		if (s == null || (semicolonPos = s.indexOf(';')) < 0)
-			throw new NumberFormatException("Illegal Classpath format: " + s);
+			throw new IllegalArgumentException("Illegal Classpath format: " + s);
 
 		String transactionPart = s.substring(0, semicolonPos);
 		String recursivePart = s.substring(semicolonPos + 1);
 
-		this.transaction = blokchain.mkTransactionReferenceFrom(transactionPart);
+		this.transaction = blockchain.mkTransactionReferenceFrom(transactionPart);
 		this.recursive = Boolean.parseBoolean(recursivePart);
 	}
 
@@ -59,7 +57,7 @@ public final class Classpath {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof Classpath && ((Classpath) other).transaction == transaction && ((Classpath) other).recursive == recursive;
+		return other instanceof Classpath && ((Classpath) other).transaction.equals(transaction) && ((Classpath) other).recursive == recursive;
 	}
 
 	@Override

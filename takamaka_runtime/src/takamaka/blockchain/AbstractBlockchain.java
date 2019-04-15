@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
+import takamaka.lang.InsufficientFundsError;
+import takamaka.lang.OutOfGasError;
 import takamaka.lang.Storage;
 import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
@@ -170,7 +172,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	protected abstract Update getLastLazyUpdateFor(StorageReference reference, FieldReference field) throws Exception;
+	protected abstract Update getLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception;
 
 	/**
 	 * Expands the given list with the dependent class paths, recursively.
@@ -316,19 +318,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorReference constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	public final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return (StorageReference) transaction(caller, gas, classpath,
 				(classLoader, deserializedCaller) -> new ConstructorExecutor(classpath, classLoader, constructor, caller, deserializedCaller, gas, actuals));
 	}
 
 	@Override
-	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodReference method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return transaction(caller, gas, classpath,
 				(classLoader, deserializedCaller) -> new InstanceMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, receiver, actuals));
 	}
 
 	@Override
-	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodReference method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
 		return transaction(caller, gas, classpath,
 				(classLoader, deserializedCaller) -> new StaticMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, actuals));
 	}
@@ -417,8 +419,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		
 				@Override
 				public int compare(Update update1, Update update2) {
-					FieldReference field1 = update1.field;
-					FieldReference field2 = update2.field;
+					FieldSignature field1 = update1.field;
+					FieldSignature field2 = update2.field;
 		
 					try {
 						String className1 = field1.definingClass.name;
@@ -492,7 +494,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the value of the field
 	 * @throws Exception if the look up fails
 	 */
-	public final Object deserializeLastLazyUpdateFor(BlockchainClassLoader classLoader, StorageReference reference, FieldReference field) throws Exception {
+	public final Object deserializeLastLazyUpdateFor(BlockchainClassLoader classLoader, StorageReference reference, FieldSignature field) throws Exception {
 		return getLastLazyUpdateFor(reference, field).value.deserialize(classLoader, this);
 	}
 
@@ -509,7 +511,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
 	private static void decreaseBalance(Storage eoa, BigInteger gas)
-			throws InsufficientFundsError, ClassNotFoundException, NoSuchFieldException,
+			throws OutOfGasError, ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
 		BigInteger delta = GasCosts.toCoin(gas);
@@ -518,7 +520,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
 		if (previousBalance.compareTo(delta) < 0)
-			throw new InsufficientFundsError();
+			throw new OutOfGasError(gas);
 		else
 			balanceField.set(eoa, previousBalance.subtract(delta));
 	}
@@ -638,7 +640,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		/**
 		 * The method or constructor that is being called.
 		 */
-		public final CodeReference methodOrConstructor;
+		public final CodeSignature methodOrConstructor;
 		
 		/**
 		 * The receiver of a method call. This is {@code null} for static methods and constructors.
@@ -672,7 +674,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param receiver the receiver of the call, if any. This is {@code null} for constructors and static methods
 		 * @param actuals the actuals provided to the method or constructor
 		 */
-		private CodeExecutor(Classpath classpath, BlockchainClassLoader classLoader, StorageReference caller, Storage deseralizedCaller, BigInteger gas, CodeReference methodOrConstructor, StorageReference receiver, StorageValue... actuals) {
+		private CodeExecutor(Classpath classpath, BlockchainClassLoader classLoader, StorageReference caller, Storage deseralizedCaller, BigInteger gas, CodeSignature methodOrConstructor, StorageReference receiver, StorageValue... actuals) {
 			this.classpath = classpath;
 			this.classLoader = classLoader;
 			this.caller = caller;
@@ -774,7 +776,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param gas the gas provided for the execution
 		 * @param actuals the actuals provided to the constructor
 		 */
-		private ConstructorExecutor(Classpath classpath, BlockchainClassLoader classLoader, ConstructorReference constructor, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) {
+		private ConstructorExecutor(Classpath classpath, BlockchainClassLoader classLoader, ConstructorSignature constructor, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) {
 			super(classpath, classLoader, caller, deserializedCaller, gas, constructor, null, actuals);
 		}
 
@@ -836,7 +838,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param receiver the receiver of the method
 		 * @param actuals the actuals provided to the method
 		 */
-		private InstanceMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageReference receiver, StorageValue... actuals) {
+		private InstanceMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodSignature method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageReference receiver, StorageValue... actuals) {
 			super(classpath, classLoader, caller, deserializedCaller, gas, method, receiver, actuals);
 		}
 
@@ -844,7 +846,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		public void run() {
 			try {
 				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
-				String methodName = ((MethodReference) methodOrConstructor).methodName;
+				String methodName = ((MethodSignature) methodOrConstructor).methodName;
 				Method methodJVM;
 				Object[] deserializedActuals = this.deserializedActuals;
 
@@ -900,7 +902,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param gas the gas provided for the execution
 		 * @param actuals the actuals provided to the method
 		 */
-		private StaticMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodReference method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) {
+		private StaticMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodSignature method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) {
 			super(classpath, classLoader, caller, deserializedCaller, gas, method, null, actuals);
 		}
 
@@ -908,7 +910,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		public void run() {
 			try {
 				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
-				Method methodJVM = clazz.getMethod(((MethodReference) methodOrConstructor).methodName, formalsAsClass(classLoader, methodOrConstructor));
+				Method methodJVM = clazz.getMethod(((MethodSignature) methodOrConstructor).methodName, formalsAsClass(classLoader, methodOrConstructor));
 
 				if (!Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
@@ -970,7 +972,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the array of classes, in the same order as the formals
 	 * @throws ClassNotFoundException if some class cannot be found
 	 */
-	private static Class<?>[] formalsAsClass(BlockchainClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
+	private static Class<?>[] formalsAsClass(BlockchainClassLoader classLoader, CodeSignature methodOrConstructor) throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
 			classes.add(type.toClass(classLoader));
@@ -988,7 +990,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the array of classes, in the same order as the formals
 	 * @throws ClassNotFoundException if some class cannot be found
 	 */
-	private static Class<?>[] formalsAsClassForEntry(BlockchainClassLoader classLoader, CodeReference methodOrConstructor) throws ClassNotFoundException {
+	private static Class<?>[] formalsAsClassForEntry(BlockchainClassLoader classLoader, CodeSignature methodOrConstructor) throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
 			classes.add(type.toClass(classLoader));

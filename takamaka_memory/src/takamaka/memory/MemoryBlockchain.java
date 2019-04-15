@@ -21,7 +21,7 @@ import java.util.SortedSet;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.Classpath;
-import takamaka.blockchain.FieldReference;
+import takamaka.blockchain.FieldSignature;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
@@ -94,7 +94,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected Update getLastLazyUpdateFor(StorageReference reference, FieldReference field) throws Exception {
+	protected Update getLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
 		MemoryTransactionReference cursor = (MemoryTransactionReference) reference.transaction;
 
 		do {
@@ -109,7 +109,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		throw new IllegalStateException("Did not find the last update for " + field + " of " + reference);
 	}
 
-	private Update getLastUpdateFor(StorageReference reference, FieldReference field, MemoryTransactionReference cursor) throws IOException {
+	private Update getLastUpdateFor(StorageReference reference, FieldSignature field, MemoryTransactionReference cursor) throws IOException {
 		Path updatesPath = getPathFor((MemoryTransactionReference) reference.transaction, UPDATES_NAME);
 		if (Files.exists(updatesPath)) {
 			Optional<Update> result = Files.lines(updatesPath)
@@ -287,7 +287,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void extractPathsRecursively(Classpath classpath, List<Path> result) throws IOException {
+	protected void extractPathsRecursively(Classpath classpath, List<Path> result) throws Exception {
 		if (classpath.recursive) {
 			Path path = getPathFor((MemoryTransactionReference) classpath.transaction, DEPENDENCIES_NAME);
 			if (Files.exists(path))

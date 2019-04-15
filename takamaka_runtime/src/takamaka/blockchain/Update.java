@@ -8,15 +8,48 @@ import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Immutable;
 
+/**
+ * An update is a triple statement that the field of a given storage object has been
+ * modified to a given value. Updates are stored in blockchain and
+ * describe the shape of storage objects.
+ */
 @Immutable
 public final class Update implements Comparable<Update> {
+
+	/**
+	 * The stirage reference of the object whose field is modified.
+	 */
 	public final StorageReference object;
-	public final FieldReference field;
+
+	/**
+	 * The field that is modified.
+	 */
+	public final FieldSignature field;
+
+	/**
+	 * The new value of the field.
+	 */
 	public final StorageValue value;
+
+	/**
+	 * This special name is used for the pseudo-field that keeps track
+	 * the class of a storage object.
+	 */
 	private final static String CLASS_TAG_FIELD_NAME = "@class";
+
+	/**
+	 * Used as dummy type for the pseudo-field {@link takamaka.blockchain.Update#CLASS_TAG_FIELD_NAME}.
+	 */
 	private final static BooleanValue VALUE_FOR_CLASS_TAG = new BooleanValue(true);
 
-	private Update(StorageReference object, FieldReference field, StorageValue value) {
+	/**
+	 * Builds an update.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 */
+	private Update(StorageReference object, FieldSignature field, StorageValue value) {
 		this.object = object;
 		this.field = field;
 		this.value = value;
@@ -24,7 +57,7 @@ public final class Update implements Comparable<Update> {
 
 	@Override
 	public String toString() {
-		return object + ";" + field + ";" + value;
+		return object + "!" + field.definingClass + "!" + field.name + "!" + field.type + "!" + value;
 	}
 
 	@Override
@@ -38,26 +71,56 @@ public final class Update implements Comparable<Update> {
 		return object.hashCode() ^ field.hashCode() ^ value.hashCode();
 	}
 
-	public static Update mk(StorageReference object, FieldReference field, StorageValue value) {
+	/**
+	 * Builds an update.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static Update mk(StorageReference object, FieldSignature field, StorageValue value) {
 		return new Update(object, field, value);
 	}
 
+	/**
+	 * Builds an update for the special pseudo-field that tracks the class of
+	 * a storage object.
+	 * 
+	 * @param object the storage reference of the object whose class is tracked
+	 * @param className the class of the object
+	 * @return the update
+	 */
 	public static Update mkForClassTag(StorageReference object, String className) {
-		return new Update(object, new FieldReference(className, CLASS_TAG_FIELD_NAME, BasicTypes.BOOLEAN), VALUE_FOR_CLASS_TAG);
+		return new Update(object, new FieldSignature(className, CLASS_TAG_FIELD_NAME, BasicTypes.BOOLEAN), VALUE_FOR_CLASS_TAG);
 	}
 
+	/**
+	 * Builds an update from its string representation. It must hold that
+	 * {@code update.equals(Update.mkFromString(blockchain, update.toString()))}.
+	 * 
+	 * @param blockchain the blockchain for which the update is being generated
+	 * @param s the string representation of the update
+	 * @return the update
+	 */
 	public static Update mkFromString(AbstractBlockchain blockchain, String s) {
-		String[] parts = s.split(";");
+		String[] parts = s.split("!");
 		if (parts.length != 5)
 			throw new IllegalArgumentException("Illegal string format " + s);
 
 		StorageType type = StorageType.of(parts[3]);
 
 		return new Update(new StorageReference(blockchain, parts[0]),
-			new FieldReference(new ClassType(parts[1]), parts[2], type),
+			new FieldSignature(new ClassType(parts[1]), parts[2], type),
 			StorageValue.of(blockchain, type, parts[4]));
 	}
 
+	/**
+	 * Determines if this is an update for the special pseudo-field used
+	 * to track the class of a storage object.
+	 * 
+	 * @return true if and only if this is an update of that special field
+	 */
 	public boolean isClassTag() {
 		return CLASS_TAG_FIELD_NAME.equals(field.name);
 	}

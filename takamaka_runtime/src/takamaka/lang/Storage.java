@@ -8,7 +8,7 @@ import java.util.Set;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.BlockchainClassLoader;
-import takamaka.blockchain.FieldReference;
+import takamaka.blockchain.FieldSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.types.BasicTypes;
@@ -70,7 +70,6 @@ public abstract class Storage {
 	 * 
 	 * @param result the set where the updates will be added
 	 * @param seen a set of storage references that have already been scanned
-	 * @return The updates.
 	 */
 	public final void updates(Set<Update> result, Set<StorageReference> seen) {
 		if (seen.add(storageReference)) {
@@ -115,12 +114,12 @@ public abstract class Storage {
 	}
 
 	protected final Object deserializeLastUpdateFor(String definingClass, String name, String className) throws Exception {
-		return blockchain.deserializeLastLazyUpdateFor(classLoader, storageReference, new FieldReference(definingClass, name, className));
+		return blockchain.deserializeLastLazyUpdateFor(classLoader, storageReference, new FieldSignature(definingClass, name, className));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet, String fieldClassName, Object s) {
 		// these values are not recursively followed
-		FieldReference field = new FieldReference(fieldDefiningClass, fieldName, fieldClassName);
+		FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, fieldClassName);
 
 		if (s == null)
 			updates.add(Update.mk(storageReference, field, NullValue.INSTANCE));
@@ -140,42 +139,42 @@ public abstract class Storage {
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), new BooleanValue(s)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), new BooleanValue(s)));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, byte s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.BYTE), new ByteValue(s)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BYTE), new ByteValue(s)));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, char s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.CHAR), new CharValue(s)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.CHAR), new CharValue(s)));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, double s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), new DoubleValue(s)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), new DoubleValue(s)));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, float s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.FLOAT), new FloatValue(s)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.FLOAT), new FloatValue(s)));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, int s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.INT), new IntValue(s)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.INT), new IntValue(s)));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, long s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.LONG), new LongValue(s)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.LONG), new LongValue(s)));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, BasicTypes.SHORT), new ShortValue(s)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.SHORT), new ShortValue(s)));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, String s) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, ClassType.STRING), s == null ? NullValue.INSTANCE : new StringValue(s)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING), s == null ? NullValue.INSTANCE : new StringValue(s)));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, BigInteger bi) {
-		updates.add(Update.mk(storageReference, new FieldReference(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER), bi == null ? NullValue.INSTANCE : new BigIntegerValue(bi)));
+		updates.add(Update.mk(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER), bi == null ? NullValue.INSTANCE : new BigIntegerValue(bi)));
 	}
 }
