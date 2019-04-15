@@ -40,30 +40,6 @@ public final class StorageReference implements StorageValue {
 		this.progressive = progressive;
 	}
 
-	/**
-	 * Builds a storage reference from a string. The format of the string is the
-	 * same that would be returned by {@code toString()}. Hence
-	 * {@code r.equals(new StorageReference(s.toString()))} holds for
-	 * every {@code StorageReference r}.
-	 * 
-	 * @param blokchain the blockchain for which the reference is being created
-	 * @param s the string
-	 * @throws NumberFormatException if the format of the string does not correspond
-	 *                               to a {@code StorageReference}
-	 */
-	public StorageReference(AbstractBlockchain blokchain, String s) throws NumberFormatException {
-		int index;
-
-		if (s == null || (index = s.indexOf('@')) < 0)
-			throw new NumberFormatException("Illegal transaction reference format: " + s);
-
-		String transactionPart = s.substring(0, index);
-		String progressivePart = s.substring(index + 1);
-		
-		this.transaction = blokchain.mkTransactionReferenceFrom(transactionPart);
-		this.progressive = new BigInteger(progressivePart);
-	}
-
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof StorageReference && ((StorageReference) other).progressive.equals(progressive) && ((StorageReference) other).transaction.equals(transaction);
@@ -88,12 +64,12 @@ public final class StorageReference implements StorageValue {
 	}
 
 	@Override
-	public String toString() {
-		return String.format("%s@%s", transaction, progressive);
+	public Storage deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
+		return blockchain.deserialize(classLoader, this);
 	}
 
 	@Override
-	public Storage deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
-		return blockchain.deserialize(classLoader, this);
+	public String toString() {
+		return transaction + "#" + progressive.toString(16);
 	}
 }

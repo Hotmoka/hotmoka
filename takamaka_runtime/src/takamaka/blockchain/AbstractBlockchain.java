@@ -82,15 +82,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	public abstract TransactionReference getCurrentTransactionReference();
 
 	/**
-	 * Yields the transaction reference from its string representation.
-	 * It must hold that {@code r.equals(mkTransactionReferenceFrom(r.toString()))}.
-	 * 
-	 * @param s the string representation
-	 * @return the transaction reference
-	 */
-	public abstract TransactionReference mkTransactionReferenceFrom(String s);
-
-	/**
 	 * Increases the internal reference to the transaction that will be executed next.
 	 */
 	protected abstract void stepToNextTransactionReference();
