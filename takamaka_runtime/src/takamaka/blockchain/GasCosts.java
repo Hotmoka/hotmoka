@@ -2,11 +2,13 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
+/**
+ * A specification of the cost of gas for the transactions.
+ */
 public class GasCosts {
+
 	/**
-	 * The minimal number of units of gas charged for a transaction. If the
-	 * transaction succeeds, extra charge will be added to this constant.
-	 * If the transaction fails, this basic cost is charged.
+	 * The minimal number of units of gas charged for a transaction. Extra charges may apply.
 	 */
 	public final static int BASE_TRANSACTION_COST = 100;
 
@@ -20,10 +22,16 @@ public class GasCosts {
 
 	/**
 	 * The units of gas charged for each dependency of a jar installed during
-	 *  jar installation transaction.
+	 * jar installation transaction.
 	 */
 	public final static double GAS_PER_DEPENDENCY_OF_JAR = 1000f;
 
+	/**
+	 * Provides the cost of a given amount of gas.
+	 * 
+	 * @param gas the amount of gas
+	 * @return the cost
+	 */
 	public static BigInteger toCoin(BigInteger gas) {
 		return gas.divide(TEN);
 	}

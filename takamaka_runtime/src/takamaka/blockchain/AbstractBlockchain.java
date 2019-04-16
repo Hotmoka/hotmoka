@@ -33,7 +33,7 @@ import takamaka.translator.Program;
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
  * and just implement the abstract template methods. The rest of code should work instead
- * as an general layer for all blockchain implementations.
+ * as a generic layer for all blockchain implementations.
  */
 public abstract class AbstractBlockchain implements Blockchain {
 	private static final String CONTRACT_NAME = "takamaka.lang.Contract";
@@ -68,6 +68,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * always in Java.
 	 */
 	private final Map<StorageReference, Storage> cache = new HashMap<>();
+
+	/**
+	 * The class loader for the transaction currently being executed.
+	 */
+	private BlockchainClassLoader classLoader;
 
 	// ABSTRACT TEMPLATE METHODS
 	// Any implementation of a blockchain must implement the following and leave the rest unchanged
@@ -206,7 +211,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		if (isInitialized)
 			throw new TransactionException("Blockchain already initialized");
 
-		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(takamakaBase)) {
+		try (BlockchainClassLoader classLoader = mkAndStoreBlockchainClassLoader(takamakaBase)) {
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 			Class<?> gameteClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
 			Class<?> contractClass = classLoader.loadClass(CONTRACT_NAME);
@@ -235,9 +240,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				throw new TransactionException("Blockchain already initialized");
 
 			Gas.init(BigInteger.ZERO);
-			TransactionReference jarReference = addJarStoreTransactionCommon(null, null, BigInteger.ZERO, null, jar, dependencies);
-			stepToNextTransactionReference();
-			return jarReference;
+			return addJarStoreTransactionCommon(null, null, BigInteger.ZERO, null, jar, dependencies);
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
@@ -246,7 +249,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	@Override
 	public final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException {
-		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
+		try (BlockchainClassLoader classLoader = mkAndStoreBlockchainClassLoader(classpath)) {
 			initTransaction(classLoader);
 			Storage deserializedCaller = caller.deserialize(classLoader, this);
 			checkIsExternallyOwned(classLoader, deserializedCaller);
@@ -258,14 +261,44 @@ public abstract class AbstractBlockchain implements Blockchain {
 			Gas.charge(GasCosts.BASE_TRANSACTION_COST);
 			Gas.charge((long) (dependencies.length * GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
 			Gas.charge((long) (Files.size(jar) * GasCosts.GAS_PER_BYTE_IN_JAR));
-			TransactionReference jarReference = addJarStoreTransactionCommon(caller, classpath, gas, deserializedCaller, jar, dependencies);
-			stepToNextTransactionReference();
-			return jarReference;
+			return addJarStoreTransactionCommon(caller, classpath, gas, deserializedCaller, jar, dependencies);
 		}
 		catch (Throwable t) {
 			//TODO store the update to the balance of the caller
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
 		}
+	}
+
+	@Override
+	public final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		return (StorageReference) transaction(caller, gas, classpath,
+				(classLoader, deserializedCaller) -> new ConstructorExecutor(classpath, classLoader, constructor, caller, deserializedCaller, gas, actuals));
+	}
+
+	@Override
+	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		return transaction(caller, gas, classpath,
+				(classLoader, deserializedCaller) -> new InstanceMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, receiver, actuals));
+	}
+
+	@Override
+	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		return transaction(caller, gas, classpath,
+				(classLoader, deserializedCaller) -> new StaticMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, actuals));
+	}
+
+	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
+	
+	/**
+	 * Builds the class loader for this blockchain, that loads classes from the given class path.
+	 * The class loader should look up for classes at the given class path or in its dependencies.
+	 * 
+	 * @param classpath the class path
+	 * @return the class loader
+	 * @throws Exception if the class loader cannot be created
+	 */
+	private BlockchainClassLoader mkAndStoreBlockchainClassLoader(Classpath classpath) throws Exception {
+		return this.classLoader = mkBlockchainClassLoader(classpath);
 	}
 
 	/**
@@ -287,43 +320,26 @@ public abstract class AbstractBlockchain implements Blockchain {
 		String jn = jarName.toString();
 		if (!jn.endsWith(".jar"))
 			throw new TransactionException("Jar file should end in .jar");
-
+	
 		if (jn.length() > MAX_JAR_NAME_LENGTH)
 			throw new TransactionException("Jar file name cannot be longer than " + MAX_JAR_NAME_LENGTH + " characters");
-
+	
 		TransactionReference ref = getCurrentTransactionReference();
 		for (Classpath dependency: dependencies)
 			if (!dependency.transaction.isOlderThan(ref))
 				throw new TransactionException("A transaction can only depend on older transactions");
-
+	
 		// we create a temporary file to hold the instrumented jar
 		Path instrumented = Files.createTempFile("instrumented", "jar");
 		new JarInstrumentation(jar, instrumented, mkProgram(jar, dependencies));
 	
 		if (deserializedCaller != null)
 			increaseBalance(deserializedCaller, Gas.remaining());
-
+	
 		addJarStoreTransactionInternal(caller, classpath, jar, instrumented, collectUpdates(null, deserializedCaller, null, null), gas, gas.subtract(Gas.remaining()), dependencies);
+		stepToNextTransactionReference();
 
 		return ref;
-	}
-
-	@Override
-	public final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return (StorageReference) transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new ConstructorExecutor(classpath, classLoader, constructor, caller, deserializedCaller, gas, actuals));
-	}
-
-	@Override
-	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new InstanceMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, receiver, actuals));
-	}
-
-	@Override
-	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new StaticMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, actuals));
 	}
 
 	/**
@@ -346,7 +362,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 *                                annotated as {@link takamaka.lang.ThrowsExceptions}
 	 */
 	private StorageValue transaction(StorageReference caller, BigInteger gas, Classpath classpath, ExecutorProducer executorProducer) throws TransactionException, CodeExecutionException {
-		try (BlockchainClassLoader classLoader = mkBlockchainClassLoader(classpath)) {
+		try (BlockchainClassLoader classLoader = mkAndStoreBlockchainClassLoader(classpath)) {
 			initTransaction(classLoader);
 			Storage deserializedCaller = caller.deserialize(classLoader, this);
 			checkIsExternallyOwned(classLoader, deserializedCaller);
@@ -479,13 +495,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * update of the given field. This can be of course made more efficient. For instance, {@code final}
 	 * fields can only be looked for in the transaction where the reference was created.
 	 * 
-	 * @param classLoader the class loader that must be used for the definition of the class of the reference
 	 * @param reference the storage reference
 	 * @param field the field, of lazy type
 	 * @return the value of the field
 	 * @throws Exception if the look up fails
 	 */
-	public final Object deserializeLastLazyUpdateFor(BlockchainClassLoader classLoader, StorageReference reference, FieldSignature field) throws Exception {
+	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
 		return getLastLazyUpdateFor(reference, field).value.deserialize(classLoader, this);
 	}
 
@@ -1031,7 +1046,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param classLoader the class loader that must be used for the execution of the transaction
 	 */
 	private void initTransaction(BlockchainClassLoader classLoader) {
-		Storage.init(AbstractBlockchain.this, classLoader); // this blockchain will be used during the execution of the code
+		Storage.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
 		events.clear();
 		cache.clear();
 	}

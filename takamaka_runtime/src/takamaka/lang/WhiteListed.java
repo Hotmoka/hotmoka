@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * States that a method or constructor can be called from Takamaka code.
+ * States that a method or constructor can be called from user code.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value={ METHOD, CONSTRUCTOR })

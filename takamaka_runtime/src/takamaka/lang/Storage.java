@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.FieldSignature;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.types.BasicTypes;
@@ -29,7 +28,6 @@ public abstract class Storage {
 	public final StorageReference storageReference;
 	protected final boolean inStorage;
 	private static AbstractBlockchain blockchain;
-	private static BlockchainClassLoader classLoader;
 	private static BigInteger nextProgressive;
 
 	/**
@@ -37,35 +35,33 @@ public abstract class Storage {
 	 * 
 	 * @param blockchain the blockchain used for the new transaction
 	 */
-	public static void init(AbstractBlockchain blockchain, BlockchainClassLoader classLoader) {
+	public static void init(AbstractBlockchain blockchain) {
 		Storage.blockchain = blockchain;
-		Storage.classLoader = classLoader;
 		nextProgressive = BigInteger.ZERO;
 	}
+
 	/**
-	 * Constructor used by the programmer to build objects not yet in storage
+	 * Constructs an object that can be stored in blockchain.
 	 */
+	@WhiteListed
 	protected Storage() {
 		this.inStorage = false;
 		this.storageReference = new StorageReference(blockchain.getCurrentTransactionReference(), nextProgressive);
 		nextProgressive = nextProgressive.add(BigInteger.ONE);
 	}
 
-	/**
-	 * Constructor used by Takamaka for deserialisation from blockchain.
-	 */
-	protected Storage(StorageReference storageReference) {
-		this.inStorage = true;
-		this.storageReference = storageReference;
-	}
-
+	@WhiteListed
 	protected final void event(String tag, Object... objects) {
 		blockchain.event(tag + ": " + Arrays.toString(objects));
 	}
 
+	// ALL SUBSEQUENT METHODS ARE USED IN INSTRUMENTED CODE
+
 	/**
-	 * Takamaka calls this to collect the updates to this object and to
-	 * the objects that are reachable from it.
+	 * Collects the updates to this object and to
+	 * the objects that are reachable from it. This is used at the end of a
+	 * transaction, to collect and then store the updates resulting from
+	 * the transaction.
 	 * 
 	 * @param result the set where the updates will be added
 	 * @param seen a set of storage references that have already been scanned
@@ -83,8 +79,18 @@ public abstract class Storage {
 	}
 
 	/**
+	 * Constructor used for deserialization from blockchain, in instrumented code.
+	 * 
+	 * @param storageReference the reference to deserialize
+	 */
+	protected Storage(StorageReference storageReference) {
+		this.inStorage = true;
+		this.storageReference = storageReference;
+	}
+
+	/**
 	 * Collects the updates to this object and to those reachable from it.
-	 * Storage classes will redefine this method to include updates to all their fields.
+	 * The instrumentation of storage classes redefines this to include updates to all their fields.
 	 * 
 	 * @param updates the set where storage updates will be collected
 	 * @param seen the storage references of the objects already considered during the scan of the storage
@@ -113,7 +119,7 @@ public abstract class Storage {
 	}
 
 	protected final Object deserializeLastUpdateFor(String definingClass, String name, String className) throws Exception {
-		return blockchain.deserializeLastLazyUpdateFor(classLoader, storageReference, new FieldSignature(definingClass, name, className));
+		return blockchain.deserializeLastLazyUpdateFor(storageReference, new FieldSignature(definingClass, name, className));
 	}
 
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet, String fieldClassName, Object s) {

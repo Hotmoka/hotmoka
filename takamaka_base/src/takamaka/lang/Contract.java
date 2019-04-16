@@ -65,7 +65,7 @@ public abstract class Contract extends Storage {
 	 * @throws RequirementViolationException if the condition does not hold
 	 */
 	@WhiteListed
-	protected final void require(boolean condition, String message) {
+	public static void require(boolean condition, String message) {
 		if (!condition)
 			throw new RequirementViolationException(message);
 	}
@@ -80,7 +80,7 @@ public abstract class Contract extends Storage {
 	 * @throws RequirementViolationException if the condition does not hold
 	 */
 	@WhiteListed
-	protected final void requireThat(boolean condition, String message) {
+	public static void requireThat(boolean condition, String message) {
 		if (!condition)
 			throw new RequirementViolationException(message);
 	}
@@ -94,7 +94,7 @@ public abstract class Contract extends Storage {
 	 * @throws AssertionViolationException if the condition does not hold
 	 */
 	@WhiteListed
-	protected final void assertThat(boolean condition, String message) {
+	public static void assertThat(boolean condition, String message) {
 		if (!condition)
 			throw new AssertionViolationException(message);
 	}
