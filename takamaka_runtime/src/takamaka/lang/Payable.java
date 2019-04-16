@@ -9,6 +9,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * An entry is payable if the caller transfers funds to the contract
+ * of the entry at call time.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value={ METHOD, CONSTRUCTOR })
 @Inherited

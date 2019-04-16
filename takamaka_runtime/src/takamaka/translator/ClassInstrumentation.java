@@ -79,7 +79,7 @@ class ClassInstrumentation {
 	private final static String PAYABLE_ENTRY = "payableEntry";
 	private final static String ENTRY = "entry";
 	private final static String IN_STORAGE_NAME = "inStorage";
-	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastUpdateFor";
+	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 	private final static String ENTRY_CLASS_NAME_JB = 'L' + Entry.class.getName().replace('.', '/') + ';';
 	private final static String PAYABLE_CLASS_NAME_JB = 'L' + Payable.class.getName().replace('.', '/') + ';';
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";

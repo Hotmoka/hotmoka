@@ -1,5 +1,8 @@
 package auction;
 
+import static takamaka.lang.Takamaka.event;
+import static takamaka.lang.Takamaka.require;
+
 import java.util.Arrays;
 
 import takamaka.crypto.Keccak256;
@@ -12,7 +15,8 @@ import takamaka.util.StorageList;
 import takamaka.util.StorageMap;
 
 public class BlindAuction extends Contract {
-    private static class Bid extends Storage {
+
+	private static class Bid extends Storage {
         private byte[] blindedBid; // 32 bytes hash
         private final int deposit;
         private Bid(byte[] blindedBid, int deposit) {
@@ -102,6 +106,7 @@ public class BlindAuction extends Contract {
 
         highestBid = value;
         highestBidder = bidder;
+        event(new BidIncrease(bidder, value));
 
         return true;
     }
@@ -110,8 +115,9 @@ public class BlindAuction extends Contract {
     public void auctionEnd() {
         onlyAfter(revealEnd);
         require(!ended, "auction is already ended");
-        event("Auction end.", highestBidder, highestBid);
+        
         ended = true;
         beneficiary.receive(highestBid);
+        event(new AuctionEnd(highestBidder, highestBid));
     }
 }

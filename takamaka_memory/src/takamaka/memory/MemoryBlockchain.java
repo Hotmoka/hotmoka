@@ -40,6 +40,7 @@ import takamaka.blockchain.values.ShortValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
+import takamaka.lang.Event;
 
 public class MemoryBlockchain extends AbstractBlockchain {
 	/**
@@ -255,7 +256,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		addCodeExecutionTransactionInternal(spec, executor.updates(), executor.events());
 	}
 
-	private void addCodeExecutionTransactionInternal(String spec, SortedSet<Update> updates, List<String> events) throws IOException {
+	private void addCodeExecutionTransactionInternal(String spec, SortedSet<Update> updates, List<Event> events) throws IOException {
 		dumpTransactionSpec(spec);
 		dumpTransactionUpdates(updates);
 		dumpTransactionEvents(events);
@@ -271,7 +272,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 	}
 
-	private void dumpTransactionEvents(List<String> events) throws IOException {
+	private void dumpTransactionEvents(List<Event> events) throws IOException {
 		Path eventsPath = getCurrentPathFor(EVENTS_NAME);
 
 		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(eventsPath.toFile())))) {

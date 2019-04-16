@@ -11,6 +11,9 @@ import java.lang.annotation.Target;
 
 /**
  * States that a method or constructor can be called from user code.
+ * This is significant for code that is not in the jars used as
+ * class path for the transaction that runs the method or constructor
+ * and for the {@code takamaka.*} hierarchy.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value={ METHOD, CONSTRUCTOR })

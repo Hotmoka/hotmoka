@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 /**
  * States that a transaction that calls an entry should be considered
  * as successful also when the entry throws exceptions that are not
- * {@link java.lang.Error}. Hence, its updates are kept in blockchain.
+ * {@link java.lang.Error}. In that case, its updates are kept in blockchain.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value={ METHOD, CONSTRUCTOR })

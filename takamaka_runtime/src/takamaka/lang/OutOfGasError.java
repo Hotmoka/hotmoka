@@ -3,9 +3,10 @@ package takamaka.lang;
 import java.math.BigInteger;
 
 /**
- * An exception thrown when a contract has not enough funds to
- * pay for the required gas.
+ * An exception thrown when a transaction has not enough gas
+ * to complete its computation.
  */
+@SuppressWarnings("serial")
 public class OutOfGasError extends Error {
 	public OutOfGasError(BigInteger amount) {
 		super("Missing " + amount + " gas units");

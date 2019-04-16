@@ -12,20 +12,25 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
+import takamaka.lang.Event;
 import takamaka.lang.InsufficientFundsError;
 import takamaka.lang.OutOfGasError;
 import takamaka.lang.Storage;
+import takamaka.lang.Takamaka;
+import takamaka.lang.WhiteListed;
 import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.Program;
@@ -38,11 +43,6 @@ import takamaka.translator.Program;
 public abstract class AbstractBlockchain implements Blockchain {
 	private static final String CONTRACT_NAME = "takamaka.lang.Contract";
 	private static final String EXTERNALLY_OWNED_ACCOUNT_NAME = "takamaka.lang.ExternallyOwnedAccount";
-
-	/**
-	 * The maximal length of an event message. This prevents spamming with long event messages.
-	 */
-	public final static int MAX_EVENT_LENGTH = 1000;
 
 	/**
 	 * The maximal length of the name of a jar installed in this blockchain, including its suffix.
@@ -58,7 +58,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
 	 */
-	private final List<String> events = new ArrayList<>();
+	private final List<Event> events = new ArrayList<>();
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -70,9 +70,21 @@ public abstract class AbstractBlockchain implements Blockchain {
 	private final Map<StorageReference, Storage> cache = new HashMap<>();
 
 	/**
+	 * The remaining amount of gas for the current transaction, not yet consumed.
+	 */
+	private BigInteger gas;
+	/**
+	 * A stack of available gas. When a sub-computation is started
+	 * with a subset of the available gas, the latter is taken away from
+	 * the current available gas and pushed on top of this stack.
+	 */
+	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
+	/**
 	 * The class loader for the transaction currently being executed.
 	 */
 	private BlockchainClassLoader classLoader;
+
+	
 
 	// ABSTRACT TEMPLATE METHODS
 	// Any implementation of a blockchain must implement the following and leave the rest unchanged
@@ -192,16 +204,73 @@ public abstract class AbstractBlockchain implements Blockchain {
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 
 	/**
+	 * Decreases the available gas by the given amount.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	public final void charge(BigInteger amount) {
+		if (amount.signum() <= 0)
+			throw new IllegalArgumentException("Gas can only decrease");
+	
+		if (gas.compareTo(amount) < 0)
+			// we report how much gas is missing
+			throw new OutOfGasError(amount.subtract(gas));
+	
+		gas = gas.subtract(amount);
+	}
+
+	/**
+	 * Decreases the available gas by the given amount.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	public final void charge(long amount) {
+		charge(BigInteger.valueOf(amount));
+	}
+
+	/**
+	 * Decreases the available gas by the given amount.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	public final void charge(int amount) {
+		charge(BigInteger.valueOf(amount));
+	}
+
+	/**
+	 * Runs a given piece of code with a subset of the available gas.
+	 * It first charges the given amount of gas. Then runs the code
+	 * with the charged gas only. At its end, the remaining gas is added
+	 * to the available gas to continue the computation.
+	 * 
+	 * @param amount the amount of gas provided to the code
+	 * @param what the code to run
+	 * @return the result of the execution of the code
+	 * @throws OutOfGasError if there is not enough gas
+	 * @throws Exception if the code runs into this exception
+	 */
+	public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
+		charge(amount);
+		oldGas.addFirst(gas);
+		gas = amount;
+	
+		try {
+			return what.call();
+		}
+		finally {
+			gas = gas.add(oldGas.removeFirst());
+		}
+	}
+
+	/**
 	 * Adds an event to those occurred during the execution of the current transaction.
 	 * 
-	 * @param event the event description
-	 * @throws IllegalArgumentException if the event is {@code null} or longer than {@link AbstractBlockchain#MAX_EVENT_LENGTH}
+	 * @param event the event
+	 * @throws IllegalArgumentException if the event is {@code null}
 	 */
-	public final void event(String event) {
+	public final void event(Event event) {
 		if (event == null)
 			throw new IllegalArgumentException("Events cannot be null");
-		else if (event.length() > MAX_EVENT_LENGTH)
-			throw new IllegalArgumentException("Events cannot be longer than " + MAX_EVENT_LENGTH + " characters");
 
 		events.add(event);
 	}
@@ -212,10 +281,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 			throw new TransactionException("Blockchain already initialized");
 
 		try (BlockchainClassLoader classLoader = mkAndStoreBlockchainClassLoader(takamakaBase)) {
+			initTransaction(BigInteger.ZERO);
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 			Class<?> gameteClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
 			Class<?> contractClass = classLoader.loadClass(CONTRACT_NAME);
-			initTransaction(classLoader);
 			Storage gamete = (Storage) gameteClass.newInstance();
 			// we set the balance field of the gamete
 			Field balanceField = contractClass.getDeclaredField("balance");
@@ -239,7 +308,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			if (isInitialized)
 				throw new TransactionException("Blockchain already initialized");
 
-			Gas.init(BigInteger.ZERO);
+			initTransaction(BigInteger.ZERO);
 			return addJarStoreTransactionCommon(null, null, BigInteger.ZERO, null, jar, dependencies);
 		}
 		catch (Throwable t) {
@@ -250,17 +319,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException {
 		try (BlockchainClassLoader classLoader = mkAndStoreBlockchainClassLoader(classpath)) {
-			initTransaction(classLoader);
+			initTransaction(gas);
 			Storage deserializedCaller = caller.deserialize(classLoader, this);
 			checkIsExternallyOwned(classLoader, deserializedCaller);
-			Gas.init(gas);
 
 			// we sell all gas first. What remains will be paid back at the end
 			decreaseBalance(deserializedCaller, gas);
 
-			Gas.charge(GasCosts.BASE_TRANSACTION_COST);
-			Gas.charge((long) (dependencies.length * GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
-			Gas.charge((long) (Files.size(jar) * GasCosts.GAS_PER_BYTE_IN_JAR));
+			charge(GasCosts.BASE_TRANSACTION_COST);
+			charge((long) (dependencies.length * GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
+			charge((long) (Files.size(jar) * GasCosts.GAS_PER_BYTE_IN_JAR));
 			return addJarStoreTransactionCommon(caller, classpath, gas, deserializedCaller, jar, dependencies);
 		}
 		catch (Throwable t) {
@@ -334,9 +402,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 		new JarInstrumentation(jar, instrumented, mkProgram(jar, dependencies));
 	
 		if (deserializedCaller != null)
-			increaseBalance(deserializedCaller, Gas.remaining());
+			increaseBalance(deserializedCaller, remainingGas());
 	
-		addJarStoreTransactionInternal(caller, classpath, jar, instrumented, collectUpdates(null, deserializedCaller, null, null), gas, gas.subtract(Gas.remaining()), dependencies);
+		addJarStoreTransactionInternal(caller, classpath, jar, instrumented, collectUpdates(null, deserializedCaller, null, null), gas, gas.subtract(remainingGas()), dependencies);
 		stepToNextTransactionReference();
 
 		return ref;
@@ -363,12 +431,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	private StorageValue transaction(StorageReference caller, BigInteger gas, Classpath classpath, ExecutorProducer executorProducer) throws TransactionException, CodeExecutionException {
 		try (BlockchainClassLoader classLoader = mkAndStoreBlockchainClassLoader(classpath)) {
-			initTransaction(classLoader);
+			initTransaction(gas);
 			Storage deserializedCaller = caller.deserialize(classLoader, this);
 			checkIsExternallyOwned(classLoader, deserializedCaller);
-			Gas.init(gas);
 			decreaseBalance(deserializedCaller, gas);
-			Gas.charge(GasCosts.BASE_TRANSACTION_COST);
+			charge(GasCosts.BASE_TRANSACTION_COST);
 
 			CodeExecutor executor = executorProducer.produce(classLoader, deserializedCaller);
 			executor.start();
@@ -378,7 +445,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				throw (TransactionException) executor.exception;
 
 			StorageValue result = executor.exception == null ? StorageValue.serialize(executor.result) : null;
-			increaseBalance(deserializedCaller, Gas.remaining());
+			increaseBalance(deserializedCaller, remainingGas());
 			executor.addTransactionInternal();
 			stepToNextTransactionReference();
 
@@ -743,7 +810,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * 
 		 * @return the events
 		 */
-		public final List<String> events() {
+		public final List<Event> events() {
 			return events;
 		}
 
@@ -753,7 +820,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @return the gas consumed
 		 */
 		public final BigInteger gasConsumed() {
-			return gas.subtract(Gas.remaining());
+			return gas.subtract(remainingGas());
 		}
 
 		/**
@@ -938,6 +1005,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	/**
+	 * Yields the amount of gas still available to the
+	 * currently executing transaction.
+	 * 
+	 * @return the remaining gas
+	 */
+	private BigInteger remainingGas() {
+		return gas;
+	}
+
+	/**
 	 * Builds the program that contains the classes of a jar and its dependencies.
 	 * 
 	 * @param jar the jar
@@ -1043,11 +1120,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * Initializes the state at the beginning of the execution of a new transaction
 	 * 
-	 * @param classLoader the class loader that must be used for the execution of the transaction
+	 * @param gas the amount of gas available for the transaction
 	 */
-	private void initTransaction(BlockchainClassLoader classLoader) {
-		Storage.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
+	private void initTransaction(BigInteger gas) {
+		Takamaka.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
 		events.clear();
 		cache.clear();
+		this.gas = gas;
+		oldGas.clear();
 	}
 }

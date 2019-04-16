@@ -1,5 +1,8 @@
 package takamaka.lang;
 
+
+import static takamaka.lang.Takamaka.require;
+
 import java.math.BigInteger;
 
 /**
@@ -53,50 +56,6 @@ public abstract class Contract extends Storage {
 	@WhiteListed
 	protected final BigInteger balance() {
 		return balance;
-	}
-
-	/**
-	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.lang.Contract#requireThat(boolean, String)}.
-	 * 
-	 * @param condition the condition that must hold
-	 * @param message the message used in the exception raised if the
-	 *                condition does not hold
-	 * @throws RequirementViolationException if the condition does not hold
-	 */
-	@WhiteListed
-	public static void require(boolean condition, String message) {
-		if (!condition)
-			throw new RequirementViolationException(message);
-	}
-
-	/**
-	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.lang.Contract#require(boolean, String)}.
-	 * 
-	 * @param condition the condition that must hold
-	 * @param message the message used in the exception raised if the
-	 *                condition does not hold
-	 * @throws RequirementViolationException if the condition does not hold
-	 */
-	@WhiteListed
-	public static void requireThat(boolean condition, String message) {
-		if (!condition)
-			throw new RequirementViolationException(message);
-	}
-
-	/**
-	 * Asserts that the given condition holds.
-	 * 
-	 * @param condition the condition that must hold
-	 * @param message the message used in the exception raised if the
-	 *                condition does not hold
-	 * @throws AssertionViolationException if the condition does not hold
-	 */
-	@WhiteListed
-	public static void assertThat(boolean condition, String message) {
-		if (!condition)
-			throw new AssertionViolationException(message);
 	}
 
 	@WhiteListed @Override
