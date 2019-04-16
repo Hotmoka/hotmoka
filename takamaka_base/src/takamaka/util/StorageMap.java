@@ -4,7 +4,15 @@ import java.util.function.Function;
 
 import takamaka.lang.Storage;
 
-public class StorageMap<K,E> extends Storage {
+/**
+ * A map between storage objects.
+ *
+ * @param <K> the type of the keys
+ * @param <E> the type of the elements
+ */
+public class StorageMap<K, E> extends Storage {
+	
+	//TODO: not allowed in storage class
 	private final Function<K,E> provider;
 
 	public StorageMap() {

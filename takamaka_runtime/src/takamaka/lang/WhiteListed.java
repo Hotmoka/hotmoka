@@ -9,9 +9,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * States that a method or constructor can be called from Takamaka code.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value={ METHOD, CONSTRUCTOR })
 @Inherited
 @Documented
-public @interface Entry {
+public @interface WhiteListed {
 }
