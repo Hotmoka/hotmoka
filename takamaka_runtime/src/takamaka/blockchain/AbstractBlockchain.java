@@ -30,7 +30,6 @@ import takamaka.lang.InsufficientFundsError;
 import takamaka.lang.OutOfGasError;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
-import takamaka.lang.WhiteListed;
 import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.Program;
@@ -79,12 +78,51 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * the current available gas and pushed on top of this stack.
 	 */
 	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
+
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	private BlockchainClassLoader classLoader;
+	private BlockchainClassLoader classLoader;	
 
-	
+	/**
+	 * A comparator that puts updates in the order required for the parameter
+	 * of the deserialization constructor of storage objects: fields of superclasses first;
+	 * then follow the fields for the same class, ordered by name and then by the
+	 * {@code toString()} of their type.
+	 */
+	private final Comparator<Update> updateComparator = new Comparator<Update>() {
+
+		@Override
+		public int compare(Update update1, Update update2) {
+			FieldSignature field1 = update1.field;
+			FieldSignature field2 = update2.field;
+
+			try {
+				String className1 = field1.definingClass.name;
+				String className2 = field2.definingClass.name;
+
+				if (className1.equals(className2)) {
+					int diff = field1.name.compareTo(field2.name);
+					if (diff != 0)
+						return diff;
+					else
+						return field1.type.toString().compareTo(field2.type.toString());
+				}
+
+				Class<?> clazz1 = classLoader.loadClass(className1);
+				Class<?> clazz2 = classLoader.loadClass(className2);
+				if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
+					return -1;
+				else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
+					return 1;
+				else
+					throw new IllegalStateException("Updates are not on the same supeclass chain");
+			}
+			catch (ClassNotFoundException e) {
+				throw new IllegalStateException(e);
+			}
+		}
+	};
 
 	// ABSTRACT TEMPLATE METHODS
 	// Any implementation of a blockchain must implement the following and leave the rest unchanged
@@ -280,7 +318,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		if (isInitialized)
 			throw new TransactionException("Blockchain already initialized");
 
-		try (BlockchainClassLoader classLoader = mkAndStoreBlockchainClassLoader(takamakaBase)) {
+		try (BlockchainClassLoader classLoader = this.classLoader = mkBlockchainClassLoader(takamakaBase)) {
 			initTransaction(BigInteger.ZERO);
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 			Class<?> gameteClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
@@ -318,10 +356,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	@Override
 	public final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException {
-		try (BlockchainClassLoader classLoader = mkAndStoreBlockchainClassLoader(classpath)) {
+		try (BlockchainClassLoader classLoader = this.classLoader = mkBlockchainClassLoader(classpath)) {
 			initTransaction(gas);
-			Storage deserializedCaller = caller.deserialize(classLoader, this);
-			checkIsExternallyOwned(classLoader, deserializedCaller);
+			Storage deserializedCaller = caller.deserialize(this);
+			checkIsExternallyOwned(deserializedCaller);
 
 			// we sell all gas first. What remains will be paid back at the end
 			decreaseBalance(deserializedCaller, gas);
@@ -339,36 +377,21 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	@Override
 	public final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return (StorageReference) transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new ConstructorExecutor(classpath, classLoader, constructor, caller, deserializedCaller, gas, actuals));
+		return (StorageReference) transaction(caller, gas, classpath, deserializedCaller -> new ConstructorExecutor(classpath, constructor, caller, deserializedCaller, gas, actuals));
 	}
 
 	@Override
 	public final StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new InstanceMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, receiver, actuals));
+		return transaction(caller, gas, classpath, deserializedCaller -> new InstanceMethodExecutor(classpath, method, caller, deserializedCaller, gas, receiver, actuals));
 	}
 
 	@Override
 	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return transaction(caller, gas, classpath,
-				(classLoader, deserializedCaller) -> new StaticMethodExecutor(classpath, classLoader, method, caller, deserializedCaller, gas, actuals));
+		return transaction(caller, gas, classpath, deserializedCaller -> new StaticMethodExecutor(classpath, method, caller, deserializedCaller, gas, actuals));
 	}
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 	
-	/**
-	 * Builds the class loader for this blockchain, that loads classes from the given class path.
-	 * The class loader should look up for classes at the given class path or in its dependencies.
-	 * 
-	 * @param classpath the class path
-	 * @return the class loader
-	 * @throws Exception if the class loader cannot be created
-	 */
-	private BlockchainClassLoader mkAndStoreBlockchainClassLoader(Classpath classpath) throws Exception {
-		return this.classLoader = mkBlockchainClassLoader(classpath);
-	}
-
 	/**
 	 * Used by both {@link takamaka.blockchain.AbstractBlockchain#addJarStoreInitialTransaction(Path, Classpath...)} and
 	 * {@link takamaka.blockchain.AbstractBlockchain#addJarStoreTransaction(StorageReference, BigInteger, Classpath, Path, Classpath...)}
@@ -411,10 +434,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	/**
+	 * A class loader used to access the definition of the classes
+	 * of Takamaka methods or constructors executed during a transaction.
+	 */
+	protected interface BlockchainClassLoader extends AutoCloseable {
+		public Class<?> loadClass(String name) throws ClassNotFoundException;
+		public ClassLoader getParent();
+	}
+
+	/**
 	 * The thread that executes a constructor or method.
 	 */
 	private interface ExecutorProducer {
-		CodeExecutor produce(BlockchainClassLoader classLoader, Storage deserializedCaller) throws Exception;
+		CodeExecutor produce(Storage deserializedCaller) throws Exception;
 	}
 
 	/**
@@ -430,14 +462,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 *                                annotated as {@link takamaka.lang.ThrowsExceptions}
 	 */
 	private StorageValue transaction(StorageReference caller, BigInteger gas, Classpath classpath, ExecutorProducer executorProducer) throws TransactionException, CodeExecutionException {
-		try (BlockchainClassLoader classLoader = mkAndStoreBlockchainClassLoader(classpath)) {
+		try (BlockchainClassLoader classLoader = this.classLoader = mkBlockchainClassLoader(classpath)) {
 			initTransaction(gas);
-			Storage deserializedCaller = caller.deserialize(classLoader, this);
-			checkIsExternallyOwned(classLoader, deserializedCaller);
+			Storage deserializedCaller = caller.deserialize(this);
+			checkIsExternallyOwned(deserializedCaller);
 			decreaseBalance(deserializedCaller, gas);
 			charge(GasCosts.BASE_TRANSACTION_COST);
 
-			CodeExecutor executor = executorProducer.produce(classLoader, deserializedCaller);
+			CodeExecutor executor = executorProducer.produce(deserializedCaller);
 			executor.start();
 			executor.join();
 
@@ -466,63 +498,24 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * Deserializes the given storage reference from the blockchain. It first checks in a cache if the
 	 * same reference has been already deserialized during the current transaction and in such a case yeilds
-	 * the same object. Otherwise, it calls method {@link takamaka.blockchain.AbstractBlockchain#deserializeAnew(BlockchainClassLoader, StorageReference)}
+	 * the same object. Otherwise, it calls method {@link takamaka.blockchain.AbstractBlockchain#deserializeAnew(StorageReference)}
 	 * and yields the resulting object.
 	 * 
-	 * @param classLoader the class loader that must be used for finding the definition of the class of the reference
 	 * @param reference the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	public final Storage deserialize(BlockchainClassLoader classLoader, StorageReference reference) {
-		return cache.computeIfAbsent(reference, _reference -> deserializeAnew(classLoader, _reference));
+	public final Storage deserialize(StorageReference reference) {
+		return cache.computeIfAbsent(reference, this::deserializeAnew);
 	}
 
 	/**
 	 * Deserializes the given storage reference from the blockchain.
 	 * 
-	 * @param classLoader the class loader that must be used for finding the definition of the class of the reference
 	 * @param reference the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	private Storage deserializeAnew(BlockchainClassLoader classLoader, StorageReference reference) {
+	private Storage deserializeAnew(StorageReference reference) {
 		try {
-			// this comparator puts updates in the order required for the parameter
-			// of the deserialization constructor of storage objects: fields of superclasses first;
-			// for the same class, fields are ordered by name and then by type
-			Comparator<Update> updateComparator = new Comparator<Update>() {
-		
-				@Override
-				public int compare(Update update1, Update update2) {
-					FieldSignature field1 = update1.field;
-					FieldSignature field2 = update2.field;
-		
-					try {
-						String className1 = field1.definingClass.name;
-						String className2 = field2.definingClass.name;
-		
-						if (className1.equals(className2)) {
-							int diff = field1.name.compareTo(field2.name);
-							if (diff != 0)
-								return diff;
-							else
-								return field1.type.toString().compareTo(field2.type.toString());
-						}
-		
-						Class<?> clazz1 = classLoader.loadClass(className1);
-						Class<?> clazz2 = classLoader.loadClass(className2);
-						if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
-							return -1;
-						else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
-							return 1;
-						else
-							throw new IllegalStateException("Updates are not on the same supeclass chain");
-					}
-					catch (ClassNotFoundException e) {
-						throw new IllegalStateException(e);
-					}
-				}
-			};
-
 			SortedSet<Update> updates = new TreeSet<>(updateComparator);
 			collectEagerUpdatesFor(reference, updates);
 	
@@ -543,8 +536,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 	
 			for (Update update: updates)
 				if (!update.isClassTag()) {
-					formals.add(update.field.type.toClass(classLoader));
-					actuals.add(update.value.deserialize(classLoader, this));
+					formals.add(update.field.type.toClass(this));
+					actuals.add(update.value.deserialize(this));
 				}
 	
 			Class<?> clazz = classLoader.loadClass(className);
@@ -568,7 +561,18 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the look up fails
 	 */
 	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		return getLastLazyUpdateFor(reference, field).value.deserialize(classLoader, this);
+		return getLastLazyUpdateFor(reference, field).value.deserialize(this);
+	}
+
+	/**
+	 * Yields the class with the given name for the current transaction.
+	 * 
+	 * @param name the name of the class
+	 * @return the class, if any
+	 * @throws ClassNotFoundException if the class cannot be found for the current transaction
+	 */
+	public final Class<?> loadClass(String name) throws ClassNotFoundException {
+		return classLoader.loadClass(name);
 	}
 
 	/**
@@ -628,7 +632,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws ClassNotFoundException if the {@link takamaka.lang.ExternallyOwnedAccount} class cannot be found
 	 *                                in the class path of the transaction
 	 */
-	private static void checkIsExternallyOwned(BlockchainClassLoader classLoader, Storage object) throws ClassNotFoundException {
+	private void checkIsExternallyOwned(Storage object) throws ClassNotFoundException {
 		Class<?> eoaClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
 		if (!eoaClass.isAssignableFrom(object.getClass()))
 			throw new IllegalArgumentException("Only an externally owned contract can start a transaction");
@@ -690,12 +694,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		public final Classpath classpath;
 
 		/**
-		 * The class loader that must be used to find the classes during the execution of the
-		 * method or constructor.
-		 */
-		protected final BlockchainClassLoader classLoader;
-
-		/**
 		 * The caller, that pays for the execution.
 		 */
 		public final StorageReference caller;
@@ -747,17 +745,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param receiver the receiver of the call, if any. This is {@code null} for constructors and static methods
 		 * @param actuals the actuals provided to the method or constructor
 		 */
-		private CodeExecutor(Classpath classpath, BlockchainClassLoader classLoader, StorageReference caller, Storage deseralizedCaller, BigInteger gas, CodeSignature methodOrConstructor, StorageReference receiver, StorageValue... actuals) {
+		private CodeExecutor(Classpath classpath, StorageReference caller, Storage deseralizedCaller, BigInteger gas, CodeSignature methodOrConstructor, StorageReference receiver, StorageValue... actuals) {
 			this.classpath = classpath;
-			this.classLoader = classLoader;
 			this.caller = caller;
 			this.deserializedCaller = deseralizedCaller;
 			this.gas = gas;
 			this.methodOrConstructor = methodOrConstructor;
 			this.receiver = receiver;
-			this.deserializedReceiver = receiver != null ? receiver.deserialize(classLoader, AbstractBlockchain.this) : null;
+			this.deserializedReceiver = receiver != null ? receiver.deserialize(AbstractBlockchain.this) : null;
 			this.actuals = actuals;
-			this.deserializedActuals = deserialize(classLoader, actuals);
+			this.deserializedActuals = deserializeActuals();
 
 			setContextClassLoader(new ClassLoader(classLoader.getParent()) {
 
@@ -766,6 +763,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 					return classLoader.loadClass(name);
 				}
 			});
+		}
+
+		/**
+		 * Deserializes the actual arguments.
+		 * 
+		 * @return the deserialized actuals
+		 */
+		private Object[] deserializeActuals() {
+			Object[] deserialized = new Object[actuals.length];
+			for (int pos = 0; pos < actuals.length; pos++)
+				deserialized[pos] = actuals[pos].deserialize(AbstractBlockchain.this);
+			
+			return deserialized;
 		}
 
 		/**
@@ -824,6 +834,56 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		/**
+		 * Yields the classes of the formal arguments of the method or constructor.
+		 * 
+		 * @return the array of classes, in the same order as the formals
+		 * @throws ClassNotFoundException if some class cannot be found
+		 */
+		protected Class<?>[] formalsAsClass() throws ClassNotFoundException {
+			List<Class<?>> classes = new ArrayList<>();
+			for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
+				classes.add(type.toClass(AbstractBlockchain.this));
+
+			return classes.toArray(new Class<?>[classes.size()]);
+		}
+
+		/**
+		 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
+		 * and {@link takamaka.lang.Entry}. Entries are instrumented with the addition of
+		 * trailing contract formal (the caller) and of a dummy type.
+		 * 
+		 * @return the array of classes, in the same order as the formals
+		 * @throws ClassNotFoundException if some class cannot be found
+		 */
+		protected Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
+			List<Class<?>> classes = new ArrayList<>();
+			for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
+				classes.add(type.toClass(AbstractBlockchain.this));
+
+			classes.add(classLoader.loadClass(CONTRACT_NAME));
+			classes.add(Dummy.class);
+
+			return classes.toArray(new Class<?>[classes.size()]);
+		}
+
+		/**
+		 * Adds to the actual parameters the implicit actuals that are passed
+		 * to {@link takamaka.lang.Entry} methods or constructors. They are the caller of
+		 * the entry and {@code null} for the dummy argument.
+		 * 
+		 * @return the resulting actual parameters
+		 */
+		protected Object[] addExtraActualsForEntry() {
+			int al = deserializedActuals.length;
+			Object[] result = new Object[al + 2];
+			System.arraycopy(deserializedActuals, 0, result, 0, al);
+			result[al] = deserializedCaller;
+			result[al + 1] = null; // Dummy is not used
+
+			return result;
+		}
+
+		/**
 		 * Stores in the blockchain the result of the execution of the transaction.
 		 * 
 		 * @throws Exception if anything goes wrong. In that case, the transaction will be aborted
@@ -842,15 +902,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * Builds the executor of a constructor.
 		 * 
 		 * @param classpath the class path that must be used to find the classes during the execution of the constructor
-		 * @param classLoader the class loader that must be used to find the classes during the execution of the constructor
 		 * @param constructor the constructor to call
 		 * @param caller the caller, that pays for the execution
 		 * @param deseralizedCaller the deserialized caller
 		 * @param gas the gas provided for the execution
 		 * @param actuals the actuals provided to the constructor
 		 */
-		private ConstructorExecutor(Classpath classpath, BlockchainClassLoader classLoader, ConstructorSignature constructor, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) {
-			super(classpath, classLoader, caller, deserializedCaller, gas, constructor, null, actuals);
+		private ConstructorExecutor(Classpath classpath, ConstructorSignature constructor, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) {
+			super(classpath, caller, deserializedCaller, gas, constructor, null, actuals);
 		}
 
 		@Override
@@ -858,22 +917,23 @@ public abstract class AbstractBlockchain implements Blockchain {
 			try {
 				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
 				Constructor<?> constructorJVM;
-				Object[] deserializedActuals = this.deserializedActuals;
+				Object[] deserializedActuals;
 
 				try {
 					// we first try to call the constructor with exactly the parameter types explicitly provided
-					constructorJVM = clazz.getConstructor(formalsAsClass(classLoader, methodOrConstructor));
+					constructorJVM = clazz.getConstructor(formalsAsClass());
+					deserializedActuals = this.deserializedActuals;
 				}
 				catch (NoSuchMethodException e) {
 					// if not found, we try to add the trailing types that characterize the @Entry constructors
 					try {
-						constructorJVM = clazz.getConstructor(formalsAsClassForEntry(classLoader, methodOrConstructor));
+						constructorJVM = clazz.getConstructor(formalsAsClassForEntry());
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the constructor as the user sees it
 					}
 
-					deserializedActuals = addExtraActualsForEntry(deserializedActuals, deserializedCaller);
+					deserializedActuals = addExtraActualsForEntry();
 				}
 
 				result = ((Storage) constructorJVM.newInstance(deserializedActuals));
@@ -903,7 +963,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * Builds the executor of an instance method.
 		 * 
 		 * @param classpath the class path that must be used to find the classes during the execution of the method
-		 * @param classLoader the class loader that must be used to find the classes during the execution of the method
 		 * @param method the method to call
 		 * @param caller the caller, that pays for the execution
 		 * @param deseralizedCaller the deserialized caller
@@ -911,8 +970,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param receiver the receiver of the method
 		 * @param actuals the actuals provided to the method
 		 */
-		private InstanceMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodSignature method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageReference receiver, StorageValue... actuals) {
-			super(classpath, classLoader, caller, deserializedCaller, gas, method, receiver, actuals);
+		private InstanceMethodExecutor(Classpath classpath, MethodSignature method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageReference receiver, StorageValue... actuals) {
+			super(classpath, caller, deserializedCaller, gas, method, receiver, actuals);
 		}
 
 		@Override
@@ -921,21 +980,22 @@ public abstract class AbstractBlockchain implements Blockchain {
 				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
 				String methodName = ((MethodSignature) methodOrConstructor).methodName;
 				Method methodJVM;
-				Object[] deserializedActuals = this.deserializedActuals;
+				Object[] deserializedActuals;
 
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided
-					methodJVM = clazz.getMethod(methodName, formalsAsClass(classLoader, methodOrConstructor));
+					methodJVM = clazz.getMethod(methodName, formalsAsClass());
+					deserializedActuals = this.deserializedActuals;
 				}
 				catch (NoSuchMethodException e) {
 					// if not found, we try to add the trailing types that characterize the @Entry methods
 					try {
-						methodJVM = clazz.getMethod(methodName, formalsAsClassForEntry(classLoader, methodOrConstructor));
+						methodJVM = clazz.getMethod(methodName, formalsAsClassForEntry());
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the method as the user sees it
 					}
-					deserializedActuals = addExtraActualsForEntry(deserializedActuals, deserializedCaller);
+					deserializedActuals = addExtraActualsForEntry();
 				}
 
 				if (Modifier.isStatic(methodJVM.getModifiers()))
@@ -968,22 +1028,21 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * Builds the executor of a static method.
 		 * 
 		 * @param classpath the class path that must be used to find the classes during the execution of the method
-		 * @param classLoader the class loader that must be used to find the classes during the execution of the method
 		 * @param method the method to call
 		 * @param caller the caller, that pays for the execution
 		 * @param deseralizedCaller the deserialized caller
 		 * @param gas the gas provided for the execution
 		 * @param actuals the actuals provided to the method
 		 */
-		private StaticMethodExecutor(Classpath classpath, BlockchainClassLoader classLoader, MethodSignature method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) {
-			super(classpath, classLoader, caller, deserializedCaller, gas, method, null, actuals);
+		private StaticMethodExecutor(Classpath classpath, MethodSignature method, StorageReference caller, Storage deserializedCaller, BigInteger gas, StorageValue... actuals) {
+			super(classpath, caller, deserializedCaller, gas, method, null, actuals);
 		}
 
 		@Override
 		public void run() {
 			try {
 				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
-				Method methodJVM = clazz.getMethod(((MethodSignature) methodOrConstructor).methodName, formalsAsClass(classLoader, methodOrConstructor));
+				Method methodJVM = clazz.getMethod(((MethodSignature) methodOrConstructor).methodName, formalsAsClass());
 
 				if (!Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
@@ -1045,76 +1104,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 			return (TransactionException) t;
 		else
 			return new TransactionException(message, t);
-	}
-
-	/**
-	 * Yields the classes of the formal arguments of the given method or constructor.
-	 * 
-	 * @param classLoader the class loader to use to find the definition of the classes
-	 * @param methodOrConstructor the method or constructor
-	 * @return the array of classes, in the same order as the formals
-	 * @throws ClassNotFoundException if some class cannot be found
-	 */
-	private static Class<?>[] formalsAsClass(BlockchainClassLoader classLoader, CodeSignature methodOrConstructor) throws ClassNotFoundException {
-		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-			classes.add(type.toClass(classLoader));
-	
-		return classes.toArray(new Class<?>[classes.size()]);
-	}
-
-	/**
-	 * Yields the classes of the formal arguments of the given method or constructor, assuming that it is
-	 * and {@link takamaka.lang.Entry}. Entries are instrumented with the addition of
-	 * trailing contract formal (the caller) and of a dummy type.
-	 * 
-	 * @param classLoader the class loader to use to find the definition of the classes
-	 * @param methodOrConstructor the method or constructor
-	 * @return the array of classes, in the same order as the formals
-	 * @throws ClassNotFoundException if some class cannot be found
-	 */
-	private static Class<?>[] formalsAsClassForEntry(BlockchainClassLoader classLoader, CodeSignature methodOrConstructor) throws ClassNotFoundException {
-		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-			classes.add(type.toClass(classLoader));
-
-		classes.add(classLoader.loadClass(CONTRACT_NAME));
-		classes.add(Dummy.class);
-
-		return classes.toArray(new Class<?>[classes.size()]);
-	}
-
-	/**
-	 * Adds to an array of actual parameters the implicit actuals that are passed
-	 * to {@link takamaka.lang.Entry} methods or constructors. They are the caller of
-	 * the entry and {@code null} for the dummy argument.
-	 * 
-	 * @param actuals the actuals to expand
-	 * @param caller the caller of the entry
-	 * @return the resulting actual parameters
-	 */
-	private static Object[] addExtraActualsForEntry(Object[] actuals, Storage caller) {
-		Object[] result = new Object[actuals.length + 2];
-		System.arraycopy(actuals, 0, result, 0, actuals.length);
-		result[actuals.length] = caller;
-		result[actuals.length + 1] = null; // Dummy is not used
-
-		return result;
-	}
-
-	/**
-	 * Deserializes the given actual arguments.
-	 * 
-	 * @param classLoader the class loader to use for the definition of the classes
-	 * @param actuals the actual to deserialize
-	 * @return the deserialized actuals
-	 */
-	private Object[] deserialize(BlockchainClassLoader classLoader, StorageValue[] actuals) {
-		Object[] deserialized = new Object[actuals.length];
-		for (int pos = 0; pos < actuals.length; pos++)
-			deserialized[pos] = actuals[pos].deserialize(classLoader, this);
-		
-		return deserialized;
 	}
 
 	/**

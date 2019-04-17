@@ -1,17 +1,24 @@
 package takamaka.blockchain.values;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.lang.Immutable;
 
+/**
+ * The {@code null} value stored in blockchain.
+ */
 @Immutable
 public final class NullValue implements StorageValue {
 	public final static NullValue INSTANCE = new NullValue();
 
+	/**
+	 * Builds the {@code null} value. This constructor is private, so that
+	 * {@link takamaka.blockchain.values.NullValue#INSTANCE} is the singleton
+	 * value existing of this class.
+	 */
 	private NullValue() {}
 
 	@Override
-	public Object deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
+	public Object deserialize(AbstractBlockchain blockchain) {
 		return null;
 	}
 

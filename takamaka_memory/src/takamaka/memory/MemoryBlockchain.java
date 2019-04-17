@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.FieldSignature;
 import takamaka.blockchain.TransactionReference;
@@ -140,7 +139,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		if (Files.exists(updatesPath))
 			Files.lines(updatesPath)
 				.map(MemoryBlockchain::updateFromString)
-				.filter(update -> update.object.equals(object) && !update.field.type.isLazilyLoaded() && !isAlreadyIn(update, updates))
+				.filter(update -> update.object.equals(object) && !update.field.type.isLazy() && !isAlreadyIn(update, updates))
 				.forEach(updates::add);
 	}
 

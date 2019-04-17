@@ -3,19 +3,30 @@ package takamaka.blockchain.values;
 import java.math.BigInteger;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.lang.Immutable;
 
+/**
+ * A big integer stored in blockchain.
+ */
 @Immutable
 public final class BigIntegerValue implements StorageValue {
+
+	/**
+	 * The big integer.
+	 */
 	public final BigInteger value;
 
+	/**
+	 * Builds a big integer that can be stored in blockchain.
+	 * 
+	 * @param value the big integer
+	 */
 	public BigIntegerValue(BigInteger value) {
 		this.value = value;
 	}
 
 	@Override
-	public BigInteger deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
+	public BigInteger deserialize(AbstractBlockchain blockchain) {
 		// we clone the value, so that the alias behavior of values coming from outside the blockchain is fixed
 		return new BigInteger(value.toString());
 	}

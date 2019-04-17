@@ -1,7 +1,12 @@
 package takamaka.blockchain.types;
 
-import takamaka.blockchain.BlockchainClassLoader;
+import takamaka.blockchain.AbstractBlockchain;
+import takamaka.lang.Immutable;
 
+/**
+ * The basic types of the Takamaka language.
+ */
+@Immutable
 public enum BasicTypes implements StorageType {
 	BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE;
 
@@ -20,7 +25,7 @@ public enum BasicTypes implements StorageType {
 	}
 
 	@Override
-	public Class<?> toClass(BlockchainClassLoader classLoader) {
+	public Class<?> toClass(AbstractBlockchain classLoader) {
 		switch (this) {
 		case BOOLEAN: return boolean.class;
 		case BYTE: return byte.class;
@@ -42,7 +47,7 @@ public enum BasicTypes implements StorageType {
 	}
 
 	@Override
-	public boolean isLazilyLoaded() {
+	public boolean isLazy() {
 		return false;
 	}
 }

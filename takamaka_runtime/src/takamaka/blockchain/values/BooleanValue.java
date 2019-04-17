@@ -1,19 +1,30 @@
 package takamaka.blockchain.values;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.lang.Immutable;
 
+/**
+ * A {@code boolean} value stored in blockchain.
+ */
 @Immutable
 public final class BooleanValue implements StorageValue {
+
+	/**
+	 * The value.
+	 */
 	public final boolean value;
 
+	/**
+	 * Builds a {@code boolean} value.
+	 * 
+	 * @param value the value
+	 */
 	public BooleanValue(boolean value) {
 		this.value = value;
 	}
 
 	@Override
-	public Boolean deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
+	public Boolean deserialize(AbstractBlockchain blockchain) {
 		return value;
 	}
 

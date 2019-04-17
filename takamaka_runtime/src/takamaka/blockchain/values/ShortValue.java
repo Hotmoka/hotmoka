@@ -1,19 +1,30 @@
 package takamaka.blockchain.values;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.lang.Immutable;
 
+/**
+ * A {@code short} value stored in blockchain.
+ */
 @Immutable
 public final class ShortValue implements StorageValue {
+
+	/**
+	 * The value.
+	 */
 	public final short value;
 
+	/**
+	 * Builds a {@code short} value.
+	 * 
+	 * @param value the value
+	 */
 	public ShortValue(short value) {
 		this.value = value;
 	}
 
 	@Override
-	public Short deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
+	public Short deserialize(AbstractBlockchain blockchain) {
 		return value;
 	}
 

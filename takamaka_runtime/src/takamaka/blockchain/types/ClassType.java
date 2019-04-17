@@ -1,28 +1,39 @@
 package takamaka.blockchain.types;
 
-import takamaka.blockchain.BlockchainClassLoader;
+import takamaka.blockchain.AbstractBlockchain;
 import takamaka.lang.Immutable;
 
+/**
+ * A class type that can be used for stored objects in blockchain.
+ */
 @Immutable
 public final class ClassType implements StorageType {
 
 	/**
-	 * The frequently used class type for {@code Object}.
+	 * The frequently used class type for {@link java.lang.Object}.
 	 */
 	public final static ClassType OBJECT = new ClassType("java.lang.Object");
 
 	/**
-	 * The frequently used class type for strings.
+	 * The frequently used class type for {@link java.lang.String}.
 	 */
 	public final static ClassType STRING = new ClassType("java.lang.String");
 
 	/**
-	 * The frequently used class type for big integers.
+	 * The frequently used class type for {@link java.math.BigInteger}.
 	 */
 	public final static ClassType BIG_INTEGER = new ClassType("java.math.BigInteger");
 
+	/**
+	 * The name of the class type.
+	 */
 	public final String name;
 
+	/**
+	 * Builds a class type that can be used for storage objects in blockchain.
+	 * 
+	 * @param name the name of the class
+	 */
 	public ClassType(String name) {
 		this.name = name;
 	}
@@ -33,8 +44,8 @@ public final class ClassType implements StorageType {
 	}
 
 	@Override
-	public Class<?> toClass(BlockchainClassLoader classLoader) throws ClassNotFoundException {
-		return classLoader.loadClass(name);
+	public Class<?> toClass(AbstractBlockchain blockchain) throws ClassNotFoundException {
+		return blockchain.loadClass(name);
 	}
 
 	@Override
@@ -56,7 +67,7 @@ public final class ClassType implements StorageType {
 	}
 
 	@Override
-	public boolean isLazilyLoaded() {
+	public boolean isLazy() {
 		return !equals(STRING) && !equals(BIG_INTEGER);
 	}
 }

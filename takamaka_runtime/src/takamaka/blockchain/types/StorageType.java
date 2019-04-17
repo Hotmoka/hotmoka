@@ -1,12 +1,33 @@
 package takamaka.blockchain.types;
 
-import takamaka.blockchain.BlockchainClassLoader;
+import takamaka.blockchain.AbstractBlockchain;
+import takamaka.lang.Immutable;
 
+/**
+ * The types that can be used in storage objects in blockchain.
+ */
+@Immutable
 public interface StorageType {
-	Class<?> toClass(BlockchainClassLoader classLoader) throws ClassNotFoundException;
-	
-	// this cannot be called compareTo since conflicts with the implicit
-	// compareTo in the enum BasicTypes
+
+	/**
+	 * Yields the class object that represents this type, for the current
+	 * transaction of the given blockchain.
+	 * 
+	 * @param blockchain the blockchain that is executing the transaction
+	 * @return the class object, if any
+	 * @throws ClassNotFoundException if some class type cannot be found for that transaction
+	 */
+	Class<?> toClass(AbstractBlockchain blockchain) throws ClassNotFoundException;
+
+	/**
+	 * Compares this storage type with another. Puts first basic types, in their order of
+	 * enumeration, then class types ordered wrt class name. This method is not
+	 * called {@code compareTo} since it would conflict with the implicit {@code compareTo}
+	 * method defined in the enumeration {@link takamaka.blockchain.types.BasicTypes}.
+	 * 
+	 * @param other the other type
+	 * @return -1 if {@code this} comes first, 1 if {@code other} comes first, 0 if they are equal
+	 */
 	int compareAgainst(StorageType other);
 
 	/**
@@ -36,5 +57,5 @@ public interface StorageType {
 	 * 
 	 * @return true if and only if that condition holds
 	 */
-	boolean isLazilyLoaded();
+	boolean isLazy();
 }

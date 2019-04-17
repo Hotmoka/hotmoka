@@ -1,4 +1,5 @@
 import static java.util.Comparator.comparingInt;
+import static takamaka.lang.Takamaka.require;
 
 import java.util.HashSet;
 import java.util.Set;

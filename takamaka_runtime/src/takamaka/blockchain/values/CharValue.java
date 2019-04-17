@@ -1,19 +1,30 @@
 package takamaka.blockchain.values;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.lang.Immutable;
 
+/**
+ * A {@code char} value stored in blockchain.
+ */
 @Immutable
 public final class CharValue implements StorageValue {
+
+	/**
+	 * The value.
+	 */
 	public final char value;
 
+	/**
+	 * Builds a {@code char} value.
+	 * 
+	 * @param value the value
+	 */
 	public CharValue(char value) {
 		this.value = value;
 	}
 
 	@Override
-	public Character deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
+	public Character deserialize(AbstractBlockchain blockchain) {
 		return value;
 	}
 

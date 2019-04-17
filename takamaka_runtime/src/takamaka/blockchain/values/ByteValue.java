@@ -1,19 +1,30 @@
 package takamaka.blockchain.values;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.lang.Immutable;
 
+/**
+ * A {@code byte} value stored in blockchain.
+ */
 @Immutable
 public final class ByteValue implements StorageValue {
+
+	/**
+	 * The value.
+	 */
 	public final byte value;
 
+	/**
+	 * Builds a {@code byte} value.
+	 * 
+	 * @param value the value
+	 */
 	public ByteValue(byte value) {
 		this.value = value;
 	}
 
 	@Override
-	public Byte deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
+	public Byte deserialize(AbstractBlockchain blockchain) {
 		return value;
 	}
 

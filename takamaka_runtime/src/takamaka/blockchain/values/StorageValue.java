@@ -3,24 +3,33 @@ package takamaka.blockchain.values;
 import java.math.BigInteger;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.lang.Storage;
 
 /**
- * A value that can be stored in the blockchain, passed as argument of an antry
+ * A value that can be stored in the blockchain, passed as argument to an entry
  * or returned from an entry.
  */
 public interface StorageValue extends Comparable<StorageValue> {
 
 	/**
-	 * Yields the deserialization of this value.
+	 * Yields the deserialization of this value. That is, it yields an actual object in RAM
+	 * that reflects its representation in blockchain.
 	 * 
-	 * @param classLoader the class loader that must be used for the definition of the storage classes
 	 * @param blockchain the blockchain for which the deserialization is performed
 	 * @return the deserialization
 	 */
-	Object deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain);
+	Object deserialize(AbstractBlockchain blockchain);
 
+	/**
+	 * Yields the serialization of the given objects, that is, yields its
+	 * representation in blockchain.
+	 * 
+	 * @param object the object to serialize. This must be a storage object, a Java wrapper
+	 *               object for numerical types or a special Java object that is allowed
+	 *               in blockchain, such as a {@link java.lang.String} or {@link java.math.BigInteger}
+	 * @return the serialization of {@code object}, if any
+	 * @throws IllegalArgumentException if the type of {@code object} is not allowed in blockchain
+	 */
 	static StorageValue serialize(Object object) throws IllegalArgumentException {
 		if (object instanceof Storage)
 			return ((Storage) object).storageReference;

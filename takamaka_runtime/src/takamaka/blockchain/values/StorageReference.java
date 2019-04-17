@@ -3,17 +3,15 @@ package takamaka.blockchain.values;
 import java.math.BigInteger;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.BlockchainClassLoader;
 import takamaka.blockchain.TransactionReference;
 import takamaka.lang.Immutable;
 import takamaka.lang.Storage;
 
 /**
- * A storage reference is a reference to an object that lives in the blockchain.
+ * A reference to an object of class type that is stored in the blockchain.
  * It knows the transaction that created the object. Objects created during the
  * same transaction are disambiguated by a progressive number.
  */
-
 @Immutable
 public final class StorageReference implements StorageValue {
 
@@ -31,9 +29,9 @@ public final class StorageReference implements StorageValue {
 	/**
 	 * Builds a storage reference.
 	 * 
-	 * @param transaction The transaction that created the object.
-	 * @param progressive The progressive number of the object among those that have been created
-	 *                    during the same transaction.
+	 * @param transaction the transaction that created the object
+	 * @param progressive the progressive number of the object among those that have been created
+	 *                    during the same transaction
 	 */
 	public StorageReference(TransactionReference transaction, BigInteger progressive) {
 		this.transaction = transaction;
@@ -64,8 +62,8 @@ public final class StorageReference implements StorageValue {
 	}
 
 	@Override
-	public Storage deserialize(BlockchainClassLoader classLoader, AbstractBlockchain blockchain) {
-		return blockchain.deserialize(classLoader, this);
+	public Storage deserialize(AbstractBlockchain blockchain) {
+		return blockchain.deserialize(this);
 	}
 
 	@Override

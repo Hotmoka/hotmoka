@@ -1,7 +1,5 @@
 package takamaka.blockchain;
 
-import java.util.Arrays;
-
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
 import takamaka.lang.Immutable;
