@@ -27,7 +27,6 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.LocalVariableTypeTable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.StackMap;
 import org.apache.bcel.classfile.StackMapEntry;
@@ -66,6 +65,10 @@ import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.lang.Storage;
 
+/**
+ * An instrumenter of a single class file. For instance, it instruments storage classes,
+ * by adding the serialization support, and contracts, to deal with entries.
+ */
 class ClassInstrumentation {
 	private final static Logger LOGGER = Logger.getLogger(ClassInstrumentation.class.getName());
 	private final static String OLD_PREFIX = "§old_";
@@ -95,6 +98,7 @@ class ClassInstrumentation {
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName).thenComparing(field -> field.getType().toString());
 
 	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
+	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
 	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(DUMMY_CLASS_NAME);
@@ -104,13 +108,32 @@ class ClassInstrumentation {
 	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, SET_OT, SET_OT, LIST_OT };
 	private final static Type[] ENTRY_ARGS = new Type[] { CONTRACT_OT };
 
+	/**
+	 * Performs the instrumentation of a single class file.
+	 * 
+	 * @param input the input stream containing the class to instrument
+	 * @param className the name of the class
+	 * @param instrumentedJar the jar where the instrumented class will be added
+	 * @param program the collection of the classes under instrumentation of of their dependent libraries
+	 * @throws ClassFormatException if some class file is not legal
+	 * @throws IOException if there is an error accessing the disk
+	 */
 	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program) throws ClassFormatException, IOException {
 		LOGGER.fine(() -> "Instrumenting " + className);
+
+		// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
 		ClassGen classGen = new ClassGen(new ClassParser(input, className).parse());
+
+		// performs instrumentation on that image
 		new Initializer(classGen, program);
+
+		// dump the image on disk
 		classGen.getJavaClass().dump(instrumentedJar);
 	}
 
+	/**
+	 * Local scope for the instrumentation of a single class.
+	 */
 	private class Initializer {
 
 		private static final String OBJECT_CLASS_NAME = "java.lang.Object";
@@ -137,7 +160,7 @@ class ClassInstrumentation {
 
 		/**
 		 * True if and only if the class being instrumented is a storage class, distinct
-		 * form {@code Storage} itself, that must not be instrumented.
+		 * form {@link takamaka.lang.Storage} itself, that must not be instrumented.
 		 */
 		private final boolean isStorage;
 
@@ -148,16 +171,16 @@ class ClassInstrumentation {
 
 		/**
 		 * The non-transient instance fields of primitive type or of special reference types that are
-		 * allowed in storage objects (such as {@code String} and {@code BigInteger}). They are
-		 * defined in the class being instrumented or in its superclasses
-		 * up to {@code Storage} (excluded). This list is non-empty for storage classes only.
+		 * allowed in storage objects (such as {@link java.lang.String} and {@link java.math.BigInteger}).
+		 * They are defined in the class being instrumented or in its superclasses
+		 * up to {@link takamaka.lang.Storage} (excluded). This list is non-empty for storage classes only.
 		 * The first set in the list are the fields of the topmost class; the last are the fields
 		 * of the class being considered.
 		 */
 		private final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
 
 		/**
-		 * The non-transient instance fields of type {@code Storage} or subclass, defined
+		 * The non-transient instance fields of type {@link takamaka.lang.Storage} or subclass, defined
 		 * in the class being instrumented (superclasses are not considered). This set
 		 * is non-empty for storage classes only.
 		 */
@@ -169,28 +192,46 @@ class ClassInstrumentation {
 		 */
 		private final Program program;
 
+		/**
+		 * Performs the instrumentation of a single class.
+		 * 
+		 * @param classGen the class to instrument
+		 * @param program the collection of all classes under instrumentation and those of the
+		 *                supporting libraries
+		 */
 		private Initializer(ClassGen classGen, Program program) {
 			this.classGen = classGen;
 			this.className = classGen.getClassName();
 			this.cpg = classGen.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
 			this.program = program;
-			this.isStorage = !className.equals(Storage.class.getName()) && isStorage(className);
+			this.isStorage = !className.equals(STORAGE_CLASS_NAME) && isStorage(className);
 			this.isContract = isContract(className);
 
+			// the fields of the class are relevant only for storage classes
 			if (isStorage)
 				collectNonTransientInstanceFieldsOf(className);
 
 			instrumentClass();
 		}
 
+		/**
+		 * performs the instrumentation.
+		 */
 		private void instrumentClass() {
+			// local instrumentations are those that apply at method level
 			localInstrumentation();
+
+			// global instrumentations are those that apply at class level
 			globalInstrumentation();
 		}
 
+		/**
+		 * Performs class-level instrumentations.
+		 */
 		private void globalInstrumentation() {
 			if (isStorage) {
+				// storage classes need all the serialization machinery
 				addOldAndIfAlreadyLoadedFields();
 				addConstructorForDeserializationFromBlockchain();
 				addEnsureLoadedMethods();
@@ -199,21 +240,26 @@ class ClassInstrumentation {
 			}
 		}
 
+		/**
+		 * Performs method-level instrumentations.
+		 */
 		private void localInstrumentation() {
 			Method[] methods = classGen.getMethods();
 
+			// the replacement of each method
 			List<Method> instrumentedMethods =
 				Stream.of(methods)
 					.map(this::instrument)
 					.collect(Collectors.toList());
 
+			// replacing old with new methods
 			int pos = 0;
 			for (Method instrumented: instrumentedMethods)
 				classGen.replaceMethod(methods[pos++], instrumented);
 		}
 
 		/**
-		 * Instrument a single method of the class.
+		 * Instruments a single method of the class.
 		 * 
 		 * @param method the method to instrument
 		 * @return the result of the instrumentation
@@ -225,20 +271,20 @@ class ClassInstrumentation {
 			addContractToCallsToEntries(methodGen, stackMap);
 
 			if (isContract && isEntry(className, method.getName(), method.getSignature()))
-				instrumentEntry(methodGen, isPayable(className, method.getName(), method.getSignature()), stackMap);
+				instrumentEntry(methodGen, isPayable(method.getName(), method.getSignature()), stackMap);
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
 
-			for (Attribute attribute: methodGen.getCodeAttributes())
-				if (attribute instanceof LocalVariableTypeTable) {
-					System.out.println("Rimuovo " + attribute);
-					methodGen.removeCodeAttribute(attribute);
-				}
-
 			return methodGen.getMethod();
 		}
 
+		/**
+		 * Yields the stack map attribute of the given method, if any.
+		 * 
+		 * @param methodGen the method
+		 * @return the attribute, if any. Yields {@code null} otherwise
+		 */
 		private StackMap getStackMapAttribute(MethodGen methodGen) {
 			for (Attribute attribute: methodGen.getCodeAttributes())
 				if (attribute instanceof StackMap)
@@ -247,6 +293,13 @@ class ClassInstrumentation {
 			return null;
 		}
 
+		/**
+		 * Passes the trailing implicit parameters to calls to entries. They are
+		 * the contract where the entry is called and {@code null} (for the dummy argument).
+		 * 
+		 * @param method the method
+		 * @param stackMap the stack map of the method. This might be {@code null}
+		 */
 		private void addContractToCallsToEntries(MethodGen method, StackMap stackMap) {
 			if (!method.isAbstract()) {
 				InstructionList il = method.getInstructionList();
@@ -260,6 +313,14 @@ class ClassInstrumentation {
 			}
 		}
 
+		/**
+		 * Passes the trailing implicit parameters to the given call to an entry. They are
+		 * the contract where the entry is called and {@code null} (for the dummy argument).
+		 * 
+		 * @param il the instructions of the method being instrumented
+		 * @param ih the call to the entry
+		 * @param stackMap the stack map of the method. This might be {@code null}
+		 */
 		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, StackMap stackMap) {
 			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
 			Type[] args = invoke.getArgumentTypes(cpg);
@@ -277,12 +338,18 @@ class ClassInstrumentation {
 			InstructionHandle aconst_null = il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
 			il.setPositions();
 			updateAfterAdditionOf(aconst_null, stackMap);
-			InstructionHandle aload0 = il.append(ih, InstructionConst.ALOAD_0); // the calling contract must be inside "this"
+			InstructionHandle aload0 = il.append(ih, InstructionConst.ALOAD_0); // the call must be inside a contract "this"
 			il.setPositions();
 			updateAfterAdditionOf(aload0, stackMap);
 			ih.setInstruction(InstructionConst.NOP);
 		}
 
+		/**
+		 * Updates the given stack map after the addition of the given instruction.
+		 * 
+		 * @param ih the added instruction
+		 * @param stackMap the stack map
+		 */
 		private void updateAfterAdditionOf(InstructionHandle ih, StackMap stackMap) {
 			if (stackMap != null) {
 				StackMapEntry[] entries = stackMap.getStackMap();
@@ -300,6 +367,12 @@ class ClassInstrumentation {
 			}
 		}
 
+		/**
+		 * Determines if the given instruction calls an entry.
+		 * 
+		 * @param instruction the instruction
+		 * @return true if and only if that condition holds
+		 */
 		private boolean isCallToEntry(Instruction instruction) {
 			if (instruction instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
@@ -311,10 +384,27 @@ class ClassInstrumentation {
 				return false;
 		}
 
+		/**
+		 * Determines if the given constructor method is annotated as entry.
+		 * 
+		 * @param className the class of the constructor or method
+		 * @param methodName the name of the constructor or method
+		 * @param methodSignature the signature of the constructor or method
+		 * @return true if and only if that condition holds
+		 */
 		private boolean isEntry(String className, String methodName, String methodSignature) {
 			return hasAnnotation(className, methodName, methodSignature, ENTRY_CLASS_NAME_JB);
 		}
 
+		/**
+		 * Determines if the given constructor or method is annotated by the given annotation.
+		 * 
+		 * @param className the class of the constructor or method
+		 * @param methodName the name of the constructor or method
+		 * @param methodSignature the signature of the constructor or method
+		 * @param annotationNameJB the name of the annotation, in Java bytecode style (such as {@code Ljava/lang/Object;})
+		 * @return true if and only if that condition holds. It takes inheritance into account
+		 */
 		private boolean hasAnnotation(String className, String methodName, String methodSignature, String annotationNameJB) {
 			if (className.equals(OBJECT_CLASS_NAME))
 				return false;
@@ -343,27 +433,55 @@ class ClassInstrumentation {
 					.anyMatch(_interface -> hasAnnotation(_interface, methodName, methodSignature, annotationNameJB)));
 		}
 
-		private boolean isPayable(String className, String methodName, String methodSignature) {
+		/**
+		 * Determines if the given constructor method is annotated as payable.
+		 * 
+		 * @param methodName the name of the constructor or method
+		 * @param methodSignature the signature of the constructor or method
+		 * @return true if and only if that condition holds
+		 */
+		private boolean isPayable(String methodName, String methodSignature) {
 			return hasAnnotation(className, methodName, methodSignature, PAYABLE_CLASS_NAME_JB);
 		}
 
+		/**
+		 * Instruments an entry, by setting the caller and transferring funds
+		 * for payable entries.
+		 * 
+		 * @param method the entry
+		 * @param isPayable true if and only if the entry is payable
+		 * @param stackMap the stack map of the method
+		 */
 		private void instrumentEntry(MethodGen method, boolean isPayable, StackMap stackMap) {
 			// slotForCaller is the local variable used for the extra "caller" parameter;
 			// there is no need to shift the local variables one slot up, since the use
 			// of caller is limited to the prolog of the synthetic code
 			int slotForCaller = addExtraParameters(method);
 			if (!method.isAbstract())
-				setPayerAndBalance(method, slotForCaller, isPayable, stackMap);
+				setCallerAndBalance(method, slotForCaller, isPayable, stackMap);
 		}
 
-		private void setPayerAndBalance(MethodGen method, int slotForCaller, boolean isPayable, StackMap stackMap) {
+		/**
+		 * Instruments an entry by calling the contract method that sets caller and balance.
+		 * 
+		 * @param method the entry
+		 * @param slotForCaller the local variable for the caller implicit argument
+		 * @param isPayable true if and only if the entry is payable
+		 * @param stackMap the stack map of the entry
+		 */
+		private void setCallerAndBalance(MethodGen method, int slotForCaller, boolean isPayable, StackMap stackMap) {
 			InstructionList il = method.getInstructionList();
-			InstructionHandle where = determineWhereToSetPayerAndBalance(il, method, slotForCaller);
+			
+			// the call to the method that sets caller and balance cannot be put at the
+			// beginning of the method, always: for constructors, Java bytecode requires
+			// that their code starts with a call to a constructor of the superclass
+			InstructionHandle where = determineWhereToSetCallerAndBalance(il, method, slotForCaller);
 			InstructionHandle start = il.getStart();
 			InstructionHandle ih;
 
 			boolean needsTemp = where != start;
 			if (needsTemp) {
+				//TODO: avoid use of this static field temp. Stack maps make this a bit difficult
 				ih = il.insert(factory.createPutStatic(CONTRACT_CLASS_NAME, "temp", CONTRACT_OT));
 				il.setPositions();
 				updateAfterAdditionOf(ih, stackMap);
@@ -404,6 +522,12 @@ class ClassInstrumentation {
 				addChopTwoLocals(start, stackMap);
 		}
 
+		/**
+		 * Adds, to the given stack map, an entry that drops two local variables.
+		 * 
+		 * @param where the instruction for which the new entry must be added
+		 * @param stackMap the stack map that gets modified
+		 */
 		private void addChopTwoLocals(InstructionHandle where, StackMap stackMap) {
 			if (stackMap != null) {
 				StackMapEntry[] entries = stackMap.getStackMap();
@@ -418,19 +542,19 @@ class ClassInstrumentation {
 		}
 
 		/**
-		 * Entries call {@code Contract.entry} or {@code Contract.payableEntry} at their beginning, to set the caller and
-		 * the balance of the called contract. In general, such call can be placed at the very beginning of the
+		 * Entries call {@link takamaka.lang.Contract#entry(Contract)} or {@link takamaka.lang.Contract#payableEntry(Contract,BigInteger)}
+		 * at their beginning, to set the caller and
+		 * the balance of the called entry. In general, such call can be placed at the very beginning of the
 		 * code. The only problem is related to constructors, that require their code to start with a call
 		 * to a constructor of their superclass. In that case, this method finds the place where that
-		 * contractor of the superclass is called: after that, the call to {@code Contract.entry} or
-		 * {@code Contract.payableEntry} can be added.
+		 * contractor of the superclass is called: after which, we can add the call that sets caller and balance.
 		 * 
-		 * @param il the list of instructions of the method
-		 * @param method the method
-		 * @param slotForCaller the local where the caller contract is passed to the method or constructor
-		 * @return the instruction before which the call to {@code Contract.entry} or {@code Contract.payableEntry} must be placed
+		 * @param il the list of instructions of the entry
+		 * @param method the entry
+		 * @param slotForCaller the local where the caller contract is passed to the entry
+		 * @return the instruction before which the code that sets caller and balance can be placed
 		 */
-		private InstructionHandle determineWhereToSetPayerAndBalance(InstructionList il, MethodGen method, int slotForCaller) {
+		private InstructionHandle determineWhereToSetCallerAndBalance(InstructionList il, MethodGen method, int slotForCaller) {
 			InstructionHandle start = il.getStart();
 
 			if (method.getName().equals(Const.CONSTRUCTOR_NAME)) {
@@ -487,7 +611,7 @@ class ClassInstrumentation {
 							int modifiedLocal = ((StoreInstruction) bytecode).getIndex();
 							int size = ((StoreInstruction) bytecode).getType(cpg).getSize();
 							if (modifiedLocal == slotForCaller || (size == 2 && modifiedLocal == slotForCaller - 1))
-								throw new RuntimeException("Unexpected modification of local " + slotForCaller + " before initialization of " + className);
+								throw new IllegalStateException("Unexpected modification of local " + slotForCaller + " before initialization of " + className);
 						}
 
 						if (bytecode instanceof StackProducer)
@@ -501,7 +625,7 @@ class ClassInstrumentation {
 									&& ((INVOKESPECIAL) bytecode).getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
 								callsToConstructorsOfSuperclass.add(current.ih);
 							else
-								throw new RuntimeException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
+								throw new IllegalStateException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
 						}
 						else if (bytecode instanceof GotoInstruction) {
 							HeightAtBytecode added = new HeightAtBytecode(((GotoInstruction) bytecode).getTarget(), stackHeightAfterBytecode);
@@ -517,7 +641,7 @@ class ClassInstrumentation {
 								workingSet.add(added);
 						}
 						else if (bytecode instanceof BranchInstruction || bytecode instanceof ATHROW || bytecode instanceof RETURN || bytecode instanceof RET)
-							throw new RuntimeException("Unexpected instruction " + bytecode + " before initialization of " + className);
+							throw new IllegalStateException("Unexpected instruction " + bytecode + " before initialization of " + className);
 						else {
 							HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
 							if (seen.add(added))
@@ -529,19 +653,19 @@ class ClassInstrumentation {
 					if (callsToConstructorsOfSuperclass.size() == 1)
 						return callsToConstructorsOfSuperclass.iterator().next().getNext();
 					else
-						throw new RuntimeException("Cannot identify single call to constructor of superclass inside a constructor ot " + className);
+						throw new IllegalStateException("Cannot identify single call to constructor of superclass inside a constructor ot " + className);
 				}
 				else
-					throw new RuntimeException("Constructor of " + className + " does not start with aload 0");
+					throw new IllegalStateException("Constructor of " + className + " does not start with aload 0");
 			}
 			else
 				return start;
 		}
 
 		/**
-		 * Adds an extra {@code caller} parameter to the given method.
+		 * Adds an extra caller parameter to the given entry.
 		 * 
-		 * @param method the method
+		 * @param method the entry
 		 * @return the local variable used for the extra parameter
 		 */
 		private int addExtraParameters(MethodGen method) {
@@ -552,7 +676,7 @@ class ClassInstrumentation {
 				slotsForParameters += arg.getSize();
 			}
 			args.add(CONTRACT_OT);
-			args.add(DUMMY_OT);
+			args.add(DUMMY_OT); // to avboid name clashes after the addition
 			method.setArgumentTypes(args.toArray(Type.NO_ARGS));
 
 			String[] names = method.getArgumentNames();
@@ -582,6 +706,12 @@ class ClassInstrumentation {
 			}
 		}
 
+		/**
+		 * Yields the accessor call corresponding to the access to the given field.
+		 * 
+		 * @param fieldInstruction the field access instruction
+		 * @return the corresponding accessor call instruction
+		 */
 		private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) {
 			ObjectType referencedClass = (ObjectType) fieldInstruction.getReferenceType(cpg);
 			Type fieldType = fieldInstruction.getFieldType(cpg);
@@ -595,6 +725,13 @@ class ClassInstrumentation {
 				return factory.createInvoke(referencedClass.getClassName(), SETTER_PREFIX + fieldName, Type.VOID, new Type[] { fieldType }, Const.INVOKESPECIAL);
 		}
 
+		/**
+		 * Determines if the given instruction is an access to a field of a storage
+		 * class that is lazily loaded.
+		 * 
+		 * @param instruction the instruction
+		 * @return true if and only if that condition holds
+		 */
 		private boolean isAccessToLazilyLoadedFieldInStorageClass(Instruction instruction) {
 			if (instruction instanceof GETFIELD || instruction instanceof PUTFIELD) {
 				FieldInstruction fi = (FieldInstruction) instruction;
@@ -607,6 +744,10 @@ class ClassInstrumentation {
 				return false;
 		}
 
+		/**
+		 * Adds, to a storage class, the method that extract all updates to an instance
+		 * of a class, since the beginning of a transaction.
+		 */
 		private void addExtractUpdates() {
 			if (eagerNonTransientInstanceFields.getLast().isEmpty() && lazyNonTransientInstanceFields.isEmpty())
 				return;
@@ -618,7 +759,7 @@ class ClassInstrumentation {
 			il.append(InstructionConst.ALOAD_2);
 			il.append(InstructionFactory.createLoad(LIST_OT, 3));
 			il.append(factory.createInvoke(classGen.getSuperclassName(), EXTRACT_UPDATES, Type.VOID, EXTRACT_UPDATES_ARGS, Const.INVOKESPECIAL));
-			il.append(factory.createGetField(Storage.class.getName(), IN_STORAGE_NAME, Type.BOOLEAN));
+			il.append(factory.createGetField(STORAGE_CLASS_NAME, IN_STORAGE_NAME, Type.BOOLEAN));
 			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
 
 			InstructionHandle end = il.append(InstructionConst.RETURN);
@@ -650,6 +791,16 @@ class ClassInstrumentation {
 			classGen.addMethod(extractUpdates.getMethod());
 		}
 
+		/**
+		 * Adds the code that check if a given lazy field has been updated since the beginning
+		 * of a transaction and, in such a case, adds the corresponding update.
+		 * 
+		 * @param field the field
+		 * @param il the instruction list where the code must be added
+		 * @param end the instruction before which the extra code must be added
+		 * @param stackMapPositions the instructions corresponding to a stack map entry
+		 * @return the beginning of the added code
+		 */
 		private InstructionHandle addUpdateExtractionForLazyField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
 			ObjectType type = (ObjectType) field.getType();
 
@@ -663,7 +814,7 @@ class ClassInstrumentation {
 
 			InstructionHandle recursiveExtract;
 			// we deal with special cases where the call to a recursive extract is useless: this is just an optimization
-			if (type.equals(ObjectType.STRING) || type.getClassName().equals(BigInteger.class.getName()))
+			if (type.equals(ObjectType.STRING) || type.equals(BIGINTEGER_OT))
 				recursiveExtract = end;
 			else {
 				recursiveExtract = il.insert(end, InstructionFactory.createThis());
@@ -672,7 +823,7 @@ class ClassInstrumentation {
 				il.insert(end, InstructionConst.ALOAD_1);
 				il.insert(end, InstructionConst.ALOAD_2);
 				il.insert(end, InstructionFactory.createLoad(LIST_OT, 3));
-				il.insert(end, factory.createInvoke(Storage.class.getName(), RECURSIVE_EXTRACT, Type.VOID, RECURSIVE_EXTRACT_ARGS, Const.INVOKESPECIAL));
+				il.insert(end, factory.createInvoke(STORAGE_CLASS_NAME, RECURSIVE_EXTRACT, Type.VOID, RECURSIVE_EXTRACT_ARGS, Const.INVOKESPECIAL));
 			}
 
 			InstructionHandle addUpdatesFor = il.insert(recursiveExtract, InstructionFactory.createThis());
@@ -684,7 +835,7 @@ class ClassInstrumentation {
 			il.insert(recursiveExtract, factory.createConstant(type.getClassName()));
 			il.insert(recursiveExtract, InstructionFactory.createThis());
 			il.insert(recursiveExtract, factory.createGetField(className, field.getName(), type));
-			il.insert(recursiveExtract, factory.createInvoke(Storage.class.getName(), ADD_UPDATE_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
+			il.insert(recursiveExtract, factory.createInvoke(STORAGE_CLASS_NAME, ADD_UPDATE_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
 			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
@@ -701,6 +852,16 @@ class ClassInstrumentation {
 			return start;
 		}
 
+		/**
+		 * Adds the code that check if a given eager field has been updated since the beginning
+		 * of a transaction and, in such a case, adds the corresponding update.
+		 * 
+		 * @param field the field
+		 * @param il the instruction list where the code must be added
+		 * @param end the instruction before which the extra code must be added
+		 * @param stackMapPositions the instructions corresponding to a stack map entry
+		 * @return the beginning of the added code
+		 */
 		private InstructionHandle addUpdateExtractionForEagerField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
 			Type type = field.getType();
 
@@ -715,7 +876,7 @@ class ClassInstrumentation {
 			il.insert(end, InstructionConst.ALOAD_1);
 			il.insert(end, InstructionFactory.createThis());
 			il.insert(end, factory.createGetField(className, field.getName(), type));
-			il.insert(end, factory.createInvoke(Storage.class.getName(), ADD_UPDATE_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
+			il.insert(end, factory.createInvoke(STORAGE_CLASS_NAME, ADD_UPDATE_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
 			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
@@ -736,10 +897,11 @@ class ClassInstrumentation {
 				il.insert(addUpdatesFor, InstructionConst.LCMP);
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
-			else if (field.getType().equals(Type.INT))
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ICMPEQ, end));
-			else
+			else if (field.getType() instanceof ReferenceType)
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, end));
+			else
+				// this covers int, short, byte, char, boolean
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ICMPEQ, end));
 
 			stackMapPositions.addFirst(end);
 			stackMapPositions.addFirst(addUpdatesFor);
@@ -747,15 +909,28 @@ class ClassInstrumentation {
 			return start;
 		}
 
+		/**
+		 * Adds accessor methods for the fields of the class being instrumented.
+		 */
 		private void addAccessorMethods() {
 			lazyNonTransientInstanceFields.forEach(this::addAccessorMethodsFor);
 		}
 
+		/**
+		 * Adds accessor methods for the given field.
+		 * 
+		 * @param field the field
+		 */
 		private void addAccessorMethodsFor(Field field) {
 			addGetterFor(field);
 			addSetterFor(field);
 		}
 
+		/**
+		 * Adds a setter method for the given field.
+		 * 
+		 * @param field the field
+		 */
 		private void addSetterFor(Field field) {
 			Type type = field.getType();
 			InstructionList il = new InstructionList();
@@ -772,6 +947,12 @@ class ClassInstrumentation {
 			classGen.addMethod(setter.getMethod());
 		}
 
+		/**
+		 * Yields the modifiers for the accessors added for the given field.
+		 * 
+		 * @param field the field
+		 * @return the visibility modifiers of the field, plus {@code synthetic}
+		 */
 		private short modifiersFrom(Field field) {
 			short modifiers = Const.ACC_SYNTHETIC;
 			if (field.isPrivate())
@@ -783,6 +964,11 @@ class ClassInstrumentation {
 			return modifiers;
 		}
 
+		/**
+		 * Adds a getter method for the given field.
+		 * 
+		 * @param field the field
+		 */
 		private void addGetterFor(Field field) {
 			Type type = field.getType();
 			InstructionList il = new InstructionList();
@@ -798,15 +984,21 @@ class ClassInstrumentation {
 			classGen.addMethod(getter.getMethod());
 		}
 
+		/**
+		 * Adds the ensure loaded methods for the lazy fields of the class being instrumented.
+		 */
 		private void addEnsureLoadedMethods() {
 			lazyNonTransientInstanceFields.forEach(this::addEnsureLoadedMethodFor);
 		}
 
+		/**
+		 * Adds the ensure loaded method for the given lazy field.
+		 */
 		private void addEnsureLoadedMethodFor(Field field) {
 			InstructionList il = new InstructionList();
 			InstructionHandle _return = il.append(InstructionConst.RETURN);
 			il.insert(_return, InstructionFactory.createThis());
-			il.insert(_return, factory.createGetField(Storage.class.getName(), IN_STORAGE_NAME, BasicType.BOOLEAN));
+			il.insert(_return, factory.createGetField(STORAGE_CLASS_NAME, IN_STORAGE_NAME, BasicType.BOOLEAN));
 			il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 			il.insert(_return, InstructionFactory.createThis());
 			il.insert(_return, factory.createGetField(className, IF_ALREADY_LOADED_PREFIX + field.getName(), BasicType.BOOLEAN));
@@ -834,6 +1026,13 @@ class ClassInstrumentation {
 			classGen.addMethod(ensureLoaded.getMethod());
 		}
 
+		/**
+		 * Adds a stack map with the given stack map entries.
+		 * 
+		 * @param totalLength the length of the entries (in bytes)
+		 * @param entries the entries
+		 * @return the resulting stack map
+		 */
 		private StackMap mkStackMap(int totalLength, StackMapEntry[] entries) {
 			int attribute_name_index = cpg.addUtf8("StackMapTable");
 			int attribute_length = 2 + totalLength;
@@ -841,6 +1040,12 @@ class ClassInstrumentation {
 			return new StackMap(attribute_name_index, attribute_length, entries, cpg.getConstantPool());
 		}
 
+		/**
+		 * Yields a stack map entry of type same.
+		 * 
+		 * @param offset the distance from the previous entry
+		 * @return the stack map entry
+		 */
 		private StackMapEntry mkSameStackMapEntry(int offset) {
 			if (offset >= Const.SAME_FRAME && offset <= Const.SAME_FRAME_MAX)
 				return new StackMapEntry(offset, offset, null, null, cpg.getConstantPool());
@@ -848,11 +1053,20 @@ class ClassInstrumentation {
 				return new StackMapEntry(Const.SAME_FRAME_EXTENDED, offset, null, null, cpg.getConstantPool());
 		}
 
+		/**
+		 * Yields a stack map entry of type add one local of type integer.
+		 * 
+		 * @param offset the distance from the previous entry
+		 * @return the stack map entry
+		 */
 		private StackMapEntry mkSameStackMapEntryWithExtraIntLocal(int offset) {
 			ConstantPool cp = cpg.getConstantPool();
 			return new StackMapEntry(Const.APPEND_FRAME, offset, new StackMapType[] { new StackMapType(Const.ITEM_Integer, -1, cp) }, null, cp);
 		}
 
+		/**
+		 * Adds fields for the old value and the loading state of the fields of a storage class.
+		 */
 		private void addOldAndIfAlreadyLoadedFields() {
 			for (Field field: eagerNonTransientInstanceFields.getLast())
 				addOldFieldFor(field);
@@ -863,11 +1077,17 @@ class ClassInstrumentation {
 			}
 		}
 
+		/**
+		 * Adds the field for the loading state of the fields of a storage class.
+		 */
 		private void addIfAlreadyLoadedFieldFor(Field field) {
 			FieldGen ifAlreadyLoaded = new FieldGen(PRIVATE_SYNTHETIC, BasicType.BOOLEAN, IF_ALREADY_LOADED_PREFIX + field.getName(), cpg);
 			classGen.addField(ifAlreadyLoaded.getField());
 		}
 
+		/**
+		 * Adds the field for the old value of the fields of a storage class.
+		 */
 		private void addOldFieldFor(Field field) {
 			FieldGen copy = new FieldGen(field, cpg);
 			copy.setName(OLD_PREFIX + field.getName());
@@ -875,6 +1095,13 @@ class ClassInstrumentation {
 			classGen.addField(copy.getField());
 		}
 
+		/**
+		 * Adds a constructor that deserializes an object of storage type.
+		 * This constructor receives the values of the eager fields, ordered
+		 * by putting first the fields of the superclasses, then those of the
+		 * same class being constructed, ordered by name and then by {@code toString()}
+		 * of their type.
+		 */
 		private void addConstructorForDeserializationFromBlockchain() {
 			List<Type> args = new ArrayList<>();
 
@@ -899,6 +1126,14 @@ class ClassInstrumentation {
 			classGen.addMethod(constructor.getMethod());
 		}
 
+		/**
+		 * Adds a call from the deserialization constructor of a storage class
+		 * to the deserialization constructor of the superclass.
+		 * 
+		 * @param il the instructions where the call must be added
+		 * @return the number of local variables used to accomodate the
+		 *         arguments passed to the constructor of the superclass
+		 */
 		private int addCallToSuper(InstructionList il) {
 			List<Type> argsForSuperclasses = new ArrayList<>();
 			il.append(InstructionFactory.createThis());
@@ -930,6 +1165,13 @@ class ClassInstrumentation {
 			return pushLoad.local;
 		}
 
+		/**
+		 * Adds code that initializes the eager fields of the storage class
+		 * being instrumented.
+		 * 
+		 * @param il the instructions where the code must be added
+		 * @param nextLocal the local variables where the parameters start, that must be stored in the fields
+		 */
 		private void addInitializationOfEagerFields(InstructionList il, int nextLocal) {
 			Consumer<Field> putField = new Consumer<Field>() {
 				private int local = nextLocal;
@@ -957,6 +1199,12 @@ class ClassInstrumentation {
 			eagerNonTransientInstanceFields.getLast().forEach(putField);
 		}
 
+		/**
+		 * Collects the eager and lazy instance fields of the given storage class and of
+		 * its superclasses, up to {@link takamaka.lang.Storage} (excluded).
+		 * 
+		 * @param className the name of the class
+		 */
 		private void collectNonTransientInstanceFieldsOf(String className) {
 			if (!className.equals(STORAGE_CLASS_NAME)) {
 				JavaClass clazz = program.get(className);
@@ -978,17 +1226,35 @@ class ClassInstrumentation {
 			}
 		}
 
+		/**
+		 * Determines if the given field has been added by this instrumenter.
+		 * 
+		 * @param field the field
+		 * @return true if and only if that condition holds
+		 */
 		private boolean isAddedByTakamaka(Field field) {
 			return field.getName().startsWith("§");
 		}
 
+		/**
+		 * Determines if a field of a storage class, having the given field, is lazily loaded.
+		 * 
+		 * @param type the type
+		 * @return true if and only if that condition holds
+		 */
 		private boolean isLazilyLoaded(Type type) {
-			String className;
 			return !(type instanceof BasicType ||
-				(type instanceof ObjectType && ((className = ((ObjectType) type).getClassName()).equals("java.lang.String") || className.equals("java.math.BigInteger"))));
+				(type instanceof ObjectType && (ObjectType.STRING.equals(type) || BIGINTEGER_OT.equals(type))));
 		}
 
+		/**
+		 * Determines if a class is a storage class.
+		 * 
+		 * @param className the name of the class
+		 * @return true if and only if that class extends {@link takamaka.lang.Storage}
+		 */
 		private boolean isStorage(String className) {
+			// we also consider Contract since it is normally not included in the class path of the Takamaka runtime
 			if (className.equals(STORAGE_CLASS_NAME) || className.equals(CONTRACT_CLASS_NAME))
 				return true;
 			else {
@@ -1002,6 +1268,14 @@ class ClassInstrumentation {
 			}
 		}
 
+		/**
+		 * Determines if a field is transient.
+		 * 
+		 * @param className the class from which the field must be looked-up
+		 * @param fieldName the name of the field
+		 * @param fieldType the type of the field
+		 * @return true if and only if that condition holds
+		 */
 		private boolean isTransient(String className, String fieldName, Type fieldType) {
 			JavaClass clazz = program.get(className);
 			if (clazz == null)
@@ -1019,6 +1293,12 @@ class ClassInstrumentation {
 			}
 		}
 
+		/**
+		 * Checks if a class is a contract or subclass of contract.
+		 * 
+		 * @param className the name of the class
+		 * @return true if and only if that condition holds
+		 */
 		private boolean isContract(String className) {
 			if (className.equals(CONTRACT_CLASS_NAME))
 				return true;

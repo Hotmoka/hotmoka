@@ -10,19 +10,55 @@ import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.logging.Logger;
 
+/**
+ * An instrumenter of a jar file. It generates another jar files that
+ * contain the same classes as the former, but instrumented. This means
+ * that storage classes get modified to account for persistence and
+ * contracts get modified to implement entries.
+ */
 public class JarInstrumentation {
 	private static final Logger LOGGER = Logger.getLogger(JarInstrumentation.class.getName());
 
+	/**
+	 * Builds an instrumenter of the given jar file into another jar file.
+	 * 
+	 * @param origin the jar file to instrument
+	 * @param destination the jar file to generate
+	 * @param program the program that contains all classes of the program,
+	 *                including those of {@code origin}
+	 */
 	public JarInstrumentation(Path origin, Path destination, Program program) {
 		new Initializer(origin, destination, program);
 	}
 
+	/**
+	 * Local scope to perform the instrumentation.
+	 */
 	private class Initializer {
+
+		/**
+		 * The jar file to instrument.
+		 */
 		private final JarFile originalJar;
+
+		/**
+		 * The resulting, instrumented jar file.
+		 */
 		private final JarOutputStream instrumentedJar;
-		//private final byte buffer[] = new byte[10240];
+
+		/**
+		 * The program that contains all classes.
+		 */
 		private final Program program;
 
+		/**
+		 * Performs the instrumentation of the given jar file into another jar file.
+		 * 
+		 * @param origin the jar file to instrument
+		 * @param destination the jar file to generate
+		 * @param program the program that contains all classes of the program,
+		 *                including those of {@code origin}
+		 */
 		private Initializer(Path origin, Path destination, Program program) {
 			LOGGER.fine(() -> "Processing " + origin);
 
@@ -31,6 +67,7 @@ public class JarInstrumentation {
 			try (JarFile originalJar = this.originalJar = new JarFile(origin.toFile());
 				 JarOutputStream instrumentedJar = this.instrumentedJar = new JarOutputStream(new FileOutputStream(destination.toFile()))) {
 
+				// we cannot proceed in parallel since the BCEL library is not thread-safe
 				originalJar.stream().forEach(this::addEntry);
 			}
 			catch (IOException e) {
@@ -38,25 +75,28 @@ public class JarInstrumentation {
 			}
 		}
 
+		/**
+		 * Instruments the given entry of a jar file, if it is a class file.
+		 * 
+		 * @param entry the entry
+		 */
 		private void addEntry(JarEntry entry) {
 			try (InputStream input = originalJar.getInputStream(entry)) {
 				String entryName = entry.getName();
-				instrumentedJar.putNextEntry(new JarEntry(entryName));
 
-				if (entryName.endsWith(".class"))
+				if (entryName.endsWith(".class")) {
+					// add the same entry to the resulting jar
+					instrumentedJar.putNextEntry(new JarEntry(entryName));
+
+					// dump an instrumented class file inside that entry
 					new ClassInstrumentation(input, entryName, instrumentedJar, program);
+				}
 				else
-					LOGGER.info(() -> "Dropping non-class file " + entryName);
+					LOGGER.fine(() -> "Dropping non-class file " + entryName);
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}
 		}
-
-		/*private void addJarEntryUnchanged(InputStream input) throws IOException {
-			int nRead;
-			while ((nRead = input.read(buffer, 0, buffer.length)) > 0)
-				instrumentedJar.write(buffer, 0, nRead);
-		}*/
 	}
 }

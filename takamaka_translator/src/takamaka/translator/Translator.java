@@ -15,6 +15,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+/**
+ * A simple test to instrument a jar. Use for instance like this:
+ * 
+ * java Translator -app test_contracts_dependency.jar -lib takamaka_runtime.jar -lib takamaka_base.jar
+ */
 public class Translator {
 
 	public static void main(String[] args) throws IOException {
