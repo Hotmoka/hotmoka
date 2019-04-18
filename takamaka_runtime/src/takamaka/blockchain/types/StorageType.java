@@ -10,8 +10,8 @@ import takamaka.lang.Immutable;
 public interface StorageType {
 
 	/**
-	 * Yields the class object that represents this type, for the current
-	 * transaction of the given blockchain.
+	 * Yields the class object that represents this type in the Java language,
+	 * for the current transaction of the given blockchain.
 	 * 
 	 * @param blockchain the blockchain that is executing the transaction
 	 * @return the class object, if any
@@ -22,7 +22,7 @@ public interface StorageType {
 	/**
 	 * Compares this storage type with another. Puts first basic types, in their order of
 	 * enumeration, then class types ordered wrt class name. This method is not
-	 * called {@code compareTo} since it would conflict with the implicit {@code compareTo}
+	 * called {@code compareTo} since it would conflict with the implicit {@code compareTo()}
 	 * method defined in the enumeration {@link takamaka.blockchain.types.BasicTypes}.
 	 * 
 	 * @param other the other type
@@ -53,7 +53,7 @@ public interface StorageType {
 
 	/**
 	 * Determines if a field of this type of a storage object is not loaded
-	 * at deserialization time, but only when and if is accessed.
+	 * at deserialization time, but only when and if it is accessed.
 	 * 
 	 * @return true if and only if that condition holds
 	 */

@@ -26,8 +26,8 @@ final class MemoryTransactionReference extends TransactionReference {
 	/**
 	 * Builds a transaction reference.
 	 * 
-	 * @param blockNumber The number of the block holding the transaction.
-	 * @param transactionNumber The number of the transaction inside the block.
+	 * @param blockNumber the number of the block holding the transaction
+	 * @param transactionNumber the number of the transaction inside the block
 	 */
 	MemoryTransactionReference(BigInteger blockNumber, short transactionNumber) {
 		this.blockNumber = blockNumber;
@@ -36,6 +36,9 @@ final class MemoryTransactionReference extends TransactionReference {
 
 	@Override
 	public int compareTo(TransactionReference other) {
+		// this transaction reference is created by the memory blockchain only,
+		// that generates only this kind of transaction references. Hence
+		// this cast must succeed
 		MemoryTransactionReference otherAsTR = (MemoryTransactionReference) other;
 
 		int diff = blockNumber.compareTo(otherAsTR.blockNumber);
@@ -47,7 +50,9 @@ final class MemoryTransactionReference extends TransactionReference {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof MemoryTransactionReference && ((MemoryTransactionReference) other).blockNumber.equals(blockNumber) && ((MemoryTransactionReference) other).transactionNumber == transactionNumber;
+		return other instanceof MemoryTransactionReference &&
+			((MemoryTransactionReference) other).blockNumber.equals(blockNumber) &&
+			((MemoryTransactionReference) other).transactionNumber == transactionNumber;
 	}
 
 	@Override

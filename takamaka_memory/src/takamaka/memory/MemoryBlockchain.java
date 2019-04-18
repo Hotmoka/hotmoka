@@ -41,7 +41,13 @@ import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
 import takamaka.lang.Event;
 
+/**
+ * An implementation of a blockchain that stores transactions in a directory
+ * on disk memory. It is only meant for experimentation and testing. It is not
+ * really a blockchain, since there is no peer-to-peer network, nor mining.
+ */
 public class MemoryBlockchain extends AbstractBlockchain {
+
 	/**
 	 * The name used for the instrumented jars stored in the chain.
 	 */
@@ -53,25 +59,48 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	public final static Path DEPENDENCIES_NAME = Paths.get("deps.txt");
 
 	/**
-	 * The name used for the file describing the specification of a code execution transaction.
+	 * The name used for the file describing the specification of a transaction.
 	 */
 	public final static Path SPEC_NAME = Paths.get("specification.txt");
 
 	/**
-	 * The name used for the file containing the updates performed during a code execution transaction.
+	 * The name used for the file containing the updates performed by a transaction.
 	 */
 	public final static Path UPDATES_NAME = Paths.get("updates.txt");
 
 	/**
-	 * The name used for the file containing the events triggered during a code execution transaction.
+	 * The name used for the file containing the events triggered during a transaction.
 	 */
 	public final static Path EVENTS_NAME = Paths.get("events.txt");
 
+	/**
+	 * The root path where transaction are stored.
+	 */
 	private final Path root;
+
+	/**
+	 * The number of transactions per block.
+	 */
 	private final short transactionsPerBlock;
+
+	/**
+	 * The block of the current transaction.
+	 */
 	private BigInteger currentBlock = BigInteger.ZERO;
+
+	/**
+	 * The progressive transaction number inside the current block,
+	 * for the current transaction.
+	 */
 	private short currentTransaction;
 
+	/**
+	 * Builds a blockchain that stores transaction in disk memory.
+	 * 
+	 * @param root the directory where blocks and transactions must be stored.
+	 * @param transactionsPerBlock the number of transactions inside each block
+	 * @throws IOException if the root directory cannot be created
+	 */
 	public MemoryBlockchain(Path root, short transactionsPerBlock) throws IOException {
 		if (root == null)
 			throw new NullPointerException("A root path must be specified");
@@ -93,38 +122,53 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void collectEagerUpdatesFor(StorageReference reference, Set<Update> where) throws Exception {
+	protected void collectEagerUpdatesFor(StorageReference object, Set<Update> where) throws Exception {
+		// goes back from the current transaction
 		MemoryTransactionReference cursor = getCurrentTransactionReference();
 
 		do {
 			cursor = previousTransaction(cursor);
-			addPrimitiveUpdatesFor(reference, cursor, where);
+			// adds the eager updates from the cursor, if any and if they are the latest
+			addEagerUpdatesFor(object, cursor, where);
 		}
-		while (!cursor.equals(reference.transaction));
+		// no reason to look before the transaction that created the object
+		while (!cursor.equals(object.transaction));
 	}
 
 	@Override
-	protected Update getLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		MemoryTransactionReference cursor = (MemoryTransactionReference) reference.transaction;
+	protected Update getLastLazyUpdateFor(StorageReference object, FieldSignature field) throws Exception {
+		// goes back from the current transaction
+		MemoryTransactionReference cursor = getCurrentTransactionReference();
 
 		do {
-			Update update = getLastUpdateFor(reference, field, cursor);
+			cursor = previousTransaction(cursor);
+			Update update = getLastUpdateFor(object, field, cursor);
 			if (update != null)
 				return update;
-
-			cursor = previousTransaction(cursor);
 		}
-		while (!cursor.isOlderThan(reference.transaction));
+		// no reason to look before the transaction that created the object
+		while (!cursor.equals(object.transaction));
 
-		throw new IllegalStateException("Did not find the last update for " + field + " of " + reference);
+		throw new IllegalStateException("Did not find the last update for " + field + " of " + object);
 	}
 
-	private Update getLastUpdateFor(StorageReference reference, FieldSignature field, MemoryTransactionReference cursor) throws IOException {
-		Path updatesPath = getPathFor((MemoryTransactionReference) reference.transaction, UPDATES_NAME);
+	/**
+	 * Yields the update to the given field of the object at the given reference,
+	 * generated during a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param transaction the block where the update is being looked for
+	 * @return the update, if any. If the field of {@code reference} was not modified during
+	 *         the {@code transaction}, this method returns {@code null}
+	 * @throws IOException if there is an error while accessing the disk
+	 */
+	private Update getLastUpdateFor(StorageReference object, FieldSignature field, MemoryTransactionReference transaction) throws IOException {
+		Path updatesPath = getPathFor(transaction, UPDATES_NAME);
 		if (Files.exists(updatesPath)) {
 			Optional<Update> result = Files.lines(updatesPath)
 				.map(MemoryBlockchain::updateFromString)
-				.filter(update -> update.object.equals(reference) && update.field.equals(field))
+				.filter(update -> update.object.equals(object) && update.field.equals(field))
 				.findAny();
 
 			if (result.isPresent())
@@ -134,7 +178,16 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		return null;
 	}
 
-	private void addPrimitiveUpdatesFor(StorageReference object, MemoryTransactionReference where, Set<Update> updates) throws IOException {
+	/**
+	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param where the transaction
+	 * @param updates the set where they must be added
+	 * @throws IOException if there is an error while accessing the disk
+	 */
+	private void addEagerUpdatesFor(StorageReference object, MemoryTransactionReference where, Set<Update> updates) throws IOException {
 		Path updatesPath = getPathFor(where, UPDATES_NAME);
 		if (Files.exists(updatesPath))
 			Files.lines(updatesPath)
@@ -255,6 +308,35 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		addCodeExecutionTransactionInternal(spec, executor.updates(), executor.events());
 	}
 
+	@Override
+	protected void extractPathsRecursively(Classpath classpath, List<Path> paths) throws Exception {
+		if (classpath.recursive) {
+			Path path = getPathFor((MemoryTransactionReference) classpath.transaction, DEPENDENCIES_NAME);
+			if (Files.exists(path))
+				for (String line: Files.readAllLines(path))
+					extractPathsRecursively(classpathFromString(line), paths);
+		}
+	
+		Path path = getPathFor((MemoryTransactionReference) classpath.transaction, INSTRUMENTED_JAR_NAME);
+		if (!Files.exists(path))
+			throw new IOException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
+	
+		paths.add(path);
+	}
+
+	@Override
+	protected void stepToNextTransactionReference() {
+		if (++currentTransaction == transactionsPerBlock) {
+			currentTransaction = 0;
+			currentBlock = currentBlock.add(BigInteger.ONE);
+		}
+	}
+
+	@Override
+	protected BlockchainClassLoader mkBlockchainClassLoader(Classpath classpath) throws Exception {
+		return new MemoryBlockchainClassLoader(classpath);
+	}
+
 	private void addCodeExecutionTransactionInternal(String spec, SortedSet<Update> updates, List<Event> events) throws IOException {
 		dumpTransactionSpec(spec);
 		dumpTransactionUpdates(updates);
@@ -295,22 +377,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(specPath.toFile())))) {
 			output.print(spec);
 		}
-	}
-
-	@Override
-	protected void extractPathsRecursively(Classpath classpath, List<Path> result) throws Exception {
-		if (classpath.recursive) {
-			Path path = getPathFor((MemoryTransactionReference) classpath.transaction, DEPENDENCIES_NAME);
-			if (Files.exists(path))
-				for (String line: Files.readAllLines(path))
-					extractPathsRecursively(classpathFromString(line), result);
-		}
-
-		Path path = getPathFor((MemoryTransactionReference) classpath.transaction, INSTRUMENTED_JAR_NAME);
-		if (!Files.exists(path))
-			throw new IOException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
-
-		result.add(path);
 	}
 
 	private static String transactionReferenceAsString(MemoryTransactionReference ref) {
@@ -457,19 +523,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		String recursivePart = s.substring(semicolonPos + 1);
 
 		return new Classpath(transactionReferenceFromString(transactionPart), Boolean.parseBoolean(recursivePart));
-	}
-
-	@Override
-	protected void stepToNextTransactionReference() {
-		if (++currentTransaction == transactionsPerBlock) {
-			currentTransaction = 0;
-			currentBlock = currentBlock.add(BigInteger.ONE);
-		}
-	}
-
-	@Override
-	protected BlockchainClassLoader mkBlockchainClassLoader(Classpath classpath) throws Exception {
-		return new MemoryBlockchainClassLoader(classpath);
 	}
 
 	private class MemoryBlockchainClassLoader extends URLClassLoader implements BlockchainClassLoader {

@@ -200,34 +200,34 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	/**
 	 * Puts in the given set all the latest updates for the fields of eager type of the
-	 * given storage reference.
+	 * object at the given storage reference.
 	 * 
-	 * @param reference the storage reference
-	 * @param where the set where the latest updates must be added
+	 * @param object the storage reference
+	 * @param updates the set where the latest updates must be added
 	 * @throws Exception if the operation fails
 	 */
-	protected abstract void collectEagerUpdatesFor(StorageReference reference, Set<Update> where) throws Exception;
+	protected abstract void collectEagerUpdatesFor(StorageReference object, Set<Update> updates) throws Exception;
 
 	/**
-	 * Yields the most recent update for the given field, of lazy type, of the given storage reference.
+	 * Yields the most recent update for the given field, of lazy type, of the object at given storage reference.
 	 * Conceptually, this amounts to scanning backwards the blockchain, from its tip,
 	 * looking for the latest update.
 	 * 
-	 * @param reference the storage reference
+	 * @param object the storage reference
 	 * @param field the field whose update is being looked for
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	protected abstract Update getLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception;
+	protected abstract Update getLastLazyUpdateFor(StorageReference object, FieldSignature field) throws Exception;
 
 	/**
 	 * Expands the given list with the dependent class paths, recursively.
 	 * 
 	 * @param classpath the class path whose dependencies must be added, recursively
-	 * @param result the list that gets expanded
+	 * @param paths the list that gets expanded
 	 * @throws Exception if the class paths cannot be found
 	 */
-	protected abstract void extractPathsRecursively(Classpath classpath, List<Path> result) throws Exception;
+	protected abstract void extractPathsRecursively(Classpath classpath, List<Path> paths) throws Exception;
 
 	/**
 	 * Builds the class loader for this blockchain, that loads classes from the given class path.
