@@ -152,71 +152,13 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		throw new IllegalStateException("Did not find the last update for " + field + " of " + object);
 	}
 
-	/**
-	 * Yields the update to the given field of the object at the given reference,
-	 * generated during a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param field the field of the object
-	 * @param transaction the block where the update is being looked for
-	 * @return the update, if any. If the field of {@code reference} was not modified during
-	 *         the {@code transaction}, this method returns {@code null}
-	 * @throws IOException if there is an error while accessing the disk
-	 */
-	private Update getLastUpdateFor(StorageReference object, FieldSignature field, MemoryTransactionReference transaction) throws IOException {
-		Path updatesPath = getPathFor(transaction, UPDATES_NAME);
-		if (Files.exists(updatesPath)) {
-			Optional<Update> result = Files.lines(updatesPath)
-				.map(MemoryBlockchain::updateFromString)
-				.filter(update -> update.object.equals(object) && update.field.equals(field))
-				.findAny();
-
-			if (result.isPresent())
-				return result.get();
-		}
-
-		return null;
-	}
-
-	/**
-	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param where the transaction
-	 * @param updates the set where they must be added
-	 * @throws IOException if there is an error while accessing the disk
-	 */
-	private void addEagerUpdatesFor(StorageReference object, MemoryTransactionReference where, Set<Update> updates) throws IOException {
-		Path updatesPath = getPathFor(where, UPDATES_NAME);
-		if (Files.exists(updatesPath))
-			Files.lines(updatesPath)
-				.map(MemoryBlockchain::updateFromString)
-				.filter(update -> update.object.equals(object) && !update.field.type.isLazy() && !isAlreadyIn(update, updates))
-				.forEach(updates::add);
-	}
-
-	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
-		return updates.stream().anyMatch(other -> other.object.equals(update.object) && other.field.equals(update.field));
-	}
-
-	private MemoryTransactionReference previousTransaction(MemoryTransactionReference cursor) throws IllegalArgumentException {
-		if (cursor.transactionNumber == 0)
-			if (cursor.blockNumber.signum() == 0)
-				throw new IllegalArgumentException("Transaction has no previous transaction");
-			else
-				return new MemoryTransactionReference(cursor.blockNumber.subtract(BigInteger.ONE), (short) (transactionsPerBlock - 1));
-		else
-			return new MemoryTransactionReference(cursor.blockNumber, (short) (cursor.transactionNumber - 1));
-	}
-
 	@Override
 	protected void addGameteCreationTransactionInternal(Classpath takamakaBase, BigInteger initialAmount, StorageReference gamete, SortedSet<Update> updates) throws Exception {
 		String spec = "Gamete creation transaction\n";
 		spec += "Classpath: " + takamakaBase.toString() + "\n";
 		spec += "Initial amount: " + initialAmount + "\n";
 		spec += "Gamete: " + gamete + "\n";
-		
+
 		dumpTransactionSpec(spec);
 		dumpTransactionUpdates(updates);
 	}
@@ -337,12 +279,99 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		return new MemoryBlockchainClassLoader(classpath);
 	}
 
+	/**
+	 * Yields the update to the given field of the object at the given reference,
+	 * generated during a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param transaction the block where the update is being looked for
+	 * @return the update, if any. If the field of {@code reference} was not modified during
+	 *         the {@code transaction}, this method returns {@code null}
+	 * @throws IOException if there is an error while accessing the disk
+	 */
+	private Update getLastUpdateFor(StorageReference object, FieldSignature field, MemoryTransactionReference transaction) throws IOException {
+		Path updatesPath = getPathFor(transaction, UPDATES_NAME);
+		if (Files.exists(updatesPath)) {
+			Optional<Update> result = Files.lines(updatesPath)
+				.map(MemoryBlockchain::updateFromString)
+				.filter(update -> update.object.equals(object) && update.field.equals(field))
+				.findAny();
+	
+			if (result.isPresent())
+				return result.get();
+		}
+	
+		return null;
+	}
+
+	/**
+	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param where the transaction
+	 * @param updates the set where they must be added
+	 * @throws IOException if there is an error while accessing the disk
+	 */
+	private void addEagerUpdatesFor(StorageReference object, MemoryTransactionReference where, Set<Update> updates) throws IOException {
+		Path updatesPath = getPathFor(where, UPDATES_NAME);
+		if (Files.exists(updatesPath))
+			Files.lines(updatesPath)
+				.map(MemoryBlockchain::updateFromString)
+				.filter(update -> update.object.equals(object) && !update.field.type.isLazy() && !isAlreadyIn(update, updates))
+				.forEach(updates::add);
+	}
+
+	/**
+	 * Determines if the given set of updates contains an update for the
+	 * same object and field of the given update.
+	 * 
+	 * @param update the given update
+	 * @param updates the set
+	 * @return true if and only if that condition holds
+	 */
+	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
+		return updates.stream().anyMatch(other -> other.object.equals(update.object) && other.field.equals(update.field));
+	}
+
+	/**
+	 * Yields the previous transaction of the given one.
+	 * 
+	 * @param transaction the transaction whose previous transaction is being looked for
+	 * @return the previous transaction of {@code transaction}, if any
+	 * @throws IllegalStateException if there is no previous transaction
+	 */
+	private MemoryTransactionReference previousTransaction(MemoryTransactionReference transaction) {
+		if (transaction.transactionNumber == 0)
+			if (transaction.blockNumber.signum() == 0)
+				throw new IllegalStateException("Transaction has no previous transaction");
+			else
+				return new MemoryTransactionReference(transaction.blockNumber.subtract(BigInteger.ONE), (short) (transactionsPerBlock - 1));
+		else
+			return new MemoryTransactionReference(transaction.blockNumber, (short) (transaction.transactionNumber - 1));
+	}
+
+	/**
+	 * Dumps the data for a code execution transaction.
+	 * 
+	 * @param spec the specification of the transaction
+	 * @param updates the updates induced by the transaction
+	 * @param events the events generated during the transaction
+	 * @throws IOException if an error occurred while accessing the disk
+	 */
 	private void addCodeExecutionTransactionInternal(String spec, SortedSet<Update> updates, List<Event> events) throws IOException {
 		dumpTransactionSpec(spec);
 		dumpTransactionUpdates(updates);
 		dumpTransactionEvents(events);
 	}
 
+	/**
+	 * Dumps the dependencies of a jar installed in blockchain.
+	 * 
+	 * @param dependencies the dependencies
+	 * @throws IOException if an error occurred while accessing the disk
+	 */
 	private void dumpJarDependencies(Classpath... dependencies) throws IOException {
 		if (dependencies.length > 0) {
 			Path dependenciesPath = getCurrentPathFor(DEPENDENCIES_NAME);
@@ -353,6 +382,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 	}
 
+	/**
+	 * Dumps the events occurred during a transaction.
+	 * 
+	 * @param events the events
+	 * @throws IOException if an error occurred while accessing the disk
+	 */	
 	private void dumpTransactionEvents(List<Event> events) throws IOException {
 		Path eventsPath = getCurrentPathFor(EVENTS_NAME);
 
@@ -361,6 +396,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 	}
 
+	/**
+	 * Dumps the updates induced by a transaction.
+	 * 
+	 * @param updates the updates
+	 * @throws IOException if an error occurred while accessing the disk
+	 */
 	private void dumpTransactionUpdates(SortedSet<Update> updates) throws IOException {
 		Path updatesPath = getCurrentPathFor(UPDATES_NAME);
 
@@ -369,6 +410,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 	}
 
+	/**
+	 * Dumps the specification of a transaction.
+	 * 
+	 * @param spec the specification
+	 * @throws IOException if an error occurred while accessing the disk
+	 */
 	private void dumpTransactionSpec(String spec) throws IOException {
 		Path specPath = getCurrentPathFor(SPEC_NAME);
 		ensureDeleted(specPath.getParent());
@@ -379,18 +426,42 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 	}
 
-	private static String transactionReferenceAsString(MemoryTransactionReference ref) {
-		return String.format("%s.%x", ref.blockNumber.toString(16), ref.transactionNumber);
+	/**
+	 * Yields a string used to dump the given transaction reference.
+	 * 
+	 * @param reference the reference
+	 * @return the string
+	 */
+	private static String transactionReferenceAsString(MemoryTransactionReference reference) {
+		return String.format("%s.%x", reference.blockNumber.toString(16), reference.transactionNumber);
 	}
 
-	private static String storageReferenceAsString(StorageReference ref) {
-		return String.format("%s#%s", transactionReferenceAsString((MemoryTransactionReference) ref.transaction), ref.progressive.toString(16));
+	/**
+	 * Yields a string used to dump the given storage reference.
+	 * 
+	 * @param reference the reference
+	 * @return the string
+	 */
+	private static String storageReferenceAsString(StorageReference reference) {
+		return String.format("%s#%s", transactionReferenceAsString((MemoryTransactionReference) reference.transaction), reference.progressive.toString(16));
 	}
 
+	/**
+	 * Yields a string used to dump the given update.
+	 * 
+	 * @param update the update
+	 * @return the string
+	 */
 	private static String updateAsString(Update update) {
 		return storageReferenceAsString(update.object) + "&" + update.field.definingClass + "&" + update.field.name + "&" + update.field.type + "&" + storageValueAsString(update.value);
 	}
 
+	/**
+	 * Yields a string used to dump the given storage value.
+	 * 
+	 * @param value the value
+	 * @return the string
+	 */
 	private static String storageValueAsString(StorageValue value) {
 		if (value instanceof StorageReference)
 			return storageReferenceAsString((StorageReference) value);
@@ -399,15 +470,21 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	/**
-	 * Serializes a class path into a string.
+	 * Yields a string used to dump the given class path.
 	 * 
 	 * @param classpath the class path
-	 * @return the resulting string
+	 * @return the string
 	 */
 	private static String classpathAsString(Classpath classpath) {
 		return String.format("%s;%b", transactionReferenceAsString((MemoryTransactionReference) classpath.transaction), classpath.recursive);
 	}
 
+	/**
+	 * Builds a storage reference from its string dump.
+	 * 
+	 * @param s the string dump
+	 * @return the storage reference
+	 */
 	private static StorageReference storageReferenceFromString(String s) {
 		int index;
 	
@@ -420,6 +497,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		return new StorageReference(transactionReferenceFromString(transactionPart), new BigInteger(progressivePart, 16));
 	}
 
+	/**
+	 * Builds a transaction reference from its string dump.
+	 * 
+	 * @param s the string dump
+	 * @return the transaction reference
+	 */
 	private static TransactionReference transactionReferenceFromString(String s) {
 		int dollarPos;
 		if (s == null || (dollarPos = s.indexOf('.')) < 0)
@@ -432,10 +515,9 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	/**
-	 * Builds an update from its string representation. It must hold that
-	 * {@code update.equals(Update.mkFromString(blockchain, update.toString()))}.
+	 * Builds an update from its string dump.
 	 * 
-	 * @param s the string representation of the update
+	 * @param s the string dump
 	 * @return the update
 	 */
 	private static Update updateFromString(String s) {
@@ -451,18 +533,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	/**
-	 * Yields a storage value of a given type, from its string representation.
+	 * Builds a storage value from its string dump.
 	 * 
-	 * @param type the type of the value
-	 * @param s the string representation of the value
-	 * @return the value
-	 * @throws IllegalArgumentException if booleans or characters cannot be converted or if an unexpected type is provided
-	 * @throws NumberFormatException if numerical values cannot be converted
+	 * @param s the string dump
+	 * @return the storage value
 	 */
 	private static StorageValue storageValueFromString(StorageType type, String s) {
-		if (s == null)
-			throw new IllegalArgumentException("The string to convert cannot be null");
-
 		if (type instanceof BasicTypes) {
 			switch ((BasicTypes) type) {
 			case BOOLEAN:
@@ -508,15 +584,14 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	/**
-	 * Deserializes a class path from a string. It is the inverse of
-	 * {@link takamaka.memory.MemoryBlockchain#classpathAsString(Classpath)}.
+	 * Builds a class path from its string dump.
 	 * 
-	 * @param s the string
-	 * @return the resulting class path
+	 * @param s the string dump
+	 * @return the class path
 	 */
 	private static Classpath classpathFromString(String s) {
-		int semicolonPos;
-		if (s == null || (semicolonPos = s.indexOf(';')) < 0)
+		int semicolonPos = s.indexOf(';');
+		if (semicolonPos < 0)
 			throw new IllegalArgumentException("Illegal Classpath format: " + s);
 
 		String transactionPart = s.substring(0, semicolonPos);
@@ -525,25 +600,39 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		return new Classpath(transactionReferenceFromString(transactionPart), Boolean.parseBoolean(recursivePart));
 	}
 
+	/**
+	 * The class loader for a jar installed in blockchain.
+	 * It resolves the jar from its class path, includes its dependencies and accesses the classes
+	 * from the resulting resolved jars.
+	 */
 	private class MemoryBlockchainClassLoader extends URLClassLoader implements BlockchainClassLoader {
-		private MemoryBlockchainClassLoader(Classpath classpath) throws Exception {
+
+		/**
+		 * Builds the class loader for the given class path and its dependencies.
+		 * 
+		 * @param classpath the class path
+		 * @throws IOException if a disk access error occurs
+		 */
+		private MemoryBlockchainClassLoader(Classpath classpath) throws IOException {
+			// we initially build it without URLs
 			super(new URL[0], classpath.getClass().getClassLoader());
+
+			// then we add the URLs corresponding to the class path and its dependencies, recursively
 			addURLs(classpath);
 		}
 
-		@Override
-		public Class<?> loadClass(String name) throws ClassNotFoundException {
-			return super.loadClass(name);
-		}
-
-		private void addURLs(Classpath classpath) throws Exception {
+		private void addURLs(Classpath classpath) throws IOException {
+			// if the class path is recursive, we consider its dependencies as well, recursively
 			if (classpath.recursive) {
 				Path path = getPathFor((MemoryTransactionReference) classpath.transaction, DEPENDENCIES_NAME);
+
+				// a class path may have no dependencies
 				if (Files.exists(path))
 					for (String line: Files.readAllLines(path))
 						addURLs(classpathFromString(line));
 			}
-	
+
+			// we add, for class loading, the jar containing the instrumented code
 			Path path = getPathFor((MemoryTransactionReference) classpath.transaction, INSTRUMENTED_JAR_NAME);
 			if (!Files.exists(path))
 				throw new IOException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
@@ -552,17 +641,35 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 	}
 
+	/**
+	 * Yields the path for the given file name inside the directory for the current transaction.
+	 * 
+	 * @param fileName the name of the file
+	 * @return the path
+	 */
 	private Path getCurrentPathFor(Path fileName) {
-		return Paths.get(root.toString(), "b" + currentBlock, "t" + currentTransaction).resolve(fileName);
+		return root.resolve("b" + currentBlock).resolve("t" + currentTransaction).resolve(fileName);
 	}
 
-	private Path getPathFor(MemoryTransactionReference ref, Path fileName) {
-		return Paths.get(root.toString(), "b" + ref.blockNumber, "t" + ref.transactionNumber).resolve(fileName);
+	/**
+	 * Yields the path for the given file name inside the directory for the given transaction.
+	 * 
+	 * @param fileName the name of the file
+	 * @return the path
+	 */
+	private Path getPathFor(MemoryTransactionReference reference, Path fileName) {
+		return root.resolve("b" + reference.blockNumber).resolve("t" + reference.transactionNumber).resolve(fileName);
 	}
 
-	private static void ensureDeleted(Path root) throws IOException {
-		if (Files.exists(root))
-			Files.walk(root)
+	/**
+	 * Ensures the given directory, if it exists.
+	 * 
+	 * @param dir the directory
+	 * @throws IOException if a disk error occurs
+	 */
+	private static void ensureDeleted(Path dir) throws IOException {
+		if (Files.exists(dir))
+			Files.walk(dir)
 				.sorted(Comparator.reverseOrder())
 				.map(Path::toFile)
 				.forEach(File::delete);
