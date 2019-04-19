@@ -164,7 +164,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, Path jar, Path instrumented, SortedSet<Update> updates, BigInteger gas, BigInteger consumedGas, Classpath... dependencies) throws Exception {
+	protected void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, String jarName, Path jar, Path instrumented, SortedSet<Update> updates, BigInteger gas, BigInteger consumedGas, Classpath... dependencies) throws Exception {
 		String spec;
 		if (caller != null)
 			spec = "Jar installation\n";
@@ -188,7 +188,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		dumpJarDependencies(dependencies);
 		dumpTransactionUpdates(updates);
 
-		Path original = getCurrentPathFor(jar.getFileName());
+		Path original = getCurrentPathFor(Paths.get(jarName));
 		Path dir = original.getParent();
 		Files.createDirectories(dir);
 		Files.copy(jar, original);

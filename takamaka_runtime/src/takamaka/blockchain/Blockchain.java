@@ -18,13 +18,14 @@ public interface Blockchain {
 	 * blockchain, some basic jars that are likely needed as dependencies by future jars.
 	 * For instance, the jar containing the basic contract classes.
 	 * 
-	 * @param jar the jar to install
+	 * @param jarName the name of the jar file
+	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in the blockchain
 	 * @return the reference to the transaction that can be used to refer to this jar in a class path or as future dependency of other jars
 	 * @throws TransactionException if the transaction could not be completed successfully. It will not
 	 *                              be added to this blockchain
 	 */
-	public TransactionReference addJarStoreInitialTransaction(Path jar, Classpath... dependencies) throws TransactionException;
+	public TransactionReference addJarStoreInitialTransaction(String jarName, byte[] jar, Classpath... dependencies) throws TransactionException;
 
 	/**
 	 * Creates a gamete, that is, an externally owned contract with the given initial amount of coins.
@@ -45,13 +46,14 @@ public interface Blockchain {
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param gas the maximal amount of gas that can be consumed by the transaction
 	 * @param classpath the class path where the {@code caller} is interpreted
-	 * @param jar the jar to install
+	 * @param jarName the name of the jar file
+	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in this blockchain
 	 * @return the reference to the transaction, that can be used to refer to this jar in a class path or as future dependency of other jars
 	 * @throws TransactionException if the transaction could not be completed successfully. If this occurs, the blockchain will be expanded
 	 *                              with a transaction that charges all gas to the caller, but no jar will be installed
 	 */
-	public TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException;
+	public TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, String jarName, byte[] jar, Classpath... dependencies) throws TransactionException;
 
 	/**
 	 * Runs a constructor of a class.

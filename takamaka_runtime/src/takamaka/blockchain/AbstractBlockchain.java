@@ -161,6 +161,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param classpath the class path where the {@code caller} is interpreted
+	 * @param jarName the name of the jar to install
 	 * @param jar the jar to install
 	 * @param instrumented the same {@code jar}, instrumented
 	 * @param updates the updates induced by the execution of the transaction
@@ -169,7 +170,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param dependencies the dependencies of the jar, already installed in this blockchain
 	 * @throws Exception if something goes wrong. In that case, the transaction will be aborted
 	 */
-	protected abstract void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, Path jar, Path instrumented, SortedSet<Update> updates, BigInteger gas, BigInteger consumedGas, Classpath... dependencies) throws Exception;
+	protected abstract void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, String jarName, Path jar, Path instrumented, SortedSet<Update> updates, BigInteger gas, BigInteger consumedGas, Classpath... dependencies) throws Exception;
 
 	/**
 	 * Blockchain-specific implementation at the end of the successful execution of a constructor. Any blockchain implementation
@@ -341,13 +342,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final TransactionReference addJarStoreInitialTransaction(Path jar, Classpath... dependencies) throws TransactionException {
+	public final TransactionReference addJarStoreInitialTransaction(String jarName, byte[] jar, Classpath... dependencies) throws TransactionException {
 		try {
 			if (isInitialized)
 				throw new TransactionException("Blockchain already initialized");
 
 			initTransaction(BigInteger.ZERO);
-			return addJarStoreTransactionCommon(null, null, BigInteger.ZERO, null, jar, dependencies);
+			return addJarStoreTransactionCommon(null, null, BigInteger.ZERO, null, jarName, jar, dependencies);
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
@@ -355,7 +356,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, Path jar, Classpath... dependencies) throws TransactionException {
+	public final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, String jarName, byte[] jar, Classpath... dependencies) throws TransactionException {
 		try (BlockchainClassLoader classLoader = this.classLoader = mkBlockchainClassLoader(classpath)) {
 			initTransaction(gas);
 			Storage deserializedCaller = caller.deserialize(this);
@@ -366,8 +367,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			charge(GasCosts.BASE_TRANSACTION_COST);
 			charge((long) (dependencies.length * GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
-			charge((long) (Files.size(jar) * GasCosts.GAS_PER_BYTE_IN_JAR));
-			return addJarStoreTransactionCommon(caller, classpath, gas, deserializedCaller, jar, dependencies);
+			charge((long) (jar.length * GasCosts.GAS_PER_BYTE_IN_JAR));
+			return addJarStoreTransactionCommon(caller, classpath, gas, deserializedCaller, jarName, jar, dependencies);
 		}
 		catch (Throwable t) {
 			//TODO store the update to the balance of the caller
@@ -401,33 +402,36 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param classpath the class path where the {@code caller} is interpreted
 	 * @param gas the maximal amount of gas that can be consumed by the transaction
 	 * @param deserializedCaller the caller, after deserialization
-	 * @param jar the jar to install
+	 * @param jarName the name of the jar file to install
+	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in this blockchain
 	 * @return the reference to the transaction, that can be used to refer to this jar in a class path or as future dependency of other jars
 	 * @throws Exception if something goes wrong. In that case, the transaction will be aborted
 	 */
-	private TransactionReference addJarStoreTransactionCommon(StorageReference caller, Classpath classpath, BigInteger gas, Storage deserializedCaller, Path jar, Classpath... dependencies) throws Exception {
-		Path jarName = jar.getFileName();
-		String jn = jarName.toString();
-		if (!jn.endsWith(".jar"))
-			throw new TransactionException("Jar file should end in .jar");
-	
-		if (jn.length() > MAX_JAR_NAME_LENGTH)
-			throw new TransactionException("Jar file name cannot be longer than " + MAX_JAR_NAME_LENGTH + " characters");
-	
+	private TransactionReference addJarStoreTransactionCommon(StorageReference caller, Classpath classpath, BigInteger gas, Storage deserializedCaller, String jarName, byte[] jar, Classpath... dependencies) throws Exception {
+		if (jarName == null || !jarName.endsWith(".jar"))
+			throw new TransactionException("Illegal jar name: " + jarName);
+
+		if (jarName.length() > MAX_JAR_NAME_LENGTH)
+			throw new TransactionException("Jar name is too long");
+
 		TransactionReference ref = getCurrentTransactionReference();
 		for (Classpath dependency: dependencies)
 			if (!dependency.transaction.isOlderThan(ref))
 				throw new TransactionException("A transaction can only depend on older transactions");
-	
+
+		// we transform the array of bytes into a real jar file
+		Path original = Files.createTempFile("original", "jar");
+		Files.write(original, jar);
+
 		// we create a temporary file to hold the instrumented jar
 		Path instrumented = Files.createTempFile("instrumented", "jar");
-		new JarInstrumentation(jar, instrumented, mkProgram(jar, dependencies));
+		new JarInstrumentation(original, instrumented, mkProgram(original, dependencies));
 	
 		if (deserializedCaller != null)
 			increaseBalance(deserializedCaller, remainingGas());
-	
-		addJarStoreTransactionInternal(caller, classpath, jar, instrumented, collectUpdates(null, deserializedCaller, null, null), gas, gas.subtract(remainingGas()), dependencies);
+		
+		addJarStoreTransactionInternal(caller, classpath, jarName, original, instrumented, collectUpdates(null, deserializedCaller, null, null), gas, gas.subtract(remainingGas()), dependencies);
 		stepToNextTransactionReference();
 
 		return ref;
