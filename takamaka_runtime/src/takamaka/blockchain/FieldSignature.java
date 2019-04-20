@@ -1,5 +1,7 @@
 package takamaka.blockchain;
 
+import java.io.Serializable;
+
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
 import takamaka.lang.Immutable;
@@ -8,7 +10,9 @@ import takamaka.lang.Immutable;
  * The signature of a field of a class.
  */
 @Immutable
-public final class FieldSignature implements Comparable<FieldSignature> {
+public final class FieldSignature implements Serializable, Comparable<FieldSignature> {
+
+	private static final long serialVersionUID = -233403674197930650L;
 
 	/**
 	 * The class of the field.

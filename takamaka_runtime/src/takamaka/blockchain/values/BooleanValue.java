@@ -9,6 +9,8 @@ import takamaka.lang.Immutable;
 @Immutable
 public final class BooleanValue implements StorageValue {
 
+	private static final long serialVersionUID = -1793831545775110659L;
+
 	/**
 	 * The value.
 	 */

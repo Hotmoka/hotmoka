@@ -9,6 +9,8 @@ import takamaka.lang.Immutable;
 @Immutable
 public final class ClassType implements StorageType {
 
+	private static final long serialVersionUID = -501005311788239209L;
+
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
 	 */

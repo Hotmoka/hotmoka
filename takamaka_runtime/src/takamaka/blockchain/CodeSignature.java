@@ -1,5 +1,6 @@
 package takamaka.blockchain;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -12,7 +13,9 @@ import takamaka.lang.Immutable;
  * The signature of a method or constructor.
  */
 @Immutable
-public abstract class CodeSignature {
+public abstract class CodeSignature implements Serializable {
+
+	private static final long serialVersionUID = 2342747645709601285L;
 
 	/**
 	 * The class of the method or constructor.

@@ -9,6 +9,8 @@ import takamaka.lang.Immutable;
 @Immutable
 public final class FloatValue implements StorageValue {
 
+	private static final long serialVersionUID = -291587794739536709L;
+
 	/**
 	 * The value.
 	 */

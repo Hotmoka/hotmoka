@@ -1,5 +1,7 @@
 package takamaka.blockchain.types;
 
+import java.io.Serializable;
+
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.lang.Immutable;
 
@@ -7,7 +9,7 @@ import takamaka.lang.Immutable;
  * The types that can be used in storage objects in blockchain.
  */
 @Immutable
-public interface StorageType {
+public interface StorageType extends Serializable {
 
 	/**
 	 * Yields the class object that represents this type in the Java language,

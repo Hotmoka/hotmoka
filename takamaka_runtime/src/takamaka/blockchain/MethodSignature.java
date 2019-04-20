@@ -10,6 +10,8 @@ import takamaka.lang.Immutable;
 @Immutable
 public final class MethodSignature extends CodeSignature {
 
+	private static final long serialVersionUID = -1068494776407417852L;
+
 	/**
 	 * The name of the method.
 	 */

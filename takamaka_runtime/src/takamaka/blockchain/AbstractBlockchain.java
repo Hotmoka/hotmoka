@@ -21,7 +21,14 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
+import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.response.JarStoreInitialTransactionResponse;
+import takamaka.blockchain.response.JarStoreTransactionFailedResponse;
+import takamaka.blockchain.response.JarStoreTransactionResponse;
+import takamaka.blockchain.response.JarStoreTransactionSuccessfulResponse;
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
@@ -315,6 +322,40 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
+	public final JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference where) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			//TODO: check if already initialized before where
+			if (!request.getDependencies().allMatch(dependency -> dependency.transaction.isOlderThan(where)))
+				throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
+
+			initTransaction(BigInteger.ZERO);
+
+			// we transform the array of bytes into a real jar file
+			Path original = Files.createTempFile("original", "jar");
+			Files.write(original, request.getJar());
+
+			// we create a temporary file to hold the instrumented jar
+			Path instrumented = Files.createTempFile("instrumented", "jar");
+			new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()));
+			Files.delete(original);
+			byte[] instrumentedBytes = Files.readAllBytes(instrumented);
+			Files.delete(instrumented);
+		
+			return new JarStoreInitialTransactionResponse(instrumentedBytes);
+		});
+	}
+
+	@Override
+	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			TransactionReference reference = getCurrentTransactionReference();
+			expandBlockchainWith(request, runJarStoreInitialTransaction(request, reference));
+			stepToNextTransactionReference();
+			return reference;
+		});
+	}
+
+	@Override
 	public final StorageReference addGameteCreationTransaction(Classpath takamakaBase, BigInteger initialAmount) throws TransactionException {
 		if (isInitialized)
 			throw new TransactionException("Blockchain already initialized");
@@ -342,38 +383,66 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final TransactionReference addJarStoreInitialTransaction(String jarName, byte[] jar, Classpath... dependencies) throws TransactionException {
-		try {
-			if (isInitialized)
-				throw new TransactionException("Blockchain already initialized");
+	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference where) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			//TODO: check if already initialized before where
+			checkMinimalGas(request.gas);
 
-			initTransaction(BigInteger.ZERO);
-			return addJarStoreTransactionCommon(null, null, BigInteger.ZERO, null, jarName, jar, dependencies);
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
+			initTransaction(request.gas);
+			Storage deserializedCaller = request.caller.deserialize(this);
+			checkIsExternallyOwned(deserializedCaller);
+			
+			// we sell all gas first: what remains will be paid back at the end;
+			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+			decreaseBalance(deserializedCaller, request.gas);
+
+			if (!request.getDependencies().allMatch(dependency -> dependency.transaction.isOlderThan(where)))
+				throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
+
+			// before this line, an exception will abort the transaction and leave the blockchain unchanged;
+			// after this line, the transaction will be added to the blockchain, possibly as a failed one
+
+			try {
+				charge(GasCosts.BASE_TRANSACTION_COST);
+				charge(BigInteger.valueOf(request.getNumberOfDependencies()).multiply(GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
+				charge(BigInteger.valueOf((long) (((long) request.getJarSize()) * GasCosts.GAS_PER_BYTE_IN_JAR)));
+
+				// we transform the array of bytes into a real jar file
+				Path original = Files.createTempFile("original", "jar");
+				Files.write(original, request.getJar());
+
+				// we create a temporary file to hold the instrumented jar
+				Path instrumented = Files.createTempFile("instrumented", "jar");
+				new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()));
+				Files.delete(original);
+				byte[] instrumentedBytes = Files.readAllBytes(instrumented);
+				Files.delete(instrumented);
+				BigInteger consumedGas = request.gas.subtract(remainingGas());
+				increaseBalance(deserializedCaller, remainingGas());
+				SortedSet<Update> updates = collectUpdates(null, deserializedCaller, null, null);
+
+				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updates, consumedGas);
+			}
+			catch (Throwable t) {
+				// we do not pay back the gas
+				return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "failed transaction"), collectUpdates(null, deserializedCaller, null, null), request.gas);
+			}
+		});
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, String jarName, byte[] jar, Classpath... dependencies) throws TransactionException {
-		try (BlockchainClassLoader classLoader = this.classLoader = mkBlockchainClassLoader(classpath)) {
-			initTransaction(gas);
-			Storage deserializedCaller = caller.deserialize(this);
-			checkIsExternallyOwned(deserializedCaller);
+	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			TransactionReference reference = getCurrentTransactionReference();
+			JarStoreTransactionResponse response = runJarStoreTransaction(request, reference);
+			expandBlockchainWith(request, response);
+			stepToNextTransactionReference();
 
-			// we sell all gas first. What remains will be paid back at the end
-			decreaseBalance(deserializedCaller, gas);
-
-			charge(GasCosts.BASE_TRANSACTION_COST);
-			charge((long) (dependencies.length * GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
-			charge((long) (jar.length * GasCosts.GAS_PER_BYTE_IN_JAR));
-			return addJarStoreTransactionCommon(caller, classpath, gas, deserializedCaller, jarName, jar, dependencies);
-		}
-		catch (Throwable t) {
-			//TODO store the update to the balance of the caller
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
+			if (response instanceof JarStoreTransactionFailedResponse)
+				throw ((JarStoreTransactionFailedResponse) response).cause;
+			else
+				return reference;
+		});
 	}
 
 	@Override
@@ -393,49 +462,32 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 	
-	/**
-	 * Used by both {@link takamaka.blockchain.AbstractBlockchain#addJarStoreInitialTransaction(Path, Classpath...)} and
-	 * {@link takamaka.blockchain.AbstractBlockchain#addJarStoreTransaction(StorageReference, BigInteger, Classpath, Path, Classpath...)}
-	 * to perform common tasks.
-	 * 
-	 * @param caller the externally owned caller contract that pays for the transaction
-	 * @param classpath the class path where the {@code caller} is interpreted
-	 * @param gas the maximal amount of gas that can be consumed by the transaction
-	 * @param deserializedCaller the caller, after deserialization
-	 * @param jarName the name of the jar file to install
-	 * @param jar the bytes of the jar to install
-	 * @param dependencies the dependencies of the jar, already installed in this blockchain
-	 * @return the reference to the transaction, that can be used to refer to this jar in a class path or as future dependency of other jars
-	 * @throws Exception if something goes wrong. In that case, the transaction will be aborted
-	 */
-	private TransactionReference addJarStoreTransactionCommon(StorageReference caller, Classpath classpath, BigInteger gas, Storage deserializedCaller, String jarName, byte[] jar, Classpath... dependencies) throws Exception {
-		if (jarName == null || !jarName.endsWith(".jar"))
-			throw new TransactionException("Illegal jar name: " + jarName);
-
-		if (jarName.length() > MAX_JAR_NAME_LENGTH)
-			throw new TransactionException("Jar name is too long");
-
-		TransactionReference ref = getCurrentTransactionReference();
-		for (Classpath dependency: dependencies)
-			if (!dependency.transaction.isOlderThan(ref))
-				throw new TransactionException("A transaction can only depend on older transactions");
-
-		// we transform the array of bytes into a real jar file
-		Path original = Files.createTempFile("original", "jar");
-		Files.write(original, jar);
-
-		// we create a temporary file to hold the instrumented jar
-		Path instrumented = Files.createTempFile("instrumented", "jar");
-		new JarInstrumentation(original, instrumented, mkProgram(original, dependencies));
-	
-		if (deserializedCaller != null)
-			increaseBalance(deserializedCaller, remainingGas());
-		
-		addJarStoreTransactionInternal(caller, classpath, jarName, original, instrumented, collectUpdates(null, deserializedCaller, null, null), gas, gas.subtract(remainingGas()), dependencies);
-		stepToNextTransactionReference();
-
-		return ref;
+	private static void checkMinimalGas(BigInteger gas) throws IllegalTransactionRequestException {
+		if (gas.compareTo(GasCosts.BASE_TRANSACTION_COST) < 0)
+			throw new IllegalTransactionRequestException("Not enough gas to start the transaction");
 	}
+
+	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
+		try {
+			return what.call();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+		}
+	}
+
+	/**
+	 * Expands the blockchain with a new topmost transaction.
+	 * 
+	 * @param request the request of the transaction
+	 * @param response the response of the transaction
+	 * @throws Exception if the expansion cannot be completed
+	 */
+	protected abstract void expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception;
+
+	protected abstract TransactionRequest getRequestAt(TransactionReference reference) throws Exception;
+
+	protected abstract TransactionResponse getResponseAt(TransactionReference reference) throws Exception;
 
 	/**
 	 * A class loader used to access the definition of the classes
@@ -584,6 +636,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * 
 	 * @param eoa the reference to the externally owned account
 	 * @param gas the gas to sell
+	 * @throws OutOfGasError if the externally owned account does not have enough gas. In this case,
+	 *                       the balance of the account gets set to 0
 	 * @throws InsufficientFundsError if the account has not enough money to pay for the gas
 	 * @throws ClassNotFoundException if the balance of the account cannot be correctly modified
 	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
@@ -600,8 +654,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 		Field balanceField = contractClass.getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
-		if (previousBalance.compareTo(delta) < 0)
+		if (previousBalance.compareTo(delta) < 0) {
+			balanceField.set(eoa, BigInteger.ZERO);
 			throw new OutOfGasError(gas);
+		}
 		else
 			balanceField.set(eoa, previousBalance.subtract(delta));
 	}
@@ -633,13 +689,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * Checks if the given object is an externally owned account or subclass.
 	 * 
 	 * @param object the object to check
+	 * @throws IllegalTransactionRequestException if the object is not an externally owned account
 	 * @throws ClassNotFoundException if the {@link takamaka.lang.ExternallyOwnedAccount} class cannot be found
 	 *                                in the class path of the transaction
 	 */
-	private void checkIsExternallyOwned(Storage object) throws ClassNotFoundException {
+	private void checkIsExternallyOwned(Storage object) throws ClassNotFoundException, IllegalTransactionRequestException {
 		Class<?> eoaClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
 		if (!eoaClass.isAssignableFrom(object.getClass()))
-			throw new IllegalArgumentException("Only an externally owned contract can start a transaction");
+			throw new IllegalTransactionRequestException("Only an externally owned contract can start a transaction");
 	}
 
 	/**
@@ -1090,6 +1147,24 @@ public abstract class AbstractBlockchain implements Blockchain {
 		result.add(jar);
 
 		for (Classpath dependency: dependencies)
+			extractPathsRecursively(dependency, result);
+
+		return new Program(result.stream());
+	}
+
+	/**
+	 * Builds the program that contains the classes of a jar and its dependencies.
+	 * 
+	 * @param jar the jar
+	 * @param dependencies the dependencies
+	 * @return the resulting program
+	 * @throws Exception if the program cannot be built
+	 */
+	private Program mkProgram(Path jar, Stream<Classpath> dependencies) throws Exception {
+		List<Path> result = new ArrayList<>();
+		result.add(jar);
+
+		for (Classpath dependency: dependencies.toArray(Classpath[]::new))
 			extractPathsRecursively(dependency, result);
 
 		return new Program(result.stream());

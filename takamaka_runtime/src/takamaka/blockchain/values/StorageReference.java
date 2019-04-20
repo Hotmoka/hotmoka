@@ -15,6 +15,8 @@ import takamaka.lang.Storage;
 @Immutable
 public final class StorageReference implements StorageValue {
 
+	private static final long serialVersionUID = 5215119613321482697L;
+
 	/**
 	 * The transaction that created the object.
 	 */

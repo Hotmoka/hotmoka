@@ -1,5 +1,9 @@
 package takamaka.blockchain;
 
-public interface TransactionRequest {
+import java.io.Serializable;
 
+import takamaka.lang.Immutable;
+
+@Immutable
+public interface TransactionRequest extends Serializable {
 }

@@ -1,5 +1,7 @@
 package takamaka.blockchain;
 
+import java.io.Serializable;
+
 import takamaka.lang.Immutable;
 
 /**
@@ -10,7 +12,9 @@ import takamaka.lang.Immutable;
  * They must be comparable and ordered according to their occurrence in the blockchain.
  */
 @Immutable
-public abstract class TransactionReference implements Comparable<TransactionReference> {
+public abstract class TransactionReference implements Serializable, Comparable<TransactionReference> {
+
+	private static final long serialVersionUID = -9161931007616256670L;
 
 	/**
 	 * Determines if this transaction reference precedes the other one in the blockchain.

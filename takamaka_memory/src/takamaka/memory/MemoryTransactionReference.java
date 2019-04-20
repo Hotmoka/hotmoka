@@ -13,6 +13,8 @@ import takamaka.lang.Immutable;
 @Immutable
 final class MemoryTransactionReference extends TransactionReference {
 
+	private static final long serialVersionUID = 5911713300386882185L;
+
 	/**
 	 * The number of the block holding the transaction.
 	 */

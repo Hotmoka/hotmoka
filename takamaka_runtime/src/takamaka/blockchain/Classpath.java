@@ -1,5 +1,7 @@
 package takamaka.blockchain;
 
+import java.io.Serializable;
+
 import takamaka.lang.Immutable;
 
 /**
@@ -7,7 +9,9 @@ import takamaka.lang.Immutable;
  */
 
 @Immutable
-public final class Classpath {
+public final class Classpath implements Serializable {
+
+	private static final long serialVersionUID = -9014808081346651444L;
 
 	/**
 	 * The transaction that stored the jar.

@@ -8,6 +8,9 @@ import takamaka.lang.Immutable;
  */
 @Immutable
 public final class NullValue implements StorageValue {
+
+	private static final long serialVersionUID = 6648036696532651227L;
+
 	public final static NullValue INSTANCE = new NullValue();
 
 	/**

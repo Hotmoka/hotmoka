@@ -11,6 +11,8 @@ import takamaka.lang.Immutable;
 @Immutable
 public final class BigIntegerValue implements StorageValue {
 
+	private static final long serialVersionUID = 5290050934759989938L;
+
 	/**
 	 * The big integer.
 	 */

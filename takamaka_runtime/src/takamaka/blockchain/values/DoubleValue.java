@@ -9,6 +9,8 @@ import takamaka.lang.Immutable;
 @Immutable
 public final class DoubleValue implements StorageValue {
 
+	private static final long serialVersionUID = -7582639158666797757L;
+
 	/**
 	 * The value.
 	 */

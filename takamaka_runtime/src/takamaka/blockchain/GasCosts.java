@@ -9,8 +9,10 @@ public class GasCosts {
 
 	/**
 	 * The minimal number of units of gas charged for a transaction. Extra charges may apply.
+	 * Transactions with less gas than this threshold will fail and will not be added
+	 * to the blockchain.
 	 */
-	public final static int BASE_TRANSACTION_COST = 100;
+	public final static BigInteger BASE_TRANSACTION_COST = BigInteger.valueOf(100L);
 
 	/**
 	 * The units of gas charged for each byte of a jar installed during a
@@ -24,7 +26,7 @@ public class GasCosts {
 	 * The units of gas charged for each dependency of a jar installed during
 	 * jar installation transaction.
 	 */
-	public final static double GAS_PER_DEPENDENCY_OF_JAR = 1000f;
+	public final static BigInteger GAS_PER_DEPENDENCY_OF_JAR = BigInteger.valueOf(1000L);
 
 	/**
 	 * Provides the cost of a given amount of gas.

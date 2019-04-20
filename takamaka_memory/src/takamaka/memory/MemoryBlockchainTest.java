@@ -14,6 +14,8 @@ import takamaka.blockchain.Classpath;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.MethodSignature;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
+import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.BigIntegerValue;
@@ -48,15 +50,15 @@ public class MemoryBlockchainTest {
 
 		// we need at least the base Takamaka classes in the blockchain
 		TransactionReference takamaka_base = run("", "takamaka_base.jar",
-			() -> blockchain.addJarStoreInitialTransaction("takamaka_base.jar", Files.readAllBytes(Paths.get("../takamaka_base/dist/takamaka_base.jar"))));
+			() -> blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../takamaka_base/dist/takamaka_base.jar")))));
 		Classpath takamakaBaseClasspath = new Classpath(takamaka_base, false);  // true/false irrelevant here
 		StorageReference gamete = run("", "gamete", () -> blockchain.addGameteCreationTransaction(takamakaBaseClasspath, BigInteger.valueOf(1000000)));
 		TransactionReference test_contracts_dependency = run("gamete", "test_contract_dependency.jar",
-			() -> blockchain.addJarStoreTransaction(gamete, BigInteger.valueOf(10000), takamakaBaseClasspath, "test_contracts_dependency.jar",
-					Files.readAllBytes(Paths.get("../test_contracts_dependency/dist/test_contracts_dependency.jar")), takamakaBaseClasspath));
+			() -> blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(gamete, BigInteger.valueOf(10000), takamakaBaseClasspath,
+				Files.readAllBytes(Paths.get("../test_contracts_dependency/dist/test_contracts_dependency.jar")), takamakaBaseClasspath)));
 		TransactionReference test_contracts = run("gamete", "test_contracts.jar",
-			() -> blockchain.addJarStoreTransaction(gamete, BigInteger.valueOf(10000), takamakaBaseClasspath, "test_contracts.jar",
-					Files.readAllBytes(Paths.get("../test_contracts/dist/test_contracts.jar")), new Classpath(test_contracts_dependency, true))); // true relevant here
+			() -> blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(gamete, BigInteger.valueOf(10000), takamakaBaseClasspath,
+				Files.readAllBytes(Paths.get("../test_contracts/dist/test_contracts.jar")), new Classpath(test_contracts_dependency, true)))); // true relevant here
 		Classpath classpath = new Classpath(test_contracts, true);
 
 		StorageReference italianTime = run("gamete", "italianTime = new ItalianTime(13,25,40)",

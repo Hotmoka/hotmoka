@@ -3,6 +3,10 @@ package takamaka.blockchain;
 import java.math.BigInteger;
 import java.nio.file.Path;
 
+import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
+import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.response.JarStoreInitialTransactionResponse;
+import takamaka.blockchain.response.JarStoreTransactionResponse;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 
@@ -13,19 +17,32 @@ import takamaka.blockchain.values.StorageValue;
 public interface Blockchain {
 
 	/**
+	 * Runs a transaction that installs a jar in this blockchain. This transaction can only occur during initialization
+	 * of the blockchain. It has no caller and requires no gas. The goal is to install, in the
+	 * blockchain, some basic jars that are likely needed as dependencies by future jars.
+	 * For instance, the jar containing the basic contract classes. This method runs the transaction
+	 * specified by the request, at the given transaction reference, and yields the corresponding response.
+	 * The blockchain does not get modified.
+	 * 
+	 * @param request the transaction request
+	 * @param where the transaction reference where the request must be executed
+	 * @return the response resulting from the execution of the request
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	public JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference where) throws TransactionException;
+
+	/**
 	 * Installs a jar in this blockchain. This transaction can only occur during initialization
 	 * of the blockchain. It has no caller and requires no gas. The goal is to install, in the
 	 * blockchain, some basic jars that are likely needed as dependencies by future jars.
 	 * For instance, the jar containing the basic contract classes.
 	 * 
-	 * @param jarName the name of the jar file
-	 * @param jar the bytes of the jar to install
-	 * @param dependencies the dependencies of the jar, already installed in the blockchain
+	 * @param request the transaction request
 	 * @return the reference to the transaction that can be used to refer to this jar in a class path or as future dependency of other jars
 	 * @throws TransactionException if the transaction could not be completed successfully. It will not
 	 *                              be added to this blockchain
 	 */
-	public TransactionReference addJarStoreInitialTransaction(String jarName, byte[] jar, Classpath... dependencies) throws TransactionException;
+	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException;
 
 	/**
 	 * Creates a gamete, that is, an externally owned contract with the given initial amount of coins.
@@ -41,19 +58,28 @@ public interface Blockchain {
 	public abstract StorageReference addGameteCreationTransaction(Classpath takamakaBase, BigInteger initialAmount) throws TransactionException;
 
 	/**
+	 * Runs a transaction that installs a jar in this blockchain. This transaction cannot only occur during initialization
+	 * of the blockchain. The goal is to install, in blockchain, a jar, with its dependencies.
+	 * This method runs the transaction specified by the request, at the given transaction reference, and yields
+	 * the corresponding response. The blockchain does not get modified.
+	 * 
+	 * @param request the transaction request
+	 * @param where the transaction reference where the request must be executed
+	 * @return the response resulting from the execution of the request
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	public JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference where) throws TransactionException;
+
+	/**
 	 * Installs a jar in this blockchain. This method can only be used after the blockchain has been initialized.
 	 * 
-	 * @param caller the externally owned caller contract that pays for the transaction
-	 * @param gas the maximal amount of gas that can be consumed by the transaction
-	 * @param classpath the class path where the {@code caller} is interpreted
-	 * @param jarName the name of the jar file
-	 * @param jar the bytes of the jar to install
-	 * @param dependencies the dependencies of the jar, already installed in this blockchain
+	 * @param request the transaction request
 	 * @return the reference to the transaction, that can be used to refer to this jar in a class path or as future dependency of other jars
-	 * @throws TransactionException if the transaction could not be completed successfully. If this occurs, the blockchain will be expanded
+	 * @throws TransactionException if the transaction could not be completed successfully. If this occurs and the caller
+	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no jar will be installed
 	 */
-	public TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gas, Classpath classpath, String jarName, byte[] jar, Classpath... dependencies) throws TransactionException;
+	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException;
 
 	/**
 	 * Runs a constructor of a class.

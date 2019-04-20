@@ -9,6 +9,8 @@ import takamaka.lang.Immutable;
 @Immutable
 public final class CharValue implements StorageValue {
 
+	private static final long serialVersionUID = 2752558282237382571L;
+
 	/**
 	 * The value.
 	 */

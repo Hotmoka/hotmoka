@@ -1,5 +1,6 @@
 package takamaka.blockchain.values;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 
 import takamaka.blockchain.AbstractBlockchain;
@@ -9,7 +10,7 @@ import takamaka.lang.Storage;
  * A value that can be stored in the blockchain, passed as argument to an entry
  * or returned from an entry.
  */
-public interface StorageValue extends Comparable<StorageValue> {
+public interface StorageValue extends Serializable, Comparable<StorageValue> {
 
 	/**
 	 * Yields the deserialization of this value. That is, it yields an actual object in RAM

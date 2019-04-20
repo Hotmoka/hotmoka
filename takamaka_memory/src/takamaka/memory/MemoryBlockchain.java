@@ -1,9 +1,12 @@
 package takamaka.memory;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.URL;
@@ -22,6 +25,8 @@ import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.FieldSignature;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.TransactionRequest;
+import takamaka.blockchain.TransactionResponse;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
@@ -57,6 +62,26 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	 * The name used for the file describing the dependencies of a jar.
 	 */
 	public final static Path DEPENDENCIES_NAME = Paths.get("deps.txt");
+
+	/**
+	 * The name used for the file containing the serialized request of a transaction.
+	 */
+	public final static Path REQUEST_NAME = Paths.get("request");
+
+	/**
+	 * The name used for the file containing the serialized response of a transaction.
+	 */
+	public final static Path RESPONSE_NAME = Paths.get("response");
+
+	/**
+	 * The name used for the file containing the textual request of a transaction.
+	 */
+	public final static Path REQUEST_TXT_NAME = Paths.get("request.txt");
+
+	/**
+	 * The name used for the file containing the textual response of a transaction.
+	 */
+	public final static Path RESPONSE_TXT_NAME = Paths.get("response.txt");
 
 	/**
 	 * The name used for the file describing the specification of a transaction.
@@ -119,6 +144,45 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	@Override
 	public MemoryTransactionReference getCurrentTransactionReference() {
 		return new MemoryTransactionReference(currentBlock, currentTransaction);
+	}
+
+	@Override
+	protected void expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception {
+		Path requestPath = getCurrentPathFor(REQUEST_NAME);
+		ensureDeleted(requestPath.getParent());
+		Files.createDirectories(requestPath.getParent());
+
+		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(requestPath.toFile())))) {
+			os.writeObject(request);
+		}
+
+		requestPath = getCurrentPathFor(REQUEST_TXT_NAME);
+		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(requestPath.toFile())))) {
+			output.print(request);
+		}
+
+		Path responsePath = getCurrentPathFor(RESPONSE_NAME);
+
+		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(responsePath.toFile())))) {
+			os.writeObject(response);
+		}
+
+		responsePath = getCurrentPathFor(RESPONSE_TXT_NAME);
+		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(responsePath.toFile())))) {
+			output.print(response);
+		}
+	}
+
+	@Override
+	protected TransactionRequest getRequestAt(TransactionReference reference) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected TransactionResponse getResponseAt(TransactionReference reference) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

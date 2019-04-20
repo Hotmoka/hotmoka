@@ -1,5 +1,7 @@
 package takamaka.blockchain;
 
+import java.io.Serializable;
+
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.values.BooleanValue;
 import takamaka.blockchain.values.StorageReference;
@@ -12,7 +14,9 @@ import takamaka.lang.Immutable;
  * describe the shape of storage objects.
  */
 @Immutable
-public final class Update implements Comparable<Update> {
+public final class Update implements Serializable, Comparable<Update> {
+
+	private static final long serialVersionUID = 1921751386937488337L;
 
 	/**
 	 * The storage reference of the object whose field is modified.

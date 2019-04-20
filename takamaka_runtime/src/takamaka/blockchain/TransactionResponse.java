@@ -1,5 +1,6 @@
 package takamaka.blockchain;
 
-public interface TransactionResponse {
+import java.io.Serializable;
 
+public interface TransactionResponse extends Serializable {
 }
