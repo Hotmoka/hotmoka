@@ -3,14 +3,15 @@ package takamaka.memory;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.math.BigInteger;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,6 +29,7 @@ import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.TransactionRequest;
 import takamaka.blockchain.TransactionResponse;
 import takamaka.blockchain.Update;
+import takamaka.blockchain.response.JarStoreTransactionSuccessfulResponse;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
@@ -171,18 +173,32 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(responsePath.toFile())))) {
 			output.print(response);
 		}
+
+		// TODO: remove at the end
+		if (response instanceof JarStoreTransactionSuccessfulResponse) {
+			Path updatesPath = getCurrentPathFor(UPDATES_NAME);
+
+			try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(updatesPath.toFile())))) {
+				for (Update update: ((JarStoreTransactionSuccessfulResponse) response).getUpdates().toArray(Update[]::new))
+					output.println(updateAsString(update));
+			}
+		}
 	}
 
 	@Override
-	protected TransactionRequest getRequestAt(TransactionReference reference) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	protected TransactionRequest getRequestAt(TransactionReference reference) throws FileNotFoundException, IOException, ClassNotFoundException {
+		Path request = getPathFor((MemoryTransactionReference) reference, REQUEST_NAME);
+		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(request.toFile()))) {
+			return (TransactionRequest) in.readObject();
+		}
 	}
 
 	@Override
 	protected TransactionResponse getResponseAt(TransactionReference reference) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+		Path response = getPathFor((MemoryTransactionReference) reference, RESPONSE_NAME);
+		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(response.toFile()))) {
+			return (TransactionResponse) in.readObject();
+		}
 	}
 
 	@Override
@@ -315,32 +331,11 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void extractPathsRecursively(Classpath classpath, List<Path> paths) throws Exception {
-		if (classpath.recursive) {
-			Path path = getPathFor((MemoryTransactionReference) classpath.transaction, DEPENDENCIES_NAME);
-			if (Files.exists(path))
-				for (String line: Files.readAllLines(path))
-					extractPathsRecursively(classpathFromString(line), paths);
-		}
-	
-		Path path = getPathFor((MemoryTransactionReference) classpath.transaction, INSTRUMENTED_JAR_NAME);
-		if (!Files.exists(path))
-			throw new IOException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
-	
-		paths.add(path);
-	}
-
-	@Override
 	protected void stepToNextTransactionReference() {
 		if (++currentTransaction == transactionsPerBlock) {
 			currentTransaction = 0;
 			currentBlock = currentBlock.add(BigInteger.ONE);
 		}
-	}
-
-	@Override
-	protected BlockchainClassLoader mkBlockchainClassLoader(Classpath classpath) throws Exception {
-		return new MemoryBlockchainClassLoader(classpath);
 	}
 
 	/**
@@ -645,64 +640,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 
 		throw new IllegalArgumentException("Unexpected type " + type);
-	}
-
-	/**
-	 * Builds a class path from its string dump.
-	 * 
-	 * @param s the string dump
-	 * @return the class path
-	 */
-	private static Classpath classpathFromString(String s) {
-		int semicolonPos = s.indexOf(';');
-		if (semicolonPos < 0)
-			throw new IllegalArgumentException("Illegal Classpath format: " + s);
-
-		String transactionPart = s.substring(0, semicolonPos);
-		String recursivePart = s.substring(semicolonPos + 1);
-
-		return new Classpath(transactionReferenceFromString(transactionPart), Boolean.parseBoolean(recursivePart));
-	}
-
-	/**
-	 * The class loader for a jar installed in blockchain.
-	 * It resolves the jar from its class path, includes its dependencies and accesses the classes
-	 * from the resulting resolved jars.
-	 */
-	private class MemoryBlockchainClassLoader extends URLClassLoader implements BlockchainClassLoader {
-
-		/**
-		 * Builds the class loader for the given class path and its dependencies.
-		 * 
-		 * @param classpath the class path
-		 * @throws IOException if a disk access error occurs
-		 */
-		private MemoryBlockchainClassLoader(Classpath classpath) throws IOException {
-			// we initially build it without URLs
-			super(new URL[0], classpath.getClass().getClassLoader());
-
-			// then we add the URLs corresponding to the class path and its dependencies, recursively
-			addURLs(classpath);
-		}
-
-		private void addURLs(Classpath classpath) throws IOException {
-			// if the class path is recursive, we consider its dependencies as well, recursively
-			if (classpath.recursive) {
-				Path path = getPathFor((MemoryTransactionReference) classpath.transaction, DEPENDENCIES_NAME);
-
-				// a class path may have no dependencies
-				if (Files.exists(path))
-					for (String line: Files.readAllLines(path))
-						addURLs(classpathFromString(line));
-			}
-
-			// we add, for class loading, the jar containing the instrumented code
-			Path path = getPathFor((MemoryTransactionReference) classpath.transaction, INSTRUMENTED_JAR_NAME);
-			if (!Files.exists(path))
-				throw new IOException("Transaction " + classpath.transaction + " does not seem to contain an instrumented jar");
-	
-			addURL(path.toFile().toURI().toURL());
-		}
 	}
 
 	/**

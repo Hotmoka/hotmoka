@@ -64,14 +64,17 @@ public class MemoryBlockchainTest {
 		StorageReference italianTime = run("gamete", "italianTime = new ItalianTime(13,25,40)",
 			() -> blockchain.addConstructorCallTransaction(gamete, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.ItalianTime", INT, INT, INT),
 			new IntValue(13), new IntValue(25), new IntValue(40)));
+		
 		StorageReference wrapper1 = run("gamete", "wrapper1 = new Wrapper(italianTime)", () -> blockchain.addConstructorCallTransaction
 				(gamete, BigInteger.valueOf(20000), classpath,
 				new ConstructorSignature("takamaka.tests.Wrapper", new ClassType("takamaka.tests.Time")),
 				italianTime));
+		
 		run("gamete", "wrapper1.toString()", () -> (StringValue) blockchain.addInstanceMethodCallTransaction
 			(gamete, BigInteger.valueOf(20000), classpath,
 			new MethodSignature(ClassType.OBJECT, "toString"),
 			wrapper1));
+
 		StorageReference wrapper2 = run("gamete", "wrapper2 = new Wrapper(italianTime,\"hello\",13011973,12345L)", () -> blockchain.addConstructorCallTransaction
 				(gamete, BigInteger.valueOf(20000), classpath,
 				new ConstructorSignature("takamaka.tests.Wrapper", new ClassType("takamaka.tests.Time"), ClassType.STRING, ClassType.BIG_INTEGER, BasicTypes.LONG),
