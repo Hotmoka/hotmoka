@@ -14,6 +14,7 @@ import takamaka.blockchain.Classpath;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.MethodSignature;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
@@ -64,13 +65,13 @@ public class MemoryBlockchainTest {
 		Classpath classpath = new Classpath(test_contracts, true);
 
 		StorageReference italianTime = run("gamete", "italianTime = new ItalianTime(13,25,40)",
-			() -> blockchain.addConstructorCallTransaction(gamete, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.ItalianTime", INT, INT, INT),
-			new IntValue(13), new IntValue(25), new IntValue(40)));
+			() -> blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.ItalianTime", INT, INT, INT),
+			new IntValue(13), new IntValue(25), new IntValue(40))));
 		
 		StorageReference wrapper1 = run("gamete", "wrapper1 = new Wrapper(italianTime)", () -> blockchain.addConstructorCallTransaction
-				(gamete, BigInteger.valueOf(20000), classpath,
+				(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath,
 				new ConstructorSignature("takamaka.tests.Wrapper", new ClassType("takamaka.tests.Time")),
-				italianTime));
+				italianTime)));
 		
 		run("gamete", "wrapper1.toString()", () -> (StringValue) blockchain.addInstanceMethodCallTransaction
 			(gamete, BigInteger.valueOf(20000), classpath,
@@ -78,19 +79,20 @@ public class MemoryBlockchainTest {
 			wrapper1));
 
 		StorageReference wrapper2 = run("gamete", "wrapper2 = new Wrapper(italianTime,\"hello\",13011973,12345L)", () -> blockchain.addConstructorCallTransaction
-				(gamete, BigInteger.valueOf(20000), classpath,
+				(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath,
 				new ConstructorSignature("takamaka.tests.Wrapper", new ClassType("takamaka.tests.Time"), ClassType.STRING, ClassType.BIG_INTEGER, BasicTypes.LONG),
-				italianTime, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(13011973)), new LongValue(12345L)));
+				italianTime, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(13011973)), new LongValue(12345L))));
 		run("gamete", "wrapper2.toString()", () -> (StringValue) blockchain.addInstanceMethodCallTransaction
 				(gamete, BigInteger.valueOf(20000), classpath,
 				new MethodSignature(ClassType.OBJECT, "toString"),
 				wrapper2));
 		// we call the @Entry constructor Sub(int)
-		run("gamete", "new Sub(1973)", () -> blockchain.addConstructorCallTransaction
-			(gamete, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973)));
+		run("gamete", "new Sub(1973)", () -> blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+			(gamete, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973))));
 
 		StorageReference sub1 = run("gamete", "sub1 = new Sub()",
-			() -> blockchain.addConstructorCallTransaction(gamete, BigInteger.valueOf(100), classpath, new ConstructorSignature("takamaka.tests.Sub")));
+			() -> blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+				(gamete, BigInteger.valueOf(100), classpath, new ConstructorSignature("takamaka.tests.Sub"))));
 		// we try to call Sub.m1(): it is an entry that goes into a runtime exception
 		run("gamete", "sub1.m1()", () -> blockchain.addInstanceMethodCallTransaction
 			(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "m1"), sub1));
@@ -108,11 +110,12 @@ public class MemoryBlockchainTest {
 			(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "m5")));
 
 		StorageReference eoa = run("gamete", "eoa = new ExternallyOwnedAccount()",
-			() -> blockchain.addConstructorCallTransaction(gamete, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount")));
+			() -> blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+				(gamete, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount"))));
 
 		// we call the constructor Sub(int): it is @Entry but the caller has not enough funds
 		run("eoa", "new Sub(1973)", () -> blockchain.addConstructorCallTransaction
-			(eoa, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973))));
 
 		// we recharge eoa
 		run("gamete", "eoa.receive(2000)", () -> blockchain.addInstanceMethodCallTransaction
@@ -120,11 +123,15 @@ public class MemoryBlockchainTest {
 
 		// still not enough funds since we are promising too much gas
 		run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addConstructorCallTransaction
-			(eoa, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973))));
+
+		// we recharge eoa
+		run("gamete", "eoa.receive(2000)", () -> blockchain.addInstanceMethodCallTransaction
+			(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.lang.PayableContract", "receive", INT), eoa, new IntValue(2000)));
 
 		// now it's ok
 		StorageReference sub2 = run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addConstructorCallTransaction
-			(eoa, BigInteger.valueOf(150), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, BigInteger.valueOf(150), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973))));
 
 		run("gamete", "sub2.print(italianTime)", () -> blockchain.addInstanceMethodCallTransaction
 			(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "print", new ClassType("takamaka.tests.Time")), sub2, italianTime));
@@ -141,8 +148,8 @@ public class MemoryBlockchainTest {
 
 		// alias tests
 		ClassType alias = new ClassType("takamaka.tests.Alias");
-		StorageReference a1 = run("gamete", "a1 = new Alias()", () -> blockchain.addConstructorCallTransaction(gamete, BigInteger.valueOf(1000), classpath, new ConstructorSignature(alias)));
-		StorageReference a2 = run("gamete", "a2 = new Alias()", () -> blockchain.addConstructorCallTransaction(gamete, BigInteger.valueOf(1000), classpath, new ConstructorSignature(alias)));
+		StorageReference a1 = run("gamete", "a1 = new Alias()", () -> blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new ConstructorSignature(alias))));
+		StorageReference a2 = run("gamete", "a2 = new Alias()", () -> blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new ConstructorSignature(alias))));
 
 		// this test should return false
 		run("gamete", "a1.test(a1, a2)", () -> blockchain.addInstanceMethodCallTransaction(gamete, BigInteger.valueOf(1000), classpath, new MethodSignature(alias, "test", alias, alias), a1, a1, a2));

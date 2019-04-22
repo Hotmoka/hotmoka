@@ -27,6 +27,16 @@ public final class ClassType implements StorageType {
 	public final static ClassType BIG_INTEGER = new ClassType("java.math.BigInteger");
 
 	/**
+	 * The frequently used class type for {@link takamaka.lang.ExternallyOwnedAccount}.
+	 */
+	public final static ClassType EOA = new ClassType("takamaka.lang.ExternallyOwnedAccount");
+
+	/**
+	 * The frequently used class type for {@link takamaka.lang.Contract}.
+	 */
+	public final static ClassType CONTRACT = new ClassType("takamaka.lang.Contract");
+
+	/**
 	 * The name of the class type.
 	 */
 	public final String name;

@@ -31,16 +31,22 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import takamaka.blockchain.request.AbstractJarStoreTransactionRequest;
+import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.response.AbstractJarStoreTransactionResponse;
+import takamaka.blockchain.response.ConstructorCallTransactionExceptionResponse;
+import takamaka.blockchain.response.ConstructorCallTransactionFailedResponse;
+import takamaka.blockchain.response.ConstructorCallTransactionResponse;
+import takamaka.blockchain.response.ConstructorCallTransactionSuccessfulResponse;
 import takamaka.blockchain.response.GameteCreationTransactionResponse;
 import takamaka.blockchain.response.JarStoreInitialTransactionResponse;
 import takamaka.blockchain.response.JarStoreTransactionFailedResponse;
 import takamaka.blockchain.response.JarStoreTransactionResponse;
 import takamaka.blockchain.response.JarStoreTransactionSuccessfulResponse;
 import takamaka.blockchain.types.StorageType;
+import takamaka.blockchain.values.BigIntegerValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Event;
@@ -48,6 +54,7 @@ import takamaka.lang.InsufficientFundsError;
 import takamaka.lang.OutOfGasError;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
+import takamaka.lang.ThrowsExceptions;
 import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.Program;
@@ -452,7 +459,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas
-				return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "failed transaction"), collectUpdates(null, deserializedCaller, null, null), request.gas);
+				return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), collectUpdates(null, deserializedCaller, null, null), request.gas);
 			}
 		});
 	}
@@ -473,8 +480,65 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return (StorageReference) transaction(caller, gas, classpath, deserializedCaller -> new ConstructorExecutor(classpath, constructor, caller, deserializedCaller, gas, actuals));
+	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference where) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
+				checkMinimalGas(request.gas);
+				initTransaction(request.gas);
+				Storage deserializedCaller = request.caller.deserialize(this);
+				checkIsExternallyOwned(deserializedCaller);
+				
+				// we sell all gas first: what remains will be paid back at the end;
+				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+				BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
+
+				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
+				// after this line, the transaction can be added to the blockchain, possibly as a failed one
+
+				try {
+					charge(GasCosts.BASE_TRANSACTION_COST);
+
+					CodeExecutor executor = new ConstructorExecutor(request.classpath, request.constructor, request.caller, deserializedCaller, request.gas, request.getActuals().toArray(StorageValue[]::new));
+					executor.start();
+					executor.join();
+
+					if (executor.exception instanceof InvocationTargetException) {
+						increaseBalance(deserializedCaller, remainingGas());
+						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), request.gas.subtract(remainingGas()));
+					}
+
+					if (executor.exception != null)
+						throw executor.exception;
+
+					increaseBalance(deserializedCaller, remainingGas());
+					return new ConstructorCallTransactionSuccessfulResponse
+						((StorageReference) StorageValue.serialize(executor.result), executor.updates(), request.gas.subtract(remainingGas()));
+				}
+				catch (Throwable t) {
+					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
+					Set<Update> updates = new HashSet<>();
+					updates.add(new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller)));
+					return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), updates, request.gas);
+				}
+			}
+		});
+	}
+
+	@Override
+	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
+		return wrapInCaseOfException(() -> {
+			TransactionReference reference = getCurrentTransactionReference();
+			ConstructorCallTransactionResponse response = runConstructorCallTransaction(request, reference);
+			expandBlockchainWith(request, response);
+			stepToNextTransactionReference();
+
+			if (response instanceof ConstructorCallTransactionFailedResponse)
+				throw ((ConstructorCallTransactionFailedResponse) response).cause;
+			else if (response instanceof ConstructorCallTransactionExceptionResponse)
+				throw new CodeExecutionException("Constructor threw exception", ((ConstructorCallTransactionExceptionResponse) response).exception);
+			else
+				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject;
+		});
 	}
 
 	@Override
@@ -598,6 +662,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws CodeExecutionException if the execution threw an exception (that is not an {@link java.lang.Error} and the constructor or method is
 	 *                                annotated as {@link takamaka.lang.ThrowsExceptions}
 	 */
+	//TODO: to be removed at the end
 	private StorageValue transaction(StorageReference caller, BigInteger gas, Classpath classpath, ExecutorProducer executorProducer) throws TransactionException, CodeExecutionException {
 		try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(classpath)) {
 			initTransaction(gas);
@@ -717,8 +782,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * 
 	 * @param eoa the reference to the externally owned account
 	 * @param gas the gas to sell
-	 * @throws OutOfGasError if the externally owned account does not have enough gas. In this case,
-	 *                       the balance of the account gets set to 0
+	 * @return the balance of the contract after paying the given amount of gas
+	 * @throws IllegalTransactionRequestException if the externally owned account does not have funds
+	 *                                            for buying the given amount of gas
 	 * @throws InsufficientFundsError if the account has not enough money to pay for the gas
 	 * @throws ClassNotFoundException if the balance of the account cannot be correctly modified
 	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
@@ -726,8 +792,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private static void decreaseBalance(Storage eoa, BigInteger gas)
-			throws OutOfGasError, ClassNotFoundException, NoSuchFieldException,
+	private static BigInteger decreaseBalance(Storage eoa, BigInteger gas)
+			throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
 		BigInteger delta = GasCosts.toCoin(gas);
@@ -735,12 +801,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 		Field balanceField = contractClass.getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
-		if (previousBalance.compareTo(delta) < 0) {
-			balanceField.set(eoa, BigInteger.ZERO);
-			throw new OutOfGasError(gas);
-		}
-		else
-			balanceField.set(eoa, previousBalance.subtract(delta));
+		if (previousBalance.compareTo(delta) < 0)
+			throw new IllegalTransactionRequestException("Caller has not enough funds to buy " + gas + " units of gas");
+
+		BigInteger result = previousBalance.subtract(delta);
+		balanceField.set(eoa, result);
+		return result;
 	}
 
 	/**
@@ -821,6 +887,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * The exception resulting from the execution of the method or constructor, if any.
 		 * This is {@code null} if the execution completed without exception.
 		 */
+		//TODO: probably removed at the end
 		protected Throwable exception;
 
 		/**
@@ -1078,13 +1145,18 @@ public abstract class AbstractBlockchain implements Blockchain {
 					deserializedActuals = addExtraActualsForEntry();
 				}
 
-				result = ((Storage) constructorJVM.newInstance(deserializedActuals));
-			}
-			catch (InvocationTargetException e) {
-				exception = e.getCause();
+				try {
+					result = (Storage) constructorJVM.newInstance(deserializedActuals);
+				}
+				catch (InvocationTargetException e) {
+					if (e.getCause() instanceof Exception && constructorJVM.isAnnotationPresent(ThrowsExceptions.class))
+						exception = e;
+					else
+						exception = e.getCause();
+				}
 			}
 			catch (Throwable t) {
-				exception = wrapAsTransactionException(t, "Could not call the constructor");
+				exception = t;
 			}
 		}
 

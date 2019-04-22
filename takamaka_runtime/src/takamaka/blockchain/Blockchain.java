@@ -2,9 +2,11 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
+import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.response.ConstructorCallTransactionResponse;
 import takamaka.blockchain.response.GameteCreationTransactionResponse;
 import takamaka.blockchain.response.JarStoreInitialTransactionResponse;
 import takamaka.blockchain.response.JarStoreTransactionResponse;
@@ -101,19 +103,30 @@ public interface Blockchain {
 	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException;
 
 	/**
+	 * Runs a transaction that calls a constructor of a class installed in blockchain.
+	 * The goal is to run the constructor and compute a reference to the freshly created object.
+	 * This method runs the transaction specified by the request, at the given transaction reference, and yields
+	 * the corresponding response. The blockchain does not get modified.
+	 * 
+	 * @param request the transaction request
+	 * @param where the transaction reference where the request must be executed
+	 * @return the response resulting from the execution of the request
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	public ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference where) throws TransactionException;
+
+	/**
 	 * Runs a constructor of a class.
 	 * 
-	 * @param caller the externally owned caller contract that pays for the transaction
-	 * @param gas the maximal amount of gas that can be consumed by the transaction
-	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
-	 * @param constructor the constructor that must be called
-	 * @param actuals the actual arguments passed to the constructor
+	 * @param request the request of the transaction
 	 * @return the created object, if the constructor was successfully executed, without exception
 	 * @throws TransactionException if the transaction could not be completed because of an internal error.
 	 *                              Note that internal errors include
 	 *                              {@link takamaka.lang.OutOfGasError} and {@link takamaka.lang.InsufficientFundsError}.
-	 *                              If this occurs, the blockchain will be expanded
-	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed
+	 *                              If this occurs and the caller
+	 *                              has been identified, the blockchain will still be expanded
+	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed.
+	 *                              Otherwise, the transaction will not be added to this blockchain
 	 * @throws CodeExecutionException if the execution of the constructor failed with an exception that is not an instance of
 	 *                                {@link java.lang.Error} (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
@@ -121,7 +134,7 @@ public interface Blockchain {
 	 *                                This can only occur if the constructor is annotated as {@link takamaka.lang.ThrowsExceptions}. In all other cases,
 	 *                                a {@link takamaka.blockchain.TransactionException} is thrown
 	 */
-	public StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException;
+	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException;
 
 	/**
 	 * Runs an instance method of an object stored in the blockchain.

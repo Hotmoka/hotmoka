@@ -56,7 +56,7 @@ public class JarStoreTransactionRequest implements TransactionRequest, AbstractJ
 		this.gas = gas;
 		this.classpath = classpath;
 		this.jar = jar.clone();
-		this.dependencies = dependencies.clone();
+		this.dependencies = dependencies;
 	}
 
 	@Override

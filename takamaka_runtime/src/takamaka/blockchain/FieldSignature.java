@@ -15,6 +15,11 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	private static final long serialVersionUID = -233403674197930650L;
 
 	/**
+	 * The field that holds the balance in externally owned accounts.
+	 */
+	public final static FieldSignature BALANCE_FIELD = new FieldSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
+
+	/**
 	 * The class of the field.
 	 */
 	public final ClassType definingClass;
