@@ -10,12 +10,12 @@ import takamaka.blockchain.Update;
 import takamaka.lang.Immutable;
 
 /**
- * A response for a transaction that should call a constructor of a storage class in blockchain.
+ * A response for a transaction that should call a method in blockchain.
  */
 @Immutable
-public abstract class ConstructorCallTransactionResponse implements TransactionResponse, AbstractTransactionResponseWithUpdates {
+public abstract class MethodCallTransactionResponse implements TransactionResponse, AbstractTransactionResponseWithUpdates {
 
-	private static final long serialVersionUID = 6999069256965379003L;
+	private static final long serialVersionUID = -1734049110058121068L;
 
 	/**
 	 * The updates resulting from the execution of the transaction.
@@ -33,7 +33,7 @@ public abstract class ConstructorCallTransactionResponse implements TransactionR
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param consumedGas the amount of gas consumed by the transaction
 	 */
-	public ConstructorCallTransactionResponse(Set<Update> updates, BigInteger consumedGas) {
+	public MethodCallTransactionResponse(Set<Update> updates, BigInteger consumedGas) {
 		this.updates = updates.toArray(new Update[updates.size()]);
 		this.consumedGas = consumedGas;
 	}
