@@ -1,10 +1,11 @@
 package takamaka.blockchain;
 
 import java.math.BigInteger;
-import java.nio.file.Path;
 
+import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.response.GameteCreationTransactionResponse;
 import takamaka.blockchain.response.JarStoreInitialTransactionResponse;
 import takamaka.blockchain.response.JarStoreTransactionResponse;
 import takamaka.blockchain.values.StorageReference;
@@ -45,17 +46,34 @@ public interface Blockchain {
 	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException;
 
 	/**
+	 * Runs a transaction that creates a gamete, that is, an externally owned contract with the given initial amount of coins.
+	 * This transaction can only occur during initialization of the blockchain. It has
+	 * no caller and requires no gas. After this transaction, no more transactions can be executed for an
+	 * uninitialized blockchain. It sets the blockchain as initialized.
+	 * Hence, this is the last transaction of the initialization of the blockchain.
+	 * This method runs the transaction
+	 * specified by the request, at the given transaction reference, and yields the corresponding response.
+	 * The blockchain does not get modified.
+	 * 
+	 * @param request the transaction request
+	 * @param where the transaction reference where the request must be executed
+	 * @return the response resulting from the execution of the request
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	public abstract GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference where) throws TransactionException;
+
+	/**
 	 * Creates a gamete, that is, an externally owned contract with the given initial amount of coins.
 	 * This transaction can only occur during initialization of the blockchain. It has
-	 * no caller and requires no gas. It sets the blockchain as initialized.
+	 * no caller and requires no gas. After this transaction, no more transactions can be executed for an
+	 * uninitialized blockchain. It sets the blockchain as initialized.
 	 * Hence, this is the last transaction of the initialization of the blockchain.
 	 * 
-	 * @param takamakaBase the reference to the jar containing the basic Takamaka classes. This must
-	 *                     have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(Path, Classpath...)}
-	 * @param initialAmount the amount of coin provided to the gamete. This cannot be negative
+	 * @param request the transaction request
+	 * @return the reference to the freshly created gamete
 	 * @throws TransactionException if the transaction could not be completed successfully. It will not be added to this blockchain
 	 */
-	public abstract StorageReference addGameteCreationTransaction(Classpath takamakaBase, BigInteger initialAmount) throws TransactionException;
+	public abstract StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException;
 
 	/**
 	 * Runs a transaction that installs a jar in this blockchain. This transaction cannot only occur during initialization
@@ -77,7 +95,8 @@ public interface Blockchain {
 	 * @return the reference to the transaction, that can be used to refer to this jar in a class path or as future dependency of other jars
 	 * @throws TransactionException if the transaction could not be completed successfully. If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
-	 *                              with a transaction that charges all gas to the caller, but no jar will be installed
+	 *                              with a transaction that charges all gas to the caller, but no jar will be installed.
+	 *                              Otherwise, the transaction will not be added to this blockchain
 	 */
 	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException;
 

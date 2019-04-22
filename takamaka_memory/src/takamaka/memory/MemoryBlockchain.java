@@ -29,7 +29,7 @@ import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.TransactionRequest;
 import takamaka.blockchain.TransactionResponse;
 import takamaka.blockchain.Update;
-import takamaka.blockchain.response.JarStoreTransactionSuccessfulResponse;
+import takamaka.blockchain.response.AbstractTransactionResponseWithUpdates;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
@@ -175,11 +175,11 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		}
 
 		// TODO: remove at the end
-		if (response instanceof JarStoreTransactionSuccessfulResponse) {
+		if (response instanceof AbstractTransactionResponseWithUpdates) {
 			Path updatesPath = getCurrentPathFor(UPDATES_NAME);
 
 			try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(updatesPath.toFile())))) {
-				for (Update update: ((JarStoreTransactionSuccessfulResponse) response).getUpdates().toArray(Update[]::new))
+				for (Update update: ((AbstractTransactionResponseWithUpdates) response).getUpdates().toArray(Update[]::new))
 					output.println(updateAsString(update));
 			}
 		}

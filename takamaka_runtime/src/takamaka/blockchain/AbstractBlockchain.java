@@ -31,9 +31,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import takamaka.blockchain.request.AbstractJarStoreTransactionRequest;
+import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.response.AbstractJarStoreTransactionResponse;
+import takamaka.blockchain.response.GameteCreationTransactionResponse;
 import takamaka.blockchain.response.JarStoreInitialTransactionResponse;
 import takamaka.blockchain.response.JarStoreTransactionFailedResponse;
 import takamaka.blockchain.response.JarStoreTransactionResponse;
@@ -63,12 +65,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * The maximal length of the name of a jar installed in this blockchain, including its suffix.
 	 */
 	public final static int MAX_JAR_NAME_LENGTH = 100;
-
-	/**
-	 * A blockchain is initially under initialization. After the gamete has been created,
-	 * the blockchain passed into the initialized state.
-	 */
-	private boolean isInitialized = false;
 
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
@@ -379,30 +375,38 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final StorageReference addGameteCreationTransaction(Classpath takamakaBase, BigInteger initialAmount) throws TransactionException {
-		if (isInitialized)
-			throw new TransactionException("Blockchain already initialized");
+	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference where) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			//TODO: check if initialized
 
-		try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(takamakaBase)) {
-			initTransaction(BigInteger.ZERO);
-			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-			Class<?> gameteClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
-			Class<?> contractClass = classLoader.loadClass(CONTRACT_NAME);
-			Storage gamete = (Storage) gameteClass.newInstance();
-			// we set the balance field of the gamete
-			Field balanceField = contractClass.getDeclaredField("balance");
-			balanceField.setAccessible(true); // since the field is private
-			balanceField.set(gamete, initialAmount);
-			SortedSet<Update> updates = collectUpdates(null, null, null, gamete);
-			StorageReference gameteRef = gamete.storageReference;
-			addGameteCreationTransactionInternal(takamakaBase, initialAmount, gameteRef, updates);
+			if (request.initialAmount.signum() < 0)
+				throw new IllegalTransactionRequestException("initialAmount must be non-negative");
+
+			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
+				initTransaction(BigInteger.ZERO);
+				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
+				Class<?> gameteClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
+				Class<?> contractClass = classLoader.loadClass(CONTRACT_NAME);
+				Storage gamete = (Storage) gameteClass.newInstance();
+				// we set the balance field of the gamete
+				Field balanceField = contractClass.getDeclaredField("balance");
+				balanceField.setAccessible(true); // since the field is private
+				balanceField.set(gamete, request.initialAmount);
+				SortedSet<Update> updates = collectUpdates(null, null, null, gamete);
+				StorageReference gameteRef = gamete.storageReference;
+
+				return new GameteCreationTransactionResponse(updates, gameteRef);
+			}
+		});
+	}
+
+	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			GameteCreationTransactionResponse response = runGameteCreationTransaction(request, getCurrentTransactionReference());
+			expandBlockchainWith(request, response);
 			stepToNextTransactionReference();
-			isInitialized = true;
-			return gameteRef;
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
+			return response.gamete;
+		});
 	}
 
 	@Override

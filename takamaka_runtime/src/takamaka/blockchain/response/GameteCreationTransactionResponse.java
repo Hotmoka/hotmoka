@@ -1,21 +1,21 @@
 package takamaka.blockchain.response;
 
-import java.math.BigInteger;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import takamaka.blockchain.TransactionResponse;
 import takamaka.blockchain.Update;
+import takamaka.blockchain.values.StorageReference;
 import takamaka.lang.Immutable;
 
 /**
- * A response for a transaction that should install a jar in the blockchain.
+ * A response for a transaction that installs a jar in a yet not initialized blockchain.
  */
 @Immutable
-public abstract class JarStoreTransactionResponse implements TransactionResponse, AbstractTransactionResponseWithUpdates {
+public class GameteCreationTransactionResponse implements TransactionResponse, AbstractTransactionResponseWithUpdates {
 
-	private static final long serialVersionUID = -8888957484092351352L;
+	private static final long serialVersionUID = -95476487153660743L;
 
 	/**
 	 * The updates resulting from the execution of the transaction.
@@ -23,19 +23,19 @@ public abstract class JarStoreTransactionResponse implements TransactionResponse
 	private final Update[] updates;
 
 	/**
-	 * The amount of gas consumed by the transaction.
+	 * The created gamete.
 	 */
-	public final BigInteger consumedGas;
+	public final StorageReference gamete;
 
 	/**
 	 * Builds the transaction response.
 	 * 
 	 * @param updates the updates resulting from the execution of the transaction
-	 * @param consumedGas the amount of gas consumed by the transaction
+	 * @param gamete the created gamete
 	 */
-	public JarStoreTransactionResponse(Set<Update> updates, BigInteger consumedGas) {
+	public GameteCreationTransactionResponse(Set<Update> updates, StorageReference gamete) {
 		this.updates = updates.toArray(new Update[updates.size()]);
-		this.consumedGas = consumedGas;
+		this.gamete = gamete;
 	}
 
 	/**
@@ -50,7 +50,7 @@ public abstract class JarStoreTransactionResponse implements TransactionResponse
 	@Override
 	public String toString() {
         return getClass().getSimpleName() + ":\n"
-        	+ "  consumed gas: " + consumedGas + "\n"
-        	+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
+        	+ "  gamete: " + gamete + "\n"
+       		+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
 	}
 }

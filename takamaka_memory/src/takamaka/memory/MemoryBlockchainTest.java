@@ -14,6 +14,7 @@ import takamaka.blockchain.Classpath;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.MethodSignature;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.types.BasicTypes;
@@ -52,7 +53,8 @@ public class MemoryBlockchainTest {
 		TransactionReference takamaka_base = run("", "takamaka_base.jar",
 			() -> blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../takamaka_base/dist/takamaka_base.jar")))));
 		Classpath takamakaBaseClasspath = new Classpath(takamaka_base, false);  // true/false irrelevant here
-		StorageReference gamete = run("", "gamete", () -> blockchain.addGameteCreationTransaction(takamakaBaseClasspath, BigInteger.valueOf(1000000)));
+		StorageReference gamete = run("", "gamete", () -> blockchain.addGameteCreationTransaction
+			(new GameteCreationTransactionRequest(takamakaBaseClasspath, BigInteger.valueOf(1000000))));
 		TransactionReference test_contracts_dependency = run("gamete", "test_contract_dependency.jar",
 			() -> blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(gamete, BigInteger.valueOf(10000), takamakaBaseClasspath,
 				Files.readAllBytes(Paths.get("../test_contracts_dependency/dist/test_contracts_dependency.jar")), takamakaBaseClasspath)));
