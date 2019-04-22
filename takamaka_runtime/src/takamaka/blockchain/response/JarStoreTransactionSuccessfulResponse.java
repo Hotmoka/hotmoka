@@ -7,10 +7,10 @@ import takamaka.blockchain.Update;
 import takamaka.lang.Immutable;
 
 /**
- * A response for a successful transaction that installs a jar in an initialized blockchain.
+ * A response for a successful transaction that installs a jar in a blockchain.
  */
 @Immutable
-public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse {
+public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse implements AbstractJarStoreTransactionResponse {
 
 	private static final long serialVersionUID = -8888957484092351352L;
 
@@ -32,11 +32,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 		this.instrumentedJar = instrumentedJar.clone();
 	}
 
-	/**
-	 * Yields the bytes of the jar to install.
-	 * 
-	 * @return the bytes of the jar to install
-	 */
+	@Override
 	public byte[] getInstrumentedJar() {
 		return instrumentedJar.clone();
 	}

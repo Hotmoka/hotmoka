@@ -10,7 +10,7 @@ import takamaka.blockchain.Update;
 import takamaka.lang.Immutable;
 
 /**
- * A response for a transaction that installs a jar in an initialized blockchain.
+ * A response for a transaction that should install a jar in the blockchain.
  */
 @Immutable
 public abstract class JarStoreTransactionResponse implements TransactionResponse {

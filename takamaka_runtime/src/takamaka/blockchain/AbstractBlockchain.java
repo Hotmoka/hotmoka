@@ -30,8 +30,10 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import takamaka.blockchain.request.AbstractJarStoreTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.response.AbstractJarStoreTransactionResponse;
 import takamaka.blockchain.response.JarStoreInitialTransactionResponse;
 import takamaka.blockchain.response.JarStoreTransactionFailedResponse;
 import takamaka.blockchain.response.JarStoreTransactionResponse;
@@ -246,26 +248,20 @@ public abstract class AbstractBlockchain implements Blockchain {
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
 			TransactionRequest request = getRequestAt(classpath.transaction);
-			Stream<Classpath> dependencies;
-			if (request instanceof JarStoreInitialTransactionRequest)
-				dependencies = ((JarStoreInitialTransactionRequest) request).getDependencies();
-			else if (request instanceof JarStoreTransactionRequest)
-				dependencies = ((JarStoreTransactionRequest) request).getDependencies();
-			else
+			if (!(request instanceof AbstractJarStoreTransactionRequest))
 				throw new IllegalTransactionRequestException("classpath does not refer to a jar store transaction");
+
+			Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
 
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
 				extractPathsRecursively(dependency, paths);
 		}
 
 		TransactionResponse response = getResponseAt(classpath.transaction);
-		byte[] instrumentedJarBytes;
-		if (response instanceof JarStoreInitialTransactionResponse)
-			instrumentedJarBytes = ((JarStoreInitialTransactionResponse) response).getInstrumentedJar();
-		else if (response instanceof JarStoreTransactionSuccessfulResponse)
-			instrumentedJarBytes = ((JarStoreTransactionSuccessfulResponse) response).getInstrumentedJar();
-		else
+		if (!(response instanceof AbstractJarStoreTransactionResponse))
 			throw new IllegalTransactionRequestException("classpath does not refer to a successful jar store transaction");
+
+		byte[] instrumentedJarBytes = ((AbstractJarStoreTransactionResponse) response).getInstrumentedJar();
 
 		try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
 			Path classpathElement = Files.createTempFile("classpath", "jar");
@@ -545,26 +541,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 			// if the class path is recursive, we consider its dependencies as well, recursively
 			if (classpath.recursive) {
 				TransactionRequest request = getRequestAt(classpath.transaction);
-				Stream<Classpath> dependencies;
-				if (request instanceof JarStoreInitialTransactionRequest)
-					dependencies = ((JarStoreInitialTransactionRequest) request).getDependencies();
-				else if (request instanceof JarStoreTransactionRequest)
-					dependencies = ((JarStoreTransactionRequest) request).getDependencies();
-				else
+				if (!(request instanceof AbstractJarStoreTransactionRequest))
 					throw new IllegalTransactionRequestException("classpath does not refer to a jar store transaction");
 
+				Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
 				for (Classpath dependency: dependencies.toArray(Classpath[]::new))
 					addURLs(dependency);
 			}
 
 			TransactionResponse response = getResponseAt(classpath.transaction);
-			byte[] instrumentedJarBytes;
-			if (response instanceof JarStoreInitialTransactionResponse)
-				instrumentedJarBytes = ((JarStoreInitialTransactionResponse) response).getInstrumentedJar();
-			else if (response instanceof JarStoreTransactionSuccessfulResponse)
-				instrumentedJarBytes = ((JarStoreTransactionSuccessfulResponse) response).getInstrumentedJar();
-			else
+			if (!(response instanceof AbstractJarStoreTransactionResponse))
 				throw new IllegalTransactionRequestException("classpath does not refer to a successful jar store transaction");
+
+			byte[] instrumentedJarBytes = ((AbstractJarStoreTransactionResponse) response).getInstrumentedJar();
 
 			try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
 				Path classpathElement = Files.createTempFile("classpath", "jar");

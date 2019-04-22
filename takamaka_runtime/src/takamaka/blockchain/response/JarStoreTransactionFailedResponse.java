@@ -8,7 +8,7 @@ import takamaka.blockchain.Update;
 import takamaka.lang.Immutable;
 
 /**
- * A response for a failed transaction that should have installed a jar in an initialized blockchain.
+ * A response for a failed transaction that should have installed a jar in the blockchain.
  */
 @Immutable
 public class JarStoreTransactionFailedResponse extends JarStoreTransactionResponse {

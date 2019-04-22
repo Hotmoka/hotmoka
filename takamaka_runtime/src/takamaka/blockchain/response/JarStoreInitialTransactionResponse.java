@@ -7,7 +7,7 @@ import takamaka.lang.Immutable;
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
  */
 @Immutable
-public class JarStoreInitialTransactionResponse implements TransactionResponse {
+public class JarStoreInitialTransactionResponse implements TransactionResponse, AbstractJarStoreTransactionResponse {
 
 	private static final long serialVersionUID = 7320005929052884412L;
 
@@ -25,11 +25,7 @@ public class JarStoreInitialTransactionResponse implements TransactionResponse {
 		this.instrumentedJar = instrumentedJar.clone();
 	}
 
-	/**
-	 * Yields the bytes of the jar to install.
-	 * 
-	 * @return the bytes of the jar to install
-	 */
+	@Override
 	public byte[] getInstrumentedJar() {
 		return instrumentedJar.clone();
 	}

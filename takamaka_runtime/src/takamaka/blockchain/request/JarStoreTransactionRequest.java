@@ -13,7 +13,7 @@ import takamaka.lang.Immutable;
  * A request for a transaction that installs a jar in an initialized blockchain.
  */
 @Immutable
-public class JarStoreTransactionRequest implements TransactionRequest {
+public class JarStoreTransactionRequest implements TransactionRequest, AbstractJarStoreTransactionRequest {
 
 	private static final long serialVersionUID = -986118537465436635L;
 
@@ -59,20 +59,12 @@ public class JarStoreTransactionRequest implements TransactionRequest {
 		this.dependencies = dependencies.clone();
 	}
 
-	/**
-	 * Yields the bytes of the jar to install.
-	 * 
-	 * @return the bytes of the jar to install
-	 */
+	@Override
 	public byte[] getJar() {
 		return jar.clone();
 	}
 
-	/**
-	 * Yields the dependencies of the jar to install.
-	 * 
-	 * @return the dependencies
-	 */
+	@Override
 	public Stream<Classpath> getDependencies() {
 		return Stream.of(dependencies);
 	}
