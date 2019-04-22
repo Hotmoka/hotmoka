@@ -15,15 +15,11 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
 
 import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.Classpath;
 import takamaka.blockchain.FieldSignature;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.TransactionRequest;
@@ -46,7 +42,6 @@ import takamaka.blockchain.values.ShortValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
-import takamaka.lang.Event;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -54,16 +49,6 @@ import takamaka.lang.Event;
  * really a blockchain, since there is no peer-to-peer network, nor mining.
  */
 public class MemoryBlockchain extends AbstractBlockchain {
-
-	/**
-	 * The name used for the instrumented jars stored in the chain.
-	 */
-	public final static Path INSTRUMENTED_JAR_NAME = Paths.get("instrumented.jar");
-
-	/**
-	 * The name used for the file describing the dependencies of a jar.
-	 */
-	public final static Path DEPENDENCIES_NAME = Paths.get("deps.txt");
 
 	/**
 	 * The name used for the file containing the serialized request of a transaction.
@@ -86,19 +71,9 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	public final static Path RESPONSE_TXT_NAME = Paths.get("response.txt");
 
 	/**
-	 * The name used for the file describing the specification of a transaction.
-	 */
-	public final static Path SPEC_NAME = Paths.get("specification.txt");
-
-	/**
 	 * The name used for the file containing the updates performed by a transaction.
 	 */
 	public final static Path UPDATES_NAME = Paths.get("updates.txt");
-
-	/**
-	 * The name used for the file containing the events triggered during a transaction.
-	 */
-	public final static Path EVENTS_NAME = Paths.get("events.txt");
 
 	/**
 	 * The root path where transaction are stored.
@@ -233,104 +208,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void addGameteCreationTransactionInternal(Classpath takamakaBase, BigInteger initialAmount, StorageReference gamete, SortedSet<Update> updates) throws Exception {
-		String spec = "Gamete creation transaction\n";
-		spec += "Classpath: " + takamakaBase.toString() + "\n";
-		spec += "Initial amount: " + initialAmount + "\n";
-		spec += "Gamete: " + gamete + "\n";
-
-		dumpTransactionSpec(spec);
-		dumpTransactionUpdates(updates);
-	}
-
-	@Override
-	protected void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, String jarName, Path jar, Path instrumented, SortedSet<Update> updates, BigInteger gas, BigInteger consumedGas, Classpath... dependencies) throws Exception {
-		String spec;
-		if (caller != null)
-			spec = "Jar installation\n";
-		else
-			spec = "Initial jar installation\n";
-
-		if (caller != null)
-			spec += "Caller: " + caller + "\n";
-
-		if (classpath != null)
-			spec += "Class path: " + classpath + "\n";
-
-		spec += "Dependencies: " + Arrays.toString(dependencies) + "\n";
-
-		if (caller != null) {
-			spec += "Gas provided: " + gas + "\n";
-			spec += "Gas consumed: " + consumedGas + "\n";
-		}
-
-		dumpTransactionSpec(spec);
-		dumpJarDependencies(dependencies);
-		dumpTransactionUpdates(updates);
-
-		Path original = getCurrentPathFor(Paths.get(jarName));
-		Path dir = original.getParent();
-		Files.createDirectories(dir);
-		Files.copy(jar, original);
-		Files.copy(instrumented, dir.resolve(INSTRUMENTED_JAR_NAME));
-	}
-
-	@Override
-	protected void addConstructorCallTransactionInternal(CodeExecutor executor) throws Exception {
-		String spec = "Constructor execution\n";
-		spec += "Caller: " + executor.caller + "\n";
-		spec += "Class path: " + executor.classpath + "\n";
-		spec += "Constructor: " + executor.methodOrConstructor + "\n";
-		spec += "Actuals: " + Arrays.toString(executor.getActuals()) + "\n";
-		StorageValue result = executor.getResult();
-		if (result != null)
-			spec += "Constructed object: " + result + "\n";
-		else
-			spec += "Exception: " + executor.getException().getClass().getName() + "\n";
-		spec += "Gas provided: " + executor.gas + "\n";
-		spec += "Gas consumed: " + executor.gasConsumed() + "\n";
-
-		addCodeExecutionTransactionInternal(spec, executor.updates(), executor.events());
-	}
-
-	@Override
-	protected void addInstanceMethodCallTransactionInternal(CodeExecutor executor) throws Exception {
-		String spec = "Instance method execution\n";
-		spec += "Caller: " + executor.caller + "\n";
-		spec += "Class path: " + executor.classpath + "\n";
-		spec += "Method: " + executor.methodOrConstructor + "\n";
-		spec += "Receiver: " + executor.receiver + "\n";
-		spec += "Actuals: " + Arrays.toString(executor.getActuals()) + "\n";
-		StorageValue result = executor.getResult();
-		if (result != null)
-			spec += "Result: " + result + "\n";
-		else
-			spec += "Exception: " + executor.getException().getClass().getName() + "\n";
-		spec += "Gas provided: " + executor.gas + "\n";
-		spec += "Gas consumed: " + executor.gasConsumed() + "\n";
-
-		addCodeExecutionTransactionInternal(spec, executor.updates(), executor.events());
-	}
-
-	@Override
-	protected void addStaticMethodCallTransactionInternal(CodeExecutor executor) throws Exception {
-		String spec = "Static method execution\n";
-		spec += "Caller: " + executor.caller + "\n";
-		spec += "Class path: " + executor.classpath + "\n";
-		spec += "Method: " + executor.methodOrConstructor + "\n";
-		spec += "Actuals: " + Arrays.toString(executor.getActuals()) + "\n";
-		StorageValue result = executor.getResult();
-		if (result != null)
-			spec += "Result: " + result + "\n";
-		else
-			spec += "Exception: " + executor.getException().getClass().getName() + "\n";
-		spec += "Gas provided: " + executor.gas + "\n";
-		spec += "Gas consumed: " + executor.gasConsumed() + "\n";
-
-		addCodeExecutionTransactionInternal(spec, executor.updates(), executor.events());
-	}
-
-	@Override
 	protected void stepToNextTransactionReference() {
 		if (++currentTransaction == transactionsPerBlock) {
 			currentTransaction = 0;
@@ -412,80 +289,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	/**
-	 * Dumps the data for a code execution transaction.
-	 * 
-	 * @param spec the specification of the transaction
-	 * @param updates the updates induced by the transaction
-	 * @param events the events generated during the transaction
-	 * @throws IOException if an error occurred while accessing the disk
-	 */
-	private void addCodeExecutionTransactionInternal(String spec, SortedSet<Update> updates, List<Event> events) throws IOException {
-		dumpTransactionSpec(spec);
-		dumpTransactionUpdates(updates);
-		dumpTransactionEvents(events);
-	}
-
-	/**
-	 * Dumps the dependencies of a jar installed in blockchain.
-	 * 
-	 * @param dependencies the dependencies
-	 * @throws IOException if an error occurred while accessing the disk
-	 */
-	private void dumpJarDependencies(Classpath... dependencies) throws IOException {
-		if (dependencies.length > 0) {
-			Path dependenciesPath = getCurrentPathFor(DEPENDENCIES_NAME);
-			try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(dependenciesPath.toFile())))) {
-				for (Classpath dependency: dependencies)
-					output.println(classpathAsString(dependency));
-			}
-		}
-	}
-
-	/**
-	 * Dumps the events occurred during a transaction.
-	 * 
-	 * @param events the events
-	 * @throws IOException if an error occurred while accessing the disk
-	 */	
-	private void dumpTransactionEvents(List<Event> events) throws IOException {
-		Path eventsPath = getCurrentPathFor(EVENTS_NAME);
-
-		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(eventsPath.toFile())))) {
-			events.forEach(output::println);
-		}
-	}
-
-	/**
-	 * Dumps the updates induced by a transaction.
-	 * 
-	 * @param updates the updates
-	 * @throws IOException if an error occurred while accessing the disk
-	 */
-	private void dumpTransactionUpdates(SortedSet<Update> updates) throws IOException {
-		Path updatesPath = getCurrentPathFor(UPDATES_NAME);
-
-		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(updatesPath.toFile())))) {
-			updates.forEach(update -> output.println(updateAsString(update)));
-		}
-	}
-
-	/**
-	 * Dumps the specification of a transaction.
-	 * 
-	 * @param spec the specification
-	 * @throws IOException if an error occurred while accessing the disk
-	 */
-	private void dumpTransactionSpec(String spec) throws IOException {
-		Path specPath = getCurrentPathFor(SPEC_NAME);
-		ensureDeleted(specPath.getParent());
-		Files.createDirectories(specPath.getParent());
-
-		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(specPath.toFile())))) {
-			output.print(spec);
-		}
-	}
-
-	/**
 	 * Yields a string used to dump the given transaction reference.
 	 * 
 	 * @param reference the reference
@@ -526,16 +329,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 			return storageReferenceAsString((StorageReference) value);
 		else
 			return value.toString();
-	}
-
-	/**
-	 * Yields a string used to dump the given class path.
-	 * 
-	 * @param classpath the class path
-	 * @return the string
-	 */
-	private static String classpathAsString(Classpath classpath) {
-		return String.format("%s;%b", transactionReferenceAsString((MemoryTransactionReference) classpath.transaction), classpath.recursive);
 	}
 
 	/**

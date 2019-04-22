@@ -168,64 +168,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	protected abstract void stepToNextTransactionReference();
 
 	/**
-	 * Blockchain-specific implementation at the end of the successful creation of a gamete. Any blockchain implementation
-	 * has here the opportunity to deal with the result of the creation.
-	 * 
-	 * @param takamakaBase the reference to the jar containing the basic Takamaka classes
-	 * @param initialAmount the amount of coin provided to the gamete. This cannot be negative
-	 * @param gamete the reference to the gamete that has been created
-	 * @param updates the memory updates induced by the transaction. This includes at least
-	 *                those that describe the new gamete
-	 * @throws Exception if something goes wrong in this method. In that case, the gamete creation
-	 *                   transaction will be aborted
-	 */
-	protected abstract void addGameteCreationTransactionInternal(Classpath takamakaBase, BigInteger initialAmount, StorageReference gamete, SortedSet<Update> updates) throws Exception;
-
-	/**
-	 * Blockchain-specific implementation at the end of the successful installation of a jar. Any blockchain implementation
-	 * has here the opportunity to deal with the result of the installation.
-	 * 
-	 * @param caller the externally owned caller contract that pays for the transaction
-	 * @param classpath the class path where the {@code caller} is interpreted
-	 * @param jarName the name of the jar to install
-	 * @param jar the jar to install
-	 * @param instrumented the same {@code jar}, instrumented
-	 * @param updates the updates induced by the execution of the transaction
-	 * @param gas the maximal amount of gas that can be consumed by the transaction
-	 * @param consumedGas the actual amount of gas that was consumed by the transaction
-	 * @param dependencies the dependencies of the jar, already installed in this blockchain
-	 * @throws Exception if something goes wrong. In that case, the transaction will be aborted
-	 */
-	protected abstract void addJarStoreTransactionInternal(StorageReference caller, Classpath classpath, String jarName, Path jar, Path instrumented, SortedSet<Update> updates, BigInteger gas, BigInteger consumedGas, Classpath... dependencies) throws Exception;
-
-	/**
-	 * Blockchain-specific implementation at the end of the successful execution of a constructor. Any blockchain implementation
-	 * has here the opportunity to deal with the result of the construction.
-	 *
-	 * @param executor the thread that executed the constructor
-	 * @throws Exception if anything goes wrong. In that case, the transaction will be aborted
-	 */
-	protected abstract void addConstructorCallTransactionInternal(CodeExecutor executor) throws Exception;
-
-	/**
-	 * Blockchain-specific implementation at the end of the successful execution of an instance method. Any blockchain implementation
-	 * has here the opportunity to deal with the result of the execution.
-	 *
-	 * @param executor the thread that executed the method
-	 * @throws Exception if anything goes wrong. In that case, the transaction will be aborted
-	 */
-	protected abstract void addInstanceMethodCallTransactionInternal(CodeExecutor executor) throws Exception;
-
-	/**
-	 * Blockchain-specific implementation at the end of the successful execution of a static method. Any blockchain implementation
-	 * has here the opportunity to deal with the result of the execution.
-	 *
-	 * @param executor the thread that executed the method
-	 * @throws Exception if anything goes wrong. In that case, the transaction will be aborted
-	 */
-	protected abstract void addStaticMethodCallTransactionInternal(CodeExecutor executor) throws Exception;
-
-	/**
 	 * Puts in the given set all the latest updates for the fields of eager type of the
 	 * object at the given storage reference.
 	 * 
@@ -1166,13 +1108,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			return result;
 		}
-
-		/**
-		 * Stores in the blockchain the result of the execution of the transaction.
-		 * 
-		 * @throws Exception if anything goes wrong. In that case, the transaction will be aborted
-		 */
-		protected abstract void addTransactionInternal() throws Exception;
 	}
 
 	/**
@@ -1233,11 +1168,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 			catch (Throwable t) {
 				exception = t;
 			}
-		}
-
-		@Override
-		protected void addTransactionInternal() throws Exception {
-			addConstructorCallTransactionInternal(this);
 		}
 	}
 
@@ -1310,11 +1240,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 				exception = wrapAsTransactionException(t, "Could not call the method");
 			}
 		}
-
-		@Override
-		protected void addTransactionInternal() throws Exception {
-			addInstanceMethodCallTransactionInternal(this);
-		}
 	}
 
 	/**
@@ -1366,11 +1291,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 			catch (Throwable t) {
 				exception = wrapAsTransactionException(t, "Could not call the method");
 			}
-		}
-
-		@Override
-		protected void addTransactionInternal() throws Exception {
-			addStaticMethodCallTransactionInternal(this);
 		}
 	}
 
