@@ -546,7 +546,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), request.gas.subtract(remainingGas()));
+						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					}
 
 					if (executor.exception != null)
@@ -554,13 +554,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					increaseBalance(deserializedCaller, remainingGas());
 					return new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) StorageValue.serialize(executor.result), executor.updates(), request.gas.subtract(remainingGas()));
+						((StorageReference) StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					Set<Update> updates = new HashSet<>();
-					updates.add(new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller)));
-					return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), updates, request.gas);
+					Update balanceUpdate = new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller));
+					return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas);
 				}
 			}
 		});
@@ -608,7 +607,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), request.gas.subtract(remainingGas()));
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					}
 
 					if (executor.exception != null)
@@ -616,16 +615,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					increaseBalance(deserializedCaller, remainingGas());
 					if (executor.isVoidMethod)
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), request.gas.subtract(remainingGas()));
+						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					else
 						return new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), request.gas.subtract(remainingGas()));
+							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					Set<Update> updates = new HashSet<>();
-					updates.add(new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller)));
-					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), updates, request.gas);
+					Update balanceUpdate = new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller));
+					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas);
 				}
 			}
 		});
@@ -675,7 +673,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), request.gas.subtract(remainingGas()));
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					}
 
 					if (executor.exception != null)
@@ -683,16 +681,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					increaseBalance(deserializedCaller, remainingGas());
 					if (executor.isVoidMethod)
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), request.gas.subtract(remainingGas()));
+						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					else
 						return new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), request.gas.subtract(remainingGas()));
+							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					Set<Update> updates = new HashSet<>();
-					updates.add(new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller)));
-					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), updates, request.gas);
+					Update balanceUpdate = new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller));
+					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas);
 				}
 			}
 		});
@@ -1135,8 +1132,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * 
 		 * @return the updates
 		 */
-		public final SortedSet<Update> updates() {
-			return collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result);
+		public final Stream<Update> updates() {
+			return collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result).stream();
 		}
 
 		/**

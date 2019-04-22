@@ -1,7 +1,6 @@
 package takamaka.blockchain.response;
 
 import java.math.BigInteger;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,8 +32,8 @@ public abstract class ConstructorCallTransactionResponse implements TransactionR
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param consumedGas the amount of gas consumed by the transaction
 	 */
-	public ConstructorCallTransactionResponse(Set<Update> updates, BigInteger consumedGas) {
-		this.updates = updates.toArray(new Update[updates.size()]);
+	public ConstructorCallTransactionResponse(Stream<Update> updates, BigInteger consumedGas) {
+		this.updates = updates.toArray(Update[]::new);
 		this.consumedGas = consumedGas;
 	}
 
