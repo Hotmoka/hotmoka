@@ -38,6 +38,7 @@ import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.response.AbstractJarStoreTransactionResponse;
+import takamaka.blockchain.response.AbstractTransactionResponseWithUpdates;
 import takamaka.blockchain.response.ConstructorCallTransactionExceptionResponse;
 import takamaka.blockchain.response.ConstructorCallTransactionFailedResponse;
 import takamaka.blockchain.response.ConstructorCallTransactionResponse;
@@ -98,6 +99,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * The remaining amount of gas for the current transaction, not yet consumed.
 	 */
 	private BigInteger gas;
+
+	/**
+	 * The transaction reference where the current transaction is being executed.
+	 */
+	private TransactionReference where;
+
 	/**
 	 * A stack of available gas. When a sub-computation is started
 	 * with a subset of the available gas, the latter is taken away from
@@ -175,7 +182,57 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param updates the set where the latest updates must be added
 	 * @throws Exception if the operation fails
 	 */
-	protected abstract void collectEagerUpdatesFor(StorageReference object, Set<Update> updates) throws Exception;
+	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates) throws Exception {
+		// goes back from where the transaction is being executed
+		TransactionReference cursor = where;
+
+		do {
+			cursor = previousTransaction(cursor);
+			// adds the eager updates from the cursor, if any and if they are the latest
+			addEagerUpdatesFor(object, cursor, updates);
+		}
+		// no reason to look before the transaction that created the object
+		while (!cursor.equals(object.transaction));
+	}
+
+	/**
+	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param where the transaction
+	 * @param updates the set where they must be added
+	 * @throws IOException if there is an error while accessing the disk
+	 */
+	private void addEagerUpdatesFor(StorageReference object, TransactionReference where, Set<Update> updates) throws Exception {
+		TransactionResponse response = getResponseAt(where);
+		if (response instanceof AbstractTransactionResponseWithUpdates) {
+			((AbstractTransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update.object.equals(object) && !update.field.type.isLazy() && !isAlreadyIn(update, updates))
+				.forEach(updates::add);
+		}
+	}
+
+	/**
+	 * Determines if the given set of updates contains an update for the
+	 * same object and field of the given update.
+	 * 
+	 * @param update the given update
+	 * @param updates the set
+	 * @return true if and only if that condition holds
+	 */
+	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
+		return updates.stream().anyMatch(other -> other.object.equals(update.object) && other.field.equals(update.field));
+	}
+
+	/**
+	 * Yields the previous transaction of the given one.
+	 * 
+	 * @param transaction the transaction whose previous transaction is being looked for
+	 * @return the previous transaction of {@code transaction}, if any
+	 * @throws IllegalStateException if there is no previous transaction
+	 */
+	protected abstract TransactionReference previousTransaction(TransactionReference transaction);
 
 	/**
 	 * Yields the most recent update for the given field, of lazy type, of the object at given storage reference.
@@ -187,7 +244,45 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	protected abstract Update getLastLazyUpdateFor(StorageReference object, FieldSignature field) throws Exception;
+	private Update getLastLazyUpdateFor(StorageReference object, FieldSignature field) throws Exception {
+		// goes back from the current transaction
+		TransactionReference cursor = where;
+
+		do {
+			cursor = previousTransaction(cursor);
+			Update update = getLastUpdateFor(object, field, cursor);
+			if (update != null)
+				return update;
+		}
+		// no reason to look before the transaction that created the object
+		while (!cursor.equals(object.transaction));
+
+		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
+	}
+
+	/**
+	 * Yields the update to the given field of the object at the given reference,
+	 * generated during a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param transaction the block where the update is being looked for
+	 * @return the update, if any. If the field of {@code reference} was not modified during
+	 *         the {@code transaction}, this method returns {@code null}
+	 */
+	private Update getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
+		TransactionResponse response = getResponseAt(transaction);
+		if (response instanceof AbstractTransactionResponseWithUpdates) {
+			Optional<Update> result = ((AbstractTransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update.object.equals(object) && update.field.equals(field))
+				.findAny();
+		
+			if (result.isPresent())
+				return result.get();
+		}
+
+		return null;
+	}
 
 	/**
 	 * Expands the given list with the dependent class paths, recursively.
@@ -303,7 +398,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			if (!request.getDependencies().allMatch(dependency -> dependency.transaction.isOlderThan(where)))
 				throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
 
-			initTransaction(BigInteger.ZERO);
+			initTransaction(BigInteger.ZERO, where);
 
 			// we transform the array of bytes into a real jar file
 			Path original = Files.createTempFile("original", ".jar");
@@ -339,7 +434,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				throw new IllegalTransactionRequestException("initialAmount must be non-negative");
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
-				initTransaction(BigInteger.ZERO);
+				initTransaction(BigInteger.ZERO, where);
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 				Class<?> gameteClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
 				Class<?> contractClass = classLoader.loadClass(CONTRACT_NAME);
@@ -369,7 +464,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference where) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			checkMinimalGas(request.gas);
-			initTransaction(request.gas);
+			initTransaction(request.gas, where);
 			Storage deserializedCaller = request.caller.deserialize(this);
 			checkIsExternallyOwned(deserializedCaller);
 			
@@ -431,7 +526,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
 				checkMinimalGas(request.gas);
-				initTransaction(request.gas);
+				initTransaction(request.gas, where);
 				Storage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
@@ -493,7 +588,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
 				checkMinimalGas(request.gas);
-				initTransaction(request.gas);
+				initTransaction(request.gas, where);
 				Storage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
@@ -560,7 +655,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
 				checkMinimalGas(request.gas);
-				initTransaction(request.gas);
+				initTransaction(request.gas, where);
 				Storage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
@@ -743,7 +838,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					.findAny();
 	
 			if (!classTag.isPresent())
-				throw new IllegalStateException("No class tag found for " + reference);
+				throw new DeserializationError("No class tag found for " + reference);
 	
 			String className = classTag.get().field.definingClass.name;
 			List<Class<?>> formals = new ArrayList<>();
@@ -762,6 +857,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			Class<?> clazz = classLoader.loadClass(className);
 			Constructor<?> constructor = clazz.getConstructor(formals.toArray(new Class<?>[formals.size()]));
 			return (Storage) constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
+		}
+		catch (DeserializationError e) {
+			throw e;
 		}
 		catch (Exception e) {
 			throw new DeserializationError(e);
@@ -1346,12 +1444,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * Initializes the state at the beginning of the execution of a new transaction
 	 * 
 	 * @param gas the amount of gas available for the transaction
+	 * @param where the transaction reference where the transaction is executed
 	 */
-	private void initTransaction(BigInteger gas) {
+	private void initTransaction(BigInteger gas, TransactionReference where) {
 		Takamaka.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
 		events.clear();
 		cache.clear();
 		this.gas = gas;
+		this.where = where;
 		oldGas.clear();
 	}
 }
