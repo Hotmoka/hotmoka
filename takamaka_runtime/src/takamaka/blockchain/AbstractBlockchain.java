@@ -36,6 +36,7 @@ import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.response.AbstractJarStoreTransactionResponse;
 import takamaka.blockchain.response.ConstructorCallTransactionExceptionResponse;
 import takamaka.blockchain.response.ConstructorCallTransactionFailedResponse;
@@ -613,8 +614,70 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		return transaction(caller, gas, classpath, deserializedCaller -> new StaticMethodExecutor(classpath, method, caller, deserializedCaller, gas, actuals));
+	public final MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference where) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
+				checkMinimalGas(request.gas);
+				initTransaction(request.gas);
+				Storage deserializedCaller = request.caller.deserialize(this);
+				checkIsExternallyOwned(deserializedCaller);
+				
+				// we sell all gas first: what remains will be paid back at the end;
+				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+				BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
+
+				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
+				// after this line, the transaction can be added to the blockchain, possibly as a failed one
+
+				try {
+					charge(GasCosts.BASE_TRANSACTION_COST);
+
+					StaticMethodExecutor executor = new StaticMethodExecutor(request.classpath, request.method, request.caller, deserializedCaller, request.gas, request.getActuals().toArray(StorageValue[]::new));
+					executor.start();
+					executor.join();
+
+					if (executor.exception instanceof InvocationTargetException) {
+						increaseBalance(deserializedCaller, remainingGas());
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), request.gas.subtract(remainingGas()));
+					}
+
+					if (executor.exception != null)
+						throw executor.exception;
+
+					increaseBalance(deserializedCaller, remainingGas());
+					if (executor.isVoidMethod)
+						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), request.gas.subtract(remainingGas()));
+					else
+						return new MethodCallTransactionSuccessfulResponse
+							(StorageValue.serialize(executor.result), executor.updates(), request.gas.subtract(remainingGas()));
+				}
+				catch (Throwable t) {
+					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
+					Set<Update> updates = new HashSet<>();
+					updates.add(new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller)));
+					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), updates, request.gas);
+				}
+			}
+		});
+	}
+
+	@Override
+	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
+		return wrapInCaseOfException(() -> {
+			TransactionReference reference = getCurrentTransactionReference();
+			MethodCallTransactionResponse response = runStaticMethodCallTransaction(request, reference);
+			expandBlockchainWith(request, response);
+			stepToNextTransactionReference();
+
+			if (response instanceof MethodCallTransactionFailedResponse)
+				throw ((MethodCallTransactionFailedResponse) response).cause;
+			else if (response instanceof MethodCallTransactionExceptionResponse)
+				throw new CodeExecutionException("Method threw exception", ((MethodCallTransactionExceptionResponse) response).exception);
+			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
+				return null;
+			else
+				return ((MethodCallTransactionSuccessfulResponse) response).result;
+		});
 	}
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
@@ -706,60 +769,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 				Files.delete(classpathElement);
 
 			super.close();
-		}
-	}
-
-	/**
-	 * The thread that executes a constructor or method.
-	 */
-	private interface ExecutorProducer {
-		CodeExecutor produce(Storage deserializedCaller) throws Exception;
-	}
-
-	/**
-	 * Performs a constructor or method call transaction.
-	 * 
-	 * @param caller the externally owned caller contract that pays for the execution
-	 * @param gas the maximal amount of gas that can be consumed by the transaction
-	 * @param classpath the class path where the {@code caller} is interpreted
-	 * @param executorProducer the thread that executes the constructor or method
-	 * @return the result of the execution of the method or the object created by the constructor. For {@code void} methods, returns {@code null}
-	 * @throws TransactionException if there is an internal problem for the execution
-	 * @throws CodeExecutionException if the execution threw an exception (that is not an {@link java.lang.Error} and the constructor or method is
-	 *                                annotated as {@link takamaka.lang.ThrowsExceptions}
-	 */
-	//TODO: to be removed at the end
-	private StorageValue transaction(StorageReference caller, BigInteger gas, Classpath classpath, ExecutorProducer executorProducer) throws TransactionException, CodeExecutionException {
-		try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(classpath)) {
-			initTransaction(gas);
-			Storage deserializedCaller = caller.deserialize(this);
-			checkIsExternallyOwned(deserializedCaller);
-			decreaseBalance(deserializedCaller, gas);
-			charge(GasCosts.BASE_TRANSACTION_COST);
-
-			CodeExecutor executor = executorProducer.produce(deserializedCaller);
-			executor.start();
-			executor.join();
-
-			if (executor.exception instanceof TransactionException)
-				throw (TransactionException) executor.exception;
-
-			StorageValue result = executor.exception == null ? StorageValue.serialize(executor.result) : null;
-			increaseBalance(deserializedCaller, remainingGas());
-			executor.addTransactionInternal();
-			stepToNextTransactionReference();
-
-			if (executor.exception != null)
-				throw new CodeExecutionException("Code execution threw exception", executor.exception);
-			else
-				return result;
-		}
-		catch (CodeExecutionException e) {
-			throw e; // do not wrap into a TransactionException
-		}
-		catch (Throwable t) {
-			//TODO we should register the update to the balance of the caller
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
 		}
 	}
 
@@ -1316,6 +1325,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	private class StaticMethodExecutor extends CodeExecutor {
 
 		/**
+		 * True if the method has been called correctly and it returns {@code void},
+		 */
+		private boolean isVoidMethod;
+
+		/**
 		 * Builds the executor of a static method.
 		 * 
 		 * @param classpath the class path that must be used to find the classes during the execution of the method
@@ -1338,10 +1352,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 				if (!Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
 
-				result = methodJVM.invoke(null, deserializedActuals);
-			}
-			catch (InvocationTargetException e) {
-				exception = e.getCause();
+				try {
+					result = methodJVM.invoke(null, deserializedActuals);
+					isVoidMethod = methodJVM.getReturnType() == void.class;
+				}
+				catch (InvocationTargetException e) {
+					if (e.getCause() instanceof Exception && methodJVM.isAnnotationPresent(ThrowsExceptions.class))
+						exception = e;
+					else
+						exception = e.getCause();
+				}
 			}
 			catch (Throwable t) {
 				exception = wrapAsTransactionException(t, "Could not call the method");

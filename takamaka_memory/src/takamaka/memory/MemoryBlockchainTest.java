@@ -19,6 +19,7 @@ import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.BigIntegerValue;
@@ -105,11 +106,11 @@ public class MemoryBlockchainTest {
 
 		// we call it in the correct way
 		run("gamete", "Sub.ms()", () -> blockchain.addStaticMethodCallTransaction
-			(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "ms")));
+			(new StaticMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "ms"))));
 
 		// we try to call an instance method as if it were static
 		run("gamete", "Sub.m5()", () -> blockchain.addStaticMethodCallTransaction
-			(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "m5")));
+			(new StaticMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "m5"))));
 
 		StorageReference eoa = run("gamete", "eoa = new ExternallyOwnedAccount()",
 			() -> blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest

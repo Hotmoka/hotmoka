@@ -1,12 +1,11 @@
 package takamaka.blockchain;
 
-import java.math.BigInteger;
-
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.response.ConstructorCallTransactionResponse;
 import takamaka.blockchain.response.GameteCreationTransactionResponse;
 import takamaka.blockchain.response.JarStoreInitialTransactionResponse;
@@ -154,7 +153,7 @@ public interface Blockchain {
 	/**
 	 * Runs an instance method of an object stored in the blockchain.
 	 * 
-	 * @param request the request
+	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed because of an internal error.
@@ -172,20 +171,29 @@ public interface Blockchain {
 	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
 
 	/**
+	 * Runs a transaction that calls a static method of a class in blockchain.
+	 * The goal is to run the method and compute its returned value.
+	 * This method runs the transaction specified by the request, at the given transaction reference, and yields
+	 * the corresponding response. The blockchain does not get modified.
+	 * 
+	 * @param request the transaction request
+	 * @param where the transaction reference where the request must be executed
+	 * @return the response resulting from the execution of the request
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	public MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference where) throws TransactionException;
+
+	/**
 	 * Runs a static method of a class.
 	 * 
-	 * @param caller the externally owned caller contract that pays for the transaction
-	 * @param gas the maximal amount of gas that can be consumed by the transaction
-	 * @param classpath the class path where the {@code caller} and actual parameters can be interpreted and the code must be executed
-	 * @param method the method that must be called. It specifies the class from where it must be looked up
-	 * @param actuals the actual arguments passed to the method
+	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed because of an internal error.
 	 *                              Note that internal errors include
 	 *                              {@link takamaka.lang.OutOfGasError} and {@link takamaka.lang.InsufficientFundsError}.
 	 *                              If this occurs, the blockchain will be expanded
-	 *                              with a transaction that charges all gas to the caller, but no method will be executed
+	 *                              with a failed transaction that charges all gas to the caller, but no method will be executed
 	 * @throws CodeExecutionException if the execution of the method failed with an exception that is not an instance of
 	 *                                {@link java.lang.Error} (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
@@ -193,5 +201,5 @@ public interface Blockchain {
 	 *                                This can only occur if the method is annotated as {@link takamaka.lang.ThrowsExceptions}. In all other cases,
 	 *                                a {@link takamaka.blockchain.TransactionException} is thrown
 	 */
-	public StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException;
+	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
 }
