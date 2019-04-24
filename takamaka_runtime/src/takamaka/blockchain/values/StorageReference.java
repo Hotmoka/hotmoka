@@ -8,12 +8,12 @@ import takamaka.lang.Immutable;
 import takamaka.lang.Storage;
 
 /**
- * A reference to an object of class type that is stored in the blockchain.
+ * A reference to an object of class type that is already stored in the blockchain.
  * It knows the transaction that created the object. Objects created during the
  * same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public final class StorageReference implements StorageValue {
+public final class StorageReference extends AbstractStorageReference {
 
 	private static final long serialVersionUID = 5215119613321482697L;
 
@@ -23,12 +23,6 @@ public final class StorageReference implements StorageValue {
 	public final TransactionReference transaction;
 
 	/**
-	 * The progressive number of the object among those that have been created
-	 * during the same transaction.
-	 */
-	public final BigInteger progressive;
-
-	/**
 	 * Builds a storage reference.
 	 * 
 	 * @param transaction the transaction that created the object
@@ -36,18 +30,19 @@ public final class StorageReference implements StorageValue {
 	 *                    during the same transaction
 	 */
 	public StorageReference(TransactionReference transaction, BigInteger progressive) {
+		super(progressive);
+
 		this.transaction = transaction;
-		this.progressive = progressive;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof StorageReference && ((StorageReference) other).progressive.equals(progressive) && ((StorageReference) other).transaction.equals(transaction);
+		return other instanceof StorageReference && super.equals(other) && ((StorageReference) other).transaction.equals(transaction);
 	}
 
 	@Override
 	public int hashCode() {
-		return progressive.hashCode() ^ transaction.hashCode();
+		return super.hashCode() ^ transaction.hashCode();
 	}
 
 	@Override
@@ -70,6 +65,6 @@ public final class StorageReference implements StorageValue {
 
 	@Override
 	public String toString() {
-		return transaction + "#" + progressive.toString(16);
+		return transaction + super.toString();
 	}
 }
