@@ -55,6 +55,7 @@ import takamaka.blockchain.response.MethodCallTransactionSuccessfulResponse;
 import takamaka.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.BigIntegerValue;
+import takamaka.blockchain.values.GenericStorageReference;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Event;
@@ -93,7 +94,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * a distinct class loader and each storage object keeps a reference to its class loader, as
 	 * always in Java.
 	 */
-	private final Map<StorageReference, Storage> cache = new HashMap<>();
+	private final Map<GenericStorageReference, Storage> cache = new HashMap<>();
 
 	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
@@ -206,7 +207,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param updates the set where the latest updates must be added
 	 * @throws Exception if the operation fails
 	 */
-	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates) throws Exception {
+	private void collectEagerUpdatesFor(GenericStorageReference object, Set<Update> updates) throws Exception {
 		// goes back from where the transaction is being executed
 		TransactionReference cursor = where;
 
@@ -224,14 +225,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * occurred during the execution of a given transaction.
 	 * 
 	 * @param object the reference of the object
-	 * @param where the transaction
+	 * @param transaction the transaction
 	 * @param updates the set where they must be added
 	 * @throws IOException if there is an error while accessing the disk
 	 */
-	private void addEagerUpdatesFor(StorageReference object, TransactionReference where, Set<Update> updates) throws Exception {
-		TransactionResponse response = getResponseAt(where);
+	private void addEagerUpdatesFor(GenericStorageReference object, TransactionReference transaction, Set<Update> updates) throws Exception {
+		TransactionResponse response = getResponseAt(transaction);
 		if (response instanceof AbstractTransactionResponseWithUpdates) {
 			((AbstractTransactionResponseWithUpdates) response).getUpdates()
+				.map(update -> update.contextualizeAt(transaction))
 				.filter(update -> update.object.equals(object) && !update.field.type.isLazy() && !isAlreadyIn(update, updates))
 				.forEach(updates::add);
 		}
@@ -259,7 +261,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	private Update getLastLazyUpdateFor(StorageReference object, FieldSignature field) throws Exception {
+	private Update getLastLazyUpdateFor(GenericStorageReference object, FieldSignature field) throws Exception {
 		// goes back from the current transaction
 		TransactionReference cursor = where;
 
@@ -285,10 +287,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any. If the field of {@code reference} was not modified during
 	 *         the {@code transaction}, this method returns {@code null}
 	 */
-	private Update getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
+	private Update getLastUpdateFor(GenericStorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
 		TransactionResponse response = getResponseAt(transaction);
 		if (response instanceof AbstractTransactionResponseWithUpdates) {
 			Optional<Update> result = ((AbstractTransactionResponseWithUpdates) response).getUpdates()
+				.map(update -> update.contextualizeAt(transaction))
 				.filter(update -> update.object.equals(object) && update.field.equals(field))
 				.findAny();
 		
@@ -474,12 +477,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 		});
 	}
 
+	@Override
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			GameteCreationTransactionResponse response = runGameteCreationTransaction(request, getCurrentTransactionReference());
 			expandBlockchainWith(request, response);
+			TransactionReference current = getCurrentTransactionReference();
 			stepToNextTransactionReference();
-			return response.gamete;
+			return response.gamete.contextualizeAt(current);
 		});
 	}
 
@@ -601,7 +606,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			else if (response instanceof ConstructorCallTransactionExceptionResponse)
 				throw new CodeExecutionException("Constructor threw exception", ((ConstructorCallTransactionExceptionResponse) response).exception);
 			else
-				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject;
+				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject.contextualizeAt(reference);
 		});
 	}
 
@@ -666,8 +671,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 				throw new CodeExecutionException("Method threw exception", ((MethodCallTransactionExceptionResponse) response).exception);
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
-			else
-				return ((MethodCallTransactionSuccessfulResponse) response).result;
+			else {
+				StorageValue result = ((MethodCallTransactionSuccessfulResponse) response).result;
+				if (result instanceof StorageReference)
+					result = ((StorageReference) result).contextualizeAt(reference);
+
+				return result;
+			}
 		});
 	}
 
@@ -732,8 +742,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 				throw new CodeExecutionException("Method threw exception", ((MethodCallTransactionExceptionResponse) response).exception);
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
-			else
-				return ((MethodCallTransactionSuccessfulResponse) response).result;
+			else {
+				StorageValue result = ((MethodCallTransactionSuccessfulResponse) response).result;
+				if (result instanceof StorageReference)
+					result = ((StorageReference) result).contextualizeAt(reference);
+
+				return result;
+			}
 		});
 	}
 
@@ -819,13 +834,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * Deserializes the given storage reference from the blockchain. It first checks in a cache if the
 	 * same reference has been already deserialized during the current transaction and in such a case yeilds
-	 * the same object. Otherwise, it calls method {@link takamaka.blockchain.AbstractBlockchain#deserializeAnew(StorageReference)}
+	 * the same object. Otherwise, it calls method {@link takamaka.blockchain.AbstractBlockchain#deserializeAnew(GenericStorageReference)}
 	 * and yields the resulting object.
 	 * 
 	 * @param reference the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	public final Storage deserialize(StorageReference reference) {
+	public final Storage deserialize(GenericStorageReference reference) {
 		return cache.computeIfAbsent(reference, this::deserializeAnew);
 	}
 
@@ -835,7 +850,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param reference the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	private Storage deserializeAnew(StorageReference reference) {
+	private Storage deserializeAnew(GenericStorageReference reference) {
 		try {
 			SortedSet<Update> updates = new TreeSet<>(updateComparator);
 			collectEagerUpdatesFor(reference, updates);
@@ -852,7 +867,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			List<Object> actuals = new ArrayList<>();
 			// the constructor for deserialization has a first parameter
 			// that receives the storage reference of the object
-			formals.add(StorageReference.class);
+			formals.add(GenericStorageReference.class);
 			actuals.add(reference);
 	
 			for (Update update: updates)
@@ -884,7 +899,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the value of the field
 	 * @throws Exception if the look up fails
 	 */
-	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
+	public final Object deserializeLastLazyUpdateFor(GenericStorageReference reference, FieldSignature field) throws Exception {
 		return getLastLazyUpdateFor(reference, field).value.deserialize(this);
 	}
 

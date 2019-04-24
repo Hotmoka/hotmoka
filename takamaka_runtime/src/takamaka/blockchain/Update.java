@@ -107,4 +107,21 @@ public final class Update implements Serializable, Comparable<Update> {
 		else
 			return value.compareTo(other.value);
 	}
+
+	/**
+	 * Yields an update derived from this, by assuming that the current transaction
+	 * is the given one.
+	 * 
+	 * @param where the transaction
+	 * @return the resulting update
+	 */
+	public Update contextualizeAt(TransactionReference where) {
+		StorageReference objectContextualized = object.contextualizeAt(where);
+		StorageValue valueContextualized = (value instanceof StorageReference) ? ((StorageReference) value).contextualizeAt(where) : value;
+
+		if (object != objectContextualized || value != valueContextualized)
+			return new Update(objectContextualized, field, valueContextualized);
+		else
+			return this;
+	}
 }

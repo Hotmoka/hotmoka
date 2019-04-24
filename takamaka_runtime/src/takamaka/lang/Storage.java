@@ -15,11 +15,13 @@ import takamaka.blockchain.values.ByteValue;
 import takamaka.blockchain.values.CharValue;
 import takamaka.blockchain.values.DoubleValue;
 import takamaka.blockchain.values.FloatValue;
+import takamaka.blockchain.values.GenericStorageReference;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.NullValue;
 import takamaka.blockchain.values.ShortValue;
 import takamaka.blockchain.values.StorageReference;
+import takamaka.blockchain.values.StorageReferenceInCurrentTransaction;
 import takamaka.blockchain.values.StringValue;
 
 /**
@@ -30,8 +32,7 @@ import takamaka.blockchain.values.StringValue;
 public abstract class Storage {
 
 	/**
-	 * The abstract pointer used to refer to this object in its serialized
-	 * form in blockchain.
+	 * The abstract pointer used to refer to this object in blockchain.
 	 */
 	public final StorageReference storageReference;
 
@@ -53,16 +54,15 @@ public abstract class Storage {
 
 		// assigns a fresh unique identifier to the object, that will later
 		// used to refer to the object once serialized in blockchain
-		this.storageReference = new StorageReference(Takamaka.getBlockchain().getCurrentTransactionReference(), Takamaka.generateNextProgressive());
+		this.storageReference = new StorageReferenceInCurrentTransaction(Takamaka.generateNextProgressive());
 	}
 
 	// ALL SUBSEQUENT METHODS ARE USED IN INSTRUMENTED CODE
 
 	/**
-	 * Collects the updates to this object and to
-	 * the objects that are reachable from it. This is used at the end of a
-	 * transaction, to collect and then store the updates resulting from
-	 * the transaction.
+	 * Collects the updates to this object and to the objects that are reachable from it.
+	 * This is used at the end of a transaction, to collect and then store the updates
+	 * resulting from the transaction.
 	 * 
 	 * @param result the set where the updates will be added
 	 * @param seen a set of storage references that have already been scanned
@@ -89,7 +89,7 @@ public abstract class Storage {
 	 * 
 	 * @param storageReference the reference to deserialize
 	 */
-	protected Storage(StorageReference storageReference) {
+	protected Storage(GenericStorageReference storageReference) {
 		// this object reflects something already in blockchain
 		this.inStorage = true;
 
@@ -143,7 +143,7 @@ public abstract class Storage {
 	 * @throws Exception if the value could not be found
 	 */
 	protected final Object deserializeLastLazyUpdateFor(String definingClass, String name, String fieldClassName) throws Exception {
-		return Takamaka.getBlockchain().deserializeLastLazyUpdateFor(storageReference, new FieldSignature(definingClass, name, fieldClassName));
+		return Takamaka.getBlockchain().deserializeLastLazyUpdateFor((GenericStorageReference) storageReference, new FieldSignature(definingClass, name, fieldClassName));
 	}
 
 	/**

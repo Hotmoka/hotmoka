@@ -58,9 +58,11 @@ public class MemoryBlockchainTest {
 		Classpath takamakaBaseClasspath = new Classpath(takamaka_base, false);  // true/false irrelevant here
 		StorageReference gamete = run("", "gamete", () -> blockchain.addGameteCreationTransaction
 			(new GameteCreationTransactionRequest(takamakaBaseClasspath, BigInteger.valueOf(1000000))));
+
 		TransactionReference test_contracts_dependency = run("gamete", "test_contract_dependency.jar",
 			() -> blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(gamete, BigInteger.valueOf(10000), takamakaBaseClasspath,
 				Files.readAllBytes(Paths.get("../test_contracts_dependency/dist/test_contracts_dependency.jar")), takamakaBaseClasspath)));
+
 		TransactionReference test_contracts = run("gamete", "test_contracts.jar",
 			() -> blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(gamete, BigInteger.valueOf(10000), takamakaBaseClasspath,
 				Files.readAllBytes(Paths.get("../test_contracts/dist/test_contracts.jar")), new Classpath(test_contracts_dependency, true)))); // true relevant here
@@ -69,12 +71,12 @@ public class MemoryBlockchainTest {
 		StorageReference italianTime = run("gamete", "italianTime = new ItalianTime(13,25,40)",
 			() -> blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath, new ConstructorSignature("takamaka.tests.ItalianTime", INT, INT, INT),
 			new IntValue(13), new IntValue(25), new IntValue(40))));
-		
+
 		StorageReference wrapper1 = run("gamete", "wrapper1 = new Wrapper(italianTime)", () -> blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath,
 				new ConstructorSignature("takamaka.tests.Wrapper", new ClassType("takamaka.tests.Time")),
 				italianTime)));
-		
+
 		run("gamete", "wrapper1.toString()", () -> (StringValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath,
 			new MethodSignature(ClassType.OBJECT, "toString"),

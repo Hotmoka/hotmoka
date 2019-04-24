@@ -60,7 +60,7 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import takamaka.blockchain.values.StorageReference;
+import takamaka.blockchain.values.GenericStorageReference;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.lang.Storage;
@@ -1107,7 +1107,7 @@ class ClassInstrumentation {
 
 			// the parameters of the constructor start with a storage reference
 			// to the object being deserialized
-			args.add(new ObjectType(StorageReference.class.getName()));
+			args.add(new ObjectType(GenericStorageReference.class.getName()));
 
 			// then there are the fields of the class and superclasses, with superclasses first
 			eagerNonTransientInstanceFields.stream()
@@ -1138,7 +1138,7 @@ class ClassInstrumentation {
 			List<Type> argsForSuperclasses = new ArrayList<>();
 			il.append(InstructionFactory.createThis());
 			il.append(InstructionConst.ALOAD_1);
-			argsForSuperclasses.add(new ObjectType(StorageReference.class.getName()));
+			argsForSuperclasses.add(new ObjectType(GenericStorageReference.class.getName()));
 		
 			// the fields of the superclasses are passed into a call to super(...)
 			class PushLoad implements Consumer<Type> {

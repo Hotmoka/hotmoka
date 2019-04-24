@@ -4,6 +4,7 @@ import java.math.BigInteger;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.DeserializationError;
+import takamaka.blockchain.TransactionReference;
 import takamaka.lang.Immutable;
 import takamaka.lang.Storage;
 
@@ -13,7 +14,7 @@ import takamaka.lang.Storage;
  * Objects created during the same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public final class StorageReferenceInCurrentTransaction extends AbstractStorageReference {
+public final class StorageReferenceInCurrentTransaction extends StorageReference {
 
 	private static final long serialVersionUID = -9199432347895285763L;
 
@@ -51,5 +52,11 @@ public final class StorageReferenceInCurrentTransaction extends AbstractStorageR
 	@Override
 	public String toString() {
 		return "THIS_TRANSACTION" + super.toString();
+	}
+
+	@Override
+	public GenericStorageReference contextualizeAt(TransactionReference where) {
+		// we assume the transaction is the given one
+		return new GenericStorageReference(where, progressive);
 	}
 }
