@@ -46,6 +46,15 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
 		return Stream.of(dependencies);
 	}
 
+	/**
+	 * Yields the number of dependencies.
+	 * 
+	 * @return the number of dependencies
+	 */
+	public int getNumberOfDependencies() {
+		return dependencies.length;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
