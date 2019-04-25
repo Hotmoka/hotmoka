@@ -1,6 +1,5 @@
 package takamaka.lang;
 
-import static java.lang.annotation.ElementType.CONSTRUCTOR;
 import static java.lang.annotation.ElementType.METHOD;
 
 import java.lang.annotation.Documented;
@@ -16,7 +15,7 @@ import java.lang.annotation.Target;
  * a transaction.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value={ METHOD, CONSTRUCTOR })
+@Target(value={ METHOD })
 @Inherited
 @Documented
 public @interface View {

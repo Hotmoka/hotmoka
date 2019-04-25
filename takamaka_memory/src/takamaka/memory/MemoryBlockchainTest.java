@@ -183,5 +183,19 @@ public class MemoryBlockchainTest {
 		// this test should return false since BigInteger parameters are considered different
 		run("gamete", "a1.test(bi1, bi1)", () -> blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new MethodSignature(alias, "test", bigInteger, bigInteger), a1, bi1, bi1)));
+
+		ClassType simple = new ClassType("takamaka.tests.Simple");
+		StorageReference s = run("gamete", "s = new Simple(13)", () -> blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new ConstructorSignature(simple, BasicTypes.INT), new IntValue(13))));
+		run("gamete", "s.foo1()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new MethodSignature(simple, "foo1"), s)));
+		run("gamete", "s.foo2()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new MethodSignature(simple, "foo2"), s)));
+		run("gamete", "s.foo3()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new MethodSignature(simple, "foo3"), s)));
+		run("gamete", "s.foo4()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new MethodSignature(simple, "foo4"), s)));
+		run("gamete", "s.foo5()", () -> blockchain.addStaticMethodCallTransaction
+			(new StaticMethodCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new MethodSignature(simple, "foo5"))));
 	}
 }

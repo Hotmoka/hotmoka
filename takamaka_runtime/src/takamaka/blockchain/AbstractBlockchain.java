@@ -53,6 +53,7 @@ import takamaka.blockchain.response.MethodCallTransactionFailedResponse;
 import takamaka.blockchain.response.MethodCallTransactionResponse;
 import takamaka.blockchain.response.MethodCallTransactionSuccessfulResponse;
 import takamaka.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
+import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.BigIntegerValue;
 import takamaka.blockchain.values.StorageReference;
@@ -64,6 +65,7 @@ import takamaka.lang.OutOfGasError;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
 import takamaka.lang.ThrowsExceptions;
+import takamaka.lang.View;
 import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.Program;
@@ -616,6 +618,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw executor.exception;
 
 					increaseBalance(deserializedCaller, remainingGas());
+
+					if (executor.isViewMethod && !executor.onlyAffectedBalanceOf(deserializedCaller))
+						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
+
 					if (executor.isVoidMethod)
 						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					else
@@ -685,6 +691,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw executor.exception;
 
 					increaseBalance(deserializedCaller, remainingGas());
+
+					if (executor.isViewMethod && !executor.onlyAffectedBalanceOf(deserializedCaller))
+						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
+
 					if (executor.isVoidMethod)
 						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					else
@@ -1019,6 +1029,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected boolean isVoidMethod;
 
 		/**
+		 * True if the method has been called correctly and it is annotated as {@link takamaka.lang.View}.
+		 */
+		protected boolean isViewMethod;
+
+		/**
 		 * The deserialized receiver of a method call. This is {@code null} for static methods and constructors.
 		 */
 		protected final Storage deserializedReceiver; // it might be null
@@ -1053,12 +1068,34 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		/**
+		 * A cache for {@link takamaka.blockchain.AbstractBlockchain.CodeExecutor#updates()}.
+		 */
+		private SortedSet<Update> updates;
+
+		/**
 		 * Yields the updates resulting from the execution of the method or constructor.
 		 * 
 		 * @return the updates
 		 */
 		protected final Stream<Update> updates() {
-			return collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result).stream();
+			if (updates != null)
+				return updates.stream();
+
+			return (updates = collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result)).stream();
+		}
+
+		/**
+		 * Determines if the execution only affected the balance of the caller contract.
+		 *
+		 * @param deserializedCaller the caller contract
+		 * @return true  if and only if that condition holds
+		 */
+		protected boolean onlyAffectedBalanceOf(Storage deserializedCaller) {
+			return updates().allMatch
+				(update -> update.object.equals(deserializedCaller.storageReference)
+				&& update.field.definingClass.equals(ClassType.CONTRACT)
+				&& update.field.name.equals("balance")
+				&& update.field.type.equals(ClassType.BIG_INTEGER));
 		}
 
 		/**
@@ -1219,6 +1256,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				try {
 					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
 					isVoidMethod = methodJVM.getReturnType() == void.class;
+					isViewMethod = methodJVM.isAnnotationPresent(View.class);
 				}
 				catch (InvocationTargetException e) {
 					if (e.getCause() instanceof Exception && methodJVM.isAnnotationPresent(ThrowsExceptions.class))
@@ -1264,6 +1302,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				try {
 					result = methodJVM.invoke(null, deserializedActuals);
 					isVoidMethod = methodJVM.getReturnType() == void.class;
+					isViewMethod = methodJVM.isAnnotationPresent(View.class);
 				}
 				catch (InvocationTargetException e) {
 					if (e.getCause() instanceof Exception && methodJVM.isAnnotationPresent(ThrowsExceptions.class))
