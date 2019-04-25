@@ -467,45 +467,47 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			checkMinimalGas(request.gas);
-			initTransaction(request.gas, previous);
-			Storage deserializedCaller = request.caller.deserialize(this);
-			checkIsExternallyOwned(deserializedCaller);
-			
-			// we sell all gas first: what remains will be paid back at the end;
-			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-			decreaseBalance(deserializedCaller, request.gas);
+			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
+				checkMinimalGas(request.gas);
+				initTransaction(request.gas, previous);
+				Storage deserializedCaller = request.caller.deserialize(this);
+				checkIsExternallyOwned(deserializedCaller);
 
-			if (request.getDependencies().map(dependency -> dependency.transaction).anyMatch(previous::isOlderThan))
-				throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
+				// we sell all gas first: what remains will be paid back at the end;
+				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+				decreaseBalance(deserializedCaller, request.gas);
 
-			// before this line, an exception will abort the transaction and leave the blockchain unchanged;
-			// after this line, the transaction will be added to the blockchain, possibly as a failed one
+				if (request.getDependencies().map(dependency -> dependency.transaction).anyMatch(previous::isOlderThan))
+					throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
 
-			try {
-				charge(GasCosts.BASE_TRANSACTION_COST);
-				charge(BigInteger.valueOf(request.getNumberOfDependencies()).multiply(GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
-				charge(BigInteger.valueOf((long) (((long) request.getJarSize()) * GasCosts.GAS_PER_BYTE_IN_JAR)));
+				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
+				// after this line, the transaction will be added to the blockchain, possibly as a failed one
 
-				// we transform the array of bytes into a real jar file
-				Path original = Files.createTempFile("original", "jar");
-				Files.write(original, request.getJar());
+				try {
+					charge(GasCosts.BASE_TRANSACTION_COST);
+					charge(BigInteger.valueOf(request.getNumberOfDependencies()).multiply(GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
+					charge(BigInteger.valueOf((long) (((long) request.getJarSize()) * GasCosts.GAS_PER_BYTE_IN_JAR)));
 
-				// we create a temporary file to hold the instrumented jar
-				Path instrumented = Files.createTempFile("instrumented", "jar");
-				new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()));
-				Files.delete(original);
-				byte[] instrumentedBytes = Files.readAllBytes(instrumented);
-				Files.delete(instrumented);
-				BigInteger consumedGas = request.gas.subtract(remainingGas());
-				increaseBalance(deserializedCaller, remainingGas());
-				SortedSet<Update> updates = collectUpdates(null, deserializedCaller, null, null);
+					// we transform the array of bytes into a real jar file
+					Path original = Files.createTempFile("original", "jar");
+					Files.write(original, request.getJar());
 
-				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updates, consumedGas);
-			}
-			catch (Throwable t) {
-				// we do not pay back the gas
-				return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), collectUpdates(null, deserializedCaller, null, null), request.gas);
+					// we create a temporary file to hold the instrumented jar
+					Path instrumented = Files.createTempFile("instrumented", "jar");
+					new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()));
+					Files.delete(original);
+					byte[] instrumentedBytes = Files.readAllBytes(instrumented);
+					Files.delete(instrumented);
+					BigInteger consumedGas = request.gas.subtract(remainingGas());
+					increaseBalance(deserializedCaller, remainingGas());
+					SortedSet<Update> updates = collectUpdates(null, deserializedCaller, null, null);
+
+					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updates, consumedGas);
+				}
+				catch (Throwable t) {
+					// we do not pay back the gas
+					return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), collectUpdates(null, deserializedCaller, null, null), request.gas);
+				}
 			}
 		});
 	}
