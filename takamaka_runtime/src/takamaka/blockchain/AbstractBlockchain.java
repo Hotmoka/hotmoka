@@ -548,7 +548,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					}
 
 					if (executor.exception != null)
@@ -607,7 +607,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					}
 
 					if (executor.exception != null)
@@ -676,7 +676,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception, executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					}
 
 					if (executor.exception != null)
@@ -1226,7 +1226,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				}
 			}
 			catch (Throwable t) {
-				exception = wrapAsTransactionException(t, "Could not call the method");
+				exception = t;
 			}
 		}
 	}
@@ -1271,7 +1271,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				}
 			}
 			catch (Throwable t) {
-				exception = wrapAsTransactionException(t, "Could not call the method");
+				exception = t;
 			}
 		}
 	}
