@@ -50,56 +50,52 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	public final static Path RESPONSE_TXT_NAME = Paths.get("response.txt");
 
 	/**
+	 * The number of transactions per block.
+	 */
+	public final static short TRANSACTION_PER_BLOCK = 5;
+
+	/**
 	 * The root path where transaction are stored.
 	 */
 	private final Path root;
 
 	/**
-	 * The number of transactions per block.
+	 * The reference to the topmost transaction reference.
+	 * This is {@code null} if the blockchain is empty.
 	 */
-	private final short transactionsPerBlock;
-
-	/**
-	 * The block of the current transaction.
-	 */
-	private BigInteger currentBlock = BigInteger.ZERO;
-
-	/**
-	 * The progressive transaction number inside the current block,
-	 * for the current transaction.
-	 */
-	private short currentTransaction;
+	private MemoryTransactionReference topmost;
 
 	/**
 	 * Builds a blockchain that stores transaction in disk memory.
 	 * 
 	 * @param root the directory where blocks and transactions must be stored.
-	 * @param transactionsPerBlock the number of transactions inside each block
 	 * @throws IOException if the root directory cannot be created
 	 */
-	public MemoryBlockchain(Path root, short transactionsPerBlock) throws IOException {
+	public MemoryBlockchain(Path root) throws IOException {
 		if (root == null)
 			throw new NullPointerException("A root path must be specified");
-
-		if (transactionsPerBlock <= 0)
-			throw new IllegalArgumentException("transactionsPerBlock must be positive");
 
 		// cleans the directory where the blockchain lives
 		ensureDeleted(root);
 		Files.createDirectories(root);
 
 		this.root = root;
-		this.transactionsPerBlock = transactionsPerBlock;
 	}
 
 	@Override
-	public MemoryTransactionReference getCurrentTransactionReference() {
-		return new MemoryTransactionReference(currentBlock, currentTransaction);
+	protected MemoryTransactionReference getTopmostTransactionReference() {
+		return topmost;
 	}
 
 	@Override
-	protected void expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception {
-		Path requestPath = getCurrentPathFor(REQUEST_NAME);
+	protected TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception {
+		MemoryTransactionReference next;
+		if (topmost == null)
+			next = new MemoryTransactionReference(BigInteger.ZERO, (short) 0);
+		else
+			next = topmost.getNext();
+
+		Path requestPath = getPathFor(next, REQUEST_NAME);
 		ensureDeleted(requestPath.getParent());
 		Files.createDirectories(requestPath.getParent());
 
@@ -107,21 +103,23 @@ public class MemoryBlockchain extends AbstractBlockchain {
 			os.writeObject(request);
 		}
 
-		requestPath = getCurrentPathFor(REQUEST_TXT_NAME);
+		requestPath = getPathFor(next, REQUEST_TXT_NAME);
 		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(requestPath.toFile())))) {
 			output.print(request);
 		}
 
-		Path responsePath = getCurrentPathFor(RESPONSE_NAME);
+		Path responsePath = getPathFor(next, RESPONSE_NAME);
 
 		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(responsePath.toFile())))) {
 			os.writeObject(response);
 		}
 
-		responsePath = getCurrentPathFor(RESPONSE_TXT_NAME);
+		responsePath = getPathFor(next, RESPONSE_TXT_NAME);
 		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(responsePath.toFile())))) {
 			output.print(response);
 		}
+
+		return topmost = next;
 	}
 
 	@Override
@@ -138,36 +136,6 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(response.toFile()))) {
 			return (TransactionResponse) in.readObject();
 		}
-	}
-
-	@Override
-	protected void stepToNextTransactionReference() {
-		if (++currentTransaction == transactionsPerBlock) {
-			currentTransaction = 0;
-			currentBlock = currentBlock.add(BigInteger.ONE);
-		}
-	}
-
-	@Override
-	protected MemoryTransactionReference previousTransaction(TransactionReference transaction) {
-		MemoryTransactionReference transactionAsMTR = (MemoryTransactionReference) transaction;
-		if (transactionAsMTR.transactionNumber == 0)
-			if (transactionAsMTR.blockNumber.signum() == 0)
-				throw new IllegalStateException("Transaction has no previous transaction");
-			else
-				return new MemoryTransactionReference(transactionAsMTR.blockNumber.subtract(BigInteger.ONE), (short) (transactionsPerBlock - 1));
-		else
-			return new MemoryTransactionReference(transactionAsMTR.blockNumber, (short) (transactionAsMTR.transactionNumber - 1));
-	}
-
-	/**
-	 * Yields the path for the given file name inside the directory for the current transaction.
-	 * 
-	 * @param fileName the name of the file
-	 * @return the path
-	 */
-	private Path getCurrentPathFor(Path fileName) {
-		return root.resolve("b" + currentBlock).resolve("t" + currentTransaction).resolve(fileName);
 	}
 
 	/**

@@ -15,7 +15,7 @@ import takamaka.blockchain.values.ByteValue;
 import takamaka.blockchain.values.CharValue;
 import takamaka.blockchain.values.DoubleValue;
 import takamaka.blockchain.values.FloatValue;
-import takamaka.blockchain.values.GenericStorageReference;
+import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.NullValue;
@@ -89,7 +89,7 @@ public abstract class Storage {
 	 * 
 	 * @param storageReference the reference to deserialize
 	 */
-	protected Storage(GenericStorageReference storageReference) {
+	protected Storage(StorageReferenceAlreadyInBlockchain storageReference) {
 		// this object reflects something already in blockchain
 		this.inStorage = true;
 
@@ -143,7 +143,7 @@ public abstract class Storage {
 	 * @throws Exception if the value could not be found
 	 */
 	protected final Object deserializeLastLazyUpdateFor(String definingClass, String name, String fieldClassName) throws Exception {
-		return Takamaka.getBlockchain().deserializeLastLazyUpdateFor((GenericStorageReference) storageReference, new FieldSignature(definingClass, name, fieldClassName));
+		return Takamaka.getBlockchain().deserializeLastLazyUpdateFor((StorageReferenceAlreadyInBlockchain) storageReference, new FieldSignature(definingClass, name, fieldClassName));
 	}
 
 	/**

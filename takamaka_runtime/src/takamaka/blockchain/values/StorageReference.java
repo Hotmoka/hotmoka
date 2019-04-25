@@ -67,5 +67,5 @@ public abstract class StorageReference implements StorageValue {
 	 * @param where the current transaction
 	 * @return the resulting storage reference
 	 */
-	public abstract GenericStorageReference contextualizeAt(TransactionReference where);
+	public abstract StorageReferenceAlreadyInBlockchain contextualizeAt(TransactionReference where);
 }

@@ -66,4 +66,27 @@ final class MemoryTransactionReference extends TransactionReference {
 	public String toString() {
 		return blockNumber.toString(16) + "." + Integer.toHexString(transactionNumber);
 	}
+
+	@Override
+	protected MemoryTransactionReference getPrevious() {
+		if (transactionNumber == 0)
+			if (blockNumber.signum() == 0)
+				return null;
+			else
+				return new MemoryTransactionReference(blockNumber.subtract(BigInteger.ONE), (short) (MemoryBlockchain.TRANSACTION_PER_BLOCK - 1));
+		else
+			return new MemoryTransactionReference(blockNumber, (short) (transactionNumber - 1));
+	}
+
+	/**
+	 * Yields the reference to the transaction that follows this one.
+	 * 
+	 * @return the next transaction reference
+	 */
+	protected MemoryTransactionReference getNext() {
+		if (transactionNumber + 1 == MemoryBlockchain.TRANSACTION_PER_BLOCK)
+			return new MemoryTransactionReference(blockNumber.add(BigInteger.ONE), (short) 0);
+		else
+			return new MemoryTransactionReference(blockNumber, (short) (transactionNumber + 1));
+	}
 }

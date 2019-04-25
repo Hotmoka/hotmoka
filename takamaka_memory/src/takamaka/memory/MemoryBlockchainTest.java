@@ -50,7 +50,7 @@ public class MemoryBlockchainTest {
 	}
 
 	public static void main(String[] args) throws IOException {
-		Blockchain blockchain = new MemoryBlockchain(Paths.get("chain"), (short) 5);
+		Blockchain blockchain = new MemoryBlockchain(Paths.get("chain"));
 
 		// we need at least the base Takamaka classes in the blockchain
 		TransactionReference takamaka_base = run("", "takamaka_base.jar",

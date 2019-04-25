@@ -13,7 +13,7 @@ import takamaka.lang.Storage;
  * same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public final class GenericStorageReference extends StorageReference {
+public final class StorageReferenceAlreadyInBlockchain extends StorageReference {
 
 	private static final long serialVersionUID = 5215119613321482697L;
 
@@ -29,7 +29,7 @@ public final class GenericStorageReference extends StorageReference {
 	 * @param progressive the progressive number of the object among those that have been created
 	 *                    during the same transaction
 	 */
-	public GenericStorageReference(TransactionReference transaction, BigInteger progressive) {
+	public StorageReferenceAlreadyInBlockchain(TransactionReference transaction, BigInteger progressive) {
 		super(progressive);
 
 		this.transaction = transaction;
@@ -37,7 +37,7 @@ public final class GenericStorageReference extends StorageReference {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GenericStorageReference && super.equals(other) && ((GenericStorageReference) other).transaction.equals(transaction);
+		return other instanceof StorageReferenceAlreadyInBlockchain && super.equals(other) && ((StorageReferenceAlreadyInBlockchain) other).transaction.equals(transaction);
 	}
 
 	@Override
@@ -51,11 +51,11 @@ public final class GenericStorageReference extends StorageReference {
 		if (diff != 0)
 			return diff;
 
-		diff = transaction.compareTo(((GenericStorageReference) other).transaction);
+		diff = transaction.compareTo(((StorageReferenceAlreadyInBlockchain) other).transaction);
 		if (diff != 0)
 			return diff;
 
-		return progressive.compareTo(((GenericStorageReference) other).progressive);
+		return progressive.compareTo(((StorageReferenceAlreadyInBlockchain) other).progressive);
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public final class GenericStorageReference extends StorageReference {
 	}
 
 	@Override
-	public GenericStorageReference contextualizeAt(TransactionReference where) {
+	public StorageReferenceAlreadyInBlockchain contextualizeAt(TransactionReference where) {
 		// this storage reference is absolute, it won't change
 		return this;
 	}
