@@ -147,7 +147,7 @@ public class MemoryBlockchainTest {
 		run("gamete", "sub1.m4_1(13L)", () -> blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "m4_1", LONG), sub1, new LongValue(13L))));
 
-		ClassType bigInteger = new ClassType("java.math.BigInteger");
+		ClassType bigInteger = ClassType.BIG_INTEGER;
 		run("gamete", "sub1.m4_2(BigInteger.valueOf(13))", () -> blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "m4_2", bigInteger), sub1, new BigIntegerValue(BigInteger.valueOf(13)))));
 
@@ -165,7 +165,7 @@ public class MemoryBlockchainTest {
 
 		StringValue s1 = new StringValue("hello");
 		StringValue s2 = new StringValue("hello");
-		ClassType string = new ClassType("java.lang.String");
+		ClassType string = ClassType.STRING;
 
 		// this test should return false
 		run("gamete", "a1.test(s1, s2)", () -> blockchain.addInstanceMethodCallTransaction

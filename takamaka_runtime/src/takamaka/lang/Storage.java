@@ -5,25 +5,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import takamaka.blockchain.ClassTag;
 import takamaka.blockchain.DeserializationError;
 import takamaka.blockchain.FieldSignature;
+import takamaka.blockchain.UpdateOfStorage;
 import takamaka.blockchain.Update;
+import takamaka.blockchain.UpdateOfBalance;
+import takamaka.blockchain.UpdateOfBigInteger;
+import takamaka.blockchain.UpdateOfBoolean;
+import takamaka.blockchain.UpdateOfByte;
+import takamaka.blockchain.UpdateOfChar;
+import takamaka.blockchain.UpdateOfDouble;
+import takamaka.blockchain.UpdateOfFloat;
+import takamaka.blockchain.UpdateOfInt;
+import takamaka.blockchain.UpdateOfLong;
+import takamaka.blockchain.UpdateOfShort;
+import takamaka.blockchain.UpdateOfString;
+import takamaka.blockchain.UpdateToNull;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
-import takamaka.blockchain.values.BigIntegerValue;
-import takamaka.blockchain.values.BooleanValue;
-import takamaka.blockchain.values.ByteValue;
-import takamaka.blockchain.values.CharValue;
-import takamaka.blockchain.values.DoubleValue;
-import takamaka.blockchain.values.FloatValue;
-import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
-import takamaka.blockchain.values.IntValue;
-import takamaka.blockchain.values.LongValue;
-import takamaka.blockchain.values.NullValue;
-import takamaka.blockchain.values.ShortValue;
 import takamaka.blockchain.values.StorageReference;
+import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.blockchain.values.StorageReferenceInCurrentTransaction;
-import takamaka.blockchain.values.StringValue;
 
 /**
  * The superclass of classes whose objects can be kept in blockchain.
@@ -114,7 +117,7 @@ public abstract class Storage {
 	 */
 	protected void extractUpdates(Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet) {
 		if (!inStorage)
-			updates.add(Update.mkForClassTag(storageReference, getClass().getName()));
+			updates.add(new ClassTag(storageReference, getClass().getName()));
 
 		// subclasses will override, call this super-implementation and add potential updates to their instance fields
 	}
@@ -170,11 +173,11 @@ public abstract class Storage {
 
 		if (s == null)
 			//the field has been set to null
-			updates.add(new Update(storageReference, field, NullValue.INSTANCE));
+			updates.add(new UpdateToNull(storageReference, field));
 		else if (s instanceof Storage) {
 			// the field has been set to a storage object
 			Storage storage = (Storage) s;
-			updates.add(new Update(storageReference, field, storage.storageReference));
+			updates.add(new UpdateOfStorage(storageReference, field, storage.storageReference));
 
 			// if the new value has not yet been consider, we put in the list of object still to be processed
 			if (seen.add(storage.storageReference))
@@ -183,9 +186,9 @@ public abstract class Storage {
 		// the following cases occur if the declared type of the field is Object but it is updated
 		// to an object whose type is allowed in storage
 		else if (s instanceof String)
-			updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, fieldClassName), new StringValue((String) s)));
+			updates.add(new UpdateOfString(storageReference, field, (String) s));
 		else if (s instanceof BigInteger)
-			updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, fieldClassName), new BigIntegerValue((BigInteger) s)));
+			updates.add(new UpdateOfBigInteger(storageReference, field, (BigInteger) s));
 		else
 			throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
 	}
@@ -200,7 +203,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), new BooleanValue(s)));
+		updates.add(new UpdateOfBoolean(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), s));
 	}
 
 	/**
@@ -213,7 +216,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, byte s) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BYTE), new ByteValue(s)));
+		updates.add(new UpdateOfByte(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BYTE), s));
 	}
 
 	/**
@@ -226,7 +229,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, char s) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.CHAR), new CharValue(s)));
+		updates.add(new UpdateOfChar(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.CHAR), s));
 	}
 
 	/**
@@ -239,7 +242,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, double s) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), new DoubleValue(s)));
+		updates.add(new UpdateOfDouble(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), s));
 	}
 
 	/**
@@ -252,7 +255,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, float s) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.FLOAT), new FloatValue(s)));
+		updates.add(new UpdateOfFloat(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.FLOAT), s));
 	}
 
 	/**
@@ -265,7 +268,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, int s) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.INT), new IntValue(s)));
+		updates.add(new UpdateOfInt(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.INT), s));
 	}
 
 	/**
@@ -278,7 +281,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, long s) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.LONG), new LongValue(s)));
+		updates.add(new UpdateOfLong(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.LONG), s));
 	}
 
 	/**
@@ -291,7 +294,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.SHORT), new ShortValue(s)));
+		updates.add(new UpdateOfShort(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.SHORT), s));
 	}
 
 	/**
@@ -304,7 +307,10 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, String s) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING), s == null ? NullValue.INSTANCE : new StringValue(s)));
+		if (s == null)
+			updates.add(new UpdateToNull(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING)));
+		else
+			updates.add(new UpdateOfString(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING), s));
 	}
 
 	/**
@@ -317,6 +323,12 @@ public abstract class Storage {
 	 * @param bi the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, BigInteger bi) {
-		updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER), bi == null ? NullValue.INSTANCE : new BigIntegerValue(bi)));
+		FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
+		if (bi == null)
+			updates.add(new UpdateToNull(storageReference, field));
+		else if (field.equals(FieldSignature.BALANCE_FIELD))
+			updates.add(new UpdateOfBalance(storageReference, bi));
+		else
+			updates.add(new UpdateOfBigInteger(storageReference, field, bi));
 	}
 }

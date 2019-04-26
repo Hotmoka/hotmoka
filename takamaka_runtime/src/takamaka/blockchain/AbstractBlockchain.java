@@ -53,9 +53,7 @@ import takamaka.blockchain.response.MethodCallTransactionFailedResponse;
 import takamaka.blockchain.response.MethodCallTransactionResponse;
 import takamaka.blockchain.response.MethodCallTransactionSuccessfulResponse;
 import takamaka.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
-import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
-import takamaka.blockchain.values.BigIntegerValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.blockchain.values.StorageValue;
@@ -168,33 +166,37 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		@Override
 		public int compare(Update update1, Update update2) {
-			FieldSignature field1 = update1.field;
-			FieldSignature field2 = update2.field;
+			if (update1 instanceof UpdateOfField && update2 instanceof UpdateOfField) {
+				FieldSignature field1 = ((UpdateOfField) update1).getField();
+				FieldSignature field2 = ((UpdateOfField) update2).getField();
 
-			try {
-				String className1 = field1.definingClass.name;
-				String className2 = field2.definingClass.name;
+				try {
+					String className1 = field1.definingClass.name;
+					String className2 = field2.definingClass.name;
 
-				if (className1.equals(className2)) {
-					int diff = field1.name.compareTo(field2.name);
-					if (diff != 0)
-						return diff;
+					if (className1.equals(className2)) {
+						int diff = field1.name.compareTo(field2.name);
+						if (diff != 0)
+							return diff;
+						else
+							return field1.type.toString().compareTo(field2.type.toString());
+					}
+
+					Class<?> clazz1 = classLoader.loadClass(className1);
+					Class<?> clazz2 = classLoader.loadClass(className2);
+					if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
+						return -1;
+					else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
+						return 1;
 					else
-						return field1.type.toString().compareTo(field2.type.toString());
+						throw new IllegalStateException("Updates are not on the same supeclass chain");
 				}
-
-				Class<?> clazz1 = classLoader.loadClass(className1);
-				Class<?> clazz2 = classLoader.loadClass(className2);
-				if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
-					return -1;
-				else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
-					return 1;
-				else
-					throw new IllegalStateException("Updates are not on the same supeclass chain");
+				catch (ClassNotFoundException e) {
+					throw new DeserializationError(e);
+				}
 			}
-			catch (ClassNotFoundException e) {
-				throw new IllegalStateException(e);
-			}
+			else
+				return update1.compareTo(update2);
 		}
 	};
 	
@@ -228,21 +230,21 @@ public abstract class AbstractBlockchain implements Blockchain {
 		if (response instanceof AbstractTransactionResponseWithUpdates) {
 			((AbstractTransactionResponseWithUpdates) response).getUpdates()
 				.map(update -> update.contextualizeAt(transaction))
-				.filter(update -> update.object.equals(object) && !update.field.type.isLazy() && !isAlreadyIn(update, updates))
+				.filter(update -> update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
 				.forEach(updates::add);
 		}
 	}
 
 	/**
 	 * Determines if the given set of updates contains an update for the
-	 * same object and field of the given update.
+	 * same object and field as the given update.
 	 * 
 	 * @param update the given update
 	 * @param updates the set
 	 * @return true if and only if that condition holds
 	 */
 	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
-		return updates.stream().anyMatch(other -> other.object.equals(update.object) && other.field.equals(update.field));
+		return updates.stream().anyMatch(update::isForSamePropertyAs);
 	}
 
 	/**
@@ -255,11 +257,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	private Update getLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception {
+	private UpdateOfField getLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception {
 		// goes back from the previous transaction;
 		// there is no reason to look before the transaction that created the object
 		for (TransactionReference cursor = previous; !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
-			Update update = getLastUpdateFor(object, field, cursor);
+			UpdateOfField update = getLastUpdateFor(object, field, cursor);
 			if (update != null)
 				return update;
 		}
@@ -277,12 +279,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any. If the field of {@code reference} was not modified during
 	 *         the {@code transaction}, this method returns {@code null}
 	 */
-	private Update getLastUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field, TransactionReference transaction) throws Exception {
+	private UpdateOfField getLastUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field, TransactionReference transaction) throws Exception {
 		TransactionResponse response = getResponseAt(transaction);
 		if (response instanceof AbstractTransactionResponseWithUpdates) {
-			Optional<Update> result = ((AbstractTransactionResponseWithUpdates) response).getUpdates()
+			Optional<UpdateOfField> result = ((AbstractTransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> update.contextualizeAt(transaction))
-				.filter(update -> update.object.equals(object) && update.field.equals(field))
+				.map(update -> (UpdateOfField) update)
+				.filter(update -> update.object.equals(object) && update.getField().equals(field))
 				.findAny();
 		
 			if (result.isPresent())
@@ -570,7 +574,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					Update balanceUpdate = new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller));
+					Update balanceUpdate = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
 					return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas);
 				}
 			}
@@ -636,7 +640,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					Update balanceUpdate = new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller));
+					Update balanceUpdate = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
 					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas);
 				}
 			}
@@ -709,7 +713,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					Update balanceUpdate = new Update(deserializedCaller.storageReference, FieldSignature.BALANCE_FIELD, new BigIntegerValue(decreasedBalanceOfCaller));
+					Update balanceUpdate = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
 					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas);
 				}
 			}
@@ -765,7 +769,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the look up fails
 	 */
 	public final Object deserializeLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain reference, FieldSignature field) throws Exception {
-		return getLastLazyUpdateFor(reference, field).value.deserialize(this);
+		return getLastLazyUpdateFor(reference, field).getValue().deserialize(this);
 	}
 
 	/**
@@ -867,14 +871,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 			SortedSet<Update> updates = new TreeSet<>(updateComparator);
 			collectEagerUpdatesFor(reference, updates);
 	
-			Optional<Update> classTag = updates.stream()
-					.filter(Update::isClassTag)
+			Optional<ClassTag> classTag = updates.stream()
+					.filter(update -> update instanceof ClassTag)
+					.map(update -> (ClassTag) update)
 					.findAny();
 	
 			if (!classTag.isPresent())
 				throw new DeserializationError("No class tag found for " + reference);
 	
-			String className = classTag.get().field.definingClass.name;
+			String className = classTag.get().className;
 			List<Class<?>> formals = new ArrayList<>();
 			List<Object> actuals = new ArrayList<>();
 			// the constructor for deserialization has a first parameter
@@ -883,9 +888,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 			actuals.add(reference);
 	
 			for (Update update: updates)
-				if (!update.isClassTag()) {
-					formals.add(update.field.type.toClass(this));
-					actuals.add(update.value.deserialize(this));
+				if (update instanceof UpdateOfField) {
+					UpdateOfField updateOF = (UpdateOfField) update;
+					formals.add(updateOF.getField().type.toClass(this));
+					actuals.add(updateOF.getValue().deserialize(this));
 				}
 	
 			Class<?> clazz = classLoader.loadClass(className);
@@ -1104,9 +1110,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected boolean onlyAffectedBalanceOf(Storage deserializedCaller) {
 			return updates().allMatch
 				(update -> update.object.equals(deserializedCaller.storageReference)
-				&& update.field.definingClass.equals(ClassType.CONTRACT)
-				&& update.field.name.equals("balance")
-				&& update.field.type.equals(ClassType.BIG_INTEGER));
+				&& update instanceof UpdateOfField
+				&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
 		}
 
 		/**
