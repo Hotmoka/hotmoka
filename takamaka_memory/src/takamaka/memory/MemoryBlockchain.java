@@ -1,12 +1,9 @@
 package takamaka.memory;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -32,27 +29,27 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	/**
 	 * The name used for the file containing the serialized request of a transaction.
 	 */
-	public final static Path REQUEST_NAME = Paths.get("request");
+	private final static Path REQUEST_NAME = Paths.get("request");
 
 	/**
 	 * The name used for the file containing the serialized response of a transaction.
 	 */
-	public final static Path RESPONSE_NAME = Paths.get("response");
+	private final static Path RESPONSE_NAME = Paths.get("response");
 
 	/**
 	 * The name used for the file containing the textual request of a transaction.
 	 */
-	public final static Path REQUEST_TXT_NAME = Paths.get("request.txt");
+	private final static Path REQUEST_TXT_NAME = Paths.get("request.txt");
 
 	/**
 	 * The name used for the file containing the textual response of a transaction.
 	 */
-	public final static Path RESPONSE_TXT_NAME = Paths.get("response.txt");
+	private final static Path RESPONSE_TXT_NAME = Paths.get("response.txt");
 
 	/**
 	 * The number of transactions per block.
 	 */
-	public final static short TRANSACTION_PER_BLOCK = 5;
+	protected final static short TRANSACTION_PER_BLOCK = 5;
 
 	/**
 	 * The root path where transaction are stored.
@@ -72,11 +69,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	 * @throws IOException if the root directory cannot be created
 	 */
 	public MemoryBlockchain(Path root) throws IOException {
-		if (root == null)
-			throw new NullPointerException("A root path must be specified");
-
-		// cleans the directory where the blockchain lives
-		ensureDeleted(root);
+		ensureDeleted(root);  // cleans the directory where the blockchain lives
 		Files.createDirectories(root);
 
 		this.root = root;
@@ -89,33 +82,24 @@ public class MemoryBlockchain extends AbstractBlockchain {
 
 	@Override
 	protected TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception {
-		MemoryTransactionReference next;
-		if (topmost == null)
-			next = new MemoryTransactionReference(BigInteger.ZERO, (short) 0);
-		else
-			next = topmost.getNext();
-
+		MemoryTransactionReference next = topmost == null ? new MemoryTransactionReference(BigInteger.ZERO, (short) 0) : topmost.getNext();
 		Path requestPath = getPathFor(next, REQUEST_NAME);
 		ensureDeleted(requestPath.getParent());
 		Files.createDirectories(requestPath.getParent());
 
-		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(requestPath.toFile())))) {
+		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(requestPath)))) {
 			os.writeObject(request);
 		}
 
-		requestPath = getPathFor(next, REQUEST_TXT_NAME);
-		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(requestPath.toFile())))) {
+		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(next, REQUEST_TXT_NAME)))) {
 			output.print(request);
 		}
 
-		Path responsePath = getPathFor(next, RESPONSE_NAME);
-
-		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(responsePath.toFile())))) {
+		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor(next, RESPONSE_NAME))))) {
 			os.writeObject(response);
 		}
 
-		responsePath = getPathFor(next, RESPONSE_TXT_NAME);
-		try (PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(responsePath.toFile())))) {
+		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(next, RESPONSE_TXT_NAME)))) {
 			output.print(response);
 		}
 
@@ -125,7 +109,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	@Override
 	protected TransactionRequest getRequestAt(TransactionReference reference) throws FileNotFoundException, IOException, ClassNotFoundException {
 		Path request = getPathFor((MemoryTransactionReference) reference, REQUEST_NAME);
-		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(request.toFile()))) {
+		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(request)))) {
 			return (TransactionRequest) in.readObject();
 		}
 	}
@@ -133,7 +117,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	@Override
 	protected TransactionResponse getResponseAt(TransactionReference reference) throws Exception {
 		Path response = getPathFor((MemoryTransactionReference) reference, RESPONSE_NAME);
-		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(response.toFile()))) {
+		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
 			return (TransactionResponse) in.readObject();
 		}
 	}
