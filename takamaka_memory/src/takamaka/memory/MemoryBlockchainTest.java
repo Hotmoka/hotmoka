@@ -197,5 +197,17 @@ public class MemoryBlockchainTest {
 			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new MethodSignature(simple, "foo4"), s)));
 		run("gamete", "s.foo5()", () -> blockchain.addStaticMethodCallTransaction
 			(new StaticMethodCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new MethodSignature(simple, "foo5"))));
+
+		ClassType withList = new ClassType("takamaka.tests.WithList");
+		StorageReference wl = run("gamete", "wl = new WithList()", () -> blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new ConstructorSignature(withList))));
+		run("gamete", "wl.toString()", () -> (StringValue) blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath,
+			new MethodSignature(withList, "toString"),
+			wl)));
+		run("gamete", "wl.illegal()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath,
+			new MethodSignature(withList, "illegal"),
+			wl)));
 	}
 }

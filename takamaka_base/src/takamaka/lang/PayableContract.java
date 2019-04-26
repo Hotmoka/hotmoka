@@ -16,7 +16,7 @@ public abstract class PayableContract extends Contract {
 	 * 
 	 * @param amount the amount of funds
 	 */
-	@WhiteListed @Payable @Entry
+	@Payable @Entry
 	public final void receive(int amount) {}
 
 	/**
@@ -24,7 +24,7 @@ public abstract class PayableContract extends Contract {
 	 * 
 	 * @param amount the amount of funds
 	 */
-	@WhiteListed @Payable @Entry
+	@Payable @Entry
 	public final void receive(long amount) {}
 
 	/**
@@ -32,6 +32,6 @@ public abstract class PayableContract extends Contract {
 	 * 
 	 * @param amount the amount of funds
 	 */
-	@WhiteListed @Payable @Entry
+	@Payable @Entry
 	public final void receive(BigInteger amount) {}
 }

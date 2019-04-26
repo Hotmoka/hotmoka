@@ -10,7 +10,6 @@ public class ExternallyOwnedAccount extends PayableContract {
 	/**
 	 * Creates an externally owned contract with no funds.
 	 */
-	@WhiteListed
 	public ExternallyOwnedAccount() {}
 
 	/**
@@ -18,7 +17,7 @@ public class ExternallyOwnedAccount extends PayableContract {
 	 * 
 	 * @param initialAmount the initial fund
 	 */
-	@WhiteListed @Payable @Entry
+	@Payable @Entry
 	public ExternallyOwnedAccount(int initialAmount) {}
 
 	/**
@@ -26,7 +25,7 @@ public class ExternallyOwnedAccount extends PayableContract {
 	 * 
 	 * @param initialAmount the initial fund
 	 */
-	@WhiteListed @Payable @Entry
+	@Payable @Entry
 	public ExternallyOwnedAccount(long initialAmount) {}
 
 	/**
@@ -34,10 +33,10 @@ public class ExternallyOwnedAccount extends PayableContract {
 	 * 
 	 * @param initialAmount the initial fund
 	 */
-	@WhiteListed @Payable @Entry
+	@Payable @Entry
 	public ExternallyOwnedAccount(BigInteger initialAmount) {}
 
-	@WhiteListed @Override
+	@Override
 	public String toString() {
 		return "an externally owned account with balance " + balance();
 	}

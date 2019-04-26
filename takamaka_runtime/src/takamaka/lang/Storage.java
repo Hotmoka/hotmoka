@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import takamaka.blockchain.DeserializationError;
 import takamaka.blockchain.FieldSignature;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.types.BasicTypes;
@@ -84,6 +85,11 @@ public abstract class Storage {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "";
+	}
+
 	/**
 	 * Constructor used for deserialization from blockchain, in instrumented code.
 	 * 
@@ -129,7 +135,7 @@ public abstract class Storage {
 		}
 		else if (s instanceof String || s instanceof BigInteger) {} // these types are not recursively followed
 		else if (s != null)
-			throw new IllegalStateException("a field of a storage object cannot hold a " + s.getClass().getName());
+			throw new DeserializationError("a field of a storage object cannot hold a " + s.getClass().getName());
 	}
 
 	/**
@@ -174,8 +180,14 @@ public abstract class Storage {
 			if (seen.add(storage.storageReference))
 				workingSet.add(storage);
 		}
+		// the following cases occur if the declared type of the field is Object but it is updated
+		// to an object whose type is allowed in storage
+		else if (s instanceof String)
+			updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, fieldClassName), new StringValue((String) s)));
+		else if (s instanceof BigInteger)
+			updates.add(new Update(storageReference, new FieldSignature(fieldDefiningClass, fieldName, fieldClassName), new BigIntegerValue((BigInteger) s)));
 		else
-			throw new IllegalStateException("field " + field + " of a storage class cannot hold a " + s.getClass().getName());
+			throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
 	}
 
 	/**

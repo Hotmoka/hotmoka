@@ -893,6 +893,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	
 			Class<?> clazz = classLoader.loadClass(className);
 			Constructor<?> constructor = clazz.getConstructor(formals.toArray(new Class<?>[formals.size()]));
+
+			// the instrumented constructor is public, but the class might well be non-public;
+			// hence we must force accessibility
+			constructor.setAccessible(true);
+
 			return (Storage) constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
 		}
 		catch (DeserializationError e) {
