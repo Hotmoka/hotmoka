@@ -53,6 +53,7 @@ import takamaka.blockchain.response.MethodCallTransactionFailedResponse;
 import takamaka.blockchain.response.MethodCallTransactionResponse;
 import takamaka.blockchain.response.MethodCallTransactionSuccessfulResponse;
 import takamaka.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
+import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
@@ -1391,6 +1392,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		Takamaka.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
 		events.clear();
 		cache.clear();
+		ClassType.clearCache();
+		FieldSignature.clearCache();
 		this.gas = gas;
 		this.previous = previous;
 		oldGas.clear();

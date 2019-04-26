@@ -38,7 +38,7 @@ public final class MethodSignature extends CodeSignature {
 	 * @param formals the formal arguments of the method
 	 */
 	public MethodSignature(String definingClass, String methodName, StorageType... formals) {
-		this(new ClassType(definingClass), methodName, formals);
+		this(ClassType.mk(definingClass), methodName, formals);
 	}
 
 	@Override

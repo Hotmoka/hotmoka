@@ -45,7 +45,7 @@ public abstract class CodeSignature implements Serializable {
 	 * @param formals the formal arguments of the method or constructor
 	 */
 	public CodeSignature(String definingClass, StorageType... formals) {
-		this(new ClassType(definingClass), formals);
+		this(ClassType.mk(definingClass), formals);
 	}
 
 	/**

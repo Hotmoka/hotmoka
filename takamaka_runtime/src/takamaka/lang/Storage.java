@@ -152,7 +152,7 @@ public abstract class Storage {
 	 * @throws Exception if the value could not be found
 	 */
 	protected final Object deserializeLastLazyUpdateFor(String definingClass, String name, String fieldClassName) throws Exception {
-		return Takamaka.getBlockchain().deserializeLastLazyUpdateFor((StorageReferenceAlreadyInBlockchain) storageReference, new FieldSignature(definingClass, name, fieldClassName));
+		return Takamaka.getBlockchain().deserializeLastLazyUpdateFor((StorageReferenceAlreadyInBlockchain) storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -169,7 +169,7 @@ public abstract class Storage {
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet, String fieldClassName, Object s) {
 		// these values are not recursively followed
-		FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, fieldClassName);
+		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
 
 		if (s == null)
 			//the field has been set to null
@@ -203,7 +203,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
-		updates.add(new UpdateOfBoolean(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), s));
+		updates.add(new UpdateOfBoolean(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), s));
 	}
 
 	/**
@@ -216,7 +216,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, byte s) {
-		updates.add(new UpdateOfByte(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BYTE), s));
+		updates.add(new UpdateOfByte(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BYTE), s));
 	}
 
 	/**
@@ -229,7 +229,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, char s) {
-		updates.add(new UpdateOfChar(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.CHAR), s));
+		updates.add(new UpdateOfChar(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.CHAR), s));
 	}
 
 	/**
@@ -242,7 +242,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, double s) {
-		updates.add(new UpdateOfDouble(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), s));
+		updates.add(new UpdateOfDouble(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), s));
 	}
 
 	/**
@@ -255,7 +255,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, float s) {
-		updates.add(new UpdateOfFloat(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.FLOAT), s));
+		updates.add(new UpdateOfFloat(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.FLOAT), s));
 	}
 
 	/**
@@ -268,7 +268,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, int s) {
-		updates.add(new UpdateOfInt(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.INT), s));
+		updates.add(new UpdateOfInt(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.INT), s));
 	}
 
 	/**
@@ -281,7 +281,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, long s) {
-		updates.add(new UpdateOfLong(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.LONG), s));
+		updates.add(new UpdateOfLong(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.LONG), s));
 	}
 
 	/**
@@ -294,7 +294,7 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
-		updates.add(new UpdateOfShort(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.SHORT), s));
+		updates.add(new UpdateOfShort(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.SHORT), s));
 	}
 
 	/**
@@ -308,9 +308,9 @@ public abstract class Storage {
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, String s) {
 		if (s == null)
-			updates.add(new UpdateToNull(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING)));
+			updates.add(new UpdateToNull(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
 		else
-			updates.add(new UpdateOfString(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING), s));
+			updates.add(new UpdateOfString(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING), s));
 	}
 
 	/**
@@ -323,7 +323,7 @@ public abstract class Storage {
 	 * @param bi the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, BigInteger bi) {
-		FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
+		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
 		if (bi == null)
 			updates.add(new UpdateToNull(storageReference, field));
 		else if (field.equals(FieldSignature.BALANCE_FIELD))

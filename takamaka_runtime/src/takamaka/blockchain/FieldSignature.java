@@ -1,6 +1,8 @@
 package takamaka.blockchain;
 
 import java.io.Serializable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
@@ -35,38 +37,41 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	public final StorageType type;
 
 	/**
+	 * A cache for {@link takamaka.blockchain.FieldSignature#mk(String, String, StorageType)}.
+	 */
+	private static Map<FieldSignature, FieldSignature> cache = new ConcurrentHashMap<>();
+
+	/**
 	 * Builds the signature of a field.
 	 * 
 	 * @param definingClass the class of the field
 	 * @param name the name of the field
 	 * @param type the type of the field
 	 */
-	public FieldSignature(ClassType definingClass, String name, StorageType type) {
+	private FieldSignature(ClassType definingClass, String name, StorageType type) {
 		this.definingClass = definingClass;
-		this.name = name;
+		this.name = name.intern(); // to reduce the size at serialization time
 		this.type = type;
 	}
 
 	/**
-	 * Builds the signature of a field.
+	 * Yields a field signature.
+	 * This corresponds to the constructor, but adds a caching layer.
 	 * 
 	 * @param definingClass the name of the class of the field
 	 * @param name the name of the field
 	 * @param type the type of the field
 	 */
-	public FieldSignature(String definingClass, String name, StorageType type) {
-		this(new ClassType(definingClass), name, type);
+	public static FieldSignature mk(String definingClass, String name, StorageType type) {
+		FieldSignature sig = new FieldSignature(ClassType.mk(definingClass), name, type);
+		return cache.computeIfAbsent(sig, __ -> sig);
 	}
 
 	/**
-	 * Builds the signature of a field.
-	 * 
-	 * @param definingClass the name of the class where the field is defined
-	 * @param name the name of the field
-	 * @param className the name of the type (class) of the field
+	 * Clears the cache used for {@link takamaka.blockchain.FieldSignature#mk(String, String, StorageType)}.
 	 */
-	public FieldSignature(String definingClass, String name, String className) {
-		this(new ClassType(definingClass), name, new ClassType(className));
+	public static void clearCache() {
+		cache.clear();
 	}
 
 	@Override

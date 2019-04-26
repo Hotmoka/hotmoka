@@ -1,5 +1,8 @@
 package takamaka.blockchain.types;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.lang.Immutable;
 
@@ -42,12 +45,34 @@ public final class ClassType implements StorageType {
 	public final String name;
 
 	/**
+	 * A cache for {@link takamaka.blockchain.types.ClassType#mk(String)}.
+	 */
+	private static Map<String, ClassType> cache = new ConcurrentHashMap<>();
+
+	/**
 	 * Builds a class type that can be used for storage objects in blockchain.
 	 * 
 	 * @param name the name of the class
 	 */
 	public ClassType(String name) {
 		this.name = name;
+	}
+
+	/**
+	 * Yields a class type that can be used for storage objects in blockchain.
+	 * This corresponds to the constructor, but adds a caching layer.
+	 * 
+	 * @param name the name of the class
+	 */
+	public static ClassType mk(String name) {
+		return cache.computeIfAbsent(name, ClassType::new);
+	}
+
+	/**
+	 * Clears the cache used for {@link takamaka.blockchain.types.ClassType#mk(String)}.
+	 */
+	public static void clearCache() {
+		cache.clear();
 	}
 
 	@Override
