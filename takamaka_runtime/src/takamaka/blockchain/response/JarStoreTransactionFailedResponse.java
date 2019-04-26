@@ -1,7 +1,7 @@
 package takamaka.blockchain.response;
 
 import java.math.BigInteger;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.Update;
@@ -28,7 +28,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param consumedGas the amount of gas consumed by the transaction
 	 */
-	public JarStoreTransactionFailedResponse(TransactionException cause, Set<Update> updates, BigInteger consumedGas) {
+	public JarStoreTransactionFailedResponse(TransactionException cause, Stream<Update> updates, BigInteger consumedGas) {
 		super(updates, consumedGas);
 
 		this.cause = cause;

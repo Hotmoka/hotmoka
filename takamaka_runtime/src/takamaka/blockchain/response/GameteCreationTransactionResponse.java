@@ -1,6 +1,5 @@
 package takamaka.blockchain.response;
 
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,8 +32,8 @@ public class GameteCreationTransactionResponse implements TransactionResponse, A
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gamete the created gamete
 	 */
-	public GameteCreationTransactionResponse(Set<Update> updates, StorageReference gamete) {
-		this.updates = updates.toArray(new Update[updates.size()]);
+	public GameteCreationTransactionResponse(Stream<Update> updates, StorageReference gamete) {
+		this.updates = updates.toArray(Update[]::new);
 		this.gamete = gamete;
 	}
 

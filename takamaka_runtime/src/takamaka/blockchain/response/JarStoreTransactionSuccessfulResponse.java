@@ -1,7 +1,7 @@
 package takamaka.blockchain.response;
 
 import java.math.BigInteger;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import takamaka.blockchain.Update;
 import takamaka.lang.Immutable;
@@ -26,7 +26,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param consumedGas the amount of gas consumed by the transaction
 	 */
-	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Set<Update> updates, BigInteger consumedGas) {
+	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<Update> updates, BigInteger consumedGas) {
 		super(updates, consumedGas);
 
 		this.instrumentedJar = instrumentedJar.clone();

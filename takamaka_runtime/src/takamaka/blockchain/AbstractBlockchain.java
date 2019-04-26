@@ -459,10 +459,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 				Field balanceField = contractClass.getDeclaredField("balance");
 				balanceField.setAccessible(true); // since the field is private
 				balanceField.set(gamete, request.initialAmount);
-				SortedSet<Update> updates = collectUpdates(null, null, null, gamete);
 				StorageReference gameteRef = gamete.storageReference;
 
-				return new GameteCreationTransactionResponse(updates, gameteRef);
+				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), gameteRef);
 			}
 		});
 	}
@@ -511,13 +510,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 					Files.delete(instrumented);
 					BigInteger consumedGas = request.gas.subtract(remainingGas());
 					increaseBalance(deserializedCaller, remainingGas());
-					SortedSet<Update> updates = collectUpdates(null, deserializedCaller, null, null);
-
-					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updates, consumedGas);
+					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, collectUpdates(null, deserializedCaller, null, null).stream(), consumedGas);
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas
-					return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), collectUpdates(null, deserializedCaller, null, null), request.gas);
+					return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), collectUpdates(null, deserializedCaller, null, null).stream(), request.gas);
 				}
 			}
 		});
