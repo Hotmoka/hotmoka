@@ -1,6 +1,8 @@
 package takamaka.blockchain.values;
 
 import java.math.BigInteger;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.TransactionReference;
@@ -29,10 +31,17 @@ public final class StorageReferenceAlreadyInBlockchain extends StorageReference 
 	 * @param progressive the progressive number of the object among those that have been created
 	 *                    during the same transaction
 	 */
-	public StorageReferenceAlreadyInBlockchain(TransactionReference transaction, BigInteger progressive) {
+	private StorageReferenceAlreadyInBlockchain(TransactionReference transaction, BigInteger progressive) {
 		super(progressive);
 
 		this.transaction = transaction;
+	}
+
+	private final static ConcurrentMap<StorageReferenceAlreadyInBlockchain, StorageReferenceAlreadyInBlockchain> cache = new ConcurrentHashMap<>();
+
+	static StorageReferenceAlreadyInBlockchain mk(TransactionReference transaction, BigInteger progressive) {
+		StorageReferenceAlreadyInBlockchain ref = new StorageReferenceAlreadyInBlockchain(transaction, progressive);
+		return cache.computeIfAbsent(ref, __ -> ref);
 	}
 
 	@Override

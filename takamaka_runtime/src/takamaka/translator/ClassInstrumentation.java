@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -35,7 +36,9 @@ import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.ClassGen;
+import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.ExceptionThrower;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.GETFIELD;
@@ -60,10 +63,12 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.lang.Storage;
+import takamaka.lang.Takamaka;
 
 /**
  * An instrumenter of a single class file. For instance, it instruments storage classes,
@@ -87,6 +92,7 @@ class ClassInstrumentation {
 	private final static String PAYABLE_CLASS_NAME_JB = 'L' + Payable.class.getName().replace('.', '/') + ';';
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
 	private final static String DUMMY_CLASS_NAME = Dummy.class.getName();
+	private final static String TAKAMAKA_CLASS_NAME = Takamaka.class.getName();
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
@@ -107,6 +113,8 @@ class ClassInstrumentation {
 	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { ObjectType.STRING, ObjectType.STRING, SET_OT };
 	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, SET_OT, SET_OT, LIST_OT };
 	private final static Type[] ENTRY_ARGS = new Type[] { CONTRACT_OT };
+	private final static Type[] ONE_INT_ARGS = new Type[] { Type.INT };
+	private final static Type[] ONE_LONG_ARGS = new Type[] { Type.LONG };
 
 	/**
 	 * Performs the instrumentation of a single class file.
@@ -273,10 +281,87 @@ class ClassInstrumentation {
 			if (isContract && isEntry(className, method.getName(), method.getSignature()))
 				instrumentEntry(methodGen, isPayable(method.getName(), method.getSignature()), stackMap);
 
+			addGasUpdates(methodGen, stackMap);
+
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
 
 			return methodGen.getMethod();
+		}
+
+		/**
+		 * Adds a gas decrease at the beginning of each basic block of code.
+		 * 
+		 * @param method the method that gets instrumented
+		 * @param stackMap the stack map of {@code method}
+		 */
+		private void addGasUpdates(MethodGen method, StackMap stackMap) {
+			SortedSet<InstructionHandle> dominators = computeDominators(method);
+			dominators.stream().forEachOrdered(dominator -> addGasUpdate(dominator, method.getInstructionList(), dominators, stackMap));
+		}
+
+		private void addGasUpdate(InstructionHandle dominator, InstructionList il, SortedSet<InstructionHandle> dominators, StackMap stackMap) {
+			long cost = gasCostOf(dominator, dominators);
+			InstructionHandle callCharge, newTarget;
+
+			// up to this value, there is a special compact method for charging gas
+			if (cost <= Takamaka.MAX_COMPACT)
+				newTarget = callCharge = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
+			else {
+				InstructionHandle pushCost;
+				// up to 5, there is special, compact methods
+				if (cost < Integer.MAX_VALUE)
+					pushCost = il.insert(dominator, factory.createConstant((int) cost));
+				else
+					pushCost = il.insert(dominator, factory.createConstant(cost));
+
+				newTarget = pushCost;
+				il.setPositions();
+				updateAfterAdditionOf(pushCost, stackMap);
+
+				callCharge = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge", Type.VOID,
+					cost < Integer.MAX_VALUE ? ONE_INT_ARGS :ONE_LONG_ARGS, Const.INVOKESTATIC));
+			}
+
+			il.setPositions();
+			updateAfterAdditionOf(callCharge, stackMap);
+			il.redirectBranches(dominator, newTarget);
+		}
+
+		private long gasCostOf(InstructionHandle dominator, SortedSet<InstructionHandle> dominators) {
+			long cost = 0L;
+
+			InstructionHandle cursor = dominator;
+			do {
+				cost += GasCosts.costOf(cursor.getInstruction());
+				cursor = cursor.getNext();
+			}
+			while (cursor != null && !dominators.contains(cursor));
+
+			return cost;
+		}
+
+		/**
+		 * Computes the set of dominators of the given method or constructor, that is,
+		 * the instructions where basic blocks start.
+		 * 
+		 * @param method the method whose dominators must be computed
+		 * @return the set of dominators, ordered in increasing position
+		 */
+		private SortedSet<InstructionHandle> computeDominators(MethodGen method) {
+			if (!method.isAbstract())
+				return StreamSupport.stream(method.getInstructionList().spliterator(), false)
+					.filter(this::isDominator)
+					.collect(Collectors.toCollection(() -> new TreeSet<InstructionHandle>(Comparator.comparing(InstructionHandle::getPosition))));
+			else
+				return Collections.emptySortedSet();
+		}
+
+		private boolean isDominator(InstructionHandle ih) {
+			InstructionHandle prev = ih.getPrev();
+			// the first instruction is a dominator
+			return prev == null || prev.getInstruction() instanceof BranchInstruction || prev.getInstruction() instanceof ExceptionThrower
+				|| Stream.of(ih.getTargeters()).anyMatch(targeter -> targeter instanceof BranchInstruction || targeter instanceof CodeExceptionGen);
 		}
 
 		/**
@@ -357,7 +442,7 @@ class ClassInstrumentation {
 				for (StackMapEntry entry: entries) {
 					int end = start == 0 ? entry.getByteCodeOffset() : (start + entry.getByteCodeOffset() + 1);
 
-					if (ih.getPosition() >= start && ih.getPosition() <= end)
+					if (ih.getPosition() >= start && ih.getPosition() < end)
 						entry.updateByteCodeOffset(ih.getInstruction().getLength());
 
 					start = end;

@@ -97,7 +97,7 @@ public class MemoryBlockchainTest {
 
 		StorageReference sub1 = run("gamete", "sub1 = new Sub()",
 			() -> blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, BigInteger.valueOf(100), classpath, new ConstructorSignature("takamaka.tests.Sub"))));
+				(gamete, BigInteger.valueOf(200), classpath, new ConstructorSignature("takamaka.tests.Sub"))));
 		// we try to call Sub.m1(): it is an entry that goes into a runtime exception
 		run("gamete", "sub1.m1()", () -> blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "m1"), sub1)));
@@ -136,7 +136,7 @@ public class MemoryBlockchainTest {
 
 		// now it's ok
 		StorageReference sub2 = run("eoa", "sub2 = new Sub(1973)", () -> blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(eoa, BigInteger.valueOf(150), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973))));
+			(new ConstructorCallTransactionRequest(eoa, BigInteger.valueOf(200), classpath, new ConstructorSignature("takamaka.tests.Sub", INT), new IntValue(1973))));
 
 		run("gamete", "sub2.print(italianTime)", () -> blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath, new MethodSignature("takamaka.tests.Sub", "print", new ClassType("takamaka.tests.Time")), sub2, italianTime)));

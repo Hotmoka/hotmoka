@@ -127,4 +127,189 @@ public abstract class Takamaka {
 		nextProgressive = nextProgressive.add(BigInteger.ONE);
 		return result;
 	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by the given amount.
+	 * This method is used by the instrumented bytecode.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	public static void charge(long amount) {
+		blockchain.charge(BigInteger.valueOf(amount));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by the given amount.
+	 * This method is used by the instrumented bytecode.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	public static void charge(int amount) {
+		blockchain.charge(BigInteger.valueOf(amount));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by a unit of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge1() {
+		blockchain.charge(BigInteger.ONE);
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by two units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge2() {
+		blockchain.charge(BigInteger.valueOf(2L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by three units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge3() {
+		blockchain.charge(BigInteger.valueOf(3L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by four units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge4() {
+		blockchain.charge(BigInteger.valueOf(4L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by five units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge5() {
+		blockchain.charge(BigInteger.valueOf(5L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by six units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge6() {
+		blockchain.charge(BigInteger.valueOf(6L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by seven units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge7() {
+		blockchain.charge(BigInteger.valueOf(7L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by eight units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge8() {
+		blockchain.charge(BigInteger.valueOf(8L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by nine units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge9() {
+		blockchain.charge(BigInteger.valueOf(9L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by ten units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge10() {
+		blockchain.charge(BigInteger.valueOf(10L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by eleven units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge11() {
+		blockchain.charge(BigInteger.valueOf(11L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by twelve units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge12() {
+		blockchain.charge(BigInteger.valueOf(12L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by thirteen units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge13() {
+		blockchain.charge(BigInteger.valueOf(13L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by fourteen units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge14() {
+		blockchain.charge(BigInteger.valueOf(14L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by fifteen units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge15() {
+		blockchain.charge(BigInteger.valueOf(15L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by sixteen units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge16() {
+		blockchain.charge(BigInteger.valueOf(16L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by seventeen units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge17() {
+		blockchain.charge(BigInteger.valueOf(17L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by eighteen units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge18() {
+		blockchain.charge(BigInteger.valueOf(18L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by nineteen units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge19() {
+		blockchain.charge(BigInteger.valueOf(19L));
+	}
+
+	/**
+	 * Decreases the available gas for the current blockchain, by twenty units of gas.
+	 * This method is used by the instrumented bytecode.
+	 */
+	public static void charge20() {
+		blockchain.charge(BigInteger.valueOf(20L));
+	}
+
+	/**
+	 * The maximal gas cost for which there is an optimized charge method.
+	 */
+	public final static int MAX_COMPACT = 20;
 }

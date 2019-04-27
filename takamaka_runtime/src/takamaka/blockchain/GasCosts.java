@@ -2,6 +2,9 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
+import org.apache.bcel.generic.Instruction;
+
+
 /**
  * A specification of the cost of gas for the transactions.
  */
@@ -35,8 +38,16 @@ public class GasCosts {
 	 * @return the cost
 	 */
 	public static BigInteger toCoin(BigInteger gas) {
-		return gas.divide(TEN);
+		return gas.divide(BigInteger.TEN);
 	}
 
-	private final static BigInteger TEN = BigInteger.valueOf(10);
+	/**
+	 * Yields the gas cost of the execution of the given bytecode instruction.
+	 * 
+	 * @param bytecode the instruction
+	 * @return the cost. This should be below 2 to the power of 47
+	 */
+	public static long costOf(Instruction bytecode) {
+		return 1L; //TODO
+	}
 }

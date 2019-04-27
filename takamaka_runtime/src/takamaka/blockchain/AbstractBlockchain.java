@@ -337,33 +337,20 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * 
 	 * @param amount the amount of gas to consume
 	 */
-	public final void charge(BigInteger amount) {
+	public void charge(BigInteger amount) {
 		if (amount.signum() <= 0)
 			throw new IllegalArgumentException("Gas can only decrease");
-	
+
+		// gas can be negative only if it was initialized so; this special case is
+		// used for the creation of the gamete, when gas should not be counted
+		if (gas.signum() < 0)
+			return;
+
 		if (gas.compareTo(amount) < 0)
 			// we report how much gas is missing
-			throw new OutOfGasError(amount.subtract(gas));
+			throw new OutOfGasError();
 	
 		gas = gas.subtract(amount);
-	}
-
-	/**
-	 * Decreases the available gas by the given amount.
-	 * 
-	 * @param amount the amount of gas to consume
-	 */
-	public final void charge(long amount) {
-		charge(BigInteger.valueOf(amount));
-	}
-
-	/**
-	 * Decreases the available gas by the given amount.
-	 * 
-	 * @param amount the amount of gas to consume
-	 */
-	public final void charge(int amount) {
-		charge(BigInteger.valueOf(amount));
 	}
 
 	/**
@@ -420,7 +407,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 					throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
 			}
 
-			initTransaction(BigInteger.ZERO, previous);
+			// we do not count gas for this transaction
+			initTransaction(BigInteger.valueOf(-1L), previous);
 
 			// we transform the array of bytes into a real jar file
 			Path original = Files.createTempFile("original", ".jar");
@@ -455,7 +443,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
-				initTransaction(BigInteger.ZERO, previous);
+				// we do not count gas for this creation
+				initTransaction(BigInteger.valueOf(-1L), previous);
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 				Class<?> gameteClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
 				Class<?> contractClass = classLoader.loadClass(CONTRACT_NAME);

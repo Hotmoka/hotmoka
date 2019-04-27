@@ -38,6 +38,6 @@ public class ExternallyOwnedAccount extends PayableContract {
 
 	@Override
 	public String toString() {
-		return "an externally owned account with balance " + balance();
+		return "an externally owned account";
 	}
 }

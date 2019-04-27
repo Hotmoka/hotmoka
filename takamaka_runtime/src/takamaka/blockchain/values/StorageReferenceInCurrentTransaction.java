@@ -57,6 +57,6 @@ public final class StorageReferenceInCurrentTransaction extends StorageReference
 	@Override
 	public StorageReferenceAlreadyInBlockchain contextualizeAt(TransactionReference where) {
 		// we assume the transaction is the given one
-		return new StorageReferenceAlreadyInBlockchain(where, progressive);
+		return StorageReferenceAlreadyInBlockchain.mk(where, progressive);
 	}
 }
