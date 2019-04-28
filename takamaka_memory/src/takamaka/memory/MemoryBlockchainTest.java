@@ -30,7 +30,7 @@ import takamaka.blockchain.values.StringValue;
 
 /**
  * This test assumes the existence of the following compiled projects:
- * ../takamaka_base/dist/takamaka_base.jar
+ * ../takamaka_runtime/dist/takamaka_base.jar
  * ../test_contracts/dist/test_contracts.jar
  * ../test_contracts_dependency/dist/test_contracts_dependency.jar
  */
@@ -54,7 +54,7 @@ public class MemoryBlockchainTest {
 
 		// we need at least the base Takamaka classes in the blockchain
 		TransactionReference takamaka_base = run("", "takamaka_base.jar",
-			() -> blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../takamaka_base/dist/takamaka_base.jar")))));
+			() -> blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../takamaka_runtime/dist/takamaka_base.jar")))));
 		Classpath takamakaBaseClasspath = new Classpath(takamaka_base, false);  // true/false irrelevant here
 		StorageReference gamete = run("", "gamete", () -> blockchain.addGameteCreationTransaction
 			(new GameteCreationTransactionRequest(takamakaBaseClasspath, BigInteger.valueOf(1000000))));

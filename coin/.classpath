@@ -6,7 +6,7 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_runtime"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_base"/>
+	<classpathentry kind="lib" path="/takamaka_runtime/dist/takamaka_base.jar"/>
+	<classpathentry kind="lib" path="/takamaka_runtime/dist/takamaka_runtime.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

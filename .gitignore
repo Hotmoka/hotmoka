@@ -17,6 +17,8 @@ test_contracts/bin
 test_contracts/dist/
 takamaka_translator/test_jars/*
 takamaka_runtime/dist/
+takamaka_runtime/build/
+takamaka_runtime/build_takamaka_base/
 *.aux
 *.bbl
 *.blg
