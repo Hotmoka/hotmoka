@@ -19,6 +19,8 @@ takamaka_translator/test_jars/*
 takamaka_runtime/dist/
 takamaka_runtime/build/
 takamaka_runtime/build_takamaka_base/
+takamaka_memory/dist/
+takamaka_memory/build/
 *.aux
 *.bbl
 *.blg
