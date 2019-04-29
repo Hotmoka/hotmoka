@@ -209,5 +209,19 @@ public class MemoryBlockchainTest {
 			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(20000), classpath,
 			new MethodSignature(withList, "illegal"),
 			wl)));
+
+		ClassType entryFilter = new ClassType("takamaka.tests.EntryFilter");
+		StorageReference ef = run("gamete", "ef = new EntryFilter()", () -> blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, BigInteger.valueOf(1000), classpath, new ConstructorSignature(entryFilter))));
+		run("gamete", "ef.foo1()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(10000), classpath, new MethodSignature(entryFilter, "foo1"), ef)));
+		run("gamete", "ef.foo2()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(10000), classpath, new MethodSignature(entryFilter, "foo2"), ef)));
+		run("gamete", "ef.foo3()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(10000), classpath, new MethodSignature(entryFilter, "foo3"), ef)));
+		run("gamete", "ef.foo4()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(10000), classpath, new MethodSignature(entryFilter, "foo4"), ef)));
+		run("gamete", "ef.foo5()", () -> blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, BigInteger.valueOf(10000), classpath, new MethodSignature(entryFilter, "foo5"), ef)));		
 	}
 }

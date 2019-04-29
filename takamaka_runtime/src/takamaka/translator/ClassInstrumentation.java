@@ -26,12 +26,14 @@ import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.ConstantPool;
+import org.apache.bcel.classfile.ElementValuePair;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.StackMap;
 import org.apache.bcel.classfile.StackMapEntry;
 import org.apache.bcel.classfile.StackMapType;
+import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
@@ -65,6 +67,7 @@ import org.apache.bcel.generic.Type;
 
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
+import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.lang.Storage;
@@ -278,8 +281,9 @@ class ClassInstrumentation {
 			StackMap stackMap = getStackMapAttribute(methodGen);
 			addContractToCallsToEntries(methodGen, stackMap);
 
-			if (isContract && isEntry(className, method.getName(), method.getSignature()))
-				instrumentEntry(methodGen, isPayable(method.getName(), method.getSignature()), stackMap);
+			String callerContract;
+			if (isContract && (callerContract = isEntry(className, method.getName(), method.getSignature())) != null)
+				instrumentEntry(methodGen, callerContract, isPayable(method.getName(), method.getSignature()), stackMap);
 
 			addGasUpdates(methodGen, stackMap);
 
@@ -463,7 +467,7 @@ class ClassInstrumentation {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
 				ReferenceType receiver = invoke.getReferenceType(cpg);
 				return receiver instanceof ObjectType &&
-					isEntry(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+					isEntry(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg)) != null;
 			}
 			else
 				return false;
@@ -471,51 +475,78 @@ class ClassInstrumentation {
 
 		/**
 		 * Determines if the given constructor method is annotated as entry.
+		 * Yields the argument of the annotation.
 		 * 
 		 * @param className the class of the constructor or method
 		 * @param methodName the name of the constructor or method
 		 * @param methodSignature the signature of the constructor or method
-		 * @return true if and only if that condition holds
+		 * @return the value of the annotation, if it is a contract. For instance, for {@code @@Entry(PayableContract.class)}
+		 *         this return value will be the string {@code takamaka.lang.PayableContract}
 		 */
-		private boolean isEntry(String className, String methodName, String methodSignature) {
-			return hasAnnotation(className, methodName, methodSignature, ENTRY_CLASS_NAME_JB);
+		private String isEntry(String className, String methodName, String methodSignature) {
+			AnnotationEntry annotation = getAnnotation(className, methodName, methodSignature, ENTRY_CLASS_NAME_JB);
+			if (annotation != null) {
+				ElementValuePair[] pairs = annotation.getElementValuePairs();
+				if (pairs.length == 1) {
+					String callerContract = Utility.signatureToString(pairs[0].getValue().stringifyValue());
+					if (isContract(callerContract))
+						return callerContract;
+				}
+
+				// default
+				return CONTRACT_CLASS_NAME;
+			}
+
+			return null;
 		}
 
 		/**
-		 * Determines if the given constructor or method is annotated by the given annotation.
+		 * Gets the given annotation from the given constructor or method.
 		 * 
 		 * @param className the class of the constructor or method
 		 * @param methodName the name of the constructor or method
 		 * @param methodSignature the signature of the constructor or method
 		 * @param annotationNameJB the name of the annotation, in Java bytecode style (such as {@code Ljava/lang/Object;})
-		 * @return true if and only if that condition holds. It takes inheritance into account
+		 * @return the annotation, if any. Yields {@code null} if the method or constructor has no such annotation
 		 */
-		private boolean hasAnnotation(String className, String methodName, String methodSignature, String annotationNameJB) {
+		private AnnotationEntry getAnnotation(String className, String methodName, String methodSignature, String annotationNameJB) {
 			if (className.equals(OBJECT_CLASS_NAME))
-				return false;
+				return null;
 
 			JavaClass clazz = program.get(className);
 			if (clazz == null)
-				return false;
+				return null;
 
 			Optional<Method> definition = Stream.of(clazz.getMethods())
 				.filter(m -> m.getName().equals(methodName) && m.getSignature().equals(methodSignature))
 				.findAny();
 
 			if (definition.isPresent()) {
-				if (Stream.of(definition.get().getAnnotationEntries())
-					.map(AnnotationEntry::getAnnotationType)
-					.anyMatch(annotationNameJB::equals))
-					return true;
+				List<AnnotationEntry> annotations = Stream.of(definition.get().getAnnotationEntries())
+					.filter(annotation -> annotation.getAnnotationType().equals(annotationNameJB))
+					.collect(Collectors.toList());
+
+				if (annotations.size() == 1)
+					return annotations.get(0);
 
 				if (definition.get().isPrivate())
-					return false;
+					return null;
 			}
 
-			return !methodName.equals(Const.CONSTRUCTOR_NAME) &&
-				(hasAnnotation(clazz.getSuperclassName(), methodName, methodSignature, annotationNameJB) ||
-				 Stream.of(clazz.getInterfaceNames())
-					.anyMatch(_interface -> hasAnnotation(_interface, methodName, methodSignature, annotationNameJB)));
+			if (methodName.equals(Const.CONSTRUCTOR_NAME))
+				return null;
+
+			AnnotationEntry annotation = getAnnotation(clazz.getSuperclassName(), methodName, methodSignature, annotationNameJB);
+			if (annotation != null)
+				return annotation;
+
+			for (String _interface: clazz.getInterfaceNames()) {
+				annotation = getAnnotation(_interface, methodName, methodSignature, annotationNameJB);
+				if (annotation != null)
+					return annotation;
+			}
+
+			return null;
 		}
 
 		/**
@@ -526,7 +557,7 @@ class ClassInstrumentation {
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isPayable(String methodName, String methodSignature) {
-			return hasAnnotation(className, methodName, methodSignature, PAYABLE_CLASS_NAME_JB);
+			return getAnnotation(className, methodName, methodSignature, PAYABLE_CLASS_NAME_JB) != null;
 		}
 
 		/**
@@ -534,27 +565,29 @@ class ClassInstrumentation {
 		 * for payable entries.
 		 * 
 		 * @param method the entry
+		 * @param callerContract the name of the caller class. This is a contract
 		 * @param isPayable true if and only if the entry is payable
 		 * @param stackMap the stack map of the method
 		 */
-		private void instrumentEntry(MethodGen method, boolean isPayable, StackMap stackMap) {
+		private void instrumentEntry(MethodGen method, String callerContract, boolean isPayable, StackMap stackMap) {
 			// slotForCaller is the local variable used for the extra "caller" parameter;
 			// there is no need to shift the local variables one slot up, since the use
 			// of caller is limited to the prolog of the synthetic code
 			int slotForCaller = addExtraParameters(method);
 			if (!method.isAbstract())
-				setCallerAndBalance(method, slotForCaller, isPayable, stackMap);
+				setCallerAndBalance(method, callerContract, slotForCaller, isPayable, stackMap);
 		}
 
 		/**
 		 * Instruments an entry by calling the contract method that sets caller and balance.
 		 * 
 		 * @param method the entry
+		 * @param callerContract the name of the caller class. This is a contract
 		 * @param slotForCaller the local variable for the caller implicit argument
 		 * @param isPayable true if and only if the entry is payable
 		 * @param stackMap the stack map of the entry
 		 */
-		private void setCallerAndBalance(MethodGen method, int slotForCaller, boolean isPayable, StackMap stackMap) {
+		private void setCallerAndBalance(MethodGen method, String callerContract, int slotForCaller, boolean isPayable, StackMap stackMap) {
 			InstructionList il = method.getInstructionList();
 			
 			// the call to the method that sets caller and balance cannot be put at the
@@ -585,6 +618,18 @@ class ClassInstrumentation {
 				ih = il.insert(where, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
 			il.setPositions();
 			updateAfterAdditionOf(ih, stackMap);
+
+			if (!callerContract.equals(CONTRACT_CLASS_NAME)) {
+				ih = il.insert(where, InstructionConst.DUP);
+				il.setPositions();
+				updateAfterAdditionOf(ih, stackMap);
+				ih = il.insert(where, factory.createCast(CONTRACT_OT, new ObjectType(callerContract)));
+				il.setPositions();
+				updateAfterAdditionOf(ih, stackMap);
+				ih = il.insert(where, InstructionConst.POP);
+				il.setPositions();
+				updateAfterAdditionOf(ih, stackMap);
+			}
 
 			if (isPayable) {
 				// a payable entry method can have a first argument of type int/long/BigInteger

@@ -21,9 +21,8 @@ public class Purchase extends Contract {
 	private State state;
 
     // Ensure that the received money is an even number.
-	public @Payable @Entry Purchase(int amount) {
+	public @Payable @Entry(PayableContract.class) Purchase(int amount) {
 		require(amount % 2 == 0, "You must deposit an even amount of money.");
-		require(caller() instanceof PayableContract, "The caller must be payable");
 		seller = (PayableContract) caller();
         value = amount / 2;
         state = State.Created;
@@ -54,10 +53,9 @@ public class Purchase extends Contract {
     /// Confirm the purchase as buyer.
     /// Transaction has to include `2 * value` money.
     /// The money will be locked until confirmReceived is called.
-	public @Payable @Entry void confirmPurchase(int amount) {
+	public @Payable @Entry(PayableContract.class) void confirmPurchase(int amount) {
         inState(State.Created);
         require(amount == 2 * value, "amount must be twice as value");
-        require(caller() instanceof PayableContract, "Buyer must be payable");
         event(new PurchaseConfirmed());
         buyer = (PayableContract) caller();
         state = State.Locked;

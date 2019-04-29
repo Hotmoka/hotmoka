@@ -6,37 +6,29 @@
   <property name="src" location="src"/>
   <property name="src_takamaka_base" location="src_takamaka_base"/>
   <property name="build" location="build"/>
-  <property name="build_takamaka_base" location="build_takamaka_base"/>
   <property name="dist" location="dist"/>
 
   <target name="clean" description="clean up">
 	<delete dir="${build}"/>
-  	<delete dir="${build_takamaka_base}"/>
 	<delete dir="${dist}"/>
   </target>
 
   <target name="init" depends="clean">
     <mkdir dir="${build}"/>
-  	<mkdir dir="${build_takamaka_base}"/>
   </target>
 
   <target name="compile" depends="init" description="compile the source">
-    <javac srcdir="${src}" destdir="${build}">
+    <javac srcdir="${src}:${src_takamaka_base}" destdir="${build}" debug="true" debuglevel="lines,vars,source" includeantruntime="true">
       <classpath>
     	<fileset dir="lib" includes="*.jar" />
-      </classpath>
-    </javac>
-    <javac srcdir="${src_takamaka_base}" destdir="${build_takamaka_base}">
-      <classpath>
-      	<pathelement location="build/"/>
       </classpath>
     </javac>
   </target>
 
   <target name="dist" depends="compile" description="generate the distribution">
     <mkdir dir="${dist}"/>
-    <jar jarfile="${dist}/takamaka_runtime.jar" basedir="${build}"/>
-    <jar jarfile="${dist}/takamaka_base.jar" basedir="${build_takamaka_base}"/>
+    <jar jarfile="${dist}/takamaka_runtime.jar" basedir="${build}" excludesfile="src_takamaka_base/list.txt"/>
+    <jar jarfile="${dist}/takamaka_base.jar" basedir="${build}" includesfile="src_takamaka_base/list.txt"/>
   </target>
 
 </project>
