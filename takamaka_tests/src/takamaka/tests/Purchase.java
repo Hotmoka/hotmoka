@@ -3,10 +3,7 @@
  */
 package takamaka.tests;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 import static takamaka.blockchain.types.BasicTypes.INT;
-import static takamaka.blockchain.types.BasicTypes.LONG;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -20,10 +17,7 @@ import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.DeserializationError;
-import takamaka.blockchain.IllegalTransactionRequestException;
 import takamaka.blockchain.MethodSignature;
-import takamaka.blockchain.SideEffectsInViewMethodException;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
@@ -31,16 +25,9 @@ import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
-import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
-import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
-import takamaka.blockchain.values.BigIntegerValue;
-import takamaka.blockchain.values.BooleanValue;
 import takamaka.blockchain.values.IntValue;
-import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.blockchain.values.StringValue;
-import takamaka.lang.InsufficientFundsError;
 import takamaka.lang.RequirementViolationException;
 import takamaka.memory.MemoryBlockchain;
 
@@ -53,19 +40,7 @@ class Purchase {
 
 	private static final ClassType PURCHASE = new ClassType("takamaka.tests.remotepurchase.Purchase");
 
-	private static final MethodSignature SUB_MS = new MethodSignature("takamaka.tests.basic.Sub", "ms");
-
-	private static final MethodSignature SUB_M5 = new MethodSignature("takamaka.tests.basic.Sub", "m5");
-
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = new ConstructorSignature("takamaka.tests.basicdependency.Wrapper", new ClassType("takamaka.tests.basicdependency.Time"));
-
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = new ConstructorSignature("takamaka.tests.basicdependency.Wrapper", new ClassType("takamaka.tests.basicdependency.Time"), ClassType.STRING, ClassType.BIG_INTEGER, BasicTypes.LONG);
-
 	private static final ConstructorSignature CONSTRUCTOR_PURCHASE = new ConstructorSignature("takamaka.tests.remotepurchase.Purchase", INT);
-
-	private static final MethodSignature TO_STRING = new MethodSignature(ClassType.OBJECT, "toString");
-
-	private static final BigInteger _200 = BigInteger.valueOf(200);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
