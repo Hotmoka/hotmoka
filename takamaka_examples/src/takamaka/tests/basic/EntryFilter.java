@@ -1,4 +1,4 @@
-package takamaka.tests;
+package takamaka.tests.basic;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;

@@ -1,4 +1,4 @@
-package takamaka.tests;
+package takamaka.tests.basicdependency;
 
 import java.math.BigInteger;
 

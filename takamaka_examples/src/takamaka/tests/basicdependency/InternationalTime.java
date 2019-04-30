@@ -1,15 +1,15 @@
-package takamaka.tests;
+package takamaka.tests.basicdependency;
 
-public class ItalianTime extends Time {
+public class InternationalTime extends Time {
 
-	public ItalianTime(int hours, int minutes, int seconds) {
+	public InternationalTime(int hours, int minutes, int seconds) {
 		super(seconds + 60 * minutes + 3600 * hours);
 
 		if (hours < 0 || hours >= 24 || minutes < 0 || minutes >= 60 || seconds < 0 || seconds >= 60)
 			throw new IllegalArgumentException();
 	}
 
-	private ItalianTime(int secondsFromStartOfDay) {
+	private InternationalTime(int secondsFromStartOfDay) {
 		super(secondsFromStartOfDay);
 	}
 
@@ -19,10 +19,10 @@ public class ItalianTime extends Time {
 	}
 
 	@Override
-	public ItalianTime after(int minutes) {
+	public InternationalTime after(int minutes) {
 		if (minutes < 0)
 			throw new IllegalArgumentException();
 
-		return new ItalianTime((secondsFromStartOfDay + minutes * 60) % (24 * 60 * 60));
+		return new InternationalTime((secondsFromStartOfDay + minutes * 60) % (24 * 60 * 60));
 	}
 }

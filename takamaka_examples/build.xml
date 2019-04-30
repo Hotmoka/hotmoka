@@ -1,10 +1,9 @@
-<project name="takamaka_runtime" default="dist" basedir=".">
+<project name="takamaka_examples" default="dist" basedir=".">
   <description>
-    Compiles the takamaka_runtime project
+    Compiles the examples of takamaka classes and contracts
   </description>
 
   <property name="src" location="src"/>
-  <property name="src_takamaka_base" location="src_takamaka_base"/>
   <property name="build" location="build"/>
   <property name="dist" location="dist"/>
 
@@ -18,17 +17,17 @@
   </target>
 
   <target name="compile" depends="init" description="compile the source">
-    <javac srcdir="${src}:${src_takamaka_base}" destdir="${build}">
+    <javac srcdir="${src}" destdir="${build}" debug="true" debuglevel="lines,vars,source" includeantruntime="true">
       <classpath>
-    	<fileset dir="lib" includes="*.jar" />
+    	<pathelement path="../takamaka_runtime/bin" />
       </classpath>
     </javac>
   </target>
 
   <target name="dist" depends="compile" description="generate the distribution">
     <mkdir dir="${dist}"/>
-    <jar jarfile="${dist}/takamaka_runtime.jar" basedir="${build}" excludesfile="src_takamaka_base/list.txt"/>
-    <jar jarfile="${dist}/takamaka_base.jar" basedir="${build}" includesfile="src_takamaka_base/list.txt"/>
+    <jar jarfile="${dist}/basic.jar" basedir="${build}" includes="**/takamaka/tests/basic/**"/>
+    <jar jarfile="${dist}/basicdependency.jar" basedir="${build}" includes="**/takamaka/tests/basicdependency/**"/>
   </target>
 
 </project>

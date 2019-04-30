@@ -1,4 +1,4 @@
-package takamaka.tests;
+package takamaka.tests.basic;
 
 import takamaka.lang.Storage;
 import takamaka.util.StorageList;

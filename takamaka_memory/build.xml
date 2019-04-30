@@ -1,6 +1,6 @@
 <project name="takamaka_memory" default="dist" basedir=".">
   <description>
-    Compiles the takamaka_memory project
+    Compiles the Takamaka_memory project
   </description>
 
   <property name="src" location="src"/>
@@ -27,16 +27,6 @@
   <target name="dist" depends="compile" description="generate the distribution">
     <mkdir dir="${dist}"/>
     <jar jarfile="${dist}/takamaka_memory.jar" basedir="${build}"/>
-  </target>
-
-  <target name="run_test" depends="dist" description="run the memory blockchain test class">
-  	<java classname="takamaka.memory.MemoryBlockchainTest">
-  	  <classpath>
-  	  	<pathelement location="dist/takamaka_memory.jar"/>
-  	    <pathelement location="../takamaka_runtime/dist/takamaka_runtime.jar"/>
-  	    <pathelement location="../takamaka_runtime/lib/bcel-6.2.jar"/>
-  	  </classpath>
-  	</java>
   </target>
 
 </project>

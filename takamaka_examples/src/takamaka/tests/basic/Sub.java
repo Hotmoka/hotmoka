@@ -1,4 +1,4 @@
-package takamaka.tests;
+package takamaka.tests.basic;
 
 import java.math.BigInteger;
 
@@ -16,7 +16,7 @@ public class Sub extends Super {
 	}
 
 	@Override @Entry
-	public void m1() { // this is implicitly @Entry by inheritance
+	public void m1() {
 		super.m1(); // exception at run time
 		System.out.println("Sub.m1");
 	}

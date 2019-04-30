@@ -1,15 +1,17 @@
-package takamaka.tests;
+package takamaka.tests.basic;
 
 import java.math.BigInteger;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
+import takamaka.tests.basicdependency.InternationalTime;
+import takamaka.tests.basicdependency.Time;
 
 public abstract class Super extends Contract {
 	private String s;
 	@SuppressWarnings("unused")
-	private ItalianTime t;
+	private InternationalTime t;
 
 	protected Super(int a) {}
 	protected @Entry Super(boolean b) {}
@@ -25,8 +27,8 @@ public abstract class Super extends Contract {
 	}
 
 	public @Entry void storeItalian(Time time) {
-		if (time instanceof ItalianTime)
-			t = (ItalianTime) time;
+		if (time instanceof InternationalTime)
+			t = (InternationalTime) time;
 	}
 
 	@Override

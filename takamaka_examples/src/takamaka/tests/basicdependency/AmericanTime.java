@@ -1,4 +1,4 @@
-package takamaka.tests;
+package takamaka.tests.basicdependency;
 
 public class AmericanTime extends Time {
 	public enum Period {
