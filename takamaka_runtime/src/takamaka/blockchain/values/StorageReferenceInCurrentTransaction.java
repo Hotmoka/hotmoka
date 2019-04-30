@@ -35,15 +35,6 @@ public final class StorageReferenceInCurrentTransaction extends StorageReference
 	}
 
 	@Override
-	public int compareTo(StorageValue other) {
-		int diff = getClass().getName().compareTo(other.getClass().getName());
-		if (diff != 0)
-			return diff;
-
-		return progressive.compareTo(((StorageReferenceInCurrentTransaction) other).progressive);
-	}
-
-	@Override
 	public Storage deserialize(AbstractBlockchain blockchain) {
 		// if the object is not yet in blockchain, it is not possible to deserialize it
 		throw new DeserializationError("This reference identifies an object not yet in blockchain");

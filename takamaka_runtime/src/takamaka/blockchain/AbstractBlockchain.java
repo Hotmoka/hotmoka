@@ -80,7 +80,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
 	 */
-	private final List<StorageReference> events = new ArrayList<>();
+	private final List<Storage> events = new ArrayList<>();
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -324,7 +324,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		if (event == null)
 			throw new IllegalArgumentException("Events cannot be null");
 
-		events.add(event.storageReference);
+		events.add(event);
 	}
 
 	@Override
@@ -488,7 +488,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream(), request.gas.subtract(remainingGas()));
+						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					}
 
 					if (executor.exception != null)
@@ -496,7 +496,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					increaseBalance(deserializedCaller, remainingGas());
 					return new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) StorageValue.serialize(executor.result), executor.updates(), events.stream(), request.gas.subtract(remainingGas()));
+						((StorageReference) StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -547,7 +547,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream(), request.gas.subtract(remainingGas()));
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					}
 
 					if (executor.exception != null)
@@ -559,10 +559,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
 
 					if (executor.isVoidMethod)
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream(), request.gas.subtract(remainingGas()));
+						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					else
 						return new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), events.stream(), request.gas.subtract(remainingGas()));
+							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -620,7 +620,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream(), request.gas.subtract(remainingGas()));
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					}
 
 					if (executor.exception != null)
@@ -632,10 +632,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
 
 					if (executor.isVoidMethod)
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream(), request.gas.subtract(remainingGas()));
+						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 					else
 						return new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), events.stream(), request.gas.subtract(remainingGas()));
+							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -943,7 +943,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param result the result; relevant only if {@code Storage}
 	 * @return the ordered updates
 	 */
-	private static SortedSet<Update> collectUpdates(Object[] actuals, Storage caller, Storage receiver, Object result) {
+	private SortedSet<Update> collectUpdates(Object[] actuals, Storage caller, Storage receiver, Object result) {
 		List<Storage> potentiallyAffectedObjects = new ArrayList<>();
 		if (caller != null)
 			potentiallyAffectedObjects.add(caller);
@@ -956,6 +956,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			for (Object actual: actuals)
 				if (actual instanceof Storage)
 					potentiallyAffectedObjects.add((Storage) actual);
+
+		// events are accessible from outside, hence they count as side-effects
+		events.forEach(potentiallyAffectedObjects::add);
 
 		Set<StorageReference> seen = new HashSet<>();
 		SortedSet<Update> updates = new TreeSet<>();

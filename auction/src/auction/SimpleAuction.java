@@ -31,10 +31,9 @@ public class SimpleAuction extends Contract {
 
     /// Bid on the auction with the value sent together with this transaction.
     /// The value will only be refunded if the auction is not won.
-	public @Payable @Entry void bid(int amount) {
+	public @Payable @Entry(PayableContract.class) void bid(int amount) {
         // Revert the call if the bidding period is over.
         require(System.currentTimeMillis() <= auctionEnd, "Auction already ended");
-        require(caller() instanceof PayableContract, "The bidder must be payable");
 
         // If the bid is not higher, send the money back.
         require(amount > highestBid, "There already is a higher bid");

@@ -1,4 +1,4 @@
-package purchase;
+package takamaka.tests.remotepurchase;
 
 import static takamaka.lang.Takamaka.event;
 import static takamaka.lang.Takamaka.require;
@@ -18,35 +18,39 @@ public class Purchase extends Contract {
 	private final int value; // the value of the item that is sold
 	private final PayableContract seller;
 	private PayableContract buyer;
-	private State state;
+	private int state; //TODO: use enum directly in the future
 
     // Ensure that the received money is an even number.
 	public @Payable @Entry(PayableContract.class) Purchase(int amount) {
-		require(amount % 2 == 0, "You must deposit an even amount of money.");
+		require(amount % 2 == 0, "You must deposit an even amount of money");
 		seller = (PayableContract) caller();
         value = amount / 2;
-        state = State.Created;
+        setState(State.Created);
     }
 
 	private void isBuyer(Contract payer) {
-        require(payer == buyer, "Only buyer can call this.");
+        require(payer == buyer, "Only buyer can call this");
     }
 
 	private void isSeller(Contract payer) {
-        require(payer == seller, "Only seller can call this.");
+        require(payer == seller, "Only seller can call this");
     }
 
 	private void inState(State state) {
-        require(this.state == state, "Invalid state.");
+        require(this.state == state.ordinal(), "Invalid state");
     }
 
-    /// Abort the purchase and reclaim the money.
+	private void setState(State state) {
+		this.state = state.ordinal();
+	}
+
+	/// Abort the purchase and reclaim the money.
     /// Can only be called by the seller before the contract is locked.
 	public @Entry void abort() {
         isSeller(caller());
         inState(State.Created);
         event(new Aborted());
-        state = State.Inactive;
+        setState(State.Inactive);
         seller.receive(value * 2);
     }
 
@@ -58,7 +62,7 @@ public class Purchase extends Contract {
         require(amount == 2 * value, "amount must be twice as value");
         event(new PurchaseConfirmed());
         buyer = (PayableContract) caller();
-        state = State.Locked;
+        setState(State.Locked);
     }
 
     /// Confirm that you (the buyer) received the item.
@@ -67,7 +71,7 @@ public class Purchase extends Contract {
         isBuyer(caller());
         inState(State.Locked);
         event(new ItemReceived());
-        state = State.Inactive;
+        setState(State.Inactive);
         buyer.receive(value);
         seller.receive(value * 3);
     }

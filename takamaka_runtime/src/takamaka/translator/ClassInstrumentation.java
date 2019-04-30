@@ -94,7 +94,9 @@ class ClassInstrumentation {
 	private final static String ENTRY_CLASS_NAME_JB = 'L' + Entry.class.getName().replace('.', '/') + ';';
 	private final static String PAYABLE_CLASS_NAME_JB = 'L' + Payable.class.getName().replace('.', '/') + ';';
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
+	private final static String CONTRACT_CLASS_NAME_JB = 'L' + CONTRACT_CLASS_NAME.replace('.', '/') + ';';
 	private final static String DUMMY_CLASS_NAME = Dummy.class.getName();
+	private final static String DUMMY_CLASS_NAME_JB = 'L' + DUMMY_CLASS_NAME.replace('.', '/') + ';';
 	private final static String TAKAMAKA_CLASS_NAME = Takamaka.class.getName();
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
@@ -466,11 +468,23 @@ class ClassInstrumentation {
 			if (instruction instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
 				ReferenceType receiver = invoke.getReferenceType(cpg);
-				return receiver instanceof ObjectType &&
-					isEntry(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg)) != null;
+				if (receiver instanceof ObjectType) {
+					String sig = invoke.getSignature(cpg);
+					if (isEntry(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg)) != null)
+						return true;
+
+					// the callee might have been already instrumented, since it comes from
+					// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
+					int whereToAddParameters = sig.lastIndexOf(')');
+					if (whereToAddParameters > 0) {
+						sig = sig.substring(0, whereToAddParameters) + CONTRACT_CLASS_NAME_JB + DUMMY_CLASS_NAME_JB + sig.substring(whereToAddParameters);
+						if (isEntry(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), sig) != null)
+							return true;
+					}
+				}
 			}
-			else
-				return false;
+
+			return false;
 		}
 
 		/**

@@ -47,9 +47,8 @@ public class BlindAuction extends Contract {
     /// "fake" is not true. Setting "fake" to true and sending
     /// not the exact amount are ways to hide the real bid but
     /// still make the required deposit. The same address can place multiple bids.
-    public @Payable @Entry void bid(int amount, byte[] blindedBid) {
+    public @Payable @Entry(PayableContract.class) void bid(int amount, byte[] blindedBid) {
     	onlyBefore(biddingEnd);
-    	require(caller() instanceof PayableContract, "The bidder must be payable");
         bids.get((PayableContract) caller()).add(new Bid(blindedBid, amount));
     }
 
@@ -63,10 +62,9 @@ public class BlindAuction extends Contract {
 
     /// Reveal your blinded bids. You will get a refund for all correctly
     /// blinded invalid bids and for all bids except for the totally highest.
-    public @Entry void reveal(int[] _values, boolean[] _fake, byte[][] _secret) {
+    public @Entry(PayableContract.class) void reveal(int[] _values, boolean[] _fake, byte[][] _secret) {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
-        require(caller() instanceof PayableContract, "The revealer must be payable");
 
         StorageList<Bid> bids = this.bids.get((PayableContract) caller());
         int length = bids.size();

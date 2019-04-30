@@ -9,7 +9,8 @@ import takamaka.lang.Immutable;
  * progressive number to a block/transaction pair to a database reference.
  * Each specific implementation of {@link takamaka.blockchain.Blockchain}
  * provides its implementation of this class.
- * They must be comparable and ordered according to their occurrence in the blockchain.
+ * They must be comparable and ordered according to their occurrence in the blockchain
+ * (older transactions come before newer ones).
  */
 @Immutable
 public abstract class TransactionReference implements Serializable, Comparable<TransactionReference> {
