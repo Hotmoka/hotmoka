@@ -100,6 +100,7 @@ class ClassInstrumentation {
 	private final static String TAKAMAKA_CLASS_NAME = Takamaka.class.getName();
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
+	private final static short PUBLIC_SYNTHETIC_FINAL = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC | Const.ACC_FINAL;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
@@ -247,8 +248,8 @@ class ClassInstrumentation {
 				// storage classes need all the serialization machinery
 				addOldAndIfAlreadyLoadedFields();
 				addConstructorForDeserializationFromBlockchain();
-				addEnsureLoadedMethods();
 				addAccessorMethods();
+				addEnsureLoadedMethods();
 				addExtractUpdates();
 			}
 		}
@@ -862,11 +863,9 @@ class ClassInstrumentation {
 			String fieldName = fieldInstruction.getFieldName(cpg);
 
 			if (fieldInstruction instanceof GETFIELD)
-				// it is important to use an invokespecial, since fields cannot be redefined in Java
-				return factory.createInvoke(referencedClass.getClassName(), GETTER_PREFIX + fieldName, fieldType, Type.NO_ARGS, Const.INVOKESPECIAL);
+				return factory.createInvoke(referencedClass.getClassName(), getterNameFor(referencedClass.getClassName(), fieldName), fieldType, Type.NO_ARGS, Const.INVOKEVIRTUAL);
 			else // PUTFIELD
-				// it is important to use an invokespecial, since fields cannot be redefined in Java
-				return factory.createInvoke(referencedClass.getClassName(), SETTER_PREFIX + fieldName, Type.VOID, new Type[] { fieldType }, Const.INVOKESPECIAL);
+				return factory.createInvoke(referencedClass.getClassName(), setterNameFor(referencedClass.getClassName(), fieldName), Type.VOID, new Type[] { fieldType }, Const.INVOKEVIRTUAL);
 		}
 
 		/**
@@ -877,12 +876,19 @@ class ClassInstrumentation {
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isAccessToLazilyLoadedFieldInStorageClass(Instruction instruction) {
-			if (instruction instanceof GETFIELD || instruction instanceof PUTFIELD) {
+			if (instruction instanceof GETFIELD) {
 				FieldInstruction fi = (FieldInstruction) instruction;
 
 				ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
 				String receiverClassName = receiverType.getClassName();
 				return isStorage(receiverClassName) && isLazilyLoaded(fi.getFieldType(cpg)) && !isTransient(receiverClassName, fi.getFieldName(cpg), fi.getFieldType(cpg));
+			}
+			else if (instruction instanceof PUTFIELD) {
+				FieldInstruction fi = (FieldInstruction) instruction;
+
+				ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
+				String receiverClassName = receiverType.getClassName();
+				return isStorage(receiverClassName) && isLazilyLoaded(fi.getFieldType(cpg)) && !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fi.getFieldType(cpg));
 			}
 			else
 				return false;
@@ -1067,7 +1073,9 @@ class ClassInstrumentation {
 		 */
 		private void addAccessorMethodsFor(Field field) {
 			addGetterFor(field);
-			addSetterFor(field);
+			
+			if (!field.isFinal())
+				addSetterFor(field);
 		}
 
 		/**
@@ -1085,7 +1093,7 @@ class ClassInstrumentation {
 			il.append(factory.createPutField(className, field.getName(), type));
 			il.append(InstructionConst.RETURN);
 
-			MethodGen setter = new MethodGen(modifiersFrom(field), BasicType.VOID, new Type[] { type }, null, SETTER_PREFIX + field.getName(), className, il, cpg);
+			MethodGen setter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null, setterNameFor(className, field.getName()), className, il, cpg);
 			setter.setMaxLocals();
 			setter.setMaxStack();
 			classGen.addMethod(setter.getMethod());
@@ -1122,10 +1130,22 @@ class ClassInstrumentation {
 			il.append(factory.createGetField(className, field.getName(), type));
 			il.append(InstructionFactory.createReturn(type));
 
-			MethodGen getter = new MethodGen(modifiersFrom(field), type, Type.NO_ARGS, null, GETTER_PREFIX + field.getName(), className, il, cpg);
+			MethodGen getter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null, getterNameFor(className, field.getName()), className, il, cpg);
 			getter.setMaxLocals();
 			getter.setMaxStack();
 			classGen.addMethod(getter.getMethod());
+		}
+
+		private String getterNameFor(String className, String fieldName) {
+			// we use the class name as well, in order to disambiguate fields with the same name
+			// in sub and superclass
+			return GETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
+		}
+
+		private String setterNameFor(String className, String fieldName) {
+			// we use the class name as well, in order to disambiguate fields with the same name
+			// in sub and superclass
+			return SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
 		}
 
 		/**
@@ -1139,6 +1159,15 @@ class ClassInstrumentation {
 		 * Adds the ensure loaded method for the given lazy field.
 		 */
 		private void addEnsureLoadedMethodFor(Field field) {
+			// final fields cannot remain as such, since the ensureMethod will update them
+			// and it is not a constructor. Java < 9 will not check this constraint but
+			// newer versions of Java would reject the code without this change
+			if (field.isFinal()) {
+				FieldGen newField = new FieldGen(field, cpg);
+				newField.setAccessFlags(field.getAccessFlags() ^ Const.ACC_FINAL);
+				classGen.replaceField(field, newField.getField());
+			}
+
 			InstructionList il = new InstructionList();
 			InstructionHandle _return = il.append(InstructionConst.RETURN);
 			il.insert(_return, InstructionFactory.createThis());
@@ -1434,6 +1463,31 @@ class ClassInstrumentation {
 			else {
 				String superclassName = clazz.getSuperclassName();
 				return superclassName != null && isTransient(superclassName, fieldName, fieldType);
+			}
+		}
+
+		/**
+		 * Determines if a field is transient or final.
+		 * 
+		 * @param className the class from which the field must be looked-up
+		 * @param fieldName the name of the field
+		 * @param fieldType the type of the field
+		 * @return true if and only if that condition holds
+		 */
+		private boolean isTransientOrFinal(String className, String fieldName, Type fieldType) {
+			JavaClass clazz = program.get(className);
+			if (clazz == null)
+				return false;
+
+			for (Field field: clazz.getFields())
+				if (field.getName().equals(fieldName) && field.getType().equals(fieldType))
+					return field.isTransient() || field.isFinal();
+
+			if (className.equals(STORAGE_CLASS_NAME) || className.equals(CONTRACT_CLASS_NAME))
+				return false;
+			else {
+				String superclassName = clazz.getSuperclassName();
+				return superclassName != null && isTransientOrFinal(superclassName, fieldName, fieldType);
 			}
 		}
 
