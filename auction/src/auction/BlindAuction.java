@@ -26,7 +26,7 @@ public class BlindAuction extends Contract {
     }
 
     private final PayableContract beneficiary;
-    private final StorageMap<PayableContract, StorageList<Bid>> bids = new StorageMap<>(_contract -> new StorageList<>());
+    private final StorageMap<PayableContract, StorageList<Bid>> bids = new StorageMap<>();
     private final long biddingEnd;
     private final long revealEnd;
     private boolean ended;
@@ -49,7 +49,7 @@ public class BlindAuction extends Contract {
     /// still make the required deposit. The same address can place multiple bids.
     public @Payable @Entry(PayableContract.class) void bid(int amount, byte[] blindedBid) {
     	onlyBefore(biddingEnd);
-        bids.get((PayableContract) caller()).add(new Bid(blindedBid, amount));
+        bids.get((PayableContract) caller(), StorageList::new).add(new Bid(blindedBid, amount));
     }
 
     private void onlyBefore(long when) {
@@ -66,7 +66,7 @@ public class BlindAuction extends Contract {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
 
-        StorageList<Bid> bids = this.bids.get((PayableContract) caller());
+        StorageList<Bid> bids = this.bids.get((PayableContract) caller(), StorageList::new);
         int length = bids.size();
         require(_values.length == length, "inconsistent parameters size");
         require(_fake.length == length, "inconsistent parameters size");

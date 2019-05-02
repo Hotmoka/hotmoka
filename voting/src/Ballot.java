@@ -4,7 +4,6 @@ import static takamaka.lang.Takamaka.require;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
@@ -14,43 +13,40 @@ import takamaka.util.StorageMap;
 
 public class Ballot extends Contract {
 	private final Contract chairperson;
-	private final StorageMap<Contract, VotingPaper> papers = new StorageMap<>(__ -> new VotingPaper());
+	private final StorageMap<Contract, VotingPaper> papers = new StorageMap<>();
 	private final StorageList<Proposal> proposals = new StorageList<>();
 
-	public @Entry Ballot(String[] proposalNames) {
+	public @Entry Ballot(StorageList<String> proposalNames) {
 		chairperson = caller();
 		VotingPaper votingPaper = new VotingPaper();
 		votingPaper.giveRightToVote(); // the chairperson has right to vote
 		papers.put(chairperson, votingPaper);
-
-		Stream.of(proposalNames)
-			.map(Proposal::new)
-			.forEach(proposals::add);
+		proposalNames.forEach(name -> proposals.add(new Proposal(name)));
 	}
 
 	public @Entry void giveRightToVote(Contract to) {
 		require(caller() == chairperson, "Only the chairperson can give right to vote");
-		VotingPaper paper = papers.get(to);
-		require(!paper.hasVoted(), "You already voted");
-		require(!paper.hasRightToVote(), "You already have right to vote.");
+		VotingPaper paper = papers.get(to, VotingPaper::new);
+		require(!paper.hasVoted(), "The contract already voted");
+		require(!paper.hasRightToVote(), "The contract has already right to vote");
 		paper.giveRightToVote();
 	}
 
-	private VotingPaper getVotingPaper(Contract contract) {
-		VotingPaper sender = papers.get(contract);
-		require(!sender.hasVoted(), "You already voted");
-		require(sender.hasRightToVote(), "You don't have the right to vote.");
-		return sender;
+	private VotingPaper getVotingPaperFor(Contract contract) {
+		VotingPaper paper = papers.get(contract);
+		require(!paper.hasVoted(), "The contract already voted");
+		require(paper.hasRightToVote(), "The contract has no right to vote");
+		return paper;
 	}
 
 	public @Entry void delegate(Contract to) {
 		VotingPaper delegatedPaper = papers.get(to);
-		require(delegatedPaper.hasRightToVote(), "Your delegated has no right to vote.");
-		getVotingPaper(caller()).delegateTo(caller(), to);
+		require(delegatedPaper.hasRightToVote(), "The delegated contract has no right to vote");
+		getVotingPaperFor(caller()).delegateTo(caller(), to);
 	}
 
 	public @Entry void voteFor(int proposalIndex) {
-		getVotingPaper(caller()).voteFor(proposalIndex);
+		getVotingPaperFor(caller()).voteFor(proposals.elementAt(proposalIndex));
     }
 
 	private int indexOfWinningProposal() {
@@ -65,14 +61,14 @@ public class Ballot extends Contract {
 
 	private class VotingPaper extends Storage {
 		private int weight;
-		private boolean voted;
+		private boolean hasVoted;
 		private Contract delegate;
-		private int vote;
+		private Proposal votedProposal;
 
 		private VotingPaper() {}
 
 		private boolean hasVoted() {
-			return voted;
+			return hasVoted;
 		}
 
 		private boolean hasRightToVote() {
@@ -85,12 +81,12 @@ public class Ballot extends Contract {
 
 		private void delegateTo(Contract payer, Contract delegate) {
 			delegate = computeFinalDelegate(payer, delegate);
-			this.voted = true;
+			this.hasVoted = true;
 			this.delegate = delegate;
 
 			VotingPaper paperOfDelegate = papers.get(delegate);
 			if (paperOfDelegate.hasVoted())
-				proposals.elementAt(paperOfDelegate.vote).voteCount += weight;
+				votedProposal.voteCount += weight;
 			else
 				paperOfDelegate.weight += weight;
 		}
@@ -110,13 +106,10 @@ public class Ballot extends Contract {
 			return delegate;
 		}
 
-		private void voteFor(int proposalIndex) {
-			voted = true;
-			this.vote = proposalIndex;
-
-			// If `vote` is out of the range of the array,
-	        // this will throw automatically and revert all changes.
-	        proposals.elementAt(proposalIndex).voteCount += weight;
+		private void voteFor(Proposal proposal) {
+			hasVoted = true;
+			votedProposal = proposal;
+			proposal.voteCount += weight;
 		}
 	}
 

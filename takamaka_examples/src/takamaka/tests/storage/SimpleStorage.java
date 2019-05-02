@@ -1,7 +1,8 @@
-import takamaka.lang.Contract;
+package takamaka.tests.storage;
+import takamaka.lang.Storage;
 import takamaka.lang.View;
 
-public class SimpleStorage extends Contract {
+public class SimpleStorage extends Storage {
 	private int storedData;
 	
 	public void set(int x) {

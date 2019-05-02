@@ -1,4 +1,4 @@
-package coin;
+package takamaka.tests.coin;
 
 import static takamaka.lang.Takamaka.event;
 import static takamaka.lang.Takamaka.require;
@@ -12,7 +12,7 @@ import takamaka.util.StorageMap;
 
 public class Coin extends Contract {
 	private final Contract minter;
-	private final StorageMap<Contract, BigInteger> balances = new StorageMap<>(__ -> BigInteger.ZERO);
+	private final StorageMap<Contract, BigInteger> balances = new StorageMap<>();
 
 	public static class Send extends Event {
 		public final Contract caller;
@@ -32,14 +32,16 @@ public class Coin extends Contract {
 
 	public @Entry void mint(Contract receiver, int amount) {
         require(caller() == minter, "Only the minter can mint new coins");
+        require(amount > 0, "You can only mint a positive amount of coins");
         require(amount < 1000, "You can mint up to 1000 coins at a time");
-        balances.put(receiver, balances.get(receiver).add(BigInteger.valueOf(amount)));
+        balances.update(receiver, BigInteger.ZERO, old -> old.add(BigInteger.valueOf(amount)));
     }
 
 	public @Entry void send(Contract receiver, BigInteger amount) {
-		require(balances.get(caller()).compareTo(amount) <= 0, "Insufficient balance");
-		balances.put(caller(), balances.get(caller()).subtract(amount));
-        balances.put(receiver, balances.get(receiver).add(amount));
+		BigInteger myAmount = balances.get(caller());
+		require(myAmount != null && myAmount.compareTo(amount) >= 0, "Insufficient balance");
+		balances.put(caller(), myAmount.subtract(amount));
+        balances.update(receiver, BigInteger.ZERO, old -> old.add(amount));
         event(new Send(caller(), receiver, amount));
     }
 }
