@@ -6,9 +6,9 @@ import java.util.function.Consumer;
 import takamaka.lang.Storage;
 
 /**
- * A list of elements.
+ * A list of elements that can be kept in storage.
  *
- * @param <E> the type of the elements
+ * @param <E> the type of the elements. This type must be allowed in storage
  */
 public class StorageList<E> extends Storage {
 	private Node<E> first;
