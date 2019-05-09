@@ -30,6 +30,7 @@
     <jar jarfile="${dist}/basicdependency.jar" basedir="${build}" includes="**/takamaka/tests/basicdependency/**"/>
   	<jar jarfile="${dist}/purchase.jar" basedir="${build}" includes="**/takamaka/tests/remotepurchase/**"/>
   	<jar jarfile="${dist}/storage.jar" basedir="${build}" includes="**/takamaka/tests/storage/**"/>
+  	<jar jarfile="${dist}/voting.jar" basedir="${build}" includes="**/takamaka/tests/voting/**"/>
   </target>
 
 </project>

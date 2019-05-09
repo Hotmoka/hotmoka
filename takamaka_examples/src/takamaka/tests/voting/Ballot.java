@@ -1,9 +1,9 @@
-import static java.util.Comparator.comparingInt;
+package takamaka.tests.voting;
 import static takamaka.lang.Takamaka.require;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
@@ -21,12 +21,12 @@ public class Ballot extends Contract {
 		VotingPaper votingPaper = new VotingPaper();
 		votingPaper.giveRightToVote(); // the chairperson has right to vote
 		papers.put(chairperson, votingPaper);
-		proposalNames.forEach(name -> proposals.add(new Proposal(name)));
+		proposalNames.stream().map(Proposal::new).forEach(proposals::add);
 	}
 
 	public @Entry void giveRightToVote(Contract to) {
 		require(caller() == chairperson, "Only the chairperson can give right to vote");
-		VotingPaper paper = papers.get(to, VotingPaper::new);
+		VotingPaper paper = papers.computeIfAbsent(to, VotingPaper::new);
 		require(!paper.hasVoted(), "The contract already voted");
 		require(!paper.hasRightToVote(), "The contract has already right to vote");
 		paper.giveRightToVote();
@@ -49,14 +49,8 @@ public class Ballot extends Contract {
 		getVotingPaperFor(caller()).voteFor(proposals.elementAt(proposalIndex));
     }
 
-	private int indexOfWinningProposal() {
-		return IntStream.range(0, proposals.size()).boxed()
-				.min(comparingInt(index -> proposals.elementAt(index).voteCount))
-				.get();  // or throw if empty list
-	}
-
 	public String winnerName() {
-		return proposals.elementAt(indexOfWinningProposal()).name;
+		return proposals.stream().min(Comparator.comparingInt(proposal -> proposal.voteCount)).get().name;
 	}
 
 	private class VotingPaper extends Storage {

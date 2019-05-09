@@ -1,6 +1,7 @@
 package takamaka.util;
 
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -606,6 +607,28 @@ public class StorageMap<K,E> extends Storage {
 	public void update(K key, Supplier<E> _default, UnaryOperator<E> how) {
 		//TODO: optimize
 		put(key, how.apply(get(key, _default)));
+	}
+
+	public E computeIfAbsent(K key, Supplier<E> supplier) {
+		if (key == null) throw new IllegalArgumentException("argument to get() is null");
+
+		//TODO: optimize
+		E result = get(key);
+		if (result == null)
+			put(key, result = supplier.get());
+
+		return result;
+	}
+
+	public E computeIfAbsent(K key, Function<K,E> supplier) {
+		if (key == null) throw new IllegalArgumentException("argument to get() is null");
+
+		//TODO: optimize
+		E result = get(key);
+		if (result == null)
+			put(key, result = supplier.apply(key));
+
+		return result;
 	}
 
 	/***************************************************************************
