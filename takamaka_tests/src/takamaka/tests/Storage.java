@@ -34,7 +34,7 @@ import takamaka.blockchain.values.StorageValue;
 import takamaka.memory.MemoryBlockchain;
 
 /**
- * A test for the remote purchase contract.
+ * A test for the simple storage class.
  */
 class Storage {
 

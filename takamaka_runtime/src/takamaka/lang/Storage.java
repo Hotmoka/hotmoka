@@ -61,6 +61,17 @@ public abstract class Storage {
 		this.storageReference = new StorageReferenceInCurrentTransaction(Takamaka.generateNextProgressive());
 	}
 
+	/**
+	 * Implements a chronological order on storage objects.
+	 * 
+	 * @param other the other object that must be compared to this
+	 * @return -1 if this object is older than {@code other}; 1 if {@code other}
+	 *         is older than this object; 0 if they are the same object
+	 */
+	public int compareAge(Storage other) {
+		return storageReference.compareTo(other.storageReference);
+	}
+
 	// ALL SUBSEQUENT METHODS ARE USED IN INSTRUMENTED CODE
 
 	/**

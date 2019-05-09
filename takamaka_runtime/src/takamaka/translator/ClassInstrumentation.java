@@ -446,13 +446,23 @@ class ClassInstrumentation {
 			if (stackMap != null) {
 				StackMapEntry[] entries = stackMap.getStackMap();
 				int start = 0;
+				boolean firstIteration = true;
 				for (StackMapEntry entry: entries) {
-					int end = start == 0 ? entry.getByteCodeOffset() : (start + entry.getByteCodeOffset() + 1);
+					int end;
+					if (firstIteration) {
+						end = entry.getByteCodeOffset();
+						firstIteration = false;
+					}
+					else
+						end = start + entry.getByteCodeOffset() + 1;
 
-					if (ih.getPosition() >= start && ih.getPosition() < end)
-						entry.updateByteCodeOffset(ih.getInstruction().getLength());
-
-					start = end;
+					if (ih.getPosition() >= start && ih.getPosition() < end) {
+						int shift = ih.getInstruction().getLength();
+						entry.updateByteCodeOffset(shift);
+						start = end + shift;
+					}
+					else
+						start = end;
 				}
 
 				stackMap.setStackMap(entries);
