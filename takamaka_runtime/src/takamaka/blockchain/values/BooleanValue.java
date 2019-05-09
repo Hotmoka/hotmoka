@@ -12,6 +12,16 @@ public final class BooleanValue implements StorageValue {
 	private static final long serialVersionUID = -1793831545775110659L;
 
 	/**
+	 * The true Boolean value.
+	 */
+	public final static BooleanValue TRUE = new BooleanValue(true);
+
+	/**
+	 * The false Boolean value.
+	 */
+	public final static BooleanValue FALSE = new BooleanValue(false);
+
+	/**
 	 * The value.
 	 */
 	public final boolean value;
