@@ -15,11 +15,11 @@ public class CrowdFunding extends Contract {
 	}
 
 	public @Payable @Entry void contribute(int amount, int campaignID) {
-		campaigns.elementAt(campaignID).addFunder(caller(), amount);
+		campaigns.get(campaignID).addFunder(caller(), amount);
 	}
 
 	public boolean checkGoalReached(int campaignID) {
-		return campaigns.elementAt(campaignID).payIfGoalReached();
+		return campaigns.get(campaignID).payIfGoalReached();
 	}
 
 	private void pay(PayableContract whom, int amount) {

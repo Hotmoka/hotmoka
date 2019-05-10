@@ -74,7 +74,7 @@ public class BlindAuction extends Contract {
 
         int refund = 0;
         for (int i = 0; i < length; i++) {
-            Bid bid = bids.elementAt(i);
+            Bid bid = bids.get(i);
             int value = _values[i];
             boolean fake = _fake[i];
             byte[] secret = _secret[i];

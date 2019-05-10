@@ -11,7 +11,8 @@ import takamaka.lang.View;
 
 /**
  * A list of elements that can be kept in storage. It is possible to
- * add and access elements at both sides of the list.
+ * add and access elements at both sides of the list. This list can hold
+ * {@code null} elements.
  *
  * @param <E> the type of the elements. This type must be allowed in storage
  */
@@ -73,7 +74,7 @@ public class StorageList<E> extends Storage implements Iterable<E> {
 	/**
 	 * Adds the given element as first element of this list.
 	 * 
-	 * @param element the element
+	 * @param element the element, possibly {@code null}
 	 */
 	public void addFirst(E element) {
 		if (first == null)
@@ -87,7 +88,7 @@ public class StorageList<E> extends Storage implements Iterable<E> {
 	/**
 	 * Adds the given element as last element of this list.
 	 * 
-	 * @param element the element
+	 * @param element the element, possibly {@code null}
 	 */
 	public void addLast(E element) {
 		if (last == null)
@@ -102,7 +103,7 @@ public class StorageList<E> extends Storage implements Iterable<E> {
 	 * Adds the given element as first element of this list.
 	 * This is synonym of {@link takamaka.util.StorageList#addFirst(Object)}.
 	 * 
-	 * @param element the element
+	 * @param element the element, possibly {@code null}
 	 */
 	public void add(E element) {
 		addLast(element);
@@ -139,6 +140,57 @@ public class StorageList<E> extends Storage implements Iterable<E> {
 	}
 
 	/**
+	 * Removes the first occurrence of the specified element from this list, if it is present.
+	 * If this list does not contain the element, it is unchanged. More formally, removes
+	 * the element with the lowest index {@code i} such that
+	 * {@code e==null ? get(i)==null : e.equals(get(i))}
+	 * (if such an element exists). Returns true if this list contained the specified
+	 * element (or equivalently, if this list changed as a result of the call).
+	 * 
+	 * @param e the element to remove, possibly {@code null}
+	 * @return true if and only if the list was modified as result of this call
+	 */
+	public boolean remove(Object e) {
+		for (Node<E> cursor = first, previous = null; cursor != null; previous = cursor, cursor = cursor.next) {
+			E element = cursor.element;
+			if (e == null ? element == null : e.equals(element)) {
+				if (last == cursor)
+					last = previous;
+
+				if (first == cursor)
+					first = cursor.next;
+
+				if (previous != null)
+					previous.next = cursor.next;
+
+				size--;
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns true if this list contains the specified element. More formally, returns true
+	 * if and only if this list contains at least one element {@code e} such that
+	 * {@code (o==null ? e==null : o.equals(e))}.
+	 *
+	 * @param e element whose presence in this list is to be tested, possibly {@code null}
+	 * @return true if and only if this list contains the specified element
+	 */
+	public @View boolean contains(Object e) {
+		for (Node<E> cursor = first; cursor != null; cursor = cursor.next) {
+			E element = cursor.element;
+			if (e == null ? element == null : e.equals(element))
+				return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Yields the first element of this list, if any.
 	 * 
 	 * @return the first element
@@ -167,31 +219,26 @@ public class StorageList<E> extends Storage implements Iterable<E> {
 	/**
 	 * Yields the element of this list at position {@code index}.
 	 * 
-	 * @param index the index of the element, starting at 0
-	 * @return the element at the given element
+	 * @param index the index of the element, between 0 (inclusive) and {@code size() - 1} (exclusive)
+	 * @return the element at the given index
 	 * @throws IndexOutOfBoundsException if the index is negative or equal or greater than
 	 *                                   the size of this list
 	 */
-	public @View E elementAt(int index) {
-		if (index < 0)
+	public @View E get(int index) {
+		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException(String.valueOf(index));
 
 		Node<E> cursor = first;
-		int indexCopy = index;
-		while (indexCopy-- > 0) {
-			if (cursor == null)
-				throw new IndexOutOfBoundsException(String.valueOf(index));
-
+		for (int indexCopy = index; indexCopy > 0; indexCopy--)
 			cursor = cursor.next;
-		}
 
 		return cursor.element;
 	}
 
 	/**
-	 * The size of this list.
+	 * Yields the size of this list.
 	 * 
-	 * @return the size
+	 * @return the size of this list
 	 */
 	public @View int size() {
 		return size;
@@ -239,7 +286,7 @@ public class StorageList<E> extends Storage implements Iterable<E> {
 	}
 
 	/**
-	 * Yields an ordered stream of the elements of this list.
+	 * Yields an ordered (first to last) stream of the elements of this list.
 	 * 
 	 * @return the stream
 	 */

@@ -18,7 +18,7 @@ public class GameteCreationTransactionRequest implements TransactionRequest {
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must
-	 * have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(Path, Classpath...)}.
+	 * have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}.
 	 */
 	public final Classpath classpath;
 
@@ -32,7 +32,7 @@ public class GameteCreationTransactionRequest implements TransactionRequest {
 	 * Builds the transaction request.
 	 * 
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
-	 *                  have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(Path, Classpath...)}
+	 *                  have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}
 	 * @param initialAmount the amount of coin provided to the gamete
 	 */
 	public GameteCreationTransactionRequest(Classpath classpath, BigInteger initialAmount) {

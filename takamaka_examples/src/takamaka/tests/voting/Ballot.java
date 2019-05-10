@@ -46,7 +46,7 @@ public class Ballot extends Contract {
 	}
 
 	public @Entry void voteFor(int proposalIndex) {
-		getVotingPaperFor(caller()).voteFor(proposals.elementAt(proposalIndex));
+		getVotingPaperFor(caller()).voteFor(proposals.get(proposalIndex));
     }
 
 	public String winnerName() {
