@@ -1,7 +1,6 @@
 package takamaka.blockchain.request;
 
 import java.math.BigInteger;
-import java.nio.file.Path;
 
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;

@@ -1,9 +1,13 @@
 package takamaka.util;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import takamaka.lang.Storage;
 
@@ -47,30 +51,49 @@ import takamaka.lang.Storage;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  * @param <K> the type of the keys
- * @param <E> the type of the elements
+ * @param <V> the type of the elements
  */
 
-public class StorageMap<K,E> extends Storage {
+public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entry<K,V>> {
 
     private static final boolean RED   = true;
     private static final boolean BLACK = false;
 
     private Node root;     // root of the BST
 
-    // BST helper node data type
-    private class Node extends Storage {
+    /***************************************************************************
+	*  Ordered symbol table methods.
+	***************************************************************************/
+	
+	public interface Entry<K,V> {
+		K getKey();
+		V getValue();
+	}
+
+	// BST helper node data type
+    private class Node extends Storage implements Entry<K,V> {
         private K key;           // key
-        private E val;         // associated data
+        private V value;         // associated data
         private Node left, right;  // links to left and right subtrees
         private boolean color;     // color of parent link
         private int size;          // subtree count
 
-        private Node(K key, E val, boolean color, int size) {
+        private Node(K key, V value, boolean color, int size) {
             this.key = key;
-            this.val = val;
+            this.value = value;
             this.color = color;
             this.size = size;
         }
+
+		@Override
+		public K getKey() {
+			return key;
+		}
+
+		@Override
+		public V getValue() {
+			return value;
+		}
     }
 
     /**
@@ -131,50 +154,50 @@ public class StorageMap<K,E> extends Storage {
      *     and {@code null} if the key is not in the symbol table
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
-    public E get(K key) {
+    public V get(K key) {
         if (key == null) throw new IllegalArgumentException("argument to get() is null");
         return get(root, key);
     }
 
     // value associated with the given key in subtree rooted at x; null if no such key
-    private E get(Node x, K key) {
+    private V get(Node x, K key) {
         while (x != null) {
             int cmp = compareTo(key, x.key);
             if      (cmp < 0) x = x.left;
             else if (cmp > 0) x = x.right;
-            else              return x.val;
+            else              return x.value;
         }
         return null;
     }
 
-    public E get(K key, E _default) {
+    public V get(K key, V _default) {
     	if (key == null) throw new IllegalArgumentException("argument to get() is null");
         return get(root, key, _default);
     }
 
     // value associated with the given key in subtree rooted at x; _default if no such key
-    private E get(Node x, K key, E _default) {
+    private V get(Node x, K key, V _default) {
     	while (x != null) {
             int cmp = compareTo(key, x.key);
             if      (cmp < 0) x = x.left;
             else if (cmp > 0) x = x.right;
-            else              return x.val;
+            else              return x.value;
         }
         return _default;
     }
 
-    public E get(K key, Supplier<E> _default) {
+    public V get(K key, Supplier<V> _default) {
 		if (key == null) throw new IllegalArgumentException("argument to get() is null");
 	    return get(root, key, _default);
 	}
 
 	// value associated with the given key in subtree rooted at x; uses provider if no such key
-    private E get(Node x, K key, Supplier<E> _default) {
+    private V get(Node x, K key, Supplier<V> _default) {
         while (x != null) {
             int cmp = compareTo(key, x.key);
             if      (cmp < 0) x = x.left;
             else if (cmp > 0) x = x.right;
-            else              return x.val;
+            else              return x.value;
         }
         return _default.get();
     }
@@ -205,7 +228,7 @@ public class StorageMap<K,E> extends Storage {
      * @param val the value
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
-    public void put(K key, E val) {
+    public void put(K key, V val) {
         if (key == null) throw new IllegalArgumentException("first argument to put() is null");
         if (val == null) {
             delete(key);
@@ -218,13 +241,13 @@ public class StorageMap<K,E> extends Storage {
     }
 
     // insert the key-value pair in the subtree rooted at h
-    private Node put(Node h, K key, E val) { 
+    private Node put(Node h, K key, V val) { 
         if (h == null) return new Node(key, val, RED, 1);
 
         int cmp = compareTo(key, h.key);
         if      (cmp < 0) h.left  = put(h.left,  key, val); 
         else if (cmp > 0) h.right = put(h.right, key, val); 
-        else              h.val   = val;
+        else              h.value   = val;
 
         // fix-up any right-leaning links
         if (isRed(h.right) && !isRed(h.left))      h = rotateLeft(h);
@@ -341,7 +364,7 @@ public class StorageMap<K,E> extends Storage {
             if (compareTo(key, h.key) == 0) {
                 Node x = min(h.right);
                 h.key = x.key;
-                h.val = x.val;
+                h.value = x.value;
                 // h.val = get(h.right, min(h.right).key);
                 // h.key = min(h.right).key;
                 h.right = deleteMin(h.right);
@@ -432,11 +455,7 @@ public class StorageMap<K,E> extends Storage {
         return h;
     }
 
-   /***************************************************************************
-    *  Ordered symbol table methods.
-    ***************************************************************************/
-
-    /**
+   /**
      * Returns the smallest key in the symbol table.
      * @return the smallest key in the symbol table
      * @throws NoSuchElementException if the symbol table is empty
@@ -578,7 +597,7 @@ public class StorageMap<K,E> extends Storage {
 	 * @param key the key whose value must be replaced
 	 * @param how the replacement function
 	 */
-	public void update(K key, UnaryOperator<E> how) {
+	public void update(K key, UnaryOperator<V> how) {
 		//TODO: optimize
 		put(key, how.apply(get(key)));
 	}
@@ -591,7 +610,7 @@ public class StorageMap<K,E> extends Storage {
 	 * @param _default the default value
 	 * @param how the replacement function
 	 */
-	public void update(K key, E _default, UnaryOperator<E> how) {
+	public void update(K key, V _default, UnaryOperator<V> how) {
 		//TODO: optimize
 		put(key, how.apply(get(key, _default)));
 	}
@@ -604,31 +623,78 @@ public class StorageMap<K,E> extends Storage {
 	 * @param _default the provider of the default value
 	 * @param how the replacement function
 	 */
-	public void update(K key, Supplier<E> _default, UnaryOperator<E> how) {
+	public void update(K key, Supplier<V> _default, UnaryOperator<V> how) {
 		//TODO: optimize
 		put(key, how.apply(get(key, _default)));
 	}
 
-	public E computeIfAbsent(K key, Supplier<E> supplier) {
-		if (key == null) throw new IllegalArgumentException("argument to get() is null");
+	public V putIfAbsent(K key, V value) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 
 		//TODO: optimize
-		E result = get(key);
+		V result = get(key);
+		if (result == null)
+			put(key, value);
+
+		return result;
+	}
+
+	public V computeIfAbsent(K key, Supplier<V> supplier) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+
+		//TODO: optimize
+		V result = get(key);
 		if (result == null)
 			put(key, result = supplier.get());
 
 		return result;
 	}
 
-	public E computeIfAbsent(K key, Function<K,E> supplier) {
-		if (key == null) throw new IllegalArgumentException("argument to get() is null");
+	public V computeIfAbsent(K key, Function<K,V> supplier) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 
 		//TODO: optimize
-		E result = get(key);
+		V result = get(key);
 		if (result == null)
 			put(key, result = supplier.apply(key));
 
 		return result;
+	}
+
+	public Iterator<Entry<K,V>> iterator() {
+		return new StorageMapIterator<K,V>(root);
+	}
+
+	private static class StorageMapIterator<K,V> implements Iterator<Entry<K,V>> {
+		// the path under enumeration; it holds that the left children
+		// have already been enumerated
+		private LinkedList<StorageMap<K,V>.Node> stack = new LinkedList<>();
+
+		private StorageMapIterator(StorageMap<K,V>.Node root) {
+			// initially, the stack contains the leftmost path of the tree
+			for (StorageMap<K,V>.Node cursor = root; cursor != null; cursor = cursor.left)
+				stack.add(cursor);
+		}
+
+		@Override
+		public boolean hasNext() {
+			return !stack.isEmpty();
+		}
+
+		@Override
+		public Entry<K, V> next() {
+			StorageMap<K,V>.Node topmost = stack.removeLast();
+
+			// we add the leftmost path of the right child of topmost
+			for (StorageMap<K,V>.Node cursor = topmost.right; cursor != null; cursor = cursor.left)
+				stack.add(cursor);
+
+			return topmost;
+		}
+	}
+
+	public Stream<Entry<K,V>> stream() {
+		return StreamSupport.stream(spliterator(), false);
 	}
 
 	/***************************************************************************
