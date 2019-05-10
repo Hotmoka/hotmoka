@@ -1,7 +1,8 @@
 package takamaka.util;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -55,35 +56,45 @@ import takamaka.lang.Storage;
  */
 
 public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entry<K,V>> {
+	private static final boolean RED   = true;
+	private static final boolean BLACK = false;
 
-    private static final boolean RED   = true;
-    private static final boolean BLACK = false;
+	/**
+	 * The root of the tree.
+	 */
+	private Node<K,V> root;
 
-    private Node root;     // root of the BST
-
-    /***************************************************************************
-	*  Ordered symbol table methods.
-	***************************************************************************/
-	
+	/**
+	 * A key/value pair.
+	 *
+	 * @param <K> the type of the keys
+	 * @param <V> the type of the values
+	 */
 	public interface Entry<K,V> {
 		K getKey();
 		V getValue();
 	}
 
-	// BST helper node data type
-    private class Node extends Storage implements Entry<K,V> {
-        private K key;           // key
-        private V value;         // associated data
-        private Node left, right;  // links to left and right subtrees
-        private boolean color;     // color of parent link
-        private int size;          // subtree count
+	/**
+	 * A node of the binary search tree that implements the map.
+	 */
+	private static class Node<K,V> extends Storage implements Entry<K,V> {
+		private K key;
+		private V value;
+		private Node<K,V> left, right;
+		private boolean color;
 
-        private Node(K key, V value, boolean color, int size) {
-            this.key = key;
-            this.value = value;
-            this.color = color;
-            this.size = size;
-        }
+		/**
+		 * Count of the subtree nodes.
+		 */
+		private int size;
+
+		private Node(K key, V value, boolean color, int size) {
+			this.key = key;
+			this.value = value;
+			this.color = color;
+			this.size = size;
+		}
 
 		@Override
 		public K getKey() {
@@ -94,502 +105,526 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 		public V getValue() {
 			return value;
 		}
-    }
+	}
 
-    /**
-     * Builds an empty map.
-     */
-    public StorageMap() {
-    }
+	/**
+	 * Builds an empty map.
+	 */
+	public StorageMap() {}
 
-   /***************************************************************************
-    *  Node helper methods.
-    ***************************************************************************/
-    // is node x red; false if x is null ?
-    private boolean isRed(Node x) {
-        if (x == null) return false;
-        return x.color == RED;
-    }
+	/**
+	 * Determines if the given node is red.
+	 * 
+	 * @param x the node
+	 * @return true if and only if {@code x} is red
+	 */
+	private static <K,V> boolean isRed(Node<K,V> x) {
+		return x != null && x.color == RED;
+	}
 
-    // number of node in subtree rooted at x; 0 if x is null
-    private int size(Node x) {
-        if (x == null) return 0;
-        return x.size;
-    } 
+	/**
+	 * Determines if the given node is black.
+	 * 
+	 * @param x the node
+	 * @return true if and only if {@code x} is black
+	 */
+	private static <K,V> boolean isBlack(Node<K,V> x) {
+		return x == null || x.color == BLACK;
+	}
 
-    /**
-     * Returns the number of key-value pairs in this symbol table.
-     * 
-     * @return the number of key-value pairs in this symbol table
-     */
-    public int size() {
-        return size(root);
-    }
+	/**
+	 * Yields the number of nodes in the subtree rooted at x.
+	 * 
+	 * @param x the root of the subtree
+	 * @return the number of nodes. Yields 0 if {@code x} is {@code null}
+	 */
+	private static <K,V> int size(Node<K,V> x) {
+		if (x == null) return 0;
+		return x.size;
+	}
 
-   /**
-     * Determines if this symbol table empty.
-     * 
-     * @return {@code true} if and only if this symbol table is empty
-     */
-    public boolean isEmpty() {
-        return root == null;
-    }
+	/**
+	 * Returns the number of key-value pairs in this symbol table.
+	 * 
+	 * @return the number of key-value pairs in this symbol table
+	 */
+	public int size() {
+		return size(root);
+	}
 
-    @SuppressWarnings("unchecked")
+	/**
+	 * Determines if this symbol table empty.
+	 * 
+	 * @return {@code true} if and only if this symbol table is empty
+	 */
+	public boolean isEmpty() {
+		return root == null;
+	}
+
+	@SuppressWarnings("unchecked")
 	private static <K> int compareTo(K key1, K key2) {
-    	if (key1 instanceof Comparable<?>)
-    		return ((Comparable<K>) key1).compareTo(key2);
-    	else
-    		return ((Storage) key1).compareAge((Storage) key2);
-    }
+		if (key1 instanceof Comparable<?>)
+			return ((Comparable<K>) key1).compareTo(key2);
+		else
+			return ((Storage) key1).compareAge((Storage) key2);
+	}
 
-   /***************************************************************************
-    *  Standard BST search.
-    ***************************************************************************/
+	/**
+	 * Returns the value associated with the given key, if any.
+	 * 
+	 * @param key the key
+	 * @return the value associated with the given key if the key is in the symbol table
+	 *         and {@code null} if the key is not in the symbol table
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 */
+	public V get(Object key) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+		return get(root, key);
+	}
 
-    /**
-     * Returns the value associated with the given key.
-     * @param key the key
-     * @return the value associated with the given key if the key is in the symbol table
-     *     and {@code null} if the key is not in the symbol table
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public V get(K key) {
-        if (key == null) throw new IllegalArgumentException("argument to get() is null");
-        return get(root, key);
-    }
+	/**
+	 * Yields the value associated with the given key in subtree rooted at x;
+	 * 
+	 * @param x the root of the subtree
+	 * @param key the key
+	 * @return the value. Yields {@code null} if the key is not found
+	 */
+	private static <K,V> V get(Node<K,V> x, Object key) {
+		while (x != null) {
+			int cmp = compareTo(key, x.key);
+			if      (cmp < 0) x = x.left;
+			else if (cmp > 0) x = x.right;
+			else              return x.value;
+		}
+		return null;
+	}
 
-    // value associated with the given key in subtree rooted at x; null if no such key
-    private V get(Node x, K key) {
-        while (x != null) {
-            int cmp = compareTo(key, x.key);
-            if      (cmp < 0) x = x.left;
-            else if (cmp > 0) x = x.right;
-            else              return x.value;
-        }
-        return null;
-    }
+	/**
+	 * Returns the value associated with the given key.
+	 * 
+	 * @param key the key
+	 * @return the value associated with the given key if the key is in the symbol table.
+	 *         Yields {@code _default} if the key is not in the symbol table
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 */
+	public V getOrDefault(Object key, V _default) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+		return getOrDefault(root, key, _default);
+	}
 
-    public V get(K key, V _default) {
-    	if (key == null) throw new IllegalArgumentException("argument to get() is null");
-        return get(root, key, _default);
-    }
+	private static <K,V> V getOrDefault(Node<K,V> x, Object key, V _default) {
+		while (x != null) {
+			int cmp = compareTo(key, x.key);
+			if      (cmp < 0) x = x.left;
+			else if (cmp > 0) x = x.right;
+			else              return x.value;
+		}
+		return _default;
+	}
 
-    // value associated with the given key in subtree rooted at x; _default if no such key
-    private V get(Node x, K key, V _default) {
-    	while (x != null) {
-            int cmp = compareTo(key, x.key);
-            if      (cmp < 0) x = x.left;
-            else if (cmp > 0) x = x.right;
-            else              return x.value;
-        }
-        return _default;
-    }
-
-    public V get(K key, Supplier<V> _default) {
-		if (key == null) throw new IllegalArgumentException("argument to get() is null");
-	    return get(root, key, _default);
+	/**
+	 * Returns the value associated with the given key.
+	 * 
+	 * @param key the key
+	 * @return the value associated with the given key if the key is in the symbol table.
+	 *         Yields {@code _default.get()} if the key is not in the symbol table
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 */
+	public V getOrDefault(Object key, Supplier<V> _default) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+		return getOrDefault(root, key, _default);
 	}
 
 	// value associated with the given key in subtree rooted at x; uses provider if no such key
-    private V get(Node x, K key, Supplier<V> _default) {
-        while (x != null) {
-            int cmp = compareTo(key, x.key);
-            if      (cmp < 0) x = x.left;
-            else if (cmp > 0) x = x.right;
-            else              return x.value;
-        }
-        return _default.get();
-    }
+	private static <K,V> V getOrDefault(Node<K,V> x, Object key, Supplier<V> _default) {
+		while (x != null) {
+			int cmp = compareTo(key, x.key);
+			if      (cmp < 0) x = x.left;
+			else if (cmp > 0) x = x.right;
+			else              return x.value;
+		}
+		return _default.get();
+	}
 
-    /**
-     * Determines if this symbol table contain the given key.
-     * 
-     * @param key the key
-     * @return {@code true} if and only if this symbol table contains {@code key} and
-     *     {@code false} otherwise
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public boolean contains(K key) {
-        return get(key) != null;
-    }
+	/**
+	 * Determines if this symbol table contain the given key.
+	 * 
+	 * @param key the key
+	 * @return {@code true} if and only if this symbol table contains {@code key} and
+	 *     {@code false} otherwise
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 */
+	public boolean contains(Object key) {
+		return get(key) != null;
+	}
 
-   /***************************************************************************
-    *  Red-black tree insertion.
-    ***************************************************************************/
+	/**
+	 * Inserts the specified key-value pair into this symbol table, overwriting the old 
+	 * value with the new value if the symbol table already contains the specified key.
+	 * Deletes the specified key (and its associated value) from this symbol table
+	 * if the specified value is {@code null}.
+	 *
+	 * @param key the key
+	 * @param val the value
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 */
+	public void put(K key, V val) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+		if (val == null) {
+			remove(key);
+			return;
+		}
 
-    /**
-     * Inserts the specified key-value pair into this symbol table, overwriting the old 
-     * value with the new value if the symbol table already contains the specified key.
-     * Deletes the specified key (and its associated value) from this symbol table
-     * if the specified value is {@code null}.
-     *
-     * @param key the key
-     * @param val the value
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public void put(K key, V val) {
-        if (key == null) throw new IllegalArgumentException("first argument to put() is null");
-        if (val == null) {
-            delete(key);
-            return;
-        }
+		root = put(root, key, val);
+		root.color = BLACK;
+		// assert check();
+	}
 
-        root = put(root, key, val);
-        root.color = BLACK;
-        // assert check();
-    }
+	// insert the key-value pair in the subtree rooted at h
+	private static <K,V> Node<K,V> put(Node<K,V> h, K key, V val) { 
+		if (h == null) return new Node<>(key, val, RED, 1);
 
-    // insert the key-value pair in the subtree rooted at h
-    private Node put(Node h, K key, V val) { 
-        if (h == null) return new Node(key, val, RED, 1);
+		int cmp = compareTo(key, h.key);
+		if      (cmp < 0) h.left  = put(h.left,  key, val); 
+		else if (cmp > 0) h.right = put(h.right, key, val); 
+		else              h.value   = val;
 
-        int cmp = compareTo(key, h.key);
-        if      (cmp < 0) h.left  = put(h.left,  key, val); 
-        else if (cmp > 0) h.right = put(h.right, key, val); 
-        else              h.value   = val;
+		// fix-up any right-leaning links
+		if (isRed(h.right) && isBlack(h.left))      h = rotateLeft(h);
+		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
+		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+		h.size = size(h.left) + size(h.right) + 1;
 
-        // fix-up any right-leaning links
-        if (isRed(h.right) && !isRed(h.left))      h = rotateLeft(h);
-        if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
-        if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
-        h.size = size(h.left) + size(h.right) + 1;
+		return h;
+	}
 
-        return h;
-    }
+	/***************************************************************************
+	 *  Red-black tree deletion.
+	 ***************************************************************************/
 
-   /***************************************************************************
-    *  Red-black tree deletion.
-    ***************************************************************************/
+	/**
+	 * Removes the smallest key and associated value from the symbol table.
+	 * 
+	 * @throws NoSuchElementException if the symbol table is empty
+	 */
+	public void removeMin() {
+		if (isEmpty()) throw new NoSuchElementException();
 
-    /**
-     * Removes the smallest key and associated value from the symbol table.
-     * 
-     * @throws NoSuchElementException if the symbol table is empty
-     */
-    public void deleteMin() {
-        if (isEmpty()) throw new NoSuchElementException("empty map");
+		// if both children of root are black, set root to red
+		if (isBlack(root.left) && isBlack(root.right))
+			root.color = RED;
 
-        // if both children of root are black, set root to red
-        if (!isRed(root.left) && !isRed(root.right))
-            root.color = RED;
+		root = removeMin(root);
+		if (!isEmpty()) root.color = BLACK;
+		// assert check();
+	}
 
-        root = deleteMin(root);
-        if (!isEmpty()) root.color = BLACK;
-        // assert check();
-    }
+	// delete the key-value pair with the minimum key rooted at h
+	private static <K,V> Node<K,V> removeMin(Node<K,V> h) { 
+		if (h.left == null)
+			return null;
 
-    // delete the key-value pair with the minimum key rooted at h
-    private Node deleteMin(Node h) { 
-        if (h.left == null)
-            return null;
+		if (isBlack(h.left) && isBlack(h.left.left))
+			h = moveRedLeft(h);
 
-        if (!isRed(h.left) && !isRed(h.left.left))
-            h = moveRedLeft(h);
-
-        h.left = deleteMin(h.left);
-        return balance(h);
-    }
+		h.left = removeMin(h.left);
+		return balance(h);
+	}
 
 
-    /**
-     * Removes the largest key and associated value from the symbol table.
-     * 
-     * @throws NoSuchElementException if the symbol table is empty
-     */
-    public void deleteMax() {
-        if (isEmpty()) throw new NoSuchElementException("empty map");
+	/**
+	 * Removes the largest key and associated value from the symbol table.
+	 * 
+	 * @throws NoSuchElementException if the symbol table is empty
+	 */
+	public void removeMax() {
+		if (isEmpty()) throw new NoSuchElementException();
 
-        // if both children of root are black, set root to red
-        if (!isRed(root.left) && !isRed(root.right))
-            root.color = RED;
+		// if both children of root are black, set root to red
+		if (isBlack(root.left) && isBlack(root.right))
+			root.color = RED;
 
-        root = deleteMax(root);
-        if (!isEmpty()) root.color = BLACK;
-        // assert check();
-    }
+		root = removeMax(root);
+		if (!isEmpty()) root.color = BLACK;
+		// assert check();
+	}
 
-    // delete the key-value pair with the maximum key rooted at h
-    private Node deleteMax(Node h) { 
-        if (isRed(h.left))
-            h = rotateRight(h);
+	// delete the key-value pair with the maximum key rooted at h
+	private static <K,V> Node<K,V> removeMax(Node<K,V> h) { 
+		if (isRed(h.left))
+			h = rotateRight(h);
 
-        if (h.right == null)
-            return null;
+		if (h.right == null)
+			return null;
 
-        if (!isRed(h.right) && !isRed(h.right.left))
-            h = moveRedRight(h);
+		if (isBlack(h.right) && isBlack(h.right.left))
+			h = moveRedRight(h);
 
-        h.right = deleteMax(h.right);
+		h.right = removeMax(h.right);
 
-        return balance(h);
-    }
+		return balance(h);
+	}
 
-    /**
-     * Removes the specified key and its associated value from this symbol table     
-     * (if the key is in this symbol table).    
-     *
-     * @param  key the key
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public void delete(K key) { 
-        if (key == null) throw new IllegalArgumentException("argument to delete() is null");
-        if (!contains(key)) return;
+	/**
+	 * Removes the specified key and its associated value from this symbol table     
+	 * (if the key is in this symbol table).    
+	 *
+	 * @param  key the key
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 */
+	public void remove(Object key) { 
+		if (key == null) throw new IllegalArgumentException("key is null");
+		if (!contains(key)) return;
 
-        // if both children of root are black, set root to red
-        if (!isRed(root.left) && !isRed(root.right))
-            root.color = RED;
+		// if both children of root are black, set root to red
+		if (isBlack(root.left) && isBlack(root.right))
+			root.color = RED;
 
-        root = delete(root, key);
-        if (!isEmpty()) root.color = BLACK;
-        // assert check();
-    }
+		root = remove(root, key);
+		if (!isEmpty()) root.color = BLACK;
+		// assert check();
+	}
 
-    // delete the key-value pair with the given key rooted at h
-    private Node delete(Node h, K key) { 
-        // assert get(h, key) != null;
+	// delete the key-value pair with the given key rooted at h
+	private static <K,V> Node<K,V> remove(Node<K,V> h, Object key) { 
+		// assert get(h, key) != null;
 
-        if (compareTo(key, h.key) < 0)  {
-            if (!isRed(h.left) && !isRed(h.left.left))
-                h = moveRedLeft(h);
-            h.left = delete(h.left, key);
-        }
-        else {
-            if (isRed(h.left))
-                h = rotateRight(h);
-            if (compareTo(key, h.key) == 0 && (h.right == null))
-                return null;
-            if (!isRed(h.right) && !isRed(h.right.left))
-                h = moveRedRight(h);
-            if (compareTo(key, h.key) == 0) {
-                Node x = min(h.right);
-                h.key = x.key;
-                h.value = x.value;
-                // h.val = get(h.right, min(h.right).key);
-                // h.key = min(h.right).key;
-                h.right = deleteMin(h.right);
-            }
-            else h.right = delete(h.right, key);
-        }
-        return balance(h);
-    }
+		if (compareTo(key, h.key) < 0)  {
+			if (isBlack(h.left) && isBlack(h.left.left))
+				h = moveRedLeft(h);
+			h.left = remove(h.left, key);
+		}
+		else {
+			if (isRed(h.left))
+				h = rotateRight(h);
+			if (compareTo(key, h.key) == 0 && (h.right == null))
+				return null;
+			if (isBlack(h.right) && isBlack(h.right.left))
+				h = moveRedRight(h);
+			if (compareTo(key, h.key) == 0) {
+				Node<K,V> x = min(h.right);
+				h.key = x.key;
+				h.value = x.value;
+				h.right = removeMin(h.right);
+			}
+			else h.right = remove(h.right, key);
+		}
+		return balance(h);
+	}
 
-   /***************************************************************************
-    *  Red-black tree helper functions.
-    ***************************************************************************/
+	/***************************************************************************
+	 *  Red-black tree helper functions.
+	 ***************************************************************************/
 
-    // make a left-leaning link lean to the right
-    private Node rotateRight(Node h) {
-        // assert (h != null) && isRed(h.left);
-        Node x = h.left;
-        h.left = x.right;
-        x.right = h;
-        x.color = x.right.color;
-        x.right.color = RED;
-        x.size = h.size;
-        h.size = size(h.left) + size(h.right) + 1;
-        return x;
-    }
+	// make a left-leaning link lean to the right
+	private static <K,V> Node<K,V> rotateRight(Node<K,V> h) {
+		// assert (h != null) && isRed(h.left);
+		Node<K,V> x = h.left;
+		h.left = x.right;
+		x.right = h;
+		x.color = x.right.color;
+		x.right.color = RED;
+		x.size = h.size;
+		h.size = size(h.left) + size(h.right) + 1;
+		return x;
+	}
 
-    // make a right-leaning link lean to the left
-    private Node rotateLeft(Node h) {
-        // assert (h != null) && isRed(h.right);
-        Node x = h.right;
-        h.right = x.left;
-        x.left = h;
-        x.color = x.left.color;
-        x.left.color = RED;
-        x.size = h.size;
-        h.size = size(h.left) + size(h.right) + 1;
-        return x;
-    }
+	// make a right-leaning link lean to the left
+	private static <K,V> Node<K,V> rotateLeft(Node<K,V> h) {
+		// assert (h != null) && isRed(h.right);
+		Node<K,V> x = h.right;
+		h.right = x.left;
+		x.left = h;
+		x.color = x.left.color;
+		x.left.color = RED;
+		x.size = h.size;
+		h.size = size(h.left) + size(h.right) + 1;
+		return x;
+	}
 
-    // flip the colors of a node and its two children
-    private void flipColors(Node h) {
-        // h must have opposite color of its two children
-        // assert (h != null) && (h.left != null) && (h.right != null);
-        // assert (!isRed(h) &&  isRed(h.left) &&  isRed(h.right))
-        //    || (isRed(h)  && !isRed(h.left) && !isRed(h.right));
-        h.color = !h.color;
-        h.left.color = !h.left.color;
-        h.right.color = !h.right.color;
-    }
+	// flip the colors of a node and its two children
+	private static <K,V> void flipColors(Node<K,V> h) {
+		// h must have opposite color of its two children
+		// assert (h != null) && (h.left != null) && (h.right != null);
+		// assert (isBlack(h) &&  isRed(h.left) &&  isRed(h.right))
+		//    || (isRed(h)  && isBlack(h.left) && isBlack(h.right));
+		h.color = !h.color;
+		h.left.color = !h.left.color;
+		h.right.color = !h.right.color;
+	}
 
-    // Assuming that h is red and both h.left and h.left.left
-    // are black, make h.left or one of its children red.
-    private Node moveRedLeft(Node h) {
-        // assert (h != null);
-        // assert isRed(h) && !isRed(h.left) && !isRed(h.left.left);
+	// Assuming that h is red and both h.left and h.left.left
+	// are black, make h.left or one of its children red.
+	private static <K,V> Node<K,V> moveRedLeft(Node<K,V> h) {
+		// assert (h != null);
+		// assert isRed(h) && isBlack(h.left) && isBlack(h.left.left);
 
-        flipColors(h);
-        if (isRed(h.right.left)) { 
-            h.right = rotateRight(h.right);
-            h = rotateLeft(h);
-            flipColors(h);
-        }
-        return h;
-    }
+		flipColors(h);
+		if (isRed(h.right.left)) { 
+			h.right = rotateRight(h.right);
+			h = rotateLeft(h);
+			flipColors(h);
+		}
+		return h;
+	}
 
-    // Assuming that h is red and both h.right and h.right.left
-    // are black, make h.right or one of its children red.
-    private Node moveRedRight(Node h) {
-        // assert (h != null);
-        // assert isRed(h) && !isRed(h.right) && !isRed(h.right.left);
-        flipColors(h);
-        if (isRed(h.left.left)) { 
-            h = rotateRight(h);
-            flipColors(h);
-        }
-        return h;
-    }
+	// Assuming that h is red and both h.right and h.right.left
+	// are black, make h.right or one of its children red.
+	private static <K,V> Node<K,V> moveRedRight(Node<K,V> h) {
+		// assert (h != null);
+		// assert isRed(h) && isBlack(h.right) && isBlack(h.right.left);
+		flipColors(h);
+		if (isRed(h.left.left)) { 
+			h = rotateRight(h);
+			flipColors(h);
+		}
+		return h;
+	}
 
-    // restore red-black tree invariant
-    private Node balance(Node h) {
-        // assert (h != null);
+	// restore red-black tree invariant
+	private static <K,V> Node<K,V> balance(Node<K,V> h) {
+		// assert (h != null);
 
-        if (isRed(h.right))                      h = rotateLeft(h);
-        if (isRed(h.left) && isRed(h.left.left)) h = rotateRight(h);
-        if (isRed(h.left) && isRed(h.right))     flipColors(h);
+		if (isRed(h.right))                      h = rotateLeft(h);
+		if (isRed(h.left) && isRed(h.left.left)) h = rotateRight(h);
+		if (isRed(h.left) && isRed(h.right))     flipColors(h);
 
-        h.size = size(h.left) + size(h.right) + 1;
-        return h;
-    }
+		h.size = size(h.left) + size(h.right) + 1;
+		return h;
+	}
 
-   /**
-     * Returns the smallest key in the symbol table.
-     * @return the smallest key in the symbol table
-     * @throws NoSuchElementException if the symbol table is empty
-     */
-    public K min() {
-        if (isEmpty()) throw new NoSuchElementException("calls min() with empty symbol table");
-        return min(root).key;
-    } 
+	/**
+	 * Returns the smallest key in the symbol table.
+	 * @return the smallest key in the symbol table
+	 * @throws NoSuchElementException if the symbol table is empty
+	 */
+	public K min() {
+		if (isEmpty()) throw new NoSuchElementException("calls min() with empty symbol table");
+		return min(root).key;
+	} 
 
-    // the smallest key in subtree rooted at x; null if no such key
-    private Node min(Node x) { 
-        // assert x != null;
-        if (x.left == null) return x; 
-        else                return min(x.left); 
-    } 
+	// the smallest key in subtree rooted at x; null if no such key
+	private static <K,V> Node<K,V> min(Node<K,V> x) { 
+		// assert x != null;
+		if (x.left == null) return x; 
+		else                return min(x.left); 
+	} 
 
-    /**
-     * Returns the largest key in the symbol table.
-     * @return the largest key in the symbol table
-     * @throws NoSuchElementException if the symbol table is empty
-     */
-    public K max() {
-        if (isEmpty()) throw new NoSuchElementException("calls max() with empty symbol table");
-        return max(root).key;
-    } 
+	/**
+	 * Returns the largest key in the symbol table.
+	 * @return the largest key in the symbol table
+	 * @throws NoSuchElementException if the symbol table is empty
+	 */
+	public K max() {
+		if (isEmpty()) throw new NoSuchElementException("calls max() with empty symbol table");
+		return max(root).key;
+	} 
 
-    // the largest key in the subtree rooted at x; null if no such key
-    private Node max(Node x) { 
-        // assert x != null;
-        if (x.right == null) return x; 
-        else                 return max(x.right); 
-    } 
+	// the largest key in the subtree rooted at x; null if no such key
+	private static <K,V> Node<K,V> max(Node<K,V> x) { 
+		// assert x != null;
+		if (x.right == null) return x; 
+		else                 return max(x.right); 
+	}
 
+	/**
+	 * Returns the largest key in the symbol table less than or equal to {@code key}.
+	 * 
+	 * @param key the key
+	 * @return the largest key in the symbol table less than or equal to {@code key}
+	 * @throws NoSuchElementException if there is no such key
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 */
+	public K floorKey(K key) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+		if (isEmpty()) throw new NoSuchElementException();
+		Node<K,V> x = floorKey(root, key);
+		if (x == null) return null;
+		else           return x.key;
+	}    
 
-    /**
-     * Returns the largest key in the symbol table less than or equal to {@code key}.
-     * 
-     * @param key the key
-     * @return the largest key in the symbol table less than or equal to {@code key}
-     * @throws NoSuchElementException if there is no such key
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public K floor(K key) {
-        if (key == null) throw new IllegalArgumentException("argument to floor() is null");
-        if (isEmpty()) throw new NoSuchElementException("calls floor() with empty symbol table");
-        Node x = floor(root, key);
-        if (x == null) return null;
-        else           return x.key;
-    }    
+	// the largest key in the subtree rooted at x less than or equal to the given key
+	private static <K,V> Node<K,V> floorKey(Node<K,V> x, K key) {
+		if (x == null) return null;
+		int cmp = compareTo(key, x.key);
+		if (cmp == 0) return x;
+		if (cmp < 0)  return floorKey(x.left, key);
+		Node<K,V> t = floorKey(x.right, key);
+		if (t != null) return t; 
+		else           return x;
+	}
 
-    // the largest key in the subtree rooted at x less than or equal to the given key
-    private Node floor(Node x, K key) {
-        if (x == null) return null;
-        int cmp = compareTo(key, x.key);
-        if (cmp == 0) return x;
-        if (cmp < 0)  return floor(x.left, key);
-        Node t = floor(x.right, key);
-        if (t != null) return t; 
-        else           return x;
-    }
+	/**
+	 * Returns the smallest key in the symbol table greater than or equal to {@code key}.
+	 * 
+	 * @param key the key
+	 * @return the smallest key in the symbol table greater than or equal to {@code key}
+	 * @throws NoSuchElementException if there is no such key
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 */
+	public K ceilingKey(K key) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+		if (isEmpty()) throw new NoSuchElementException();
+		Node<K,V> x = ceilingKey(root, key);
+		if (x == null) return null;
+		else           return x.key;  
+	}
 
-    /**
-     * Returns the smallest key in the symbol table greater than or equal to {@code key}.
-     * 
-     * @param key the key
-     * @return the smallest key in the symbol table greater than or equal to {@code key}
-     * @throws NoSuchElementException if there is no such key
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public K ceiling(K key) {
-        if (key == null) throw new IllegalArgumentException("argument to ceiling() is null");
-        if (isEmpty()) throw new NoSuchElementException("calls ceiling() with empty symbol table");
-        Node x = ceiling(root, key);
-        if (x == null) return null;
-        else           return x.key;  
-    }
+	// the smallest key in the subtree rooted at x greater than or equal to the given key
+	private static <K,V> Node<K,V> ceilingKey(Node<K,V> x, K key) {  
+		if (x == null) return null;
+		int cmp = compareTo(key, x.key);
+		if (cmp == 0) return x;
+		if (cmp > 0)  return ceilingKey(x.right, key);
+		Node<K,V> t = ceilingKey(x.left, key);
+		if (t != null) return t; 
+		else           return x;
+	}
 
-    // the smallest key in the subtree rooted at x greater than or equal to the given key
-    private Node ceiling(Node x, K key) {  
-        if (x == null) return null;
-        int cmp = compareTo(key, x.key);
-        if (cmp == 0) return x;
-        if (cmp > 0)  return ceiling(x.right, key);
-        Node t = ceiling(x.left, key);
-        if (t != null) return t; 
-        else           return x;
-    }
+	/**
+	 * Returns the key in the symbol table whose rank is {@code k}.
+	 * This is the (k+1)st smallest key in the symbol table. 
+	 *
+	 * @param  k the order statistic
+	 * @return the key in the symbol table of rank {@code k}
+	 * @throws IllegalArgumentException unless {@code k} is between 0 and {@code size()-1}
+	 */
+	public K select(int k) {
+		if (k < 0 || k >= size()) throw new IllegalArgumentException("argument to select() is invalid: " + k);
+		return select(root, k).key;
+	}
 
-    /**
-     * Returns the key in the symbol table whose rank is {@code k}.
-     * This is the (k+1)st smallest key in the symbol table. 
-     *
-     * @param  k the order statistic
-     * @return the key in the symbol table of rank {@code k}
-     * @throws IllegalArgumentException unless {@code k} is between 0 and
-     *        <em>n</em>–1
-     */
-    public K select(int k) {
-        if (k < 0 || k >= size()) throw new IllegalArgumentException("argument to select() is invalid: " + k);
-        Node x = select(root, k);
-        return x.key;
-    }
+	// the key of rank k in the subtree rooted at x
+	private static <K,V> Node<K,V> select(Node<K,V> x, int k) {
+		// assert x != null;
+		// assert k >= 0 && k < size(x);
+		int t = size(x.left); 
+		if      (t > k) return select(x.left,  k); 
+		else if (t < k) return select(x.right, k-t-1); 
+		else            return x; 
+	} 
 
-    // the key of rank k in the subtree rooted at x
-    private Node select(Node x, int k) {
-        // assert x != null;
-        // assert k >= 0 && k < size(x);
-        int t = size(x.left); 
-        if      (t > k) return select(x.left,  k); 
-        else if (t < k) return select(x.right, k-t-1); 
-        else            return x; 
-    } 
+	/**
+	 * Returns the number of keys in the symbol table strictly less than {@code key}.
+	 * @param key the key
+	 * @return the number of keys in the symbol table strictly less than {@code key}
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 */
+	public int rank(K key) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+		return rank(key, root);
+	} 
 
-    /**
-     * Returns the number of keys in the symbol table strictly less than {@code key}.
-     * @param key the key
-     * @return the number of keys in the symbol table strictly less than {@code key}
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public int rank(K key) {
-        if (key == null) throw new IllegalArgumentException("argument to rank() is null");
-        return rank(key, root);
-    } 
+	// number of keys less than key in the subtree rooted at x
+	private static <K,V> int rank(K key, Node<K,V> x) {
+		if (x == null) return 0; 
+		int cmp = compareTo(key, x.key); 
+		if      (cmp < 0) return rank(key, x.left); 
+		else if (cmp > 0) return 1 + size(x.left) + rank(key, x.right); 
+		else              return size(x.left); 
+	} 
 
-    // number of keys less than key in the subtree rooted at x
-    private int rank(K key, Node x) {
-        if (x == null) return 0; 
-        int cmp = compareTo(key, x.key); 
-        if      (cmp < 0) return rank(key, x.left); 
-        else if (cmp > 0) return 1 + size(x.left) + rank(key, x.right); 
-        else              return size(x.left); 
-    } 
-
-    /**
+	/**
 	 * Replaces the old value {@code e} at {@code key} with {@code how.apply(e)}.
 	 * If {@code key} was unmapped, it will be replaced with {@code how.apply(null)},
 	 * which might well lead to a run-time exception.
@@ -612,7 +647,7 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	 */
 	public void update(K key, V _default, UnaryOperator<V> how) {
 		//TODO: optimize
-		put(key, how.apply(get(key, _default)));
+		put(key, how.apply(getOrDefault(key, _default)));
 	}
 
 	/**
@@ -625,12 +660,10 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	 */
 	public void update(K key, Supplier<V> _default, UnaryOperator<V> how) {
 		//TODO: optimize
-		put(key, how.apply(get(key, _default)));
+		put(key, how.apply(getOrDefault(key, _default)));
 	}
 
 	public V putIfAbsent(K key, V value) {
-		if (key == null) throw new IllegalArgumentException("key is null");
-
 		//TODO: optimize
 		V result = get(key);
 		if (result == null)
@@ -668,11 +701,11 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	private static class StorageMapIterator<K,V> implements Iterator<Entry<K,V>> {
 		// the path under enumeration; it holds that the left children
 		// have already been enumerated
-		private LinkedList<StorageMap<K,V>.Node> stack = new LinkedList<>();
+		private List<Node<K,V>> stack = new ArrayList<>();
 
-		private StorageMapIterator(StorageMap<K,V>.Node root) {
+		private StorageMapIterator(Node<K,V> root) {
 			// initially, the stack contains the leftmost path of the tree
-			for (StorageMap<K,V>.Node cursor = root; cursor != null; cursor = cursor.left)
+			for (Node<K,V> cursor = root; cursor != null; cursor = cursor.left)
 				stack.add(cursor);
 		}
 
@@ -683,10 +716,10 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 
 		@Override
 		public Entry<K, V> next() {
-			StorageMap<K,V>.Node topmost = stack.removeLast();
+			Node<K,V> topmost = stack.remove(stack.size() - 1);
 
 			// we add the leftmost path of the right child of topmost
-			for (StorageMap<K,V>.Node cursor = topmost.right; cursor != null; cursor = cursor.left)
+			for (Node<K,V> cursor = topmost.right; cursor != null; cursor = cursor.left)
 				stack.add(cursor);
 
 			return topmost;
@@ -697,78 +730,24 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 		return StreamSupport.stream(spliterator(), false);
 	}
 
-	/***************************************************************************
-    *  Range count and range search.
-    ***************************************************************************/
+	/**
+	 * Yields the keys of this map, in increasing order.
+	 * 
+	 * @return the keys
+	 */
+	public List<K> keyList() {
+		List<K> keys = new ArrayList<>();
+		if (root != null)
+			keyList(root, keys);
+		return keys;
+	}
 
-    /**
-     * Returns all keys in the symbol table as an {@code Iterable}.
-     * To iterate over all of the keys in the symbol table named {@code st},
-     * use the foreach notation: {@code for (Key key : st.keys())}.
-     * @return all keys in the symbol table as an {@code Iterable}
-     */
+	private static <K,V> void keyList(Node<K,V> x, List<K> keys) {
+		if (x.left != null)
+			keyList(x.left, keys);
 
-    /*
-    public Iterable<Key> keys() {
-        if (isEmpty()) return new Queue<Key>();
-        return keys(min(), max());
-    }
-	*/
-
-    /**
-     * Returns all keys in the symbol table in the given range,
-     * as an {@code Iterable}.
-     *
-     * @param  lo minimum endpoint
-     * @param  hi maximum endpoint
-     * @return all keys in the sybol table between {@code lo} 
-     *    (inclusive) and {@code hi} (inclusive) as an {@code Iterable}
-     * @throws IllegalArgumentException if either {@code lo} or {@code hi}
-     *    is {@code null}
-     */
-    /*
-    public Iterable<Key> keys(Key lo, Key hi) {
-        if (lo == null) throw new IllegalArgumentException("first argument to keys() is null");
-        if (hi == null) throw new IllegalArgumentException("second argument to keys() is null");
-
-        Queue<Key> queue = new Queue<Key>();
-        // if (isEmpty() || lo.compareTo(hi) > 0) return queue;
-        keys(root, queue, lo, hi);
-        return queue;
-    }
-    */
-
-    // add the keys between lo and hi in the subtree rooted at x
-    // to the queue
-    /*
-    private void keys(Node x, Queue<Key> queue, Key lo, Key hi) { 
-        if (x == null) return; 
-        int cmplo = lo.compareTo(x.key); 
-        int cmphi = hi.compareTo(x.key); 
-        if (cmplo < 0) keys(x.left, queue, lo, hi); 
-        if (cmplo <= 0 && cmphi >= 0) queue.enqueue(x.key); 
-        if (cmphi > 0) keys(x.right, queue, lo, hi); 
-    }
-    */
-
-    /**
-     * Returns the number of keys in the symbol table in the given range.
-     *
-     * @param  lo minimum endpoint
-     * @param  hi maximum endpoint
-     * @return the number of keys in the sybol table between {@code lo} 
-     *    (inclusive) and {@code hi} (inclusive)
-     * @throws IllegalArgumentException if either {@code lo} or {@code hi}
-     *    is {@code null}
-     */
-    /*
-    public int size(Key lo, Key hi) {
-        if (lo == null) throw new IllegalArgumentException("first argument to size() is null");
-        if (hi == null) throw new IllegalArgumentException("second argument to size() is null");
-
-        if (lo.compareTo(hi) > 0) return 0;
-        if (contains(hi)) return rank(hi) - rank(lo) + 1;
-        else              return rank(hi) - rank(lo);
-    }
-    */
+		keys.add(x.key);
+		if (x.right != null)
+			keyList(x.right, keys);
+	}
 }
