@@ -618,8 +618,26 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	 * @param how the replacement function
 	 */
 	public void update(K key, UnaryOperator<V> how) {
-		//TODO: optimize
-		put(key, how.apply(get(key)));
+		if (key == null) throw new IllegalArgumentException("key is null");
+		root = update(root, key, how);
+		root.color = BLACK;
+	}
+
+	private static <K,V> Node<K,V> update(Node<K,V> h, K key, UnaryOperator<V> how) { 
+		if (h == null) return new Node<>(key, how.apply(null), RED, 1);
+
+		int cmp = compareTo(key, h.key);
+		if      (cmp < 0) h.left  = update(h.left,  key, how); 
+		else if (cmp > 0) h.right = update(h.right, key, how); 
+		else              h.value = how.apply(h.value);
+
+		// fix-up any right-leaning links
+		if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
+		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
+		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+		h.size = size(h.left) + size(h.right) + 1;
+
+		return h;
 	}
 
 	/**
@@ -631,8 +649,29 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	 * @param how the replacement function
 	 */
 	public void update(K key, V _default, UnaryOperator<V> how) {
-		//TODO: optimize
-		put(key, how.apply(getOrDefault(key, _default)));
+		if (key == null) throw new IllegalArgumentException("key is null");
+		root = update(root, key, _default, how);
+		root.color = BLACK;
+	}
+
+	private static <K,V> Node<K,V> update(Node<K,V> h, K key, V _default, UnaryOperator<V> how) { 
+		if (h == null) return new Node<>(key, how.apply(_default), RED, 1);
+
+		int cmp = compareTo(key, h.key);
+		if      (cmp < 0) h.left  = update(h.left, key, _default, how); 
+		else if (cmp > 0) h.right = update(h.right, key, _default, how); 
+		else if (h.value == null)
+			h.value = how.apply(_default);
+		else
+			h.value = how.apply(h.value);
+
+		// fix-up any right-leaning links
+		if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
+		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
+		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+		h.size = size(h.left) + size(h.right) + 1;
+
+		return h;
 	}
 
 	/**
@@ -644,8 +683,29 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	 * @param how the replacement function
 	 */
 	public void update(K key, Supplier<V> _default, UnaryOperator<V> how) {
-		//TODO: optimize
-		put(key, how.apply(getOrDefault(key, _default)));
+		if (key == null) throw new IllegalArgumentException("key is null");
+		root = update(root, key, _default, how);
+		root.color = BLACK;
+	}
+
+	private static <K,V> Node<K,V> update(Node<K,V> h, K key, Supplier<V> _default, UnaryOperator<V> how) { 
+		if (h == null) return new Node<>(key, how.apply(_default.get()), RED, 1);
+
+		int cmp = compareTo(key, h.key);
+		if      (cmp < 0) h.left  = update(h.left, key, _default, how); 
+		else if (cmp > 0) h.right = update(h.right, key, _default, how); 
+		else if (h.value == null)
+			h.value = how.apply(_default.get());
+		else
+			h.value = how.apply(h.value);
+
+		// fix-up any right-leaning links
+		if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
+		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
+		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+		h.size = size(h.left) + size(h.right) + 1;
+
+		return h;
 	}
 
 	/**
@@ -657,12 +717,46 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	 *         or was mapped to {@code null}
 	 */
 	public V putIfAbsent(K key, V value) {
-		//TODO: optimize
-		V result = get(key);
-		if (result == null)
-			put(key, value);
+		if (key == null) throw new IllegalArgumentException("key is null");
 
-		return result;
+		class PutIfAbsent {
+			private V result;
+
+			private Node<K,V> putIfAbsent(Node<K,V> h) {
+				// not found: result remains null
+				if (h == null)
+					// not found
+					return new Node<>(key, value, RED, 1);
+
+				int cmp = compareTo(key, h.key);
+				if      (cmp < 0) h.left  = putIfAbsent(h.left);
+				else if (cmp > 0) h.right = putIfAbsent(h.right);
+				else if (h.value == null) {
+					// found but was bound to null: result remains null
+					h.value = value;
+					return h;
+				}
+				else {
+					// found and was bound to a non-null value
+					result = h.value;
+					return h;
+				}
+
+				// fix-up any right-leaning links
+				if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
+				if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
+				if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+				h.size = size(h.left) + size(h.right) + 1;
+
+				return h;
+			}
+		}
+
+		PutIfAbsent pia = new PutIfAbsent();
+		root = pia.putIfAbsent(root);
+		root.color = BLACK;
+
+		return pia.result;
 	}
 
 	/**
@@ -676,12 +770,43 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	public V computeIfAbsent(K key, Supplier<V> supplier) {
 		if (key == null) throw new IllegalArgumentException("key is null");
 
-		//TODO: optimize
-		V result = get(key);
-		if (result == null)
-			put(key, result = supplier.get());
+		class ComputeIfAbsent {
+			private V result;
 
-		return result;
+			private Node<K,V> computeIfAbsent(Node<K,V> h) { 
+				if (h == null)
+					// not found
+					return new Node<>(key, result = supplier.get(), RED, 1);
+
+				int cmp = compareTo(key, h.key);
+				if      (cmp < 0) h.left  = computeIfAbsent(h.left);
+				else if (cmp > 0) h.right = computeIfAbsent(h.right);
+				else if (h.value == null) {
+					// found but was bound to null
+					result = h.value = supplier.get();
+					return h;
+				}
+				else {
+					// found and was bound to a non-null value
+					result = h.value;
+					return h;
+				}
+
+				// fix-up any right-leaning links
+				if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
+				if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
+				if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+				h.size = size(h.left) + size(h.right) + 1;
+
+				return h;
+			}
+		}
+
+		ComputeIfAbsent cia = new ComputeIfAbsent();
+		root = cia.computeIfAbsent(root);
+		root.color = BLACK;
+
+		return cia.result;
 	}
 
 	/**
@@ -695,12 +820,43 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	public V computeIfAbsent(K key, Function<K,V> supplier) {
 		if (key == null) throw new IllegalArgumentException("key is null");
 
-		//TODO: optimize
-		V result = get(key);
-		if (result == null)
-			put(key, result = supplier.apply(key));
+		class ComputeIfAbsent {
+			private V result;
 
-		return result;
+			private Node<K,V> computeIfAbsent(Node<K,V> h) { 
+				if (h == null)
+					// not found
+					return new Node<>(key, result = supplier.apply(key), RED, 1);
+
+				int cmp = compareTo(key, h.key);
+				if      (cmp < 0) h.left  = computeIfAbsent(h.left);
+				else if (cmp > 0) h.right = computeIfAbsent(h.right);
+				else if (h.value == null) {
+					// found but was bound to null
+					result = h.value = supplier.apply(key);
+					return h;
+				}
+				else {
+					// found and was bound to a non-null value
+					result = h.value;
+					return h;
+				}
+
+				// fix-up any right-leaning links
+				if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
+				if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
+				if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+				h.size = size(h.left) + size(h.right) + 1;
+
+				return h;
+			}
+		}
+
+		ComputeIfAbsent cia = new ComputeIfAbsent();
+		root = cia.computeIfAbsent(root);
+		root.color = BLACK;
+
+		return cia.result;
 	}
 
 	@Override
