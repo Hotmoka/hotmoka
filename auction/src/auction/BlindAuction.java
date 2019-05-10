@@ -49,7 +49,7 @@ public class BlindAuction extends Contract {
     /// still make the required deposit. The same address can place multiple bids.
     public @Payable @Entry(PayableContract.class) void bid(int amount, byte[] blindedBid) {
     	onlyBefore(biddingEnd);
-        bids.get((PayableContract) caller(), StorageList::new).add(new Bid(blindedBid, amount));
+        bids.getOrDefault(caller(), StorageList::new).add(new Bid(blindedBid, amount));
     }
 
     private void onlyBefore(long when) {
@@ -66,7 +66,7 @@ public class BlindAuction extends Contract {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
 
-        StorageList<Bid> bids = this.bids.get((PayableContract) caller(), StorageList::new);
+        StorageList<Bid> bids = this.bids.getOrDefault(caller(), StorageList::new);
         int length = bids.size();
         require(_values.length == length, "inconsistent parameters size");
         require(_fake.length == length, "inconsistent parameters size");
