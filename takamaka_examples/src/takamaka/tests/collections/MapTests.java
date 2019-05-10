@@ -30,4 +30,12 @@ public class MapTests extends Storage {
 
 		return map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue).sum();
 	}
+
+	public static @View long testNullValues() {
+		StorageMap<BigInteger, BigInteger> map = new StorageMap<>();
+		for (BigInteger key = BigInteger.ZERO; key.intValue() < 100; key = key.add(BigInteger.ONE))
+			map.put(key, null);
+
+		return map.stream().map(Entry::getValue).filter(value -> value == null).count();
+	}
 }

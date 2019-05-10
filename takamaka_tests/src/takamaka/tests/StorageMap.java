@@ -162,7 +162,7 @@ class StorageMap {
 				map, eoa1, ONE));
 
 		StorageValue get = (StorageValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT),
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT),
 				map, eoa2, TWO));
 
 		assertEquals(TWO, get);
@@ -269,7 +269,7 @@ class StorageMap {
 		while (++i < 100);
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(STORAGE_MAP, "delete", ClassType.OBJECT),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(STORAGE_MAP, "remove", ClassType.OBJECT),
 			map, eoa));
 
 		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction

@@ -25,6 +25,7 @@ import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.IntValue;
+import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.memory.MemoryBlockchain;
 
@@ -70,17 +71,24 @@ class Collections {
 		classpath = new Classpath(collections, true);
 	}
 
-	@Test @DisplayName("MapTests.testIteration1()")
+	@Test @DisplayName("MapTests.testIteration1() == 4950")
 	void geometricSum() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testIteration1")));
 		assertEquals(4950, sum.value);
 	}
 
-	@Test @DisplayName("MapTests.testUpdate1()")
+	@Test @DisplayName("MapTests.testUpdate1() == 5050")
 	void geometricSumAfterUpdate() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testUpdate1")));
 		assertEquals(5050, sum.value);
+	}
+
+	@Test @DisplayName("MapTests.testNullValues() == 100L()")
+	void nullValuesInMap() throws TransactionException, CodeExecutionException {
+		LongValue count = (LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testNullValues")));
+		assertEquals(100L, count.value);
 	}
 }

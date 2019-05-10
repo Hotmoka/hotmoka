@@ -79,8 +79,8 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	 * A node of the binary search tree that implements the map.
 	 */
 	private static class Node<K,V> extends Storage implements Entry<K,V> {
-		private K key;
-		private V value;
+		private K key; // always non-null
+		private V value; // possibly null
 		private Node<K,V> left, right;
 		private boolean color;
 
@@ -170,7 +170,7 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	}
 
 	/**
-	 * Returns the value associated with the given key, if any.
+	 * Yields the value associated with the given key, if any.
 	 * 
 	 * @param key the key
 	 * @return the value associated with the given key if the key is in the symbol table
@@ -223,7 +223,7 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	}
 
 	/**
-	 * Returns the value associated with the given key.
+	 * Yields the value associated with the given key.
 	 * 
 	 * @param key the key
 	 * @return the value associated with the given key if the key is in the symbol table.
@@ -235,7 +235,7 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 		return getOrDefault(root, key, _default);
 	}
 
-	// value associated with the given key in subtree rooted at x; uses provider if no such key
+	// value associated with the given key in subtree rooted at x; uses supplier if no such key is found
 	private static <K,V> V getOrDefault(Node<K,V> x, Object key, Supplier<V> _default) {
 		while (x != null) {
 			int cmp = compareTo(key, x.key);
@@ -261,46 +261,35 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	/**
 	 * Inserts the specified key-value pair into this symbol table, overwriting the old 
 	 * value with the new value if the symbol table already contains the specified key.
-	 * Deletes the specified key (and its associated value) from this symbol table
-	 * if the specified value is {@code null}.
 	 *
 	 * @param key the key
-	 * @param val the value
+	 * @param value the value
 	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public void put(K key, V val) {
+	public void put(K key, V value) {
 		if (key == null) throw new IllegalArgumentException("key is null");
-		if (val == null) {
-			remove(key);
-			return;
-		}
-
-		root = put(root, key, val);
+		root = put(root, key, value);
 		root.color = BLACK;
 		// assert check();
 	}
 
 	// insert the key-value pair in the subtree rooted at h
-	private static <K,V> Node<K,V> put(Node<K,V> h, K key, V val) { 
-		if (h == null) return new Node<>(key, val, RED, 1);
+	private static <K,V> Node<K,V> put(Node<K,V> h, K key, V value) { 
+		if (h == null) return new Node<>(key, value, RED, 1);
 
 		int cmp = compareTo(key, h.key);
-		if      (cmp < 0) h.left  = put(h.left,  key, val); 
-		else if (cmp > 0) h.right = put(h.right, key, val); 
-		else              h.value   = val;
+		if      (cmp < 0) h.left  = put(h.left,  key, value); 
+		else if (cmp > 0) h.right = put(h.right, key, value); 
+		else              h.value = value;
 
 		// fix-up any right-leaning links
-		if (isRed(h.right) && isBlack(h.left))      h = rotateLeft(h);
+		if (isRed(h.right) && isBlack(h.left))     h = rotateLeft(h);
 		if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
 		if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
 		h.size = size(h.left) + size(h.right) + 1;
 
 		return h;
 	}
-
-	/***************************************************************************
-	 *  Red-black tree deletion.
-	 ***************************************************************************/
 
 	/**
 	 * Removes the smallest key and associated value from the symbol table.
@@ -330,7 +319,6 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 		h.left = removeMin(h.left);
 		return balance(h);
 	}
-
 
 	/**
 	 * Removes the largest key and associated value from the symbol table.
@@ -412,18 +400,14 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 		return balance(h);
 	}
 
-	/***************************************************************************
-	 *  Red-black tree helper functions.
-	 ***************************************************************************/
-
 	// make a left-leaning link lean to the right
 	private static <K,V> Node<K,V> rotateRight(Node<K,V> h) {
 		// assert (h != null) && isRed(h.left);
 		Node<K,V> x = h.left;
 		h.left = x.right;
 		x.right = h;
-		x.color = x.right.color;
-		x.right.color = RED;
+		x.color = h.color;
+		h.color = RED;
 		x.size = h.size;
 		h.size = size(h.left) + size(h.right) + 1;
 		return x;
@@ -435,8 +419,8 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 		Node<K,V> x = h.right;
 		h.right = x.left;
 		x.left = h;
-		x.color = x.left.color;
-		x.left.color = RED;
+		x.color = h.color;
+		h.color = RED;
 		x.size = h.size;
 		h.size = size(h.left) + size(h.right) + 1;
 		return x;
@@ -462,8 +446,7 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 		flipColors(h);
 		if (isRed(h.right.left)) { 
 			h.right = rotateRight(h.right);
-			h = rotateLeft(h);
-			flipColors(h);
+			flipColors(h = rotateLeft(h));
 		}
 		return h;
 	}
@@ -474,10 +457,9 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 		// assert (h != null);
 		// assert isRed(h) && isBlack(h.right) && isBlack(h.right.left);
 		flipColors(h);
-		if (isRed(h.left.left)) { 
-			h = rotateRight(h);
-			flipColors(h);
-		}
+		if (isRed(h.left.left))
+			flipColors(h = rotateRight(h));
+
 		return h;
 	}
 
