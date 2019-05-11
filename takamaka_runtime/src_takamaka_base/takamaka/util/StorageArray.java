@@ -13,37 +13,24 @@ import takamaka.lang.Storage;
 import takamaka.lang.View;
 
 /**
- * A map between storage objects.
+ * An array of (possibly {@code null}) storage values, that can be kept in storage.
+ * By iterating on this object, one gets the values of the array, in increasing index
+ * order, including {@code null}s.
  *
  * This code is derived from Sedgewick and Wayne's code for
  * red-black trees, with some adaptation. It implements an associative
- * map from keys to values. The map can be kept in storage. Keys
- * and values must have types allowed in storage. Keys are kept in
- * comparable order, if they implement {@link java.lang.Comparable}.
- * Otherwise, they must extend {@link takamaka.lang.Storage} and
- * are kept in chronological order.
+ * map from indexes to values. The map can be kept in storage.
+ * Values must have type allowed in storage.
  *
- * This class represents an ordered symbol table of generic key-value pairs.
- * It supports the usual <em>put</em>, <em>get</em>, <em>contains</em>,
- * <em>delete</em>, <em>size</em>, and <em>is-empty</em> methods.
- * It also provides ordered methods for finding the <em>minimum</em>,
- * <em>maximum</em>, <em>floor</em>, and <em>ceiling</em>.
+ * This class represents an ordered symbol table of generic index-value pairs.
+ * It supports the usual <em>put</em> and <em>get</em> methods.
  * A symbol table implements the <em>associative array</em> abstraction:
- * when associating a value with a key that is already in the symbol table,
+ * when associating a value with an index that is already in the symbol table,
  * the convention is to replace the old value with the new value.
- * Unlike {@link java.util.Map}, this class uses the convention that
- * values cannot be {@code null}—setting the
- * value associated with a key to {@code null} is equivalent to deleting the key
- * from the symbol table.
  * <p>
- * This implementation uses a left-leaning red-black BST. It requires that
- * the key type implements the {@code Comparable} interface and calls the
- * {@code compareTo()} and method to compare two keys. It does not call either
- * {@code equals()} or {@code hashCode()}.
- * The <em>put</em>, <em>contains</em>, <em>remove</em>, <em>minimum</em>,
- * <em>maximum</em>, <em>ceiling</em>, and <em>floor</em> operations each take
+ * This implementation uses a left-leaning red-black BST.
+ * The <em>put</em> and <em>get</em> operations each take
  * logarithmic time in the worst case, if the tree becomes unbalanced.
- * The <em>size</em>, and <em>is-empty</em> operations take constant time.
  * Construction takes constant time.
  * <p>
  * For additional documentation, see <a href="https://algs4.cs.princeton.edu/33balanced">Section 3.3</a> of
@@ -51,8 +38,7 @@ import takamaka.lang.View;
  *
  * @author Robert Sedgewick
  * @author Kevin Wayne
- * @param <K> the type of the keys
- * @param <V> the type of the elements
+ * @param <V> the type of the values
  */
 
 public class StorageArray<V> extends Storage implements Iterable<V> {
@@ -64,26 +50,32 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 */
 	private Node<V> root;
 
+	/**
+	 * The immutable size of the array.
+	 */
 	public final int length;
 
 	/**
 	 * A node of the binary search tree that implements the map.
 	 */
 	private static class Node<V> extends Storage {
-		private int key;
+		private int index;
 		private V value; // possibly null
 		private Node<V> left, right;
 		private boolean color;
 
-		private Node(int key, V value, boolean color, int size) {
-			this.key = key;
+		private Node(int index, V value, boolean color, int size) {
+			this.index = index;
 			this.value = value;
 			this.color = color;
 		}
 	}
 
 	/**
-	 * Builds an empty map.
+	 * Builds an empty array of the given length.
+	 * 
+	 * @param length the length of the array
+	 * @throws NegativeArraySizeException if {@code length} is negative
 	 */
 	public StorageArray(int length) {
 		if (length < 0)
@@ -112,32 +104,35 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 		return x == null || x.color == BLACK;
 	}
 
-	private static int compareTo(int key1, int key2) {
-		return key1 - key2;
+	private static int compareTo(int index1, int index2) {
+		return index1 - index2;
 	}
 
 	/**
-	 * Yields the value associated with the given key, if any.
+	 * Yields the value at the given index, if any. This operation runs in logarithmic time.
 	 * 
-	 * @param key the key
-	 * @return the value associated with the given key if the key is in the symbol table
-	 *         and {@code null} if the key is not in the symbol table
-	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 * @param index the index
+	 * @return the value at the given index if the index has been assigned to a value
+	 *         and {@code null} otherwise
+	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
 	 */
-	public @View V get(int key) {
-		return get(root, key);
+	public @View V get(int index) {
+		if (index < 0 || index >= length)
+			throw new ArrayIndexOutOfBoundsException(index);
+
+		return get(root, index);
 	}
 
 	/**
-	 * Yields the value associated with the given key in subtree rooted at x;
+	 * Yields the value associated with the given index in subtree rooted at x;
 	 * 
 	 * @param x the root of the subtree
-	 * @param key the key
-	 * @return the value. Yields {@code null} if the key is not found
+	 * @param index the index
+	 * @return the value. Yields {@code null} if the index is not found
 	 */
-	private static <V> V get(Node<V> x, int key) {
+	private static <V> V get(Node<V> x, int index) {
 		while (x != null) {
-			int cmp = compareTo(key, x.key);
+			int cmp = compareTo(index, x.index);
 			if      (cmp < 0) x = x.left;
 			else if (cmp > 0) x = x.right;
 			else              return x.value;
@@ -146,20 +141,23 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * Returns the value associated with the given key.
+	 * Yields the value at the given index, if any. This operation runs in logarithmic time.
 	 * 
-	 * @param key the key
-	 * @return the value associated with the given key if the key is in the symbol table.
-	 *         Yields {@code _default} if the key is not in the symbol table
-	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 * @param index the index
+	 * @return the value at the given index if the index has been assigned to a value
+	 *         and {@code _default} otherwise
+	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
 	 */
-	public @View V getOrDefault(int key, V _default) {
-		return getOrDefault(root, key, _default);
+	public @View V getOrDefault(int index, V _default) {
+		if (index < 0 || index >= length)
+			throw new ArrayIndexOutOfBoundsException(index);
+
+		return getOrDefault(root, index, _default);
 	}
 
-	private static <V> V getOrDefault(Node<V> x, int key, V _default) {
+	private static <V> V getOrDefault(Node<V> x, int index, V _default) {
 		while (x != null) {
-			int cmp = compareTo(key, x.key);
+			int cmp = compareTo(index, x.index);
 			if      (cmp < 0) x = x.left;
 			else if (cmp > 0) x = x.right;
 			else              return x.value;
@@ -168,21 +166,24 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * Yields the value associated with the given key.
+	 * Yields the value at the given index, if any. This operation runs in logarithmic time.
 	 * 
-	 * @param key the key
-	 * @return the value associated with the given key if the key is in the symbol table.
-	 *         Yields {@code _default.get()} if the key is not in the symbol table
-	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 * @param index the index
+	 * @return the value at the given index if the index has been assigned to a value
+	 *         and {@code _default.get()} otherwise
+	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
 	 */
-	public V getOrDefault(int key, Supplier<V> _default) {
-		return getOrDefault(root, key, _default);
+	public V getOrDefault(int index, Supplier<V> _default) {
+		if (index < 0 || index >= length)
+			throw new ArrayIndexOutOfBoundsException(index);
+
+		return getOrDefault(root, index, _default);
 	}
 
-	// value associated with the given key in subtree rooted at x; uses supplier if no such key is found
-	private static <V> V getOrDefault(Node<V> x, int key, Supplier<V> _default) {
+	// value associated with the given index in subtree rooted at x; uses supplier if no such index is found
+	private static <V> V getOrDefault(Node<V> x, int index, Supplier<V> _default) {
 		while (x != null) {
-			int cmp = compareTo(key, x.key);
+			int cmp = compareTo(index, x.index);
 			if      (cmp < 0) x = x.left;
 			else if (cmp > 0) x = x.right;
 			else              return x.value;
@@ -191,26 +192,28 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * Inserts the specified key-value pair into this symbol table, overwriting the old 
-	 * value with the new value if the symbol table already contains the specified key.
+	 * Sets the value at the given index. This operation runs in logarithmic time.
 	 *
-	 * @param key the key
+	 * @param index the index
 	 * @param value the value
-	 * @throws IllegalArgumentException if {@code key} is {@code null}
+	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
 	 */
-	public void put(int key, V value) {
-		root = put(root, key, value);
+	public void put(int index, V value) {
+		if (index < 0 || index >= length)
+			throw new ArrayIndexOutOfBoundsException(index);
+
+		root = put(root, index, value);
 		root.color = BLACK;
 		// assert check();
 	}
 
-	// insert the key-value pair in the subtree rooted at h
-	private static <V> Node<V> put(Node<V> h, int key, V value) { 
-		if (h == null) return new Node<>(key, value, RED, 1);
+	// insert the index-value pair in the subtree rooted at h
+	private static <V> Node<V> put(Node<V> h, int index, V value) { 
+		if (h == null) return new Node<>(index, value, RED, 1);
 
-		int cmp = compareTo(key, h.key);
-		if      (cmp < 0) h.left  = put(h.left,  key, value); 
-		else if (cmp > 0) h.right = put(h.right, key, value); 
+		int cmp = compareTo(index, h.index);
+		if      (cmp < 0) h.left  = put(h.left,  index, value); 
+		else if (cmp > 0) h.right = put(h.right, index, value); 
 		else              h.value = value;
 
 		// fix-up any right-leaning links
@@ -255,24 +258,28 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * Replaces the old value {@code e} at {@code key} with {@code how.apply(e)}.
-	 * If {@code key} was unmapped, it will be replaced with {@code how.apply(null)},
+	 * Replaces the old value {@code e} at {@code index} with {@code how.apply(e)}.
+	 * If {@code index} was unmapped, it will be replaced with {@code how.apply(null)},
 	 * which might well lead to a run-time exception.
 	 *
-	 * @param key the key whose value must be replaced
+	 * @param index the index whose value must be replaced
 	 * @param how the replacement function
+	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
 	 */
-	public void update(int key, UnaryOperator<V> how) {
-		root = update(root, key, how);
+	public void update(int index, UnaryOperator<V> how) {
+		if (index < 0 || index >= length)
+			throw new ArrayIndexOutOfBoundsException(index);
+
+		root = update(root, index, how);
 		root.color = BLACK;
 	}
 
-	private static <V> Node<V> update(Node<V> h, int key, UnaryOperator<V> how) { 
-		if (h == null) return new Node<>(key, how.apply(null), RED, 1);
+	private static <V> Node<V> update(Node<V> h, int index, UnaryOperator<V> how) { 
+		if (h == null) return new Node<>(index, how.apply(null), RED, 1);
 
-		int cmp = compareTo(key, h.key);
-		if      (cmp < 0) h.left  = update(h.left,  key, how); 
-		else if (cmp > 0) h.right = update(h.right, key, how); 
+		int cmp = compareTo(index, h.index);
+		if      (cmp < 0) h.left  = update(h.left,  index, how); 
+		else if (cmp > 0) h.right = update(h.right, index, how); 
 		else              h.value = how.apply(h.value);
 
 		// fix-up any right-leaning links
@@ -284,24 +291,28 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * Replaces the old value {@code e} at {@code key} with {@code how.apply(e)}.
-	 * If {@code key} was unmapped, it will be replaced with {@code how.apply(_default)}.
+	 * Replaces the old value {@code e} at {@code index} with {@code how.apply(e)}.
+	 * If {@code index} was unmapped, it will be replaced with {@code how.apply(_default)}.
 	 *
-	 * @param key the key whose value must be replaced
+	 * @param index the index whose value must be replaced
 	 * @param _default the default value
 	 * @param how the replacement function
+	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
 	 */
-	public void update(int key, V _default, UnaryOperator<V> how) {
-		root = update(root, key, _default, how);
+	public void update(int index, V _default, UnaryOperator<V> how) {
+		if (index < 0 || index >= length)
+			throw new ArrayIndexOutOfBoundsException(index);	
+
+		root = update(root, index, _default, how);
 		root.color = BLACK;
 	}
 
-	private static <V> Node<V> update(Node<V> h, int key, V _default, UnaryOperator<V> how) { 
-		if (h == null) return new Node<>(key, how.apply(_default), RED, 1);
+	private static <V> Node<V> update(Node<V> h, int index, V _default, UnaryOperator<V> how) { 
+		if (h == null) return new Node<>(index, how.apply(_default), RED, 1);
 
-		int cmp = compareTo(key, h.key);
-		if      (cmp < 0) h.left  = update(h.left, key, _default, how); 
-		else if (cmp > 0) h.right = update(h.right, key, _default, how); 
+		int cmp = compareTo(index, h.index);
+		if      (cmp < 0) h.left  = update(h.left, index, _default, how); 
+		else if (cmp > 0) h.right = update(h.right, index, _default, how); 
 		else if (h.value == null)
 			h.value = how.apply(_default);
 		else
@@ -316,24 +327,28 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * Replaces the old value {@code e} at {@code key} with {@code how.apply(e)}.
-	 * If {@code key} was unmapped, it will be replaced with {@code how.apply(_default.get())}.
+	 * Replaces the old value {@code e} at {@code index} with {@code how.apply(e)}.
+	 * If {@code index} was unmapped, it will be replaced with {@code how.apply(_default.get())}.
 	 *
-	 * @param key the key whose value must be replaced
+	 * @param index the index whose value must be replaced
 	 * @param _default the supplier of the default value
 	 * @param how the replacement function
+	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
 	 */
-	public void update(int key, Supplier<V> _default, UnaryOperator<V> how) {
-		root = update(root, key, _default, how);
+	public void update(int index, Supplier<V> _default, UnaryOperator<V> how) {
+		if (index < 0 || index >= length)
+			throw new ArrayIndexOutOfBoundsException(index);	
+
+		root = update(root, index, _default, how);
 		root.color = BLACK;
 	}
 
-	private static <V> Node<V> update(Node<V> h, int key, Supplier<V> _default, UnaryOperator<V> how) { 
-		if (h == null) return new Node<>(key, how.apply(_default.get()), RED, 1);
+	private static <V> Node<V> update(Node<V> h, int index, Supplier<V> _default, UnaryOperator<V> how) { 
+		if (h == null) return new Node<>(index, how.apply(_default.get()), RED, 1);
 
-		int cmp = compareTo(key, h.key);
-		if      (cmp < 0) h.left  = update(h.left, key, _default, how); 
-		else if (cmp > 0) h.right = update(h.right, key, _default, how); 
+		int cmp = compareTo(index, h.index);
+		if      (cmp < 0) h.left  = update(h.left, index, _default, how); 
+		else if (cmp > 0) h.right = update(h.right, index, _default, how); 
 		else if (h.value == null)
 			h.value = how.apply(_default.get());
 		else
@@ -348,14 +363,14 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * If the given key is unmapped or is mapped to {@code null}, map it to the given value.
+	 * If the given index is unmapped or is mapped to {@code null}, map it to the given value.
 	 * 
-	 * @param key the key
+	 * @param index the index
 	 * @param value the value
-	 * @return the previous value at the given key. Yields {@code null} if {@code key} was previously unmapped
+	 * @return the previous value at the given index. Yields {@code null} if {@code index} was previously unmapped
 	 *         or was mapped to {@code null}
 	 */
-	public V putIfAbsent(int key, V value) {
+	public V putIfAbsent(int index, V value) {
 		class PutIfAbsent {
 			private V result;
 
@@ -363,9 +378,9 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 				// not found: result remains null
 				if (h == null)
 					// not found
-					return new Node<>(key, value, RED, 1);
+					return new Node<>(index, value, RED, 1);
 
-				int cmp = compareTo(key, h.key);
+				int cmp = compareTo(index, h.index);
 				if      (cmp < 0) h.left  = putIfAbsent(h.left);
 				else if (cmp > 0) h.right = putIfAbsent(h.right);
 				else if (h.value == null) {
@@ -396,23 +411,23 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * If the given key is unmapped or is mapped to {@code null}, map it to the value given by a supplier.
+	 * If the given index is unmapped or is mapped to {@code null}, map it to the value given by a supplier.
 	 * 
-	 * @param key the key
+	 * @param index the index
 	 * @param supplier the supplier
-	 * @return the previous value at the given key, if it was already mapped to a non-{@code null} value.
-	 *         If the key was unmapped or was mapped to {@code null}, yields the new value
+	 * @return the previous value at the given index, if it was already mapped to a non-{@code null} value.
+	 *         If the index was unmapped or was mapped to {@code null}, yields the new value
 	 */
-	public V computeIfAbsent(int key, Supplier<V> supplier) {
+	public V computeIfAbsent(int index, Supplier<V> supplier) {
 		class ComputeIfAbsent {
 			private V result;
 
 			private Node<V> computeIfAbsent(Node<V> h) { 
 				if (h == null)
 					// not found
-					return new Node<>(key, result = supplier.get(), RED, 1);
+					return new Node<>(index, result = supplier.get(), RED, 1);
 
-				int cmp = compareTo(key, h.key);
+				int cmp = compareTo(index, h.index);
 				if      (cmp < 0) h.left  = computeIfAbsent(h.left);
 				else if (cmp > 0) h.right = computeIfAbsent(h.right);
 				else if (h.value == null) {
@@ -443,28 +458,28 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * If the given key is unmapped or is mapped to {@code null}, map it to the value given by a supplier.
+	 * If the given index is unmapped or is mapped to {@code null}, map it to the value given by a supplier.
 	 * 
-	 * @param key the key
+	 * @param index the index
 	 * @param supplier the supplier
-	 * @return the previous value at the given key, if it was already mapped to a non-{@code null} value.
-	 *         If the key was unmapped or was mapped to {@code null}, yields the new value
+	 * @return the previous value at the given index, if it was already mapped to a non-{@code null} value.
+	 *         If the index was unmapped or was mapped to {@code null}, yields the new value
 	 */
-	public V computeIfAbsent(int key, IntFunction<V> supplier) {
+	public V computeIfAbsent(int index, IntFunction<V> supplier) {
 		class ComputeIfAbsent {
 			private V result;
 
 			private Node<V> computeIfAbsent(Node<V> h) { 
 				if (h == null)
 					// not found
-					return new Node<>(key, result = supplier.apply(key), RED, 1);
+					return new Node<>(index, result = supplier.apply(index), RED, 1);
 
-				int cmp = compareTo(key, h.key);
+				int cmp = compareTo(index, h.index);
 				if      (cmp < 0) h.left  = computeIfAbsent(h.left);
 				else if (cmp > 0) h.right = computeIfAbsent(h.right);
 				else if (h.value == null) {
 					// found but was bound to null
-					result = h.value = supplier.apply(key);
+					result = h.value = supplier.apply(index);
 					return h;
 				}
 				else {
@@ -491,15 +506,15 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 
 	@Override
 	public Iterator<V> iterator() {
-		return new StorageMapIterator<V>(root);
+		return new StorageArrayIterator<>(root);
 	}
 
-	private static class StorageMapIterator<V> implements Iterator<V> {
+	private static class StorageArrayIterator<V> implements Iterator<V> {
 		// the path under enumeration; it holds that the left children
 		// have already been enumerated
 		private List<Node<V>> stack = new ArrayList<>();
 
-		private StorageMapIterator(Node<V> root) {
+		private StorageArrayIterator(Node<V> root) {
 			// initially, the stack contains the leftmost path of the tree
 			for (Node<V> cursor = root; cursor != null; cursor = cursor.left)
 				stack.add(cursor);
@@ -523,8 +538,8 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	/**
-	 * Yields an ordered stream of the entries (key/value) in this map, in
-	 * increasing order of keys.
+	 * Yields an ordered stream of the values in this array (including {@code null}s),
+	 * in increasing order of index.
 	 * 
 	 * @return the stream
 	 */

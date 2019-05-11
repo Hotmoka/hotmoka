@@ -1,0 +1,61 @@
+package takamaka.tests.collections;
+
+import java.math.BigInteger;
+import java.util.Random;
+
+import takamaka.lang.Storage;
+import takamaka.lang.View;
+import takamaka.util.StorageArray;
+
+/**
+ * This class defines methods that test the storage array implementation.
+ */
+public class ArrayTests extends Storage {
+
+	public static @View int testRandomInitialization() {
+		StorageArray<BigInteger> array = new StorageArray<>(100);
+		Random random = new Random();
+
+		for (int i = 0; i < 50; i++)
+			while (array.putIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
+
+		return array.stream().filter(value -> value != null).mapToInt(BigInteger::intValue).sum();
+	}
+
+	public static @View int testUpdateWithDefault1() {
+		StorageArray<BigInteger> array = new StorageArray<>(100);
+		Random random = new Random();
+
+		for (int i = 0; i < 50; i++)
+			while (array.putIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);
+
+		for (int i = 0; i < array.length; i++)
+			array.update(i, BigInteger.ZERO, BigInteger.ONE::add);
+
+		return array.stream().mapToInt(BigInteger::intValue).sum();
+	}
+
+	public static @View int testUpdateWithDefault2() {
+		StorageArray<BigInteger> array = new StorageArray<>(100);
+		Random random = new Random();
+
+		for (int i = 0; i < 50; i++)
+			array.update(random.nextInt(100), BigInteger.ZERO, BigInteger.valueOf(i)::add);
+
+		return array.stream().mapToInt(BigInteger::intValue).sum();
+	}
+
+	public static @View int testGetOrDefault() {
+		StorageArray<BigInteger> array = new StorageArray<>(100);
+		Random random = new Random();
+
+		for (int i = 0; i < 50; i++)
+			while (array.putIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);
+
+		BigInteger sum = BigInteger.ZERO;
+		for (int i = 0; i < array.length; i++)
+			sum = sum.add(array.getOrDefault(i, BigInteger.ZERO));
+
+		return sum.intValue();
+	}
+}

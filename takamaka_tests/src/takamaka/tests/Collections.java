@@ -35,6 +35,7 @@ import takamaka.memory.MemoryBlockchain;
 class Collections {
 
 	private static final ClassType MAP_TESTS = new ClassType("takamaka.tests.collections.MapTests");
+	private static final ClassType ARRAY_TESTS = new ClassType("takamaka.tests.collections.ArrayTests");
 
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
@@ -90,5 +91,33 @@ class Collections {
 		LongValue count = (LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testNullValues")));
 		assertEquals(100L, count.value);
+	}
+
+	@Test @DisplayName("ArrayTests.testRandomInitialization() == 1225")
+	void randomArray() throws TransactionException, CodeExecutionException {
+		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "testRandomInitialization")));
+		assertEquals(1225, sum.value);
+	}
+
+	@Test @DisplayName("ArrayTests.testUpdateWithDefault1() == 1325")
+	void randomArrayThenUpdate1() throws TransactionException, CodeExecutionException {
+		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "testUpdateWithDefault1")));
+		assertEquals(1325, sum.value);
+	}
+
+	@Test @DisplayName("ArrayTests.testUpdateWithDefault2() == 1225")
+	void randomArrayThenUpdate2() throws TransactionException, CodeExecutionException {
+		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "testUpdateWithDefault2")));
+		assertEquals(1225, sum.value);
+	}
+
+	@Test @DisplayName("ArrayTests.testGetOrDefault() == 1225")
+	void randomArrayTheGetOrDefault() throws TransactionException, CodeExecutionException {
+		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "testGetOrDefault")));
+		assertEquals(1225, sum.value);
 	}
 }

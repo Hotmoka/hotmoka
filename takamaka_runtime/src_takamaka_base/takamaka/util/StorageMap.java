@@ -14,7 +14,9 @@ import takamaka.lang.Storage;
 import takamaka.lang.View;
 
 /**
- * A map between storage objects.
+ * A map from storage keys to (possibly {@code null}) storage values,
+ * that can be kept in storage. By iterating on this object, one gets
+ * the key/value pairs of the map, in increasing key order.
  *
  * This code is derived from Sedgewick and Wayne's code for
  * red-black trees, with some adaptation. It implements an associative
@@ -26,22 +28,19 @@ import takamaka.lang.View;
  *
  * This class represents an ordered symbol table of generic key-value pairs.
  * It supports the usual <em>put</em>, <em>get</em>, <em>contains</em>,
- * <em>delete</em>, <em>size</em>, and <em>is-empty</em> methods.
+ * <em>remove</em>, <em>size</em>, and <em>is-empty</em> methods.
  * It also provides ordered methods for finding the <em>minimum</em>,
  * <em>maximum</em>, <em>floor</em>, and <em>ceiling</em>.
  * A symbol table implements the <em>associative array</em> abstraction:
  * when associating a value with a key that is already in the symbol table,
  * the convention is to replace the old value with the new value.
- * Unlike {@link java.util.Map}, this class uses the convention that
- * values cannot be {@code null}—setting the
- * value associated with a key to {@code null} is equivalent to deleting the key
- * from the symbol table.
  * <p>
  * This implementation uses a left-leaning red-black BST. It requires that
- * the key type implements the {@code Comparable} interface and calls the
+ * the key type is a storage class or implements the {@code Comparable} interface
+ * and in such a case calls the
  * {@code compareTo()} and method to compare two keys. It does not call either
  * {@code equals()} or {@code hashCode()}.
- * The <em>put</em>, <em>contains</em>, <em>remove</em>, <em>minimum</em>,
+ * The <em>put</em>, <em>contains</em>, <em>delete</em>, <em>minimum</em>,
  * <em>maximum</em>, <em>ceiling</em>, and <em>floor</em> operations each take
  * logarithmic time in the worst case, if the tree becomes unbalanced.
  * The <em>size</em>, and <em>is-empty</em> operations take constant time.
@@ -53,7 +52,7 @@ import takamaka.lang.View;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  * @param <K> the type of the keys
- * @param <V> the type of the elements
+ * @param <V> the type of the values
  */
 
 public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entry<K,V>> {
