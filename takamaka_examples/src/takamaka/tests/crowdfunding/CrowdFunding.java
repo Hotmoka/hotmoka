@@ -1,3 +1,4 @@
+package takamaka.tests.crowdfunding;
 import java.math.BigInteger;
 
 import takamaka.lang.Contract;
@@ -16,19 +17,19 @@ public class CrowdFunding extends Contract {
 	}
 
 	public @Payable @Entry void contribute(BigInteger amount, int campaignID) {
-		Campaign c = campaigns.get(campaignID);
-		c.funders.add(new Funder(caller(), amount));
-		c.amount = c.amount.add(amount);
+		Campaign campaign = campaigns.get(campaignID);
+		campaign.funders.add(new Funder(caller(), amount));
+		campaign.amount = campaign.amount.add(amount);
 	}
 
 	public boolean checkGoalReached(int campaignID) {
-		Campaign c = campaigns.get(campaignID);
-		if (c.amount.compareTo(c.fundingGoal) < 0)
+		Campaign campaign = campaigns.get(campaignID);
+		if (campaign.amount.compareTo(campaign.fundingGoal) < 0)
 			return false;
 		else {
-			BigInteger amount = c.amount;
-			c.amount = BigInteger.ZERO;
-			c.beneficiary.receive(amount);
+			BigInteger amount = campaign.amount;
+			campaign.amount = BigInteger.ZERO;
+			campaign.beneficiary.receive(amount);
 			return true;
 		}
 	}
@@ -42,6 +43,19 @@ public class CrowdFunding extends Contract {
 		private Campaign(PayableContract beneficiary, BigInteger fundingGoal) {
 			this.beneficiary = beneficiary;
 			this.fundingGoal = fundingGoal;
+			this.amount = BigInteger.ZERO;
+		}
+	}
+
+	private static class Funder extends Storage {
+		@SuppressWarnings("unused")
+		private final Contract who;
+		@SuppressWarnings("unused")
+		private final BigInteger amount;
+
+		public Funder(Contract who, BigInteger amount) {
+			this.who = who;
+			this.amount = amount;
 		}
 	}
 }

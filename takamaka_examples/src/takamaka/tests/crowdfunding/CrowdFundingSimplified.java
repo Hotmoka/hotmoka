@@ -1,3 +1,4 @@
+package takamaka.tests.crowdfunding;
 import java.math.BigInteger;
 
 import takamaka.lang.Contract;
@@ -37,6 +38,19 @@ public class CrowdFundingSimplified extends Contract {
 		private Campaign(PayableContract beneficiary, BigInteger fundingGoal) {
 			this.beneficiary = beneficiary;
 			this.fundingGoal = fundingGoal;
+			this.amount = BigInteger.ZERO;
+		}
+	}
+
+	private static class Funder extends Storage {
+		@SuppressWarnings("unused")
+		private final Contract who;
+		@SuppressWarnings("unused")
+		private final BigInteger amount;
+
+		public Funder(Contract who, BigInteger amount) {
+			this.who = who;
+			this.amount = amount;
 		}
 	}
 }
