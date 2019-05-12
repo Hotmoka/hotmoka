@@ -2,6 +2,7 @@ package takamaka.lang;
 
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import takamaka.blockchain.AbstractBlockchain;
 
@@ -86,6 +87,50 @@ public abstract class Takamaka {
 	public static void assertThat(boolean condition, String message) {
 		if (!condition)
 			throw new AssertionViolationException(message);
+	}
+
+	/**
+	 * Requires that the given condition holds.
+	 * This is a synonym of {@link takamaka.lang.Takamaka#requireThat(boolean, Supplier))}.
+	 * 
+	 * @param condition the condition that must hold
+	 * @param message the supplier of the message used in the exception raised if the
+	 *                condition does not hold
+	 * @throws RequirementViolationException if the condition does not hold
+	 */
+	@WhiteListed
+	public static void require(boolean condition, Supplier<String> message) {
+		if (!condition)
+			throw new RequirementViolationException(message.get());
+	}
+
+	/**
+	 * Requires that the given condition holds.
+	 * This is a synonym of {@link takamaka.lang.Takamaka#require(boolean, Supplier))}.
+	 * 
+	 * @param condition the condition that must hold
+	 * @param message the supplier of the message used in the exception raised if the
+	 *                condition does not hold
+	 * @throws RequirementViolationException if the condition does not hold
+	 */
+	@WhiteListed
+	public static void requireThat(boolean condition, Supplier<String> message) {
+		if (!condition)
+			throw new RequirementViolationException(message.get());
+	}
+
+	/**
+	 * Asserts that the given condition holds.
+	 * 
+	 * @param condition the condition that must hold
+	 * @param message the supplier of the message used in the exception raised if the
+	 *                condition does not hold
+	 * @throws AssertionViolationException if the condition does not hold
+	 */
+	@WhiteListed
+	public static void assertThat(boolean condition, Supplier<String> message) {
+		if (!condition)
+			throw new AssertionViolationException(message.get());
 	}
 
 	/**
