@@ -150,6 +150,11 @@ public abstract class Takamaka {
 		return blockchain.withGas(amount, what);
 	}
 
+	@WhiteListed
+	public static long now() {
+		return blockchain.getNow();
+	}
+
 	/**
 	 * Yields the blockchain used by the current transaction.
 	 * This method can only be called during a transaction.

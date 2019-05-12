@@ -35,6 +35,16 @@ import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 public class MemoryBlockchain extends AbstractBlockchain {
 
 	/**
+	 * The name used for the file containing the serialized header of a block.
+	 */
+	private static final Path HEADER_NAME = Paths.get("header");
+
+	/**
+	 * The name used for the file containing the textual header of a block.
+	 */
+	private final static Path HEADER_TXT_NAME = Paths.get("header.txt");
+
+	/**
 	 * The name used for the file containing the serialized request of a transaction.
 	 */
 	private final static Path REQUEST_NAME = Paths.get("request");
@@ -57,7 +67,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	/**
 	 * The number of transactions per block.
 	 */
-	protected final static short TRANSACTION_PER_BLOCK = 5;
+	protected final static short TRANSACTIONS_PER_BLOCK = 5;
 
 	/**
 	 * The root path where transaction are stored.
@@ -71,9 +81,15 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	private MemoryTransactionReference topmost;
 
 	/**
-	 * The transaction reference where the current transaction is being executed.
+	 * The transaction reference after which the current transaction is being executed.
+	 * This is {@code null} for the first transaction.
 	 */
 	private MemoryTransactionReference previous;
+
+	/**
+	 * The time used for <em>now</em> during the execution of the current transaction.
+	 */
+	private long now;
 
 	/**
 	 * Builds a blockchain that stores transaction in disk memory.
@@ -86,12 +102,32 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		Files.createDirectories(root);
 
 		this.root = root;
+
+		createHeaderOfBlock(BigInteger.ZERO);
 	}
 
 	@Override
-	protected void initTransaction(BigInteger gas, TransactionReference previous) {
+	public long getNow() {
+		return now;
+	}
+
+	@Override
+	protected void initTransaction(BigInteger gas, TransactionReference previous) throws Exception {
 		super.initTransaction(gas, previous);
 		this.previous = (MemoryTransactionReference) previous;
+
+		// we access the block header where the transaction would occur
+		if (previous != null) {
+			MemoryTransactionReference next = this.previous.getNext();
+			Path headerPath = getPathInBlockFor(next.blockNumber, HEADER_NAME);
+			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(headerPath)))) {
+				MemoryBlockHeader header = (MemoryBlockHeader) in.readObject();
+				this.now = header.time;
+			}
+		}
+		else
+			// the first transaction does not use the time anyway
+			this.now = 0L;
 	}
 
 	@Override
@@ -122,7 +158,27 @@ public class MemoryBlockchain extends AbstractBlockchain {
 			output.print(response);
 		}
 
-		return topmost = next;
+		topmost = next;
+		if (next.isLastInBlock())
+			createHeaderOfBlock(next.blockNumber.add(BigInteger.ONE));
+
+		return next;
+	}
+
+	private void createHeaderOfBlock(BigInteger blockNumber) throws IOException {
+		Path headerPath = getPathInBlockFor(blockNumber, HEADER_NAME);
+		ensureDeleted(headerPath.getParent());
+		Files.createDirectories(headerPath.getParent());
+
+		MemoryBlockHeader header = new MemoryBlockHeader(System.currentTimeMillis());
+
+		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(headerPath)))) {
+			os.writeObject(header);
+		}
+
+		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathInBlockFor(blockNumber, HEADER_TXT_NAME)))) {
+			output.print(header);
+		}
 	}
 
 	@Override
@@ -232,7 +288,18 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	/**
-	 * Ensures the given directory, if it exists.
+	 * Yields the path for a file inside the given block.
+	 * 
+	 * @param blockNumber the number of the block
+	 * @param fileName the file name
+	 * @return the path
+	 */
+	private Path getPathInBlockFor(BigInteger blockNumber, Path fileName) {
+		return root.resolve("b" + blockNumber).resolve(fileName);
+	}
+
+	/**
+	 * Deletes the given directory, if it exists.
 	 * 
 	 * @param dir the directory
 	 * @throws IOException if a disk error occurs

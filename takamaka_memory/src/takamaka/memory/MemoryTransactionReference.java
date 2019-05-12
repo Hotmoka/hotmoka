@@ -78,7 +78,7 @@ final class MemoryTransactionReference extends TransactionReference {
 			if (blockNumber.signum() == 0)
 				return null;
 			else
-				return new MemoryTransactionReference(blockNumber.subtract(BigInteger.ONE), (short) (MemoryBlockchain.TRANSACTION_PER_BLOCK - 1));
+				return new MemoryTransactionReference(blockNumber.subtract(BigInteger.ONE), (short) (MemoryBlockchain.TRANSACTIONS_PER_BLOCK - 1));
 		else
 			return new MemoryTransactionReference(blockNumber, (short) (transactionNumber - 1));
 	}
@@ -89,9 +89,18 @@ final class MemoryTransactionReference extends TransactionReference {
 	 * @return the next transaction reference
 	 */
 	protected MemoryTransactionReference getNext() {
-		if (transactionNumber + 1 == MemoryBlockchain.TRANSACTION_PER_BLOCK)
+		if (isLastInBlock())
 			return new MemoryTransactionReference(blockNumber.add(BigInteger.ONE), (short) 0);
 		else
 			return new MemoryTransactionReference(blockNumber, (short) (transactionNumber + 1));
+	}
+
+	/**
+	 * Determines if this transaction is the last in its block.
+	 * 
+	 * @return true if and only if this transaction is the last in its block
+	 */
+	protected boolean isLastInBlock() {
+		return transactionNumber + 1 == MemoryBlockchain.TRANSACTIONS_PER_BLOCK;
 	}
 }

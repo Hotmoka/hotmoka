@@ -153,9 +153,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * Initializes the state at the beginning of the execution of a new transaction
 	 * 
 	 * @param gas the amount of gas available for the transaction
-	 * @param previous the transaction reference after which the transaction is being executed
+	 * @param previous the transaction reference after which the transaction is being executed.
+	 *                 If this is the first transaction, then {@code previous} will be {@code null}
+	 * @throws Exception if the transaction could not be initialized
 	 */
-	protected void initTransaction(BigInteger gas, TransactionReference previous) {
+	protected void initTransaction(BigInteger gas, TransactionReference previous) throws Exception {
 		Takamaka.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
 		events.clear();
 		cache.clear();
@@ -230,6 +232,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the update could not be found
 	 */
 	protected abstract UpdateOfField getLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception;
+
+	/**
+	 * Yields the UTC time when the currently executing transaction is being run.
+	 * This might be for instance the time of creation of the block where the transaction
+	 * occurs, but the detail is left to the implementation. In any case, this
+	 * time must be the same for a given transaction, if it gets executed more times.
+	 * 
+	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+	 */
+	public abstract long getNow();
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 

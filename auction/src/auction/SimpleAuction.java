@@ -2,6 +2,7 @@ package auction;
 
 import static takamaka.lang.Takamaka.event;
 import static takamaka.lang.Takamaka.require;
+import static takamaka.lang.Takamaka.now;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
@@ -26,14 +27,14 @@ public class SimpleAuction extends Contract {
 	public SimpleAuction(int _biddingTime, PayableContract _beneficiary) {
         beneficiary = _beneficiary;
         // how can this be accepted into consensus?
-        auctionEnd = System.currentTimeMillis() + _biddingTime;
+        auctionEnd = now() + _biddingTime;
     }
 
     /// Bid on the auction with the value sent together with this transaction.
     /// The value will only be refunded if the auction is not won.
 	public @Payable @Entry(PayableContract.class) void bid(int amount) {
         // Revert the call if the bidding period is over.
-        require(System.currentTimeMillis() <= auctionEnd, "Auction already ended");
+        require(now() <= auctionEnd, "Auction already ended");
 
         // If the bid is not higher, send the money back.
         require(amount > highestBid, "There already is a higher bid");
@@ -44,12 +45,12 @@ public class SimpleAuction extends Contract {
 
         highestBidder = (PayableContract) caller();
         highestBid = amount;
-        event(new BidIncrease(caller(), amount));
+        event(new BidIncrease(highestBidder, amount));
     }
 
     /// End the auction and send the highest bid to the beneficiary.
 	public void auctionEnd() {
-        require(System.currentTimeMillis() >= auctionEnd, "Auction not yet ended");
+        require(now() >= auctionEnd, "Auction not yet ended");
         require(!ended, "auctionEnd has already been called");
 
         ended = true;
