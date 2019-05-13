@@ -3,9 +3,11 @@ package takamaka.util;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -506,15 +508,19 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 
 	@Override
 	public Iterator<V> iterator() {
-		return new StorageArrayIterator<>(root);
+		return new StorageArrayIterator<>(root, length);
 	}
 
 	private static class StorageArrayIterator<V> implements Iterator<V> {
 		// the path under enumeration; it holds that the left children
 		// have already been enumerated
 		private List<Node<V>> stack = new ArrayList<>();
+		private int nextKey;
+		private final int length;
 
-		private StorageArrayIterator(Node<V> root) {
+		private StorageArrayIterator(Node<V> root, int length) {
+			this.length = length;
+
 			// initially, the stack contains the leftmost path of the tree
 			for (Node<V> cursor = root; cursor != null; cursor = cursor.left)
 				stack.add(cursor);
@@ -522,19 +528,31 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 
 		@Override
 		public boolean hasNext() {
-			return !stack.isEmpty();
+			return nextKey < length;
 		}
 
 		@Override
 		public V next() {
+			// first check if we are in a hole of null values
+			if (stack.isEmpty() || nextKey < stack.get(stack.size() - 1).index) {
+				nextKey++;
+				return null;
+			}
+
 			Node<V> topmost = stack.remove(stack.size() - 1);
 
 			// we add the leftmost path of the right child of topmost
 			for (Node<V> cursor = topmost.right; cursor != null; cursor = cursor.left)
 				stack.add(cursor);
 
+			nextKey++;
 			return topmost.value;
 		}
+	}
+
+	@Override
+	public String toString() {
+		return stream().map(Objects::toString).collect(Collectors.joining(",", "[", "]"));
 	}
 
 	/**

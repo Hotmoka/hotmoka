@@ -22,6 +22,17 @@ public class ArrayTests extends Storage {
 		return array.stream().filter(value -> value != null).mapToInt(BigInteger::intValue).sum();
 	}
 
+	public static @View long countNullsAfterRandomInitialization() {
+		StorageArray<BigInteger> array = new StorageArray<>(100);
+		Random random = new Random();
+
+		for (int i = 0; i < 50; i++)
+			while (array.putIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
+
+		// 50 elements of the array should still be null
+		return array.stream().filter(value -> value == null).count();
+	}
+
 	public static @View int testUpdateWithDefault1() {
 		StorageArray<BigInteger> array = new StorageArray<>(100);
 		Random random = new Random();
@@ -42,7 +53,7 @@ public class ArrayTests extends Storage {
 		for (int i = 0; i < 50; i++)
 			array.update(random.nextInt(100), BigInteger.ZERO, BigInteger.valueOf(i)::add);
 
-		return array.stream().mapToInt(BigInteger::intValue).sum();
+		return array.stream().filter(bi -> bi != null).mapToInt(BigInteger::intValue).sum();
 	}
 
 	public static @View int testGetOrDefault() {

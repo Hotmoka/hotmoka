@@ -100,6 +100,13 @@ class Collections {
 		assertEquals(1225, sum.value);
 	}
 
+	@Test @DisplayName("ArrayTests.countNullsAfterRandomInitialization() == 50L")
+	void randomArrayCountNulls() throws TransactionException, CodeExecutionException {
+		LongValue count = (LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "countNullsAfterRandomInitialization")));
+		assertEquals(50L, count.value);
+	}
+
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault1() == 1325")
 	void randomArrayThenUpdate1() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
