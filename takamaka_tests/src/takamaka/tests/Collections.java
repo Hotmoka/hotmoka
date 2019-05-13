@@ -35,6 +35,7 @@ import takamaka.memory.MemoryBlockchain;
 class Collections {
 
 	private static final ClassType MAP_TESTS = new ClassType("takamaka.tests.collections.MapTests");
+	private static final ClassType INT_MAP_TESTS = new ClassType("takamaka.tests.collections.IntMapTests");
 	private static final ClassType ARRAY_TESTS = new ClassType("takamaka.tests.collections.ArrayTests");
 
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
@@ -86,10 +87,45 @@ class Collections {
 		assertEquals(5050, sum.value);
 	}
 
+	@Test @DisplayName("MapTests.testUpdate2() == 5050")
+	void geometricSumAfterUpdateWithStream() throws TransactionException, CodeExecutionException {
+		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testUpdate2")));
+		assertEquals(5050, sum.value);
+	}
+
 	@Test @DisplayName("MapTests.testNullValues() == 100L()")
 	void nullValuesInMap() throws TransactionException, CodeExecutionException {
 		LongValue count = (LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testNullValues")));
+		assertEquals(100L, count.value);
+	}
+
+	@Test @DisplayName("IntMapTests.testIteration1() == 4950")
+	void geometricSumIntKeys() throws TransactionException, CodeExecutionException {
+		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(INT_MAP_TESTS, "testIteration1")));
+		assertEquals(4950, sum.value);
+	}
+
+	@Test @DisplayName("IntMapTests.testUpdate1() == 5050")
+	void geometricSumAfterUpdateIntKeys() throws TransactionException, CodeExecutionException {
+		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(INT_MAP_TESTS, "testUpdate1")));
+		assertEquals(5050, sum.value);
+	}
+
+	@Test @DisplayName("IntMapTests.testUpdate2() == 5050")
+	void geometricSumAfterUpdateIntKeysWithStream() throws TransactionException, CodeExecutionException {
+		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(INT_MAP_TESTS, "testUpdate2")));
+		assertEquals(5050, sum.value);
+	}
+
+	@Test @DisplayName("IntMapTests.testNullValues() == 100L()")
+	void nullValuesInMapIntKeys() throws TransactionException, CodeExecutionException {
+		LongValue count = (LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(gamete, _200_000, classpath, new MethodSignature(INT_MAP_TESTS, "testNullValues")));
 		assertEquals(100L, count.value);
 	}
 
