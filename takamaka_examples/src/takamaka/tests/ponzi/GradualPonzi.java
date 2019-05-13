@@ -22,7 +22,7 @@ import takamaka.util.StorageMap;
  * page 150, Apress 2018.
  */
 public class GradualPonzi extends Contract {
-	private static final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(1_000);
+	private final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(1_000L);
 
 	/**
 	 * All investors up to now. This list might contain the same investor
@@ -42,7 +42,7 @@ public class GradualPonzi extends Contract {
 	}
 
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least" + MINIMUM_INVESTMENT);
+		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
 		BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
 		investors.stream().forEach(investor -> balances.update(investor, BigInteger.ZERO, eachInvestorGets::add));
 		investors.add((PayableContract) caller());

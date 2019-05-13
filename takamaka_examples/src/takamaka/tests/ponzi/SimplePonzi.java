@@ -21,8 +21,8 @@ import takamaka.lang.PayableContract;
  * page 145, Apress 2018.
  */
 public class SimplePonzi extends Contract {
-	private static final BigInteger _10 = BigInteger.valueOf(10L);
-	private static final BigInteger _11 = BigInteger.valueOf(11L);
+	private final BigInteger _10 = BigInteger.valueOf(10L);
+	private final BigInteger _11 = BigInteger.valueOf(11L);
 	private PayableContract currentInvestor;
 	private BigInteger currentInvestment = BigInteger.ZERO;
 
