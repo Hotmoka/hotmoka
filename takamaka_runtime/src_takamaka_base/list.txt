@@ -1,4 +1,5 @@
 takamaka/lang/Contract**.class
 takamaka/lang/ExternallyOwnedAccount**.class
+takamaka/lang/TestExternallyOwnedAccount**.class
 takamaka/lang/PayableContract.class
 takamaka/util/**.class

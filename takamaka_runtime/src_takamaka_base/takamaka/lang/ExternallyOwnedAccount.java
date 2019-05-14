@@ -13,7 +13,7 @@ public class ExternallyOwnedAccount extends PayableContract {
 	public ExternallyOwnedAccount() {}
 
 	/**
-	 * Creates an externally owned contract with the given initiali fund.
+	 * Creates an externally owned contract with the given initial fund.
 	 * 
 	 * @param initialAmount the initial fund
 	 */
@@ -21,7 +21,7 @@ public class ExternallyOwnedAccount extends PayableContract {
 	public ExternallyOwnedAccount(int initialAmount) {}
 
 	/**
-	 * Creates an externally owned contract with the given initiali fund.
+	 * Creates an externally owned contract with the given initial fund.
 	 * 
 	 * @param initialAmount the initial fund
 	 */
@@ -29,7 +29,7 @@ public class ExternallyOwnedAccount extends PayableContract {
 	public ExternallyOwnedAccount(long initialAmount) {}
 
 	/**
-	 * Creates an externally owned contract with the given initiali fund.
+	 * Creates an externally owned contract with the given initial fund.
 	 * 
 	 * @param initialAmount the initial fund
 	 */

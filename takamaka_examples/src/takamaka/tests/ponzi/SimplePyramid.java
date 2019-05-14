@@ -22,39 +22,36 @@ import takamaka.util.StorageMap;
  * page 155, Apress 2018.
  */
 public class SimplePyramid extends Contract {
-	public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(1_000L);
-	private final StorageList<PayableContract> oldLayers = new StorageList<>();
-	private StorageList<PayableContract> currentLayer = new StorageList<>();
+	public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(10_000L);
+	private final StorageList<PayableContract> investors = new StorageList<>();
+	private int previousLayerSize = 1;
 	private final StorageMap<PayableContract, BigInteger> balances = new StorageMap<>();
-	private BigInteger pyramidBalance = BigInteger.ZERO;
+	private BigInteger pyramidBalance;
 
 	public @Payable @Entry(PayableContract.class) SimplePyramid(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
-		oldLayers.add((PayableContract) caller());
+		investors.add((PayableContract) caller());
 		pyramidBalance = amount;
 	}
 
-	public @Payable @Entry(Payable.class) void invest(BigInteger amount) {
+	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
 		pyramidBalance = pyramidBalance.add(amount);
-		currentLayer.add((PayableContract) caller());
+		investors.add((PayableContract) caller());
 
-		if (currentLayer.size() == oldLayers.size() + 1) {
+		if (investors.size() == previousLayerSize * 4 - 1) {
 			// pay out previous layer: note that currentLayer's size is even here
-			oldLayers.stream().skip(currentLayer.size() / 2 - 1).forEach(investor -> balances.update(investor, BigInteger.ZERO, MINIMUM_INVESTMENT::add));
-			// move current layer into oldLayers
-			currentLayer.forEach(oldLayers::add);
+			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEach(investor -> balances.update(investor, BigInteger.ZERO, MINIMUM_INVESTMENT::add));
 			// spread remaining money among all participants
-			BigInteger eachInvestorGets = pyramidBalance.subtract(MINIMUM_INVESTMENT.multiply(BigInteger.valueOf(currentLayer.size() / 2))).divide(BigInteger.valueOf(oldLayers.size()));
-			oldLayers.stream().forEach(investor -> balances.update(investor, BigInteger.ZERO, eachInvestorGets::add));
+			BigInteger eachInvestorGets = pyramidBalance.subtract(MINIMUM_INVESTMENT.multiply(BigInteger.valueOf(previousLayerSize))).divide(BigInteger.valueOf(investors.size()));
+			investors.stream().forEach(investor -> balances.update(investor, BigInteger.ZERO, eachInvestorGets::add));
 			pyramidBalance = BigInteger.ZERO;
-			// reset current layer
-			currentLayer = new StorageList<>();
+			previousLayerSize *= 2;
 		}
 	}
 
 	public @Entry(PayableContract.class) void withdraw() {
-		((PayableContract) caller()).receive(balances.get(caller()));
-		balances.put((PayableContract) caller(), BigInteger.ZERO);
+		((PayableContract) caller()).receive(balances.getOrDefault(caller(), BigInteger.ZERO));
+		balances.remove(caller());
 	}
 }

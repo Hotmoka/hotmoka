@@ -71,7 +71,8 @@ public abstract class Contract extends Storage {
 	 * @param amount the amount of coins
 	 */
 	private void pay(Contract beneficiary, BigInteger amount) {
-		require(amount.signum() >= 0, "payed amount cannot be negative");
+		require(amount != null, "Payed amount cannot be null");
+		require(amount.signum() >= 0, "Payed amount cannot be negative");
 		if (balance.compareTo(amount) < 0)
 			throw new InsufficientFundsError(amount);
 
