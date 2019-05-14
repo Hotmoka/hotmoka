@@ -3,6 +3,7 @@ package takamaka.util;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -292,5 +293,18 @@ public class StorageList<E> extends Storage implements Iterable<E> {
 	 */
 	public Stream<E> stream() {
 		return StreamSupport.stream(spliterator(), false);
+	}
+
+	/**
+	 * Yields an array containing the elements of this list, in their order in the list,
+	 * using the provided generator function to allocate the returned array.
+	 * 
+	 * @param generator the array generator
+	 * @return the array
+	 * @throws ArrayStoreException if the runtime type of the array returned from the array generator
+	 *                             is not a supertype of the runtime type of every element in this list
+	 */
+	public <A> A[] toArray(IntFunction<A[]> generator) {
+		return stream().toArray(generator);
 	}
 }

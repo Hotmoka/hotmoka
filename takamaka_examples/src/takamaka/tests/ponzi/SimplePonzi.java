@@ -29,7 +29,7 @@ public class SimplePonzi extends Contract {
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
 		// new investments must be 10% greater than current
 		BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-		require(amount.compareTo(minimumInvestment) > 0, "");
+		require(amount.compareTo(minimumInvestment) > 0, () -> "You must invest more than " + minimumInvestment);
 
 		// document new investor
 		currentInvestor.receive(amount);
