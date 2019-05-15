@@ -200,22 +200,22 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 * @param value the value
 	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
 	 */
-	public void put(int index, V value) {
+	public void set(int index, V value) {
 		if (index < 0 || index >= length)
 			throw new ArrayIndexOutOfBoundsException(index);
 
-		root = put(root, index, value);
+		root = set(root, index, value);
 		root.color = BLACK;
 		// assert check();
 	}
 
 	// insert the index-value pair in the subtree rooted at h
-	private static <V> Node<V> put(Node<V> h, int index, V value) { 
+	private static <V> Node<V> set(Node<V> h, int index, V value) { 
 		if (h == null) return new Node<>(index, value, RED, 1);
 
 		int cmp = compareTo(index, h.index);
-		if      (cmp < 0) h.left  = put(h.left,  index, value); 
-		else if (cmp > 0) h.right = put(h.right, index, value); 
+		if      (cmp < 0) h.left  = set(h.left,  index, value); 
+		else if (cmp > 0) h.right = set(h.right, index, value); 
 		else              h.value = value;
 
 		// fix-up any right-leaning links
@@ -249,7 +249,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	}
 
 	// flip the colors of a node and its two children
-	private static <K,V> void flipColors(Node<V> h) {
+	private static <V> void flipColors(Node<V> h) {
 		// h must have opposite color of its two children
 		// assert (h != null) && (h.left != null) && (h.right != null);
 		// assert (isBlack(h) &&  isRed(h.left) &&  isRed(h.right))
@@ -372,19 +372,19 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 * @return the previous value at the given index. Yields {@code null} if {@code index} was previously unmapped
 	 *         or was mapped to {@code null}
 	 */
-	public V putIfAbsent(int index, V value) {
-		class PutIfAbsent {
+	public V setIfAbsent(int index, V value) {
+		class SetIfAbsent {
 			private V result;
 
-			private Node<V> putIfAbsent(Node<V> h) {
+			private Node<V> setIfAbsent(Node<V> h) {
 				// not found: result remains null
 				if (h == null)
 					// not found
 					return new Node<>(index, value, RED, 1);
 
 				int cmp = compareTo(index, h.index);
-				if      (cmp < 0) h.left  = putIfAbsent(h.left);
-				else if (cmp > 0) h.right = putIfAbsent(h.right);
+				if      (cmp < 0) h.left  = setIfAbsent(h.left);
+				else if (cmp > 0) h.right = setIfAbsent(h.right);
 				else if (h.value == null) {
 					// found but was bound to null: result remains null
 					h.value = value;
@@ -405,8 +405,8 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 			}
 		}
 
-		PutIfAbsent pia = new PutIfAbsent();
-		root = pia.putIfAbsent(root);
+		SetIfAbsent pia = new SetIfAbsent();
+		root = pia.setIfAbsent(root);
 		root.color = BLACK;
 
 		return pia.result;
@@ -563,5 +563,18 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	 */
 	public Stream<V> stream() {
 		return StreamSupport.stream(spliterator(), false);
+	}
+
+	/**
+	 * Yields an array containing the elements of this storage array, in their order,
+	 * using the provided generator function to allocate the returned array.
+	 * 
+	 * @param generator the array generator
+	 * @return the array
+	 * @throws ArrayStoreException if the runtime type of the array returned from the array generator
+	 *                             is not a supertype of the runtime type of every element in this storage array
+	 */
+	public <A> A[] toArray(IntFunction<A[]> generator) {
+		return stream().toArray(generator);
 	}
 }

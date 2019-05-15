@@ -17,7 +17,7 @@ public class ArrayTests extends Storage {
 		Random random = new Random();
 
 		for (int i = 0; i < 50; i++)
-			while (array.putIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
+			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
 
 		return array.stream().filter(value -> value != null).mapToInt(BigInteger::intValue).sum();
 	}
@@ -27,7 +27,7 @@ public class ArrayTests extends Storage {
 		Random random = new Random();
 
 		for (int i = 0; i < 50; i++)
-			while (array.putIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
+			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
 
 		// 50 elements of the array should still be null
 		return array.stream().filter(value -> value == null).count();
@@ -38,7 +38,7 @@ public class ArrayTests extends Storage {
 		Random random = new Random();
 
 		for (int i = 0; i < 50; i++)
-			while (array.putIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);
+			while (array.setIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);
 
 		for (int i = 0; i < array.length; i++)
 			array.update(i, BigInteger.ZERO, BigInteger.ONE::add);
@@ -61,7 +61,7 @@ public class ArrayTests extends Storage {
 		Random random = new Random();
 
 		for (int i = 0; i < 50; i++)
-			while (array.putIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);
+			while (array.setIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);
 
 		BigInteger sum = BigInteger.ZERO;
 		for (int i = 0; i < array.length; i++)

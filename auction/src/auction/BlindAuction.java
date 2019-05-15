@@ -5,7 +5,6 @@ import static takamaka.lang.Takamaka.now;
 import static takamaka.lang.Takamaka.require;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 import takamaka.crypto.Keccak256;
 import takamaka.lang.Contract;
@@ -13,15 +12,16 @@ import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.lang.PayableContract;
 import takamaka.lang.Storage;
+import takamaka.util.Bytes32;
 import takamaka.util.StorageList;
 import takamaka.util.StorageMap;
 
 public class BlindAuction extends Contract {
 
 	private static class Bid extends Storage {
-        private byte[] blindedBid; // 32 bytes hash
+        private Bytes32 blindedBid; // hash
         private final BigInteger deposit;
-        private Bid(byte[] blindedBid, BigInteger deposit) {
+        private Bid(Bytes32 blindedBid, BigInteger deposit) {
         	this.blindedBid = blindedBid;
         	this.deposit = deposit;
         }
@@ -30,9 +30,9 @@ public class BlindAuction extends Contract {
 	public static class RevealedBid extends Storage {
 		private final BigInteger value;
 		private final boolean fake;
-		private final byte[] secret;
+		private final Bytes32 secret;
 
-		public RevealedBid(BigInteger value, boolean fake, byte[] secret) {
+		public RevealedBid(BigInteger value, boolean fake, Bytes32 secret) {
 			this.value = value;
 			this.fake = fake;
 			this.secret = secret;
@@ -60,7 +60,7 @@ public class BlindAuction extends Contract {
     /// "fake" is not true. Setting "fake" to true and sending
     /// not the exact amount are ways to hide the real bid but
     /// still make the required deposit. The same address can place multiple bids.
-    public @Payable @Entry(PayableContract.class) void bid(BigInteger amount, byte[] blindedBid) {
+    public @Payable @Entry(PayableContract.class) void bid(BigInteger amount, Bytes32 blindedBid) {
     	onlyBefore(biddingEnd);
         bids.computeIfAbsent((PayableContract) caller(), StorageList::new).add(new Bid(blindedBid, amount));
     }
@@ -81,9 +81,9 @@ public class BlindAuction extends Contract {
             RevealedBid revealedBid = revealedBids.get(i);
             BigInteger value = revealedBid.value;
             boolean fake = revealedBid.fake;
-            byte[] secret = revealedBid.secret;
+            Bytes32 secret = revealedBid.secret;
 
-            if (!Arrays.equals(bid.blindedBid, Keccak256.of(value, fake, secret)))
+            if (!bid.blindedBid.equals(Keccak256.of(value, fake, secret)))
                 // Bid was not actually revealed. Do not refund deposit.
                 continue;
 
