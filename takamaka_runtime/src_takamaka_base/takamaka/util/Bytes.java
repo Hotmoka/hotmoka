@@ -38,7 +38,7 @@ import takamaka.lang.View;
  * @author Kevin Wayne
  */
 
-public class Bytes extends AbstractByteArray implements ByteArray {
+public class Bytes extends AbstractByteArray implements MutableByteArray {
 	private static final boolean RED   = true;
 	private static final boolean BLACK = false;
 

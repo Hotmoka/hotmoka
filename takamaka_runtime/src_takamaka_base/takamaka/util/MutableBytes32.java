@@ -2,19 +2,18 @@ package takamaka.util;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 
-import takamaka.lang.Immutable;
 import takamaka.lang.View;
 
 /**
- * An immutable array of 32 bytes, that can be kept in storage. Unset elements default to 0.
- * The length of the array cannot be changed. Its elements cannot be updated.
+ * A mutable array of 32 bytes, that can be kept in storage. Unset elements default to 0.
+ * The length of the array cannot be changed nut its elements can be updated.
  * By iterating on this object, one gets its values, in increasing index order.
  */
 
-@Immutable
-public final class Bytes32 extends AbstractByteArray {
+public class MutableBytes32 extends AbstractByteArray implements MutableByteArray {
 
 	/**
 	 * The immutable size of the array.
@@ -22,80 +21,55 @@ public final class Bytes32 extends AbstractByteArray {
 	public final static int length = 32;
 
 	// the elements of the array
-	private final byte byte0;
-	private final byte byte1;
-	private final byte byte2;
-	private final byte byte3;
-	private final byte byte4;
-	private final byte byte5;
-	private final byte byte6;
-	private final byte byte7;
-	private final byte byte8;
-	private final byte byte9;
-	private final byte byte10;
-	private final byte byte11;
-	private final byte byte12;
-	private final byte byte13;
-	private final byte byte14;
-	private final byte byte15;
-	private final byte byte16;
-	private final byte byte17;
-	private final byte byte18;
-	private final byte byte19;
-	private final byte byte20;
-	private final byte byte21;
-	private final byte byte22;
-	private final byte byte23;
-	private final byte byte24;
-	private final byte byte25;
-	private final byte byte26;
-	private final byte byte27;
-	private final byte byte28;
-	private final byte byte29;
-	private final byte byte30;
-	private final byte byte31;
+	private byte byte0;
+	private byte byte1;
+	private byte byte2;
+	private byte byte3;
+	private byte byte4;
+	private byte byte5;
+	private byte byte6;
+	private byte byte7;
+	private byte byte8;
+	private byte byte9;
+	private byte byte10;
+	private byte byte11;
+	private byte byte12;
+	private byte byte13;
+	private byte byte14;
+	private byte byte15;
+	private byte byte16;
+	private byte byte17;
+	private byte byte18;
+	private byte byte19;
+	private byte byte20;
+	private byte byte21;
+	private byte byte22;
+	private byte byte23;
+	private byte byte24;
+	private byte byte25;
+	private byte byte26;
+	private byte byte27;
+	private byte byte28;
+	private byte byte29;
+	private byte byte30;
+	private byte byte31;
+
+	/**
+	 * Builds an empty array.
+	 */
+	public MutableBytes32() {}
 
 	/**
 	 * Builds an empty array with the given elements.
 	 * 
 	 * @param elements the elements
 	 */
-	public Bytes32(byte[] elements) {
+	public MutableBytes32(byte[] elements) {
 		if (elements.length != length)
 			throw new IllegalArgumentException("Expected " + length + " elements");
 
-		byte0 = elements[0];
-		byte1 = elements[1];
-		byte2 = elements[2];
-		byte3 = elements[3];
-		byte4 = elements[4];
-		byte5 = elements[5];
-		byte6 = elements[6];
-		byte7 = elements[7];
-		byte8 = elements[8];
-		byte9 = elements[9];
-		byte10 = elements[10];
-		byte11 = elements[11];
-		byte12 = elements[12];
-		byte13 = elements[13];
-		byte14 = elements[14];
-		byte15 = elements[15];
-		byte16 = elements[16];
-		byte17 = elements[17];
-		byte18 = elements[18];
-		byte19 = elements[19];
-		byte20 = elements[20];
-		byte21 = elements[21];
-		byte22 = elements[22];
-		byte23 = elements[23];
-		byte24 = elements[24];
-		byte25 = elements[25];
-		byte26 = elements[26];
-		byte27 = elements[27];
-		byte28 = elements[28];
-		byte29 = elements[29];
-		byte30 = elements[30];
-		byte31 = elements[31];
+		for (int pos = 0; pos < length; pos++)
+			set(pos, elements[pos]);
 	}
 
 	@Override
@@ -138,6 +112,84 @@ public final class Bytes32 extends AbstractByteArray {
 		case 29: return byte29;
 		case 30: return byte30;
 		case 31: return byte31;
+		default: throw new ArrayIndexOutOfBoundsException(index);
+		}
+	}
+
+	@Override
+	public void set(int index, byte value) {
+		switch (index) {
+		case 0: byte0 = value; return;
+		case 1: byte1 = value; return;
+		case 2: byte2 = value; return;
+		case 3: byte3 = value; return;
+		case 4: byte4 = value; return;
+		case 5: byte5 = value; return;
+		case 6: byte6 = value; return;
+		case 7: byte7 = value; return;
+		case 8: byte8 = value; return;
+		case 9: byte9 = value; return;
+		case 10: byte10 = value; return;
+		case 11: byte11 = value; return;
+		case 12: byte12 = value; return;
+		case 13: byte13 = value; return;
+		case 14: byte14 = value; return;
+		case 15: byte15 = value; return;
+		case 16: byte16 = value; return;
+		case 17: byte17 = value; return;
+		case 18: byte18 = value; return;
+		case 19: byte19 = value; return;
+		case 20: byte20 = value; return;
+		case 21: byte21 = value; return;
+		case 22: byte22 = value; return;
+		case 23: byte23 = value; return;
+		case 24: byte24 = value; return;
+		case 25: byte25 = value; return;
+		case 26: byte26 = value; return;
+		case 27: byte27 = value; return;
+		case 28: byte28 = value; return;
+		case 29: byte29 = value; return;
+		case 30: byte30 = value; return;
+		case 31: byte31 = value; return;
+		default: throw new ArrayIndexOutOfBoundsException(index);
+		}
+	}
+
+	@Override
+	public void update(int index, IntUnaryOperator how) {
+		switch (index) {
+		case 0: byte0 = (byte) how.applyAsInt(byte0); return;
+		case 1: byte1 = (byte) how.applyAsInt(byte1); return;
+		case 2: byte2 = (byte) how.applyAsInt(byte2); return;
+		case 3: byte3 = (byte) how.applyAsInt(byte3); return;
+		case 4: byte4 = (byte) how.applyAsInt(byte4); return;
+		case 5: byte5 = (byte) how.applyAsInt(byte5); return;
+		case 6: byte6 = (byte) how.applyAsInt(byte6); return;
+		case 7: byte7 = (byte) how.applyAsInt(byte7); return;
+		case 8: byte8 = (byte) how.applyAsInt(byte8); return;
+		case 9: byte9 = (byte) how.applyAsInt(byte9); return;
+		case 10: byte10 = (byte) how.applyAsInt(byte10); return;
+		case 11: byte11 = (byte) how.applyAsInt(byte11); return;
+		case 12: byte12 = (byte) how.applyAsInt(byte12); return;
+		case 13: byte13 = (byte) how.applyAsInt(byte13); return;
+		case 14: byte14 = (byte) how.applyAsInt(byte14); return;
+		case 15: byte15 = (byte) how.applyAsInt(byte15); return;
+		case 16: byte16 = (byte) how.applyAsInt(byte16); return;
+		case 17: byte17 = (byte) how.applyAsInt(byte17); return;
+		case 18: byte18 = (byte) how.applyAsInt(byte18); return;
+		case 19: byte19 = (byte) how.applyAsInt(byte19); return;
+		case 20: byte20 = (byte) how.applyAsInt(byte20); return;
+		case 21: byte21 = (byte) how.applyAsInt(byte21); return;
+		case 22: byte22 = (byte) how.applyAsInt(byte22); return;
+		case 23: byte23 = (byte) how.applyAsInt(byte23); return;
+		case 24: byte24 = (byte) how.applyAsInt(byte24); return;
+		case 25: byte25 = (byte) how.applyAsInt(byte25); return;
+		case 26: byte26 = (byte) how.applyAsInt(byte26); return;
+		case 27: byte27 = (byte) how.applyAsInt(byte27); return;
+		case 28: byte28 = (byte) how.applyAsInt(byte28); return;
+		case 29: byte29 = (byte) how.applyAsInt(byte29); return;
+		case 30: byte30 = (byte) how.applyAsInt(byte30); return;
+		case 31: byte31 = (byte) how.applyAsInt(byte31); return;
 		default: throw new ArrayIndexOutOfBoundsException(index);
 		}
 	}
@@ -197,8 +249,8 @@ public final class Bytes32 extends AbstractByteArray {
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof Bytes32) {
-			Bytes32 otherAsBytes = (Bytes32) other;
+		if (other instanceof MutableBytes32) {
+			MutableBytes32 otherAsBytes = (MutableBytes32) other;
 			return byte0 == otherAsBytes.byte0 &&
 				byte1 == otherAsBytes.byte1 &&
 				byte2 == otherAsBytes.byte2 &&
