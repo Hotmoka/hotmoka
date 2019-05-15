@@ -56,13 +56,17 @@ public final class Bytes32 extends AbstractByteArray {
 	private final byte byte31;
 
 	/**
-	 * Builds an empty array with the given elements.
+	 * Builds an array with the given elements. The resulting
+	 * object is not backed by the elements, meaning that subsequent
+	 * updates to the array of elements does not affect the created object.
 	 * 
 	 * @param elements the elements
 	 */
 	public Bytes32(byte[] elements) {
+		if (elements == null)
+			throw new IllegalArgumentException("Expected a non-null array of elements");
 		if (elements.length != length)
-			throw new IllegalArgumentException("Expected " + length + " elements");
+			throw new IllegalArgumentException("Expected " + length + " elements, but got " + elements.length);
 
 		byte0 = elements[0];
 		byte1 = elements[1];
@@ -98,7 +102,7 @@ public final class Bytes32 extends AbstractByteArray {
 		byte31 = elements[31];
 	}
 
-	@Override
+	@Override @View
 	public int length() {
 		return length;
 	}
@@ -195,9 +199,10 @@ public final class Bytes32 extends AbstractByteArray {
 		}
 	}
 
-	@Override
+	@Override @View
 	public boolean equals(Object other) {
 		if (other instanceof Bytes32) {
+			// optimized for special case
 			Bytes32 otherAsBytes = (Bytes32) other;
 			return byte0 == otherAsBytes.byte0 &&
 				byte1 == otherAsBytes.byte1 &&
@@ -236,8 +241,9 @@ public final class Bytes32 extends AbstractByteArray {
 			return super.equals(other);
 	}
 
-	@Override
+	@Override @View
 	public int hashCode() {
+		// optimized
 		return byte0 ^
 			(byte1 << 1) ^
 			(byte2 << 2) ^

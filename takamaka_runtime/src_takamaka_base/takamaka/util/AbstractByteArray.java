@@ -6,10 +6,10 @@ import java.util.stream.Collectors;
 import takamaka.lang.Storage;
 
 /**
- * A partial implements of the {@link takamaka.util.ByteArray} interface,
+ * A partial implementation of the {@link takamaka.util.ByteArray} interface,
  * containing all methods common to its subclasses.
  */
-public abstract class AbstractByteArray extends Storage implements ByteArray {
+abstract class AbstractByteArray extends Storage implements ByteArray {
 
 	@Override
 	public String toString() {

@@ -16,7 +16,7 @@ public interface ByteArray extends Iterable<Byte> {
 	 * 
 	 * @return the length of this array
 	 */
-	public @View int length();
+	@View int length();
 
 	/**
 	 * Yields the value at the given index.
@@ -25,7 +25,7 @@ public interface ByteArray extends Iterable<Byte> {
 	 * @return the value at the given index
 	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
 	 */
-	public @View byte get(int index);
+	@View byte get(int index);
 
 	/**
 	 * Yields an ordered stream of the bytes in this array in increasing order of index.
@@ -34,22 +34,36 @@ public interface ByteArray extends Iterable<Byte> {
 	 * 
 	 * @return the stream
 	 */
-	public IntStream stream();
+	IntStream stream();
 
 	/**
 	 * Yields an array containing the elements of this byte array.
+	 * This object is not backed by the returned array, meaning that
+	 * subsequent updates to the returned array do not affect this object.
 	 * 
 	 * @return the array
 	 */
-	public byte[] toArray();
+	byte[] toArray();
 
 	/**
-	 * Determines the other object is a storage array of bytes with the same length and with
-	 * the same elements at the same indexes.
+	 * Determines if the other object is a storage array of bytes with the same length and with
+	 * the same elements in the same order. No other aspect of the arrays is checked.
+	 * In particular, mutable and immutable are considered equal as long as the
+	 * condition above holds.
 	 * 
 	 * @param other the other object
 	 * @return true if and only if that condition holds
 	 */
-	@Override
+	@Override @View
 	boolean equals(Object other);
+
+	/**
+	 * Yields the hash code for this array. It considers its elements and their order only.
+	 * In particular, it does not consider if the array is mutable or immutable,
+	 * in order to be compatible with {@link takamaka.util.ByteArray#equals(Object)}.
+	 * 
+	 * @return true if and only if the above condition holds
+	 */
+	@Override @View
+	int hashCode();
 }

@@ -11,8 +11,9 @@ import takamaka.lang.Storage;
 import takamaka.lang.View;
 
 /**
- * An array of bytes, that can be kept in storage. Unset elements default to 0.
+ * A mutable array of bytes, that can be kept in storage. Unset elements default to 0.
  * The length of the array is decided at creation time and cannot be changed later.
+ * Its elements can be updated.
  * By iterating on this object, one gets its values, in increasing index order.
  *
  * This code is derived from Sedgewick and Wayne's code for

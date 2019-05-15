@@ -91,7 +91,7 @@ public abstract class Takamaka {
 
 	/**
 	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.lang.Takamaka#requireThat(boolean, Supplier))}.
+	 * This is a synonym of {@link takamaka.lang.Takamaka#requireThat(boolean, Supplier)}.
 	 * 
 	 * @param condition the condition that must hold
 	 * @param message the supplier of the message used in the exception raised if the
@@ -106,7 +106,7 @@ public abstract class Takamaka {
 
 	/**
 	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.lang.Takamaka#require(boolean, Supplier))}.
+	 * This is a synonym of {@link takamaka.lang.Takamaka#require(boolean, Supplier)}.
 	 * 
 	 * @param condition the condition that must hold
 	 * @param message the supplier of the message used in the exception raised if the

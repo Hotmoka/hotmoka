@@ -60,13 +60,17 @@ public class MutableBytes32 extends AbstractByteArray implements MutableByteArra
 	public MutableBytes32() {}
 
 	/**
-	 * Builds an empty array with the given elements.
+	 * Builds an array with the given elements. The resulting
+	 * object is not backed by the elements, meaning that subsequent
+	 * updates to the array of elements does not affect the created object.
 	 * 
 	 * @param elements the elements
 	 */
 	public MutableBytes32(byte[] elements) {
+		if (elements == null)
+			throw new IllegalArgumentException("Expected a non-null array of elements");
 		if (elements.length != length)
-			throw new IllegalArgumentException("Expected " + length + " elements");
+			throw new IllegalArgumentException("Expected " + length + " elements, but got " + elements.length);
 
 		for (int pos = 0; pos < length; pos++)
 			set(pos, elements[pos]);
