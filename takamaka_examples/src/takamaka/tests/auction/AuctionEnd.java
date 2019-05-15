@@ -1,15 +1,15 @@
-package auction;
+package takamaka.tests.auction;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
 import takamaka.lang.Event;
+import takamaka.lang.PayableContract;
 
 public class AuctionEnd extends Event {
-	public final Contract highestBidder;
+	public final PayableContract highestBidder;
 	public final BigInteger highestBid;
 
-	AuctionEnd(Contract highestBidder, BigInteger highestBid) {
+	AuctionEnd(PayableContract highestBidder, BigInteger highestBid) {
 		this.highestBidder = highestBidder;
 		this.highestBid = highestBid;
 	}

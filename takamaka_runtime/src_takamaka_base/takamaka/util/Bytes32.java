@@ -248,6 +248,83 @@ public class Bytes32 extends AbstractByteArray implements ByteArray {
 	}
 
 	@Override
+	public boolean equals(Object other) {
+		if (other instanceof Bytes32) {
+			Bytes32 otherAsBytes = (Bytes32) other;
+			return byte0 == otherAsBytes.byte0 &&
+				byte1 == otherAsBytes.byte1 &&
+				byte2 == otherAsBytes.byte2 &&
+				byte3 == otherAsBytes.byte3 &&
+				byte4 == otherAsBytes.byte4 &&
+				byte5 == otherAsBytes.byte5 &&
+				byte6 == otherAsBytes.byte6 &&
+				byte7 == otherAsBytes.byte7 &&
+				byte8 == otherAsBytes.byte8 &&
+				byte9 == otherAsBytes.byte9 &&
+				byte10 == otherAsBytes.byte10 &&
+				byte11 == otherAsBytes.byte11 &&
+				byte12 == otherAsBytes.byte12 &&
+				byte13 == otherAsBytes.byte13 &&
+				byte14 == otherAsBytes.byte14 &&
+				byte15 == otherAsBytes.byte15 &&
+				byte16 == otherAsBytes.byte16 &&
+				byte17 == otherAsBytes.byte17 &&
+				byte18 == otherAsBytes.byte18 &&
+				byte19 == otherAsBytes.byte19 &&
+				byte20 == otherAsBytes.byte20 &&
+				byte21 == otherAsBytes.byte21 &&
+				byte22 == otherAsBytes.byte22 &&
+				byte23 == otherAsBytes.byte23 &&
+				byte24 == otherAsBytes.byte24 &&
+				byte25 == otherAsBytes.byte25 &&
+				byte26 == otherAsBytes.byte26 &&
+				byte27 == otherAsBytes.byte27 &&
+				byte28 == otherAsBytes.byte28 &&
+				byte29 == otherAsBytes.byte29 &&
+				byte30 == otherAsBytes.byte30 &&
+				byte31 == otherAsBytes.byte31;
+		}
+		else
+			return super.equals(other);
+	}
+
+	@Override
+	public int hashCode() {
+		return byte0 ^
+			(byte1 << 1) ^
+			(byte2 << 2) ^
+			(byte3 << 3) ^
+			(byte4 << 4) ^
+			(byte5 << 5) ^
+			(byte6 << 6) ^
+			(byte7 << 7) ^
+			(byte8 << 8) ^
+			(byte9 << 9) ^
+			(byte10 << 10) ^
+			(byte11 << 11) ^
+			(byte12 << 12) ^
+			(byte13 << 13) ^
+			(byte14 << 14) ^
+			(byte15 << 15) ^
+			(byte16 << 16) ^
+			(byte17 << 17) ^
+			(byte18 << 18) ^
+			(byte19 << 19) ^
+			(byte20 << 20) ^
+			(byte21 << 21) ^
+			(byte22 << 22) ^
+			(byte23 << 23) ^
+			byte24 ^
+			(byte25 << 1) ^
+			(byte26 << 2) ^
+			(byte27 << 3) ^
+			(byte28 << 4) ^
+			(byte29 << 5) ^
+			(byte30 << 6) ^
+			(byte31 << 7);
+	}
+
+	@Override
 	public IntStream stream() {
 		return IntStream.of(byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byte9, byte10, byte11, byte12, byte13, byte14, byte15,
 							byte16, byte17, byte18, byte19, byte20, byte21, byte22, byte23, byte24, byte25, byte26, byte27, byte28, byte29, byte30, byte31);

@@ -1,4 +1,4 @@
-package auction;
+package takamaka.tests.auction;
 
 import static takamaka.lang.Takamaka.event;
 import static takamaka.lang.Takamaka.now;

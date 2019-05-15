@@ -29,6 +29,7 @@
     <jar jarfile="${dist}/basic.jar" basedir="${build}" includes="**/takamaka/tests/basic/**"/>
     <jar jarfile="${dist}/basicdependency.jar" basedir="${build}" includes="**/takamaka/tests/basicdependency/**"/>
   	<jar jarfile="${dist}/purchase.jar" basedir="${build}" includes="**/takamaka/tests/remotepurchase/**"/>
+  	<jar jarfile="${dist}/auctions.jar" basedir="${build}" includes="**/takamaka/tests/auction/**"/>
   	<jar jarfile="${dist}/storage.jar" basedir="${build}" includes="**/takamaka/tests/storage/**"/>
   	<jar jarfile="${dist}/voting.jar" basedir="${build}" includes="**/takamaka/tests/voting/**"/>
   	<jar jarfile="${dist}/crowdfunding.jar" basedir="${build}" includes="**/takamaka/tests/crowdfunding/**"/>

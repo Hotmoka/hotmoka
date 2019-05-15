@@ -32,6 +32,13 @@ public abstract class AbstractByteArray extends Storage implements ByteArray {
 
 	@Override
 	public int hashCode() {
-		return stream().sum();
+		int shift = 0;
+		int result = 0;
+		for (byte b: this) {
+			result ^= b << shift;
+			shift = (shift + 1) % 24;
+		}
+
+		return result;
 	}
 }
