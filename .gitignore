@@ -1,17 +1,6 @@
 .metadata/
 .recommenders/
 RemoteSystemsTempFiles/
-voting/bin
-voting/dist
-coin/bin
-storage/bin
-crowd_funding/bin
-crowd_funding/dist/
-auction/bin
-auction/dist/
-remote_purchase/bin
-test_contracts/bin
-test_contracts/dist/
 takamaka_runtime/dist/
 takamaka_runtime/build/
 takamaka_runtime/build_takamaka_base/
