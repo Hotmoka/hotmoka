@@ -12,8 +12,8 @@ executed in blockchain.
 
 Takamaka is a Java framework for writing smart contracts.
 This means that it allows programmers to use Java for writing code
-that can be installed and run on blockchain. Programmers do not
-deal with the storage of objects in blockchain: this is completely
+that can be installed and run on blockchain. Programmers will not have
+to deal with the storage of objects in blockchain: this is completely
 transparent to them. This makes Takamaka completely different from other
 attempts at using Java for writing smart contracts, where programmers
 must use specific method calls to persist data on blockchain.
@@ -91,7 +91,7 @@ This is plain old Java code and should not need any comment. Compile it
 option is set), create a folder `dist` and export there the project in jar format,
 with name `takamaka1.jar` (click on the
 `takamaka1` project, then right-click on the project, select Export &rarr; Java &rarr; Jar File
-and choose `dist` folder and the `takamaka1.jar` name). Only the compiled
+and choose the `dist` folder and the `takamaka1.jar` name). Only the compiled
 class files will be relevant: Takamaka will ignore source files, manifest
 and any resources in the jar, hence you needn't add them there. The result should
 look as the following:
@@ -110,11 +110,10 @@ of our local machine. That blockchain simulation in memory is inside a third Tak
 Create then another Eclipse project named `blockchain`, add a `lib` folder and
 include three Takamaka jars inside `lib`; both `takamaka_runtime.jar` and
 `takamaka_memory.jar` must be added to the build path of this project;
-do not add, instead, `takamak_base.jar` to the build path: these base classes are
+do not add, instead, `takamaka_base.jar` to the build path: these base classes are
 needed for developing Takamaka code (as shown before) and will be installed in blockchain
 as a classpath needed by our running code. But they must not be part of the build path.
 Finally, add inside `lib` and to the build path the BCEL jar that Takamaka uses for code instrumentation.
-
 The result should look like the following:
 
 ![The `blockchain` Eclipse project](pics/blockchain1.png "The blockchain Eclipse project")
@@ -135,10 +134,10 @@ import takamaka.blockchain.TransactionException;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 public class Main {
-	public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-		Blockchain blockchain = new InitializedMemoryBlockchain
-			(Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
-	}
+  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
+    Blockchain blockchain = new InitializedMemoryBlockchain
+      (Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+  }
 }
 ```
 
