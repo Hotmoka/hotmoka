@@ -128,14 +128,13 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 
-import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.TransactionException;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 public class Main {
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    Blockchain blockchain = new InitializedMemoryBlockchain
+    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
       (Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
   }
 }
@@ -162,5 +161,104 @@ our two initial accounts. Each transaction is specified by a request and a corre
 response. They are kept in serialized form (`request` and `response`) but are also
 reported in textual form (`request.txt` and `response.txt`). Such textual
 representations would not be kept in a real blockchain, but are useful here, for debugging
-or didactic purposes. We do not investigate further the content of the `chain` directory,
-for now. Later, when we will run our own transactions, we will see these files in more detail. 
+or learning purposes. We do not investigate further the content of the `chain` directory,
+for now. Later, when we will run our own transactions, we will see these files in more detail.
+
+Let us consider the `blockchain` project. The `Person` class is not in its build path
+nor in its class path at run time.
+If we want to call the constructor of `Person`, that class must somehow be in the class path.
+In order to put `Person` in the class path, we must install
+`takamaka1.jar` inside the blockchain, so that we can later refer to it and call
+the constructor of `Person`. Let us hence modify the `takamaka.tests.family.Main.java`
+file in order to run a transaction that install `takamaka1.jar` inside the blockchain:
+
+```java
+package takamaka.tests.family;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import takamaka.blockchain.CodeExecutionException;
+import takamaka.blockchain.TransactionException;
+import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.memory.InitializedMemoryBlockchain;
+
+public class Main {
+  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
+    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
+      (Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+
+    TransactionReference takamaka1 = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
+      blockchain.account(0), // this account pays for the transaction
+      BigInteger.valueOf(10_000L), // gas provided to the transaction
+      blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
+      Files.readAllBytes(Paths.get("../takamaka1/dist/takamaka1.jar")), // bytes containing the jar to install
+      blockchain.takamakaBase // dependency
+    ));
+  }
+}
+```
+
+The `addJarStoreTransaction()` method expands the blockchain with a new transaction, whose goal
+is to install a jar inside the blockchain. The jar is provided as a sequence of bytes
+(`Files.readAllBytes(Paths.get("../takamaka1/dist/takamaka1.jar"))`, assuming that the
+`takamaka1` project is in the same workspace as `blockchain`). This transaction, as any
+Takamaka transaction, must be payed. The payer is specified as `blockchain.account(0)`, that is,
+the first of the two accounts created at the moment of creation of the blockchain.
+It is specified that the transaction can cost up to 10,000 units of gas. The transaction request
+specifies that its class path is `blockchain.takamakaBase`: this is the reference to a jar
+installed in the blockchain at its creation time and containing `takamaka_base.jar`, that is,
+the basic classes of Takamaka. Finally, the request specifies that `takamaka1.jar` has only
+a single dependency: `takamaka_base.jar`. This means that when, below, we will refer to
+`takamaka1` in a class path, this will indirectly include its dependency `takamaka_base.jar`.
+
+Run the `Main` class again, refresh the `blockchain` project and see that the `chain` directory
+is one transaction longer now:
+
+![A new transaction appeared in the `chain` directory](pics/blockchain3.png "A new transaction appeared in the chain directory")
+
+The new `t4` transaction reports a `request` that corresponds to the request that we have
+coded in the `Main` class. Namely, its textual representation `request.txt` is:
+
+```
+JarStoreTransactionRequest:
+  caller: 0.2#0
+  gas: 10000
+  class path: 0.0 non-recursively resolved
+  dependencies: [0.0 non-recursively resolved]
+  jar: 504b0304140008080800d294b24e000000000000000000000000140004004d4554412d494e462f4d414e49464553542e4d46f...
+```
+
+The interesting point here is that objects, such as the caller account
+`blockchain.account(0)`, are represented as _storage references_ such as `0.2#0`. You can
+see a storage reference as a machine-independent, deterministic pointer to an object contained
+in the blockchain. Also the `takamaka_base.jar` is represented with an internal representation.
+Namely, `0.0` is a _transaction reference_, that is, a reference to the transaction that installed
+`takamaka_base.jar` in the blockchain: transaction 0 of block 0. The jar is the hexadecimal
+representation of its byte sequence.
+
+Let us have a look at the `response.txt` file, which is the textual representation of the outcome of
+the transaction:
+
+```
+JarStoreTransactionSuccessfulResponse:
+  consumed gas: 1258
+  updates:
+    <0.2#0|takamaka.lang.Contract.balance:java.math.BigInteger|99874>
+  instrumented jar: 504b03041400080808007ca3b24e0000000000000000000000002200040074616b616d616b612f74657374732f66616d696c792...
+```
+
+The first bit of information tells us that the transaction costed 1,258 units of gas. We had accepted to spend up to
+10,000 units of gas, hence the transaction could complete correctly. The response reports also the hexadecimal representation
+of a jar, which is no named _instrumented_. This is because what gets installed in blockchain is not exactly the jar sent
+with the transaction request, but an instrumentation of that, which adds specific features that are specific to Takamaka code.
+For instance, the instrumented code will charge gas during its execution. Finally, the response reports _updates_. These are
+state changes occured during the execution of the transaction. In order terms, updates are the side-effects of the transaction,
+i.e., the fields of the objects modified by the transaction. In this case, the balance of the payer of the transaction
+`0.2#0` has been reduced to 99,874, since it payed for the gas (we created that account with 100,000 coin units at its
+beginning).
+
+> The actual amount of gas consumed by this transaction might change in future versions of Takamaka.
