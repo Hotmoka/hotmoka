@@ -274,7 +274,7 @@ Classpath classpath = new Classpath(takamaka1, true);
 The `true` flag at the end means that this class path includes the dependencies of `takamaka1`. If you look
 at the code above, where `takamaka1` was defined, you see that this means that the class path will include
 also the dependency `takamaka_base.jar`. If `false` would be used instead, the class path would only include
-the classes in `takamaka1.jar`, which would be a problem when we will introduce, very soon, some support classes that
+the classes in `takamaka1.jar`, which would be a problem when we will use, very soon, some support classes that
 Takamaka provides, in `takamaka_base.jar`, to simplify the life of developers.
 
 Clarified which class path to use, let us trigger a transaction that runs the constructor and adds the brand
@@ -334,7 +334,7 @@ public class Main {
 ```
 
 The `addConstructorCallTransaction()` method expands the blockchain with a new transaction that calls
-a constructor. Again, we use `blockchain.account(0)` to pay for the transaction and we provided
+a constructor. Again, we use `blockchain.account(0)` to pay for the transaction and we provide
 100,000 units of gas, which should be enough for a constructor that just initializes a few fields.
 The class path includes `takamaka1.jar` and its dependency `takamaka_base.jar`, although the latter
 is not used yet. The signature of the constructor specifies that we are referring to the second
@@ -373,10 +373,10 @@ ConstructorCallTransactionFailedResponse:
 
 Note that the transaction costed a lot: all 100,000 gas units have been consumed! This is a sort
 of punishment for running a transaction that fails. The rationale is that this punishment should
-avoid potential denial-of-service attacks, when a huge number of failing transactions are thrown
-at a blockchain. At leastm this attack will cost a lot.
+discourage potential denial-of-service attacks, when a huge number of failing transactions are thrown
+at a blockchain. At least, this attack will cost a lot.
 
-But we still have not understood shy the transaction failed. The reason is in the exception
+But we still have not understood why the transaction failed. The reason is in the exception
 message: `takamaka.tests.family.Person cannot be cast to takamaka.lang.Storage`. Takamaka rerquires
 that all objects stored in blockchain extends the `takamaka.lang.Storage` class. That superclass
 provides all the machinery needed in order to keep track of updates to such objects.
@@ -386,8 +386,8 @@ provides all the machinery needed in order to keep track of updates to such obje
 > Takamaka code, both instances of your classes and instances of library classes
 > from the `java.*` hierarchy, for instance. What Takamaka does require, instead, is that objects
 > _that must be kept in blockchain_ do implement `takamaka.lang.Storage`. This is the
-> case, for instance, of objects created by the `addConstructorCallTransaction()` method.
-```
+> case, for instance, of objects created by the constructor invoked through the
+> `addConstructorCallTransaction()` method.
 
 Let us modify the `takamaka.tests.family.Person.java` source code then:
 
@@ -401,14 +401,20 @@ public class Person extends Storage {
 }
 ```
 
-> Extending `takamaka.lang.Storage` is all a programmer has to do in order to let instances
+> Extending `takamaka.lang.Storage` is all a programmer needs to do in order to let instances
 > of a class be stored in blockchain. There is no explicit method to call to keep track
-> of updates to such objects: Takamaka will automatically deal with them.
+> of updates to such objects: Takamaka will automatically deal with the updates.
 
-Regenerate `takamaka1.jar`, since class `Person` has changed, and export it always in
+Regenerate `takamaka1.jar`, since class `Person` has changed, and export it again as
 `dist/takamaka1.jar`, inside the `takamaka1` Eclipse project (some versions of Eclipse
 require to delete the previous `dist/takamaka1.jar` before exporting a new version).
-Run again the `takamaka.tests.family.Main` class. This time, the execution should
+Run again the `takamaka.tests.family.Main` class.
+
+> We can use the `takamaka.lang.Storage` class and we can run the resulting compiled code
+> since that class is inside `takamaka_base.jar`, which as been included in the
+> class path as a dependency of `takamaka1.jar`.
+
+This time, the execution should
 complete without exception. Refresh the `chain/b1/t0` directory and look at the
 `request.txt`. This time the transaction was succesful:
 
@@ -429,8 +435,8 @@ ConstructorCallTransactionSuccessfulResponse:
 ```
 
 You do not need to understand the content of this response file in order to program
-in Takamaka. However, it can be intersting to get an idea of its content.
-The file ssays that a new object has been created and stored in blockchain. It is identified as
+in Takamaka. However, it can be interesting to get an idea of its content.
+The file tells that a new object has been created and stored in blockchain. It is identified as
 `THIS_TRANSACTION#0` since it is the first (0th) object created during this transaction.
 Its class is `takamaka.tests.family.Person`:
 
@@ -458,7 +464,7 @@ The account that payed for the transaction sees its balance decrease:
 These triples are called _updates_, since they describe how the blockchain was
 updated to cope with the creation of a new object.
 
-So where is this new `Person` object actually? Well, it exists in blockchain only.
+So where is this new `Person` object, actually? Well, it exists in blockchain only.
 It did exist in RAM during the execution of the constructor. But, at the end
 of the constructor,
 it was deallocated from RAM and serialized in blockchain, as a set of updates.
