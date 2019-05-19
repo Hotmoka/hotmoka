@@ -500,7 +500,7 @@ will be deserialized from its updates in blockchain and recreated in RAM.
 
 In our `Main` class, variable `albert` holds a machine-independent reference
 to an object of class `Person`,
-that has been just created in blockchain. Let us invoke the
+that has just been created in blockchain. Let us invoke the
 `toString()` method on that object now. For that, we run a transaction
 using `albert` as _receiver_ of `toString()`.
 
@@ -578,11 +578,11 @@ public class Main {
 }
 ```
 
-Look at the added call to `addInstanceMethodCallTransaction()`.
+Look at the call to `addInstanceMethodCallTransaction()` added at its end.
 This time, we let the second account `blockchain.account(1)` pay for the transaction.
-We specified to resolve method `Person.toString()` using `albert` as receiver and
-run the resolved method. The result is `s`, that we later print on the standard output.
-If you run class `Main`, you will se the following on the screen:
+We specify to resolve method `Person.toString()` using `albert` as receiver and
+to run the resolved method. The result is `s`, that we subsequently print on the standard output.
+If you run class `Main`, you will see the following on the screen:
 
 ```
 Albert Einstein (14/4/1879)
@@ -634,7 +634,7 @@ has been updated to pay for the consumed gas.
 
 As we have shown, method `addInstanceMethodCallTransaction()` can be used to
 invoke an instance method on an object in blockchain. This requires some
-final clarification. First of all, note that the signature of the method to
+clarification. First of all, note that the signature of the method to
 call is resolved and the resolved method is then invoked. If
 such resolved method is not found (for instance, if we tried to call `tostring` instead
 of `toString`), then `addInstanceMethodCallTransaction()` would end up in
@@ -658,7 +658,7 @@ blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionReq
   _100_000, // gas provided to the transaction
   classpath, // reference to takamaka1.jar and its dependency takamaka_base.jar
   new MethodSignature(PERSON, "toString", INT), // method Person.toString(int)
-  albert, // receiver of toString()
+  albert, // receiver of toString(int)
   new IntValue(2019) // actual argument(s)
 ));
 ```
