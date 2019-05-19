@@ -253,12 +253,11 @@ JarStoreTransactionSuccessfulResponse:
 
 The first bit of information tells us that the transaction costed 1,258 units of gas. We had accepted to spend up to
 10,000 units of gas, hence the transaction could complete correctly. The response reports also the hexadecimal representation
-of a jar, which is no named _instrumented_. This is because what gets installed in blockchain is not exactly the jar sent
+of a jar, which is named _instrumented_. This is because what gets installed in blockchain is not exactly the jar sent
 with the transaction request, but an instrumentation of that, which adds specific features that are specific to Takamaka code.
 For instance, the instrumented code will charge gas during its execution. Finally, the response reports _updates_. These are
-state changes occured during the execution of the transaction. In order terms, updates are the side-effects of the transaction,
+state changes occurred during the execution of the transaction. In order terms, updates are the side-effects of the transaction,
 i.e., the fields of the objects modified by the transaction. In this case, the balance of the payer of the transaction
-`0.2#0` has been reduced to 99,874, since it payed for the gas (we created that account with 100,000 coin units at its
-beginning).
+`0.2#0` has been reduced to 99,874, since it payed for the gas (we initially funded that account with 100,000 units of coin).
 
-> The actual amount of gas consumed by this transaction might change in future versions of Takamaka.
+> The actual amount of gas consumed by this transaction and the final balance of the payer might change in future versions of Takamaka.
