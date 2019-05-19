@@ -7,6 +7,10 @@ executed in blockchain.
 # Table of Contents
 1. [Introduction](#introduction)
 2. [A First Takamaka Program](#first_program)
+  1. [Create a Test Blockchain](#memory_blockchain)
+  2. [A Transaction that Stores a Jar in Blockchain](#jar_transaction)
+  3. [A Transaction that Invokes a Constructor](#constructor_transaction)
+  4. [A Transaction that Invokes a Method](#method_transaction)
 
 # Introduction <a name="introduction"></a>
 
@@ -98,6 +102,8 @@ look as the following:
 
 ![The `takamaka1` Eclipse project, exported in jar](pics/takamaka1_jar.png "The takamaka1 Eclipse project, exported in jar")
 
+## Create a Test Blockchain <a name="memory_blockchain"></a>
+
 The next step is to install that jar in blockchain, use it to create an instance
 of `Person` and call `toString()` on that instance. For that, we need a running
 blockchain node.
@@ -163,6 +169,8 @@ reported in textual form (`request.txt` and `response.txt`). Such textual
 representations would not be kept in a real blockchain, but are useful here, for debugging
 or learning purposes. We do not investigate further the content of the `chain` directory,
 for now. Later, when we will run our own transactions, we will see these files in more detail.
+
+## A Transaction that Stores a Jar in Blockchain <a name="jar_transaction"></a>
 
 Let us consider the `blockchain` project. The `Person` class is not in its build path
 nor in its class path at run time.
@@ -263,6 +271,8 @@ beginning).
 
 > The actual amount of gas consumed by this transaction might change in future versions of Takamaka.
 
+## A Transaction that Invokes a Constructor <a name="constructor_transaction"></a>
+
 We are now in condition to call the constructor of `Person` and create an instance of that class in blockchain.
 First of all, we must create the class path where the constructor will run. Since the class `Person` is inside
 the `takamaka1.jar` archive, the class path is simply:
@@ -360,7 +370,7 @@ Caused by: java.lang.ClassCastException: takamaka.tests.family.Person cannot be 
 > The exact shape and line numbers of this exception trace might change in future versions of Takamaka.
 
 The transaction failed. Nevertheless, a transaction has been added to the blockchain: refresh the
-`chain` folder and look at the topmost transaction `chain/b1/to`. There is a `request.txt`, that contains
+`chain` folder and look at the topmost transaction `chain/b1/t0`. There is a `request.txt`, that contains
 the information that we provided in the `addConstructorCallTransaction()` specification, and there is
 a `response.txt` that contains the (disappointing) outcome:
 
@@ -478,3 +488,5 @@ StorageReference albert = blockchain.addConstructorCallTransaction(...)
 and can be used later to invoke methods on the object or to pass the object
 as a parameter of methods or constructors: when that will occur, the object
 will be deserialized from its updates in blockchain and recreated in RAM.
+
+## A Transaction that Invokes a Method <a name="method_transaction"></a>
