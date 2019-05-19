@@ -7,10 +7,10 @@ executed in blockchain.
 # Table of Contents
 1. [Introduction](#introduction)
 2. [A First Takamaka Program](#first_program)
-  - [Create a Test Blockchain](#memory_blockchain)
-  - [A Transaction that Stores a Jar in Blockchain](#jar_transaction)
-  - [A Transaction that Invokes a Constructor](#constructor_transaction)
-  - [A Transaction that Invokes a Method](#method_transaction)
+    - [Create a Test Blockchain](#memory_blockchain)
+    - [A Transaction that Stores a Jar in Blockchain](#jar_transaction)
+    - [A Transaction that Invokes a Constructor](#constructor_transaction)
+    - [A Transaction that Invokes a Method](#method_transaction)
 
 # Introduction <a name="introduction"></a>
 
