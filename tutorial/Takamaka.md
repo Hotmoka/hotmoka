@@ -11,6 +11,14 @@ executed in blockchain.
     - [A Transaction that Stores a Jar in Blockchain](#jar_transaction)
     - [A Transaction that Invokes a Constructor](#constructor_transaction)
     - [A Transaction that Invokes a Method](#method_transaction)
+    - Constraints on Storage Classes
+3. Contracts
+    - The `@Entry` and `@Payable` Annotations
+    - The `@View` Annotation
+4. Utility Classes
+    - Storage Lists
+    - Storage Arrays
+    - Storage Maps
 
 # Introduction <a name="introduction"></a>
 
