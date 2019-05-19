@@ -497,4 +497,136 @@ as a parameter of methods or constructors: when that will occur, the object
 will be deserialized from its updates in blockchain and recreated in RAM.
 
 ## A Transaction that Invokes a Method <a name="method_transaction"></a>
->>>>>>> 5e1a6900c4857e2ae425098217beacc1ca36141d
+
+In our `Main` class, variable `albert` holds a machine-independent reference
+to an object of class `Person`,
+that has been just created in blockchain. Let us invoke the
+`toString()` method of that object now. For that, we run a transaction
+using `albert` as _receiver_ of `toString()`.
+
+> In object-oriented languages, the _receiver_ of a call to a non-`static`
+> method is the object over which the method is executed, that is accessible
+> as `this` inside the code of the method. In our case, we want to invoke
+> `albert.toString()`, hence `albert` holds the receiver of the call.
+
+The code is the following now:
+
+```java
+package takamaka.tests.family;
+
+import static takamaka.blockchain.types.BasicTypes.INT;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import takamaka.blockchain.Classpath;
+import takamaka.blockchain.CodeExecutionException;
+import takamaka.blockchain.ConstructorSignature;
+import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.TransactionException;
+import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.request.ConstructorCallTransactionRequest;
+import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
+import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.types.ClassType;
+import takamaka.blockchain.values.IntValue;
+import takamaka.blockchain.values.StorageReference;
+import takamaka.blockchain.values.StorageValue;
+import takamaka.blockchain.values.StringValue;
+import takamaka.memory.InitializedMemoryBlockchain;
+
+public class Main {
+  // useful constants
+  private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+  private final static ClassType PERSON = new ClassType("takamaka.tests.family.Person");
+
+  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
+    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
+      (Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+
+    TransactionReference takamaka1 = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
+      blockchain.account(0), // this account pays for the transaction
+      _100_000, // gas provided to the transaction
+      blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
+      Files.readAllBytes(Paths.get("../takamaka1/dist/takamaka1.jar")), // bytes containing the jar to install
+      blockchain.takamakaBase
+    ));
+
+    Classpath classpath = new Classpath(takamaka1, true);
+
+    StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+      blockchain.account(0), // this account pays for the transaction
+      _100_000, // gas provided to the transaction
+      classpath, // reference to takamaka1.jar and its dependency takamaka_base.jar
+      new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT), // constructor Person(String,int,int,int)
+      new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879) // actual arguments
+    ));
+
+    StorageValue s = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      blockchain.account(1), // this account pays for the transaction
+      _100_000, // gas provided to the transaction
+      classpath, // reference to takamaka1.jar and its dependency takamaka_base.jar
+      new MethodSignature(PERSON, "toString"), // method Person.toString()
+      albert // receiver of toString()
+    ));
+
+    // prints the result of the call
+    System.out.println(s);
+  }
+}
+```
+
+This time we let the second account `blockchain.account(1)` pay for the transaction.
+We specified to resolve method `Person.toString()` using `albert` as receiver and
+run the resolved method. The result is `s`, that we later print on the standard output.
+If you run class `Main`, you will se the following on the screen:
+
+```
+Albert Einstein (14/4/1879)
+```
+
+After refreshing the `chain` directory, you will see that a new transaction
+`chain/b1/t1` appeared, whose `request.txt` describes the transaction that we have
+requested:
+
+```
+InstanceMethodCallTransactionRequest:
+  caller: 0.3#0
+  gas: 100000
+  class path: 0.4 recursively revolved
+  method: takamaka.tests.family.Person.toString()
+  receiver: 1.0#0
+  actuals:
+```
+
+while the `response.txt` file reports the outcome of the transaction:
+
+```
+MethodCallTransactionSuccessfulResponse:
+  consumed gas: 125
+  updates:
+    <0.3#0|takamaka.lang.Contract.balance:java.math.BigInteger|199987>
+  returned value: Albert Einstein (14/4/1879)
+  events:
+```
+
+Note that, this time, the payer is `0.3#0` and, consequently, its balance
+has been updated to bay for the consumed gas.
+
+> This `response.txt` could be surprising: vy looking at the code
+> of method `toString()` of `Person`, you can see that it computes a string
+> concatenation `name +" (" + day + "/" + month + "/" + year + ")"`. As any
+> Java programnmer knows, that is just syntactical sugar for a very
+> complex sequence of operations, involving the construction of a
+> `java.lang.StringBuilder` and its repeated update through a sequence of
+> call to its `concat()` methdos, finalized with a call to `StringBuilder.toString()`.
+> So, why are those updates
+> not reported in `response.txt`? Simply because they are not updates
+> to the state of the blockchain but rather updates to a `StringBuilder` object,
+> local to `Person.toString()`, that dies at its end and
+> is not accessible anymore afterwards. In other terms, the updates reported
+> the `response.txt` files are those observable outside the method or constructor, to
+> objects that existed before the call or that are returned by the
+> method or constructor itself.
