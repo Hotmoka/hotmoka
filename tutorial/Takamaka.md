@@ -711,10 +711,16 @@ and their class must extend
 `takamaka.lang.Storage`. But there are extra constraints. Namely,
 fields of a storage objects are part of the representation of such
 objects and must, themselves, be kept in storage. Hence, a storage object:
-1. must have a class that extends (directly or indirectly) class `takamaka.lang.Storage`, and
-2. has fields that hold storage values (primitives, `java.math,BigInteger`, `java.lang.String` or a storage class).
+1. has a class that extends (directly or indirectly) `takamaka.lang.Storage`, and
+2. is such that all its fields hold storage values (primitives, a storage object, `null`, a `java.math,BigInteger` or a `java.lang.String`).
 
-Note that the above conditions hold for the class `Person` above. Moreover,
-the following are examples of what is **not** allowed in a storage class:
+Note that the above conditions hold for the class `Person` defined above. Instead,
+the following are examples of what is **not** allowed in a field of a storage object:
 1. arrays
 2. collections from `java.util.*`
+
+We will see later how to overcome these limitations.
+
+> Again, we stress that such limitations only apply to storage objects.
+> Other objects, thet needn't be kept in blockchain but are useful for
+> the implementation of Takamaka code, can be defined in a comletely free way.
