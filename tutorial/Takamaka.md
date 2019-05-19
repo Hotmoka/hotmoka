@@ -501,7 +501,7 @@ will be deserialized from its updates in blockchain and recreated in RAM.
 In our `Main` class, variable `albert` holds a machine-independent reference
 to an object of class `Person`,
 that has been just created in blockchain. Let us invoke the
-`toString()` method of that object now. For that, we run a transaction
+`toString()` method on that object now. For that, we run a transaction
 using `albert` as _receiver_ of `toString()`.
 
 > In object-oriented languages, the _receiver_ of a call to a non-`static`
@@ -578,7 +578,8 @@ public class Main {
 }
 ```
 
-This time we let the second account `blockchain.account(1)` pay for the transaction.
+Look at the added call to `addInstanceMethodCallTransaction()`.
+This time, we let the second account `blockchain.account(1)` pay for the transaction.
 We specified to resolve method `Person.toString()` using `albert` as receiver and
 run the resolved method. The result is `s`, that we later print on the standard output.
 If you run class `Main`, you will se the following on the screen:
@@ -613,20 +614,54 @@ MethodCallTransactionSuccessfulResponse:
 ```
 
 Note that, this time, the payer is `0.3#0` and, consequently, its balance
-has been updated to bay for the consumed gas.
+has been updated to pay for the consumed gas.
 
-> This `response.txt` could be surprising: vy looking at the code
+> This `response.txt` could be surprising: by looking at the code
 > of method `toString()` of `Person`, you can see that it computes a string
 > concatenation `name +" (" + day + "/" + month + "/" + year + ")"`. As any
 > Java programnmer knows, that is just syntactical sugar for a very
 > complex sequence of operations, involving the construction of a
 > `java.lang.StringBuilder` and its repeated update through a sequence of
-> call to its `concat()` methdos, finalized with a call to `StringBuilder.toString()`.
+> calls to its `concat()` methdos, finalized with a call to `StringBuilder.toString()`.
 > So, why are those updates
 > not reported in `response.txt`? Simply because they are not updates
 > to the state of the blockchain but rather updates to a `StringBuilder` object,
-> local to `Person.toString()`, that dies at its end and
-> is not accessible anymore afterwards. In other terms, the updates reported
+> local to the activation of `Person.toString()`, that dies at its end and
+> is not accessible anymore afterwards. In other terms, the updates reported in
 > the `response.txt` files are those observable outside the method or constructor, to
 > objects that existed before the call or that are returned by the
 > method or constructor itself.
+
+As you have seen, method `addInstanceMethodCallTransaction()` can be used to
+invoke a instance method on an object in blockchain. This requires some
+final clarification. First of all, note that the signature of the method to
+call is resolved and the resolved method is then invoked. If there is not
+such resolved method (for instance, if we tried to call `tostring` instead
+of `toString`), then `addInstanceMethodCallTransaction()` would end up in
+a failed transaction. Moreover, the ususal resolution mechanism of Java is
+applied. If, for instance, we called
+`new MethodSignature(ClassType.OBJECT, "toString")`
+instead of
+`new MethodSignature(PERSON, "toString")`,
+then method `toString` would be resolved from the run-time class of
+`albert`, looking for the most specific implementation of `toString()`,
+which would anyway end up in `Person.toString()`.
+
+Method `addInstanceMethodCallTransaction()` can be used to invoke instance
+methods with parameters. If a `toString(int)` method existed in `Person`,
+then we could call it by writing:
+
+```java
+blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+  blockchain.account(1), // this account pays for the transaction
+  _100_000, // gas provided to the transaction
+  classpath, // reference to takamaka1.jar and its dependency takamaka_base.jar
+  new MethodSignature(PERSON, "toString", INT), // method Person.toString(int)
+  albert, // receiver of toString()
+  new IntValue(2019)
+));
+```
+
+where we have added the formal argument `INT`
+(that is, `takamaka.blockchain.types.BasicTypes.INT`)
+and the actual argument `new IntValue(2019)`.
