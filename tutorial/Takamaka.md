@@ -7,6 +7,18 @@ executed in blockchain.
 # Table of Contents
 1. [Introduction](#introduction)
 2. [A First Takamaka Program](#first_program)
+    - [Create a Test Blockchain](#memory_blockchain)
+    - [A Transaction that Stores a Jar in Blockchain](#jar_transaction)
+    - [A Transaction that Invokes a Constructor](#constructor_transaction)
+    - [A Transaction that Invokes a Method](#method_transaction)
+    - Constraints on Storage Classes
+3. Contracts
+    - The `@Entry` and `@Payable` Annotations
+    - The `@View` Annotation
+4. Utility Classes
+    - Storage Lists
+    - Storage Arrays
+    - Storage Maps
 
 # Introduction <a name="introduction"></a>
 
@@ -98,6 +110,8 @@ look as the following:
 
 ![The `takamaka1` Eclipse project, exported in jar](pics/takamaka1_jar.png "The takamaka1 Eclipse project, exported in jar")
 
+## Create a Test Blockchain <a name="memory_blockchain"></a>
+
 The next step is to install that jar in blockchain, use it to create an instance
 of `Person` and call `toString()` on that instance. For that, we need a running
 blockchain node.
@@ -164,6 +178,8 @@ representations would not be kept in a real blockchain, but are useful here, for
 or learning purposes. We do not investigate further the content of the `chain` directory,
 for now. Later, when we will run our own transactions, we will see these files in more detail.
 
+## A Transaction that Stores a Jar in Blockchain <a name="jar_transaction"></a>
+
 Let us consider the `blockchain` project. The `Person` class is not in its build path
 nor in its class path at run time.
 If we want to call the constructor of `Person`, that class must somehow be in the class path.
@@ -193,7 +209,7 @@ public class Main {
 
     TransactionReference takamaka1 = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
-      BigInteger.valueOf(10_000L), // gas provided to the transaction
+      BigInteger.valueOf(100_000L), // gas provided to the transaction
       blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
       Files.readAllBytes(Paths.get("../takamaka1/dist/takamaka1.jar")), // bytes containing the jar to install
       blockchain.takamakaBase // dependency
@@ -208,7 +224,7 @@ is to install a jar inside the blockchain. The jar is provided as a sequence of 
 `takamaka1` project is in the same workspace as `blockchain`). This transaction, as any
 Takamaka transaction, must be payed. The payer is specified as `blockchain.account(0)`, that is,
 the first of the two accounts created at the moment of creation of the blockchain.
-It is specified that the transaction can cost up to 10,000 units of gas. The transaction request
+It is specified that the transaction can cost up to 100,000 units of gas. The transaction request
 specifies that its class path is `blockchain.takamakaBase`: this is the reference to a jar
 installed in the blockchain at its creation time and containing `takamaka_base.jar`, that is,
 the basic classes of Takamaka. Finally, the request specifies that `takamaka1.jar` has only
@@ -226,7 +242,7 @@ coded in the `Main` class. Namely, its textual representation `request.txt` is:
 ```
 JarStoreTransactionRequest:
   caller: 0.2#0
-  gas: 10000
+  gas: 100000
   class path: 0.0 non-recursively resolved
   dependencies: [0.0 non-recursively resolved]
   jar: 504b0304140008080800d294b24e000000000000000000000000140004004d4554412d494e462f4d414e49464553542e4d46f...
@@ -252,7 +268,7 @@ JarStoreTransactionSuccessfulResponse:
 ```
 
 The first bit of information tells us that the transaction costed 1,258 units of gas. We had accepted to spend up to
-10,000 units of gas, hence the transaction could complete correctly. The response reports also the hexadecimal representation
+100,000 units of gas, hence the transaction could complete correctly. The response reports also the hexadecimal representation
 of a jar, which is named _instrumented_. This is because what gets installed in blockchain is not exactly the jar sent
 with the transaction request, but an instrumentation of that, which adds specific features that are specific to Takamaka code.
 For instance, the instrumented code will charge gas during its execution. Finally, the response reports _updates_. These are
@@ -261,3 +277,224 @@ i.e., the fields of the objects modified by the transaction. In this case, the b
 `0.2#0` has been reduced to 99,874, since it payed for the gas (we initially funded that account with 100,000 units of coin).
 
 > The actual amount of gas consumed by this transaction and the final balance of the payer might change in future versions of Takamaka.
+
+## A Transaction that Invokes a Constructor <a name="constructor_transaction"></a>
+
+We are now in condition to call the constructor of `Person` and create an instance of that class in blockchain.
+First of all, we must create the class path where the constructor will run. Since the class `Person` is inside
+the `takamaka1.jar` archive, the class path is simply:
+
+```java
+Classpath classpath = new Classpath(takamaka1, true);
+```
+
+The `true` flag at the end means that this class path includes the dependencies of `takamaka1`. If you look
+at the code above, where `takamaka1` was defined, you see that this means that the class path will include
+also the dependency `takamaka_base.jar`. If `false` would be used instead, the class path would only include
+the classes in `takamaka1.jar`, which would be a problem when we will use, very soon, some support classes that
+Takamaka provides, in `takamaka_base.jar`, to simplify the life of developers.
+
+Clarified which class path to use, let us trigger a transaction that runs the constructor and adds the brand
+new `Person` object into blockchain. For that, modify the `takamaka.tests.family.Main.java` source as follows:
+
+```java
+package takamaka.tests.family;
+
+import static takamaka.blockchain.types.BasicTypes.INT;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import takamaka.blockchain.Classpath;
+import takamaka.blockchain.CodeExecutionException;
+import takamaka.blockchain.ConstructorSignature;
+import takamaka.blockchain.TransactionException;
+import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.request.ConstructorCallTransactionRequest;
+import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.types.ClassType;
+import takamaka.blockchain.values.IntValue;
+import takamaka.blockchain.values.StorageReference;
+import takamaka.blockchain.values.StringValue;
+import takamaka.memory.InitializedMemoryBlockchain;
+
+public class Main {
+  // useful constants
+  private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+  private final static ClassType PERSON = new ClassType("takamaka.tests.family.Person");
+
+  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
+    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
+      (Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+
+    TransactionReference takamaka1 = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
+      blockchain.account(0), // this account pays for the transaction
+      _100_000, // gas provided to the transaction
+      blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
+      Files.readAllBytes(Paths.get("../takamaka1/dist/takamaka1.jar")), // bytes containing the jar to install
+      blockchain.takamakaBase
+    ));
+
+    Classpath classpath = new Classpath(takamaka1, true);
+
+    StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+      blockchain.account(0), // this account pays for the transaction
+      _100_000, // gas provided to the transaction
+      classpath, // reference to takamaka1.jar anbd its dependency takamaka_base.jar
+      new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT), // constructor Person(String,int,int,int)
+      new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879) // actual arguments
+    ));
+  }
+}
+```
+
+The `addConstructorCallTransaction()` method expands the blockchain with a new transaction that calls
+a constructor. Again, we use `blockchain.account(0)` to pay for the transaction and we provide
+100,000 units of gas, which should be enough for a constructor that just initializes a few fields.
+The class path includes `takamaka1.jar` and its dependency `takamaka_base.jar`, although the latter
+is not used yet. The signature of the constructor specifies that we are referring to the second
+constructor of `Person`, the one that assumes `null` as parents. Finally, the actual parameters
+are provided; they must be instances of the `takamaka.blockchain.values.StorageValue` interface.
+
+Let us run the `Main` class. The result is disappointing:
+
+```
+Exception in thread "main" takamaka.blockchain.TransactionException: Failed transaction
+    at takamaka.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
+    at takamaka.blockchain.AbstractBlockchain.lambda$runConstructorCallTransaction$11(Unknown Source)
+    at takamaka.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
+    at takamaka.blockchain.AbstractBlockchain.runConstructorCallTransaction(Unknown Source)
+    at takamaka.blockchain.AbstractBlockchain.lambda$addConstructorCallTransaction$12(Unknown Source)
+    at takamaka.blockchain.AbstractBlockchain.wrapWithCodeInCaseOfException(Unknown Source)
+    at takamaka.blockchain.AbstractBlockchain.addConstructorCallTransaction(Unknown Source)
+    at takamaka.tests.family.Main.main(Main.java:42)
+Caused by: java.lang.ClassCastException: takamaka.tests.family.Person cannot be cast to takamaka.lang.Storage
+    at takamaka.blockchain.AbstractBlockchain$ConstructorExecutor.run(Unknown Source)
+```
+
+> The exact shape and line numbers of this exception trace might change in future versions of Takamaka.
+
+The transaction failed. Nevertheless, a transaction has been added to the blockchain: refresh the
+`chain` folder and look at the topmost transaction `chain/b1/t0`. There is a `request.txt`, that contains
+the information that we provided in the `addConstructorCallTransaction()` specification, and there is
+a `response.txt` that contains the (disappointing) outcome:
+
+```
+ConstructorCallTransactionFailedResponse:
+  consumed gas: 100000
+  updates:
+    <0.2#0|takamaka.lang.Contract.balance:java.math.BigInteger|88347>
+```
+
+Note that the transaction costed a lot: all 100,000 gas units have been consumed! This is a sort
+of punishment for running a transaction that fails. The rationale is that this punishment should
+discourage potential denial-of-service attacks, when a huge number of failing transactions are thrown
+at a blockchain. At least, this attack will cost a lot.
+
+But we still have not understood why the transaction failed. The reason is in the exception
+message: `takamaka.tests.family.Person cannot be cast to takamaka.lang.Storage`. Takamaka rerquires
+that all objects stored in blockchain extends the `takamaka.lang.Storage` class. That superclass
+provides all the machinery needed in order to keep track of updates to such objects.
+
+> Do not get confused here. Takamaka does **not** require all objects to extend
+> `takamaka.lang.Storage`. You can use objects that do not extend that superclass in your
+> Takamaka code, both instances of your classes and instances of library classes
+> from the `java.*` hierarchy, for instance. What Takamaka does require, instead, is that objects
+> _that must be kept in blockchain_ do implement `takamaka.lang.Storage`. This is the
+> case, for instance, of objects created by the constructor invoked through the
+> `addConstructorCallTransaction()` method.
+
+Let us modify the `takamaka.tests.family.Person.java` source code then:
+
+```java
+package takamaka.tests.family;
+
+import takamaka.lang.Storage;
+
+public class Person extends Storage {
+  ... unchanged code ...
+}
+```
+
+> Extending `takamaka.lang.Storage` is all a programmer needs to do in order to let instances
+> of a class be stored in blockchain. There is no explicit method to call to keep track
+> of updates to such objects: Takamaka will automatically deal with the updates.
+
+Regenerate `takamaka1.jar`, since class `Person` has changed, and export it again as
+`dist/takamaka1.jar`, inside the `takamaka1` Eclipse project (some versions of Eclipse
+require to delete the previous `dist/takamaka1.jar` before exporting a new version).
+Run again the `takamaka.tests.family.Main` class.
+
+> We can use the `takamaka.lang.Storage` class and we can run the resulting compiled code
+> since that class is inside `takamaka_base.jar`, which as been included in the
+> class path as a dependency of `takamaka1.jar`.
+
+This time, the execution should
+complete without exception. Refresh the `chain/b1/t0` directory and look at the
+`response.txt` file. This time the transaction was succesful:
+
+```
+ConstructorCallTransactionSuccessfulResponse:
+  consumed gas: 130
+  updates:
+    <THIS_TRANSACTION#0.class|takamaka.tests.family.Person>
+    <0.2#0|takamaka.lang.Contract.balance:java.math.BigInteger|98334>
+    <THIS_TRANSACTION#0|takamaka.tests.family.Person.day:int|14>
+    <THIS_TRANSACTION#0|takamaka.tests.family.Person.month:int|4>
+    <THIS_TRANSACTION#0|takamaka.tests.family.Person.year:int|1879>
+    <THIS_TRANSACTION#0|takamaka.tests.family.Person.name:java.lang.String|Albert Einstein>
+    <THIS_TRANSACTION#0|takamaka.tests.family.Person.parent1:takamaka.tests.family.Person|null>
+    <THIS_TRANSACTION#0|takamaka.tests.family.Person.parent2:takamaka.tests.family.Person|null>
+  new object: THIS_TRANSACTION#0
+  events:
+```
+
+You do not need to understand the content of this response file in order to program
+in Takamaka. However, it can be interesting to get an idea of its content.
+The file tells that a new object has been created and stored in blockchain. It is identified as
+`THIS_TRANSACTION#0` since it is the first (0th) object created during this transaction.
+Its class is `takamaka.tests.family.Person`:
+
+```
+<THIS_TRANSACTION#0.class|takamaka.tests.family.Person>
+```
+
+and its fields are initialized as required:
+
+```
+<THIS_TRANSACTION#0|takamaka.tests.family.Person.day:int|14>
+<THIS_TRANSACTION#0|takamaka.tests.family.Person.month:int|4>
+<THIS_TRANSACTION#0|takamaka.tests.family.Person.year:int|1879>
+<THIS_TRANSACTION#0|takamaka.tests.family.Person.name:java.lang.String|Albert Einstein>
+<THIS_TRANSACTION#0|takamaka.tests.family.Person.parent1:takamaka.tests.family.Person|null>
+<THIS_TRANSACTION#0|takamaka.tests.family.Person.parent2:takamaka.tests.family.Person|null>
+```
+
+The account that payed for the transaction sees its balance decrease:
+
+```
+<0.2#0|takamaka.lang.Contract.balance:java.math.BigInteger|98334>
+```
+
+These triples are called _updates_, since they describe how the blockchain was
+updated to cope with the creation of a new object.
+
+So where is this new `Person` object, actually? Well, it exists in blockchain only.
+It did exist in RAM during the execution of the constructor. But, at the end
+of the constructor,
+it was deallocated from RAM and serialized in blockchain, as a set of updates.
+Its storage reference has been returned to the caller of
+`addConstructorCallTransaction()`:
+
+```java
+StorageReference albert = blockchain.addConstructorCallTransaction(...)
+```
+
+and can be used later to invoke methods on the object or to pass the object
+as a parameter of methods or constructors: when that will occur, the object
+will be deserialized from its updates in blockchain and recreated in RAM.
+
+## A Transaction that Invokes a Method <a name="method_transaction"></a>
+>>>>>>> 5e1a6900c4857e2ae425098217beacc1ca36141d
