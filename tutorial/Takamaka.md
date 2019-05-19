@@ -368,7 +368,7 @@ a `response.txt` that contains the (disappointing) outcome:
 ConstructorCallTransactionFailedResponse:
   consumed gas: 100000
   updates:
-    <0.2#0|takamaka.lang.Contract.balance:java.math.BigInteger|98874>
+    <0.2#0|takamaka.lang.Contract.balance:java.math.BigInteger|88347>
 ```
 
 Note that the transaction costed a lot: all 100,000 gas units have been consumed! This is a sort
@@ -416,7 +416,7 @@ Run again the `takamaka.tests.family.Main` class.
 
 This time, the execution should
 complete without exception. Refresh the `chain/b1/t0` directory and look at the
-`request.txt`. This time the transaction was succesful:
+`response.txt` file. This time the transaction was succesful:
 
 ```
 ConstructorCallTransactionSuccessfulResponse:
