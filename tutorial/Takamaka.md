@@ -675,17 +675,17 @@ receiver.
 ## Storage Types and Constraints on Storage Classes <a name="storage_types"></a>
 
 We have seen how to invoke a constructor of a class to build an object in
-blockchain or a method on an object in blockchain. Both constructors and
+blockchain or to invoke a method on an object in blockchain. Both constructors and
 methods can receive arguments. Constructors yield a reference to a new
 object, freshly allocated; methods might yield a returned value, if they are
 not declared as `void`. This means that there is a bidirectional
 exchange of data from outside the blockchain to inside it, and back. But not any
 kind of data can be exchanged. Namely, only _storage values_ can be exchanged,
-that belong to the so called _storage types_: storage values are
+that belong to the so called _storage types_. Storage values are
 
 1. primitive values of Java (characters, bytes, shorts, integers, longs, floats,
 doubles and booleans), or
-2. all reference values whose class extends `takamaka.lang.Storage` (that is, a _storage object_), or
+2. reference values whose class extends `takamaka.lang.Storage` (that is, _storage objects_), or
 3. `null`, or
 4. a few special reference values: `java.math.BigInteger`s and `java.lang.String`s.
 
@@ -699,21 +699,19 @@ is automatic: our class `Person` does not show that machinery.
 
 What should be retained of the above discussion is that constructors and
 methods of Takamaka classes, if we want them to be called from outside the
-blockchain, must have parameters of storage types and must return values
-of storage type (if not `void`). A method that expects a parameter of
+blockchain, must receive storage values as parameters and must return storage
+values (if they are not `void` methods). A method that expects a parameter of
 type `java.util.HashSet`, for instance, can be defined and called
-from Takamaka code, but cannot be called from outside the blockchain, for
-instance, from our `Main` class or from a wallet.
+from inside the Takamaka code, but cannot be called from outside the blockchain,
+such as, for instance, from our `Main` class or from a wallet.
 
 We conclude this section with a formal definition of storage objects.
 We have already said that storage objects can be kept in blockchain
 and their class must extend
 `takamaka.lang.Storage`. But there are extra constraints. Namely,
 fields of a storage objects are part of the representation of such
-objects and must, themselves, be kept in storage. Hence:
-
-A storage object:
-1. must havs a class that extends (directly or indirectly) class `takamaka.lang.Storage`, and
+objects and must, themselves, be kept in storage. Hence, a storage object:
+1. must have a class that extends (directly or indirectly) class `takamaka.lang.Storage`, and
 2. has fields that hold storage values (primitives, `java.math,BigInteger`, `java.lang.String` or a storage class).
 
 Note that the above conditions hold for the class `Person` above. Moreover,
