@@ -622,7 +622,7 @@ has been updated to pay for the consumed gas.
 > Java programnmer knows, that is just syntactical sugar for a very
 > complex sequence of operations, involving the construction of a
 > `java.lang.StringBuilder` and its repeated update through a sequence of
-> calls to its `concat()` methdos, finalized with a call to `StringBuilder.toString()`.
+> calls to its `concat()` methods, finalized with a call to `StringBuilder.toString()`.
 > So, why are those updates
 > not reported in `response.txt`? Simply because they are not updates
 > to the state of the blockchain but rather updates to a `StringBuilder` object,
@@ -632,24 +632,25 @@ has been updated to pay for the consumed gas.
 > objects that existed before the call or that are returned by the
 > method or constructor itself.
 
-As you have seen, method `addInstanceMethodCallTransaction()` can be used to
-invoke a instance method on an object in blockchain. This requires some
+As we have shown, method `addInstanceMethodCallTransaction()` can be used to
+invoke an instance method on an object in blockchain. This requires some
 final clarification. First of all, note that the signature of the method to
-call is resolved and the resolved method is then invoked. If there is not
-such resolved method (for instance, if we tried to call `tostring` instead
+call is resolved and the resolved method is then invoked. If
+such resolved method is not found (for instance, if we tried to call `tostring` instead
 of `toString`), then `addInstanceMethodCallTransaction()` would end up in
-a failed transaction. Moreover, the ususal resolution mechanism of Java is
+a failed transaction. Moreover, the usual resolution mechanism of Java methods is
 applied. If, for instance, we called
 `new MethodSignature(ClassType.OBJECT, "toString")`
 instead of
 `new MethodSignature(PERSON, "toString")`,
 then method `toString` would be resolved from the run-time class of
 `albert`, looking for the most specific implementation of `toString()`,
-which would anyway end up in `Person.toString()`.
+up to the `java.lang.Object` class, which would anyway end up in
+running `Person.toString()`.
 
 Method `addInstanceMethodCallTransaction()` can be used to invoke instance
 methods with parameters. If a `toString(int)` method existed in `Person`,
-then we could call it by writing:
+then we could call it and pass 2019 as its argument, by writing:
 
 ```java
 blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
@@ -658,10 +659,15 @@ blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionReq
   classpath, // reference to takamaka1.jar and its dependency takamaka_base.jar
   new MethodSignature(PERSON, "toString", INT), // method Person.toString(int)
   albert, // receiver of toString()
-  new IntValue(2019)
+  new IntValue(2019) // actual argument(s)
 ));
 ```
 
 where we have added the formal argument `INT`
 (that is, `takamaka.blockchain.types.BasicTypes.INT`)
 and the actual argument `new IntValue(2019)`.
+
+Method `addInstanceMethodCallTransaction()` cannot be used to call a static
+method. For that, use `addStaticMethodCallTransaction()` instead, that accepts
+a request similar to that for `addInstanceMethodCallTransaction()`, but without
+receiver.
