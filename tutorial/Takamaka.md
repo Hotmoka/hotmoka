@@ -11,7 +11,7 @@ executed in blockchain.
     - [A Transaction that Stores a Jar in Blockchain](#jar_transaction)
     - [A Transaction that Invokes a Constructor](#constructor_transaction)
     - [A Transaction that Invokes a Method](#method_transaction)
-    - Constraints on Storage Classes
+    - [Storage Types and Constraints on Storage Classes](#storage_types)
 3. Contracts
     - The `@Entry` and `@Payable` Annotations
     - The `@View` Annotation
@@ -671,3 +671,52 @@ Method `addInstanceMethodCallTransaction()` cannot be used to call a static
 method. For that, use `addStaticMethodCallTransaction()` instead, that accepts
 a request similar to that for `addInstanceMethodCallTransaction()`, but without
 receiver.
+
+## Storage Types and Constraints on Storage Classes <a name="storage_types"></a>
+
+We have seen how to invoke a constructor of a class to build an object in
+blockchain or a method on an object in blockchain. Both constructors and
+methods can receive arguments. Constructors yield a reference to a new
+object, freshly allocated; methods might yield a returned value, if they are
+not declared as `void`. This means that there is a bidirectional
+exchange of data from outside the blockchain to inside it, and back. But not any
+kind of data can be exchanged. Namely, only _storage values_ can be exchanged,
+that belong to the so called _storage types_: storage values are
+
+1. primitive values of Java (characters, bytes, shorts, integers, longs, floats,
+doubles and booleans), or
+2. all reference values whose class extends `takamaka.lang.Storage` (that is, a _storage object_), or
+3. `null`, or
+4. a few special reference values: `java.math.BigInteger`s and `java.lang.String`s.
+
+Storage values cross the
+blockchain boundary inside wrapper objects. For instance the integer 2,019
+is first wrapped into `new IntValue(2019)` and then passed
+as a parameter of a method or constructor. In our previous example,
+when we called `Person.toString()`, the result `s` was actually a wrapper
+of a `java.lang.String` object. Boxing and unboxing into/from wrapper objects
+is automatic: our class `Person` does not show that machinery.
+
+What should be retained of the above discussion is that constructors and
+methods of Takamaka classes, if we want them to be called from outside the
+blockchain, must have parameters of storage types and must return values
+of storage type (if not `void`). A method that expects a parameter of
+type `java.util.HashSet`, for instance, can be defined and called
+from Takamaka code, but cannot be called from outside the blockchain, for
+instance, from our `Main` class or from a wallet.
+
+We conclude this section with a formal definition of storage objects.
+We have already said that storage objects can be kept in blockchain
+and their class must extend
+`takamaka.lang.Storage`. But there are extra constraints. Namely,
+fields of a storage objects are part of the representation of such
+objects and must, themselves, be kept in storage. Hence:
+
+A storage object:
+1. must havs a class that extends (directly or indirectly) class `takamaka.lang.Storage`, and
+2. has fields that hold storage values (primitives, `java.math,BigInteger`, `java.lang.String` or a storage class).
+
+Note that the above conditions hold for the class `Person` above. Moreover,
+the following are examples of what is **not** allowed in a storage class:
+1. arrays
+2. collections from `java.util.*`
