@@ -738,24 +738,28 @@ clear and enforced by a consensus system. Blockchains provide the perfect
 environment where smart contracts can be deployed and executed, since their
 (typically) non-centralized nature reduces the risk that a single party
 overthrows the rules of consensus, by providing for instance a non-standard
-semantics of the code of the smart contract.
+semantics for the code of the smart contract.
 
 Contracts are allowed to hold and transfer money to other contracts. Hence,
 traditionally, smart contracts are divided into those that hold money
-but have no code, and those that, instead, contain code.
-The former accounts are typically controlled by an external agent (a wallet,
-a human) while the latter accounts are typically controlled by their code.
+but have no code (*externally owned accounts*), and those that,
+instead, contain code (*smart contracts*).
+The formers are typically controlled by an external agent (a wallet,
+a human) while the latters are typically controlled by their code.
 Takamaka implements both alternatives as instances of the abstract library class
 `takamaka.lang.Contract` (inside `takamaka_base.jar`). That class extends
 `takamaka.lang.Storage`, hence its instances can be kept in blockchain.
 The Takamaka library defines subclasses of `takamaka.lang.Contract`, that
-we will investigate later. Programmers can define their own subclasses as well.
+we will investigate later. Programmers can define their own subclasses too.
 
-This chapter presents a simple smart contract, whose goal is too
+This chapter presents a simple smart contract, whose goal is to
 enforce a Ponzi investment scheme: each investor pays back the previous investor,
 with at least a 10% reward; as long as new
-investors keep coming, each investor gets at leats a 10% reward; the last
+investors keep coming, each investor gets at least a 10% reward; the last
 investor, instead, will never see his/her investment back.
+The contract has been inspired by a similar Ethereum contract
+from Iyer and Dannen,
+*Building Games with Ethereum Smart Contracts*, page 145, Apress 2018.
 
 We will develop the contract in successive versions, in order to highlight
 the meaning of each language feature of Takamaka.
