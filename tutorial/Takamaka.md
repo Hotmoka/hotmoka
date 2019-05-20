@@ -801,10 +801,33 @@ public class SimplePonzi extends Contract {
 
 > This code is only the starting point of our discussion.
 > The real final version of this contract will appear at
-> [the end of this section]: /code_ponzi "The final Ponzi contract".
+> the end of this section.
 
-Here
-<a name="code_ponzi"></a>
+Look at the code of `SimplePonzi.java` above. The contract has a single
+method, named `invest`. This method lets a new `investor` invest
+a given `amount` of coins. This amount must be at least 10% more than
+the current investment. The expression `amount.compareTo(minimumInvestment) > 0`
+is a comparison between two Java `BigInteger`s and should be seen as the
+more familiar `amount > minimumInvestment`: the latter cannot be
+written in this form, since Java does not allow comparison between reference types.
+The static method `takamaka.lang.Takamaka.require()` can be used to require
+some precondition to hold. The `require(condition, message)` call throws an
+exception if `condition` does not hold, with the given `message`.
+
+> You might wonder why we have written
+> `require(..., () -> "You must invest more than " + minimumInvestment)`
+> instead of the simpler
+> `require(..., "You must invest more than " + minimumInvestment)`.
+> Both are possible and semantically identical. However, the former
+> uses a lambda expression that computes the string concatenaton only if
+> the message is needed; the latter always computes the string concatenation.
+> Hence, the first version consumes less gas, in general, and is consequently
+> preferred. This technique simulates lazy evaluation in a language, like
+> Java, that has only eager evaluation of actual parameters. It
+> has been used since years in JUnit assertions.
+
+If the new investment is at least 10% larger than the current, it will be
+saved in the state of the contract, together with the new investor.
 
 ## The `@Entry` and `@Payable` Annotations <a name="entry_payable"></a>
 
