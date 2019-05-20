@@ -15,6 +15,7 @@ executed in blockchain.
 3. [The Notion of Smart Contract](#smart_contracts)
     - [A Simple Ponzi Scheme Contract](#simple_ponzi)
     - [The `@Entry` and `@Payable` Annotations](#entry_payable)
+    - [Payable contracts](#payable_contracts)
     - [The `@View` Annotation](#view)
 4. Utility Classes
     - Storage Lists
@@ -832,7 +833,7 @@ saved in the state of the contract, together with the new investor.
 ## The `@Entry` and `@Payable` Annotations <a name="entry_payable"></a>
 
 The previous code of `SimplePonzi.java` is unsatisfactory, for at least two
-reasons,that we will overcome in this section:
+reasons, that we will overcome in this section:
 
 1. any contract can call `invest()` and let another contract `investor` invest
    in the game. This is against our intuition that each investor decides when
@@ -873,7 +874,7 @@ public class SimplePonzi extends Contract {
 
 The difference with the previous version of `SimplePonzi.java`
 is that the `investor` argument of `invest()` has disappeared.
-At its place, the method has been annotated as `@Entry`. This annotation
+At its place, `invest()` has been annotated as `@Entry`. This annotation
 **restricts** the possible uses of method `invest()`. Namely, it can be
 called  from another contract *c* or from an external wallet,
 with a paying contract *c*, that pays for a transaction that runs
@@ -887,6 +888,12 @@ into `currentInvestor`.
 > the code of a class that is not a contract, nor from the same contract instance.
 > If an `@Entry` method is redefined, the redefinitions must also be
 > annotated as `@Entry`.
+
+> Method `caller()` can only be used inside an `@Entry` method or
+> constructor and refers to the contract that called that method or constructor.
+> Hence, it will never yield `null`. If an `@Entry` method or constructor
+> calls another method *m*, then `caller()` is **not** available inside *m*
+> and must be passed as an explicit parameter to *m*, if needed there.
 
 The use of `@Entry` solves the first problem. However, there is still no money
 transfer in this version of `SimplePonzi.java`. What we still miss is to require
@@ -925,11 +932,13 @@ public class SimplePonzi extends Contract {
 }
 ```
 
-When a contract calls `invest()` now, the contract will be charged `amount` coins,
-automatically. If the balance of the contract is too low for that, the call
+When a contract calls `invest()` now, that contract will be charged `amount` coins,
+automatically. These coins will be automatically transferred to the
+balance of the instance of `SimplePonzi` that receives the call.
+If the balance of the calling contract is too low for that, the call
 will be automatically rejected with an insufficient funds exception. The caller
 must be able to pay for both `amount` and the gas needed to run `invest()`. Hence,
-he must hold a bit more than `amount` coins to call `invest()`.
+he must hold a bit more than `amount` coins at the moement of calling `invest()`.
 
 > The `@Payable` annotation can only be applied to a method or constructor that
 > is also annotated as `@Entry`. If a `@Payable` method is redefined, the redefinitions
@@ -938,5 +947,7 @@ he must hold a bit more than `amount` coins to call `invest()`.
 > dependending on the amount of coins that the programmer allows to transfer
 > at call time. The name of the argument is irrelevant, but we will keep
 > using `amount` for it.
+
+## Payable contracts <a name="payable_contracts"></a>
 
 ## The `@View` Annotation <a name="view"></a>
