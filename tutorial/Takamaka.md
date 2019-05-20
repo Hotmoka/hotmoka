@@ -885,6 +885,8 @@ into `currentInvestor`.
 > An `@Entry` method can only be called from the code of another contract
 > instance or from a wallet. It cannot, for instance, be called from
 > the code of a class that is not a contract, nor from the same contract instance.
+> If an `@Entry` method is redefined, the redefinitions must also be
+> annotated as `@Entry`.
 
 The use of `@Entry` solves the first problem. However, there is still no money
 transfer in this version of `SimplePonzi.java`. What we still miss is to require
@@ -922,5 +924,19 @@ public class SimplePonzi extends Contract {
   }
 }
 ```
+
+When a contract calls `invest()` now, the contract will be charged `amount` coins,
+automatically. If the balance of the contract is too low for that, the call
+will be automatically rejected with an insufficient funds exception. The caller
+must be able to pay for both `amount` and the gas needed to run `invest()`. Hence,
+he must hold a bit more than `amount` coins to call `invest()`.
+
+> The `@Payable` annotation can only be applied to a method or constructor that
+> is also annotated as `@Entry`. If a `@Payable` method is redefined, the redefinitions
+> must also be annotated as `@Payable`. A `@Payable` method or constructor
+> must have a first argument of type `int`, `long` or `java.math.BigInteger`,
+> dependending on the amount of coins that the programmer allows to transfer
+> at call time. The name of the argument is irrelevant, but we will keep
+> using `amount` for it.
 
 ## The `@View` Annotation <a name="view"></a>
