@@ -17,6 +17,7 @@ executed in blockchain.
     - [The `@Entry` and `@Payable` Annotations](#entry_payable)
     - [Payable contracts](#payable_contracts)
     - [The `@View` Annotation](#view)
+    - [The Hierarchy of Contracts](#hierarchy_contracts)
 4. Utility Classes
     - Storage Lists
     - Storage Arrays
@@ -969,14 +970,14 @@ the `SimplePonzi` contract (since `invest()` is `@Payable`), then
 this `SimplePonzi` contract transfers the same `amount` of coins to the
 previous investor. No money is kept in the `SimplePonzi` instance.
 
-The problem with this simple line of code is that is does not compile:
-there is no `receive()` method in `takamaka.lang.Contract`:
+The problem with this simple line of code is that it does not compile.
+There is no `receive()` method in `takamaka.lang.Contract`:
 a contract can receive money only through calls to its `@Payable`
 constructors and methods. Since `currentInvestor` is, very generically,
 an instance of `takamaka.lang.Contract`, that has no `@Payable` methods,
 there is no such method
 that we can call here for sending money to `currentInvestor`.
-This limitation is a deliberate choice in the design of Takamaka.
+This limitation is a deliberate choice of the design of Takamaka.
 
 > Solidity programmers will find this very different from what happens
 > in Solidity contracts. Namely, these always have a default function that
@@ -988,4 +989,44 @@ This limitation is a deliberate choice in the design of Takamaka.
 > its state. For more information, see Antonopoulos and Wood,
 > *Mastering Ethereum*, page 181 (*Unexpected Ether*), 2019, O'Reilly Media, Inc.
 
+So how do we send money back to `currentInvestor`? The solution is to
+restrict the kind of contracts that can take part in the Ponzi scheme.
+Namely, we limit the game to contracts that implement class
+`takamaka.lang.PayableContract`, a subclass of `takamaka.lang.Contract`
+that, yes, does have a `receive()` method. This requires small changes to
+our `SimplePonzi.java` class:
+
+```java
+package takamaka.tests.ponzi;
+
+import static takamaka.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import takamaka.lang.Contract;
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
+import takamaka.lang.PayableContract;
+
+public class SimplePonzi extends Contract {
+  private final BigInteger _10 = BigInteger.valueOf(10L);
+  private final BigInteger _11 = BigInteger.valueOf(11L);
+  private PayableContract currentInvestor;
+  private BigInteger currentInvestment = BigInteger.ZERO;
+
+  public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+    // new investments must be 10% greater than current
+    BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
+    require(amount.compareTo(minimumInvestment) > 0, () -> "You must invest more than " + minimumInvestment);
+
+    // document new investor
+    currentInvestor.receive(amount);
+    currentInvestor = (PayableContract) caller();
+    currentInvestment = amount;
+  }
+}
+```
+
 ## The `@View` Annotation <a name="view"></a>
+
+## The Hierarchy of Contracts <a name="hierarchy_contracts"></a>
