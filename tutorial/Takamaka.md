@@ -12,9 +12,10 @@ executed in blockchain.
     - [A Transaction that Invokes a Constructor](#constructor_transaction)
     - [A Transaction that Invokes a Method](#method_transaction)
     - [Storage Types and Constraints on Storage Classes](#storage_types)
-3. Contracts
-    - The `@Entry` and `@Payable` Annotations
-    - The `@View` Annotation
+3. [The Notion of Smart Contract](#smart_contracts)
+    - [A Simple Ponzi Scheme Contract](#simple_ponzi)
+    - [The `@Entry` and `@Payable` Annotations](#entry_payable)
+    - [The `@View` Annotation](#view)
 4. Utility Classes
     - Storage Lists
     - Storage Arrays
@@ -725,3 +726,75 @@ We will see later how to overcome these limitations.
 > Other objects, thet needn't be kept in blockchain but are useful for
 > the implementation of Takamaka code, can be defined in a completely free way
 > and used in code that runs in the blockchain.
+
+# The Notion of Smart Contract <a name="smart_contracts"></a>
+
+A contract is a legal agreement among two or more parties. A good contract
+should be unambiguous, since otherwise its interpretation could be
+questioned or misunderstood. A legal system normally enforces the
+validity of a contract. In the context of software development, a *smart contract*
+is a piece of software with deterministic behavior, whose semantics should be
+clear and enforced by a consensus system. Blockchains provide the perfect
+environment where smart contracts can be deployed and executed, since their
+(typically) non-centralized nature reduces the risk that a single party
+overthrows the rules of consensus, by providing for instance a non-standard
+semantics of the code of the smart contract.
+
+Contracts are allowed to hold and transfer money to other contracts. Hence,
+traditionally, smart contracts are divided into those that hold money
+but have no code, and those that, instead, contain code.
+The former accounts are typically controlled by an external agent (a wallet,
+a human) while the latter accounts are typically controlled by their code.
+Takamaka implements both alternatives as instances of the abstract library class
+`takamaka.lang.Contract` (inside `takamaka_base.jar`). That class extends
+`takamaka.lang.Storage`, hence its instances can be kept in blockchain.
+The Takamaka library defines subclasses of `takamaka.lang.Contract`, that
+we will investigate later. Programmers can define their own subclasses as well.
+
+This chapter presents a simple smart contract, whose goal is too
+enforce a Ponzi investment scheme: each investor pays back the previous investor,
+with at least a 10% reward; as long as new
+investors keep coming, each investor gets at leats a 10% reward; the last
+investor, instead, will never see his/her investment back.
+
+We will develop the contract in successive versions, in order to highlight
+the meaning of each language feature of Takamaka.
+
+## A Simple Ponzi Scheme Contract <a name="simple_ponzi"></a>
+
+Create a new `takamaka2` Java project in Eclipse. Create folders `lib`
+and `dist` inside the project. Put both `takamaka_base.jar` and `takamaka_runtime.jar`
+inside `lib` and add them to the build path of `takamaka2`. Create package
+`takamaka.tests.ponzi`; create class `SimplePonzi.java` inside that
+package and copy the following code in `SimplePonzi.java`:
+
+```java
+package takamaka.tests.ponzi;
+
+import static takamaka.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import takamaka.lang.Contract;
+
+public class SimplePonzi extends Contract {
+  private final BigInteger _10 = BigInteger.valueOf(10L);
+  private final BigInteger _11 = BigInteger.valueOf(11L);
+  private Contract currentInvestor;
+  private BigInteger currentInvestment = BigInteger.ZERO;
+
+  public void invest(Contract investor, BigInteger amount) {
+    // new investments must be 10% greater than current
+    BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
+    require(amount.compareTo(minimumInvestment) > 0, () -> "You must invest more than " + minimumInvestment);
+
+    // document new investor
+    currentInvestor = investor;
+    currentInvestment = amount;
+  }
+}
+```
+
+## The `@Entry` and `@Payable` Annotations <a name="entry_payable"></a>
+
+## The `@View` Annotation <a name="view"></a>
