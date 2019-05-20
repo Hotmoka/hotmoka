@@ -993,8 +993,18 @@ So how do we send money back to `currentInvestor`? The solution is to
 restrict the kind of contracts that can take part in the Ponzi scheme.
 Namely, we limit the game to contracts that implement class
 `takamaka.lang.PayableContract`, a subclass of `takamaka.lang.Contract`
-that, yes, does have a `receive()` method. This requires small changes to
-our `SimplePonzi.java` class:
+that, yes, does have a `receive()` method. This is not really a restriction,
+since the typical players of our Ponzi contract are externally
+owned accounts and all externally owned contracts are `PayableContract`s.
+
+Let us hence apply the following small changes to our `SimplePonzi.java` class:
+
+1. the type of `currentInvestment` must be restricted to `PayableContract`;
+2. the `invest()` method must be an entry for `PayableContract`s only;
+3. the return value of `caller()` must be cast to `PayableContract`, which is
+   safe thanks to point 2 above.
+
+The result is the following:
 
 ```java
 package takamaka.tests.ponzi;
@@ -1026,6 +1036,10 @@ public class SimplePonzi extends Contract {
   }
 }
 ```
+
+Note the use of `@Entry(PayableContract.class)` in the code above:
+an `@Entry(C.class)` method can only be called by a contract of class `C`
+or subclass of `C`. Otherwise, a run-time exception will occur.
 
 ## The `@View` Annotation <a name="view"></a>
 
