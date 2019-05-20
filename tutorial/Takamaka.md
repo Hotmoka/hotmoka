@@ -938,13 +938,13 @@ balance of the instance of `SimplePonzi` that receives the call.
 If the balance of the calling contract is too low for that, the call
 will be automatically rejected with an insufficient funds exception. The caller
 must be able to pay for both `amount` and the gas needed to run `invest()`. Hence,
-he must hold a bit more than `amount` coins at the moement of calling `invest()`.
+he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 
 > The `@Payable` annotation can only be applied to a method or constructor that
 > is also annotated as `@Entry`. If a `@Payable` method is redefined, the redefinitions
 > must also be annotated as `@Payable`. A `@Payable` method or constructor
 > must have a first argument of type `int`, `long` or `java.math.BigInteger`,
-> dependending on the amount of coins that the programmer allows to transfer
+> dependending on the amount of coins that the programmer allows one to transfer
 > at call time. The name of the argument is irrelevant, but we will keep
 > using `amount` for it.
 
