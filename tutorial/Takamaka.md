@@ -807,12 +807,15 @@ Look at the code of `SimplePonzi.java` above. The contract has a single
 method, named `invest`. This method lets a new `investor` invest
 a given `amount` of coins. This amount must be at least 10% more than
 the current investment. The expression `amount.compareTo(minimumInvestment) > 0`
-is a comparison between two Java `BigInteger`s and should be seen as the
+is a comparison between two Java `BigInteger`s and should be read as the
 more familiar `amount > minimumInvestment`: the latter cannot be
-written in this form, since Java does not allow comparison between reference types.
+written in this form, since Java does not allow comparison operators
+to work on reference types.
 The static method `takamaka.lang.Takamaka.require()` can be used to require
 some precondition to hold. The `require(condition, message)` call throws an
 exception if `condition` does not hold, with the given `message`.
+If the new investment is at least 10% larger than the current, it will be
+saved in the state of the contract, together with the new investor.
 
 > You might wonder why we have written
 > `require(..., () -> "You must invest more than " + minimumInvestment)`
@@ -822,13 +825,63 @@ exception if `condition` does not hold, with the given `message`.
 > uses a lambda expression that computes the string concatenaton only if
 > the message is needed; the latter always computes the string concatenation.
 > Hence, the first version consumes less gas, in general, and is consequently
-> preferred. This technique simulates lazy evaluation in a language, like
-> Java, that has only eager evaluation of actual parameters. It
+> preferrable. This technique simulates lazy evaluation in a language, like
+> Java, that has only eager evaluation for actual parameters. This technique
 > has been used since years in JUnit assertions.
 
-If the new investment is at least 10% larger than the current, it will be
-saved in the state of the contract, together with the new investor.
-
 ## The `@Entry` and `@Payable` Annotations <a name="entry_payable"></a>
+
+The previous code of `SimplePonzi.java` is unsatisfactory, for at least two
+reasons,that we will overcome in this section:
+
+1. any contract can call `invest()` and let another contract `investor` invest
+   in the game. This is against our intuition that each investor decides when
+   and how much he (himself) decides to invest;
+2. there is no money transfer. Anybody can call `invest()`, with an arbitrary
+   `amount` of coins. The previous investor does not get the investment back
+   when a new investor arrives since, well, he never really invested anything.
+
+Let us rewrite `SimplePonzi.java` in the following way:
+
+```java
+package takamaka.tests.ponzi;
+
+import static takamaka.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import takamaka.lang.Contract;
+import takamaka.lang.Entry;
+
+public class SimplePonzi extends Contract {
+  private final BigInteger _10 = BigInteger.valueOf(10L);
+  private final BigInteger _11 = BigInteger.valueOf(11L);
+  private Contract currentInvestor;
+  private BigInteger currentInvestment = BigInteger.ZERO;
+
+  public @Entry void invest(BigInteger amount) {
+    // new investments must be 10% greater than current
+    BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
+    require(amount.compareTo(minimumInvestment) > 0, () -> "You must invest more than " + minimumInvestment);
+
+    // document new investor
+    currentInvestor = caller();
+    currentInvestment = amount;
+  }
+}
+```
+
+The difference is that the `investor` argument of `invest()` has disappeared.
+At its place, the method has been annotated as `@Entry`. This annotation
+**restricts** the possible uses of method `invest()`. Namely, it can be
+called  from another contract *c* or from an external wallet,
+with a paying contract *c*, that pays for a transaction that runs
+`invest()`. In both cases, the contract `c` is available, inside
+`invest()`, as `caller()`. This is, indeed, saved into `currentInvestor`.
+
+The annotation `@Entry` marks a boundary between contracts.
+An `@Entry` method can only be called from the code of another contract
+instance or from a wallet. It cannot, for instance, be called from
+the code of a class that is not a contract, nor from the same contract instance.
 
 ## The `@View` Annotation <a name="view"></a>
