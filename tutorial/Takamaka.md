@@ -950,4 +950,42 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 
 ## Payable contracts <a name="payable_contracts"></a>
 
+The `SimplePonzi.java` class is not ready yet. Namely, investors have to pay
+an always increasing amount of money to replace the previous investor.
+However, that one never gets the previous investment back, plus a 10% award
+(at least). The code needs an apparently simple change: just add a single line
+before the update of the new current investor. That line should send
+`amount` units of coin to `currentInvestor`, before it gets replaced:
+
+```java
+// document new investor
+currentInvestor.receive(amount);
+currentInvestor = caller();
+currentInvestment = amount;
+```
+
+In other words, the caller of `invest()` first pays `amount` coins to
+the `SimplePonzi` contract (since `invest()` is `@Payable`), then
+this `SimplePonzi` contract transfers the same `amount` of coins to the
+previous investor. No money is kept in the `SimplePonzi` instance.
+
+The problem with this simple line of code is that is does not compile:
+there is no `receive()` method in `takamaka.lang.Contract`:
+a contract can receive money only through calls to its `@Payable`
+constructors and methods. Since `currentInvestor` is, very generically,
+an instance of `takamaka.lang.Contract`, that has no `@Payable` methods,
+there is no such method
+that we can call here for sending money to `currentInvestor`.
+This limitation is a deliberate choice in the design of Takamaka.
+
+> Solidity programmers will find this very different from what happens
+> in Solidity contracts. Namely, these always have a default function that
+> can be called to send money to a contract. A problem with Solidity's approach
+> is that the balance of a contract is not fully controlled by its
+> `payable` methods, since money can always flow in through the default
+> function. This led to software bugs, when a contract found itself
+> richer then expected, which violated some (wrong) invariants about
+> its state. For more information, see Antonopoulos and Wood,
+> *Mastering Ethereum*, page 181 (*Unexpected Ether*), 2019, O'Reilly Media, Inc.
+
 ## The `@View` Annotation <a name="view"></a>
