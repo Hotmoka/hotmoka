@@ -166,7 +166,7 @@ public class BlindAuction extends Contract {
         require(revealedBids != null && revealedBids.size() == bids.size(), () -> "Expecting " + bids.size() + " revealed bids");
 
         // any other hashing algorithm will do, as long as both bidder and auction contract use the same
-        MessageDigest digest = MessageDigest.getInstance("SHA-1");
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
         Iterator<Bid> it = bids.iterator();
         revealedBids.stream()
         	.map(revealed -> refundFor(it.next(), revealed, digest))
