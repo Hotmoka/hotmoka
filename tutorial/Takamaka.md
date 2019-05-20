@@ -799,6 +799,13 @@ public class SimplePonzi extends Contract {
 }
 ```
 
+> This code is only the starting point of our discussion.
+> The real final version of this contract will appear at
+> [the end of this section]: /code_ponzi "The final Ponzi contract".
+
+Here
+<a name="code_ponzi"></a>
+
 ## The `@Entry` and `@Payable` Annotations <a name="entry_payable"></a>
 
 ## The `@View` Annotation <a name="view"></a>
