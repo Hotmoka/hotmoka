@@ -871,17 +871,56 @@ public class SimplePonzi extends Contract {
 }
 ```
 
-The difference is that the `investor` argument of `invest()` has disappeared.
+The difference with the previous version of `SimplePonzi.java`
+is that the `investor` argument of `invest()` has disappeared.
 At its place, the method has been annotated as `@Entry`. This annotation
 **restricts** the possible uses of method `invest()`. Namely, it can be
 called  from another contract *c* or from an external wallet,
 with a paying contract *c*, that pays for a transaction that runs
-`invest()`. In both cases, the contract `c` is available, inside
-`invest()`, as `caller()`. This is, indeed, saved into `currentInvestor`.
+`invest()`. In both cases, the contract *c* is available, inside
+`invest()`, as `caller()`. This is, indeed, saved, in the above code,
+into `currentInvestor`.
 
-The annotation `@Entry` marks a boundary between contracts.
-An `@Entry` method can only be called from the code of another contract
-instance or from a wallet. It cannot, for instance, be called from
-the code of a class that is not a contract, nor from the same contract instance.
+> The annotation `@Entry` marks a boundary between contracts.
+> An `@Entry` method can only be called from the code of another contract
+> instance or from a wallet. It cannot, for instance, be called from
+> the code of a class that is not a contract, nor from the same contract instance.
+
+The use of `@Entry` solves the first problem. However, there is still no money
+transfer in this version of `SimplePonzi.java`. What we still miss is to require
+the caller of `invest()` to actually pay for the `amount` units of coin.
+Since `@Entry` guarantees that the caller of `invest()` is a contract and since
+contracts hold money, this means that the caller contract of `invest()`
+must be charged `amount` coins at the moment of calling `invest()`.
+This can be achieved with the `@Payable` annotation, that we apply to `invest()`:
+
+```java
+package takamaka.tests.ponzi;
+
+import static takamaka.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import takamaka.lang.Contract;
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
+
+public class SimplePonzi extends Contract {
+  private final BigInteger _10 = BigInteger.valueOf(10L);
+  private final BigInteger _11 = BigInteger.valueOf(11L);
+  private Contract currentInvestor;
+  private BigInteger currentInvestment = BigInteger.ZERO;
+
+  public @Payable @Entry void invest(BigInteger amount) {
+    // new investments must be 10% greater than current
+    BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
+    require(amount.compareTo(minimumInvestment) > 0, () -> "You must invest more than " + minimumInvestment);
+
+    // document new investor
+    currentInvestor = caller();
+    currentInvestment = amount;
+  }
+}
+```
 
 ## The `@View` Annotation <a name="view"></a>
