@@ -1114,4 +1114,31 @@ with useless transactions, that do not modify its state.
 
 ## The Hierarchy of Contracts <a name="hierarchy_contracts"></a>
 
+The figure below shows the hierarchy of contract classes in Takamaka.
+The topmost class is `takamaka.lang.Contract`, an abstract class that
+extends `takamaka.lang.Storage` since contracts are meant to be
+stored in blockchain, as well as other classes that are not contracts,
+such as our first `Person` example:
+
 ![The hierarchy of contracts](pics/contracts.png "The hierarchy of contracts")
+
+Programmers typically extend `Contract` for defining their own contracts.
+This is the case, for instance, of our `SimplePonzi` class.
+Class `Contract` provides two final protected methods: `caller()` can
+be used inside an `@Entry` method or constructor to access the calling
+contract and `balance()` can be used to access the private `balance` field
+of the contract.
+
+The abstract subclass `PayableContract` is meant for contracts that
+can receive coins from other contracts, through their final
+`receive()` methods. A concrete subclass is `ExternallyOwnedAccount`, that is,
+payable contracts that can be used to pay for a blockchain transaction.
+They are typically controlled by humans, thorugh a wallet, but can be
+subclassed and instantiated freely in Takamaka code. Their constructors
+allow to build an externally owned account and fund it with an initial
+amount of coins. As we have seen in Sections (#jar_transaction),
+(#constructor_transaction) and (#method_transaction),
+blockchain methods that start a transaction require to specify a payer
+for the transaction. Such a payer is required to be an instance of
+`ExternallyOwnedAccount`, or an exception will be thrown.
+
