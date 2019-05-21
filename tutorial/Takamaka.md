@@ -15,7 +15,7 @@ executed in blockchain.
 3. [The Notion of Smart Contract](#smart_contracts)
     - [A Simple Ponzi Scheme Contract](#simple_ponzi)
     - [The `@Entry` and `@Payable` Annotations](#entry_payable)
-    - [Payable contracts](#payable_contracts)
+    - [Payable Contracts](#payable_contracts)
     - [The `@View` Annotation](#view)
     - [The Hierarchy of Contracts](#hierarchy_contracts)
 4. Utility Classes
@@ -949,12 +949,13 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 > at call time. The name of the argument is irrelevant, but we will keep
 > using `amount` for it.
 
-## Payable contracts <a name="payable_contracts"></a>
+## Payable Contracts <a name="payable_contracts"></a>
 
 The `SimplePonzi.java` class is not ready yet. Namely, investors have to pay
-an always increasing amount of money to replace the previous investor.
-However, that one never gets the previous investment back, plus a 10% award
-(at least). The code needs an apparently simple change: just add a single line
+an always increasing amount of money to replace the current investor.
+However, this one never gets the previous investment back, plus the 10% award
+(at least). Coins keep flowing inside the `SimplePonzi` contract and remain
+stuck there, for ever. The code needs an apparently simple change: just add a single line
 before the update of the new current investor. That line should send
 `amount` units of coin to `currentInvestor`, before it gets replaced:
 
@@ -965,25 +966,26 @@ currentInvestor = caller();
 currentInvestment = amount;
 ```
 
-In other words, the caller of `invest()` first pays `amount` coins to
-the `SimplePonzi` contract (since `invest()` is `@Payable`), then
-this `SimplePonzi` contract transfers the same `amount` of coins to the
-previous investor. No money is kept in the `SimplePonzi` instance.
+In other words, a new investor calls `invest()` and pays `amount` coins to
+the `SimplePonzi` contract (since `invest()` is `@Payable`); then
+this `SimplePonzi` contract transfers the same `amount` of coins to pay back the
+previous investor. Money flows through the `SimplePonzi` contract but
+does not stay there for long.
 
 The problem with this simple line of code is that it does not compile.
 There is no `receive()` method in `takamaka.lang.Contract`:
 a contract can receive money only through calls to its `@Payable`
 constructors and methods. Since `currentInvestor` is, very generically,
-an instance of `takamaka.lang.Contract`, that has no `@Payable` methods,
-there is no such method
+an instance of `Contract`, that has no `@Payable` methods,
+there is no method
 that we can call here for sending money to `currentInvestor`.
 This limitation is a deliberate choice of the design of Takamaka.
 
 > Solidity programmers will find this very different from what happens
 > in Solidity contracts. Namely, these always have a default function that
-> can be called to send money to a contract. A problem with Solidity's approach
+> can be called for sending money to a contract. A problem with Solidity's approach
 > is that the balance of a contract is not fully controlled by its
-> `payable` methods, since money can always flow in through the default
+> payable methods, since money can always flow in through the default
 > function. This led to software bugs, when a contract found itself
 > richer then expected, which violated some (wrong) invariants about
 > its state. For more information, see Antonopoulos and Wood,
@@ -1038,9 +1040,76 @@ public class SimplePonzi extends Contract {
 ```
 
 Note the use of `@Entry(PayableContract.class)` in the code above:
-an `@Entry(C.class)` method can only be called by a contract of class `C`
-or subclass of `C`. Otherwise, a run-time exception will occur.
+an `@Entry(C.class)` method can only be called by a contract whose class
+is `C` or a subclass of `C`. Otherwise, a run-time exception will occur.
 
 ## The `@View` Annotation <a name="view"></a>
+
+Our `SimplePonzi.java` code can still be improved. As it is now,
+an investor must call `invest()` and be ready to pay a sufficiently
+large `amount` of coins to pay back and replace the previous investor.
+How much is *large* actually large enough? Well, it depends on the
+current investment. But that information is kept inside the contract
+and there is no easy way to access it from outside.
+An investor can only try with something that looks large enough,
+running a transaction that might end up in two negative scenarios:
+
+1. the amount invested was actually large enough, but larger than needed: the investor
+   invested more than required in the Ponzi scheme, risking that no one
+   will ever invest more and pay him back;
+2. the amount invested might not be enough: the `require()` function
+   will throw an exception that makes the transaction running `invest()` fail.
+   The investment will not be transferred to the `SimplePonzi` contract, but
+   the investor will be punished by charging him all gas provided for
+   the transaction. This is unfair since, after all, the investor has no
+   way to know that the investment was not enough.
+
+Hence, it would be nice and fair to provide investors with a way of accessing
+the `currentInvestment`. This is actually a piece of cake: just add
+this method to `SimplePonzi.java`:
+
+```java
+public BigInteger getCurrentInvestment() {
+  return currentInvestment;
+}
+```
+
+This solution is pefectly fine but can be improved. Writtem this way,
+an investor that wants to call `getCurentInvestment()` must run a
+blockchain transaction through the `addInstanceMethodCallTransaction()`
+method of the blockchain, creating a new transaction that ends up in
+blockchain. That transaction will cost gas, hence its side-effect will
+be to reduce the balance of the calling investor. But that is the only
+side-effect of that call! In cases like this, Takamaka allows one to
+specify that a method is expected to have no side-effects on the visible
+state of the blockchain, but for the change of the balance of the caller.
+This is possible through the `takamaka.lang.View` annotation:
+
+```java
+public @View BigInteger getCurrentInvestment() {
+  return currentInvestment;
+}
+```
+
+An investor can now call that method through another API method of the
+blockchain, called `runInstanceMethodCallTransaction()`, that does not expand the
+blockchain, but yields the response of the transaction, including the
+returned balue of the call. If method
+`getCurrentInvestment()` had side-effects beyond that on the balance of
+the caller, then the execution will fail with a run-time exception.
+Note that the execution of a `@View` method still requires gas,
+but that gas is given back at the end of the call.
+The advantage of `@View` is hence that of allowing the execution
+of `getCurrentInvestment()` for free and without expanding the blockchain
+with useless transactions, that do not modify its state.
+
+> The annotation `@View` is checked at run time if a transaction calls the
+> `@View` method from outside the blockchain, directly. It is not checked if,
+> instead, the method is called indirectly, from other Takamaka code.
+> The check occurs at run time, since the presence of side-effects in
+> computer code is undecidable. Future versions of Takamaka might check
+> `@View` at the time of installing a jar in the blockchain, as part of
+> bytecode verification. That check can only be an approximation of the
+> run-time check.
 
 ## The Hierarchy of Contracts <a name="hierarchy_contracts"></a>
