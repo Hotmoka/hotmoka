@@ -1113,3 +1113,5 @@ with useless transactions, that do not modify its state.
 > run-time check.
 
 ## The Hierarchy of Contracts <a name="hierarchy_contracts"></a>
+
+![The hierarchy of contracts](pics/contracts.png "The hierarchy of contracts")
