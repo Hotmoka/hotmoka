@@ -1113,3 +1113,39 @@ with useless transactions, that do not modify its state.
 > run-time check.
 
 ## The Hierarchy of Contracts <a name="hierarchy_contracts"></a>
+
+The figure below shows the hierarchy of contract classes in Takamaka.
+The topmost class is `takamaka.lang.Contract`, an abstract class that
+extends `takamaka.lang.Storage` since contracts are meant to be
+stored in blockchain, as well as other classes that are not contracts,
+such as our first `Person` example:
+
+<p align="center">
+  <img width="600" height="700" src="pics/contracts.png" alt="The hierarchy of contracts">
+</p>
+
+Programmers typically extend `Contract` to define their own contracts.
+This is the case, for instance, of our `SimplePonzi` class.
+Class `Contract` provides two final protected methods: `caller()` can
+be used inside an `@Entry` method or constructor to access the calling
+contract and `balance()` can be used to access the private `balance` field
+of the contract.
+
+The abstract subclass `PayableContract` is meant for contracts that
+can receive coins from other contracts, through their final
+`receive()` methods. A concrete subclass is `ExternallyOwnedAccount`, that is,
+payable contracts that can be used to pay for a blockchain transaction.
+They are typically controlled by humans, through a wallet, but can be
+subclassed and instantiated freely in Takamaka code. Their constructors
+allow to build an externally owned account and fund it with an initial
+amount of coins. As we have seen in sections
+[A Transaction that Stores a Jar in Blockchain](#jar_transaction),
+[A Transaction that Invokes a Constructor](#constructor_transaction) and
+[A Transaction that Invokes a Method](#method_transaction),
+blockchain methods that start a transaction require to specify a payer
+for that transaction. Such a payer is required to be an instance of
+`ExternallyOwnedAccount`, or an exception will be thrown. In our examples
+using a blockchain in disk memory, the expressions
+`blockchain.account(0)` and `blockchain.account(1)` actually refer to
+`ExternallyOwnedAccount` created during initialization transactions triggered
+inside the constructor of the blockchain.
