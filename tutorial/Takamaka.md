@@ -1045,4 +1045,71 @@ is `C` or a subclass of `C`. Otherwise, a run-time exception will occur.
 
 ## The `@View` Annotation <a name="view"></a>
 
+Our `SimplePonzi.java` code can still be improved. As it is now,
+an investor must call `invest()` and be ready to pay a sufficiently
+large `amount` of coins to pay back and replace the previous investor.
+How much is *large* actually large enough? Well, it depends on the
+current investment. But that information is kept inside the contract
+and there is no easy way to access it from outside.
+An investor can only try with something that looks large enough,
+running a transaction that might end up in two negative scenarios:
+
+1. the amount invested was actually large enough, but larger than needed: the investor
+   invested more than required in the Ponzi scheme, risking that no one
+   will ever invest more and pay him back;
+2. the amount invested might not be enough: the `require()` function
+   will throw an exception that makes the transaction running `invest()` fail.
+   The investment will not be transferred to the `SimplePonzi` contract, but
+   the investor will be punished by charging him all gas provided for
+   the transaction. This is unfair since, after all, the investor has no
+   way to know that the investment was not enough.
+
+Hence, it would be nice and fair to provide investors with a way of accessing
+the `currentInvestment`. This is actually a piece of cake: just add
+this method to `SimplePonzi.java`:
+
+```java
+public BigInteger getCurrentInvestment() {
+  return currentInvestment;
+}
+```
+
+This solution is pefectly fine but can be improved. Writtem this way,
+an investor that wants to call `getCurentInvestment()` must run a
+blockchain transaction through the `addInstanceMethodCallTransaction()`
+method of the blockchain, creating a new transaction that ends up in
+blockchain. That transaction will cost gas, hence its side-effect will
+be to reduce the balance of the calling investor. But that is the only
+side-effect of that call! In cases like this, Takamaka allows one to
+specify that a method is expected to have no side-effects on the visible
+state of the blockchain, but for the change of the balance of the caller.
+This is possible through the `takamaka.lang.View` annotation:
+
+```java
+public @View BigInteger getCurrentInvestment() {
+  return currentInvestment;
+}
+```
+
+An investor can now call that method through another API method of the
+blockchain, called `runInstanceMethodCallTransaction()`, that does not expand the
+blockchain, but yields the response of the transaction, including the
+returned balue of the call. If method
+`getCurrentInvestment()` had side-effects beyond that on the balance of
+the caller, then the execution will fail with a run-time exception.
+Note that the execution of a `@View` method still requires gas,
+but that gas is given back at the end of the call.
+The advantage of `@View` is hence that of allowing the execution
+of `getCurrentInvestment()` for free and without expanding the blockchain
+with useless transactions, that do not modify its state.
+
+> The annotation `@View` is checked at run time if a transaction calls the
+> `@View` method from outside the blockchain, directly. It is not checked if,
+> instead, the method is called indirectly, from other Takamaka code.
+> The check occurs at run time, since the presence of side-effects in
+> computer code is undecidable. Future versions of Takamaka might check
+> `@View` at the time of installing a jar in the blockchain, as part of
+> bytecode verification. That check can only be an approximation of the
+> run-time check.
+
 ## The Hierarchy of Contracts <a name="hierarchy_contracts"></a>
