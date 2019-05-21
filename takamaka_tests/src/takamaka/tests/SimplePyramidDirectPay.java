@@ -35,7 +35,7 @@ import takamaka.memory.MemoryBlockchain;
 /**
  * A test for the remote purchase contract.
  */
-class SimplePyramid {
+class SimplePyramidDirectPay {
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
@@ -43,13 +43,11 @@ class SimplePyramid {
 
 	private static final BigInteger _1_000 = BigInteger.valueOf(1_000);
 
-	private static final ClassType SIMPLE_PYRAMID = new ClassType("takamaka.tests.ponzi.SimplePyramid");
+	private static final ClassType SIMPLE_PYRAMID = new ClassType("takamaka.tests.ponzi.SimplePyramidDirectPay");
 
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
 
 	private static final MethodSignature INVEST = new MethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
-
-	private static final MethodSignature WITHDRAW = new MethodSignature(SIMPLE_PYRAMID, "withdraw");
 
 	private static final MethodSignature GET_BALANCE = new MethodSignature("takamaka.lang.TestExternallyOwnedAccount", "getBalance");
 
@@ -103,8 +101,6 @@ class SimplePyramid {
 			(new ConstructorCallTransactionRequest(players[0], _1_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(players[1], _1_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
-		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[0], _1_000, classpath, WITHDRAW, pyramid));
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(players[0], _1_000, classpath, GET_BALANCE, players[0]));
 		assertTrue(balance0.value.compareTo(_10_000) <= 0);
@@ -118,8 +114,6 @@ class SimplePyramid {
 			(new InstanceMethodCallTransactionRequest(players[1], _1_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(players[2], _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
-		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[0], _1_000, classpath, WITHDRAW, pyramid));
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(players[0], _1_000, classpath, GET_BALANCE, players[0]));
 		assertTrue(balance0.value.compareTo(_20_000) > 0);
