@@ -1120,7 +1120,9 @@ extends `takamaka.lang.Storage` since contracts are meant to be
 stored in blockchain, as well as other classes that are not contracts,
 such as our first `Person` example:
 
-![The hierarchy of contracts](pics/contracts.png "The hierarchy of contracts")
+<p align="center">
+  <img width="600" height="700" src="pics/contracts.png" alt="The hierarchy of contracts">
+</p>
 
 Programmers typically extend `Contract` to define their own contracts.
 This is the case, for instance, of our `SimplePonzi` class.
