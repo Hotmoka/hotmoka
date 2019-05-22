@@ -19,7 +19,7 @@ executed in blockchain.
     - [The `@View` Annotation](#view)
     - [The Hierarchy of Contracts](#hierarchy-contracts)
 4. [Utility Classes](#utility-classes)
-    - [Storage Lists](#storage-lists)
+    - [Storage Lists](#storage-lists-a-gradual-ponzi-contract)
     - [A Note on Re-entrancy](#a-note-on-re-entrancy)
     - Storage Arrays
     - Storage Maps
@@ -1164,7 +1164,7 @@ cope with such constraints, by providing fixed or variable-sized collections
 that can be used in storage objects, since they are storage objects themselves.
 Such utility classes implement lists, arrays and maps.
 
-## Storage Lists <a name="storage-lists"></a>
+## Storage Lists: A Gradual Ponzi Contract <a name="storage-lists-a-gradual-ponzi-contract"></a>
 
 Consider the Ponzi contract again. It is somehow irrealistic, since
 an investor gets its investment back in full. In a more realistic scenario,
@@ -1216,12 +1216,35 @@ public class GradualPonzi extends Contract {
 }
 ```
 
+The construtcor of `GradualPonzi` is an `@Entry`, hence can only be
+called from another contract, that gets added, as first investor,
+in the `takamaka.util.StorageList` held in field `investors`.
+That utility class implements an unbounded list of objects.
+It is a storage object, as long as only storage objects are
+added inside it.
+Subsequently, other contracts can invest by calling method `invest()`.
+A minimum investment is required, but this remains constant with the time.
+The `amount` invested gets split by the number of the previous investors
+and send back to each of them. Note that Takamaka allows one to use
+Java 8 lambdas and streams.
+Old fashioned Java programmers can exploit the fact that
+lists are iterable and replace the single line `forEach()` call
+with a more traditional (but more gas hungry):
+
+```java
+for (PayableContract investor: investors)
+  send(investor, eachInvestorGets)
+```
+
 > Method `send()` is needed only because calls to `@Entry` methods are not yet
 > allowed inside lambda expressions. This limit will be lifted soon and
 > programmers will be allowed to simply write:
 > ```java
 > investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
 > ```
+
+As this example shows, Takamaka allows generic types, as it is normal
+since Java 5: we have written `StorageList<PayableContract>`.
 
 ## A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
 
