@@ -9,7 +9,6 @@ import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.lang.PayableContract;
 import takamaka.util.StorageList;
-import takamaka.util.StorageMap;
 
 /**
  * A contract for a Ponzi investment scheme:
@@ -27,15 +26,9 @@ public class GradualPonzi extends Contract {
 	/**
 	 * All investors up to now. This list might contain the same investor
 	 * many times, which is important to pay it back more than investors
-	 * who only invested ones. Hence this list is not the list of keys
-	 * of the {@code balances} map, which does not account for repetitions.
+	 * who only invested ones.
 	 */
 	private final StorageList<PayableContract> investors = new StorageList<>();
-
-	/**
-	 * A map from each investor to the balance that he is allowed to withdraw.
-	 */
-	private final StorageMap<PayableContract, BigInteger> balances = new StorageMap<>();
 
 	public @Entry(PayableContract.class) GradualPonzi() {
 		investors.add((PayableContract) caller());
@@ -44,13 +37,11 @@ public class GradualPonzi extends Contract {
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
 		BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
-		investors.stream().forEach(investor -> balances.update(investor, BigInteger.ZERO, eachInvestorGets::add));
+		investors.stream().forEach(investor -> send(investor, eachInvestorGets));
 		investors.add((PayableContract) caller());
 	}
 
-	public @Entry(PayableContract.class) void withdraw() {
-		PayableContract payee = (PayableContract) caller();
-		payee.receive(balances.getOrDefault(payee, BigInteger.ZERO));
-		balances.put(payee, BigInteger.ZERO);
+	private void send(PayableContract investor, BigInteger amount) {
+		investor.receive(amount);
 	}
 }

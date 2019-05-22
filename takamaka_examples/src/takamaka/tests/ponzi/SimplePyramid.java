@@ -9,7 +9,6 @@ import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.lang.PayableContract;
 import takamaka.util.StorageList;
-import takamaka.util.StorageMap;
 
 /**
  * A contract for a pyramid investment scheme:
@@ -25,33 +24,27 @@ public class SimplePyramid extends Contract {
 	public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(10_000L);
 	private final StorageList<PayableContract> investors = new StorageList<>();
 	private int previousLayerSize = 1;
-	private final StorageMap<PayableContract, BigInteger> balances = new StorageMap<>();
-	private BigInteger pyramidBalance;
 
 	public @Payable @Entry(PayableContract.class) SimplePyramid(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
 		investors.add((PayableContract) caller());
-		pyramidBalance = amount;
 	}
 
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
-		pyramidBalance = pyramidBalance.add(amount);
 		investors.add((PayableContract) caller());
 
 		if (investors.size() == previousLayerSize * 4 - 1) {
 			// pay out previous layer: note that currentLayer's size is even here
-			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEach(investor -> balances.update(investor, BigInteger.ZERO, MINIMUM_INVESTMENT::add));
+			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEach(investor -> send(investor, MINIMUM_INVESTMENT));
 			// spread remaining money among all participants
-			BigInteger eachInvestorGets = pyramidBalance.subtract(MINIMUM_INVESTMENT.multiply(BigInteger.valueOf(previousLayerSize))).divide(BigInteger.valueOf(investors.size()));
-			investors.stream().forEach(investor -> balances.update(investor, BigInteger.ZERO, eachInvestorGets::add));
-			pyramidBalance = BigInteger.ZERO;
+			BigInteger eachInvestorGets = balance().divide(BigInteger.valueOf(investors.size()));
+			investors.stream().forEach(investor -> send(investor, eachInvestorGets));
 			previousLayerSize *= 2;
 		}
 	}
 
-	public @Entry(PayableContract.class) void withdraw() {
-		((PayableContract) caller()).receive(balances.getOrDefault(caller(), BigInteger.ZERO));
-		balances.remove(caller());
+	private void send(PayableContract investor, BigInteger amount) {
+		investor.receive(amount);
 	}
 }
