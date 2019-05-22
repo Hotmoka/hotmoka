@@ -15,7 +15,8 @@ import takamaka.blockchain.UpdateOfBoolean;
 import takamaka.blockchain.UpdateOfByte;
 import takamaka.blockchain.UpdateOfChar;
 import takamaka.blockchain.UpdateOfDouble;
-import takamaka.blockchain.UpdateOfEnum;
+import takamaka.blockchain.UpdateOfEnumEager;
+import takamaka.blockchain.UpdateOfEnumLazy;
 import takamaka.blockchain.UpdateOfFloat;
 import takamaka.blockchain.UpdateOfInt;
 import takamaka.blockchain.UpdateOfLong;
@@ -149,7 +150,7 @@ public abstract class Storage {
 			if (seen.add(((Storage) s).storageReference))
 				workingSet.add((Storage) s);
 		}
-		else if (s instanceof String || s instanceof BigInteger) {} // these types are not recursively followed
+		else if (s instanceof String || s instanceof BigInteger || s instanceof Enum<?>) {} // these types are not recursively followed
 		else if (s != null)
 			throw new DeserializationError("a field of a storage object cannot hold a " + s.getClass().getName());
 	}
@@ -203,7 +204,7 @@ public abstract class Storage {
 		else if (s instanceof BigInteger)
 			updates.add(new UpdateOfBigInteger(storageReference, field, (BigInteger) s));
 		else if (s instanceof Enum<?>)
-			updates.add(new UpdateOfEnum(storageReference, field, ((Enum<?>) s).name()));
+			updates.add(new UpdateOfEnumLazy(storageReference, field, s.getClass().getName(), ((Enum<?>) s).name()));
 		else
 			throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
 	}
@@ -362,6 +363,6 @@ public abstract class Storage {
 		if (element == null)
 			updates.add(new UpdateToNullEager(storageReference, field));
 		else
-			updates.add(new UpdateOfEnum(storageReference, field, element.name()));
+			updates.add(new UpdateOfEnumEager(storageReference, field, element.getClass().getName(), element.name()));
 	}
 }

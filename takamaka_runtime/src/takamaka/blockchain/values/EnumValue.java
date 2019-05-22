@@ -14,9 +14,9 @@ public final class EnumValue implements StorageValue {
 	private static final long serialVersionUID = -3771826841516937906L;
 
 	/**
-	 * The class of the enumeration.
+	 * The name of the class of the enumeration.
 	 */
-	public final ClassType clazz;
+	public final String enumClassName;
 
 	/**
 	 * The name of the enumeration element.
@@ -26,11 +26,11 @@ public final class EnumValue implements StorageValue {
 	/**
 	 * Builds an element of an enumeration.
 	 * 
-	 * @param clazz the class of the enumeration
+	 * @param enumClassName the class of the enumeration
 	 * @param name the name of the enumeration element
 	 */
-	public EnumValue(ClassType clazz, String name) {
-		this.clazz = clazz;
+	public EnumValue(String enumClassName, String name) {
+		this.enumClassName = enumClassName;
 		this.name = name;
 	}
 
@@ -38,7 +38,7 @@ public final class EnumValue implements StorageValue {
 	@Override
 	public Enum<?> deserialize(AbstractBlockchain blockchain) {
 		try {
-			Class<?> enumClass = (Class<?>) clazz.toClass(blockchain);
+			Class<?> enumClass = (Class<?>) new ClassType(enumClassName).toClass(blockchain);
 			return Enum.valueOf((Class<? extends Enum>) enumClass, name);
 		}
 		catch (ClassNotFoundException e) {
@@ -48,17 +48,18 @@ public final class EnumValue implements StorageValue {
 
 	@Override
 	public String toString() {
-		return String.format("%s#%s", clazz, name);
+		return String.format("%s.%s", enumClassName, name);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof EnumValue && ((EnumValue) other).name == name && ((EnumValue) other).clazz.equals(clazz);
+		return other instanceof EnumValue && ((EnumValue) other).name.equals(name)
+			&& ((EnumValue) other).enumClassName.equals(enumClassName);
 	}
 
 	@Override
 	public int hashCode() {
-		return name.hashCode() ^ clazz.hashCode();
+		return name.hashCode() ^ enumClassName.hashCode();
 	}
 
 	@Override
@@ -67,7 +68,7 @@ public final class EnumValue implements StorageValue {
 		if (diff != 0)
 			return diff;
 
-		diff = clazz.name.compareTo(((EnumValue) other).clazz.name);
+		diff = enumClassName.compareTo(((EnumValue) other).enumClassName);
 		if (diff != 0)
 			return diff;
 		else

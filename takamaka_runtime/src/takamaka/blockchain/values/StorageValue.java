@@ -54,6 +54,8 @@ public interface StorageValue extends Serializable, Comparable<StorageValue> {
 			return new ShortValue((Short) object);
 		else if (object instanceof String)
 			return new StringValue((String) object);
+		else if (object instanceof Enum<?>)
+			return new EnumValue(object.getClass().getName(), ((Enum<?>) object).name());
 		else if (object == null)
 			return NullValue.INSTANCE;
 		else

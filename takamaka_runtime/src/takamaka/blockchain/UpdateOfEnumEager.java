@@ -1,6 +1,5 @@
 package takamaka.blockchain;
 
-import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.EnumValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
@@ -9,13 +8,19 @@ import takamaka.lang.Immutable;
 /**
  * An update that states that the enumeration
  * field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
+ * modified to a given value. The type of the field
+ * is eager. Updates are stored in blockchain and
  * describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateOfEnum extends AbstractUpdateOfField {
+public final class UpdateOfEnumEager extends AbstractUpdateOfField {
 
 	private static final long serialVersionUID = 1502304606798344063L;
+
+	/**
+	 * The name of the enumeration class whose element is being assigned to the field.
+	 */
+	private final String enumClassName;
 
 	/**
 	 * The name of the enumeration value put as new value of the field.
@@ -27,27 +32,30 @@ public final class UpdateOfEnum extends AbstractUpdateOfField {
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
+	 * @param enumClassName the name of the enumeration class whose element is being assigned to the field
 	 * @param name the name of the enumeration value put as new value of the field
 	 */
-	public UpdateOfEnum(StorageReference object, FieldSignature field, String name) {
+	public UpdateOfEnumEager(StorageReference object, FieldSignature field, String enumClassName, String name) {
 		super(object, field);
 
+		this.enumClassName = enumClassName;
 		this.name = name;
 	}
 
 	@Override
 	public StorageValue getValue() {
-		return new EnumValue((ClassType) field.type, name);
+		return new EnumValue(enumClassName, name);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfEnum && super.equals(other) && ((UpdateOfEnum) other).name == name;
+		return other instanceof UpdateOfEnumEager && super.equals(other) && ((UpdateOfEnumEager) other).name.equals(name)
+			&& ((UpdateOfEnumEager) other).enumClassName.equals(enumClassName);
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ name.hashCode();
+		return super.hashCode() ^ name.hashCode() ^ enumClassName.hashCode();
 	}
 
 	@Override
@@ -55,25 +63,26 @@ public final class UpdateOfEnum extends AbstractUpdateOfField {
 		int diff = super.compareTo(other);
 		if (diff != 0)
 			return diff;
+
+		diff = enumClassName.compareTo(((UpdateOfEnumEager) other).enumClassName);
+		if (diff != 0)
+			return diff;
 		else
-			return name.compareTo(name);
+			return name.compareTo(((UpdateOfEnumEager) other).name);
 	}
 
 	@Override
-	public UpdateOfEnum contextualizeAt(TransactionReference where) {
+	public UpdateOfEnumEager contextualizeAt(TransactionReference where) {
 		StorageReference objectContextualized = object.contextualizeAt(where);
 
 		if (object != objectContextualized)
-			return new UpdateOfEnum(objectContextualized, field, name);
+			return new UpdateOfEnumEager(objectContextualized, field, enumClassName, name);
 		else
 			return this;
 	}
 
 	@Override
 	public boolean isEager() {
-		// an enumeration element could be stored into a lazy Object or Serializable or Comparable field
-		return !field.type.equals(ClassType.OBJECT)
-			&& !((ClassType) field.type).name.equals("java.io.Serializable")
-			&& !((ClassType) field.type).name.equals("java.lang.Comparable");
+		return true;
 	}
 }
