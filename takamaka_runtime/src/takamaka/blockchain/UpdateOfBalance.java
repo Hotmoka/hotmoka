@@ -71,9 +71,4 @@ public final class UpdateOfBalance extends UpdateOfField {
 	public FieldSignature getField() {
 		return FieldSignature.BALANCE_FIELD;
 	}
-
-	@Override
-	public boolean isEager() {
-		return true;
-	}
 }

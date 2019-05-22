@@ -2,6 +2,7 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
+import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.BigIntegerValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
@@ -68,5 +69,14 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 			return new UpdateOfBigInteger(objectContextualized, field, value);
 		else
 			return this;
+	}
+
+	@Override
+	public boolean isEager() {
+		// a BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
+		return !field.type.equals(ClassType.OBJECT)
+			&& !((ClassType) field.type).name.equals("java.io.Serializable")
+			&& !((ClassType) field.type).name.equals("java.lang.Comparable")
+			&& !((ClassType) field.type).name.equals("java.lang.Number");
 	}
 }

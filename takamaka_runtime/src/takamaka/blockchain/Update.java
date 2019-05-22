@@ -64,7 +64,9 @@ public abstract class Update implements Serializable, Comparable<Update> {
 	 * 
 	 * @return true if and only if the information is eager
 	 */
-	public abstract boolean isEager();
+	public boolean isEager() {
+		return true; // subclasses may redefine
+	}
 
 	/**
 	 * Determines if this update carries information for the same property as another.

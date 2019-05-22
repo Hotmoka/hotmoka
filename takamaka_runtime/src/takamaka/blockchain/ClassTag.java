@@ -64,9 +64,4 @@ public final class ClassTag extends Update {
 		else
 			return this;
 	}
-
-	@Override
-	public boolean isEager() {
-		return true;
-	}
 }

@@ -6,12 +6,12 @@ import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Immutable;
 
 /**
- * An update of a field states that the field of a given storage object has been
- * modified to {@code null}. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * An update that states that the field of a given storage object has been
+ * modified to {@code null}. The field has eager type.
+ * Updates are stored in blockchain and describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateToNull extends AbstractUpdateOfField {
+public final class UpdateToNullEager extends AbstractUpdateOfField {
 
 	private static final long serialVersionUID = 6580694465259569417L;
 
@@ -21,7 +21,7 @@ public final class UpdateToNull extends AbstractUpdateOfField {
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 */
-	public UpdateToNull(StorageReference object, FieldSignature field) {
+	public UpdateToNullEager(StorageReference object, FieldSignature field) {
 		super(object, field);
 	}
 
@@ -32,15 +32,20 @@ public final class UpdateToNull extends AbstractUpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateToNull && super.equals(other);
+		return other instanceof UpdateToNullEager && super.equals(other);
 	}
 
 	@Override
-	public UpdateToNull contextualizeAt(TransactionReference where) {
+	public boolean isEager() {
+		return true;
+	}
+
+	@Override
+	public UpdateToNullEager contextualizeAt(TransactionReference where) {
 		StorageReference objectContextualized = object.contextualizeAt(where);
 
 		if (object != objectContextualized)
-			return new UpdateToNull(objectContextualized, field);
+			return new UpdateToNullEager(objectContextualized, field);
 		else
 			return this;
 	}

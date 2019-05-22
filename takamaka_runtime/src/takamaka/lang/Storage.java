@@ -15,13 +15,15 @@ import takamaka.blockchain.UpdateOfBoolean;
 import takamaka.blockchain.UpdateOfByte;
 import takamaka.blockchain.UpdateOfChar;
 import takamaka.blockchain.UpdateOfDouble;
+import takamaka.blockchain.UpdateOfEnum;
 import takamaka.blockchain.UpdateOfFloat;
 import takamaka.blockchain.UpdateOfInt;
 import takamaka.blockchain.UpdateOfLong;
 import takamaka.blockchain.UpdateOfShort;
 import takamaka.blockchain.UpdateOfStorage;
 import takamaka.blockchain.UpdateOfString;
-import takamaka.blockchain.UpdateToNull;
+import takamaka.blockchain.UpdateToNullEager;
+import takamaka.blockchain.UpdateToNullLazy;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReference;
@@ -184,7 +186,7 @@ public abstract class Storage {
 
 		if (s == null)
 			//the field has been set to null
-			updates.add(new UpdateToNull(storageReference, field));
+			updates.add(new UpdateToNullLazy(storageReference, field));
 		else if (s instanceof Storage) {
 			// the field has been set to a storage object
 			Storage storage = (Storage) s;
@@ -200,6 +202,8 @@ public abstract class Storage {
 			updates.add(new UpdateOfString(storageReference, field, (String) s));
 		else if (s instanceof BigInteger)
 			updates.add(new UpdateOfBigInteger(storageReference, field, (BigInteger) s));
+		else if (s instanceof Enum<?>)
+			updates.add(new UpdateOfEnum(storageReference, field, ((Enum<?>) s).name()));
 		else
 			throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
 	}
@@ -208,7 +212,7 @@ public abstract class Storage {
 	 * Takes note that a field of {@code boolean} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param s the value set to the field
@@ -221,7 +225,7 @@ public abstract class Storage {
 	 * Takes note that a field of {@code byte} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param s the value set to the field
@@ -234,7 +238,7 @@ public abstract class Storage {
 	 * Takes note that a field of {@code char} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param s the value set to the field
@@ -247,7 +251,7 @@ public abstract class Storage {
 	 * Takes note that a field of {@code double} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param s the value set to the field
@@ -260,7 +264,7 @@ public abstract class Storage {
 	 * Takes note that a field of {@code float} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param s the value set to the field
@@ -273,7 +277,7 @@ public abstract class Storage {
 	 * Takes note that a field of {@code int} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param s the value set to the field
@@ -286,7 +290,7 @@ public abstract class Storage {
 	 * Takes note that a field of {@code long} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param s the value set to the field
@@ -299,7 +303,7 @@ public abstract class Storage {
 	 * Takes note that a field of {@code short} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param s the value set to the field
@@ -312,14 +316,14 @@ public abstract class Storage {
 	 * Takes note that a field of {@link java.lang.String} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param s the value set to the field
 	 */
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, String s) {
 		if (s == null)
-			updates.add(new UpdateToNull(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
+			updates.add(new UpdateToNullEager(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
 		else
 			updates.add(new UpdateOfString(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING), s));
 	}
@@ -328,7 +332,7 @@ public abstract class Storage {
 	 * Takes note that a field of {@link java.math.BigInteger} type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
-	 *                           of one of its superclasses
+	 *                           or one of its superclasses
 	 * @param fieldName the name of the field
 	 * @param updates the set where the update will be added
 	 * @param bi the value set to the field
@@ -336,10 +340,28 @@ public abstract class Storage {
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, BigInteger bi) {
 		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
 		if (bi == null)
-			updates.add(new UpdateToNull(storageReference, field));
+			updates.add(new UpdateToNullEager(storageReference, field));
 		else if (field.equals(FieldSignature.BALANCE_FIELD))
 			updates.add(new UpdateOfBalance(storageReference, bi));
 		else
 			updates.add(new UpdateOfBigInteger(storageReference, field, bi));
+	}
+
+	/**
+	 * Takes note that a field of {@code enum} type has changed its value and consequently adds it to the set of updates.
+	 * 
+	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object
+	 *                           or one of its superclasses
+	 * @param fieldName the name of the field
+	 * @param updates the set where the update will be added
+	 * @param fieldClassName the name of the type of the field
+	 * @param element the value set to the field
+	 */
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, String fieldClassName, Enum<?> element) {
+		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
+		if (element == null)
+			updates.add(new UpdateToNullEager(storageReference, field));
+		else
+			updates.add(new UpdateOfEnum(storageReference, field, element.name()));
 	}
 }

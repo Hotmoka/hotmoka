@@ -18,7 +18,7 @@ public class Purchase extends Contract {
 	private final int value; // the value of the item that is sold
 	private final PayableContract seller;
 	private PayableContract buyer;
-	private int state; //TODO: use enum directly in the future
+	private State state;
 
     // Ensure that the received money is an even number.
 	public @Payable @Entry(PayableContract.class) Purchase(int amount) {
@@ -37,11 +37,11 @@ public class Purchase extends Contract {
     }
 
 	private void inState(State state) {
-        require(this.state == state.ordinal(), "Invalid state");
+        require(this.state == state, "Invalid state");
     }
 
 	private void setState(State state) {
-		this.state = state.ordinal();
+		this.state = state;
 	}
 
 	/// Abort the purchase and reclaim the money.

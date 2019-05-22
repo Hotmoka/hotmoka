@@ -55,11 +55,6 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	}
 
 	@Override
-	public final boolean isEager() {
-		return !field.type.isLazy();
-	}
-
-	@Override
 	public final boolean isForSamePropertyAs(Update other) {
 		return super.isForSamePropertyAs(other) && field.equals(((AbstractUpdateOfField) other).field);
 	}

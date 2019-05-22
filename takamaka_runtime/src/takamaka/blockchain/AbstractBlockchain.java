@@ -441,11 +441,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 					charge(BigInteger.valueOf((long) (((long) request.getJarSize()) * GasCosts.GAS_PER_BYTE_IN_JAR)));
 
 					// we transform the array of bytes into a real jar file
-					Path original = Files.createTempFile("original", "jar");
+					Path original = Files.createTempFile("original", ".jar");
 					Files.write(original, request.getJar());
 
 					// we create a temporary file to hold the instrumented jar
-					Path instrumented = Files.createTempFile("instrumented", "jar");
+					Path instrumented = Files.createTempFile("instrumented", ".jar");
 					new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()));
 					Files.delete(original);
 					byte[] instrumentedBytes = Files.readAllBytes(instrumented);
@@ -1039,11 +1039,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param actuals the actuals provided to the method or constructor
 		 */
 		private CodeExecutor(Storage deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
-			this.deserializedCaller = deseralizedCaller;
-			this.methodOrConstructor = methodOrConstructor;
-			this.deserializedReceiver = receiver != null ? receiver.deserialize(AbstractBlockchain.this) : null;
-			this.deserializedActuals = actuals.map(actual -> actual.deserialize(AbstractBlockchain.this)).toArray(Object[]::new);
-
 			setContextClassLoader(new ClassLoader(classLoader.getParent()) {
 
 				@Override
@@ -1051,6 +1046,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 					return classLoader.loadClass(name);
 				}
 			});
+
+			this.deserializedCaller = deseralizedCaller;
+			this.methodOrConstructor = methodOrConstructor;
+			this.deserializedReceiver = receiver != null ? receiver.deserialize(AbstractBlockchain.this) : null;
+			this.deserializedActuals = actuals.map(actual -> actual.deserialize(AbstractBlockchain.this)).toArray(Object[]::new);
 		}
 
 		/**

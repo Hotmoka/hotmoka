@@ -49,6 +49,11 @@ public final class UpdateOfStorage extends AbstractUpdateOfField {
 	}
 
 	@Override
+	public boolean isEager() {
+		return false;
+	}
+
+	@Override
 	public int compareTo(Update other) {
 		int diff = super.compareTo(other);
 		if (diff != 0)

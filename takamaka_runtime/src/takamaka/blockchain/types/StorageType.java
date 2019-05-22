@@ -31,12 +31,4 @@ public interface StorageType extends Serializable {
 	 * @return -1 if {@code this} comes first, 1 if {@code other} comes first, 0 if they are equal
 	 */
 	int compareAgainst(StorageType other);
-
-	/**
-	 * Determines if a field of this type of a storage object is not loaded
-	 * at deserialization time, but only when and if it is accessed.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	boolean isLazy();
 }

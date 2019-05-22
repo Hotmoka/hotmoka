@@ -1,5 +1,6 @@
 package takamaka.blockchain;
 
+import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
@@ -66,5 +67,14 @@ public final class UpdateOfString extends AbstractUpdateOfField {
 			return new UpdateOfString(objectContextualized, field, value);
 		else
 			return this;
+	}
+
+	@Override
+	public boolean isEager() {
+		// a String could be stored into a lazy Object or Serializable or Comparable or CharSequence field
+		return !field.type.equals(ClassType.OBJECT)
+			&& !((ClassType) field.type).name.equals("java.io.Serializable")
+			&& !((ClassType) field.type).name.equals("java.lang.Comparable")
+			&& !((ClassType) field.type).name.equals("java.lang.CharSequence");
 	}
 }

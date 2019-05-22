@@ -99,6 +99,7 @@ class ClassInstrumentation {
 	private final static String DUMMY_CLASS_NAME_JB = 'L' + DUMMY_CLASS_NAME.replace('.', '/') + ';';
 	private final static String TAKAMAKA_CLASS_NAME = Takamaka.class.getName();
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
+	private final static String ENUM_CLASS_NAME = Enum.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 	private final static short PUBLIC_SYNTHETIC_FINAL = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC | Const.ACC_FINAL;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
@@ -111,6 +112,7 @@ class ClassInstrumentation {
 
 	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
+	private final static ObjectType ENUM_OT = new ObjectType(ENUM_CLASS_NAME);
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
 	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(DUMMY_CLASS_NAME);
@@ -1024,16 +1026,24 @@ class ClassInstrumentation {
 		 */
 		private InstructionHandle addUpdateExtractionForEagerField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
 			Type type = field.getType();
+			boolean isEnum = type instanceof ObjectType && isEnum(((ObjectType) type).getClassName());
 
 			List<Type> args = new ArrayList<>();
 			for (Type arg: ADD_UPDATES_FOR_ARGS)
 				args.add(arg);
-			args.add(type);
+			if (isEnum) {
+				args.add(ObjectType.STRING);
+				args.add(ENUM_OT);
+			}
+			else
+				args.add(type);
 
 			InstructionHandle addUpdatesFor = il.insert(end, InstructionFactory.createThis());
 			il.insert(end, factory.createConstant(className));
 			il.insert(end, factory.createConstant(field.getName()));
 			il.insert(end, InstructionConst.ALOAD_1);
+			if (isEnum)
+				il.insert(end, factory.createConstant(((ObjectType) type).getClassName()));
 			il.insert(end, InstructionFactory.createThis());
 			il.insert(end, factory.createGetField(className, field.getName(), type));
 			il.insert(end, factory.createInvoke(STORAGE_CLASS_NAME, ADD_UPDATE_FOR, Type.VOID, args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
@@ -1426,8 +1436,8 @@ class ClassInstrumentation {
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isLazilyLoaded(Type type) {
-			return !(type instanceof BasicType ||
-				(type instanceof ObjectType && (ObjectType.STRING.equals(type) || BIGINTEGER_OT.equals(type))));
+			return !(type instanceof BasicType || ObjectType.STRING.equals(type) || BIGINTEGER_OT.equals(type) ||
+					(type instanceof ObjectType && isEnum(((ObjectType) type).getClassName())));
 		}
 
 		/**
@@ -1447,6 +1457,27 @@ class ClassInstrumentation {
 				else {
 					String superclassName = clazz.getSuperclassName();
 					return superclassName != null && isStorage(superclassName);
+				}
+			}
+		}
+
+		/**
+		 * Determines if a class is an {@code enum}.
+		 * 
+		 * @param className the name of the class
+		 * @return true if and only if that class extends {@link java.lang.Enum}
+		 */
+		private boolean isEnum(String className) {
+			// we also consider Contract since it is normally not included in the class path of the Takamaka runtime
+			if (className.equals(ENUM_CLASS_NAME))
+				return true;
+			else {
+				JavaClass clazz = program.get(className);
+				if (clazz == null)
+					return false;
+				else {
+					String superclassName = clazz.getSuperclassName();
+					return superclassName != null && isEnum(superclassName);
 				}
 			}
 		}

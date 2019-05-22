@@ -102,9 +102,4 @@ public final class ClassType implements StorageType {
 		else
 			return name.compareTo(((ClassType) other).name); // other instanceof ClassType
 	}
-
-	@Override
-	public boolean isLazy() {
-		return !equals(STRING) && !equals(BIG_INTEGER);
-	}
 }
