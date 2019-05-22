@@ -1154,7 +1154,7 @@ inside the constructor of the blockchain.
 # Utility Classes <a name="utility-classes"></a>
 
 We have said that storage objects must obey to some constraints.
-The strongest constraint is that their field of reference type can only hold
+The strongest is that their fields of reference type can only hold
 storage objects. In particular, arrays are not allowed there. This can
 be problematic, in particular for contracts that deal with a variable,
 potentially unbound number of other contracts.
@@ -1171,8 +1171,8 @@ an investor gets its investment back in full. In a more realistic scenario,
 the investor will receive the investment back gradually, as soon as new
 investors arrive. This is more complex to program, since
 the Ponzi contract must take note of all investors that invested up to now,
-not just the current one as in `SimplePonzi.java`. This requires a
-list of investors, of unbound size. An implementation of this gradual
+not just of the current one as in `SimplePonzi.java`. This requires a
+list of investors, of unbounded size. An implementation of this gradual
 Ponzi contract is reported below and has been
 inspired by a similar Ethereum contract from Iyer and Dannen,
 *Building Games with Ethereum Smart Contracts*, page 150, Apress 2018:
@@ -1216,7 +1216,7 @@ public class GradualPonzi extends Contract {
 }
 ```
 
-> Method `send()` is needed only because calls to '@Entry` methods are not yet
+> Method `send()` is needed only because calls to `@Entry` methods are not yet
 > allowed inside lambda expressions. This limit will be lifted soon and
 > programmers will be allowed to simply write:
 > ```java
@@ -1235,7 +1235,7 @@ fallback function in such a way to re-enter the paying contract and
 re-execute the distribution of the investment.
 As it is well known, such an attack has made some people rich and other
 desperate. Even if such a frightening scenario does not occur,
-paying previous investors back immediately is discouraged in Solidity
+paying previous investors immediately back is discouraged in Solidity
 also for other reasons. Namely, the contract that receives his
 investment back might have a redefined fallback function that
 consumes too much gas or does not terminate. This would hang the
@@ -1262,11 +1262,12 @@ This leads to the *withdrawing pattern* used for writing Solidity contracts.
 We have not used the withdrawing pattern in `GradualPonzi.java`. In general,
 there is no need for such pattern in Takamaka, at least not for simple
 contracts like `GradualPonzi.java`. The reason is that the
-`receive()` methods of a contract (corresponding to the
-fallback function of Solifity) are `final` in Takamaka and very cheap
+`receive()` methods of a payable contracts (corresponding to the
+fallback function of Solidity) are `final` in Takamaka and very cheap
 in terms of gas. In particular, inter-contract calls are not
-expecially expensive in Takamaka, since they are just a method call
-invocation in Java bytecode. They are actually cheaper than
-updating a map of balances. Hence, the withdrawing pattern is both
+especially expensive in Takamaka, since they are just a method
+invocation in Java bytecode (one bytecode instruction). They are actually cheaper than
+updating a map of balances. Moroever, avoiding the `widthdraw()` transactions
+means reducing the size of the blockchain. Hence, the withdrawing pattern is both
 useless in Takamaka and more expensive than paying back previous contracts
 immediately.
