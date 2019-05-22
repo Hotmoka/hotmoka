@@ -1225,9 +1225,10 @@ added inside it.
 Subsequently, other contracts can invest by calling method `invest()`.
 A minimum investment is required, but this remains constant with the time.
 The `amount` invested gets split by the number of the previous investors
-and send back to each of them. Note that Takamaka allows one to use
+and sent back to each of them. Note that Takamaka allows one to use
 Java 8 lambdas and streams.
-Old fashioned Java programmers can exploit the fact that
+Old fashioned Java programmers, who don't feel at home with such treats,
+can exploit the fact that
 lists are iterable and replace the single line `forEach()` call
 with a more traditional (but more gas hungry):
 
@@ -1236,6 +1237,20 @@ for (PayableContract investor: investors)
   send(investor, eachInvestorGets)
 ```
 
+It is instead **highly discouraged** to iterate the list as if it were an
+array. Namely, **do not write**
+
+```java
+for (int pos = 0; pos < investors.size(); pos++)
+  send(investors.get(i), eachInvestorGets);
+```
+
+since lists are not random-access data structures and the complexity of the
+last loop is quadratic in the size of the list. This is not a novelty: the
+same occurs with traditional Java lists (`java.util.LinkedList`, in particular).
+But, in Takamaka, code execution costs gas and
+computational complexity does matter.
+
 > Method `send()` is needed only because calls to `@Entry` methods are not yet
 > allowed inside lambda expressions. This limit will be lifted soon and
 > programmers will be allowed to simply write:
@@ -1243,8 +1258,12 @@ for (PayableContract investor: investors)
 > investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
 > ```
 
-As this example shows, Takamaka allows generic types, as it is normal
+As this example shows, Takamaka allows generic types, as it is possible
 since Java 5: we have written `StorageList<PayableContract>`.
+We refer to the JavaDoc of `StorageList` for a list of its methods.
+They include methods adding elements to both ends of the list, accessing and
+removing elements, for iterating on a list and for building an array
+with the elements in a list.
 
 ## A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
 
