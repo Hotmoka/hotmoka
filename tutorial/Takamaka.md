@@ -20,6 +20,7 @@ executed in blockchain.
     - [The Hierarchy of Contracts](#hierarchy-contracts)
 4. [Utility Classes](#utility-classes)
     - [Storage Lists](#storage-lists)
+    - [A Note on Re-entrancy](#a-note-on-re-entrancy)
     - Storage Arrays
     - Storage Maps
 
@@ -982,10 +983,10 @@ that we can call here for sending money to `currentInvestor`.
 This limitation is a deliberate choice of the design of Takamaka.
 
 > Solidity programmers will find this very different from what happens
-> in Solidity contracts. Namely, these always have a default function that
+> in Solidity contracts. Namely, these always have a _fallback function_ that
 > can be called for sending money to a contract. A problem with Solidity's approach
 > is that the balance of a contract is not fully controlled by its
-> payable methods, since money can always flow in through the default
+> payable methods, since money can always flow in through the fallback
 > function. This led to software bugs, when a contract found itself
 > richer then expected, which violated some (wrong) invariants about
 > its state. For more information, see Antonopoulos and Wood,
@@ -1164,3 +1165,108 @@ that can be used in storage objects, since they are storage objects themselves.
 Such utility classes implement lists, arrays and maps.
 
 ## Storage Lists <a name="storage-lists"></a>
+
+Consider the Ponzi contract again. It is somehow irrealistic, since
+an investor gets its investment back in full. In a more realistic scenario,
+the investor will receive the investment back gradually, as soon as new
+investors arrive. This is more complex to program, since
+the Ponzi contract must take note of all investors that invested up to now,
+not just the current one as in `SimplePonzi.java`. This requires a
+list of investors, of unbound size. An implementation of this gradual
+Ponzi contract is reported below and has been
+inspired by a similar Ethereum contract from Iyer and Dannen,
+*Building Games with Ethereum Smart Contracts*, page 150, Apress 2018:
+
+```java
+package takamaka.tests.ponzi;
+
+import static takamaka.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import takamaka.lang.Contract;
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
+import takamaka.lang.PayableContract;
+import takamaka.util.StorageList;
+
+public class GradualPonzi extends Contract {
+  public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(1_000L);
+
+  /**
+   * All investors up to now. This list might contain the same investor many times,
+   * which is important to pay him back more than investors who only invested ones.
+   */
+  private final StorageList<PayableContract> investors = new StorageList<>();
+
+  public @Entry(PayableContract.class) GradualPonzi() {
+    investors.add((PayableContract) caller());
+  }
+
+  public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+    require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
+    BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
+    investors.stream().forEach(investor -> send(investor, eachInvestorGets));
+    investors.add((PayableContract) caller());
+  }
+
+  private void send(PayableContract investor, BigInteger amount) {
+    investor.receive(amount);
+  }
+}
+```
+
+> Method `send()` is needed only because calls to '@Entry` methods are not yet
+> allowed inside lambda expressions. This limit will be lifted soon and
+> programmers will be allowed to simply write:
+> ```java
+> investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
+> ```
+
+## A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
+
+The `GradualPonzi.java` class pays back previous investors immediately:
+as soon as a new investor invests something, his investment gets
+split and forwarded to all previous investors. This should
+make Solidity programmers uncomfortable, since the same approach,
+in Solidity, might lead to the infamous re-entrancy attack, when the
+contract that receives his investment back has redefined its
+fallback function in such a way to re-enter the paying contract and
+re-execute the distribution of the investment.
+As it is well known, such an attack has made some people rich and other
+desperate. Even if such a frightening scenario does not occur,
+paying previous investors back immediately is discouraged in Solidity
+also for other reasons. Namely, the contract that receives his
+investment back might have a redefined fallback function that
+consumes too much gas or does not terminate. This would hang the
+loop that pays back previous investors, actually locking the
+money inside the `GradualPonzi` contract. Moreover, paying back
+a contract is a relatively expensive operation in Solidity, even if the
+fallback function is not redefined, and this cost is payed by the
+new investor that called `invest()`, in terms of gas. The cost is linear
+in the number of investors that must be payed back.
+
+As a solution to these problems, Solidity programmers do not pay previous
+investors back immediately, but let the `GradualPonzi` contract take
+note of the balance of each investor, through a map.
+This map is updated as soon as a new investor arrives, by increasing the
+balance of every previous investor. The cost of updating the balances
+is still linear in the number of previous investors, but it is cheaper
+(in Solidity) than sending money back to each of them, which
+requires costy inter-contract calls.
+With this technique, previous investors are
+now required to withdraw their balance explicitly,
+through a `widthdraw()` function.
+This leads to the *withdrawing pattern* used for writing Solidity contracts.
+
+We have not used the withdrawing pattern in `GradualPonzi.java`. In general,
+there is no need for such pattern in Takamaka, at least not for simple
+contracts like `GradualPonzi.java`. The reason is that the
+`receive()` methods of a contract (corresponding to the
+fallback function of Solifity) are `final` in Takamaka and very cheap
+in terms of gas. In particular, inter-contract calls are not
+expecially expensive in Takamaka, since they are just a method call
+invocation in Java bytecode. They are actually cheaper than
+updating a map of balances. Hence, the withdrawing pattern is both
+useless in Takamaka and more expensive than paying back previous contracts
+immediately.
