@@ -35,6 +35,7 @@
   	<jar jarfile="${dist}/crowdfunding.jar" basedir="${build}" includes="**/takamaka/tests/crowdfunding/**"/>
   	<jar jarfile="${dist}/collections.jar" basedir="${build}" includes="**/takamaka/tests/collections/**"/>
   	<jar jarfile="${dist}/ponzi.jar" basedir="${build}" includes="**/takamaka/tests/ponzi/**"/>
+  	<jar jarfile="${dist}/lambdas.jar" basedir="${build}" includes="**/takamaka/tests/lambdas/**"/>
   </target>
 
 </project>

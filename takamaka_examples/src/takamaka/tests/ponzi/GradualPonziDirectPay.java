@@ -26,8 +26,7 @@ public class GradualPonziDirectPay extends Contract {
 	/**
 	 * All investors up to now. This list might contain the same investor
 	 * many times, which is important to pay it back more than investors
-	 * who only invested ones. Hence this list is not the list of keys
-	 * of the {@code balances} map, which does not account for repetitions.
+	 * who only invested ones.
 	 */
 	private final StorageList<PayableContract> investors = new StorageList<>();
 
@@ -38,7 +37,11 @@ public class GradualPonziDirectPay extends Contract {
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
 		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
 		BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
-		investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
+		investors.stream().forEach(investor -> send(investor, eachInvestorGets));
 		investors.add((PayableContract) caller());
+	}
+
+	private void send(PayableContract investor, BigInteger amount) {
+		investor.receive(amount);
 	}
 }
