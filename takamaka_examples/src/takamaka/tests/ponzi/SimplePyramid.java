@@ -39,7 +39,7 @@ public class SimplePyramid extends Contract {
 			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEach(investor -> send(investor, MINIMUM_INVESTMENT));
 			// spread remaining money among all participants
 			BigInteger eachInvestorGets = balance().divide(BigInteger.valueOf(investors.size()));
-			investors.stream().forEach(investor -> send(investor, eachInvestorGets));
+			investors.forEach(investor -> send(investor, eachInvestorGets));
 			previousLayerSize *= 2;
 		}
 	}
