@@ -6,20 +6,21 @@ executed in blockchain.
 
 # Table of Contents
 1. [Introduction](#introduction)
-2. [A First Takamaka Program](#first_program)
-    - [Create a Test Blockchain](#memory_blockchain)
-    - [A Transaction that Stores a Jar in Blockchain](#jar_transaction)
-    - [A Transaction that Invokes a Constructor](#constructor_transaction)
-    - [A Transaction that Invokes a Method](#method_transaction)
-    - [Storage Types and Constraints on Storage Classes](#storage_types)
-3. [The Notion of Smart Contract](#smart_contracts)
-    - [A Simple Ponzi Scheme Contract](#simple_ponzi)
-    - [The `@Entry` and `@Payable` Annotations](#entry_payable)
-    - [Payable Contracts](#payable_contracts)
+2. [A First Takamaka Program](#first-program)
+    - [Create a Test Blockchain](#memory-blockchain)
+    - [A Transaction that Stores a Jar in Blockchain](#jar-transaction)
+    - [A Transaction that Invokes a Constructor](#constructor-transaction)
+    - [A Transaction that Invokes a Method](#method-transaction)
+    - [Storage Types and Constraints on Storage Classes](#storage-types)
+3. [The Notion of Smart Contract](#smart-contracts)
+    - [A Simple Ponzi Scheme Contract](#simple-ponzi)
+    - [The `@Entry` and `@Payable` Annotations](#entry-payable)
+    - [Payable Contracts](#payable-contracts)
     - [The `@View` Annotation](#view)
-    - [The Hierarchy of Contracts](#hierarchy_contracts)
-4. Utility Classes
-    - Storage Lists
+    - [The Hierarchy of Contracts](#hierarchy-contracts)
+4. [Utility Classes](#utility-classes)
+    - [Storage Lists](#storage-lists)
+    - [A Note on Re-entrancy](#a-note-on-re-entrancy)
     - Storage Arrays
     - Storage Maps
 
@@ -44,7 +45,7 @@ There are, of course, limitations to the kind of code that can
 be run inside a blockchain. The most important limitation is
 deterministic behavior, as we will see later.
 
-# A First Takamaka Program <a name="first_program"></a>
+# A First Takamaka Program <a name="first-program"></a>
 
 Let us start from a simple example of Takamaka code. Since we are
 writing Java code, there is nothing special to learn or install
@@ -113,7 +114,7 @@ look as the following:
 
 ![The `takamaka1` Eclipse project, exported in jar](pics/takamaka1_jar.png "The takamaka1 Eclipse project, exported in jar")
 
-## Create a Test Blockchain <a name="memory_blockchain"></a>
+## Create a Test Blockchain <a name="memory-blockchain"></a>
 
 The next step is to install that jar in blockchain, use it to create an instance
 of `Person` and call `toString()` on that instance. For that, we need a running
@@ -181,7 +182,7 @@ representations would not be kept in a real blockchain, but are useful here, for
 or learning purposes. We do not investigate further the content of the `chain` directory,
 for now. Later, when we will run our own transactions, we will see these files in more detail.
 
-## A Transaction that Stores a Jar in Blockchain <a name="jar_transaction"></a>
+## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
 Let us consider the `blockchain` project. The `Person` class is not in its build path
 nor in its class path at run time.
@@ -281,7 +282,7 @@ i.e., the fields of the objects modified by the transaction. In this case, the b
 
 > The actual amount of gas consumed by this transaction and the final balance of the payer might change in future versions of Takamaka.
 
-## A Transaction that Invokes a Constructor <a name="constructor_transaction"></a>
+## A Transaction that Invokes a Constructor <a name="constructor-transaction"></a>
 
 We are now in condition to call the constructor of `Person` and create an instance of that class in blockchain.
 First of all, we must create the class path where the constructor will run. Since the class `Person` is inside
@@ -499,7 +500,7 @@ and can be used later to invoke methods on the object or to pass the object
 as a parameter of methods or constructors: when that will occur, the object
 will be deserialized from its updates in blockchain and recreated in RAM.
 
-## A Transaction that Invokes a Method <a name="method_transaction"></a>
+## A Transaction that Invokes a Method <a name="method-transaction"></a>
 
 In our `Main` class, variable `albert` holds a machine-independent reference
 to an object of class `Person`,
@@ -675,7 +676,7 @@ method. For that, use `addStaticMethodCallTransaction()` instead, that accepts
 a request similar to that for `addInstanceMethodCallTransaction()`, but without
 receiver.
 
-## Storage Types and Constraints on Storage Classes <a name="storage_types"></a>
+## Storage Types and Constraints on Storage Classes <a name="storage-types"></a>
 
 We have seen how to invoke a constructor of a class to build an object in
 blockchain or to invoke a method on an object in blockchain. Both constructors and
@@ -729,7 +730,7 @@ We will see later how to overcome these limitations.
 > the implementation of Takamaka code, can be defined in a completely free way
 > and used in code that runs in the blockchain.
 
-# The Notion of Smart Contract <a name="smart_contracts"></a>
+# The Notion of Smart Contract <a name="smart-contracts"></a>
 
 A contract is a legal agreement among two or more parties. A good contract
 should be unambiguous, since otherwise its interpretation could be
@@ -766,7 +767,7 @@ from Iyer and Dannen,
 We will develop the contract in successive versions, in order to highlight
 the meaning of each language feature of Takamaka.
 
-## A Simple Ponzi Scheme Contract <a name="simple_ponzi"></a>
+## A Simple Ponzi Scheme Contract <a name="simple-ponzi"></a>
 
 Create a new `takamaka2` Java project in Eclipse. Create folders `lib`
 and `dist` inside the project. Put both `takamaka_base.jar` and `takamaka_runtime.jar`
@@ -831,7 +832,7 @@ saved in the state of the contract, together with the new investor.
 > Java, that has only eager evaluation for actual parameters. This technique
 > has been used since years in JUnit assertions.
 
-## The `@Entry` and `@Payable` Annotations <a name="entry_payable"></a>
+## The `@Entry` and `@Payable` Annotations <a name="entry-payable"></a>
 
 The previous code of `SimplePonzi.java` is unsatisfactory, for at least two
 reasons, that we will overcome in this section:
@@ -949,7 +950,7 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 > at call time. The name of the argument is irrelevant, but we will keep
 > using `amount` for it.
 
-## Payable Contracts <a name="payable_contracts"></a>
+## Payable Contracts <a name="payable-contracts"></a>
 
 The `SimplePonzi.java` class is not ready yet. Namely, investors have to pay
 an always increasing amount of money to replace the current investor.
@@ -982,10 +983,10 @@ that we can call here for sending money to `currentInvestor`.
 This limitation is a deliberate choice of the design of Takamaka.
 
 > Solidity programmers will find this very different from what happens
-> in Solidity contracts. Namely, these always have a default function that
+> in Solidity contracts. Namely, these always have a _fallback function_ that
 > can be called for sending money to a contract. A problem with Solidity's approach
 > is that the balance of a contract is not fully controlled by its
-> payable methods, since money can always flow in through the default
+> payable methods, since money can always flow in through the fallback
 > function. This led to software bugs, when a contract found itself
 > richer then expected, which violated some (wrong) invariants about
 > its state. For more information, see Antonopoulos and Wood,
@@ -1112,7 +1113,7 @@ with useless transactions, that do not modify its state.
 > bytecode verification. That check can only be an approximation of the
 > run-time check.
 
-## The Hierarchy of Contracts <a name="hierarchy_contracts"></a>
+## The Hierarchy of Contracts <a name="hierarchy-contracts"></a>
 
 The figure below shows the hierarchy of contract classes in Takamaka.
 The topmost class is `takamaka.lang.Contract`, an abstract class that
@@ -1139,9 +1140,9 @@ They are typically controlled by humans, through a wallet, but can be
 subclassed and instantiated freely in Takamaka code. Their constructors
 allow to build an externally owned account and fund it with an initial
 amount of coins. As we have seen in sections
-[A Transaction that Stores a Jar in Blockchain](#jar_transaction),
-[A Transaction that Invokes a Constructor](#constructor_transaction) and
-[A Transaction that Invokes a Method](#method_transaction),
+[A Transaction that Stores a Jar in Blockchain](#jar-transaction),
+[A Transaction that Invokes a Constructor](#constructor-transaction) and
+[A Transaction that Invokes a Method](#method-transaction),
 blockchain methods that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
 `ExternallyOwnedAccount`, or an exception will be thrown. In our examples
@@ -1149,3 +1150,166 @@ using a blockchain in disk memory, the expressions
 `blockchain.account(0)` and `blockchain.account(1)` actually refer to
 `ExternallyOwnedAccount` created during initialization transactions triggered
 inside the constructor of the blockchain.
+
+# Utility Classes <a name="utility-classes"></a>
+
+We have said that storage objects must obey to some constraints.
+The strongest is that their fields of reference type can only hold
+storage objects. In particular, arrays are not allowed there. This can
+be problematic, in particular for contracts that deal with a variable,
+potentially unbound number of other contracts.
+
+This section presents some utility classes that help programmers
+cope with such constraints, by providing fixed or variable-sized collections
+that can be used in storage objects, since they are storage objects themselves.
+Such utility classes implement lists, arrays and maps.
+
+## Storage Lists <a name="storage-lists"></a>
+
+Consider the Ponzi contract again. It is somehow irrealistic, since
+an investor gets its investment back in full. In a more realistic scenario,
+the investor will receive the investment back gradually, as soon as new
+investors arrive. This is more complex to program, since
+the Ponzi contract must take note of all investors that invested up to now,
+not just of the current one as in `SimplePonzi.java`. This requires a
+list of investors, of unbounded size. An implementation of this gradual
+Ponzi contract is reported below and has been
+inspired by a similar Ethereum contract from Iyer and Dannen,
+*Building Games with Ethereum Smart Contracts*, page 150, Apress 2018:
+
+```java
+package takamaka.tests.ponzi;
+
+import static takamaka.lang.Takamaka.require;
+
+import java.math.BigInteger;
+
+import takamaka.lang.Contract;
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
+import takamaka.lang.PayableContract;
+import takamaka.util.StorageList;
+
+public class GradualPonzi extends Contract {
+  public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(1_000L);
+
+  /**
+   * All investors up to now. This list might contain the same investor many times,
+   * which is important to pay him back more than investors who only invested ones.
+   */
+  private final StorageList<PayableContract> investors = new StorageList<>();
+
+  public @Entry(PayableContract.class) GradualPonzi() {
+    investors.add((PayableContract) caller());
+  }
+
+  public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+    require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
+    BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
+    investors.stream().forEach(investor -> send(investor, eachInvestorGets));
+    investors.add((PayableContract) caller());
+  }
+
+  private void send(PayableContract investor, BigInteger amount) {
+    investor.receive(amount);
+  }
+}
+```
+
+The construtcor of `GradualPonzi` is an `@Entry`, hence can only be
+called from another contract, that gets added, as first investor,
+in the `takamaka.util.StorageList` held in field `investors`.
+That utility class implements an unbounded list of objects.
+It is a storage object, as long as only storage objects are
+added inside it.
+Subsequently, other contracts can invest by calling method `invest()`.
+A minimum investment is required, but this remains constant with the time.
+The `amount` invested gets split by the number of the previous investors
+and sent back to each of them. Note that Takamaka allows one to use
+Java 8 lambdas and streams.
+Old fashioned Java programmers, who don't feel at home with such treats,
+can exploit the fact that
+lists are iterable and replace the single line `forEach()` call
+with a more traditional (but more gas hungry):
+
+```java
+for (PayableContract investor: investors)
+  send(investor, eachInvestorGets)
+```
+
+It is instead **highly discouraged** to iterate the list as if it were an
+array. Namely, **do not write**
+
+```java
+for (int pos = 0; pos < investors.size(); pos++)
+  send(investors.get(i), eachInvestorGets);
+```
+
+since lists are not random-access data structures and the complexity of the
+last loop is quadratic in the size of the list. This is not a novelty: the
+same occurs with traditional Java lists (`java.util.LinkedList`, in particular).
+But, in Takamaka, code execution costs gas and
+computational complexity does matter.
+
+> Method `send()` is needed only because calls to `@Entry` methods are not yet
+> allowed inside lambda expressions. This limit will be lifted soon and
+> programmers will be allowed to simply write:
+> ```java
+> investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
+> ```
+
+As this example shows, Takamaka allows generic types, as it is possible
+since Java 5: we have written `StorageList<PayableContract>`.
+We refer to the JavaDoc of `StorageList` for a list of its methods.
+They include methods adding elements to both ends of the list, accessing and
+removing elements, for iterating on a list and for building an array
+with the elements in a list.
+
+## A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
+
+The `GradualPonzi.java` class pays back previous investors immediately:
+as soon as a new investor invests something, his investment gets
+split and forwarded to all previous investors. This should
+make Solidity programmers uncomfortable, since the same approach,
+in Solidity, might lead to the infamous re-entrancy attack, when the
+contract that receives his investment back has redefined its
+fallback function in such a way to re-enter the paying contract and
+re-execute the distribution of the investment.
+As it is well known, such an attack has made some people rich and other
+desperate. Even if such a frightening scenario does not occur,
+paying previous investors immediately back is discouraged in Solidity
+also for other reasons. Namely, the contract that receives his
+investment back might have a redefined fallback function that
+consumes too much gas or does not terminate. This would hang the
+loop that pays back previous investors, actually locking the
+money inside the `GradualPonzi` contract. Moreover, paying back
+a contract is a relatively expensive operation in Solidity, even if the
+fallback function is not redefined, and this cost is payed by the
+new investor that called `invest()`, in terms of gas. The cost is linear
+in the number of investors that must be payed back.
+
+As a solution to these problems, Solidity programmers do not pay previous
+investors back immediately, but let the `GradualPonzi` contract take
+note of the balance of each investor, through a map.
+This map is updated as soon as a new investor arrives, by increasing the
+balance of every previous investor. The cost of updating the balances
+is still linear in the number of previous investors, but it is cheaper
+(in Solidity) than sending money back to each of them, which
+requires costy inter-contract calls.
+With this technique, previous investors are
+now required to withdraw their balance explicitly,
+through a `widthdraw()` function.
+This leads to the *withdrawing pattern* used for writing Solidity contracts.
+
+We have not used the withdrawing pattern in `GradualPonzi.java`. In general,
+there is no need for such pattern in Takamaka, at least not for simple
+contracts like `GradualPonzi.java`. The reason is that the
+`receive()` methods of a payable contracts (corresponding to the
+fallback function of Solidity) are `final` in Takamaka and very cheap
+in terms of gas. In particular, inter-contract calls are not
+especially expensive in Takamaka, since they are just a method
+invocation in Java bytecode (one bytecode instruction). They are actually cheaper than
+updating a map of balances. Moroever, avoiding the `widthdraw()` transactions
+means reducing the size of the blockchain. Hence, the withdrawing pattern is both
+useless in Takamaka and more expensive than paying back previous contracts
+immediately.
