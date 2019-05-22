@@ -19,7 +19,7 @@ executed in blockchain.
     - [The `@View` Annotation](#view)
     - [The Hierarchy of Contracts](#hierarchy-contracts)
 4. [Utility Classes](#utility-classes)
-    - [Storage Lists](#storage-lists-a-gradual-ponzi-contract)
+    - [Storage Lists](#storage-lists)
     - [A Note on Re-entrancy](#a-note-on-re-entrancy)
     - Storage Arrays
     - Storage Maps
@@ -1164,7 +1164,7 @@ cope with such constraints, by providing fixed or variable-sized collections
 that can be used in storage objects, since they are storage objects themselves.
 Such utility classes implement lists, arrays and maps.
 
-## Storage Lists: A Gradual Ponzi Contract <a name="storage-lists-a-gradual-ponzi-contract"></a>
+## Storage Lists <a name="storage-lists"></a>
 
 Consider the Ponzi contract again. It is somehow irrealistic, since
 an investor gets its investment back in full. In a more realistic scenario,
