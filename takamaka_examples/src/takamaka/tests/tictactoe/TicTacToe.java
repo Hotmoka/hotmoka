@@ -37,7 +37,6 @@ public class TicTacToe extends Contract {
 	private final StorageArray<Tile> board = new StorageArray<>(9);
 	private PayableContract crossPlayer, circlePlayer;
 	private Tile turn = Tile.CROSS; // cross plays first
-	private long bet;
 	private boolean gameOver;
 
 	public TicTacToe() {
@@ -61,16 +60,15 @@ public class TicTacToe extends Contract {
 		PayableContract player = (PayableContract) caller();
 
 		if (turn == Tile.CROSS)
-			if (crossPlayer == null) {
+			if (crossPlayer == null)
 				crossPlayer = player;
-				bet = amount;
-			}
 			else
 				require(player == crossPlayer, "it's not your turn");
 		else
 			if (circlePlayer == null) {
 				require(crossPlayer != player, "you cannot play against yourself");
-				require(amount >= bet, () -> "you must bet at least " + bet + " coins");
+				long previousBet = balance().longValue() - amount;
+				require(amount >= previousBet, () -> "you must bet at least " + previousBet + " coins");
 				circlePlayer = player;
 			}
 			else
