@@ -3,6 +3,7 @@
  */
 package takamaka.tests;
 
+import static org.junit.jupiter.api.Assertions.fail;
 import static takamaka.blockchain.types.BasicTypes.INT;
 
 import java.math.BigInteger;
@@ -103,7 +104,11 @@ class Purchase {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof RequirementViolationException)
 				return;
+			
+			fail("wrong exception");
 		}
+
+		fail("no exception");
 	}
 
 	@Test @DisplayName("new Purchase(20)")
@@ -126,7 +131,10 @@ class Purchase {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof RequirementViolationException)
 				return;
+			fail("wrong exception");
 		}
+
+		fail("no exception");
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20)")
@@ -152,7 +160,10 @@ class Purchase {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof RequirementViolationException)
 				return;
+			fail("wrong exception");
 		}
+
+		fail("no exception");
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20) and then purchase.confirmReception()")

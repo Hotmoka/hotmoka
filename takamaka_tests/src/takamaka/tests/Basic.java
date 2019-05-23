@@ -158,6 +158,8 @@ class Basic {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof RequirementViolationException && e.getCause().getMessage().equals("An @Entry can only be called from a distinct contract object"))
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");
@@ -174,6 +176,8 @@ class Basic {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof NoSuchMethodException)
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");
@@ -192,6 +196,8 @@ class Basic {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof NoSuchMethodException)
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");
@@ -209,6 +215,8 @@ class Basic {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof IllegalTransactionRequestException)
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");
@@ -228,6 +236,8 @@ class Basic {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof InsufficientFundsError)
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");
@@ -365,6 +375,8 @@ class Basic {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof SideEffectsInViewMethodException)
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");
@@ -383,6 +395,8 @@ class Basic {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof SideEffectsInViewMethodException)
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");
@@ -443,6 +457,8 @@ class Basic {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof DeserializationError)
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");
@@ -488,6 +504,8 @@ class Basic {
 		catch (TransactionException e) {
 			if (e.getCause() instanceof ClassCastException)
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");
@@ -506,6 +524,8 @@ class Basic {
 		catch (CodeExecutionException e) {
 			if (e.getCause() instanceof ClassCastException)
 				return;
+
+			fail("wrong exception");
 		}
 
 		fail("expected exception");

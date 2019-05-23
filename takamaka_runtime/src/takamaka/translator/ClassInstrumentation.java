@@ -417,11 +417,20 @@ class ClassInstrumentation {
 		 */
 		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, StackMap stackMap) {
 			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
+			int size = invoke.getLength();
 			Type[] args = invoke.getArgumentTypes(cpg);
 			Type[] argsWithContract = new Type[args.length + 2];
 			System.arraycopy(args, 0, argsWithContract, 0, args.length);
 			argsWithContract[args.length] = CONTRACT_OT;
 			argsWithContract[args.length + 1] = DUMMY_OT;
+
+			// the previous jump is erased. We add as many NOPs as the length
+			// of the instruction that we remove, since otherwise the stack maps will
+			// be wrong
+			// TODO: update stack maps instead
+			ih.setInstruction(InstructionConst.NOP);
+			while (--size > 0)
+				il.append(ih, InstructionConst.NOP);
 
 			// we add the extra instructions after ih, so that potential jumps to ih will execute them
 			InstructionHandle invokeWithExtras = il.append(ih, factory.createInvoke
@@ -435,7 +444,6 @@ class ClassInstrumentation {
 			InstructionHandle aload0 = il.append(ih, InstructionConst.ALOAD_0); // the call must be inside a contract "this"
 			il.setPositions();
 			updateAfterAdditionOf(aload0, stackMap);
-			ih.setInstruction(InstructionConst.NOP);
 		}
 
 		/**
@@ -833,7 +841,7 @@ class ClassInstrumentation {
 				slotsForParameters += arg.getSize();
 			}
 			args.add(CONTRACT_OT);
-			args.add(DUMMY_OT); // to avboid name clashes after the addition
+			args.add(DUMMY_OT); // to avoid name clashes after the addition
 			method.setArgumentTypes(args.toArray(Type.NO_ARGS));
 
 			String[] names = method.getArgumentNames();
