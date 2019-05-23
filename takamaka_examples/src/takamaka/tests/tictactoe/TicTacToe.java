@@ -66,7 +66,8 @@ public class TicTacToe extends Contract {
 				require(player == crossPlayer, "it's not your turn");
 		else
 			if (circlePlayer == null) {
-				require(amount >= balance().longValue(), () -> "You must bet at least " + balance() + " coins");
+				require(crossPlayer != player, "you cannot play against yourself");
+				require(amount >= balance().longValue(), () -> "you must bet at least " + balance() + " coins");
 				circlePlayer = player;
 			}
 			else
@@ -89,8 +90,8 @@ public class TicTacToe extends Contract {
 
 	@Override
 	public @View String toString() {
-		return rangeClosed(0, 8)
-			.mapToObj(index -> (index == 3 || index == 6) ? board.get(index) + "\n" : board.get(index).toString())
-			.collect(Collectors.joining());
+		return rangeClosed(1, 3)
+			.mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(Collectors.joining()))
+			.collect(Collectors.joining("\n"));
 	}
 }
