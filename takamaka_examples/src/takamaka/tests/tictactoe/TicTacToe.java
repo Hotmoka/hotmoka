@@ -1,10 +1,10 @@
 package takamaka.tests.tictactoe;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.IntStream.rangeClosed;
 import static takamaka.lang.Takamaka.require;
 
-import java.util.stream.Collectors;
-
-import static java.util.stream.IntStream.rangeClosed;
+import java.math.BigInteger;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
@@ -13,6 +13,9 @@ import takamaka.lang.PayableContract;
 import takamaka.lang.View;
 import takamaka.util.StorageArray;
 
+/**
+ * A contract for the tic-tac-toe game. Two players play alternately.
+ */
 public class TicTacToe extends Contract {
 
 	public static enum Tile {
@@ -34,13 +37,15 @@ public class TicTacToe extends Contract {
 		}
 	}
 
-	private final StorageArray<Tile> board = new StorageArray<>(9);
-	private PayableContract crossPlayer, circlePlayer;
+	private static final long MINIMUM_INVESTMENT = 100L;
+
+	private final StorageArray<Tile> board = new StorageArray<>(9, Tile.EMPTY);
+	private PayableContract creator, crossPlayer, circlePlayer;
 	private Tile turn = Tile.CROSS; // cross plays first
 	private boolean gameOver;
 
-	public TicTacToe() {
-		rangeClosed(0, 8).forEach(index -> board.set(index, Tile.EMPTY));
+	public @Entry(PayableContract.class) TicTacToe() {
+		creator = (PayableContract) caller();
 	}
 
 	public @View Tile at(int x, int y) {
@@ -60,8 +65,10 @@ public class TicTacToe extends Contract {
 		PayableContract player = (PayableContract) caller();
 
 		if (turn == Tile.CROSS)
-			if (crossPlayer == null)
+			if (crossPlayer == null) {
+				require(amount >= MINIMUM_INVESTMENT, () -> "you must invest at least " + MINIMUM_INVESTMENT + " coins");
 				crossPlayer = player;
+			}
 			else
 				require(player == crossPlayer, "it's not your turn");
 		else
@@ -75,13 +82,20 @@ public class TicTacToe extends Contract {
 				require(player == circlePlayer, "it's not your turn");
 
 		set(x, y, turn);
-		if (gameOver(x, y))
-			player.receive(balance());
-
-		turn = turn.nextTurn();
+		if (isGameOver(x, y)) {
+			// 90% goes to the winner
+			player.receive(balance().multiply(BigInteger.valueOf(9L)).divide(BigInteger.valueOf(10L)));
+			// the rest to the creator of the game
+			creator.receive(balance());
+		}
+		else if (isDraw())
+			// everything goes to the creator of the game
+			creator.receive(balance());
+		else
+			turn = turn.nextTurn();
 	}
 
-	private boolean gameOver(int x, int y) {
+	private boolean isGameOver(int x, int y) {
 		return gameOver =
 			rangeClosed(1, 3).allMatch(_y -> at(x, _y) == turn) || // column x
 			rangeClosed(1, 3).allMatch(_x -> at(_x, y) == turn) || // row y
@@ -89,10 +103,14 @@ public class TicTacToe extends Contract {
 			(x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // second diagonal
 	}
 
+	private boolean isDraw() {
+		return rangeClosed(0, 8).mapToObj(board::get).noneMatch(Tile.EMPTY::equals);
+	}
+
 	@Override
 	public @View String toString() {
 		return rangeClosed(1, 3)
-			.mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(Collectors.joining()))
-			.collect(Collectors.joining("\n"));
+			.mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
+			.collect(joining("\n-----"));
 	}
 }

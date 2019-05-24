@@ -61,12 +61,17 @@ class TicTacToe {
 	private Blockchain blockchain;
 
 	/**
-	 * The seller contract.
+	 * The creator of the game.
+	 */
+	private StorageReference creator;
+
+	/**
+	 * The first player.
 	 */
 	private StorageReference player1;
 
 	/**
-	 * The buyer contract.
+	 * The second player.
 	 */
 	private StorageReference player2;
 
@@ -90,6 +95,9 @@ class TicTacToe {
 
 		classpath = new Classpath(tictactoe, true);
 
+		creator = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+			(gamete, _1_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount", INT), new IntValue(100_000)));
+
 		player1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(gamete, _1_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount", INT), new IntValue(1_000_000)));
 
@@ -100,20 +108,20 @@ class TicTacToe {
 	@Test @DisplayName("new TicTacToe()")
 	void createTicTacToe() throws TransactionException, CodeExecutionException {
 		blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(player1, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 	}
 
 	@Test @DisplayName("new TicTacToe() then first player plays")
 	void crossPlays() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(player1, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
 			_20_000,
 			classpath,
 			new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(50L),
+			new LongValue(100L),
 			_1, _1));
 		StringValue toString = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
@@ -122,20 +130,20 @@ class TicTacToe {
 			new MethodSignature(TIC_TAC_TOE, "toString"),
 			ticTacToe));
 
-		assertEquals("X  \n   \n   ", toString.value);
+		assertEquals("X| | \n----- | | \n----- | | ", toString.value);
 	}
 
-	@Test @DisplayName("new TicTacToe(), first player plays, second player playes same position")
+	@Test @DisplayName("new TicTacToe(), first player plays, second player plays same position")
 	void bothPlaySamePosition() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(player1, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
 			_20_000,
 			classpath,
 			new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(50L),
+			new LongValue(100L),
 			_1, _1));
 
 		try {
@@ -145,7 +153,7 @@ class TicTacToe {
 				classpath,
 				new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
-				new LongValue(50L),
+				new LongValue(100L),
 				_1, _1));
 		}
 		catch (TransactionException e) {
@@ -161,14 +169,14 @@ class TicTacToe {
 	@Test @DisplayName("new TicTacToe(), same player plays twice")
 	void samePlayerPlaysTwice() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(player1, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
 			_20_000,
 			classpath,
 			new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(50L),
+			new LongValue(100L),
 			_1, _1));
 
 		try {
@@ -178,7 +186,7 @@ class TicTacToe {
 				classpath,
 				new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
-				new LongValue(50L),
+				new LongValue(100L),
 				_1, _2));
 		}
 		catch (TransactionException e) {
@@ -194,14 +202,14 @@ class TicTacToe {
 	@Test @DisplayName("new TicTacToe(), second player bets too little")
 	void circleBetsTooLittle() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(player1, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1,
 			_20_000,
 			classpath,
 			new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(50L),
+			new LongValue(120L),
 			_1, _1));
 
 		try {
@@ -211,7 +219,7 @@ class TicTacToe {
 				classpath,
 				new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
-				new LongValue(49L),
+				new LongValue(119L),
 				_1, _2));
 		}
 		catch (TransactionException e) {
@@ -227,14 +235,14 @@ class TicTacToe {
 	@Test @DisplayName("first player wins")
 	void crossWins() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(player1, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
 			_20_000,
 			classpath,
 			new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(50L),
+			new LongValue(100L),
 			_1, _1));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player2,
@@ -242,7 +250,7 @@ class TicTacToe {
 			classpath,
 			new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(50L),
+			new LongValue(100L),
 			_2, _1));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
@@ -276,21 +284,21 @@ class TicTacToe {
 			new MethodSignature(TIC_TAC_TOE, "toString"),
 			ticTacToe));
 
-		assertEquals("XO \nXO \nX  ", toString.value);
+		assertEquals("X|O| \n-----X|O| \n-----X| | ", toString.value);
 	}
 
 
 	@Test @DisplayName("first player wins but second continues to play")
 	void crossWinsButCircleContinues() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(player1, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
 			_20_000,
 			classpath,
 			new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(50L),
+			new LongValue(100L),
 			_1, _1));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player2,
@@ -298,7 +306,7 @@ class TicTacToe {
 			classpath,
 			new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(50L),
+			new LongValue(100L),
 			_2, _1));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 

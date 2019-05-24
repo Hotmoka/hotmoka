@@ -8,6 +8,7 @@ import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -84,6 +85,52 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 			throw new NegativeArraySizeException();
 
 		this.length = length;
+	}
+
+	/**
+	 * Builds an array of the given length, whose elements
+	 * are all initialized to the given value.
+	 * 
+	 * @param length the length of the array
+	 * @param initialValue the initial value of the array
+	 * @throws NegativeArraySizeException if {@code length} is negative
+	 */
+	public StorageArray(int length, V initialValue) {
+		this(length);
+
+		IntStream.range(0, length).forEach(index -> set(index, initialValue));
+	}
+
+	/**
+	 * Builds an array of the given length, whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param length the length of the array
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize
+	 * @throws NegativeArraySizeException if {@code length} is negative
+	 */
+	public StorageArray(int length, Supplier<V> supplier) {
+		this(length);
+
+		IntStream.range(0, length).forEach(index -> set(index, supplier.get()));
+	}
+
+	/**
+	 * Builds an array of the given length, whose elements
+	 * are all initialized to the value provided by the given supplier.
+	 * 
+	 * @param length the length of the array
+	 * @param supplier the supplier of the initial values of the array. It gets
+	 *                 used repeatedly for each element to initialize:
+	 *                 element at index <em>i</em> gets assigned
+	 *                 {@code supplier.apply(i)}
+	 * @throws NegativeArraySizeException if {@code length} is negative
+	 */
+	public StorageArray(int length, IntFunction<V> supplier) {
+		this(length);
+
+		IntStream.range(0, length).forEach(index -> set(index, supplier.apply(index)));
 	}
 
 	/**
