@@ -20,8 +20,10 @@ executed in blockchain.
     - [The Hierarchy of Contracts](#hierarchy-contracts)
 4. [Utility Classes](#utility-classes)
     - [Storage Lists](#storage-lists)
-    - [A Note on Re-entrancy](#a-note-on-re-entrancy)
-    - Storage Arrays
+        - [A Gradual Ponzi Contract](#a-gradual-ponzi-contract)
+        - [A Note on Re-entrancy](#a-note-on-re-entrancy)
+    - [Storage Arrays](#storage_arrays)
+        - [A Tic-Tac-Toe Contract](#a-tic-tac-toe-contract)
     - Storage Maps
 
 # Introduction <a name="introduction"></a>
@@ -1164,11 +1166,45 @@ potentially unbound number of other contracts.
 This section presents some utility classes that help programmers
 cope with such constraints, by providing fixed or variable-sized collections
 that can be used in storage objects, since they are storage objects themselves.
-Such utility classes implement lists, arrays and maps.
+Such utility classes implement lists, arrays and maps and are
+consequently generally described as *collections*. They have the
+property of being storage classes, hence their objects can be kept
+blockchain, *as long as only storage objects are added as elements of
+a collection*. As usual with collections, these utility classes
+will have generic type, to implement collections of arbitrary, but fixed
+types. Takamaka allows Java generic types.
 
 ## Storage Lists <a name="storage-lists"></a>
 
-Consider the Ponzi contract again. It is somehow irrealistic, since
+Lists are an ordered sequence of elements. In a list, it is typically
+possible to access the first element in constant time, while accesses
+to the *n*th element require the scan the list from its beginning and
+consequently have a cost proportional to *n*. Because of this,
+lists are **not** random-access data structures, where the *n*th
+element should be accessable in constant time. It is also possible
+to add an element at the beginning of a list, in constant time.
+The size of a list is not fixed: lists grow in size as more elements are
+added.
+
+Java has many classes for implementing lists, all subclasses
+of `java.util.List<T>`. They can be used in Takamaka, but not as
+fields of a storage class. For that,
+Takamaka provides an implementation of lists with the storage class
+`StorageList<T>`. Its instances are storage objects and
+can consequently be held in fields of storage classes and
+can be stored in blockchain, *as long as only
+storage objects are added to the list*. Takamaka lists provide
+constant-time access and addition to both ends of a list.
+We refer to the JavaDoc of `StorageList<T>` for a full list of its methods.
+They include methods adding elements to both ends of the list, accessing and
+removing elements, for iterating on a list and for building a Java array
+`T[]` with the elements of a `StorageList<T>`.
+
+Next section shows an example of use of `StorageList`.
+
+### A Gradual Ponzi Contract <a name="a-gradual-ponzi-contract"></a>
+
+Consider our previous Ponzi contract again. It is somehow irrealistic, since
 an investor gets its investment back in full. In a more realistic scenario,
 the investor will receive the investment back gradually, as soon as new
 investors arrive. This is more complex to program, since
@@ -1251,7 +1287,7 @@ since lists are not random-access data structures and the complexity of the
 last loop is quadratic in the size of the list. This is not a novelty: the
 same occurs with traditional Java lists (`java.util.LinkedList`, in particular).
 But, in Takamaka, code execution costs gas and
-computational complexity does matter.
+computational complexity does matter more than in other programming contexts.
 
 > Method `send()` is needed only because calls to `@Entry` methods are not yet
 > allowed inside lambda expressions. This limit will be lifted soon and
@@ -1260,14 +1296,7 @@ computational complexity does matter.
 > investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
 > ```
 
-As this example shows, Takamaka allows generic types, as it is possible
-since Java 5: we have written `StorageList<PayableContract>`.
-We refer to the JavaDoc of `StorageList` for a list of its methods.
-They include methods adding elements to both ends of the list, accessing and
-removing elements, for iterating on a list and for building an array
-with the elements in a list.
-
-## A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
+### A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
 
 The `GradualPonzi.java` class pays back previous investors immediately:
 as soon as a new investor invests something, his investment gets
@@ -1315,3 +1344,258 @@ updating a map of balances. Moroever, avoiding the `widthdraw()` transactions
 means reducing the size of the blockchain. Hence, the withdrawing pattern is both
 useless in Takamaka and more expensive than paying back previous contracts
 immediately.
+
+## Storage Arrays <a name="storage_arrays"></a>
+
+Arrays are an ordered sequence of elements, with constant-time access
+to such elements, for reading and writing. The size of arrays is typically
+fixed, although there are programming languages with a limited form
+of dynamic arrays.
+
+Java has native arrays, of type `T[]`, where `T` is the
+type of the elements of the array. They can be used in Takamaka, but not
+as fields of storage classes. For that, Takamaka provides class
+`takamaka.util.StorageArray<T>`. Its instances are storage objects and
+can consequently be held in fields of storage classes and
+can be stored in blockchain, *as long as only
+storage objects are added to the array*. Their size is fixed and decided
+at time of construction. Although we consider `StorageArray<T>` as storage
+replacement for Java arrays, it must be stated that the complexity of
+accessing their elements if logarithmic in the size of the array, which is
+a significant deviation from the standard definition of arrays. Nevertheless,
+logarithmic complexity is much better than the linear complexity for
+accessing elements of a `StorageList<T>` that, however, has the advantage
+of dynamic size.
+
+We refer to the JavaDoc of `StorageArray<T>` for a full list of its methods.
+They include methods adding elements, accessing and
+removing elements, for iterating on an array and for building a Java array
+`T[]` with the elements of a `StorageArray<T>`.
+
+Next section shows an example of use of `StorageArray<T>`.
+
+### A Tic-Tac-Toe Contract <a name="a-tic-tac-toe-contract"></a>
+
+Tic-tac-toe is a two-players game where players place, alternately,
+a cross and a circle on a 3x3 board, initially empty. The winner is the
+player who places three crosses or three circles on the same row, or
+column or diagonal. For instance, in the following board the player of
+the cross wins:
+
+<p align="center">
+  <img width="200" height="200" src="pics/tictactoe_wins.png" alt="Cross wins">
+</p>
+
+There are games that end up in a draw, when the board is full but nobody won:
+
+<p align="center">
+  <img width="250" height="250" src="pics/tictactoe_draw.png" alt="A draws">
+</p>
+
+A natural representation of the tic-tac-toe board is a bidimensional array
+where indexes are distributed as follows:
+
+<p align="center">
+  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Tic-tac-toe grid">
+</p>
+
+This can be implemented as `StorageArray<StorageArray<Tile>>`, where `Tile` is
+an anumeration of the three possible tiles (empty, cross, circle). This is
+possible but overkill. It is simpler and cheaper (also in terms of gas)
+to use the previous diagram as a conceptual representation of the board
+shown to the users, but use, internally,
+a monodimensional array of 9 tiles, distributed as follows:
+
+<p align="center">
+  <img width="250" height="250" src="pics/tictactoe_grid_linear.png" alt="Tic-tac-toe linear grid">
+</p>
+
+which can be implemented as a `StorageArray<Tile>`. There will be functions
+for translating the conecptual representation into the internal one.
+
+This leads to the following contract:
+
+```java
+package takamaka.tests.tictactoe;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.IntStream.rangeClosed;
+import static takamaka.lang.Takamaka.require;
+
+import takamaka.lang.Contract;
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
+import takamaka.lang.PayableContract;
+import takamaka.lang.View;
+import takamaka.util.StorageArray;
+
+public class TicTacToe extends Contract {
+
+  public static enum Tile {
+    EMPTY(" "), CROSS("X"), CIRCLE("O");
+
+    private final String name;
+
+    private Tile(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+
+    private Tile nextTurn() {
+      return this == CROSS ? CIRCLE : CROSS;
+    }
+  }
+
+  private final StorageArray<Tile> board = new StorageArray<>(9, Tile.EMPTY);
+  private PayableContract crossPlayer, circlePlayer;
+  private Tile turn = Tile.CROSS; // cross plays first
+  private boolean gameOver;
+
+  public @View Tile at(int x, int y) {
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
+    return board.get((y - 1) * 3 + x - 1);
+  }
+
+  private void set(int x, int y, Tile tile) {
+    board.set((y - 1) * 3 + x - 1, tile);
+  }
+
+  public @Payable @Entry(PayableContract.class) void play(long amount, int x, int y) {
+    require(!gameOver, "the game is over");
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
+    require(at(x, y) == Tile.EMPTY, "the selected tile is not empty");
+
+    PayableContract player = (PayableContract) caller();
+
+    if (turn == Tile.CROSS)
+      if (crossPlayer == null)
+        crossPlayer = player;
+      else
+        require(player == crossPlayer, "it's not your turn");
+    else
+      if (circlePlayer == null) {
+        require(crossPlayer != player, "you cannot play against yourself");
+        long previousBet = balance().longValue() - amount;
+        require(amount >= previousBet, () -> "you must bet at least " + previousBet + " coins");
+        circlePlayer = player;
+      }
+      else
+        require(player == circlePlayer, "it's not your turn");
+
+    set(x, y, turn);
+    if (gameOver(x, y))
+      player.receive(balance());
+    else
+      turn = turn.nextTurn();
+  }
+
+  private boolean gameOver(int x, int y) {
+    return gameOver =
+      rangeClosed(1, 3).allMatch(_y -> at(x, _y) == turn) || // column x
+      rangeClosed(1, 3).allMatch(_x -> at(_x, y) == turn) || // row y
+      (x == y && rangeClosed(1, 3).allMatch(_x -> at(_x, _x) == turn)) || // first diagonal
+      (x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // second diagonal
+  }
+
+  @Override
+  public @View String toString() {
+    return rangeClosed(1, 3)
+      .mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
+      .collect(joining("\n-----"));
+  }
+}
+```
+
+The internal enumeration `Tile` represents the three alternatives that can be
+put in the tic-tac-toe board. It has a `toString()` method, that yields the
+usual representation for such alternatives, and a `nextTurn()` method, that
+alternates between cross and circle.
+
+> The `Tile` enumeration has been defined as `static` since it does not
+> need to access the external `TicTacToe` object. It is well possible
+> to get rid of that `static`: the contract will work perfectly well anyway.
+> However, adding `static` is a Java feature that allows
+> programmers to reduce the memory footprint of the enumeration elements and the
+> cost of garbage collection. In the case of Takamaka, it also reduces the
+> gas cost of using this enumeration, which is probably a more convicing
+> argument for using `static`, since gas is money.
+
+The board of the game is represented as a `new StorageArray<Tile>(9, Tile.EMPTY)`, whose
+elements are indexed from 0 to 8 (inclusive) and are initialized to `Tile.EMPTY`.
+It is also possible to construct the array as `new StorageArray<Tile>(9)`, but then
+its elements would be the default value `null` and the array would need to be initialized
+inside a constructor for `TicTacToe`:
+
+```java
+public TicTacToe() {
+  rangeClosed(0, 8).forEach(index -> board.set(index, Tile.EMPTY));
+}
+```
+
+Methods `at()` and `set()` read and set, respectively, the board element
+at indexes (x,y). They transform the bidimensional conceptual representation
+of the board into its internal monodimensional representation. Since `at()` is `public`,
+we defensively check the validity of the indexes there.
+
+Method `play()` is the heart of the contract. It is called by the contracts
+that play the game, hence is an `@Entry`. It is also annotated as
+`@Payable(PayableContract.class)` since players must bet money for
+taking part in the game, at least for the first two moves. The first
+contract that plays is registered as `crossPlayer`. The second contract
+that plays is registered as `circlePlayer`. Subsequent moves must
+come, alternately, from `crossPlayer` and `circlePlayer`. The contract
+uses a `turn` variable to keep track of the current turn.
+
+Note the extensive use of `require()` to check all error situations:
+
+1. it is possible to play only if the game is not over yet;
+2. a move must be inside the board and identify an empty tile;
+3. players must alternate correctly;
+4. the second player must bet at least as much as the first player;
+5. it is not allowed to play against oneself.
+
+The `play()` method ends with a call to `gameOver()` that checks
+if the game is over. In that case, the winner receives the full
+jackpot. Note that the `gameOver()` method receives the coordinates
+where the current player has moved. This allows it to restrict the
+check for game over: the game is over only if the row or column
+where the player moved contain the same tile; if the current player
+played on a diagonal, the method checks the diagonals as well.
+It is of course possible to check all rows, columns and diagonals, always,
+but our solution is gas-thriftier.
+
+The `toString()` method yields a string representation of the current board, such
+as
+
+```
+X|O| 
+-----
+ |X|O
+-----
+ |X| 
+```
+
+For those who do not appreciate Java 8 streams, the same result can be obtained with
+a more traditional (and more gas-hungry) code:
+
+```java
+@Override
+public @View String toString() {
+  String result = "";
+  for (int y = 0; y < 3; y++) {
+    for (int x = 0; x < 3; x++) {
+      result += at(x, y);
+      if (x < 2)
+        result += "|";
+    }
+    if (y < 2)
+      result += "\n-----"
+  }
+
+  return result;
+}
+```
