@@ -14,7 +14,13 @@ import takamaka.lang.View;
 import takamaka.util.StorageArray;
 
 /**
- * A contract for the tic-tac-toe game. Two players play alternately.
+ * A contract for the tic-tac-toe game. Two players place, alternately,
+ * a cross and a circle on a 3x3 board, initially empty. The winner is the
+ * player who places three crosses or three circles on the same row, or
+ * column or diagonal. The first player specifies a bet; the second must
+ * bet at least as much as the first. At the end, the winner gets 90%
+ * of the jackpot, while the rest goes to the creator of the contract.
+ * In case of a draw, the jackpot goes entirely to the creator of the contract.
  */
 public class TicTacToe extends Contract {
 
@@ -37,7 +43,7 @@ public class TicTacToe extends Contract {
 		}
 	}
 
-	private static final long MINIMUM_INVESTMENT = 100L;
+	private static final long MINIMUM_BET = 100L;
 
 	private final StorageArray<Tile> board = new StorageArray<>(9, Tile.EMPTY);
 	private PayableContract creator, crossPlayer, circlePlayer;
@@ -66,7 +72,7 @@ public class TicTacToe extends Contract {
 
 		if (turn == Tile.CROSS)
 			if (crossPlayer == null) {
-				require(amount >= MINIMUM_INVESTMENT, () -> "you must invest at least " + MINIMUM_INVESTMENT + " coins");
+				require(amount >= MINIMUM_BET, () -> "you must invest at least " + MINIMUM_BET + " coins");
 				crossPlayer = player;
 			}
 			else
@@ -74,7 +80,7 @@ public class TicTacToe extends Contract {
 		else
 			if (circlePlayer == null) {
 				require(crossPlayer != player, "you cannot play against yourself");
-				long previousBet = balance().longValue() - amount;
+				long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
 				require(amount >= previousBet, () -> "you must bet at least " + previousBet + " coins");
 				circlePlayer = player;
 			}
