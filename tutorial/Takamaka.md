@@ -20,8 +20,10 @@ executed in blockchain.
     - [The Hierarchy of Contracts](#hierarchy-contracts)
 4. [Utility Classes](#utility-classes)
     - [Storage Lists](#storage-lists)
-    - [A Note on Re-entrancy](#a-note-on-re-entrancy)
-    - Storage Arrays
+        - [A Gradual Ponzi Contract](#a-gradual-ponzi-contract)
+        - [A Note on Re-entrancy](#a-note-on-re-entrancy)
+    - [Storage Arrays](#storage_arrays)
+        - [A Tic-Tac-Toe Contract](#a-tic-tac-toe-contract)
     - Storage Maps
 
 # Introduction <a name="introduction"></a>
@@ -1164,11 +1166,39 @@ potentially unbound number of other contracts.
 This section presents some utility classes that help programmers
 cope with such constraints, by providing fixed or variable-sized collections
 that can be used in storage objects, since they are storage objects themselves.
-Such utility classes implement lists, arrays and maps.
+Such utility classes implement lists, arrays and maps and are
+consequently generally described as *collections*. They have the
+property of being storage classes, hence their objects can be kept
+blockchain, *as long as only storage objects are added as elements of
+a collection*. As usual with collections, these utility classes
+will have generic type, to implement collections of arbitrary, but fixed
+types. Takamaka allows Java generic types.
 
 ## Storage Lists <a name="storage-lists"></a>
 
-Consider the Ponzi contract again. It is somehow irrealistic, since
+Lists are an ordered sequence of elements. In a list, it is typically
+possible to access the first element in constant time, while accesses
+to the *n*th element require the scan the list from its beginning and
+consequently have a cost proportional to *n*. Because of this,
+lists are **not** random-access data structures, where the *n*th
+element should be accessable in constant time. It is also possible
+to add an element at the beginning of a list, in constant time.
+The size of a list is not fixed: lists grow in size as more elements are
+added. Takamaka provides an implementation of lists with the storage class
+`StorageList<PayableContract>`. Its objects are storage objects and
+can consequently be held in blockchain, *as long as only
+storage objects are added to the list*. Takamaka lists provide
+constant-time access and addition to both ends of a list.
+We refer to the JavaDoc of `StorageList` for a full list of its methods.
+They include methods adding elements to both ends of the list, accessing and
+removing elements, for iterating on a list and for building an array
+with the elements of a list.
+
+Next section shows an example of use of `StorageList`.
+
+### A Gradual Ponzi Contract <a name="a-gradual-ponzi-contract"></a>
+
+Consider our previous Ponzi contract again. It is somehow irrealistic, since
 an investor gets its investment back in full. In a more realistic scenario,
 the investor will receive the investment back gradually, as soon as new
 investors arrive. This is more complex to program, since
@@ -1251,7 +1281,7 @@ since lists are not random-access data structures and the complexity of the
 last loop is quadratic in the size of the list. This is not a novelty: the
 same occurs with traditional Java lists (`java.util.LinkedList`, in particular).
 But, in Takamaka, code execution costs gas and
-computational complexity does matter.
+computational complexity does matter more than in other programming contexts.
 
 > Method `send()` is needed only because calls to `@Entry` methods are not yet
 > allowed inside lambda expressions. This limit will be lifted soon and
@@ -1260,14 +1290,7 @@ computational complexity does matter.
 > investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
 > ```
 
-As this example shows, Takamaka allows generic types, as it is possible
-since Java 5: we have written `StorageList<PayableContract>`.
-We refer to the JavaDoc of `StorageList` for a list of its methods.
-They include methods adding elements to both ends of the list, accessing and
-removing elements, for iterating on a list and for building an array
-with the elements in a list.
-
-## A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
+### A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
 
 The `GradualPonzi.java` class pays back previous investors immediately:
 as soon as a new investor invests something, his investment gets
@@ -1315,3 +1338,7 @@ updating a map of balances. Moroever, avoiding the `widthdraw()` transactions
 means reducing the size of the blockchain. Hence, the withdrawing pattern is both
 useless in Takamaka and more expensive than paying back previous contracts
 immediately.
+
+## Storage Arrays <a name="storage_arrays"></a>
+
+### A Tic-Tac-Toe Contract <a name="a-tic-tac-toe-contract"></a>
