@@ -1418,11 +1418,9 @@ This leads to the following contract:
 ```java
 package takamaka.tests.tictactoe;
 
-import static takamaka.lang.Takamaka.require;
-
-import java.util.stream.Collectors;
-
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
+import static takamaka.lang.Takamaka.require;
 
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
@@ -1452,14 +1450,10 @@ public class TicTacToe extends Contract {
     }
   }
 
-  private final StorageArray<Tile> board = new StorageArray<>(9);
+  private final StorageArray<Tile> board = new StorageArray<>(9, Tile.EMPTY);
   private PayableContract crossPlayer, circlePlayer;
   private Tile turn = Tile.CROSS; // cross plays first
   private boolean gameOver;
-
-  public TicTacToe() {
-    rangeClosed(0, 8).forEach(index -> board.set(index, Tile.EMPTY));
-  }
 
   public @View Tile at(int x, int y) {
     require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
@@ -1495,8 +1489,8 @@ public class TicTacToe extends Contract {
     set(x, y, turn);
     if (gameOver(x, y))
       player.receive(balance());
-
-    turn = turn.nextTurn();
+    else
+      turn = turn.nextTurn();
   }
 
   private boolean gameOver(int x, int y) {
@@ -1510,8 +1504,66 @@ public class TicTacToe extends Contract {
   @Override
   public @View String toString() {
     return rangeClosed(1, 3)
-      .mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(Collectors.joining("|")))
-      .collect(Collectors.joining("\n---"));
+      .mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
+      .collect(joining("\n---"));
   }
 }
 ```
+
+The internal enumeration `Tile` represents the three alternatives that can be
+put in the tic-tac-toe board. It has a `toString()` method, that yields the
+usual representation for such alternatives, and a `nextTurn()` method, that
+alternates between cross and circle.
+
+> The `Tile` enumeration has been defined as `static` since it does not
+> need to access the external `TicTacToe` object. It is well possible
+> to get rid of that `static`: the contract will work perfectly well anyway.
+> However, adding `static` is a Java feature that allows
+> programmers to reduce the memory footprint of the enumeration elements and the
+> cost of garbage collection. In the case of Takamaka, it also reduces the
+> gas cost of using this enumeration, which is probably a more convicing
+> argument for using `static`, since gas is money.
+
+The board of the game is represented as a `new StorageArray<Tile>(9, Tile.EMPTY)`, whose
+elements are indexed from 0 to 8 (inclusive) and are initialized to `Tile.EMPTY`.
+It is also possible to construct the array as `new StorageArray<Tile>(9)`, but then
+its elements would be the default value `null` and the array would need to be initialized
+inside a constructor for `TicTacToe`:
+
+```java
+public TicTacToe() {
+  rangeClosed(0, 8).forEach(index -> board.set(index, Tile.EMPTY));
+}
+```
+
+Methods `at()` and `set()` read and set, respectively, the board element
+at indexes (x,y). They transfrom the bidimensional conceptual representation
+into the internal monodimensional representation. Since `at()` is `public`,
+we defensively check the indexes there.
+
+Method `play()` is the heart of the contract. It is called by the contracts
+that play the game, hence is an `@Entry`. It is also annotated as
+`@Payable(PayableContract.class)` since players must bet money for
+taking part in the game, at least for the first two moves. The first
+contract that plays is registered as `crossPlayer`. The second contract
+that plays is registered as `circlePlayer`. Subsequent moves must
+come, alternately, from `crossPlayer` and `circlePlayer`. The contract
+uses a `turn` variable to keep track of the current turn.
+
+Note the extensive use of `require()` to check all error situations:
+
+1. it is possible to play only if the game is not over yet;
+2. coordinates must be inside the board and identify an empty tile;
+3. players must alternate correctly;
+4. the second player must bet at least as much as the first player;
+5. it is not allowed to play against oneself.
+
+The `play()` method terminates with a call to `gameOver()` that checks
+if the game is over. In that case, the winner receive the full
+jackpot. Note that the `gameOver()` method receives the coordinates
+where the current player has moved. This allows to restrict the
+check for game over: the game is over only if the row or column
+where the player moved contain the same tile; if the current player
+played on a diagonal, the method checksthe diagonals as well.
+It is of course possible to always check all rows, columns and diagonals,
+but our solution is more gas-thrifty.
