@@ -1484,7 +1484,7 @@ public class TicTacToe extends Contract {
     else
       if (circlePlayer == null) {
         require(crossPlayer != player, "you cannot play against yourself");
-        long previousBet = (balance().subtract(BigInteger.valueOf(amount))).longValue();
+        long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
         require(amount >= previousBet, () -> "you must bet at least " + previousBet + " coins");
         circlePlayer = player;
       }
@@ -1607,7 +1607,7 @@ public @View String toString() {
 
 ## A More Realistic Tic-Tac-Toe Contract <a name="a-more-realistic-tic-tac-toe-contract"></a>
 
-The `TicTacToe.java` code implements the rules of a tuc-tac-toe game, but has
+The `TicTacToe.java` code implements the rules of a tic-tac-toe game, but has
 a couple of drawbacks that make it still incomplete. Namely:
 
 1. the creator of the game must spend gas to call its constructor,
@@ -1618,13 +1618,13 @@ a couple of drawbacks that make it still incomplete. Namely:
    instance, for ever and ever.
 
 We provide here an improved version of the `TicTacToe` contract, that solves
-the two problems above. The policy is very simple: we impose a minimum
+both problems at once. The policy is very simple: we impose a minimum
 bet, in order to avoid free games; if a winner emerges,
 then we forward him only 90% of the jackpot; the remaing 10% goes to the
 creator of the `TicTacToe` contract. If, instead, the game ends in a draw,
 we forward the whole jackpot to the creator. The modified contract
-is reported below. Note that we added a `@Entry` contructor, that takes
-not of the `creator` of the game:
+is reported below. Note that we added an `@Entry` contructor, that takes
+note of the `creator` of the game:
 
 ```java
 package takamaka.tests.tictactoe;
@@ -1700,7 +1700,7 @@ public class TicTacToe extends Contract {
     else
       if (circlePlayer == null) {
         require(crossPlayer != player, "you cannot play against yourself");
-        long previousBet = (balance().subtract(BigInteger.valueOf(amount))).longValue();
+        long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
         require(amount >= previousBet, () -> "you must bet at least " + previousBet + " coins");
         circlePlayer = player;
     }
@@ -1741,6 +1741,36 @@ public class TicTacToe extends Contract {
   }
 }
 ```
+
+> We have chosen to allow a `long amount` in the `@Payable` method `play()` since
+> it is unlikely that users will want to invest huge quantities of money in this
+> game. This gives us now the opportunity to discuss why the computation of the
+> previous bet has been written as
+> ```java
+> long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue()
+> ```
+> instead of the simpler
+> ```java
+> long previousBet = balance().longValue() - amount
+> ```
+> The reason is that, when that line is executed, both players have aleady payed
+> their bet, that accumulates in the balance of the `TicTacToe` contract.
+> Each single bet is a `long`, but their sum could overflow the size of a `long`.
+> Hence, we have to deal with a computation on `BigInteger`. The same situation
+> occurs later, when we have to compute the 90% that goes to the winner:
+> the jackpot might be larger than a `long` and we have to compute over
+> `BigInteger`. As a final remark, note that in the line:
+> `balance().multiply(BigInteger.valueOf(9L)).divide(BigInteger.valueOf(10L))`
+> we first multiply by 9 and **then** divide by 10. This reduces the
+> approximation inherent to integer division. For instance, if the jackpot
+> (`balance()`) were 209, we have (with Java's left-to-right evaluation)
+> ```math
+> 209*9/10=1881/10=188
+> ```
+> while
+> ```math
+> 209/10*9=20*9=180.
+> ```
 
 ## Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
 
