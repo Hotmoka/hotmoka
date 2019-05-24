@@ -1376,3 +1376,142 @@ Next section shows an example of use of `StorageArray<T>`.
 
 ### A Tic-Tac-Toe Contract <a name="a-tic-tac-toe-contract"></a>
 
+Tic-tac-toe is a two-players game where players place, alternately,
+a cross and a circle on a 3x3 board, initially empty. The winner is the
+player who places three crosses or three circles on the same row, or
+column or diagonal. For instance, in the following board the player of
+the cross wins:
+
+<p align="center">
+  <img width="200" height="200" src="pics/tictactoe_wins.png" alt="Cross wins">
+</p>
+
+There are games that end up in a draw, when the board is full but nobody won:
+
+<p align="center">
+  <img width="250" height="250" src="pics/tictactoe_draw.png" alt="A draws">
+</p>
+
+A natural representation of the tic-tac-toe board is a bidimensional array
+where indexes are distributed as follows:
+
+<p align="center">
+  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Tic-tac-toe grid">
+</p>
+
+This can be implemented as `StorageArray<StorageArray<Tile>>`, where `Tile` is
+an anumeration of the three possible tiles (empty, cross, circle). This is
+possible but overkill. It is simpler and cheaper (also in terms of gas)
+to use the previous diagram as a conceptual representation of the board
+shown to the users, but use, internally,
+a monodimensional array of 9 tiles, distributed as follows:
+
+<p align="center">
+  <img width="250" height="250" src="pics/tictactoe_grid_linear.png" alt="Tic-tac-toe linear grid">
+</p>
+
+which can be implemented as a `StorageArray<Tile>`. There will be functions
+for translating the conecptual representation into the internal one.
+
+This leads to the following contract:
+
+```java
+package takamaka.tests.tictactoe;
+
+import static takamaka.lang.Takamaka.require;
+
+import java.util.stream.Collectors;
+
+import static java.util.stream.IntStream.rangeClosed;
+
+import takamaka.lang.Contract;
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
+import takamaka.lang.PayableContract;
+import takamaka.lang.View;
+import takamaka.util.StorageArray;
+
+public class TicTacToe extends Contract {
+
+  public static enum Tile {
+    EMPTY(" "), CROSS("X"), CIRCLE("O");
+
+    private final String name;
+
+    private Tile(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+
+    private Tile nextTurn() {
+      return this == CROSS ? CIRCLE : CROSS;
+    }
+  }
+
+  private final StorageArray<Tile> board = new StorageArray<>(9);
+  private PayableContract crossPlayer, circlePlayer;
+  private Tile turn = Tile.CROSS; // cross plays first
+  private boolean gameOver;
+
+  public TicTacToe() {
+    rangeClosed(0, 8).forEach(index -> board.set(index, Tile.EMPTY));
+  }
+
+  public @View Tile at(int x, int y) {
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
+    return board.get((y - 1) * 3 + x - 1);
+  }
+
+  private void set(int x, int y, Tile tile) {
+    board.set((y - 1) * 3 + x - 1, tile);
+  }
+
+  public @Payable @Entry(PayableContract.class) void play(long amount, int x, int y) {
+    require(!gameOver, "the game is over");
+    require(1 <= x && x <= 3 && 1 <= y && y <= 3, "coordinates must be between 1 and 3");
+    require(at(x, y) == Tile.EMPTY, "the selected tile is not empty");
+
+    PayableContract player = (PayableContract) caller();
+
+    if (turn == Tile.CROSS)
+      if (crossPlayer == null)
+        crossPlayer = player;
+      else
+        require(player == crossPlayer, "it's not your turn");
+    else
+      if (circlePlayer == null) {
+        require(crossPlayer != player, "you cannot play against yourself");
+        long previousBet = balance().longValue() - amount;
+        require(amount >= previousBet, () -> "you must bet at least " + previousBet + " coins");
+        circlePlayer = player;
+      }
+      else
+        require(player == circlePlayer, "it's not your turn");
+
+    set(x, y, turn);
+    if (gameOver(x, y))
+      player.receive(balance());
+
+    turn = turn.nextTurn();
+  }
+
+  private boolean gameOver(int x, int y) {
+    return gameOver =
+      rangeClosed(1, 3).allMatch(_y -> at(x, _y) == turn) || // column x
+      rangeClosed(1, 3).allMatch(_x -> at(_x, y) == turn) || // row y
+      (x == y && rangeClosed(1, 3).allMatch(_x -> at(_x, _x) == turn)) || // first diagonal
+      (x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // second diagonal
+  }
+
+  @Override
+  public @View String toString() {
+    return rangeClosed(1, 3)
+      .mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(Collectors.joining("|")))
+      .collect(Collectors.joining("\n---"));
+  }
+}
+```
