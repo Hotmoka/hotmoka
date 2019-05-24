@@ -22,8 +22,11 @@ executed in blockchain.
     - [Storage Lists](#storage-lists)
         - [A Gradual Ponzi Contract](#a-gradual-ponzi-contract)
         - [A Note on Re-entrancy](#a-note-on-re-entrancy)
+        - [Running the Gradual Ponzi Contract](#running-the-gradual-ponzi-contract)
     - [Storage Arrays](#storage_arrays)
         - [A Tic-Tac-Toe Contract](#a-tic-tac-toe-contract)
+        - [A More Realistic Tic-Tac-Toe Contract](#a-more-realistic-tic-tac-toe-contract)
+        - [Running the Tic-Tac-Toe Contract](#running-the-tac-toe-contract)
     - Storage Maps
 
 # Introduction <a name="introduction"></a>
@@ -1268,7 +1271,7 @@ Java 8 lambdas and streams.
 Old fashioned Java programmers, who don't feel at home with such treats,
 can exploit the fact that
 lists are iterable and replace the single line `forEach()` call
-with a more traditional (but more gas hungry):
+with a more traditional (but gas-hungrier):
 
 ```java
 for (PayableContract investor: investors)
@@ -1344,6 +1347,8 @@ updating a map of balances. Moroever, avoiding the `widthdraw()` transactions
 means reducing the size of the blockchain. Hence, the withdrawing pattern is both
 useless in Takamaka and more expensive than paying back previous contracts
 immediately.
+
+## Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
 
 ## Storage Arrays <a name="storage_arrays"></a>
 
@@ -1487,13 +1492,13 @@ public class TicTacToe extends Contract {
         require(player == circlePlayer, "it's not your turn");
 
     set(x, y, turn);
-    if (gameOver(x, y))
+    if (isGameOver(x, y))
       player.receive(balance());
     else
       turn = turn.nextTurn();
   }
 
-  private boolean gameOver(int x, int y) {
+  private boolean isGameOver(int x, int y) {
     return gameOver =
       rangeClosed(1, 3).allMatch(_y -> at(x, _y) == turn) || // column x
       rangeClosed(1, 3).allMatch(_x -> at(_x, y) == turn) || // row y
@@ -1580,7 +1585,7 @@ X|O|
 ```
 
 For those who do not appreciate Java 8 streams, the same result can be obtained with
-a more traditional (and more gas-hungry) code:
+a more traditional (and gas-hungrier) code:
 
 ```java
 @Override
@@ -1599,3 +1604,8 @@ public @View String toString() {
   return result;
 }
 ```
+
+## A More Realistic Tic-Tac-Toe Contract <a name="a-more-realistic-tic-tac-toe-contract"></a>
+
+## Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
+
