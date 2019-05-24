@@ -1505,7 +1505,7 @@ public class TicTacToe extends Contract {
   public @View String toString() {
     return rangeClosed(1, 3)
       .mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
-      .collect(joining("\n---"));
+      .collect(joining("\n-----"));
   }
 }
 ```
@@ -1537,9 +1537,9 @@ public TicTacToe() {
 ```
 
 Methods `at()` and `set()` read and set, respectively, the board element
-at indexes (x,y). They transfrom the bidimensional conceptual representation
-into the internal monodimensional representation. Since `at()` is `public`,
-we defensively check the indexes there.
+at indexes (x,y). They transform the bidimensional conceptual representation
+of the board into its internal monodimensional representation. Since `at()` is `public`,
+we defensively check the validity of the indexes there.
 
 Method `play()` is the heart of the contract. It is called by the contracts
 that play the game, hence is an `@Entry`. It is also annotated as
@@ -1553,17 +1553,49 @@ uses a `turn` variable to keep track of the current turn.
 Note the extensive use of `require()` to check all error situations:
 
 1. it is possible to play only if the game is not over yet;
-2. coordinates must be inside the board and identify an empty tile;
+2. a move must be inside the board and identify an empty tile;
 3. players must alternate correctly;
 4. the second player must bet at least as much as the first player;
 5. it is not allowed to play against oneself.
 
-The `play()` method terminates with a call to `gameOver()` that checks
-if the game is over. In that case, the winner receive the full
+The `play()` method ends with a call to `gameOver()` that checks
+if the game is over. In that case, the winner receives the full
 jackpot. Note that the `gameOver()` method receives the coordinates
-where the current player has moved. This allows to restrict the
+where the current player has moved. This allows it to restrict the
 check for game over: the game is over only if the row or column
 where the player moved contain the same tile; if the current player
-played on a diagonal, the method checksthe diagonals as well.
-It is of course possible to always check all rows, columns and diagonals,
-but our solution is more gas-thrifty.
+played on a diagonal, the method checks the diagonals as well.
+It is of course possible to check all rows, columns and diagonals, always,
+but our solution is gas-thriftier.
+
+The `toString()` method yields a string representation of the current board, such
+as
+
+```
+X|O| 
+-----
+ |X|O
+-----
+ |X| 
+```
+
+For those who do not appreciate Java 8 streams, the same result can be obtained with
+a more traditional (and more gas-hungry) code:
+
+```java
+@Override
+public @View String toString() {
+  String result = "";
+  for (int y = 0; y < 3; y++) {
+    for (int x = 0; x < 3; x++) {
+      result += at(x, y);
+      if (x < 2)
+        result += "|";
+    }
+    if (y < 2)
+      result += "\n-----"
+  }
+
+  return result;
+}
+```
