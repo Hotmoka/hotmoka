@@ -1184,15 +1184,21 @@ lists are **not** random-access data structures, where the *n*th
 element should be accessable in constant time. It is also possible
 to add an element at the beginning of a list, in constant time.
 The size of a list is not fixed: lists grow in size as more elements are
-added. Takamaka provides an implementation of lists with the storage class
-`StorageList<PayableContract>`. Its objects are storage objects and
-can consequently be held in blockchain, *as long as only
+added.
+
+Java has many classes for implementing lists, all subclasses
+of `java.util.List<T>`. They can be used in Takamaka, but not as
+fields of a storage class. For that,
+Takamaka provides an implementation of lists with the storage class
+`StorageList<T>`. Its instances are storage objects and
+can consequently be held in fields of storage classes and
+can be stored in blockchain, *as long as only
 storage objects are added to the list*. Takamaka lists provide
 constant-time access and addition to both ends of a list.
-We refer to the JavaDoc of `StorageList` for a full list of its methods.
+We refer to the JavaDoc of `StorageList<T>` for a full list of its methods.
 They include methods adding elements to both ends of the list, accessing and
-removing elements, for iterating on a list and for building an array
-with the elements of a list.
+removing elements, for iterating on a list and for building a Java array
+`T[]` with the elements of a `StorageList<T>`.
 
 Next section shows an example of use of `StorageList`.
 
@@ -1340,5 +1346,32 @@ useless in Takamaka and more expensive than paying back previous contracts
 immediately.
 
 ## Storage Arrays <a name="storage_arrays"></a>
+
+Arrays are an ordered sequence of elements, that allow constant-time access
+to their elements, for reading and writing. The size of arrays is typically
+fixed, although there are programming languages with a limited form
+of dynamic arrays.
+
+Java has native arrays, of type `T[]`, where `T` is the
+type of the elements of the array. They can be used in Takamaka, but not
+as fields of storage classes. For that, Takamaka provides class
+`takamaka.util.StorageArray<T>`. Its instances are storage objects and
+can consequently be held in fields of storage classes and
+can be stored in blockchain, *as long as only
+storage objects are added to the array*. Theis size if fixed and decided
+at time of construction. Although we consider `StorageArray` as storage
+replacement for Java arrays, it must be stated that the complexity of
+accessing their elements if logarithmic in the size of the array, which is
+a significant deviation from the standard definition of arrays. Nevertheless,
+logarithmic complexity is much better than the linear complexity for
+accessing elements of `StorageList<T>` that, however, have the advantage
+of dynamic size.
+
+We refer to the JavaDoc of `StorageArray<T>` for a full list of its methods.
+They include methods adding elements, accessing and
+removing elements and for iterating on an array and for building a Java array
+`T[]` with the elements of a `StorageArray<T>`.
+
+Next section shows an example of use of `StorageArray`.
 
 ### A Tic-Tac-Toe Contract <a name="a-tic-tac-toe-contract"></a>
