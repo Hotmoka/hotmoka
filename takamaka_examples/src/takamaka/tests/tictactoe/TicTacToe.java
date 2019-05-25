@@ -117,6 +117,6 @@ public class TicTacToe extends Contract {
 	public @View String toString() {
 		return rangeClosed(1, 3)
 			.mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
-			.collect(joining("\n-----"));
+			.collect(joining("\n-----\n"));
 	}
 }

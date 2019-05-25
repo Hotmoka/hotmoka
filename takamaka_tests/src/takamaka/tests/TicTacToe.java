@@ -130,7 +130,7 @@ class TicTacToe {
 			new MethodSignature(TIC_TAC_TOE, "toString"),
 			ticTacToe));
 
-		assertEquals("X| | \n----- | | \n----- | | ", toString.value);
+		assertEquals("X| | \n-----\n | | \n-----\n | | ", toString.value);
 	}
 
 	@Test @DisplayName("new TicTacToe(), first player plays, second player plays same position")
@@ -284,7 +284,7 @@ class TicTacToe {
 			new MethodSignature(TIC_TAC_TOE, "toString"),
 			ticTacToe));
 
-		assertEquals("X|O| \n-----X|O| \n-----X| | ", toString.value);
+		assertEquals("X|O| \n-----\nX|O| \n-----\nX| | ", toString.value);
 	}
 
 

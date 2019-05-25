@@ -26,12 +26,12 @@ public class SimplePyramid extends Contract {
 	private int previousLayerSize = 1;
 
 	public @Payable @Entry(PayableContract.class) SimplePyramid(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
+		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
 		investors.add((PayableContract) caller());
 	}
 
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
+		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
 		investors.add((PayableContract) caller());
 
 		if (investors.size() == previousLayerSize * 4 - 1) {

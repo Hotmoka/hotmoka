@@ -35,7 +35,7 @@ public class GradualPonzi extends Contract {
 	}
 
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
+		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
 		BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
 		investors.stream().forEach(investor -> send(investor, eachInvestorGets));
 		investors.add((PayableContract) caller());

@@ -29,13 +29,13 @@ public class SimplePyramidWithBalance extends Contract {
 	private BigInteger pyramidBalance;
 
 	public @Payable @Entry(PayableContract.class) SimplePyramidWithBalance(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
+		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
 		investors.add((PayableContract) caller());
 		pyramidBalance = amount;
 	}
 
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
-		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
+		require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
 		pyramidBalance = pyramidBalance.add(amount);
 		investors.add((PayableContract) caller());
 

@@ -116,13 +116,14 @@ class ClassInstrumentation {
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
 	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(DUMMY_CLASS_NAME);
-	private final static Type[] THREE_STRINGS = new Type[] { ObjectType.STRING, ObjectType.STRING, ObjectType.STRING };
+	private final static Type[] THREE_STRINGS_ARGS = new Type[] { Type.STRING, Type.STRING, Type.STRING };
 	private final static Type[] EXTRACT_UPDATES_ARGS = new Type[] { SET_OT, SET_OT, LIST_OT };
-	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { ObjectType.STRING, ObjectType.STRING, SET_OT };
-	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { ObjectType.OBJECT, SET_OT, SET_OT, LIST_OT };
+	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { Type.STRING, Type.STRING, SET_OT };
+	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { Type.OBJECT, SET_OT, SET_OT, LIST_OT };
 	private final static Type[] ENTRY_ARGS = new Type[] { CONTRACT_OT };
 	private final static Type[] ONE_INT_ARGS = new Type[] { Type.INT };
 	private final static Type[] ONE_LONG_ARGS = new Type[] { Type.LONG };
+	private final static Type[] TWO_OBJECTS_ARGS = new Type[] { Type.OBJECT, Type.OBJECT };
 
 	/**
 	 * Performs the instrumentation of a single class file.
@@ -1063,19 +1064,28 @@ class ClassInstrumentation {
 			il.insert(addUpdatesFor, InstructionFactory.createThis());
 			il.insert(addUpdatesFor, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
 
-			if (field.getType().equals(Type.DOUBLE)) {
+			if (type.equals(Type.DOUBLE)) {
 				il.insert(addUpdatesFor, InstructionConst.DCMPL);
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
-			else if (field.getType().equals(Type.FLOAT)) {
+			else if (type.equals(Type.FLOAT)) {
 				il.insert(addUpdatesFor, InstructionConst.FCMPL);
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
-			else if (field.getType().equals(Type.LONG)) {
+			else if (type.equals(Type.LONG)) {
 				il.insert(addUpdatesFor, InstructionConst.LCMP);
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
 			}
-			else if (field.getType() instanceof ReferenceType)
+			else if (type.equals(ObjectType.STRING) || type.equals(BIGINTEGER_OT)) {
+				// comparing strings or BigInteger with their previous value is done by checking if they
+				// are equals rather than ==. This is just an optimization, to avoid storing an equivalent value
+				// as an update. It is relevant for the balance fields of contracts, that might reach 0 at the
+				// end of a transaction, as it was at the beginning, but has fluctuated during the
+				// transaction: it is useless to add an update for it
+				il.insert(addUpdatesFor, factory.createInvoke("java.util.Objects", "equals", Type.BOOLEAN, TWO_OBJECTS_ARGS, Const.INVOKESTATIC));
+				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFNE, end));
+			}
+			else if (type instanceof ReferenceType)
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, end));
 			else
 				// this covers int, short, byte, char, boolean
@@ -1212,7 +1222,7 @@ class ClassInstrumentation {
 			il.insert(_return, factory.createConstant(className));
 			il.insert(_return, factory.createConstant(field.getName()));
 			il.insert(_return, factory.createConstant(((ObjectType) field.getType()).getClassName()));
-			il.insert(_return, factory.createInvoke(className, DESERIALIZE_LAST_UPDATE_FOR, ObjectType.OBJECT, THREE_STRINGS, Const.INVOKEVIRTUAL));
+			il.insert(_return, factory.createInvoke(className, DESERIALIZE_LAST_UPDATE_FOR, ObjectType.OBJECT, THREE_STRINGS_ARGS, Const.INVOKEVIRTUAL));
 			il.insert(_return, factory.createCast(ObjectType.OBJECT, field.getType()));
 			il.insert(_return, InstructionConst.DUP2);
 			il.insert(_return, factory.createPutField(className, field.getName(), field.getType()));
