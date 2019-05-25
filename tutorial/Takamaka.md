@@ -26,7 +26,7 @@ executed in blockchain.
     - [Storage Arrays](#storage_arrays)
         - [A Tic-Tac-Toe Contract](#a-tic-tac-toe-contract)
         - [A More Realistic Tic-Tac-Toe Contract](#a-more-realistic-tic-tac-toe-contract)
-        - [Running the Tic-Tac-Toe Contract](#running-the-tac-toe-contract)
+        - [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
     - Storage Maps
 
 # Introduction <a name="introduction"></a>
@@ -1929,3 +1929,39 @@ public class Main {
   }
 }
 ```
+
+If you execute the `Main.java` above, the result will be:
+
+```
+X|O| 
+-----
+X|O| 
+-----
+X| | 
+Exception in thread "main" takamaka.blockchain.TransactionException: Failed transaction
+  at takamaka.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.lambda$runInstanceMethodCallTransaction$16(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.runInstanceMethodCallTransaction(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.lambda$addInstanceMethodCallTransaction$17(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.wrapWithCodeInCaseOfException(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.addInstanceMethodCallTransaction(Unknown Source)
+  at takamaka.tests.tictactoe.Main.main(Main.java:121)
+Caused by: takamaka.lang.RequirementViolationException: the game is over
+  at takamaka.lang.Takamaka.require(Unknown Source)
+  at takamaka.tests.tictactoe.TicTacToe.play(TicTacToe.java:67)
+  at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+  at java.lang.reflect.Method.invoke(Method.java:498)
+  at takamaka.blockchain.AbstractBlockchain$InstanceMethodExecutor.run(Unknown Source)
+```
+
+The exception, as we said, is expected since we have instructed the contract
+to behave so when the game is over but somebody tries to continue playing.
+
+It might be interesting to have a look at the response of the transaction
+when the first player wins: `b2/t1/response.txt`. You should see
+that the balance of the creator and of the first player are updated,
+as well as that of the contract, that is emptied of all money and
+reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
