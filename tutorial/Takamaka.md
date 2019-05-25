@@ -1455,6 +1455,54 @@ public class Main {
 }
 ```
 
+By running the above `Main.java`, the result will be a sequence of
+transactions that create and invest in the contract, until the last one,
+that ends up in exception:
+
+```
+Exception in thread "main" takamaka.blockchain.TransactionException: Failed transaction
+  at takamaka.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.lambda$runInstanceMethodCallTransaction$16(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.runInstanceMethodCallTransaction(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.lambda$addInstanceMethodCallTransaction$17(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.wrapWithCodeInCaseOfException(Unknown Source)
+  at takamaka.blockchain.AbstractBlockchain.addInstanceMethodCallTransaction(Unknown Source)
+  at takamaka.tests.ponzi.Main.main(Main.java:73)
+Caused by: takamaka.lang.RequirementViolationException: you must invest at least 1000
+  at takamaka.lang.Takamaka.require(Unknown Source)
+  at takamaka.tests.ponzi.GradualPonzi.invest(GradualPonzi.java:38)
+  at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+  at java.lang.reflect.Method.invoke(Method.java:498)
+  at takamaka.blockchain.AbstractBlockchain$InstanceMethodExecutor.run(Unknown Source)
+```
+
+It might be interesting to look at the response of the transaction where
+the third player invests 1500 coins: `b1/t3/response.txt`:
+
+```
+VoidMethodCallTransactionSuccessfulResponse:
+  consumed gas: 447
+  updates:
+    <THIS_TRANSACTION#0.class|takamaka.util.StorageList$Node>
+    <0.2#0|takamaka.lang.Contract.balance:java.math.BigInteger|1000211>
+    <0.3#0|takamaka.lang.Contract.balance:java.math.BigInteger|999514>
+    <0.4#0|takamaka.lang.Contract.balance:java.math.BigInteger|998455>
+    <1.1#1|takamaka.util.StorageList.size:int|3>
+    <1.1#1|takamaka.util.StorageList.last:takamaka.util.StorageList$Node|THIS_TRANSACTION#0>
+    <1.2#0|takamaka.util.StorageList$Node.next:takamaka.util.StorageList$Node|THIS_TRANSACTION#0>
+    <THIS_TRANSACTION#0|takamaka.util.StorageList$Node.element:java.lang.Object|0.4#0>
+    <THIS_TRANSACTION#0|takamaka.util.StorageList$Node.next:takamaka.util.StorageList$Node|null>
+  events:
+```
+
+The third player is `0.4#0` and sees its balance updated since it payed
+for the transaction and invested money, that got distributed to the
+previous players `0.2#0` and `0.3#0`. The size of the storage list
+`1.1#1` containing the investors becomes 3 with that transaction.
+
 ## Storage Arrays <a name="storage_arrays"></a>
 
 Arrays are an ordered sequence of elements, with constant-time access
