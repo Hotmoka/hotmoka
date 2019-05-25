@@ -800,7 +800,7 @@ public class SimplePonzi extends Contract {
   public void invest(Contract investor, BigInteger amount) {
     // new investments must be 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) > 0, () -> "You must invest more than " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);
 
     // document new investor
     currentInvestor = investor;
@@ -828,9 +828,9 @@ If the new investment is at least 10% larger than the current, it will be
 saved in the state of the contract, together with the new investor.
 
 > You might wonder why we have written
-> `require(..., () -> "You must invest more than " + minimumInvestment)`
+> `require(..., () -> "you must invest more than " + minimumInvestment)`
 > instead of the simpler
-> `require(..., "You must invest more than " + minimumInvestment)`.
+> `require(..., "you must invest more than " + minimumInvestment)`.
 > Both are possible and semantically identical. However, the former
 > uses a lambda expression that computes the string concatenaton only if
 > the message is needed; the latter always computes the string concatenation.
@@ -872,7 +872,7 @@ public class SimplePonzi extends Contract {
   public @Entry void invest(BigInteger amount) {
     // new investments must be 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) > 0, () -> "You must invest more than " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);
 
     // document new investor
     currentInvestor = caller();
@@ -932,7 +932,7 @@ public class SimplePonzi extends Contract {
   public @Payable @Entry void invest(BigInteger amount) {
     // new investments must be 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) > 0, () -> "You must invest more than " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);
 
     // document new investor
     currentInvestor = caller();
@@ -1037,7 +1037,7 @@ public class SimplePonzi extends Contract {
   public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
     // new investments must be 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) > 0, () -> "You must invest more than " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);
 
     // document new investor
     currentInvestor.receive(amount);
@@ -1245,7 +1245,7 @@ public class GradualPonzi extends Contract {
   }
 
   public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
-    require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "You must invest at least " + MINIMUM_INVESTMENT);
+    require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
     BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
     investors.stream().forEach(investor -> send(investor, eachInvestorGets));
     investors.add((PayableContract) caller());
@@ -1349,6 +1349,111 @@ useless in Takamaka and more expensive than paying back previous contracts
 immediately.
 
 ## Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
+
+Let us play with the `GradualPonzi` contract. First, let us create a jar
+that contains its bytecode. For that, as already shown, create for
+instance an Eclipse Java project `ponzi`, create folders `lib` and `dist`
+inside it, copy `takamaka_base.jar` and `takamaka_runtime.jar` inside
+`lib` and add them both to the build path. Create package
+`takamaka.tests.ponzi` and copy `GradualPonzi.java` inside it.
+Then export the compiled code in jar format inside `dist`,
+as `ponzi.jar`.
+
+Go now to the `blockchain` project and create a package `takamaka.tests.ponzi`
+inside that project. Copy the following code as `Main.java`. Its goal is
+
+1. to install `ponzi.jar` in blockchain
+2. to let a first player create an instance of `GradualPonzi` in blockchain
+   and become the first investor of the contract
+3. to let two more players invest, in sequence, in the `GradualPonzi` contract
+4. to let the first player try to invest again in the contract, this time
+   with a too small investment, which leads to an exception.
+
+The last transaction will fail with an exception, since the contract
+requires a minimum investment.
+
+```java
+package takamaka.tests.ponzi;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import takamaka.blockchain.Classpath;
+import takamaka.blockchain.CodeExecutionException;
+import takamaka.blockchain.ConstructorSignature;
+import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.TransactionException;
+import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.request.ConstructorCallTransactionRequest;
+import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
+import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.types.ClassType;
+import takamaka.blockchain.values.BigIntegerValue;
+import takamaka.blockchain.values.StorageReference;
+import takamaka.memory.InitializedMemoryBlockchain;
+
+public class Main {
+  private final static BigInteger _20_000 = BigInteger.valueOf(20_000L);
+  private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
+  private static final ClassType GRADUAL_PONZI = new ClassType("takamaka.tests.ponzi.GradualPonzi");
+
+  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
+    // creation of a test blockchain in memory with three accounts
+    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
+      (Paths.get("lib/takamaka_base.jar"), _1_000_000, _1_000_000, _1_000_000);
+
+    StorageReference player1 = blockchain.account(0);
+    StorageReference player2 = blockchain.account(1);
+    StorageReference player3 = blockchain.account(2);
+
+    // installation in blockchain of the jar of the GradualPonzi contract
+    TransactionReference ponzi = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
+      player1, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
+      Files.readAllBytes(Paths.get("../ponzi/dist/ponzi.jar")), // bytes containing the jar to install
+      blockchain.takamakaBase));
+
+    Classpath classpath = new Classpath(ponzi, true);
+
+    // creation of the Ponzi contract: player1 becomes the first investor
+    StorageReference gradualPonzi = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+      player1, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new ConstructorSignature(GRADUAL_PONZI))); /// GradualPonzi()
+
+    // player2 invests 1200
+    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player2, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method GradualPonzi.invest(BigInteger)
+      gradualPonzi, // receiver of invest()
+      new BigIntegerValue(BigInteger.valueOf(1_200)))); // actual argument, that is, the investment
+
+    // player3 invests 1500
+    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player3, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method GradualPonzi.invest(BigInteger)
+      gradualPonzi, // receiver of invest()
+      new BigIntegerValue(BigInteger.valueOf(1_500)))); // actual argument, that is, the investment
+
+    // player1 tries to invest 900, but it is too little and gets an exception
+    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player3, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method GradualPonzi.invest(BigInteger)
+      gradualPonzi, // receiver of invest()
+      new BigIntegerValue(BigInteger.valueOf(900)))); // actual argument, that is, the investment
+  }
+}
+```
 
 ## Storage Arrays <a name="storage_arrays"></a>
 
