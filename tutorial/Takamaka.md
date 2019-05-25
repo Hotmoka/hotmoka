@@ -330,13 +330,13 @@ import takamaka.blockchain.values.StringValue;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 public class Main {
-  // useful constants
   private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+  private final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
   private final static ClassType PERSON = new ClassType("takamaka.tests.family.Person");
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
     InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+      (Paths.get("lib/takamaka_base.jar"), _100_000, _200_000);
 
     TransactionReference takamaka1 = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
@@ -547,13 +547,13 @@ import takamaka.blockchain.values.StringValue;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 public class Main {
-  // useful constants
   private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+  private final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
   private final static ClassType PERSON = new ClassType("takamaka.tests.family.Person");
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
     InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+      (Paths.get("lib/takamaka_base.jar"), _100_000, _200_000);
 
     TransactionReference takamaka1 = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
@@ -1510,7 +1510,7 @@ public class TicTacToe extends Contract {
   public @View String toString() {
     return rangeClosed(1, 3)
       .mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
-      .collect(joining("\n-----"));
+      .collect(joining("\n-----\n"));
   }
 }
 ```
@@ -1598,7 +1598,7 @@ public @View String toString() {
         result += "|";
     }
     if (y < 2)
-      result += "\n-----"
+      result += "\n-----\n"
   }
 
   return result;
@@ -1737,7 +1737,7 @@ public class TicTacToe extends Contract {
   public @View String toString() {
     return rangeClosed(1, 3)
       .mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
-      .collect(joining("\n-----"));
+      .collect(joining("\n-----\n"));
   }
 }
 ```
