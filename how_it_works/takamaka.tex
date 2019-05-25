@@ -12,7 +12,7 @@
   language=Java,
   showstringspaces=false,
   columns=flexible,
-  basicstyle={\ttfamily\small},
+  basicstyle={\ttfamily\scriptsize},
   frame=l,
   numbers=left,
   numberstyle={\scriptsize},
@@ -36,8 +36,7 @@
   %Takamaka:
   A Java Framework for Smart Contracts}
 
-\author{Fausto Spoto}
-
+\author{Fausto Spoto\orcidID{0000-0003-2973-0384}}
 \institute{
 	Department of Computer Science, Universit\`a di Verona, Italy\\ 
 	\email{fausto.spoto@univr.it}
@@ -655,11 +654,9 @@ in Fig.~\ref{fig:transaction}:
 %
 \begin{lstlisting}
   public class C extends Storage {
-    private D f1;
-    private D oldF1;
+    private D f1, oldF1;
     private boolean f1AlreadyLoaded;
-    private int f2;
-    private int oldF2;
+    private int f2, oldF2;
 
     public C(pars) {
       // implicit call to super() here
@@ -850,32 +847,30 @@ The same transformation occurs for calls to
 a formal parameter of type \<int>.
 Let us consider the code of the callee now. Takamaka instruments every \<@Entry> method
 %
-\begin{lstlisting}[numbers=none,frame=none]
-  public @Entry T m(args) {  body }
-\end{lstlisting}
+%\begin{lstlisting}[numbers=none,frame=none]
+  \verb!public @Entry T m(args) {  body }!
+%\end{lstlisting}
 %
 into:
 %
 \begin{lstlisting}[numbers=none,frame=none]
   public @Entry T m(args, Contract caller) {
-    entry(caller);
-    body
+    entry(caller); body
   }
 \end{lstlisting}
 %
-Similarly, for every \<@Payable @Entry> method:
+A similar instrumentation occurs for <@Payable @Entry> methods, for which
 %
-\begin{lstlisting}[numbers=none,frame=none]
-  public @Payable @Entry T m(int amount, args) { body }
-\end{lstlisting}
+%\begin{lstlisting}[numbers=none,frame=none]
+%  \verb!public @Payable @Entry T m(int amount, args) { body }!
+%\end{lstlisting}
 %
-Takamaka verifies that it actually has a first formal parameter of type \<int>
-(the amount of transferred money) and instruments it into
+Takamaka verifies that they actually have a first formal parameter of type \<int>
+(the amount of transferred money) and then instruments it into
 %
 \begin{lstlisting}[numbers=none,frame=none]
   public @Payable @Entry T m(int amount, args, Contract caller) {
-    payableEntry(caller, amount);
-    body
+    payableEntry(caller, amount); body
   }
 \end{lstlisting}
 
@@ -887,20 +882,20 @@ The caller must specify an amount of gas for the transaction.
 Takamaka will run the code of the entry, withdrawing money
 from the paying contract, on the basis of the actual gas consumed
 during the execution of the code. If all gas is consumed before the end of
-the transaction, an unchecked \<takamaka.lang.OutOfGasException> is thrown.
+the transaction, an unchecked \<takamaka.lang.OutOfGasError> is thrown.
 This mechanism is implemented by code instrumentation. Namely, before each
 bytecode instruction, Takamaka adds a call to the static method
 \<takamaka.lang.Gas.tick(int amount)>, that decreases, by \<amount>,
 the gas available for the transaction. If the gas becomes negative,
-\<tick> throws an \<OutOfGasException>. The chosen \<amount> depends
+\<tick> throws an \<OutOfGasError>. The chosen \<amount> depends
 on the instruction being instrumented, so that instructions of different
 execution cost can have different gas cost.
 
-\<OutOfGasException>s cannot be caught:
+\<OutOfGasError>s cannot be caught:
 Takamaka extends every exception table in the code with an
-extra, initial handler for \<OutOfGasException>, that
+extra, initial handler for \<OutOfGasError>, that
 simply rethrows it.
-This prevents possible DOS attacks, that might catch the \<OutOfGasException>
+This prevents possible DOS attacks, that catch the \<OutOfGasError>
 and lead into an infinite loop when the gas expires.
 
 \section{Instrumentation and Code Verification}\label{sec:instrumentation}
@@ -977,7 +972,7 @@ features of such contracts, but Aion's technology is evolving quickly.
 
 Takamaka has been devised to provide the standard security guarantees of
 a smart contract: determinism, since only white-listed library methods can be
-executed; termination, since gas is metered and the \<OutOfGasException> cannot
+executed; termination, since gas is metered and the \<OutOfGasError> cannot
 be caught; and isolation, since the JVM enforces that Java's visibility
 modifiers are honored. Public data can instead be read with a blockchain
 explorer, since it is not natively encrypted. As in Ethereum, privacy can only be enforced
