@@ -1369,7 +1369,7 @@ inside that project. Copy the following code as `Main.java`. Its goal is
 4. to let the first player try to invest again in the contract, this time
    with a too small investment, which leads to an exception.
 
-The last transaction will fail with an exception, since the contract
+The last transaction fails with an exception, since the contract
 requires a minimum investment.
 
 ```java
@@ -1948,8 +1948,7 @@ disk memory and runs a few transactions:
 4. to call `toString()` on the `TicTacToe` contract and print the result
 5. to let the second player continue playing.
 
-The last transaction will fail with an exception, since the game is over
-at that point.
+The last transaction fails with an exception, since the game is over at that point.
 
 ```java
 package takamaka.tests.tictactoe;
@@ -2115,6 +2114,6 @@ to behave so when the game is over but somebody tries to continue playing.
 
 It might be interesting to have a look at the response of the transaction
 when the first player wins: `b2/t1/response.txt`. You should see
-that the balance of the creator and of the first player are updated,
+that the balances of the creator and of the first player are updated,
 as well as that of the contract, that is emptied of all money and
 reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
