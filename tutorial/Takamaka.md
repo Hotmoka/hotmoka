@@ -1774,3 +1774,132 @@ public class TicTacToe extends Contract {
 
 ## Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
 
+```java
+package takamaka.tests.tictactoe;
+
+import static takamaka.blockchain.types.BasicTypes.INT;
+import static takamaka.blockchain.types.BasicTypes.LONG;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import takamaka.blockchain.Classpath;
+import takamaka.blockchain.CodeExecutionException;
+import takamaka.blockchain.ConstructorSignature;
+import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.TransactionException;
+import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.request.ConstructorCallTransactionRequest;
+import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
+import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.types.ClassType;
+import takamaka.blockchain.values.IntValue;
+import takamaka.blockchain.values.LongValue;
+import takamaka.blockchain.values.StorageReference;
+import takamaka.blockchain.values.StringValue;
+import takamaka.memory.InitializedMemoryBlockchain;
+
+public class Main {
+  private final static BigInteger _20_000 = BigInteger.valueOf(20_000L);
+  private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+  private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
+  private static final ClassType TIC_TAC_TOE = new ClassType("takamaka.tests.tictactoe.TicTacToe");
+  private static final IntValue _1 = new IntValue(1);
+  private static final IntValue _2 = new IntValue(2);
+  private static final IntValue _3 = new IntValue(3);
+
+  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
+    // creation of a test blockchain in memory with three accounts
+    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
+      (Paths.get("lib/takamaka_base.jar"), _100_000, _1_000_000, _1_000_000);
+
+    StorageReference creator = blockchain.account(0);
+    StorageReference player1 = blockchain.account(1);
+    StorageReference player2 = blockchain.account(2);
+
+    // installation in blockchain of the jar of the TicTacToe contract
+    TransactionReference tictactoe = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
+      creator, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
+      Files.readAllBytes(Paths.get("../tictactoe/dist/tictactoe.jar")), // bytes containing the jar to install
+      blockchain.takamakaBase
+    ));
+
+    Classpath classpath = new Classpath(tictactoe, true);
+
+    // creation of the TicTacToe contract
+    StorageReference ticTacToe = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+      creator, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new ConstructorSignature(TIC_TAC_TOE))); /// TicTacToe()
+
+    // player1 plays at (1,1)
+    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player1, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      ticTacToe, // receiver of the call
+      new LongValue(100L), _1, _1)); // actual parameters
+
+    // player2 plays at (2,1)
+    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player2, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      ticTacToe, // receiver of the call
+      new LongValue(100L), _2, _1)); // actual parameters
+
+    // player1 plays at (1,2)
+    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player1, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      ticTacToe, // receiver of the call
+      new LongValue(0L), _1, _2)); // actual parameters
+
+    // player2 plays at (2,2)
+    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player2, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      ticTacToe, // receiver of the call
+      new LongValue(0L), _2, _2)); // actual parameters
+
+    // player1 plays at (1,3)
+    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player1, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      ticTacToe, // receiver of the call
+      new LongValue(0L), _1, _3)); // actual parameters
+
+    // player1 calls toString() on the TicTacToe contract
+    StringValue toString = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player1, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(TIC_TAC_TOE, "toString"), // TicTacToe.toString()
+      ticTacToe)); // receiver of the call
+
+    System.out.println(toString);
+
+    // the game is over, but player2 continues playing and will get an exception
+    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      player2, // this account pays for the transaction
+      _20_000, // gas provided to the transaction
+      classpath,
+      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      ticTacToe, // receiver of the call
+      new LongValue(0L), _2, _3)); // actual parameters
+  }
+}
+```
