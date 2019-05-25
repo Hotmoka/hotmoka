@@ -1774,6 +1774,30 @@ public class TicTacToe extends Contract {
 
 ## Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
 
+Let us play with the `TicTacToe` contract. First of all, we need a jar
+that contains the compiled code of the contract. For that, as already
+done previously, you can for
+instance create a new Eclipse Java project `tictactoe`, add the `lib` and
+`dist` folders inside it, copy `takamaka_base.jar` and
+`takamaka_runtime.jar` inside `lib` and add both to the
+build path. Create a package `takamaka.tests.tictactoe` and copy
+inside it the code of `TicTacToe.java` above. Then export the compiled
+code as a jar inside `dist` as `tictactoe.jar`.
+
+In the `blokchain` project that we have already created, add a package
+`takamaka.tests.tictactoe` and, inside it, create a `Main.java` class
+that contains the following code. It creates a test blockchain in
+disk memory and runs a few transactions:
+
+1. to install `tictactoe.jar` in blockchain
+2. to create an instance of `TicTacToe` in blockchain
+3. to let two players play, alternately, until the first player wins
+4. to call `toString()` on the `TicTacToe` contract and print the result
+5. to let the second player continue playing.
+
+The last transaction will fail with an exception, since the game is over
+at that point.
+
 ```java
 package takamaka.tests.tictactoe;
 
@@ -1809,6 +1833,8 @@ public class Main {
   private static final IntValue _1 = new IntValue(1);
   private static final IntValue _2 = new IntValue(2);
   private static final IntValue _3 = new IntValue(3);
+  private static final LongValue _0L = new LongValue(0L);
+  private static final LongValue _100L = new LongValue(100L);
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
     // creation of a test blockchain in memory with three accounts
@@ -1844,7 +1870,7 @@ public class Main {
       classpath,
       new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
-      new LongValue(100L), _1, _1)); // actual parameters
+      _100L, _1, _1)); // actual parameters
 
     // player2 plays at (2,1)
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
@@ -1853,7 +1879,7 @@ public class Main {
       classpath,
       new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
-      new LongValue(100L), _2, _1)); // actual parameters
+      _100L, _2, _1)); // actual parameters
 
     // player1 plays at (1,2)
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
@@ -1862,7 +1888,7 @@ public class Main {
       classpath,
       new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
-      new LongValue(0L), _1, _2)); // actual parameters
+      _0L, _1, _2)); // actual parameters
 
     // player2 plays at (2,2)
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
@@ -1871,7 +1897,7 @@ public class Main {
       classpath,
       new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
-      new LongValue(0L), _2, _2)); // actual parameters
+      _0L, _2, _2)); // actual parameters
 
     // player1 plays at (1,3)
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
@@ -1880,7 +1906,7 @@ public class Main {
       classpath,
       new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
-      new LongValue(0L), _1, _3)); // actual parameters
+      _0L, _1, _3)); // actual parameters
 
     // player1 calls toString() on the TicTacToe contract
     StringValue toString = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
@@ -1899,7 +1925,7 @@ public class Main {
       classpath,
       new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
-      new LongValue(0L), _2, _3)); // actual parameters
+      _0L, _2, _3)); // actual parameters
   }
 }
 ```
