@@ -1083,7 +1083,7 @@ public BigInteger getCurrentInvestment() {
 ```
 
 This solution is pefectly fine but can be improved. Writtem this way,
-an investor that wants to call `getCurentInvestment()` must run a
+an investor that wants to call `getCurrentInvestment()` must run a
 blockchain transaction through the `addInstanceMethodCallTransaction()`
 method of the blockchain, creating a new transaction that ends up in
 blockchain. That transaction will cost gas, hence its side-effect will
@@ -1091,7 +1091,9 @@ be to reduce the balance of the calling investor. But that is the only
 side-effect of that call! In cases like this, Takamaka allows one to
 specify that a method is expected to have no side-effects on the visible
 state of the blockchain, but for the change of the balance of the caller.
-This is possible through the `takamaka.lang.View` annotation:
+This is possible through the `takamaka.lang.View` annotation. Import that
+class in the Java source and edit the declaration of `getCurrentInvestment()`
+as follows:
 
 ```java
 public @View BigInteger getCurrentInvestment() {
@@ -1845,7 +1847,7 @@ public class TicTacToe extends Contract {
 
     if (turn == Tile.CROSS)
       if (crossPlayer == null) {
-        require(amount >= MINIMUM_INVESTMENT, () -> "you must invest at least " + MINIMUM_INVESTMENT + " coins");
+        require(amount >= MINIMUM_BET, () -> "you must bet at least " + MINIMUM_BET + " coins");
         crossPlayer = player;
       }
       else
