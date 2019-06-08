@@ -625,7 +625,7 @@ class ClassInstrumentation {
 		 */
 		private void setCallerAndBalance(MethodGen method, String callerContract, int slotForCaller, boolean isPayable, StackMap stackMap) {
 			InstructionList il = method.getInstructionList();
-			
+
 			// the call to the method that sets caller and balance cannot be put at the
 			// beginning of the method, always: for constructors, Java bytecode requires
 			// that their code starts with a call to a constructor of the superclass
@@ -867,7 +867,7 @@ class ClassInstrumentation {
 			if (!method.isAbstract()) {
 				InstructionList il = method.getInstructionList();
 				StreamSupport.stream(il.spliterator(), false)
-					.filter(ih -> isAccessToLazilyLoadedFieldInStorageClass(ih.getInstruction()))
+					.filter(this::isAccessToLazilyLoadedFieldInStorageClass)
 					.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
 			}
 		}
@@ -893,10 +893,12 @@ class ClassInstrumentation {
 		 * Determines if the given instruction is an access to a field of a storage
 		 * class that is lazily loaded.
 		 * 
-		 * @param instruction the instruction
+		 * @param ih the instruction
 		 * @return true if and only if that condition holds
 		 */
-		private boolean isAccessToLazilyLoadedFieldInStorageClass(Instruction instruction) {
+		private boolean isAccessToLazilyLoadedFieldInStorageClass(InstructionHandle ih) {
+			Instruction instruction = ih.getInstruction();
+
 			if (instruction instanceof GETFIELD) {
 				FieldInstruction fi = (FieldInstruction) instruction;
 
