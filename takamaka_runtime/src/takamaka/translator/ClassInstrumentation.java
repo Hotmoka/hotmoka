@@ -25,14 +25,12 @@ import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.ConstantPool;
 import org.apache.bcel.classfile.ElementValuePair;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.StackMap;
 import org.apache.bcel.classfile.StackMapEntry;
-import org.apache.bcel.classfile.StackMapType;
 import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
@@ -65,6 +63,9 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import it.univr.bcel.StackMapReplacer;
+import it.univr.bcel.TypeInferenceException;
+import it.univr.bcel.TypeInferrer;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.lang.Contract;
@@ -295,6 +296,7 @@ class ClassInstrumentation {
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
+			//StackMapReplacer.replace(methodGen);
 
 			return methodGen.getMethod();
 		}
@@ -936,31 +938,18 @@ class ClassInstrumentation {
 			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
 
 			InstructionHandle end = il.append(InstructionConst.RETURN);
-			LinkedList<InstructionHandle> stackMapPositions = new LinkedList<>();
 
 			for (Field field: eagerNonTransientInstanceFields.getLast())
-				end = addUpdateExtractionForEagerField(field, il, end, stackMapPositions);
+				end = addUpdateExtractionForEagerField(field, il, end);
 
 			for (Field field: lazyNonTransientInstanceFields)
-				end = addUpdateExtractionForLazyField(field, il, end, stackMapPositions);
+				end = addUpdateExtractionForLazyField(field, il, end);
 
 			MethodGen extractUpdates = new MethodGen(PROTECTED_SYNTHETIC, Type.VOID, EXTRACT_UPDATES_ARGS, null, EXTRACT_UPDATES, className, il, cpg);
 			il.setPositions();
 			extractUpdates.setMaxLocals();
 			extractUpdates.setMaxStack();
-
-			List<StackMapEntry> stackMapEntries = new ArrayList<>();
-			int lastPosition = -1;
-			for (InstructionHandle ih: stackMapPositions) {
-				if (lastPosition < 0)
-					stackMapEntries.add(mkSameStackMapEntryWithExtraIntLocal(ih.getPosition() - lastPosition - 1));
-				else
-					stackMapEntries.add(mkSameStackMapEntry(ih.getPosition() - lastPosition - 1));
-
-				lastPosition = ih.getPosition();
-			}
-
-			extractUpdates.addCodeAttribute(mkStackMap(4 + (stackMapEntries.size() - 1), stackMapEntries.toArray(new StackMapEntry[stackMapEntries.size()])));
+			StackMapReplacer.replace(extractUpdates);
 			classGen.addMethod(extractUpdates.getMethod());
 		}
 
@@ -971,10 +960,9 @@ class ClassInstrumentation {
 		 * @param field the field
 		 * @param il the instruction list where the code must be added
 		 * @param end the instruction before which the extra code must be added
-		 * @param stackMapPositions the instructions corresponding to a stack map entry
 		 * @return the beginning of the added code
 		 */
-		private InstructionHandle addUpdateExtractionForLazyField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
+		private InstructionHandle addUpdateExtractionForLazyField(Field field, InstructionList il, InstructionHandle end) {
 			ObjectType type = (ObjectType) field.getType();
 
 			List<Type> args = new ArrayList<>();
@@ -1019,9 +1007,6 @@ class ClassInstrumentation {
 
 			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract));
 
-			stackMapPositions.addFirst(recursiveExtract);
-			stackMapPositions.addFirst(addUpdatesFor);
-
 			return start;
 		}
 
@@ -1032,10 +1017,9 @@ class ClassInstrumentation {
 		 * @param field the field
 		 * @param il the instruction list where the code must be added
 		 * @param end the instruction before which the extra code must be added
-		 * @param stackMapPositions the instructions corresponding to a stack map entry
 		 * @return the beginning of the added code
 		 */
-		private InstructionHandle addUpdateExtractionForEagerField(Field field, InstructionList il, InstructionHandle end, LinkedList<InstructionHandle> stackMapPositions) {
+		private InstructionHandle addUpdateExtractionForEagerField(Field field, InstructionList il, InstructionHandle end) {
 			Type type = field.getType();
 			boolean isEnum = type instanceof ObjectType && isEnum(((ObjectType) type).getClassName());
 
@@ -1092,9 +1076,6 @@ class ClassInstrumentation {
 			else
 				// this covers int, short, byte, char, boolean
 				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ICMPEQ, end));
-
-			stackMapPositions.addFirst(end);
-			stackMapPositions.addFirst(addUpdatesFor);
 
 			return start;
 		}
@@ -1234,47 +1215,8 @@ class ClassInstrumentation {
 			MethodGen ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null, ENSURE_LOADED_PREFIX + field.getName(), className, il, cpg);
 			ensureLoaded.setMaxLocals();
 			ensureLoaded.setMaxStack();
-			StackMap stackMap = mkStackMap(1, new StackMapEntry[] { mkSameStackMapEntry(_return.getPosition()) });
-			ensureLoaded.addCodeAttribute(stackMap);
+			StackMapReplacer.replace(ensureLoaded);
 			classGen.addMethod(ensureLoaded.getMethod());
-		}
-
-		/**
-		 * Adds a stack map with the given stack map entries.
-		 * 
-		 * @param totalLength the length of the entries (in bytes)
-		 * @param entries the entries
-		 * @return the resulting stack map
-		 */
-		private StackMap mkStackMap(int totalLength, StackMapEntry[] entries) {
-			int attribute_name_index = cpg.addUtf8("StackMapTable");
-			int attribute_length = 2 + totalLength;
-
-			return new StackMap(attribute_name_index, attribute_length, entries, cpg.getConstantPool());
-		}
-
-		/**
-		 * Yields a stack map entry of type same.
-		 * 
-		 * @param offset the distance from the previous entry
-		 * @return the stack map entry
-		 */
-		private StackMapEntry mkSameStackMapEntry(int offset) {
-			if (offset >= Const.SAME_FRAME && offset <= Const.SAME_FRAME_MAX)
-				return new StackMapEntry(offset, offset, null, null, cpg.getConstantPool());
-			else
-				return new StackMapEntry(Const.SAME_FRAME_EXTENDED, offset, null, null, cpg.getConstantPool());
-		}
-
-		/**
-		 * Yields a stack map entry of type add one local of type integer.
-		 * 
-		 * @param offset the distance from the previous entry
-		 * @return the stack map entry
-		 */
-		private StackMapEntry mkSameStackMapEntryWithExtraIntLocal(int offset) {
-			ConstantPool cp = cpg.getConstantPool();
-			return new StackMapEntry(Const.APPEND_FRAME, offset, new StackMapType[] { new StackMapType(Const.ITEM_Integer, -1, cp) }, null, cp);
 		}
 
 		/**
