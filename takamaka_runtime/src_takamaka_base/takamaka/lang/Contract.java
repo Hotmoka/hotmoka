@@ -24,13 +24,6 @@ public abstract class Contract extends Storage {
 	private transient Contract caller;
 
 	/**
-	 * Used for the instrumentation of the entry constructors.
-	 * To be removed in the future.
-	 * TODO
-	 */
-	protected static Contract temp;
-
-	/**
 	 * Builds a contract with zero balance.
 	 */
 	@WhiteListed

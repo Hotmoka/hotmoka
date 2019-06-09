@@ -559,29 +559,14 @@ class ClassInstrumentation {
 			InstructionHandle where = determineWhereToSetCallerAndBalance(il, method, slotForCaller);
 			InstructionHandle start = il.getStart();
 
-			boolean needsTemp = where != start;
-			if (needsTemp) {
-				//TODO: avoid use of this static field temp. Stack maps make this a bit difficult
-				il.insert(factory.createPutStatic(CONTRACT_CLASS_NAME, "temp", CONTRACT_OT));
-				il.insert(InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
-			}
-
-			il.insert(where, InstructionFactory.createThis());
-			if (needsTemp)
-				il.insert(where, factory.createGetStatic(CONTRACT_CLASS_NAME, "temp", CONTRACT_OT));
-			else
-				il.insert(where, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
-
-			if (!callerContract.equals(CONTRACT_CLASS_NAME)) {
-				il.insert(where, InstructionConst.DUP);
-				il.insert(where, factory.createCast(CONTRACT_OT, new ObjectType(callerContract)));
-				il.insert(where, InstructionConst.POP);
-			}
-
+			il.insert(start, InstructionFactory.createThis());
+			il.insert(start, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
+			if (!callerContract.equals(CONTRACT_CLASS_NAME))
+				il.insert(start, factory.createCast(CONTRACT_OT, new ObjectType(callerContract)));
 			if (isPayable) {
 				// a payable entry method can have a first argument of type int/long/BigInteger
 				Type amountType = method.getArgumentType(0);
-				il.insert(where, InstructionFactory.createLoad(amountType, 1));
+				il.insert(start, InstructionFactory.createLoad(amountType, 1));
 				Type[] paybleEntryArgs = new Type[] { CONTRACT_OT, amountType };
 				il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, paybleEntryArgs, Const.INVOKESPECIAL));
 			}
