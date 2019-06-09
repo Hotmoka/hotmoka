@@ -22,14 +22,12 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AnnotationEntry;
-import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.ElementValuePair;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
-import org.apache.bcel.classfile.StackMap;
 import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
@@ -282,14 +280,13 @@ class ClassInstrumentation {
 		private Method instrument(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
 			replaceFieldAccessesWithAccessors(methodGen);
-			StackMap stackMap = getStackMapAttribute(methodGen);
-			addContractToCallsToEntries(methodGen, stackMap);
+			addContractToCallsToEntries(methodGen);
 
 			String callerContract;
 			if (isContract && (callerContract = isEntry(className, method.getName(), method.getSignature())) != null)
-				instrumentEntry(methodGen, callerContract, isPayable(method.getName(), method.getSignature()), stackMap);
+				instrumentEntry(methodGen, callerContract, isPayable(method.getName(), method.getSignature()));
 
-			addGasUpdates(methodGen, stackMap);
+			addGasUpdates(methodGen);
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
@@ -305,14 +302,13 @@ class ClassInstrumentation {
 		 * Adds a gas decrease at the beginning of each basic block of code.
 		 * 
 		 * @param method the method that gets instrumented
-		 * @param stackMap the stack map of {@code method}
 		 */
-		private void addGasUpdates(MethodGen method, StackMap stackMap) {
+		private void addGasUpdates(MethodGen method) {
 			SortedSet<InstructionHandle> dominators = computeDominators(method);
-			dominators.stream().forEachOrdered(dominator -> addGasUpdate(dominator, method.getInstructionList(), dominators, stackMap));
+			dominators.stream().forEachOrdered(dominator -> addGasUpdate(dominator, method.getInstructionList(), dominators));
 		}
 
-		private void addGasUpdate(InstructionHandle dominator, InstructionList il, SortedSet<InstructionHandle> dominators, StackMap stackMap) {
+		private void addGasUpdate(InstructionHandle dominator, InstructionList il, SortedSet<InstructionHandle> dominators) {
 			long cost = gasCostOf(dominator, dominators);
 			InstructionHandle newTarget;
 
@@ -373,27 +369,12 @@ class ClassInstrumentation {
 		}
 
 		/**
-		 * Yields the stack map attribute of the given method, if any.
-		 * 
-		 * @param methodGen the method
-		 * @return the attribute, if any. Yields {@code null} otherwise
-		 */
-		private StackMap getStackMapAttribute(MethodGen methodGen) {
-			for (Attribute attribute: methodGen.getCodeAttributes())
-				if (attribute instanceof StackMap)
-					return (StackMap) attribute;
-
-			return null;
-		}
-
-		/**
 		 * Passes the trailing implicit parameters to calls to entries. They are
 		 * the contract where the entry is called and {@code null} (for the dummy argument).
 		 * 
 		 * @param method the method
-		 * @param stackMap the stack map of the method. This might be {@code null}
 		 */
-		private void addContractToCallsToEntries(MethodGen method, StackMap stackMap) {
+		private void addContractToCallsToEntries(MethodGen method) {
 			if (!method.isAbstract()) {
 				InstructionList il = method.getInstructionList();
 				List<InstructionHandle> callsToEntries =
@@ -402,7 +383,7 @@ class ClassInstrumentation {
 						.collect(Collectors.toList());
 
 				for (InstructionHandle ih: callsToEntries)
-					passContractToCallToEntry(il, ih, stackMap);
+					passContractToCallToEntry(il, ih);
 			}
 		}
 
@@ -412,9 +393,8 @@ class ClassInstrumentation {
 		 * 
 		 * @param il the instructions of the method being instrumented
 		 * @param ih the call to the entry
-		 * @param stackMap the stack map of the method. This might be {@code null}
 		 */
-		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, StackMap stackMap) {
+		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih) {
 			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
 			Type[] args = invoke.getArgumentTypes(cpg);
 			Type[] argsWithContract = new Type[args.length + 2];
@@ -423,8 +403,6 @@ class ClassInstrumentation {
 			argsWithContract[args.length + 1] = DUMMY_OT;
 
 			ih.setInstruction(InstructionConst.ALOAD_0); // the call must be inside a contract "this"
-
-			// we add the extra instructions after ih, so that potential jumps to ih will execute them
 			il.append(ih, factory.createInvoke
 				(invoke.getClassName(cpg), invoke.getMethodName(cpg),
 				invoke.getReturnType(cpg), argsWithContract, invoke.getOpcode()));
@@ -554,15 +532,14 @@ class ClassInstrumentation {
 		 * @param method the entry
 		 * @param callerContract the name of the caller class. This is a contract
 		 * @param isPayable true if and only if the entry is payable
-		 * @param stackMap the stack map of the method
 		 */
-		private void instrumentEntry(MethodGen method, String callerContract, boolean isPayable, StackMap stackMap) {
+		private void instrumentEntry(MethodGen method, String callerContract, boolean isPayable) {
 			// slotForCaller is the local variable used for the extra "caller" parameter;
 			// there is no need to shift the local variables one slot up, since the use
 			// of caller is limited to the prolog of the synthetic code
 			int slotForCaller = addExtraParameters(method);
 			if (!method.isAbstract())
-				setCallerAndBalance(method, callerContract, slotForCaller, isPayable, stackMap);
+				setCallerAndBalance(method, callerContract, slotForCaller, isPayable);
 		}
 
 		/**
@@ -572,9 +549,8 @@ class ClassInstrumentation {
 		 * @param callerContract the name of the caller class. This is a contract
 		 * @param slotForCaller the local variable for the caller implicit argument
 		 * @param isPayable true if and only if the entry is payable
-		 * @param stackMap the stack map of the entry
 		 */
-		private void setCallerAndBalance(MethodGen method, String callerContract, int slotForCaller, boolean isPayable, StackMap stackMap) {
+		private void setCallerAndBalance(MethodGen method, String callerContract, int slotForCaller, boolean isPayable) {
 			InstructionList il = method.getInstructionList();
 
 			// the call to the method that sets caller and balance cannot be put at the
