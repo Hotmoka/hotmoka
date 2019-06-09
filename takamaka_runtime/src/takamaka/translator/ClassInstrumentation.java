@@ -30,7 +30,6 @@ import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.StackMap;
-import org.apache.bcel.classfile.StackMapEntry;
 import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
@@ -64,12 +63,8 @@ import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 import it.univr.bcel.StackMapReplacer;
-import it.univr.bcel.TypeInferrer;
-import takamaka.blockchain.CodeSignature;
 import takamaka.blockchain.GasCosts;
-import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
-import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
@@ -298,7 +293,10 @@ class ClassInstrumentation {
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
-			StackMapReplacer.replace(methodGen);
+			if (!methodGen.isAbstract()) {
+				methodGen.getInstructionList().setPositions();
+				StackMapReplacer.replace(methodGen);
+			}
 
 			return methodGen.getMethod();
 		}
@@ -316,11 +314,11 @@ class ClassInstrumentation {
 
 		private void addGasUpdate(InstructionHandle dominator, InstructionList il, SortedSet<InstructionHandle> dominators, StackMap stackMap) {
 			long cost = gasCostOf(dominator, dominators);
-			InstructionHandle callCharge, newTarget;
+			InstructionHandle newTarget;
 
 			// up to this value, there is a special compact method for charging gas
 			if (cost <= Takamaka.MAX_COMPACT)
-				newTarget = callCharge = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
+				newTarget = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
 			else {
 				InstructionHandle pushCost;
 				// up to 5, there is special, compact methods
@@ -330,15 +328,11 @@ class ClassInstrumentation {
 					pushCost = il.insert(dominator, factory.createConstant(cost));
 
 				newTarget = pushCost;
-				il.setPositions();
-				updateAfterAdditionOf(pushCost, stackMap);
 
-				callCharge = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge", Type.VOID,
+				il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge", Type.VOID,
 					cost < Integer.MAX_VALUE ? ONE_INT_ARGS :ONE_LONG_ARGS, Const.INVOKESTATIC));
 			}
 
-			il.setPositions();
-			updateAfterAdditionOf(callCharge, stackMap);
 			il.redirectBranches(dominator, newTarget);
 		}
 
@@ -422,66 +416,19 @@ class ClassInstrumentation {
 		 */
 		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, StackMap stackMap) {
 			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
-			int size = invoke.getLength();
 			Type[] args = invoke.getArgumentTypes(cpg);
 			Type[] argsWithContract = new Type[args.length + 2];
 			System.arraycopy(args, 0, argsWithContract, 0, args.length);
 			argsWithContract[args.length] = CONTRACT_OT;
 			argsWithContract[args.length + 1] = DUMMY_OT;
 
-			// the previous jump is erased. We add as many NOPs as the length
-			// of the instruction that we remove, since otherwise the stack maps will
-			// be wrong
-			// TODO: update stack maps instead
-			ih.setInstruction(InstructionConst.NOP);
-			while (--size > 0)
-				il.append(ih, InstructionConst.NOP);
+			ih.setInstruction(InstructionConst.ALOAD_0); // the call must be inside a contract "this"
 
 			// we add the extra instructions after ih, so that potential jumps to ih will execute them
-			InstructionHandle invokeWithExtras = il.append(ih, factory.createInvoke
-					(invoke.getClassName(cpg), invoke.getMethodName(cpg),
-					invoke.getReturnType(cpg), argsWithContract, invoke.getOpcode()));
-			il.setPositions();
-			updateAfterAdditionOf(invokeWithExtras, stackMap);
-			InstructionHandle aconst_null = il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
-			il.setPositions();
-			updateAfterAdditionOf(aconst_null, stackMap);
-			InstructionHandle aload0 = il.append(ih, InstructionConst.ALOAD_0); // the call must be inside a contract "this"
-			il.setPositions();
-			updateAfterAdditionOf(aload0, stackMap);
-		}
-
-		/**
-		 * Updates the given stack map after the addition of the given instruction.
-		 * 
-		 * @param ih the added instruction
-		 * @param stackMap the stack map
-		 */
-		private void updateAfterAdditionOf(InstructionHandle ih, StackMap stackMap) {
-			if (stackMap != null) {
-				StackMapEntry[] entries = stackMap.getStackMap();
-				int start = 0;
-				boolean firstIteration = true;
-				for (StackMapEntry entry: entries) {
-					int end;
-					if (firstIteration) {
-						end = entry.getByteCodeOffset();
-						firstIteration = false;
-					}
-					else
-						end = start + entry.getByteCodeOffset() + 1;
-
-					if (ih.getPosition() >= start && ih.getPosition() < end) {
-						int shift = ih.getInstruction().getLength();
-						entry.updateByteCodeOffset(shift);
-						start = end + shift;
-					}
-					else
-						start = end;
-				}
-
-				stackMap.setStackMap(entries);
-			}
+			il.append(ih, factory.createInvoke
+				(invoke.getClassName(cpg), invoke.getMethodName(cpg),
+				invoke.getReturnType(cpg), argsWithContract, invoke.getOpcode()));
+			il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
 		}
 
 		/**
@@ -635,80 +582,35 @@ class ClassInstrumentation {
 			// that their code starts with a call to a constructor of the superclass
 			InstructionHandle where = determineWhereToSetCallerAndBalance(il, method, slotForCaller);
 			InstructionHandle start = il.getStart();
-			InstructionHandle ih;
 
 			boolean needsTemp = where != start;
 			if (needsTemp) {
 				//TODO: avoid use of this static field temp. Stack maps make this a bit difficult
-				ih = il.insert(factory.createPutStatic(CONTRACT_CLASS_NAME, "temp", CONTRACT_OT));
-				il.setPositions();
-				updateAfterAdditionOf(ih, stackMap);
-				ih = il.insert(InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
-				il.setPositions();
-				updateAfterAdditionOf(ih, stackMap);
-				addChopTwoLocals(start, stackMap);
+				il.insert(factory.createPutStatic(CONTRACT_CLASS_NAME, "temp", CONTRACT_OT));
+				il.insert(InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
 			}
 
-			ih = il.insert(where, InstructionFactory.createThis());
-			il.setPositions();
-			updateAfterAdditionOf(ih, stackMap);
+			il.insert(where, InstructionFactory.createThis());
 			if (needsTemp)
-				ih = il.insert(where, factory.createGetStatic(CONTRACT_CLASS_NAME, "temp", CONTRACT_OT));
+				il.insert(where, factory.createGetStatic(CONTRACT_CLASS_NAME, "temp", CONTRACT_OT));
 			else
-				ih = il.insert(where, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
-			il.setPositions();
-			updateAfterAdditionOf(ih, stackMap);
+				il.insert(where, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
 
 			if (!callerContract.equals(CONTRACT_CLASS_NAME)) {
-				ih = il.insert(where, InstructionConst.DUP);
-				il.setPositions();
-				updateAfterAdditionOf(ih, stackMap);
-				ih = il.insert(where, factory.createCast(CONTRACT_OT, new ObjectType(callerContract)));
-				il.setPositions();
-				updateAfterAdditionOf(ih, stackMap);
-				ih = il.insert(where, InstructionConst.POP);
-				il.setPositions();
-				updateAfterAdditionOf(ih, stackMap);
+				il.insert(where, InstructionConst.DUP);
+				il.insert(where, factory.createCast(CONTRACT_OT, new ObjectType(callerContract)));
+				il.insert(where, InstructionConst.POP);
 			}
 
 			if (isPayable) {
 				// a payable entry method can have a first argument of type int/long/BigInteger
 				Type amountType = method.getArgumentType(0);
-				ih = il.insert(where, InstructionFactory.createLoad(amountType, 1));
-				il.setPositions();
-				updateAfterAdditionOf(ih, stackMap);
+				il.insert(where, InstructionFactory.createLoad(amountType, 1));
 				Type[] paybleEntryArgs = new Type[] { CONTRACT_OT, amountType };
-				ih = il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, paybleEntryArgs, Const.INVOKESPECIAL));
-				il.setPositions();
-				updateAfterAdditionOf(ih, stackMap);
+				il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, paybleEntryArgs, Const.INVOKESPECIAL));
 			}
-			else {
-				ih = il.insert(where, factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
-				il.setPositions();
-				updateAfterAdditionOf(ih, stackMap);
-			}
-
-			if (!needsTemp)
-				addChopTwoLocals(start, stackMap);
-		}
-
-		/**
-		 * Adds, to the given stack map, an entry that drops two local variables.
-		 * 
-		 * @param where the instruction for which the new entry must be added
-		 * @param stackMap the stack map that gets modified
-		 */
-		private void addChopTwoLocals(InstructionHandle where, StackMap stackMap) {
-			if (stackMap != null) {
-				StackMapEntry[] entries = stackMap.getStackMap();
-				StackMapEntry[] newEntries = new StackMapEntry[entries.length + 1];
-				System.arraycopy(entries, 0, newEntries, 1, entries.length);
-				newEntries[0] = new StackMapEntry(Const.CHOP_FRAME_MAX - 1, where.getPosition(), null, null, cpg.getConstantPool());
-				if (newEntries.length > 1)
-					newEntries[1].updateByteCodeOffset(-where.getPosition() - 1);
-
-				stackMap.setStackMap(newEntries);
-			}
+			else
+				il.insert(where, factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
 		}
 
 		/**
@@ -1128,7 +1030,7 @@ class ClassInstrumentation {
 		 * @param field the field
 		 * @return the visibility modifiers of the field, plus {@code synthetic}
 		 */
-		private short modifiersFrom(Field field) {
+		/*private short modifiersFrom(Field field) {
 			short modifiers = Const.ACC_SYNTHETIC;
 			if (field.isPrivate())
 				modifiers |= Const.ACC_PRIVATE;
@@ -1137,7 +1039,7 @@ class ClassInstrumentation {
 			else if (field.isPublic())
 				modifiers |= Const.ACC_PUBLIC;
 			return modifiers;
-		}
+		}*/
 
 		/**
 		 * Adds a getter method for the given field.
