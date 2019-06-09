@@ -64,10 +64,12 @@ import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 import it.univr.bcel.StackMapReplacer;
-import it.univr.bcel.TypeInferenceException;
 import it.univr.bcel.TypeInferrer;
+import takamaka.blockchain.CodeSignature;
 import takamaka.blockchain.GasCosts;
+import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
+import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
@@ -296,7 +298,7 @@ class ClassInstrumentation {
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
-			//StackMapReplacer.replace(methodGen);
+			StackMapReplacer.replace(methodGen);
 
 			return methodGen.getMethod();
 		}
