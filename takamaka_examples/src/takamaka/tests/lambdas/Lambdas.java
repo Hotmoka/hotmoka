@@ -15,16 +15,16 @@ import takamaka.util.StorageList;
  * also the bootstrap methods of the lambdas and their bridge needs to
  * be modified. This class tests these situations.
  */
-public class Lambdas extends Contract {
+public class Lambdas extends PayableContract {
 	public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(10_000L);
-	private final StorageList<PayableContract> investors = new StorageList<>();
+	private final StorageList<Lambdas> investors = new StorageList<>();
 
-	public @Payable @Entry(PayableContract.class) Lambdas(BigInteger amount) {}
+	public @Payable @Entry(Lambdas.class) Lambdas(BigInteger amount) {}
 
-	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
+	public @Payable @Entry(Lambdas.class) void invest(BigInteger amount) {
 		Lambdas other = new Lambdas(BigInteger.TEN);
 		BigInteger one = BigInteger.ONE;
-		investors.add((PayableContract) caller());
+		investors.add((Lambdas) caller());
 		System.out.println("FIRST");
 		investors.stream().forEach(investor -> investor.receive(MINIMUM_INVESTMENT));
 		System.out.println("SECOND");
@@ -37,13 +37,20 @@ public class Lambdas extends Contract {
 		investors.stream().forEach(investor -> other.entry4(Lambdas::new));
 	}
 
-	public @Entry void entry1(PayableContract p) {}
-
-	public @Entry void entry2(Function<PayableContract, String> fun) {}
-
-	public @Entry String entry3(PayableContract p) {
-		return "hello";
+	public @Entry void entry1(Lambdas p) {
+		p.receive(1);
 	}
 
-	public @Entry void entry4(Function<BigInteger, Lambdas> fun) {}
+	public @Entry void entry2(Function<Lambdas, Lambdas> fun) {
+		fun.apply(this).receive(2);
+	}
+
+	public @Entry Lambdas entry3(Lambdas p) {
+		p.receive(3);
+		return this;
+	}
+
+	public @Entry void entry4(Function<BigInteger, Lambdas> fun) {
+		fun.apply(BigInteger.ONE).receive(4);
+	}
 }
