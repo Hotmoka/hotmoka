@@ -28,6 +28,7 @@ import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
+import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
@@ -48,6 +49,7 @@ import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.GETFIELD;
 import org.apache.bcel.generic.GotoInstruction;
+import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
@@ -55,6 +57,7 @@ import org.apache.bcel.generic.InstructionConst;
 import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.InstructionTargeter;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
@@ -63,6 +66,7 @@ import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.RET;
 import org.apache.bcel.generic.RETURN;
 import org.apache.bcel.generic.ReferenceType;
+import org.apache.bcel.generic.ReturnInstruction;
 import org.apache.bcel.generic.StackConsumer;
 import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
@@ -215,6 +219,11 @@ class ClassInstrumentation {
 		private final Program program;
 
 		/**
+		 * The bootstrap methods of the class being processed.
+		 */
+		private final BootstrapMethod[] bootstrapMethods;
+
+		/**
 		 * Performs the instrumentation of a single class.
 		 * 
 		 * @param classGen the class to instrument
@@ -230,6 +239,16 @@ class ClassInstrumentation {
 			this.isStorage = !className.equals(STORAGE_CLASS_NAME) && isStorage(className);
 			this.isContract = isContract(className);
 
+			Optional<BootstrapMethods> bootstraps = Stream.of(classGen.getAttributes())
+				.filter(attribute -> attribute instanceof BootstrapMethods)
+				.map(attribute -> (BootstrapMethods) attribute)
+				.findAny();
+
+			if (bootstraps.isPresent())
+				this.bootstrapMethods = bootstraps.get().getBootstrapMethods();
+			else
+				this.bootstrapMethods = new BootstrapMethod[0];
+
 			// the fields of the class are relevant only for storage classes
 			if (isStorage)
 				collectNonTransientInstanceFieldsOf(className);
@@ -241,6 +260,8 @@ class ClassInstrumentation {
 		 * performs the instrumentation.
 		 */
 		private void instrumentClass() {
+			instrumentBootstrapsInvokingEntries();
+
 			// local instrumentations are those that apply at method level
 			localInstrumentation();
 
@@ -260,8 +281,6 @@ class ClassInstrumentation {
 				addEnsureLoadedMethods();
 				addExtractUpdates();
 			}
-
-			instrumentBootstrapsInvokingEntries();
 		}
 
 		/**
@@ -272,25 +291,7 @@ class ClassInstrumentation {
 		 * instruction. That instruction will be later instrumented during local instrumentation.
 		 */
 		private void instrumentBootstrapsInvokingEntries() {
-			Optional<BootstrapMethods> bootstrapMethods = Stream.of(classGen.getAttributes())
-				.filter(attribute -> attribute instanceof BootstrapMethods)
-				.map(attribute -> (BootstrapMethods) attribute)
-				.findAny();
-
-			bootstrapMethods.ifPresent(this::instrumentBootstrapsInvokingEntries);
-		}
-
-		/**
-		 * Instruments bootstrap methods that invoke an entry as their target code.
-		 * They are the result of compiling method references to entries.
-		 * Since entries receive extra parameters, we transform those bootstrap methods
-		 * by calling brand new target code, that calls the entry with a normal invoke
-		 * instruction. That instruction will be later instrumented during local instrumentation.
-		 * 
-		 * @param bootstraps the bootstrap methods to instrument
-		 */
-		private void instrumentBootstrapsInvokingEntries(BootstrapMethods bootstraps) {
-			Stream.of(bootstraps.getBootstrapMethods())
+			Stream.of(bootstrapMethods)
 				.filter(this::callsEntry)
 				.forEach(this::instrumentBootstrapInvokingEntry);
 		}
@@ -315,7 +316,7 @@ class ClassInstrumentation {
 						String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 						String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-						return isEntry(className, methodName, methodSignature) != null;
+						return isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
 					}
 				}
 			};
@@ -344,8 +345,7 @@ class ClassInstrumentation {
 			System.arraycopy(entryArgs, 0, lambdaArgs, 1, entryArgs.length);
 			lambdaArgs[0] = new ObjectType(className);
 			String lambdaSignature = Type.getMethodSignature(entryReturnType, lambdaArgs);
-			mr.setClassIndex(cpg.addClass(className));
-			mr.setNameAndTypeIndex(cpg.addNameAndType(lambdaName, lambdaSignature));
+			mh.setReferenceIndex(cpg.addMethodref(className, lambdaName, lambdaSignature));
 			mh.setReferenceKind(Const.REF_invokeSpecial);
 
 			// we create the target code: it is a new private synthetic instance method inside className,
@@ -369,17 +369,13 @@ class ClassInstrumentation {
 			else
 				throw new IllegalStateException("Unexpected lambda invocation kind " + invokeKind);
 
-			InvokeInstruction ins;
-			il.append(ins = factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs, invoke));
+			il.append(factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs, invoke));
 			il.append(InstructionFactory.createReturn(entryReturnType));
 
 			MethodGen addedLambda = new MethodGen(PRIVATE_SYNTHETIC, entryReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
-			System.out.println("ins: " + ins.getClassName(cpg) + "." + ins.getMethodName(cpg));
 			il.setPositions();
 			addedLambda.setMaxLocals();
 			addedLambda.setMaxStack();
-			System.out.println(addedLambda);
-			System.out.println(il);
 			classGen.addMethod(addedLambda.getMethod());
 		}
 
@@ -539,17 +535,94 @@ class ClassInstrumentation {
 		 */
 		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih) {
 			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
-			Type[] args = invoke.getArgumentTypes(cpg);
-			Type[] argsWithContract = new Type[args.length + 2];
-			System.arraycopy(args, 0, argsWithContract, 0, args.length);
-			argsWithContract[args.length] = CONTRACT_OT;
-			argsWithContract[args.length + 1] = DUMMY_OT;
+			if (invoke instanceof INVOKEDYNAMIC) {
+				INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) invoke;
+				String methodName = invoke.getMethodName(cpg);
+				ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
 
-			ih.setInstruction(InstructionConst.ALOAD_0); // the call must be inside a contract "this"
-			il.append(ih, factory.createInvoke
-				(invoke.getClassName(cpg), invoke.getMethodName(cpg),
-				invoke.getReturnType(cpg), argsWithContract, invoke.getOpcode()));
-			il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
+				// this is an invokedynamic that calls an entry: we must capture the calling contract
+				Type[] args = invoke.getArgumentTypes(cpg);
+				Type[] expandedArgs = new Type[args.length + 1];
+				System.arraycopy(args, 0, expandedArgs, 1, args.length);
+				expandedArgs[0] = new ObjectType(className);
+				cid.setNameAndTypeIndex(cpg.addNameAndType(methodName, Type.getMethodSignature(invoke.getReturnType(cpg), expandedArgs)));
+
+				int slots = Stream.of(args).mapToInt(Type::getSize).sum();
+				forEachPusher(ih, slots, where -> {
+					il.append(where, where.getInstruction());
+					where.setInstruction(InstructionConst.ALOAD_0);
+				});
+			}
+			else {
+				Type[] args = invoke.getArgumentTypes(cpg);
+				Type[] expandedArgs = new Type[args.length + 2];
+				System.arraycopy(args, 0, expandedArgs, 0, args.length);
+				expandedArgs[args.length] = CONTRACT_OT;
+				expandedArgs[args.length + 1] = DUMMY_OT;
+
+				ih.setInstruction(InstructionConst.ALOAD_0); // the call must be inside a contract "this"
+				il.append(ih, factory.createInvoke
+						(invoke.getClassName(cpg), invoke.getMethodName(cpg),
+								invoke.getReturnType(cpg), expandedArgs, invoke.getOpcode()));
+				il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
+			}
+		}
+
+		/**
+		 * Finds the closest instructions whose stack height, at their beginning,
+		 * is equal to the height of the stack at {@code ih} minus {@code slots}.
+		 * 
+		 * @param ih the start instruction of the look up
+		 * @param slots the difference in stack height
+		 */
+		private void forEachPusher(InstructionHandle ih, int slots, Consumer<InstructionHandle> what) {
+			Set<HeightAtBytecode> seen = new HashSet<>();
+			List<HeightAtBytecode> workingSet = new ArrayList<>();
+			HeightAtBytecode start = new HeightAtBytecode(ih, slots);
+			workingSet.add(start);
+			seen.add(start);
+
+			do {
+				HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
+				InstructionHandle currentIh = current.ih;
+				if (current.stackHeightBeforeBytecode <= 0)
+					what.accept(currentIh);
+				else {
+					InstructionHandle previous = currentIh.getPrev();
+					if (previous != null) {
+						Instruction previousIns = previous.getInstruction();
+						if (!(previousIns instanceof ReturnInstruction) && !(previousIns instanceof ATHROW) && !(previousIns instanceof GotoInstruction)) {
+							// we proceed with previous
+							int stackHeightBefore = current.stackHeightBeforeBytecode;
+							stackHeightBefore -= previousIns.produceStack(cpg);
+							stackHeightBefore += previousIns.consumeStack(cpg);
+
+							HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
+							if (seen.add(added))
+								workingSet.add(added);
+						}
+					}
+
+					// we proceed with the instructions that jump at currentIh
+					InstructionTargeter[] targeters = currentIh.getTargeters();
+					if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
+						throw new IllegalStateException("Cannot find stack pushers for " + start);
+
+					Stream.of(targeters)
+						.filter(targeter -> targeter instanceof BranchInstruction)
+						.map(targeter -> (BranchInstruction) targeter)
+						.forEach(branch -> {
+							int stackHeightBefore = current.stackHeightBeforeBytecode;
+							stackHeightBefore -= branch.produceStack(cpg);
+							stackHeightBefore += branch.consumeStack(cpg);
+
+							HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
+							if (seen.add(added))
+								workingSet.add(added);
+						});
+				}
+			}
+			while (!workingSet.isEmpty());
 		}
 
 		/**
@@ -559,23 +632,54 @@ class ClassInstrumentation {
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isCallToEntry(Instruction instruction) {
-			if (instruction instanceof InvokeInstruction) {
+			if (instruction instanceof INVOKEDYNAMIC) {
+				INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) instruction;
+				ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
+				BootstrapMethod bootstrap = bootstrapMethods[cid.getBootstrapMethodAttrIndex()];
+				if (bootstrap.getNumBootstrapArguments() == 3) {
+					Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+					if (constant instanceof ConstantMethodHandle) {
+						ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+						Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+						if (constant2 instanceof ConstantMethodref) {
+							ConstantMethodref mr = (ConstantMethodref) constant2;
+							ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+							String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+							if (methodName.startsWith(EXTRA_LAMBDA_PREFIX))
+								return true;
+						}
+					}
+				};
+			}
+			else if (instruction instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
 				ReferenceType receiver = invoke.getReferenceType(cpg);
-				if (receiver instanceof ObjectType) {
-					String sig = invoke.getSignature(cpg);
-					if (isEntry(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg)) != null)
-						return true;
+				if (receiver instanceof ObjectType)
+					return isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+			}
 
-					// the callee might have been already instrumented, since it comes from
-					// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
-					int whereToAddParameters = sig.lastIndexOf(')');
-					if (whereToAddParameters > 0) {
-						sig = sig.substring(0, whereToAddParameters) + CONTRACT_CLASS_NAME_JB + DUMMY_CLASS_NAME_JB + sig.substring(whereToAddParameters);
-						if (isEntry(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), sig) != null)
-							return true;
-					}
-				}
+			return false;
+		}
+
+		/**
+		 * Determines if a method is an entry, possibly already instrumented.
+		 * 
+		 * @param className the name of the class defining the method
+		 * @param methodName the name of the method
+		 * @param signature the signature of the method
+		 * @return true if and only if that condition holds
+		 */
+		private boolean isEntryPossiblyAlreadyInstrumented(String className, String methodName, String signature) {
+			if (isEntry(className, methodName, signature) != null)
+				return true;
+
+			// the method might have been already instrumented, since it comes from
+			// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
+			int whereToAddParameters = signature.lastIndexOf(')');
+			if (whereToAddParameters > 0) {
+				signature = signature.substring(0, whereToAddParameters) + CONTRACT_CLASS_NAME_JB + DUMMY_CLASS_NAME_JB + signature.substring(whereToAddParameters);
+				if (isEntry(className, methodName, signature) != null)
+					return true;
 			}
 
 			return false;
@@ -745,32 +849,6 @@ class ClassInstrumentation {
 				if (startInstruction.getOpcode() == Const.ALOAD_0 ||
 						(startInstruction.getOpcode() == Const.ALOAD && ((LoadInstruction) startInstruction).getIndex() == 0)) {
 					Set<InstructionHandle> callsToConstructorsOfSuperclass = new HashSet<>();
-
-					class HeightAtBytecode {
-						private final InstructionHandle ih;
-						private final int stackHeightBeforeBytecode;
-
-						private HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
-							this.ih = ih;
-							this.stackHeightBeforeBytecode = stackHeightBeforeBytecode;
-						}
-
-						@Override
-						public String toString() {
-							return ih + " with " + stackHeightBeforeBytecode + " stack elements";
-						}
-
-						@Override
-						public boolean equals(Object other) {
-							return other instanceof HeightAtBytecode && ((HeightAtBytecode) other).ih == ih
-									&& ((HeightAtBytecode) other).stackHeightBeforeBytecode == stackHeightBeforeBytecode;
-						}
-
-						@Override
-						public int hashCode() {
-							return ih.getPosition() ^ stackHeightBeforeBytecode;
-						}
-					}
 
 					HeightAtBytecode seed = new HeightAtBytecode(start.getNext(), 1);
 					Set<HeightAtBytecode> seen = new HashSet<>();
@@ -1520,6 +1598,32 @@ class ClassInstrumentation {
 					return superclassName != null && isContract(superclassName);
 				}
 			}
+		}
+	}
+
+	private static class HeightAtBytecode {
+		private final InstructionHandle ih;
+		private final int stackHeightBeforeBytecode;
+
+		private HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
+			this.ih = ih;
+			this.stackHeightBeforeBytecode = stackHeightBeforeBytecode;
+		}
+
+		@Override
+		public String toString() {
+			return ih + " with " + stackHeightBeforeBytecode + " stack elements";
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof HeightAtBytecode && ((HeightAtBytecode) other).ih == ih
+					&& ((HeightAtBytecode) other).stackHeightBeforeBytecode == stackHeightBeforeBytecode;
+		}
+
+		@Override
+		public int hashCode() {
+			return ih.getPosition() ^ stackHeightBeforeBytecode;
 		}
 	}
 }

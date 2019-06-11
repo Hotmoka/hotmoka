@@ -1,14 +1,12 @@
 package takamaka.tests.lambdas;
 
 import java.math.BigInteger;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
-import takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.ExternallyOwnedAccount;
 import takamaka.lang.Payable;
 import takamaka.lang.PayableContract;
-import takamaka.translator.Dummy;
 import takamaka.util.StorageList;
 
 /**
@@ -27,19 +25,16 @@ public class Lambdas extends ExternallyOwnedAccount {
 		Lambdas other = new Lambdas(BigInteger.TEN);
 		BigInteger one = BigInteger.ONE;
 		investors.add((PayableContract) caller());
-		//investors.stream().forEach(investor -> investor.receive(MINIMUM_INVESTMENT));
+		investors.stream().forEach(investor -> investor.receive(MINIMUM_INVESTMENT));
 		//investors.stream().forEach(investor -> investor.receive(one));
 		investors.stream().forEach(other::entry1);
-		investors.stream().forEach(investor -> other.entry1instrumented(investor, this, null));
+		BigInteger[] bis = new BigInteger[] { BigInteger.ZERO, BigInteger.ONE };
+		//Stream.of(bis).forEach(Lambdas::new);
 		//investors.stream().forEach(investor -> other.entry2(other::entry3));
 		//investors.stream().forEach(investor -> other.entry4(Lambdas::new));
 	}
 
 	public @Entry void entry1(PayableContract p) {
-		p.receive(1);
-	}
-
-	public void entry1instrumented(PayableContract p, Contract caller, Dummy dummy) {
 		p.receive(1);
 	}
 
