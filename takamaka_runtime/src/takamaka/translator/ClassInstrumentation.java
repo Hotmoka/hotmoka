@@ -22,8 +22,16 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AnnotationEntry;
+import org.apache.bcel.classfile.BootstrapMethod;
+import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantClass;
+import org.apache.bcel.classfile.ConstantMethodHandle;
+import org.apache.bcel.classfile.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.ElementValuePair;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
@@ -80,6 +88,7 @@ class ClassInstrumentation {
 	private final static String ENSURE_LOADED_PREFIX = "§ensureLoaded_";
 	private final static String GETTER_PREFIX = "§get_";
 	private final static String SETTER_PREFIX = "§set_";
+	private final static String EXTRA_LAMBDA_PREFIX = "§takamakalambda";
 	private final static String EXTRACT_UPDATES = "extractUpdates";
 	private final static String RECURSIVE_EXTRACT = "recursiveExtract";
 	private final static String ADD_UPDATE_FOR = "addUpdateFor";
@@ -251,6 +260,140 @@ class ClassInstrumentation {
 				addEnsureLoadedMethods();
 				addExtractUpdates();
 			}
+
+			instrumentBootstrapsInvokingEntries();
+		}
+
+		/**
+		 * Instruments bootstrap methods that invoke an entry as their target code.
+		 * They are the result of compiling method references to entries.
+		 * Since entries receive extra parameters, we transform those bootstrap methods
+		 * by calling brand new target code, that calls the entry with a normal invoke
+		 * instruction. That instruction will be later instrumented during local instrumentation.
+		 */
+		private void instrumentBootstrapsInvokingEntries() {
+			Optional<BootstrapMethods> bootstrapMethods = Stream.of(classGen.getAttributes())
+				.filter(attribute -> attribute instanceof BootstrapMethods)
+				.map(attribute -> (BootstrapMethods) attribute)
+				.findAny();
+
+			bootstrapMethods.ifPresent(this::instrumentBootstrapsInvokingEntries);
+		}
+
+		/**
+		 * Instruments bootstrap methods that invoke an entry as their target code.
+		 * They are the result of compiling method references to entries.
+		 * Since entries receive extra parameters, we transform those bootstrap methods
+		 * by calling brand new target code, that calls the entry with a normal invoke
+		 * instruction. That instruction will be later instrumented during local instrumentation.
+		 * 
+		 * @param bootstraps the bootstrap methods to instrument
+		 */
+		private void instrumentBootstrapsInvokingEntries(BootstrapMethods bootstraps) {
+			Stream.of(bootstraps.getBootstrapMethods())
+				.filter(this::callsEntry)
+				.forEach(this::instrumentBootstrapInvokingEntry);
+		}
+
+		/**
+		 * Determines if the given bootstrap method calls an entry as target code.
+		 * 
+		 * @param bootstrap the bootstrap method
+		 * @return true if and only if that condition holds
+		 */
+		private boolean callsEntry(BootstrapMethod bootstrap) {
+			if (bootstrap.getNumBootstrapArguments() == 3) {
+				Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+				if (constant instanceof ConstantMethodHandle) {
+					ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+					Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+					if (constant2 instanceof ConstantMethodref) {
+						ConstantMethodref mr = (ConstantMethodref) constant2;
+						int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+						String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+						ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+						String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+						String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+
+						return isEntry(className, methodName, methodSignature) != null;
+					}
+				}
+			};
+
+			return false;
+		}
+
+		private void instrumentBootstrapInvokingEntry(BootstrapMethod bootstrap) {
+			int[] args = bootstrap.getBootstrapArguments();
+			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
+			int invokeKind = mh.getReferenceKind();
+			ConstantMethodref mr = (ConstantMethodref) cpg.getConstant(mh.getReferenceIndex());
+			int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+			String entryClassName = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+			String entryName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+			String entrySignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+			Type[] entryArgs = Type.getArgumentTypes(entrySignature);
+			Type entryReturnType = Type.getReturnType(entrySignature);
+
+			// we replace the target code: it was an invokeX C.entry(pars):r and we transform it
+			// into invokespecial className.lambda(className, pars):r where the name "lambda" is
+			// not used in className
+			String lambdaName = getNewNameForPrivateMethod();
+			Type[] lambdaArgs = new Type[entryArgs.length + 1];
+			System.arraycopy(entryArgs, 0, lambdaArgs, 1, entryArgs.length);
+			lambdaArgs[0] = new ObjectType(className);
+			String lambdaSignature = Type.getMethodSignature(entryReturnType, lambdaArgs);
+			mr.setClassIndex(cpg.addClass(className));
+			mr.setNameAndTypeIndex(cpg.addNameAndType(lambdaName, lambdaSignature));
+			mh.setReferenceKind(Const.REF_invokeSpecial);
+
+			// we create the target code: it is a new private synthetic instance method inside className,
+			// called lambdaName and with signature lambdaSignature; its code loads all its explicit parameters
+			// on the stack then calls the entry and returns its value (if any)
+			InstructionList il = new InstructionList();
+
+			int local = 1;
+			for (Type arg: lambdaArgs) {
+				il.append(InstructionFactory.createLoad(arg, local));
+				local += arg.getSize();
+			}
+
+			short invoke;
+			if (invokeKind == Const.REF_invokeVirtual)
+				invoke = Const.INVOKEVIRTUAL;
+			else if (invokeKind == Const.REF_invokeSpecial)
+				invoke = Const.INVOKESPECIAL;
+			else if (invokeKind == Const.REF_invokeInterface)
+				invoke = Const.INVOKEINTERFACE;
+			else
+				throw new IllegalStateException("Unexpected lambda invocation kind " + invokeKind);
+
+			InvokeInstruction ins;
+			il.append(ins = factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs, invoke));
+			il.append(InstructionFactory.createReturn(entryReturnType));
+
+			MethodGen addedLambda = new MethodGen(PRIVATE_SYNTHETIC, entryReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
+			System.out.println("ins: " + ins.getClassName(cpg) + "." + ins.getMethodName(cpg));
+			il.setPositions();
+			addedLambda.setMaxLocals();
+			addedLambda.setMaxStack();
+			System.out.println(addedLambda);
+			System.out.println(il);
+			classGen.addMethod(addedLambda.getMethod());
+		}
+
+		private String getNewNameForPrivateMethod() {
+			int counter = 0;
+			String newName;
+			Method[] methods = classGen.getMethods();
+
+			do {
+				newName = EXTRA_LAMBDA_PREFIX + counter++;
+			}
+			while (Stream.of(methods).map(Method::getName).anyMatch(newName::equals));
+
+			return newName;
 		}
 
 		/**
