@@ -341,7 +341,7 @@ class ClassInstrumentation {
 			Type lambdaReturnType = Type.getReturnType(implementedInterfaceMethosSignature);
 
 			// we replace the target code: it was an invokeX C.entry(pars):r and we transform it
-			// into invokespecial className.lambda(className, pars):r where the name "lambda" is
+			// into invokespecial className.lambda(C, pars):r where the name "lambda" is
 			// not used in className. The extra parameter className is not added for
 			// constructor references, since they create the new object themselves
 			String lambdaName = getNewNameForPrivateMethod();
@@ -352,7 +352,7 @@ class ClassInstrumentation {
 			else {
 				lambdaArgs = new Type[entryArgs.length + 1];
 				System.arraycopy(entryArgs, 0, lambdaArgs, 1, entryArgs.length);
-				lambdaArgs[0] = new ObjectType(className);
+				lambdaArgs[0] = new ObjectType(entryClassName);
 			}
 
 			String lambdaSignature = Type.getMethodSignature(lambdaReturnType, lambdaArgs);

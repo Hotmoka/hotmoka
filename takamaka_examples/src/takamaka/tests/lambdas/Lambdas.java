@@ -23,6 +23,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public @Payable @Entry Lambdas(BigInteger amount) {
 		this.amount = amount;
+		this.investors.add((PayableContract) caller());
 	}
 
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
@@ -41,6 +42,16 @@ public class Lambdas extends ExternallyOwnedAccount {
 	public int testMethodReferenceToEntry() {
 		other = new Lambdas(BigInteger.TEN);
 		return Stream.of(BigInteger.TEN, BigInteger.ONE).map(other::through).mapToInt(BigInteger::intValue).sum();
+	}
+
+	public void testMethodReferenceToEntryOfOtherClass() {
+		PayableContract investor = investors.first();
+		Stream.of(BigInteger.TEN, BigInteger.ONE).forEach(investor::receive);
+	}
+
+	public void testMethodReferenceToEntryOfOtherClassOK() {
+		PayableContract investor = investors.first();
+		Stream.of(BigInteger.TEN, BigInteger.ONE).forEach(bi -> {this.other = null; investor.receive(bi);});
 	}
 
 	public int testMethodReferenceToEntrySameContract() {

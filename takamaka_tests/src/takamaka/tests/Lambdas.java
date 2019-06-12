@@ -114,6 +114,15 @@ class Lambdas {
 		assertEquals(11, result.value);
 	}
 
+	@Test @DisplayName("new Lambdas().testMethodReferenceToEntryOfOtherClass()")
+	void testMethodReferenceToEntryOfOtherClass() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+		blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testMethodReferenceToEntryOfOtherClass"),
+			lambdas));
+	}
+
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntrySameContract()")
 	void testMethodReferenceToEntrySameContract() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
