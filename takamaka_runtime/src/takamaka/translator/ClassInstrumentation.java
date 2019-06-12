@@ -430,6 +430,39 @@ class ClassInstrumentation {
 			return index;
 		}
 
+		/**
+		 * BCEL does not (yet?) provide a method to add an invokedynamic constant into
+		 * a constant pool. Hence we have to rely to a trick: first we add a new
+		 * integer constant to the constant pool; then we replace it with
+		 * the invokedynamic constant. Ugly, but it currently seem to be the only way.
+		 * 
+		 * @param cid the constant to add
+		 * @return the index at which the constant has been added
+		 */
+		private int addInvokeDynamicToConstantPool(ConstantInvokeDynamic cid) {
+			// first we check if an equal constant method handle was already in the constant pool
+			int size = cpg.getSize(), index;
+			for (index = 0; index < size; index++)
+	            if (cpg.getConstant(index) instanceof ConstantInvokeDynamic) {
+	            	ConstantInvokeDynamic c = (ConstantInvokeDynamic) cpg.getConstant(index);
+	                if (c.getBootstrapMethodAttrIndex() == cid.getBootstrapMethodAttrIndex()
+	                		&& c.getNameAndTypeIndex() == cid.getNameAndTypeIndex())
+	                    return index; // found
+	            }
+
+			// otherwise, we first add an integer that was not already there
+			int counter = 0;
+			do {
+				index = cpg.addInteger(counter++);
+			}
+			while (cpg.getSize() == size);
+
+			// and then replace the integer constant with the method handle constant
+			cpg.setConstant(index, cid);
+
+			return index;
+		}
+
 		private String getNewNameForPrivateMethod() {
 			int counter = 0;
 			String newName;
@@ -596,7 +629,11 @@ class ClassInstrumentation {
 				Type[] expandedArgs = new Type[args.length + 1];
 				System.arraycopy(args, 0, expandedArgs, 1, args.length);
 				expandedArgs[0] = new ObjectType(className);
-				cid.setNameAndTypeIndex(cpg.addNameAndType(methodName, Type.getMethodSignature(invoke.getReturnType(cpg), expandedArgs)));
+				ConstantInvokeDynamic expandedCid = new ConstantInvokeDynamic(cid.getBootstrapMethodAttrIndex(), cpg.addNameAndType(methodName, Type.getMethodSignature(invoke.getReturnType(cpg), expandedArgs)));
+				int index = addInvokeDynamicToConstantPool(expandedCid);
+				INVOKEDYNAMIC copied = (INVOKEDYNAMIC) invokedynamic.copy();
+				copied.setIndex(index);
+				ih.setInstruction(copied);
 
 				int slots = Stream.of(args).mapToInt(Type::getSize).sum();
 				forEachPusher(ih, slots, where -> {

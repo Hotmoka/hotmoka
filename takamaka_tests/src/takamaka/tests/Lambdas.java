@@ -3,6 +3,9 @@
  */
 package takamaka.tests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -25,7 +28,9 @@ import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.BigIntegerValue;
+import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.StorageReference;
+import takamaka.lang.RequirementViolationException;
 import takamaka.memory.MemoryBlockchain;
 
 /**
@@ -87,5 +92,65 @@ class Lambdas {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "invest", ClassType.BIG_INTEGER),
 			lambdas, new BigIntegerValue(BigInteger.ONE)));
+	}
+
+	@Test @DisplayName("new Lambdas().testLambdaWithThis()")
+	void testLambdaWithThis() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+		blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testLambdaWithThis"),
+			lambdas));
+	}
+
+	@Test @DisplayName("new Lambdas().testMethodReferenceToEntry()")
+	void testMethodReferenceToEntry() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+		IntValue result = (IntValue) blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testMethodReferenceToEntry"),
+			lambdas));
+
+		assertEquals(11, result.value);
+	}
+
+	@Test @DisplayName("new Lambdas().testMethodReferenceToEntrySameContract()")
+	void testMethodReferenceToEntrySameContract() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+				(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+
+		try {
+			blockchain.addInstanceMethodCallTransaction
+				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract"),
+				lambdas));
+		}
+		catch (TransactionException e) {
+			if (e.getCause() instanceof RequirementViolationException)
+				return;
+
+			fail("wrong exception");
+		}
+
+		fail("no exception");
+	}
+
+	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntry()")
+	void testConstructorReferenceToEntry() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+		IntValue result = (IntValue) blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testConstructorReferenceToEntry"),
+			lambdas));
+
+		assertEquals(11, result.value);
+	}
+
+	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntryPopResult()")
+	void testConstructorReferenceToEntryPopResult() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+		blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testConstructorReferenceToEntryPopResult"),
+			lambdas));
 	}
 }
