@@ -464,7 +464,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					Files.delete(original);
 					byte[] instrumentedBytes = Files.readAllBytes(instrumented);
-					//Files.delete(instrumented);
+					Files.delete(instrumented);
 					BigInteger consumedGas = request.gas.subtract(remainingGas());
 					increaseBalance(deserializedCaller, remainingGas());
 					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, collectUpdates(null, deserializedCaller, null, null).stream(), consumedGas);

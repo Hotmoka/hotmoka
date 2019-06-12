@@ -30,6 +30,7 @@ import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
+import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
@@ -336,22 +337,38 @@ class ClassInstrumentation {
 			String entrySignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 			Type[] entryArgs = Type.getArgumentTypes(entrySignature);
 			Type entryReturnType = Type.getReturnType(entrySignature);
+			String implementedInterfaceMethosSignature = ((ConstantUtf8) cpg.getConstant(((ConstantMethodType) cpg.getConstant(args[2])).getDescriptorIndex())).getBytes();
+			Type lambdaReturnType = Type.getReturnType(implementedInterfaceMethosSignature);
 
 			// we replace the target code: it was an invokeX C.entry(pars):r and we transform it
 			// into invokespecial className.lambda(className, pars):r where the name "lambda" is
-			// not used in className
+			// not used in className. The extra parameter className is not added for
+			// constructor references, since they create the new object themselves
 			String lambdaName = getNewNameForPrivateMethod();
-			Type[] lambdaArgs = new Type[entryArgs.length + 1];
-			System.arraycopy(entryArgs, 0, lambdaArgs, 1, entryArgs.length);
-			lambdaArgs[0] = new ObjectType(className);
-			String lambdaSignature = Type.getMethodSignature(entryReturnType, lambdaArgs);
-			mh.setReferenceIndex(cpg.addMethodref(className, lambdaName, lambdaSignature));
-			mh.setReferenceKind(Const.REF_invokeSpecial);
+
+			Type[] lambdaArgs;
+			if (invokeKind == Const.REF_newInvokeSpecial)
+				lambdaArgs = entryArgs;
+			else {
+				lambdaArgs = new Type[entryArgs.length + 1];
+				System.arraycopy(entryArgs, 0, lambdaArgs, 1, entryArgs.length);
+				lambdaArgs[0] = new ObjectType(className);
+			}
+
+			String lambdaSignature = Type.getMethodSignature(lambdaReturnType, lambdaArgs);
+
+			// replace inside the bootstrap method
+			args[1] = addMethodHandleToConstantPool(new ConstantMethodHandle(Const.REF_invokeSpecial, cpg.addMethodref(className, lambdaName, lambdaSignature)));
 
 			// we create the target code: it is a new private synthetic instance method inside className,
 			// called lambdaName and with signature lambdaSignature; its code loads all its explicit parameters
 			// on the stack then calls the entry and returns its value (if any)
 			InstructionList il = new InstructionList();
+			if (invokeKind == Const.REF_newInvokeSpecial) {
+				il.append(factory.createNew(entryClassName));
+				if (lambdaReturnType != Type.VOID)
+					il.append(InstructionConst.DUP);
+			}
 
 			int local = 1;
 			for (Type arg: lambdaArgs) {
@@ -366,17 +383,51 @@ class ClassInstrumentation {
 				invoke = Const.INVOKESPECIAL;
 			else if (invokeKind == Const.REF_invokeInterface)
 				invoke = Const.INVOKEINTERFACE;
+			else if (invokeKind == Const.REF_newInvokeSpecial)
+				invoke = Const.INVOKESPECIAL;
 			else
 				throw new IllegalStateException("Unexpected lambda invocation kind " + invokeKind);
 
 			il.append(factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs, invoke));
-			il.append(InstructionFactory.createReturn(entryReturnType));
+			il.append(InstructionFactory.createReturn(lambdaReturnType));
 
-			MethodGen addedLambda = new MethodGen(PRIVATE_SYNTHETIC, entryReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
+			MethodGen addedLambda = new MethodGen(PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
 			il.setPositions();
 			addedLambda.setMaxLocals();
 			addedLambda.setMaxStack();
 			classGen.addMethod(addedLambda.getMethod());
+		}
+
+		/**
+		 * BCEL does not (yet?) provide a method to add a method handle constant into
+		 * a constant pool. Hence we have to rely to a trick: first we add a new
+		 * integer constant to the constant pool; then we replace it with
+		 * the method handle constant. Ugly, but it currently seem to be the only way.
+		 * 
+		 * @param mh the constant to add
+		 * @return the index at which the constant has been added
+		 */
+		private int addMethodHandleToConstantPool(ConstantMethodHandle mh) {
+			// first we check if an equal constant method handle was already in the constant pool
+			int size = cpg.getSize(), index;
+			for (index = 0; index < size; index++)
+	            if (cpg.getConstant(index) instanceof ConstantMethodHandle) {
+	            	ConstantMethodHandle c = (ConstantMethodHandle) cpg.getConstant(index);
+	                if (c.getReferenceIndex() == mh.getReferenceIndex() && c.getReferenceKind() == mh.getReferenceKind())
+	                    return index; // found
+	            }
+
+			// otherwise, we first add an integer that was not already there
+			int counter = 0;
+			do {
+				index = cpg.addInteger(counter++);
+			}
+			while (cpg.getSize() == size);
+
+			// and then replace the integer constant with the method handle constant
+			cpg.setConstant(index, mh);
+
+			return index;
 		}
 
 		private String getNewNameForPrivateMethod() {
