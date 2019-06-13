@@ -1,6 +1,7 @@
 package takamaka.tests.lambdas;
 
 import java.math.BigInteger;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import takamaka.lang.Entry;
@@ -28,11 +29,19 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
 		Lambdas other = new Lambdas(BigInteger.TEN);
-		BigInteger one = BigInteger.ONE;
+		Lambdas other2 = new Lambdas(BigInteger.TEN);
 		investors.add((PayableContract) caller());
-		//investors.stream().forEach(investor -> investor.receive(one));
-		//investors.stream().forEach(investor -> other.entry2(other::entry3));
-		//investors.stream().forEach(investor -> other.entry4(Lambdas::new));
+		investors.stream().forEach(investor -> other.entry2(other2::entry3));
+		investors.stream().forEach(investor -> other.entry4(Lambdas::new));
+	}
+
+	public void testLambdaWithoutThis() {
+		BigInteger one = BigInteger.ONE;
+		investors.stream().forEach(investor -> investor.receive(one));
+	}
+
+	public void testLambdaWithoutThisGetStatic() {
+		investors.stream().forEach(investor -> investor.receive(BigInteger.ONE));
 	}
 
 	public void testLambdaWithThis() {
@@ -47,11 +56,6 @@ public class Lambdas extends ExternallyOwnedAccount {
 	public void testMethodReferenceToEntryOfOtherClass() {
 		PayableContract investor = investors.first();
 		Stream.of(BigInteger.TEN, BigInteger.ONE).forEach(investor::receive);
-	}
-
-	public void testMethodReferenceToEntryOfOtherClassOK() {
-		PayableContract investor = investors.first();
-		Stream.of(BigInteger.TEN, BigInteger.ONE).forEach(bi -> {this.other = null; investor.receive(bi);});
 	}
 
 	public int testMethodReferenceToEntrySameContract() {
@@ -79,7 +83,11 @@ public class Lambdas extends ExternallyOwnedAccount {
 		return bi;
 	}
 
-	/*public @Entry void entry2(Function<Lambdas, Lambdas> fun) {
+	public @Entry void entry2(Function<Lambdas, Lambdas> fun) {
+		fun.apply(this).receive(2);
+	}
+
+	public void nonentry(Function<Lambdas, Lambdas> fun) {
 		fun.apply(this).receive(2);
 	}
 
@@ -90,5 +98,5 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public @Entry void entry4(Function<BigInteger, Lambdas> fun) {
 		fun.apply(BigInteger.ONE).receive(4);
-	}*/
+	}
 }

@@ -103,6 +103,24 @@ class Lambdas {
 			lambdas));
 	}
 
+	@Test @DisplayName("new Lambdas().testLambdaWithoutThis()")
+	void testLambdaWithoutThis() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+		blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testLambdaWithoutThis"),
+			lambdas));
+	}
+
+	@Test @DisplayName("new Lambdas().testLambdaWithoutThisGetStatic()")
+	void testLambdaWithoutThisGetStatic() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+		blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testLambdaWithoutThisGetStatic"),
+			lambdas));
+	}
+
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntry()")
 	void testMethodReferenceToEntry() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction

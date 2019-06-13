@@ -50,8 +50,11 @@ import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.GETFIELD;
 import org.apache.bcel.generic.GotoInstruction;
+import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
+import org.apache.bcel.generic.INVOKEINTERFACE;
 import org.apache.bcel.generic.INVOKESPECIAL;
+import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
@@ -61,6 +64,7 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InstructionTargeter;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
+import org.apache.bcel.generic.LocalVariableInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
@@ -225,6 +229,12 @@ class ClassInstrumentation {
 		private final BootstrapMethod[] bootstrapMethods;
 
 		/**
+		 * The bootstrap methods that have been instrumented since they must receive
+		 * an extra parameter, since they call an entry and need the calling contract for that.
+		 */
+		private final Set<BootstrapMethod> bootstrapMethodsThatWillRequireExtraThis = new HashSet<>();
+
+		/**
 		 * Performs the instrumentation of a single class.
 		 * 
 		 * @param classGen the class to instrument
@@ -292,9 +302,85 @@ class ClassInstrumentation {
 		 * instruction. That instruction will be later instrumented during local instrumentation.
 		 */
 		private void instrumentBootstrapsInvokingEntries() {
-			Stream.of(bootstrapMethods)
-				.filter(this::callsEntry)
-				.forEach(this::instrumentBootstrapInvokingEntry);
+			collectBootstrapsLeadingToEntries().stream()
+				.forEach(this::instrumentBootstrapCallingEntry);
+		}
+
+		private Set<BootstrapMethod> collectBootstrapsLeadingToEntries() {
+			Set<BootstrapMethod> result = new HashSet<>();
+
+			int initialSize;
+			do {
+				initialSize = result.size();
+				for (BootstrapMethod bootstrap: bootstrapMethods)
+					if (lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, result))
+						result.add(bootstrap);
+			}
+			while (result.size() > initialSize);
+
+			return result;
+		}
+
+		private boolean lambdaCallsEntry(BootstrapMethod bootstrap, Set<BootstrapMethod> bootstrapsCallingEntry) {
+			if (bootstrap.getNumBootstrapArguments() == 3) {
+				Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+				if (constant instanceof ConstantMethodHandle) {
+					ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+					Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+					if (constant2 instanceof ConstantMethodref) {
+						ConstantMethodref mr = (ConstantMethodref) constant2;
+						int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+						String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+						ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+						String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+						String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+
+						// a lambda bridge can only be present in the same class that calls it
+						if (className.equals(this.className)) {
+							Optional<Method> lambda = Stream.of(classGen.getMethods())
+								.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
+								.findAny();
+
+							return lambda.isPresent() && callsEntry(lambda.get(), bootstrapsCallingEntry);
+						}
+					}
+				}
+			};
+
+			return false;
+		}
+
+		/**
+		 * Determines if the given lambda method calls an entry, possibly through an
+		 * {@code invokedynamic} with one of the given bootstraps.
+		 * 
+		 * @param lambda the lambda method
+		 * @param bootstrapsCallingEntry the bootstraps known to call an entry
+		 * @return true if that condition holds
+		 */
+		private boolean callsEntry(Method lambda, Set<BootstrapMethod> bootstrapsCallingEntry) {
+			if (!lambda.isAbstract()) {
+				MethodGen mg = new MethodGen(lambda, className, cpg);
+				return StreamSupport.stream(mg.getInstructionList().spliterator(), false)
+					.anyMatch(instruction -> callsEntry(instruction.getInstruction(), bootstrapsCallingEntry));
+			}
+
+			return false;
+		}
+
+		private boolean callsEntry(Instruction instruction, Set<BootstrapMethod> bootstrapsCallingEntry) {
+			if (instruction instanceof INVOKEDYNAMIC) {
+				INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) instruction;
+				ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
+				return bootstrapsCallingEntry.contains(bootstrapMethods[cid.getBootstrapMethodAttrIndex()]);
+			}
+			else if (instruction instanceof INVOKESPECIAL || instruction instanceof INVOKEVIRTUAL || instruction instanceof INVOKEINTERFACE) {
+				InvokeInstruction invoke = (InvokeInstruction) instruction;
+				return isEntryPossiblyAlreadyInstrumented
+					(invoke.getClassName(cpg), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+			}
+
+			return false;
 		}
 
 		/**
@@ -303,7 +389,7 @@ class ClassInstrumentation {
 		 * @param bootstrap the bootstrap method
 		 * @return true if and only if that condition holds
 		 */
-		private boolean callsEntry(BootstrapMethod bootstrap) {
+		private boolean lambdaIsEntry(BootstrapMethod bootstrap) {
 			if (bootstrap.getNumBootstrapArguments() == 3) {
 				Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 				if (constant instanceof ConstantMethodHandle) {
@@ -325,7 +411,64 @@ class ClassInstrumentation {
 			return false;
 		}
 
-		private void instrumentBootstrapInvokingEntry(BootstrapMethod bootstrap) {
+		private void instrumentBootstrapCallingEntry(BootstrapMethod bootstrap) {
+			if (lambdaIsEntry(bootstrap))
+				instrumentLambdaEntry(bootstrap);
+			else
+				instrumentLambdaCallingEntry(bootstrap);
+		}
+
+		private void instrumentLambdaCallingEntry(BootstrapMethod bootstrap) {
+			int[] args = bootstrap.getBootstrapArguments();
+			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
+			int invokeKind = mh.getReferenceKind();
+
+			if (invokeKind == Const.REF_invokeStatic) {
+				// we instrument bootstrap methods that call a static lambda that calls an entry:
+				// the problem is that the instrumentation of the entry will need local 0 (this)
+				// to pass the calling contract, consequently it must be made into an instance method
+
+				ConstantMethodref mr = (ConstantMethodref) cpg.getConstant(mh.getReferenceIndex());
+				ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+				String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+				String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+				Optional<Method> old = Stream.of(classGen.getMethods())
+						.filter(method -> method.getName().equals(methodName) &&
+								method.getSignature().equals(methodSignature) &&
+								method.isPrivate())
+						.findAny();
+				old.ifPresent(method -> {
+					// we can modify the method handle since the lambda is becoming an instance method
+					// and all calls must be made through invokespecial
+					mh.setReferenceKind(Const.REF_invokeSpecial);
+					makeFromStaticToInstance(method);
+					bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
+				});
+			}
+		}
+
+		private void makeFromStaticToInstance(Method old) {
+			MethodGen _new = new MethodGen(old, className, cpg);
+			_new.isStatic(false);
+			if (!_new.isAbstract())
+				// we increase the indexes of the local variables used in the method
+				for (InstructionHandle ih: _new.getInstructionList()) {
+					Instruction ins = ih.getInstruction();
+					if (ins instanceof LocalVariableInstruction) {
+						int index = ((LocalVariableInstruction) ins).getIndex();
+						if (ins instanceof IINC)
+							ih.setInstruction(new IINC(index + 1, ((IINC) ins).getIncrement()));
+						else if (ins instanceof LoadInstruction)
+							ih.setInstruction(InstructionFactory.createLoad(((LoadInstruction) ins).getType(cpg), index + 1));
+						else if (ins instanceof StoreInstruction)
+							ih.setInstruction(InstructionFactory.createStore(((LoadInstruction) ins).getType(cpg), index + 1));
+					}
+				}
+
+			classGen.replaceMethod(old, _new.getMethod());
+		}
+
+		private void instrumentLambdaEntry(BootstrapMethod bootstrap) {
 			int[] args = bootstrap.getBootstrapArguments();
 			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
 			int invokeKind = mh.getReferenceKind();
@@ -396,6 +539,7 @@ class ClassInstrumentation {
 			addedLambda.setMaxLocals();
 			addedLambda.setMaxStack();
 			classGen.addMethod(addedLambda.getMethod());
+			bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
 		}
 
 		/**
@@ -724,20 +868,8 @@ class ClassInstrumentation {
 				INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) instruction;
 				ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
 				BootstrapMethod bootstrap = bootstrapMethods[cid.getBootstrapMethodAttrIndex()];
-				if (bootstrap.getNumBootstrapArguments() == 3) {
-					Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-					if (constant instanceof ConstantMethodHandle) {
-						ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-						Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-						if (constant2 instanceof ConstantMethodref) {
-							ConstantMethodref mr = (ConstantMethodref) constant2;
-							ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-							String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-							if (methodName.startsWith(EXTRA_LAMBDA_PREFIX))
-								return true;
-						}
-					}
-				};
+				if (bootstrapMethodsThatWillRequireExtraThis.contains(bootstrap))
+					return true;
 			}
 			else if (instruction instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
