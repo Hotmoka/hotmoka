@@ -36,15 +36,11 @@ public class SimplePyramid extends Contract {
 
 		if (investors.size() == previousLayerSize * 4 - 1) {
 			// pay out previous layer: note that currentLayer's size is even here
-			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEach(investor -> send(investor, MINIMUM_INVESTMENT));
+			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEach(investor -> investor.receive(MINIMUM_INVESTMENT));
 			// spread remaining money among all participants
 			BigInteger eachInvestorGets = balance().divide(BigInteger.valueOf(investors.size()));
-			investors.forEach(investor -> send(investor, eachInvestorGets));
+			investors.forEach(investor -> investor.receive(eachInvestorGets));
 			previousLayerSize *= 2;
 		}
-	}
-
-	private void send(PayableContract investor, BigInteger amount) {
-		investor.receive(amount);
 	}
 }
