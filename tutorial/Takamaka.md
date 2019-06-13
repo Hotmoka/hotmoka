@@ -1249,12 +1249,8 @@ public class GradualPonzi extends Contract {
   public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
     require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
     BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
-    investors.stream().forEach(investor -> send(investor, eachInvestorGets));
+    investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
     investors.add((PayableContract) caller());
-  }
-
-  private void send(PayableContract investor, BigInteger amount) {
-    investor.receive(amount);
   }
 }
 ```
@@ -1277,7 +1273,7 @@ with a more traditional (but gas-hungrier):
 
 ```java
 for (PayableContract investor: investors)
-  send(investor, eachInvestorGets)
+  investor.receive(eachInvestorGets);
 ```
 
 It is instead **highly discouraged** to iterate the list as if it were an
@@ -1285,7 +1281,7 @@ array. Namely, **do not write**
 
 ```java
 for (int pos = 0; pos < investors.size(); pos++)
-  send(investors.get(i), eachInvestorGets);
+  investors.get(i).receive(eachInvestorGets);
 ```
 
 since lists are not random-access data structures and the complexity of the
@@ -1293,13 +1289,6 @@ last loop is quadratic in the size of the list. This is not a novelty: the
 same occurs with traditional Java lists (`java.util.LinkedList`, in particular).
 But, in Takamaka, code execution costs gas and
 computational complexity does matter more than in other programming contexts.
-
-> Method `send()` is needed only because calls to `@Entry` methods are not yet
-> allowed inside lambda expressions. This limit will be lifted soon and
-> programmers will be allowed to simply write:
-> ```java
-> investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
-> ```
 
 ### A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
 
