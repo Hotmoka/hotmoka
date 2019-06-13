@@ -465,6 +465,7 @@ class ClassInstrumentation {
 					}
 				}
 
+			StackMapReplacer.replace(_new);
 			classGen.replaceMethod(old, _new.getMethod());
 		}
 
