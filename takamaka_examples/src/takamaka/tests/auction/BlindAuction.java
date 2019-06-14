@@ -126,13 +126,12 @@ public class BlindAuction extends Contract {
      * 
      * @param biddingTime the length of the bidding time
      * @param revealTime the length of the reveal time
-     * @param beneficiary the beneficiary that will receive the highest bid at the end of the reveal time
      */
-    public BlindAuction(int biddingTime, int revealTime, PayableContract beneficiary) {
+    public @Entry(PayableContract.class) BlindAuction(int biddingTime, int revealTime) {
     	require(biddingTime > 0, "Bidding time must be positive");
     	require(revealTime > 0, "Reveal time must be positive");
 
-    	this.beneficiary = beneficiary;
+    	this.beneficiary = (PayableContract) caller();
         this.biddingEnd = now() + biddingTime;
         this.revealEnd = biddingEnd + revealTime;
     }
@@ -179,15 +178,20 @@ public class BlindAuction extends Contract {
 
     /**
 	 * Ends the auction and sends the highest bid to the beneficiary.
+	 * 
+	 * @return the highest bidder
 	 */
-	public void auctionEnd() {
+	public PayableContract auctionEnd() {
 	    onlyAfter(revealEnd);
+	    PayableContract winner = highestBidder;
 	
-	    if (highestBidder != null) {
+	    if (winner != null) {
 	    	beneficiary.receive(highestBid);
-	    	event(new AuctionEnd(highestBidder, highestBid));
+	    	event(new AuctionEnd(winner, highestBid));
 	    	highestBidder = null;
 	    }
+
+	    return winner;
 	}
 
 	/**
@@ -226,7 +230,7 @@ public class BlindAuction extends Contract {
 
         // if there was a best bidder already, its bid is refunded
         if (highestBidder != null)
-            // Refund the previously highest bidder.
+            // Refund the previously highest bidder
             highestBidder.receive(highestBid);
 
         // take note that this is the best bid up to now

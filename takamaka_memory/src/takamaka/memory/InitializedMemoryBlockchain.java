@@ -56,7 +56,7 @@ public class InitializedMemoryBlockchain extends MemoryBlockchain {
 
 		// we compute the total amount of funds needed to create the accounts:
 		// we do not start from 0 since we need some gas to create the accounts, below
-		BigInteger sum = BigInteger.valueOf(1000);
+		BigInteger sum = BigInteger.valueOf(100 * funds.length);
 		for (BigInteger fund: funds)
 			sum = sum.add(fund);
 

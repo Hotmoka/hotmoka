@@ -40,6 +40,16 @@ public final class ClassType implements StorageType {
 	public final static ClassType CONTRACT = new ClassType("takamaka.lang.Contract");
 
 	/**
+	 * The frequently used class type for {@link takamaka.util.Bytes32}.
+	 */
+	public final static ClassType BYTES32 = new ClassType("takamaka.util.Bytes32");
+
+	/**
+	 * The frequently used class type for {@link takamaka.util.StorageList}.
+	 */
+	public final static ClassType STORAGE_LIST = new ClassType("takamaka.util.StorageList");
+
+	/**
 	 * The name of the class type.
 	 */
 	public final String name;
