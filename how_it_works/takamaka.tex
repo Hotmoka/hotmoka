@@ -8,6 +8,25 @@
 \usepackage{graphicx}
 
 \usepackage{listings, framed}
+
+\usepackage{fancyhdr}
+\renewcommand{\headheight}{0.6in}
+\setlength{\headwidth}{\textwidth}
+\fancyhead[R]{
+\small{AiliA SA}\\
+\tiny{Via San Gottardo 17C\\
+6500 Bellinzona CH}
+}
+\fancyhead[C]{
+\tiny{Patent Pending}
+}
+
+\fancyhead[L]{ % right
+   \includegraphics[height=0.53in]{ailia.png}
+}
+\pagestyle{fancy}
+
+
 \lstset{
   language=Java,
   showstringspaces=false,
@@ -36,7 +55,7 @@
   %Takamaka:
   A Java Framework for Smart Contracts}
 
-\author{Fausto Spoto\orcidID{0000-0003-2973-0384}}
+\author{Fausto Spoto\thanks{Orcid: 0000-0003-2973-0384}}
 \institute{
 	Department of Computer Science, Universit\`a di Verona, Italy\\ 
 	\email{fausto.spoto@univr.it}
