@@ -161,7 +161,8 @@ public class BlindAuction extends Contract {
     public @Entry(PayableContract.class) void reveal(StorageList<RevealedBid> revealedBids) throws NoSuchAlgorithmException {
         onlyAfter(biddingEnd);
         onlyBefore(revealEnd);
-        StorageList<Bid> bids = this.bids.get(caller());
+        PayableContract bidder = (PayableContract) caller();
+        StorageList<Bid> bids = this.bids.get(bidder);
         require(bids != null, "No bids to reveal");
         require(revealedBids != null && revealedBids.size() == bids.size(), () -> "Expecting " + bids.size() + " revealed bids");
 
@@ -169,26 +170,40 @@ public class BlindAuction extends Contract {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         Iterator<Bid> it = bids.iterator();
         revealedBids.stream()
-        	.map(revealed -> refundFor(it.next(), revealed, digest))
-        	.forEach(((PayableContract) caller())::receive);
+        	.map(revealed -> refundFor(bidder, it.next(), revealed, digest))
+        	.forEach(bidder::receive);
 
         // make it impossible for the caller to re-claim the same deposits
-        this.bids.remove(caller());
+        this.bids.remove(bidder);
     }
 
     /**
+	 * Ends the auction and sends the highest bid to the beneficiary.
+	 */
+	public void auctionEnd() {
+	    onlyAfter(revealEnd);
+	
+	    if (highestBidder != null) {
+	    	beneficiary.receive(highestBid);
+	    	event(new AuctionEnd(highestBidder, highestBid));
+	    	highestBidder = null;
+	    }
+	}
+
+	/**
      * Checks how much of the deposit should be refunded for a given bid.
      * 
+     * @param bidder the bidder that placed the bid
      * @param bid the bid, as was placed at bidding time
      * @param revealed the bid, as was revealed later
      * @param digest the hashing algorithm
      * @return the amount to refund
      */
-    private BigInteger refundFor(Bid bid, RevealedBid revealed, MessageDigest digest) {
+    private BigInteger refundFor(PayableContract bidder, Bid bid, RevealedBid revealed, MessageDigest digest) {
     	if (!bid.matches(revealed, digest))
     		// the bid was not actually revealed: no refund
     		return BigInteger.ZERO;
-    	else if (!revealed.fake && bid.deposit.compareTo(revealed.value) >= 0 && placeBid((PayableContract) caller(), revealed.value))
+    	else if (!revealed.fake && bid.deposit.compareTo(revealed.value) >= 0 && placeBid(bidder, revealed.value))
     		// the bid was correctly revealed and is the best up to now: only the difference between promised and provided is refunded;
     		// the rest might be refunded later if a better bid will be revealed
     		return bid.deposit.subtract(revealed.value);
@@ -222,20 +237,7 @@ public class BlindAuction extends Contract {
         return true;
     }
 
-    /**
-     * Ends the auction and sends the highest bid to the beneficiary.
-     */
-    public void auctionEnd() {
-        onlyAfter(revealEnd);
-
-        if (highestBidder != null) {
-        	beneficiary.receive(highestBid);
-        	event(new AuctionEnd(highestBidder, highestBid));
-        	highestBidder = null;
-        }
-    }
-
-	private static void onlyBefore(long when) {
+    private static void onlyBefore(long when) {
 		require(now() < when, "Too late");
 	}
 
