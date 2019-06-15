@@ -67,7 +67,7 @@ public class InitializedMemoryBlockchain extends MemoryBlockchain {
 		BigInteger gas = BigInteger.valueOf(1000); // enough for creating an account
 		for (int i = 0; i < accounts.length; i++)
 			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, takamakaBase, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount", ClassType.BIG_INTEGER), new BigIntegerValue(funds[i])));
+				(gamete, gas, takamakaBase, new ConstructorSignature("takamaka.lang.TestExternallyOwnedAccount", ClassType.BIG_INTEGER), new BigIntegerValue(funds[i])));
 	}
 
 	/**

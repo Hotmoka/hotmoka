@@ -224,7 +224,7 @@ public class BlindAuction extends Contract {
      * @return true if and only if this is the best bid, up to now
      */
     private boolean placeBid(PayableContract bidder, BigInteger value) {
-        if (value.compareTo(highestBid) <= 0)
+        if (highestBid != null && value.compareTo(highestBid) <= 0)
         	// this is not the best bid seen so far
             return false;
 
