@@ -2133,13 +2133,16 @@ contract that implements a _blind auction_. That contract allows
 a _beneficiary_ to sell an item to the buying contract that offers
 the highest bid. Since data in blockchain is public, in a non-blind
 auction it is possible that bidders eavesdrop the offers of other bidders
-in order to place an offer that is only slightly better than the current
-best offer. In a blind auction, instead, bids are hashed, so that
-they do not reveal their amount. After a bidding time expires, bidders
-reveal the real values of their bids and the actual winner is determined.
+in order to place an offer that is only slightly higher than the current
+best offer. A blind auction, instead, uses a two phases
+mechanism: in the first _bidding time_, bidders place bids, hashed, so that
+they do not reveal their amount. After the bidding time expires, the second
+phase, called _reveal time_, allows bidders to
+reveal the real values of their bids and the auction contract to determine
+the actual winner.
 This works since, to reveal a bid, each bidder must provide the real data
 of the bid. The auction contract then recomputes the hash from real data and
-checks if the result matches the hash provided before by the bidder.
+checks if the result matches the hash provided at bidding time.
 If not, the bid is considered invalid. Bidders can even place fake offers
 on purpose, in order to confuse other bidders.
 
@@ -2237,11 +2240,11 @@ public class BlindAuction extends Contract {
      */
     private final Bytes32 salt;
 
-	public RevealedBid(BigInteger value, boolean fake, Bytes32 salt) {
+    public RevealedBid(BigInteger value, boolean fake, Bytes32 salt) {
       this.value = value;
       this.fake = fake;
       this.salt = salt;
-	}
+    }
   }
 
   /**
@@ -2342,7 +2345,7 @@ public class BlindAuction extends Contract {
       beneficiary.receive(highestBid);
       event(new AuctionEnd(winner, highestBid));
       highestBidder = null;
-	}
+    }
 
     return winner;
   }
@@ -2403,6 +2406,76 @@ public class BlindAuction extends Contract {
   }
 }
 ```
+
+Let us discusss this (long) code, starting from the inner classes.
+
+Class `Bid` represents a bid placed by a contract that takes part to the auction.
+This information will be stored in blockchain at bidding time, hence
+it is known to all other participants. An instance of `Bid` contains
+the `deposit` payed at time of placing the bid. This is not necessarily
+the real value of the offer but must be at least as large as the real offer,
+or otherwise the bid will be considered invalid at reveal time. Instances
+of `Bid` contain a `hash` made up of 32 bytes. As already said, this will
+be recomputed at reveal time and matched against the result.
+Since arrays cannot be stored in blockchain, we use storage class
+`takamaka.util.Bytes32` here, a library class that hold 32 bytes, as a
+traditional array. It is well possible to use a `StorageArray` of a wrapper
+of `byte` here, but `Bytes32` is much more compact and its methods
+consume less gas.
+
+Class `RevealedBid` describes a bid revealed after bidding time.
+It contains the real value of the bid, the salt used to strengthen the
+hashing algorithm and a boolean `fake` that, when true, means that the
+bid must be considered as invalid, since it was only placed in order
+to confuse other bidders. It is possible to recompute and check the hash of
+a revealed bid through method `Bid.matches()`, that uses a given
+hashing algorithm (`digest`, a Java `java.security.MessageDigest`) to
+hash value, fake mark and salt into 32 bytes, finally compared
+against the hash provided at bidding time.
+
+The `BlindAuction` contract stores the `beneficiary` of the auction.
+It is the contract that created the contract and is consequently
+initialized in the constructor of `BlindAuction`, to its caller.
+The constructor must be an `@Entry` because of that.
+The same constructor receives the length of bidding time and reveal time, in
+milliseconds. This allows the contract to compute tha absolute ending time
+for the bidding phase and for the reveal phase, stored into fields
+`biddingEnd` and `revealEnd`. Note, in the contructor of `BlindAuction`, the
+use of the static method `takamaka.lang.Takamaka.now()`, that yields the
+current time, as with the traditional `System.currentTimeMillis()` of Java
+(that instead cannot be used in Takamaka code). Method `now()` yields the
+time at the beginning of the current block, as seen by its miner.
+That time is reported in the block and hence is independent from the
+machine that runs the contract, that remains deterministic.
+
+Method `bid()` allows a caller (the bidder) to place a bid during the bidding phase.
+An instance of `Bid` is created and added to a list, specific to each
+bidder. Here is where our map comes to our help. Namely, field
+`bids` hold a `StorageMap<PayableContract,StorageList<Bid>>`,
+that can be held in blockchain since it is a storage map of storage keys
+and values. Method `bid()` computes an empty list of bids if it is the
+first time that a bidder places a bid. For that, it uses method
+`computerIfAbsent()` of `StorageMap`. If it used method `get()`, it would
+run into a null-pointer exception the first time a bidder places a bid.
+That is, storage maps default to `null`, as all Java maps, but differently to
+Solidity maps, that provide a new value automatically when undefined.
+
+Method `reveal()` is called by each bidder during the reveal phase.
+It accesses the `bids` places by the bidder during the bidding time.
+They must be as many as the number of `revealedBids` passed to the method.
+Then it matches each bid against the corresponding revealed bid, by calling
+method `refundFor()`, that determines how much of the deposit must be
+refunded to the bidder. Namely, if a bid was fake or was not the best bid,
+it must be refunded. Even if it was the best bid, it must be partially refunded
+if the apparent `deposit` turns out to be higher than the actual value of the
+revealed bid. While bids are refunded, method `placeBid` updates
+the best bid information.
+
+Method `auctionEnd()` is meant to be called after the reveal phase.
+If there is a winner, it sends the highest bid to the beneficiary.
+
+Note the use of methods `onlyBefore()` and `onlyAfter()` to guarantee
+that some methods are only run at the right moment.
 
 ## A Blind Auction Contract <a name="a-blind-auction-contract"></a>
 
