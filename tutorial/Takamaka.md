@@ -27,7 +27,10 @@ executed in blockchain.
         - [A Tic-Tac-Toe Contract](#a-tic-tac-toe-contract)
         - [A More Realistic Tic-Tac-Toe Contract](#a-more-realistic-tic-tac-toe-contract)
         - [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
-    - Storage Maps
+    - [Storage Maps](#storage_maps)
+        - [A Blind Auction Contract](#a-blind-auction-contract)
+        - [Events](#events)
+        - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
 
 # Introduction <a name="introduction"></a>
 
@@ -348,7 +351,7 @@ public class Main {
       blockchain.takamakaBase
     ));
 
-    Classpath classpath = new Classpath(family, true);
+    Classpath classpath = new CUpdate Takamaka.mdlasspath(family, true);
 
     StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
@@ -373,7 +376,7 @@ Let us run the `Main` class. The result is disappointing:
 
 ```
 Exception in thread "main" takamaka.blockchain.TransactionException: Failed transaction
-    at takamaka.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
+    at takamaka.blockchain.AbstUpdate Takamaka.mdractBlockchain.wrapAsTransactionException(Unknown Source)
     at takamaka.blockchain.AbstractBlockchain.lambda$runConstructorCallTransaction$11(Unknown Source)
     at takamaka.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
     at takamaka.blockchain.AbstractBlockchain.runConstructorCallTransaction(Unknown Source)
@@ -762,7 +765,7 @@ Takamaka implements both alternatives as instances of the abstract library class
 `takamaka.lang.Contract` (inside `takamaka_base.jar`). That class extends
 `takamaka.lang.Storage`, hence its instances can be kept in blockchain.
 The Takamaka library defines subclasses of `takamaka.lang.Contract`, that
-we will investigate later. Programmers can define their own subclasses too.
+we will investigate later. Programmers can define their own subclasses.
 
 This chapter presents a simple smart contract, whose goal is to
 enforce a Ponzi investment scheme: each investor pays back the previous investor,
@@ -778,9 +781,9 @@ the meaning of each language feature of Takamaka.
 
 ## A Simple Ponzi Scheme Contract <a name="simple-ponzi"></a>
 
-Create a new `takamaka2` Java project in Eclipse. Create folders `lib`
+Create a new `ponzi` Java project in Eclipse. Create folders `lib`
 and `dist` inside the project. Put both `takamaka_base.jar` and `takamaka_runtime.jar`
-inside `lib` and add them to the build path of `takamaka2`. Create package
+inside `lib` and add them to the build path of `ponzi`. Create package
 `takamaka.tests.ponzi`; create class `SimplePonzi.java` inside that
 package and copy the following code in `SimplePonzi.java`:
 
@@ -901,7 +904,8 @@ into `currentInvestor`.
 > annotated as `@Entry`.
 
 > Method `caller()` can only be used inside an `@Entry` method or
-> constructor and refers to the contract that called that method or constructor.
+> constructor and refers to the contract that called that method or constructor
+> or to the contract that pays for a method call started from a wallet.
 > Hence, it will never yield `null`. If an `@Entry` method or constructor
 > calls another method *m*, then `caller()` is **not** available inside *m*
 > and must be passed as an explicit parameter to *m*, if needed there.
@@ -965,9 +969,9 @@ The `SimplePonzi.java` class is not ready yet. Namely, investors have to pay
 an always increasing amount of money to replace the current investor.
 However, this one never gets the previous investment back, plus the 10% award
 (at least). Coins keep flowing inside the `SimplePonzi` contract and remain
-stuck there, for ever. The code needs an apparently simple change: just add a single line
+stuck there, forever. The code needs an apparently simple change: just add a single line
 before the update of the new current investor. That line should send
-`amount` units of coin to `currentInvestor`, before it gets replaced:
+`amount` units of coin back to `currentInvestor`, before it gets replaced:
 
 ```java
 // document new investor
@@ -988,7 +992,7 @@ a contract can receive money only through calls to its `@Payable`
 constructors and methods. Since `currentInvestor` is, very generically,
 an instance of `Contract`, that has no `@Payable` methods,
 there is no method
-that we can call here for sending money to `currentInvestor`.
+that we can call here for sending money back to `currentInvestor`.
 This limitation is a deliberate choice of the design of Takamaka.
 
 > Solidity programmers will find this very different from what happens
@@ -1007,7 +1011,7 @@ Namely, we limit the game to contracts that implement class
 `takamaka.lang.PayableContract`, a subclass of `takamaka.lang.Contract`
 that, yes, does have a `receive()` method. This is not really a restriction,
 since the typical players of our Ponzi contract are externally
-owned accounts and all externally owned contracts are `PayableContract`s.
+owned accounts, that are instances of `PayableContract`s.
 
 Let us hence apply the following small changes to our `SimplePonzi.java` class:
 
@@ -1071,7 +1075,7 @@ running a transaction that might end up in two negative scenarios:
    will throw an exception that makes the transaction running `invest()` fail.
    The investment will not be transferred to the `SimplePonzi` contract, but
    the investor will be punished by charging him all gas provided for
-   the transaction. This is unfair since, after all, the investor has no
+   the transaction. This is unfair since, after all, the investor had no
    way to know that the investment was not enough.
 
 Hence, it would be nice and fair to provide investors with a way of accessing
@@ -1098,6 +1102,8 @@ class in the Java source and edit the declaration of `getCurrentInvestment()`
 as follows:
 
 ```java
+import takamaka.lang.View;
+...
 public @View BigInteger getCurrentInvestment() {
   return currentInvestment;
 }
@@ -1106,7 +1112,7 @@ public @View BigInteger getCurrentInvestment() {
 An investor can now call that method through another API method of the
 blockchain, called `runInstanceMethodCallTransaction()`, that does not expand the
 blockchain, but yields the response of the transaction, including the
-returned balue of the call. If method
+returned value of the call. If method
 `getCurrentInvestment()` had side-effects beyond that on the balance of
 the caller, then the execution will fail with a run-time exception.
 Note that the execution of a `@View` method still requires gas,
@@ -1288,7 +1294,7 @@ for (int pos = 0; pos < investors.size(); pos++)
 
 since lists are not random-access data structures and the complexity of the
 last loop is quadratic in the size of the list. This is not a novelty: the
-same occurs with traditional Java lists (`java.util.LinkedList`, in particular).
+same occurs with most traditional Java lists (`java.util.LinkedList`, in particular).
 But, in Takamaka, code execution costs gas and
 computational complexity does matter more than in other programming contexts.
 
@@ -1343,12 +1349,9 @@ immediately.
 
 ## Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
 
-Let us play with the `GradualPonzi` contract. First, let us create a jar
-that contains its bytecode. For that, as already shown, create for
-instance an Eclipse Java project `ponzi`, create folders `lib` and `dist`
-inside it, copy `takamaka_base.jar` and `takamaka_runtime.jar` inside
-`lib` and add them both to the build path. Create package
-`takamaka.tests.ponzi` and copy `GradualPonzi.java` inside it.
+Let us play with the `GradualPonzi` contract. Go to the
+`ponzi` Eclipse project and copy `GradualPonzi.java` inside
+package `takamaka.tests.ponzi`.
 Then export the compiled code in jar format inside `dist`,
 as `ponzi.jar`.
 
@@ -2110,3 +2113,11 @@ when the first player wins: `b2/t1/response.txt`. You should see
 that the balances of the creator and of the first player are updated,
 as well as that of the contract, that is emptied of all money and
 reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
+
+# Storage Maps <a name="storage_maps"></a>
+
+## A Blind Auction Contract <a name="a-blind-auction-contract"></a>
+
+## Events <a name="events"></a>
+
+## Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
