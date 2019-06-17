@@ -2116,6 +2116,40 @@ reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
 
 # Storage Maps <a name="storage_maps"></a>
 
+Maps are dynamic associations of objects to objects. They are useful
+for programming smart programs, as their extensive use in Solidity proves.
+However, most such uses are related to the withdraw pattern, that is
+not needed in Takamaka. Nevertheless, there are still situations when
+maps are useful in Takamaka code, as we show below.
+
+Java has many implementations of maps, that can be used in Takamaka.
+However, they are not storage ojects and consequently cannot be
+stored in blockchain. This section describes the
+`takamaka.util.StorageMap<K,V>` class, that extends `Storage` and
+whose instances can then be held in blockchain.
+
+We will exemplify the use of class `StorageMap` by writing a smart
+contract that implements a _blind auction_. That contract allows
+a _beneficiary_ to sell an item to the buying contract that offers
+the highest bid. Since data in blockchain is public, in a non-blind
+auction it is possible that bidders eavesdrop the offers of other bidders
+in order to place an offer that is only slightly better than the current
+best offer. In a blind auction, instead, bids are hashed, so that
+they do not reveal their amount. After a bidding time expires, bidders
+reveal the real values of their bids and the actual winner is determined.
+This works since, to reveal a bid, each bidder must provide the real data
+of the bid. The auction contract then recomputes the hash from real data and
+checks if the result matches the hash provided before by the budder.
+If not, the bid is considered invalid. Bidder can even place fake offers
+on purpose, in order to confuse the other bidders.
+
+Below, we report the code of a Takamaka smart contract that implements
+a blind auction. Since each bidder may place more bids and since such bids
+must be kept in storage until reveal time, this code uses a map
+from bidders to lists of bids. This smart contract has been inspired
+by a similar Solidity contract available
+<a href="https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2">here</a>.
+
 ## A Blind Auction Contract <a name="a-blind-auction-contract"></a>
 
 ## Events <a name="events"></a>
