@@ -21,7 +21,7 @@ import takamaka.util.StorageMap;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at
- * https://solidity.readthedocs.io/en/v0.4.25/solidity-by-example.html#id2
+ * https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2
  * In this contract, bidders place bids together with a hash. At the end of
  * the bidding period, bidders are expected to reveal if and which of their bids
  * were real and their actual value. Fake bids are refunded. Real bids are compared
@@ -54,8 +54,8 @@ public class BlindAuction extends Contract {
         }
 
         /**
-         * Recomputes the hash of a big at reveal time and compares it
-         * with the hash provided at bidding time. If they match,
+         * Recomputes the hash of a bid at reveal time and compares it
+         * against the hash provided at bidding time. If they match,
          * we can reasonably trust the bid.
          * 
          * @param revealed the revealed bid
