@@ -2125,9 +2125,33 @@ maps are useful in Takamaka code, as we show below.
 Java has many implementations of maps, that can be used in Takamaka.
 However, they are not storage ojects and consequently cannot be
 stored in blockchain. This section describes the
-`takamaka.util.StorageMap<K,V>` class, that extends `Storage` and
+`takamaka.util.StorageMap<K, V>` class, that extends `Storage` and
 whose instances can then be held in blockchain, if keys `K` and
 values `V` are types that can be stored in blockchain.
+
+We refer to the JavaDoc of `StorageMap` for a full description of its methods,
+that are similar to methods of traditional Java maps. Here, we just observe
+that a key is mapped into a value by calling method
+`void put(K key, V value)`, while the value bound to a key is retrieved by calling
+`V get(Object key)`. It is possible to yield a default value when a key is not
+in the map, by calling `V getOrDefault(Object key, V _default)` or
+its sibling `V getOrDefault(Object key, Supplier<V> _default)`, that
+evaluates the default value only if needed. Method `V putIfAbsent(K key, V value)`,
+binds the key to the value only if the key is unbound. Similarly for
+its sibling `V computeIfAbsent(K key, Supplier<V> value)` that, however,
+evaluates the new value only if needed (these two methods differ for their
+returned value, as in Java maps. Please refer to their JavaDoc).
+
+Instances of `StorageMap<K, V>` keep keys in increasing order. Namely, if
+type `K` has a natural order, that order is used. Otherwise, keys
+(that must then be storage objects) are kept ordered by increasing storage
+reference. Consequently, methods `K min()` and `K max()` yield the
+minimal and the maximal key of a map. Method `List<K> keyList()` yields the
+ordered list of the keys of a map; method `Stream<K> keys()` yields the
+same, as an ordered stream; method `Stream<Entry<K, V>> stream()` yields the
+ordered stream of the entries (ie., key/value pairs) of a map.
+Compare this with Solidity, where
+maps do not know the set of their keys.
 
 ## A Blind Auction Contract <a name="a-blind-auction-contract"></a>
 
