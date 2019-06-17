@@ -27,7 +27,10 @@ executed in blockchain.
         - [A Tic-Tac-Toe Contract](#a-tic-tac-toe-contract)
         - [A More Realistic Tic-Tac-Toe Contract](#a-more-realistic-tic-tac-toe-contract)
         - [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
-    - Storage Maps
+    - [Storage Maps](#storage_maps)
+        - [A Blind Auction Contract](#a-blind-auction-contract)
+        - [Events](#events)
+        - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
 
 # Introduction <a name="introduction"></a>
 
@@ -348,7 +351,7 @@ public class Main {
       blockchain.takamakaBase
     ));
 
-    Classpath classpath = new Classpath(family, true);
+    Classpath classpath = new CUpdate Takamaka.mdlasspath(family, true);
 
     StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
@@ -373,7 +376,7 @@ Let us run the `Main` class. The result is disappointing:
 
 ```
 Exception in thread "main" takamaka.blockchain.TransactionException: Failed transaction
-    at takamaka.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
+    at takamaka.blockchain.AbstUpdate Takamaka.mdractBlockchain.wrapAsTransactionException(Unknown Source)
     at takamaka.blockchain.AbstractBlockchain.lambda$runConstructorCallTransaction$11(Unknown Source)
     at takamaka.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
     at takamaka.blockchain.AbstractBlockchain.runConstructorCallTransaction(Unknown Source)
@@ -762,7 +765,7 @@ Takamaka implements both alternatives as instances of the abstract library class
 `takamaka.lang.Contract` (inside `takamaka_base.jar`). That class extends
 `takamaka.lang.Storage`, hence its instances can be kept in blockchain.
 The Takamaka library defines subclasses of `takamaka.lang.Contract`, that
-we will investigate later. Programmers can define their own subclasses too.
+we will investigate later. Programmers can define their own subclasses.
 
 This chapter presents a simple smart contract, whose goal is to
 enforce a Ponzi investment scheme: each investor pays back the previous investor,
@@ -778,9 +781,9 @@ the meaning of each language feature of Takamaka.
 
 ## A Simple Ponzi Scheme Contract <a name="simple-ponzi"></a>
 
-Create a new `takamaka2` Java project in Eclipse. Create folders `lib`
+Create a new `ponzi` Java project in Eclipse. Create folders `lib`
 and `dist` inside the project. Put both `takamaka_base.jar` and `takamaka_runtime.jar`
-inside `lib` and add them to the build path of `takamaka2`. Create package
+inside `lib` and add them to the build path of `ponzi`. Create package
 `takamaka.tests.ponzi`; create class `SimplePonzi.java` inside that
 package and copy the following code in `SimplePonzi.java`:
 
@@ -901,7 +904,8 @@ into `currentInvestor`.
 > annotated as `@Entry`.
 
 > Method `caller()` can only be used inside an `@Entry` method or
-> constructor and refers to the contract that called that method or constructor.
+> constructor and refers to the contract that called that method or constructor
+> or to the contract that pays for a method call started from a wallet.
 > Hence, it will never yield `null`. If an `@Entry` method or constructor
 > calls another method *m*, then `caller()` is **not** available inside *m*
 > and must be passed as an explicit parameter to *m*, if needed there.
@@ -965,9 +969,9 @@ The `SimplePonzi.java` class is not ready yet. Namely, investors have to pay
 an always increasing amount of money to replace the current investor.
 However, this one never gets the previous investment back, plus the 10% award
 (at least). Coins keep flowing inside the `SimplePonzi` contract and remain
-stuck there, for ever. The code needs an apparently simple change: just add a single line
+stuck there, forever. The code needs an apparently simple change: just add a single line
 before the update of the new current investor. That line should send
-`amount` units of coin to `currentInvestor`, before it gets replaced:
+`amount` units of coin back to `currentInvestor`, before it gets replaced:
 
 ```java
 // document new investor
@@ -988,7 +992,7 @@ a contract can receive money only through calls to its `@Payable`
 constructors and methods. Since `currentInvestor` is, very generically,
 an instance of `Contract`, that has no `@Payable` methods,
 there is no method
-that we can call here for sending money to `currentInvestor`.
+that we can call here for sending money back to `currentInvestor`.
 This limitation is a deliberate choice of the design of Takamaka.
 
 > Solidity programmers will find this very different from what happens
@@ -1007,7 +1011,7 @@ Namely, we limit the game to contracts that implement class
 `takamaka.lang.PayableContract`, a subclass of `takamaka.lang.Contract`
 that, yes, does have a `receive()` method. This is not really a restriction,
 since the typical players of our Ponzi contract are externally
-owned accounts and all externally owned contracts are `PayableContract`s.
+owned accounts, that are instances of `PayableContract`s.
 
 Let us hence apply the following small changes to our `SimplePonzi.java` class:
 
@@ -1071,7 +1075,7 @@ running a transaction that might end up in two negative scenarios:
    will throw an exception that makes the transaction running `invest()` fail.
    The investment will not be transferred to the `SimplePonzi` contract, but
    the investor will be punished by charging him all gas provided for
-   the transaction. This is unfair since, after all, the investor has no
+   the transaction. This is unfair since, after all, the investor had no
    way to know that the investment was not enough.
 
 Hence, it would be nice and fair to provide investors with a way of accessing
@@ -1098,6 +1102,8 @@ class in the Java source and edit the declaration of `getCurrentInvestment()`
 as follows:
 
 ```java
+import takamaka.lang.View;
+...
 public @View BigInteger getCurrentInvestment() {
   return currentInvestment;
 }
@@ -1106,7 +1112,7 @@ public @View BigInteger getCurrentInvestment() {
 An investor can now call that method through another API method of the
 blockchain, called `runInstanceMethodCallTransaction()`, that does not expand the
 blockchain, but yields the response of the transaction, including the
-returned balue of the call. If method
+returned value of the call. If method
 `getCurrentInvestment()` had side-effects beyond that on the balance of
 the caller, then the execution will fail with a run-time exception.
 Note that the execution of a `@View` method still requires gas,
@@ -1288,7 +1294,7 @@ for (int pos = 0; pos < investors.size(); pos++)
 
 since lists are not random-access data structures and the complexity of the
 last loop is quadratic in the size of the list. This is not a novelty: the
-same occurs with traditional Java lists (`java.util.LinkedList`, in particular).
+same occurs with most traditional Java lists (`java.util.LinkedList`, in particular).
 But, in Takamaka, code execution costs gas and
 computational complexity does matter more than in other programming contexts.
 
@@ -1343,12 +1349,9 @@ immediately.
 
 ## Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
 
-Let us play with the `GradualPonzi` contract. First, let us create a jar
-that contains its bytecode. For that, as already shown, create for
-instance an Eclipse Java project `ponzi`, create folders `lib` and `dist`
-inside it, copy `takamaka_base.jar` and `takamaka_runtime.jar` inside
-`lib` and add them both to the build path. Create package
-`takamaka.tests.ponzi` and copy `GradualPonzi.java` inside it.
+Let us play with the `GradualPonzi` contract. Go to the
+`ponzi` Eclipse project and copy `GradualPonzi.java` inside
+package `takamaka.tests.ponzi`.
 Then export the compiled code in jar format inside `dist`,
 as `ponzi.jar`.
 
@@ -2110,3 +2113,398 @@ when the first player wins: `b2/t1/response.txt`. You should see
 that the balances of the creator and of the first player are updated,
 as well as that of the contract, that is emptied of all money and
 reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
+
+# Storage Maps <a name="storage_maps"></a>
+
+Maps are dynamic associations of objects to objects. They are useful
+for programming smart contracts, as their extensive use in Solidity proves.
+However, most such uses are related to the withdraw pattern, that is
+not needed in Takamaka. Nevertheless, there are still situations when
+maps are useful in Takamaka code, as we show below.
+
+Java has many implementations of maps, that can be used in Takamaka.
+However, they are not storage ojects and consequently cannot be
+stored in blockchain. This section describes the
+`takamaka.util.StorageMap<K, V>` class, that extends `Storage` and
+whose instances can then be held in blockchain, if keys `K` and
+values `V` are types that can be stored in blockchain.
+
+We refer to the JavaDoc of `StorageMap` for a full description of its methods,
+that are similar to methods of traditional Java maps. Here, we just observe
+that a key is mapped into a value by calling method
+`void put(K key, V value)`, while the value bound to a key is retrieved by calling
+`V get(Object key)`. It is possible to yield a default value when a key is not
+in the map, by calling `V getOrDefault(Object key, V _default)` or
+its sibling `V getOrDefault(Object key, Supplier<V> _default)`, that
+evaluates the default value only if needed. Method `V putIfAbsent(K key, V value)`,
+binds the key to the value only if the key is unbound. Similarly for
+its sibling `V computeIfAbsent(K key, Supplier<V> value)` that, however,
+evaluates the new value only if needed (these two methods differ for their
+returned value, as in Java maps. Please refer to their JavaDoc).
+
+Instances of `StorageMap<K, V>` keep keys in increasing order. Namely, if
+type `K` has a natural order, that order is used. Otherwise, keys
+(that must then be storage objects) are kept ordered by increasing storage
+reference. Consequently, methods `K min()` and `K max()` yield the
+minimal and the maximal key of a map. Method `List<K> keyList()` yields the
+ordered list of the keys of a map; method `Stream<K> keys()` yields the
+same, as an ordered stream; method `Stream<Entry<K, V>> stream()` yields the
+ordered stream of the entries (ie., key/value pairs) of a map.
+Compare this with Solidity, where
+maps do not know the set of their keys.
+
+## A Blind Auction Contract <a name="a-blind-auction-contract"></a>
+
+We will exemplify the use of class `StorageMap` with a smart
+contract that implements a _blind auction_. That contract allows
+a _beneficiary_ to sell an item to the buying contract that offers
+the highest bid. Since data in blockchain is public, in a non-blind
+auction it is possible that bidders eavesdrop the offers of other bidders
+in order to place an offer that is only slightly higher than the current
+best offer. A blind auction, instead, uses a two-phases
+mechanism: in the initial _bidding time_, bidders place bids, hashed, so that
+they do not reveal their amount. After the bidding time expires, the second
+phase, called _reveal time_, allows bidders to
+reveal the real values of their bids and the auction contract to determine
+the actual winner.
+This works since, to reveal a bid, each bidder provides the real data
+of the bid. The auction contract then recomputes the hash from real data and
+checks if the result matches the hash provided at bidding time.
+If not, the bid is considered invalid. Bidders can even place fake offers
+on purpose, in order to confuse other bidders.
+
+A Takamaka smart contract that implements
+a blind auction is shown below. Since each bidder may place more bids and since such bids
+must be kept in storage until reveal time, this code uses a map
+from bidders to lists of bids. This smart contract has been inspired
+by a similar Solidity contract available
+<a href="https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2">here</a>.
+
+```java
+package takamaka.tests.auction;
+
+import static takamaka.lang.Takamaka.event;
+import static takamaka.lang.Takamaka.now;
+import static takamaka.lang.Takamaka.require;
+
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Iterator;
+
+import takamaka.lang.Contract;
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
+import takamaka.lang.PayableContract;
+import takamaka.lang.Storage;
+import takamaka.util.Bytes32;
+import takamaka.util.StorageList;
+import takamaka.util.StorageMap;
+
+/**
+ * A contract for a simple auction. This class is derived from the Solidity code shown at
+ * https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2
+ * In this contract, bidders place bids together with a hash. At the end of
+ * the bidding period, bidders are expected to reveal if and which of their bids
+ * were real and their actual value. Fake bids are refunded. Real bids are compared
+ * and the bidder with the highest bid wins.
+ */
+public class BlindAuction extends Contract {
+
+  /**
+   * A bid placed by a bidder. The deposit has been payed in full.
+   * If, later, the bid will be revealed as fake, then the deposit will
+   * be fully refunded. If, instead, the bid will be revealed as real, but for
+   * a lower amount, then only the difference will be refunded.
+   */
+  private static class Bid extends Storage {
+
+    /**
+     * The hash that will be regenerated and compared at reveal time.
+     */
+    private final Bytes32 hash;
+
+    /**
+      * The value of the bid. Its real value might be lower and known
+      * at real time only.
+      */
+    private final BigInteger deposit;
+
+    private Bid(Bytes32 hash, BigInteger deposit) {
+      this.hash = hash;
+      this.deposit = deposit;
+    }
+
+    /**
+     * Recomputes the hash of a bid at reveal time and compares it
+     * against the hash provided at bidding time. If they match,
+     * we can reasonably trust the bid.
+     * 
+     * @param revealed the revealed bid
+     * @param digest the hasher
+     * @return true if and only if the hashes match
+     */
+    private boolean matches(RevealedBid revealed, MessageDigest digest) {
+      digest.update(revealed.value.toByteArray());
+      digest.update(revealed.fake ? (byte) 0 : (byte) 1);
+      digest.update(revealed.salt.toArray());
+      return Arrays.equals(hash.toArray(), digest.digest());
+    }
+  }
+
+  /**
+   * A bid revealed by a bidder at reveal time. The bidder shows
+   * if the corresponding bid was fake or real, and how much was the
+   * actual value of the bid. This might be lower than previously communicated.
+   */
+  public static class RevealedBid extends Storage {
+    private final BigInteger value;
+    private final boolean fake;
+
+    /**
+     * The salt used to strengthen the hashing.
+     */
+    private final Bytes32 salt;
+
+    public RevealedBid(BigInteger value, boolean fake, Bytes32 salt) {
+      this.value = value;
+      this.fake = fake;
+      this.salt = salt;
+    }
+  }
+
+  /**
+   * The beneficiary that, at the end of the reveal time, will receive the highest bid.
+   */
+  private final PayableContract beneficiary;
+
+  /**
+   * The bids for each bidder. A bidder might place more bids.
+   */
+  private final StorageMap<PayableContract, StorageList<Bid>> bids = new StorageMap<>();
+
+  /**
+   * The time when the bidding time ends.
+   */
+  private final long biddingEnd;
+
+  /**
+   * The time when the reveal time ends.
+   */
+  private final long revealEnd;
+
+  /**
+   * The bidder with the highest bid, at reveal time.
+   */
+  private PayableContract highestBidder;
+
+  /**
+   * The highest bid, at reveal time.
+   */
+  private BigInteger highestBid;
+
+  /**
+   * Creates a blind auction contract.
+   * 
+   * @param biddingTime the length of the bidding time
+   * @param revealTime the length of the reveal time
+   */
+  public @Entry(PayableContract.class) BlindAuction(int biddingTime, int revealTime) {
+    require(biddingTime > 0, "Bidding time must be positive");
+    require(revealTime > 0, "Reveal time must be positive");
+
+    this.beneficiary = (PayableContract) caller();
+    this.biddingEnd = now() + biddingTime;
+    this.revealEnd = biddingEnd + revealTime;
+  }
+
+  /**
+   * Places a blinded bid the given hash.
+   * The sent money is only refunded if the bid is correctly
+   * revealed in the revealing phase. The bid is valid if the
+   * money sent together with the bid is at least "value" and
+   * "fake" is not true. Setting "fake" to true and sending
+   * not the exact amount are ways to hide the real bid but
+   * still make the required deposit. The same bidder can place multiple bids.
+   */
+  public @Payable @Entry(PayableContract.class) void bid(BigInteger amount, Bytes32 hash) {
+    onlyBefore(biddingEnd);
+    bids.computeIfAbsent((PayableContract) caller(), StorageList::new).add(new Bid(hash, amount));
+  }
+
+  /**
+   * Reveals the bids of the caller. The caller will get a refund for all correctly
+   * blinded invalid bids and for all bids except for the totally highest.
+   * 
+   * @param revealedBids the revealed bids
+   * @throws NoSuchAlgorithmException if the hashing algorithm is not available
+   */
+  public @Entry(PayableContract.class) void reveal(StorageList<RevealedBid> revealedBids) throws NoSuchAlgorithmException {
+    onlyAfter(biddingEnd);
+    onlyBefore(revealEnd);
+    PayableContract bidder = (PayableContract) caller();
+    StorageList<Bid> bids = this.bids.get(bidder);
+    require(bids != null, "No bids to reveal");
+    require(revealedBids != null && revealedBids.size() == bids.size(), () -> "Expecting " + bids.size() + " revealed bids");
+
+    // any other hashing algorithm will do, as long as both bidder and auction contract use the same
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    Iterator<Bid> it = bids.iterator();
+    revealedBids.stream()
+      .map(revealed -> refundFor(bidder, it.next(), revealed, digest))
+      .forEach(bidder::receive);
+
+    // make it impossible for the caller to re-claim the same deposits
+    this.bids.remove(bidder);
+  }
+
+  /**
+   * Ends the auction and sends the highest bid to the beneficiary.
+   * 
+   * @return the highest bidder
+   */
+  public PayableContract auctionEnd() {
+    onlyAfter(revealEnd);
+    PayableContract winner = highestBidder;
+	
+    if (winner != null) {
+      beneficiary.receive(highestBid);
+      event(new AuctionEnd(winner, highestBid));
+      highestBidder = null;
+    }
+
+    return winner;
+  }
+
+  /**
+   * Checks how much of the deposit should be refunded for a given bid.
+   * 
+   * @param bidder the bidder that placed the bid
+   * @param bid the bid, as was placed at bidding time
+   * @param revealed the bid, as was revealed later
+   * @param digest the hashing algorithm
+   * @return the amount to refund
+   */
+  private BigInteger refundFor(PayableContract bidder, Bid bid, RevealedBid revealed, MessageDigest digest) {
+    if (!bid.matches(revealed, digest))
+      // the bid was not actually revealed: no refund
+      return BigInteger.ZERO;
+    else if (!revealed.fake && bid.deposit.compareTo(revealed.value) >= 0 && placeBid(bidder, revealed.value))
+      // the bid was correctly revealed and is the best up to now: only the difference between promised and provided is refunded;
+      // the rest might be refunded later if a better bid will be revealed
+      return bid.deposit.subtract(revealed.value);
+    else
+      // the bid was correctly revealed and is not the best one: it is fully refunded
+      return bid.deposit;
+  }
+
+  /**
+   * Takes note that a bidder has correctly revealed a bid for the given value.
+   * 
+   * @param bidder the bidder
+   * @param value the value, as revealed
+   * @return true if and only if this is the best bid, up to now
+   */
+  private boolean placeBid(PayableContract bidder, BigInteger value) {
+    if (highestBid != null && value.compareTo(highestBid) <= 0)
+      // this is not the best bid seen so far
+      return false;
+
+    // if there was a best bidder already, its bid is refunded
+    if (highestBidder != null)
+      // Refund the previously highest bidder
+      highestBidder.receive(highestBid);
+
+    // take note that this is the best bid up to now
+    highestBid = value;
+    highestBidder = bidder;
+    event(new BidIncrease(bidder, value));
+
+    return true;
+  }
+
+  private static void onlyBefore(long when) {
+    require(now() < when, "Too late");
+  }
+
+  private static void onlyAfter(long when) {
+    require(now() > when, "Too early");
+  }
+}
+```
+
+Let us discuss this (long) code, starting from the inner classes.
+
+Class `Bid` represents a bid placed by a contract that takes part to the auction.
+This information will be stored in blockchain at bidding time, hence
+it is known to all other participants. An instance of `Bid` contains
+the `deposit` payed at time of placing the bid. This is not necessarily
+the real value of the offer but must be at least as large as the real offer,
+or otherwise the bid will be considered invalid at reveal time. Instances
+of `Bid` contain a `hash` made up of 32 bytes. As already said, this will
+be recomputed at reveal time and matched against the result.
+Since arrays cannot be stored in blockchain, we use storage class
+`takamaka.util.Bytes32` here, a library class that holds 32 bytes, as a
+traditional array. It is well possible to use a `StorageArray` of a wrapper
+of `byte` here, but `Bytes32` is much more compact and its methods
+consume less gas.
+
+Class `RevealedBid` describes a bid revealed after bidding time.
+It contains the real value of the bid, the salt used to strengthen the
+hashing algorithm and a boolean `fake` that, when true, means that the
+bid must be considered as invalid, since it was only placed in order
+to confuse other bidders. It is possible to recompute and check the hash of
+a revealed bid through method `Bid.matches()`, that uses a given
+hashing algorithm (`digest`, a Java `java.security.MessageDigest`) to
+hash value, fake mark and salt into bytes, finally compared
+against the hash provided at bidding time.
+
+The `BlindAuction` contract stores the `beneficiary` of the auction.
+It is the contract that created the contract and is consequently
+initialized, in the constructor of `BlindAuction`, to its caller.
+The constructor must be an `@Entry` because of that.
+The same constructor receives the length of bidding time and reveal time, in
+milliseconds. This allows the contract to compute tha absolute ending time
+for the bidding phase and for the reveal phase, stored into fields
+`biddingEnd` and `revealEnd`, respectively.
+Note, in the contructor of `BlindAuction`, the
+use of the static method `takamaka.lang.Takamaka.now()`, that yields the
+current time, as with the traditional `System.currentTimeMillis()` of Java
+(that instead cannot be used in Takamaka code). Method `now()` yields the
+time at the beginning of the block of the current transaction, as seen by its miner.
+That time is reported in the block and hence is independent from the
+machine that runs the contract, that remains deterministic.
+
+Method `bid()` allows a caller (the bidder) to place a bid during the bidding phase.
+An instance of `Bid` is created and added to a list, specific to each
+bidder. Here is where our map comes to our help. Namely, field
+`bids` hold a `StorageMap<PayableContract, StorageList<Bid>>`,
+that can be held in blockchain since it is a storage map of storage keys
+and values. Method `bid()` computes an empty list of bids if it is the
+first time that a bidder places a bid. For that, it uses method
+`computerIfAbsent()` of `StorageMap`. If it used method `get()`, it would
+run into a null-pointer exception the first time a bidder places a bid.
+That is, storage maps default to `null`, as all Java maps, but differently to
+Solidity maps, that provide a new value automatically when undefined.
+
+Method `reveal()` is called by each bidder during the reveal phase.
+It accesses the `bids` placed by the bidder during the bidding time.
+They must be as many as the number of `revealedBids` passed to the method.
+Then it matches each bid against the corresponding revealed bid, by calling
+method `refundFor()`, that determines how much of the deposit must be
+refunded to the bidder. Namely, if a bid was fake or was not the best bid,
+it must be refunded entirely. If it was the best bid, it must be partially refunded
+if the apparent `deposit` turns out to be higher than the actual value of the
+revealed bid. While bids are refunded, method `placeBid` updates
+the best bid information.
+
+Method `auctionEnd()` is meant to be called after the reveal phase.
+If there is a winner, it sends the highest bid to the beneficiary.
+
+Note the use of methods `onlyBefore()` and `onlyAfter()` to guarantee
+that some methods are only run at the right moment.
+
+## Events <a name="events"></a>
+
+## Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
