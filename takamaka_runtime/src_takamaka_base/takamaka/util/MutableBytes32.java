@@ -119,7 +119,7 @@ public class MutableBytes32 extends AbstractByteArray implements MutableByteArra
 	}
 
 	@Override
-	public int length() {
+	public @View int length() {
 		return length;
 	}
 

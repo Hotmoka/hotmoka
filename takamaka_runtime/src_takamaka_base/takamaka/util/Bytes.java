@@ -82,7 +82,7 @@ public class Bytes extends AbstractByteArray implements MutableByteArray {
 		this.length = length;
 	}
 
-	@Override
+	@Override @View
 	public int length() {
 		return length;
 	}
