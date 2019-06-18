@@ -27,6 +27,7 @@ executed in blockchain.
         - [A Tic-Tac-Toe Contract](#a-tic-tac-toe-contract)
         - [A More Realistic Tic-Tac-Toe Contract](#a-more-realistic-tic-tac-toe-contract)
         - [Running the Tic-Tac-Toe Contract](#running-the-tic-tac-toe-contract)
+        - [Specialized Storage Array Classes](#specialized-storage-array-classes)
     - [Storage Maps](#storage_maps)
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
@@ -2114,6 +2115,36 @@ that the balances of the creator and of the first player are updated,
 as well as that of the contract, that is emptied of all money and
 reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
 
+## Specialized Storage Array Classes <a name="specialized-storage-array-classes">
+
+The `StorageArray` class is very general, as it can be used to hold
+any type of storage values. As always with Java generics, this means
+that primitive values cannot be held in a `StorageArray`, directly,
+since, for instance, `StorageArray<byte>` is not legal syntax in Java.
+Instead, one could think to use `StorageArray<Byte>`, where `Byte`
+is the Java wrapper class `java.lang.Byte`. However, that class is not
+currently allowed in storage, hence `StorageArray<Byte>` will not work either.
+
+> This might change: wrapper classes might be allowed to be stored
+> in blockchain in the future.
+
+One should hence define a new wrapper class for `byte`, that extends `Storage`.
+That is possible, but highly discouraged:
+the use of a wrapper classes introduces a level of indirection
+and requires the instantiation of many small objects, which costs gas. Instead,
+Takamaka provides specialized storage classes implementing arrays of bytes,
+without wrappers. The rationale is that such arrays arise
+naturally when dealing, for instance, with hashes or encrypted data
+(see next section for an example) and consequently deserve
+specialized and optimized implementation.
+Such specialized array classes
+can have their length specified at construction time, or fixed to
+a constant (for best optimization and minimal gas consumption).
+Moreover, they exist in two flavors: immutable or mutable.
+
+Below we show the hierarchy of the specialized classes for arrays of bytes,
+available in Takamaka:
+
 # Storage Maps <a name="storage_maps"></a>
 
 Maps are dynamic associations of objects to objects. They are useful
@@ -2505,7 +2536,7 @@ If there is a winner, it sends the highest bid to the beneficiary.
 Note the use of methods `onlyBefore()` and `onlyAfter()` to guarantee
 that some methods are only run at the right moment.
 
-## Events <a name="events"></a>
+## Events <a name="events"></a[Specialized Storage Array Classes](#specialized-storage-array-classes)>
 
 The code of the blind auction contract contains some lines that generate
 _events_, such as:
