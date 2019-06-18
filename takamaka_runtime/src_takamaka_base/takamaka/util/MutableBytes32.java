@@ -76,6 +76,48 @@ public class MutableBytes32 extends AbstractByteArray implements MutableByteArra
 			set(pos, elements[pos]);
 	}
 
+	/**
+	 * Builds an array with the given elements.
+	 */
+	public MutableBytes32(byte byte0, byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
+			byte byte8, byte byte9, byte byte10, byte byte11, byte byte12, byte byte13, byte byte14, byte byte15, byte byte16,
+			byte byte17, byte byte18, byte byte19, byte byte20, byte byte21, byte byte22, byte byte23, byte byte24,
+			byte byte25, byte byte26, byte byte27, byte byte28, byte byte29, byte byte30, byte byte31) {
+
+		this.byte0 = byte0;
+		this.byte1 = byte1;
+		this.byte2 = byte2;
+		this.byte3 = byte3;
+		this.byte4 = byte4;
+		this.byte5 = byte5;
+		this.byte6 = byte6;
+		this.byte7 = byte7;
+		this.byte8 = byte8;
+		this.byte9 = byte9;
+		this.byte10 = byte10;
+		this.byte11 = byte11;
+		this.byte12 = byte12;
+		this.byte13 = byte13;
+		this.byte14 = byte14;
+		this.byte15 = byte15;
+		this.byte16 = byte16;
+		this.byte17 = byte17;
+		this.byte18 = byte18;
+		this.byte19 = byte19;
+		this.byte20 = byte20;
+		this.byte21 = byte21;
+		this.byte22 = byte22;
+		this.byte23 = byte23;
+		this.byte24 = byte24;
+		this.byte25 = byte25;
+		this.byte26 = byte26;
+		this.byte27 = byte27;
+		this.byte28 = byte28;
+		this.byte29 = byte29;
+		this.byte30 = byte30;
+		this.byte31 = byte31;
+	}
+
 	@Override
 	public int length() {
 		return length;
