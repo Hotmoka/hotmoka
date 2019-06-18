@@ -2566,3 +2566,265 @@ public class BidIncrease extends Event {
 ```
 
 ## Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
+
+Let us play with the `BlindAuction` contract. As in the previous examples,
+we need a jar
+that contains the compiled code of the contract. For that, as already
+done previously, you can for
+instance create a new Eclipse Java project `auction`, add the `lib` and
+`dist` folders inside it, copy `takamaka_base.jar` and
+`takamaka_runtime.jar` inside `lib` and add both to the
+build path. Create a package `takamaka.tests.auctions` and copy
+inside it the code of `BlindAuction.java`, `AuctionEnd.java` and
+`BidIncrease.java` above. Then export the compiled
+code as a jar inside `dist` as `auction.jar`.
+
+Go now to the `blockchain` Eclipse project and create a new
+`takamaka.tests.auction` package inside its sources. Add the following
+`Main.java` class inside that package.
+
+```java
+package takamaka.tests.auction;
+
+import static takamaka.blockchain.types.BasicTypes.BOOLEAN;
+import static takamaka.blockchain.types.BasicTypes.BYTE;
+import static takamaka.blockchain.types.BasicTypes.INT;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import takamaka.blockchain.Classpath;
+import takamaka.blockchain.CodeExecutionException;
+import takamaka.blockchain.ConstructorSignature;
+import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.TransactionException;
+import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.request.ConstructorCallTransactionRequest;
+import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
+import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.types.ClassType;
+import takamaka.blockchain.values.BigIntegerValue;
+import takamaka.blockchain.values.BooleanValue;
+import takamaka.blockchain.values.ByteValue;
+import takamaka.blockchain.values.IntValue;
+import takamaka.blockchain.values.StorageReference;
+import takamaka.memory.InitializedMemoryBlockchain;
+
+public class Main {
+
+  /**
+   * The number of bids placed by the players.
+   */
+  private static final int NUM_BIDS = 100;
+
+  /**
+   * The bidding time of the experiment (in milliseconds).
+   */
+  private static final int BIDDING_TIME = 40_000;
+
+  /**
+   * The reveal time of the experiment (in millisecond).
+   */
+  private static final int REVEAL_TIME = 60_000;
+
+  private static final BigInteger _1_000 = BigInteger.valueOf(1_000);
+  private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
+
+  // useful constants that refer to classes, constructors or methods
+  private static final ClassType BLIND_AUCTION = new ClassType("takamaka.tests.auction.BlindAuction");
+  private static final ConstructorSignature CONSTRUCTOR_BLIND_AUCTION = new ConstructorSignature(BLIND_AUCTION, INT, INT);
+  private static final ConstructorSignature CONSTRUCTOR_BYTES32 = new ConstructorSignature
+  	(ClassType.BYTES32,
+  	BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
+	BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE);
+  private static final ConstructorSignature CONSTRUCTOR_STORAGE_LIST = new ConstructorSignature(ClassType.STORAGE_LIST);
+  private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("takamaka.tests.auction.BlindAuction$RevealedBid"),
+	ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32);
+  private static final MethodSignature BID = new MethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
+  private static final MethodSignature REVEAL = new MethodSignature(BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
+  private static final MethodSignature AUCTION_END = new MethodSignature(BLIND_AUCTION, "auctionEnd");
+  private static final MethodSignature GET_BALANCE = new MethodSignature(new ClassType("takamaka.lang.TestExternallyOwnedAccount"), "getBalance");
+  private static final MethodSignature ADD = new MethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
+
+  public static void main(String[] args) throws NoSuchAlgorithmException, TransactionException, IOException, CodeExecutionException {
+    // the hashing algorithm used to hide the bids
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+    // create a blockchain with four accounts
+    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain(Paths.get("lib/takamaka_base.jar"), _200_000, _200_000, _200_000, _200_000);
+    StorageReference beneficiary = blockchain.account(0);
+
+    // install the auction jar in blockchain
+    TransactionReference auctionJar = blockchain.addJarStoreTransaction
+	  (new JarStoreTransactionRequest(beneficiary, _200_000, blockchain.takamakaBase,
+	  Files.readAllBytes(Paths.get("../auction/dist/auction.jar")), blockchain.takamakaBase));
+
+    Classpath classpath = new Classpath(auctionJar, true);
+
+    /**
+     * Class used to keep in memory the bids placed by each player,
+     * that will be revealed at the end.
+     */
+    class BidToReveal {
+      private final int player;
+      private final BigInteger value;
+      private final boolean fake;
+      private final byte[] salt;
+
+      private BidToReveal(int player, BigInteger value, boolean fake, byte[] salt) {
+        this.player = player;
+        this.value = value;
+        this.fake = fake;
+        this.salt = salt;
+      }
+
+      /**
+       * Creates in blockchain a revealed bid corresponding to this object.
+       * 
+       * @return the storage reference to the freshly created revealed bid
+       */
+      private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException {
+        return blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+          (blockchain.account(player), _1_000, classpath, CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), createBytes32(player, salt, blockchain, classpath)));
+      }
+    }
+
+    // create the auction contract in blockchain
+    StorageReference auction = blockchain.addConstructorCallTransaction
+      (new ConstructorCallTransactionRequest(beneficiary, _1_000, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
+
+    long start = System.currentTimeMillis();
+    List<BidToReveal> bids = new ArrayList<>();
+    BigInteger maxBid = BigInteger.ZERO;
+    StorageReference expectedWinner = null;
+    Random random = new Random();
+    int i = 1;
+
+    // generate NUM_BIDS random bids
+    while (i <= NUM_BIDS) {
+      int player = 1 + random.nextInt(3);
+      BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
+      BigInteger value = BigInteger.valueOf(random.nextInt(1000));
+      boolean fake = random.nextBoolean();
+      byte[] salt = new byte[32];
+      random.nextBytes(salt); // random 32 bytes of salt for each bid
+
+      // create a Bytes32 hash of the bid in blockchain
+      StorageReference bytes32 = codeAsBytes32(player, value, fake, salt, blockchain, classpath, digest);
+
+      // keep note of the best bid, to verify the result at the end
+      if (!fake && deposit.compareTo(value) >= 0)
+        if (expectedWinner == null || value.compareTo(maxBid) > 0) {
+          maxBid = value;
+          expectedWinner = blockchain.account(player);
+        }
+        else if (value.equals(maxBid))
+          // we do not allow ex aequos, since the winner would depend on the fastest player to reveal
+          continue;
+
+      // store the explicit bid in memory, not yet in blockchain, since it would be visible there
+      bids.add(new BidToReveal(player, value, fake, salt));
+
+      // place a hashed bid in blockchain
+      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+        (blockchain.account(player), _1_000, classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
+
+      i++;
+    }
+
+    // wait until the bidding phase is over
+    waitUntil(BIDDING_TIME + 2000, start, blockchain, classpath);
+
+    // create a storage list for each of the players
+    StorageReference[] lists = {
+      null, // unused, since player 0 is the beneficiary and has no bids to reveal
+      blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(1), _1_000, classpath, CONSTRUCTOR_STORAGE_LIST)),
+      blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(2), _1_000, classpath, CONSTRUCTOR_STORAGE_LIST)),
+      blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(3), _1_000, classpath, CONSTRUCTOR_STORAGE_LIST))
+    };
+
+    // create the revealed bids in blockchain; this is safe now, since the bidding time is over
+    for (BidToReveal bid: bids)
+      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+        (blockchain.account(bid.player), _1_000, classpath, ADD, lists[bid.player], bid.intoBlockchain()));
+
+    // reveal the bids of each player
+    for (int player = 1; player <= 3; player++)
+      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+        (blockchain.account(player), _200_000, classpath, REVEAL, auction, lists[player]));
+
+    // wait until the reveal phase is over
+    waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start, blockchain, classpath);
+
+    // end the auction and get the winner according to the contract
+    StorageReference winner = (StorageReference) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+      (beneficiary, _1_000, classpath, AUCTION_END, auction));
+
+    // show that the contract computes the correct winner
+    System.out.println("expected winner: " + expectedWinner);
+    System.out.println("actual winner: " + winner);
+  }
+
+  /**
+   * Waits for some time.
+   * 
+   * @param duration the time to wait
+   * @param start the beginning of the waiting time
+   */
+  private static void waitUntil(long duration, long start, InitializedMemoryBlockchain blockchain, Classpath classpath) throws TransactionException, CodeExecutionException {
+    while (System.currentTimeMillis() - start < duration) {
+      sleep(100);
+      // we need to perform dummy transactions, otherwise the blockchain time does not progress
+      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+        (blockchain.account(0), _1_000, classpath, GET_BALANCE, blockchain.account(0)));
+    }
+  }
+
+  /**
+   * Hashes a bid and put it in blockchain in hashed form.
+   */
+  private static StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt, InitializedMemoryBlockchain blockchain, Classpath classpath, MessageDigest digest) throws TransactionException, CodeExecutionException {
+    digest.reset();
+    digest.update(value.toByteArray());
+    digest.update(fake ? (byte) 0 : (byte) 1);
+    digest.update(salt);
+    byte[] hash = digest.digest();
+    return createBytes32(player, hash, blockchain, classpath);
+  }
+
+  /**
+   * Creates a Bytes32 object in blockchain.
+   */
+  private static StorageReference createBytes32(int player, byte[] hash, InitializedMemoryBlockchain blockchain, Classpath classpath) throws TransactionException, CodeExecutionException {
+    return blockchain.addConstructorCallTransaction
+      (new ConstructorCallTransactionRequest(blockchain.account(player), _1_000, classpath, CONSTRUCTOR_BYTES32,
+      new ByteValue(hash[0]), new ByteValue(hash[1]), new ByteValue(hash[2]), new ByteValue(hash[3]),
+      new ByteValue(hash[4]), new ByteValue(hash[5]), new ByteValue(hash[6]), new ByteValue(hash[7]),
+      new ByteValue(hash[8]), new ByteValue(hash[9]), new ByteValue(hash[10]), new ByteValue(hash[11]),
+      new ByteValue(hash[12]), new ByteValue(hash[13]), new ByteValue(hash[14]), new ByteValue(hash[15]),
+      new ByteValue(hash[16]), new ByteValue(hash[17]), new ByteValue(hash[18]), new ByteValue(hash[19]),
+      new ByteValue(hash[20]), new ByteValue(hash[21]), new ByteValue(hash[22]), new ByteValue(hash[23]),
+      new ByteValue(hash[24]), new ByteValue(hash[25]), new ByteValue(hash[26]), new ByteValue(hash[27]),
+      new ByteValue(hash[28]), new ByteValue(hash[29]), new ByteValue(hash[30]), new ByteValue(hash[31])));
+  }
+
+  /**
+   * Sleeps for some time.
+   * 
+   * @param milliseconds the time to sleep for
+   */
+  private static void sleep(long milliseconds) {
+    try {
+      Thread.sleep(milliseconds);
+    }
+    catch (InterruptedException e) {}
+  }
+}
+```
