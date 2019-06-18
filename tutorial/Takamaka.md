@@ -2155,7 +2155,7 @@ maps do not know the set of their keys.
 
 ## A Blind Auction Contract <a name="a-blind-auction-contract"></a>
 
-We will exemplify the use of class `StorageMap` with a smart
+This section exemplifies the use of class `StorageMap` with a smart
 contract that implements a _blind auction_. That contract allows
 a _beneficiary_ to sell an item to the buying contract that offers
 the highest bid. Since data in blockchain is public, in a non-blind
@@ -2506,5 +2506,63 @@ Note the use of methods `onlyBefore()` and `onlyAfter()` to guarantee
 that some methods are only run at the right moment.
 
 ## Events <a name="events"></a>
+
+The code of the blind auction contract contains some lines that generate
+_events_, such as:
+
+```java
+event(new AuctionEnd(winner, highestBid));
+```
+
+Events are milestones that are saved in blockchain and can be queried
+from outside. Observers, external to the blockchain, can use events
+to trigger actions when they appear on blockchain. In terms of the
+Takamaka language, events are generated through the
+`takamaka.lang.Takamaka.event(Event event)` method, that receives a parameter
+of type `takamaka.lang.Event`. The latter is simply an abstract class that
+extends `Storage`. Hence, any storage object can be used as an event and will
+be stored in blockchain as part of the transaction that generated that event.
+
+In our example, the `BlindAuction` class uses two events, that are defined as
+
+```java
+package takamaka.tests.auction;
+
+import java.math.BigInteger;
+
+import takamaka.lang.Event;
+import takamaka.lang.PayableContract;
+
+public class AuctionEnd extends Event {
+  public final PayableContract highestBidder;
+  public final BigInteger highestBid;
+
+  AuctionEnd(PayableContract highestBidder, BigInteger highestBid) {
+    this.highestBidder = highestBidder;
+    this.highestBid = highestBid;
+  }
+}
+```
+
+and
+
+```java
+package takamaka.tests.auction;
+
+import java.math.BigInteger;
+
+import takamaka.lang.Event;
+import takamaka.lang.PayableContract;
+
+public class BidIncrease extends Event {
+  public final PayableContract caller;
+  public final BigInteger amount;
+
+  BidIncrease(PayableContract caller, BigInteger amount) {
+    this.caller = caller;
+    this.amount = amount;
+  }
+}
+```
 
 ## Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
