@@ -66,7 +66,7 @@ class BlindAuction {
 	private static final ConstructorSignature CONSTRUCTOR_BLIND_AUCTION = new ConstructorSignature(BLIND_AUCTION, INT, INT);
 
 	private static final ConstructorSignature CONSTRUCTOR_BYTES32 = new ConstructorSignature
-		(new ClassType("takamaka.util.Bytes32"),
+		(ClassType.BYTES32,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
@@ -199,7 +199,8 @@ class BlindAuction {
 		BigInteger maxBid = BigInteger.ZERO;
 		StorageReference expectedWinner = null;
 		Random random = new Random();
-		for (int i = 1; i <= NUM_BIDS; i++) {
+		int i = 1;
+		while (i <= NUM_BIDS) {
 			int player = 1 + random.nextInt(3);
 			BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
 			BigInteger value = BigInteger.valueOf(random.nextInt(1000));
@@ -208,21 +209,28 @@ class BlindAuction {
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
 
+			if (!fake && deposit.compareTo(value) >= 0)
+        		if (expectedWinner == null || value.compareTo(maxBid) > 0) {
+        			maxBid = value;
+        			expectedWinner = blockchain.account(player);
+        		}
+        		else if (value.equals(maxBid))
+        			// we do not allow ex aequos, since the winner would depend on the fastest player to reveal
+        			continue;
+
 			// we store the explicit bid in memory, not yet in blockchain, since it would be visible there
 			bids.add(new BidToReveal(player, value, fake, salt));
         	blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(blockchain.account(player), _1_000, classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
 
-        	if (!fake && value.compareTo(maxBid) > 0) {
-        		maxBid = value;
-        		expectedWinner = blockchain.account(player);
-        	}
+        	i++;
 		}
 
 		waitUntil(BIDDING_TIME + 2000, start);
 
 		// we create a storage list for each of the players
 		StorageReference[] lists = {
+			null, // unused, since player 0 is the beneficiary
 			blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(1), _1_000, classpath, CONSTRUCTOR_STORAGE_LIST)),
 			blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(2), _1_000, classpath, CONSTRUCTOR_STORAGE_LIST)),
 			blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(3), _1_000, classpath, CONSTRUCTOR_STORAGE_LIST))
@@ -231,13 +239,13 @@ class BlindAuction {
 		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over
 		for (BidToReveal bid: bids)
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(blockchain.account(bid.player), _1_000, classpath, ADD, lists[bid.player - 1], bid.intoBlockchain()));
+				(blockchain.account(bid.player), _1_000, classpath, ADD, lists[bid.player], bid.intoBlockchain()));
 
 		for (int player = 1; player <= 3; player++)
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(blockchain.account(player), _200_000, classpath, REVEAL, auction, lists[player - 1]));
+				(blockchain.account(player), _200_000, classpath, REVEAL, auction, lists[player]));
 
-		waitUntil(BIDDING_TIME + REVEAL_TIME + 2000, start);
+		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
 
 		StorageReference winner = (StorageReference) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(blockchain.account(0), _1_000, classpath, AUCTION_END, auction));
