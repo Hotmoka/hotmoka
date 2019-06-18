@@ -2145,6 +2145,21 @@ Moreover, they exist in two flavors: immutable and mutable.
 Below we show the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka:
 
+<p align="center">
+  <img width="250" height="350" src="pics/bytes.png" alt="Specialized Byte Array Classes">
+</p>
+
+Green classes are immutable. Red classes and red interfaces are mutable.
+Class `Bytes` allows one to create byte arrays of any length,
+specified at construction time.
+Classes `Bytes32` and `MutableBytes32` have fixed length of 32 bytes;
+their constructors include one that allows one to specify such 32 bytes,
+which is useful for calling the constructor from outside the blockchain,
+since `byte` is a storage type.
+There are sibling classes for different, fixed sizes, such as
+`Bytes64` and `MutableBytes8`. For a full description of the methods
+of these classes and interfaces, we refer to their JavaDoc.
+
 # Storage Maps <a name="storage_maps"></a>
 
 Maps are dynamic associations of objects to objects. They are useful
