@@ -2828,3 +2828,155 @@ public class Main {
   }
 }
 ```
+
+This test class is relatively long and complex. Let us start from its beginning.
+The code specifies that the test will place 100 random bids, that the bidding phase
+lasts 40 seconds and that the reveal phase lasts 60 seconds:
+
+```java
+private static final int NUM_BIDS = 100;
+private static final int BIDDING_TIME = 40_000;
+private static final int REVEAL_TIME = 60_000;
+```
+
+Some constant signatures follow,
+that will simplify the call to methods and constructors later.
+The `main` method creates a `blockchain` with four accounts
+
+```java
+InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
+  (Paths.get("lib/takamaka_base.jar"), _200_000, _200_000, _200_000, _200_000);
+```
+
+and installs the `auction.jar` archive in it:
+
+```java
+TransactionReference auctionJar = blockchain.addJarStoreTransaction
+  (new JarStoreTransactionRequest(beneficiary, _200_000, blockchain.takamakaBase,
+  Files.readAllBytes(Paths.get("../auction/dist/auction.jar")), blockchain.takamakaBase));
+```
+
+A method-local class `BidToReveal` is used to keep track of the bids placed
+during the test, in clear. Initially, bids are kept in
+memory, not in blockchain, and only their hashes will be stored in blockchain.
+Then `main` creates an `auction` contract in blockchain:
+
+```java
+StorageReference auction = blockchain.addConstructorCallTransaction
+  (new ConstructorCallTransactionRequest(beneficiary, _1_000, classpath,
+  CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
+```
+
+and starts a loop that generates 100 (`NUM_BIDS`) random bids:
+
+```java
+while (i <= NUM_BIDS) {
+  int player = 1 + random.nextInt(3);
+  BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
+  BigInteger value = BigInteger.valueOf(random.nextInt(1000));
+  boolean fake = random.nextBoolean();
+  byte[] salt = new byte[32];
+  random.nextBytes(salt);
+  ...
+}
+```
+
+Each random bid is hashed (including a random salt) and a `Bytes32` object
+is created in blockchain, containing that hash:
+
+```java
+StorageReference bytes32 = codeAsBytes32(player, value, fake, salt, blockchain, classpath, digest);
+```
+
+The bid, in clear, is added to a list `bids` that, at the end of the loop,
+will contain all bids:
+
+```java
+bids.add(new BidToReveal(player, value, fake, salt));
+```
+
+The hash is used instead to place a bid on the blockchain:
+
+```java
+blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+  (blockchain.account(player), _1_000, classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
+```
+
+The loop takes also care of keeping track of the best bidder, that placed
+the best bid, so that it can be compared at the end with the best bidder
+computed by the smart contract (they should coincide):
+
+```java
+if (!fake && deposit.compareTo(value) >= 0)
+  if (expectedWinner == null || value.compareTo(maxBid) > 0) {
+    maxBid = value;
+    expectedWinner = blockchain.account(player);
+  }
+  else if (value.equals(maxBid))
+    continue;
+```
+
+As you can see, the test above avoids generating a bid that
+is equal to the best bid seen so far. This avoids having two bidders
+that place the same bid: the smart contract will consider as winner
+the first bidder that reveals its bids. To avoid this tricky case, we preferred
+to assume that the best bid is unique. This is just a simplification of the
+`main` method, since the smart contract perfectly deals with that case.
+
+After all bids have been placed, the `main` method waits until the end of
+the bidding time:
+
+```java
+waitUntil(BIDDING_TIME + 5000, start, blockchain, classpath);
+```
+
+with a safe distance of five seconds.
+
+> You can see that the implementation of `waitUntil` starts dummy
+> transactions during the wait. This is because the time of a blockchain
+> transaction is that of the block where it occurs. In a real blockchain,
+> transactions arrive continously, hence the time of the blockchain progresses.
+> In this simulation, we are the only producers of transactions and we need
+> to keep the blockchain active to let its time progress.
+
+The `main` method then creates a storage list in blockchain for
+each bidder and populates it with the bids to reveal:
+
+```java
+for (BidToReveal bid: bids)
+  blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+    (blockchain.account(bid.player), _1_000, classpath, ADD, lists[bid.player], bid.intoBlockchain()));
+```
+
+The bids are in blockchain now, in clear, but the bidding time is over, so
+they cannot be used to guess a winning bid anymore. Then `main` reveals the
+bids of each player:
+
+```java
+for (int player = 1; player <= 3; player++)
+  blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+    (blockchain.account(player), _200_000, classpath, REVEAL, auction, lists[player]));
+```
+
+and waits until the end of the reveal phase, with a security distance of 5 seconds:
+
+```java
+waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start, blockchain, classpath);
+```
+
+After that, `main` signals that the auction is over and reads the winner according to the
+smart contract:
+
+```java
+StorageReference winner = (StorageReference) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+  (beneficiary, _1_000, classpath, AUCTION_END, auction));
+```
+
+The final `System.out.println`s allow the tester to verify that the smart contract
+actually computes the right winner, since they will always print the identical storage
+object (different at each run, in general), such as:
+
+```
+expected winner: 1.0#0
+actual winner: 1.0#0
+```
