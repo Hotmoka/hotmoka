@@ -2574,7 +2574,7 @@ done previously, you can for
 instance create a new Eclipse Java project `auction`, add the `lib` and
 `dist` folders inside it, copy `takamaka_base.jar` and
 `takamaka_runtime.jar` inside `lib` and add both to the
-build path. Create a package `takamaka.tests.auctions` and copy
+build path. Create a package `takamaka.tests.auction` and copy
 inside it the code of `BlindAuction.java`, `AuctionEnd.java` and
 `BidIncrease.java` above. Then export the compiled
 code as a jar inside `dist` as `auction.jar`.
@@ -2958,7 +2958,7 @@ for (int player = 1; player <= 3; player++)
     (blockchain.account(player), _200_000, classpath, REVEAL, auction, lists[player]));
 ```
 
-and waits until the end of the reveal phase, with a security distance of 5 seconds:
+and waits until the end of the reveal phase, with a security distance of five seconds:
 
 ```java
 waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start, blockchain, classpath);
