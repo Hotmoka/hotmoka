@@ -2146,7 +2146,7 @@ Below we show the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka:
 
 <p align="center">
-  <img width="250" height="350" src="pics/bytes.png" alt="Specialized Byte Array Classes">
+  <img width="850" height="700" src="pics/bytes.png" alt="Specialized Byte Array Classes">
 </p>
 
 Green classes are immutable. Red classes and red interfaces are mutable.
