@@ -226,7 +226,7 @@ class BlindAuction {
         	i++;
 		}
 
-		waitUntil(BIDDING_TIME + 2000, start);
+		waitUntil(BIDDING_TIME + 5000, start);
 
 		// we create a storage list for each of the players
 		StorageReference[] lists = {
