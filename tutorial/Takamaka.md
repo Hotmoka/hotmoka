@@ -2118,8 +2118,8 @@ reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
 ## Specialized Storage Array Classes <a name="specialized-storage-array-classes">
 
 The `StorageArray` class is very general, as it can be used to hold
-any type of storage values. As always with Java generics, this means
-that primitive values cannot be held in a `StorageArray`, directly,
+any type of storage values. Since it uses generics,
+primitive values cannot be held in a `StorageArray`, directly,
 since, for instance, `StorageArray<byte>` is not legal syntax in Java.
 Instead, one could think to use `StorageArray<Byte>`, where `Byte`
 is the Java wrapper class `java.lang.Byte`. However, that class is not
@@ -2130,7 +2130,7 @@ currently allowed in storage, hence `StorageArray<Byte>` will not work either.
 
 One should hence define a new wrapper class for `byte`, that extends `Storage`.
 That is possible, but highly discouraged:
-the use of a wrapper classes introduces a level of indirection
+the use of wrapper classes introduces a level of indirection
 and requires the instantiation of many small objects, which costs gas. Instead,
 Takamaka provides specialized storage classes implementing arrays of bytes,
 without wrappers. The rationale is that such arrays arise
@@ -2140,7 +2140,7 @@ specialized and optimized implementation.
 Such specialized array classes
 can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
-Moreover, they exist in two flavors: immutable or mutable.
+Moreover, they exist in two flavors: immutable and mutable.
 
 Below we show the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka:
