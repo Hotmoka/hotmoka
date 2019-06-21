@@ -47,7 +47,7 @@ class BlindAuction {
 	/**
 	 * The number of bids placed by the players.
 	 */
-	private static final int NUM_BIDS = 100;
+	private static final int NUM_BIDS = 80;
 
 	/**
 	 * The bidding time of the experiments (in milliseconds).
@@ -190,10 +190,10 @@ class BlindAuction {
 
 	@Test @DisplayName("three players put bids before end of bidding time then reveal")
 	void bidsThenReveal() throws TransactionException, CodeExecutionException {
+		long start = System.currentTimeMillis();
 		StorageReference auction = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(blockchain.account(0), _1_000, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
 
-		long start = System.currentTimeMillis();
 		List<BidToReveal> bids = new ArrayList<>();
 
 		BigInteger maxBid = BigInteger.ZERO;
@@ -255,6 +255,7 @@ class BlindAuction {
 
 	private void waitUntil(long duration, long start) throws TransactionException, CodeExecutionException {
 		while (System.currentTimeMillis() - start < duration) {
+			//System.out.println(System.currentTimeMillis() - start);
 			sleep(100);
 			// we need to perform dummy transactions, otherwise the blockchain time does not progress
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
