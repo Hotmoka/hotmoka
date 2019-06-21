@@ -136,6 +136,11 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
+	protected TransactionReference getTransactionReferenceFor(String toString) {
+		return new MemoryTransactionReference(toString);
+	}
+
+	@Override
 	protected TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception {
 		MemoryTransactionReference next = topmost == null ? new MemoryTransactionReference(BigInteger.ZERO, (short) 0) : topmost.getNext();
 		Path requestPath = getPathFor(next, REQUEST_NAME);

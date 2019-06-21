@@ -19,31 +19,39 @@ public final class ClassTag extends Update {
 	public final String className;
 
 	/**
+	 * The transaction that installed the jar from which the class was resolved.
+	 */
+	public final TransactionReference jar;
+
+	/**
 	 * Builds an update for the class tag of an object.
 	 * 
 	 * @param object the storage reference of the object whose class name is set
 	 * @param className the name of the class of the object
+	 * @param jar the transaction that installed the jar from which the class was resolved
 	 */
-	public ClassTag(StorageReference object, String className) {
+	public ClassTag(StorageReference object, String className, TransactionReference jar) {
 		super(object);
 
 		this.className = className;
+		this.jar = jar;
 	}
 
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof ClassTag && super.equals(other)
-			&& ((ClassTag) other).className.equals(className);
+			&& ((ClassTag) other).className.equals(className)
+			&& ((ClassTag) other).jar.equals(jar);
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ className.hashCode();
+		return super.hashCode() ^ className.hashCode() ^ jar.hashCode();
 	}
 
 	@Override
 	public String toString() {
-		return "<" + object + ".class|" + className + ">";
+		return "<" + object + ".class|" + className + "|@" + jar + ">";
 	}
 
 	@Override
@@ -51,8 +59,12 @@ public final class ClassTag extends Update {
 		int diff = super.compareTo(other);
 		if (diff != 0)
 			return diff;
+
+		diff = className.compareTo(((ClassTag) other).className);
+		if (diff != 0)
+			return diff;
 		else
-			return className.compareTo(((ClassTag) other).className);
+			return jar.compareTo(((ClassTag) other).jar);
 	}
 
 	@Override
@@ -60,7 +72,7 @@ public final class ClassTag extends Update {
 		StorageReference objectContextualized = object.contextualizeAt(where);
 
 		if (object != objectContextualized)
-			return new ClassTag(objectContextualized, className);
+			return new ClassTag(objectContextualized, className, jar);
 		else
 			return this;
 	}

@@ -36,6 +36,19 @@ final class MemoryTransactionReference extends TransactionReference {
 		this.transactionNumber = transactionNumber;
 	}
 
+	/**
+	 * Builds a transaction reference from its string representation.
+	 * 
+	 * @param toString the string representation, exactly as it would result by
+	 *                 calling {@code toString()} on the constructed transaction
+	 *                 reference
+	 */
+	MemoryTransactionReference(String toString) {
+		int dot = toString.indexOf('.');
+		this.blockNumber = new BigInteger(toString.substring(0, dot), 16);		
+		this.transactionNumber = Short.parseShort(toString.substring(dot + 1), 16);
+	}
+
 	@Override
 	public int compareTo(TransactionReference other) {
 		// this transaction reference is created by the memory blockchain only,

@@ -4,6 +4,7 @@
 package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
+import takamaka.blockchain.DeserializationError;
 import takamaka.blockchain.MethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
@@ -95,7 +97,7 @@ class ClassSwap {
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpathC17, CONSTRUCTOR_C));
 
 		IntValue get = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpathC13, GET, c17));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpathC17, GET, c17));
 
 		assertSame(17, get.value);
 	}
@@ -106,9 +108,17 @@ class ClassSwap {
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpathC13, CONSTRUCTOR_C));
 
 		// the following call should fail since c13 was created from another jar
-		IntValue get = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpathC17, GET, c13));
+		try {
+			blockchain.addInstanceMethodCallTransaction
+				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpathC17, GET, c13));
+		}
+		catch (TransactionException e) {
+			if (e.getCause() instanceof DeserializationError)
+				return;
 
-		assertSame(17, get.value);
+			fail("wrong exception");
+		}
+
+		fail("expected exception");
 	}
 }

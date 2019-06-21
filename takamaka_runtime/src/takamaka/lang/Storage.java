@@ -131,7 +131,7 @@ public abstract class Storage {
 	 */
 	protected void extractUpdates(Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet) {
 		if (!inStorage)
-			updates.add(new ClassTag(storageReference, getClass().getName()));
+			updates.add(new ClassTag(storageReference, getClass().getName(), Takamaka.getBlockchain().transactionThatInstalledJarFor(getClass())));
 
 		// subclasses will override, call this super-implementation and add potential updates to their instance fields
 	}

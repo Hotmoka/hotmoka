@@ -15,6 +15,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -123,6 +124,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 *         the blockchain is empty
 	 */
 	protected abstract TransactionReference getTopmostTransactionReference();
+
+	/**
+	 * Yields a transaction reference whose {@code toString()} is the given string.
+	 * 
+	 * @param toString the result of {@code toString()} on the desired transaction reference
+	 * @return the transaction reference
+	 */
+	protected abstract TransactionReference getTransactionReferenceFor(String toString);
 
 	/**
 	 * Expands the blockchain with a new topmost transaction. If there are more chains, this
@@ -250,6 +259,28 @@ public abstract class AbstractBlockchain implements Blockchain {
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 
 	/**
+	 * Yields the transaction reference that installed the jar from which
+	 * where the given class is defined.
+	 * 
+	 * @param clazz the class
+	 * @return the transaction reference
+	 * @throws IllegalStateException if the transaction reference cannot be determined
+	 */
+	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
+		String className = clazz.getName();
+		CodeSource src = clazz.getProtectionDomain().getCodeSource();
+		if (src == null)
+			throw new IllegalStateException("Cannot determine the jar of class "+ className);
+		String classpath = src.getLocation().getPath();
+		if (!classpath.endsWith(".jar"))
+			throw new IllegalStateException("Unexpected class path " + classpath + " for class " + className);
+		int start = classpath.lastIndexOf('@');
+		if (start < 0)
+			throw new IllegalStateException("Class path " + classpath + " misses @ separator");
+		return getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
+	}
+
+	/**
 	 * Expands the given list with the dependent class paths, recursively.
 	 * 
 	 * @param classpath the class path whose dependencies must be added, recursively
@@ -276,7 +307,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		byte[] instrumentedJarBytes = ((AbstractJarStoreTransactionResponse) response).getInstrumentedJar();
 
 		try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
-			Path classpathElement = Files.createTempFile("classpath", "jar");
+			Path classpathElement = Files.createTempFile("classpath", ".jar");
 			paths.add(classpathElement);
 			Files.copy(is, classpathElement, StandardCopyOption.REPLACE_EXISTING);
 		}
@@ -289,7 +320,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * 
 	 * @param amount the amount of gas to consume
 	 */
-	public void charge(BigInteger amount) {
+	public final void charge(BigInteger amount) {
 		if (amount.signum() <= 0)
 			throw new IllegalArgumentException("Gas can only decrease");
 
@@ -822,7 +853,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			byte[] instrumentedJarBytes = ((AbstractJarStoreTransactionResponse) response).getInstrumentedJar();
 
 			try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
-				Path classpathElement = Files.createTempFile("classpath", "jar");
+				Path classpathElement = Files.createTempFile(null, "@" + classpath.transaction + ".jar");
 				classpathElements.add(classpathElement);
 				Files.copy(is, classpathElement, StandardCopyOption.REPLACE_EXISTING);
 
@@ -859,7 +890,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	
 			if (!classTag.isPresent())
 				throw new DeserializationError("No class tag found for " + reference);
-	
+
 			String className = classTag.get().className;
 			List<Class<?>> formals = new ArrayList<>();
 			List<Object> actuals = new ArrayList<>();
@@ -876,6 +907,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 				}
 	
 			Class<?> clazz = classLoader.loadClass(className);
+			TransactionReference actual = transactionThatInstalledJarFor(clazz);
+			TransactionReference expected = classTag.get().jar;
+			if (!actual.equals(expected))
+				throw new DeserializationError("Class " + className + " was instantiated from jar at " + expected + " not from jar at " + actual);
+
 			Constructor<?> constructor = clazz.getConstructor(formals.toArray(new Class<?>[formals.size()]));
 
 			// the instrumented constructor is public, but the class might well be non-public;
