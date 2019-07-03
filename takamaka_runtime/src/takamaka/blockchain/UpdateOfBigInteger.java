@@ -73,10 +73,7 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 
 	@Override
 	public boolean isEager() {
-		// a BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
-		return !field.type.equals(ClassType.OBJECT)
-			&& !((ClassType) field.type).name.equals("java.io.Serializable")
-			&& !((ClassType) field.type).name.equals("java.lang.Comparable")
-			&& !((ClassType) field.type).name.equals("java.lang.Number");
+		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
+		return field.type.equals(ClassType.BIG_INTEGER);
 	}
 }
