@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1118,6 +1119,46 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		/**
+		 * Resolves the method that must be called.
+		 * 
+		 * @return the method
+		 * @throws NoSuchMethodException if the method could not be found
+		 * @throws SecurityException if the method could not be accessed
+		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+		 */
+		protected Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
+			MethodSignature method = (MethodSignature) methodOrConstructor;
+			Class<?> returnType = method instanceof NonVoidMethodSignature ? ((NonVoidMethodSignature) method).returnType.toClass(AbstractBlockchain.this) : void.class;
+			Class<?>[] argTypes = formalsAsClass();
+
+			Optional<Method> resolved = Stream.of(classLoader.loadClass(method.definingClass.name).getMethods())
+				.filter(m -> m.getName().equals(method.methodName) && m.getReturnType() == returnType && Arrays.equals(m.getParameterTypes(), argTypes))
+				.findFirst();
+
+			return resolved.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+		}
+
+		/**
+		 * Resolves the method that must be called, assuming that it is an entry.
+		 * 
+		 * @return the method
+		 * @throws NoSuchMethodException if the method could not be found
+		 * @throws SecurityException if the method could not be accessed
+		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+		 */
+		protected Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+			MethodSignature method = (MethodSignature) methodOrConstructor;
+			Class<?> returnType = method instanceof NonVoidMethodSignature ? ((NonVoidMethodSignature) method).returnType.toClass(AbstractBlockchain.this) : void.class;
+			Class<?>[] argTypes = formalsAsClassForEntry();
+
+			Optional<Method> resolved = Stream.of(classLoader.loadClass(method.definingClass.name).getMethods())
+				.filter(m -> m.getName().equals(method.methodName) && m.getReturnType() == returnType && Arrays.equals(m.getParameterTypes(), argTypes))
+				.findFirst();
+
+			return resolved.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+		}
+
+		/**
 		 * Determines if the execution only affected the balance of the caller contract.
 		 *
 		 * @param deserializedCaller the caller contract
@@ -1261,20 +1302,18 @@ public abstract class AbstractBlockchain implements Blockchain {
 		@Override
 		public void run() {
 			try {
-				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
-				String methodName = ((MethodSignature) methodOrConstructor).methodName;
 				Method methodJVM;
 				Object[] deserializedActuals;
 
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided
-					methodJVM = clazz.getMethod(methodName, formalsAsClass());
+					methodJVM = getMethod();
 					deserializedActuals = this.deserializedActuals;
 				}
 				catch (NoSuchMethodException e) {
 					// if not found, we try to add the trailing types that characterize the @Entry methods
 					try {
-						methodJVM = clazz.getMethod(methodName, formalsAsClassForEntry());
+						methodJVM = getEntryMethod();
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the method as the user sees it
@@ -1325,8 +1364,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		@Override
 		public void run() {
 			try {
-				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
-				Method methodJVM = clazz.getMethod(((MethodSignature) methodOrConstructor).methodName, formalsAsClass());
+				Method methodJVM = getMethod();
 
 				if (!Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
