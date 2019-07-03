@@ -19,8 +19,10 @@ import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
@@ -47,9 +49,9 @@ class SimplePyramid {
 
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
 
-	private static final MethodSignature INVEST = new MethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
+	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
 
-	private static final MethodSignature GET_BALANCE = new MethodSignature("takamaka.lang.TestExternallyOwnedAccount", "getBalance");
+	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature("takamaka.lang.TestExternallyOwnedAccount", "getBalance", ClassType.BIG_INTEGER);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 

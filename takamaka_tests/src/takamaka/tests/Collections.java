@@ -5,6 +5,9 @@ package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static takamaka.blockchain.types.BasicTypes.BOOLEAN;
+import static takamaka.blockchain.types.BasicTypes.INT;
+import static takamaka.blockchain.types.BasicTypes.LONG;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -18,7 +21,7 @@ import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
@@ -85,91 +88,91 @@ class Collections {
 	@Test @DisplayName("MapTests.testIteration1() == 4950")
 	void geometricSum() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testIteration1")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_TESTS, "testIteration1", INT)));
 		assertEquals(4950, sum.value);
 	}
 
 	@Test @DisplayName("MapTests.testUpdate1() == 5050")
 	void geometricSumAfterUpdate() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testUpdate1")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_TESTS, "testUpdate1", INT)));
 		assertEquals(5050, sum.value);
 	}
 
 	@Test @DisplayName("MapTests.testUpdate2() == 5050")
 	void geometricSumAfterUpdateWithStream() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testUpdate2")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_TESTS, "testUpdate2", INT)));
 		assertEquals(5050, sum.value);
 	}
 
 	@Test @DisplayName("MapTests.testNullValues() == 100L()")
 	void nullValuesInMap() throws TransactionException, CodeExecutionException {
 		LongValue count = (LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_TESTS, "testNullValues")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_TESTS, "testNullValues", LONG)));
 		assertEquals(100L, count.value);
 	}
 
 	@Test @DisplayName("IntMapTests.testIteration1() == 4950")
 	void geometricSumIntKeys() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(INT_MAP_TESTS, "testIteration1")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(INT_MAP_TESTS, "testIteration1", INT)));
 		assertEquals(4950, sum.value);
 	}
 
 	@Test @DisplayName("IntMapTests.testUpdate1() == 5050")
 	void geometricSumAfterUpdateIntKeys() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(INT_MAP_TESTS, "testUpdate1")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(INT_MAP_TESTS, "testUpdate1", INT)));
 		assertEquals(5050, sum.value);
 	}
 
 	@Test @DisplayName("IntMapTests.testUpdate2() == 5050")
 	void geometricSumAfterUpdateIntKeysWithStream() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(INT_MAP_TESTS, "testUpdate2")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(INT_MAP_TESTS, "testUpdate2", INT)));
 		assertEquals(5050, sum.value);
 	}
 
 	@Test @DisplayName("IntMapTests.testNullValues() == 100L()")
 	void nullValuesInMapIntKeys() throws TransactionException, CodeExecutionException {
 		LongValue count = (LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(INT_MAP_TESTS, "testNullValues")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(INT_MAP_TESTS, "testNullValues", LONG)));
 		assertEquals(100L, count.value);
 	}
 
 	@Test @DisplayName("ArrayTests.testRandomInitialization() == 1225")
 	void randomArray() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "testRandomInitialization")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(ARRAY_TESTS, "testRandomInitialization", INT)));
 		assertEquals(1225, sum.value);
 	}
 
 	@Test @DisplayName("ArrayTests.countNullsAfterRandomInitialization() == 50L")
 	void randomArrayCountNulls() throws TransactionException, CodeExecutionException {
 		LongValue count = (LongValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "countNullsAfterRandomInitialization")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(ARRAY_TESTS, "countNullsAfterRandomInitialization", LONG)));
 		assertEquals(50L, count.value);
 	}
 
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault1() == 1325")
 	void randomArrayThenUpdate1() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "testUpdateWithDefault1")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(ARRAY_TESTS, "testUpdateWithDefault1", INT)));
 		assertEquals(1325, sum.value);
 	}
 
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault2() == 1225")
 	void randomArrayThenUpdate2() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "testUpdateWithDefault2")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(ARRAY_TESTS, "testUpdateWithDefault2", INT)));
 		assertEquals(1225, sum.value);
 	}
 
 	@Test @DisplayName("ArrayTests.testGetOrDefault() == 1225")
 	void randomArrayTheGetOrDefault() throws TransactionException, CodeExecutionException {
 		IntValue sum = (IntValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(ARRAY_TESTS, "testGetOrDefault")));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(ARRAY_TESTS, "testGetOrDefault", INT)));
 		assertEquals(1225, sum.value);
 	}
 
@@ -185,10 +188,10 @@ class Collections {
 			(new ConstructorCallTransactionRequest(gamete, _200_000, classpath, new ConstructorSignature(MAP_HOLDER)));
 
 		StorageValue state = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "get0"), mapHolder));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "isRunning", ClassType.OBJECT), mapHolder, state));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isRunning", BOOLEAN, ClassType.OBJECT), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -199,10 +202,10 @@ class Collections {
 			(new ConstructorCallTransactionRequest(gamete, _200_000, classpath, new ConstructorSignature(MAP_HOLDER)));
 
 		StorageValue state = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "get1"), mapHolder));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "isSleeping", ClassType.OBJECT), mapHolder, state));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isSleeping", BOOLEAN, ClassType.OBJECT), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -213,10 +216,10 @@ class Collections {
 			(new ConstructorCallTransactionRequest(gamete, _200_000, classpath, new ConstructorSignature(MAP_HOLDER)));
 
 		StorageValue state = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "get10"), mapHolder));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "isWaiting", ClassType.OBJECT), mapHolder, state));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isWaiting", BOOLEAN, ClassType.OBJECT), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -227,10 +230,10 @@ class Collections {
 			(new ConstructorCallTransactionRequest(gamete, _200_000, classpath, new ConstructorSignature(MAP_HOLDER)));
 
 		StorageValue state = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "get0"), mapHolder));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "isRunning2", STATE), mapHolder, state));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isRunning2", BOOLEAN, STATE), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -241,10 +244,10 @@ class Collections {
 			(new ConstructorCallTransactionRequest(gamete, _200_000, classpath, new ConstructorSignature(MAP_HOLDER)));
 
 		StorageValue state = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "get1"), mapHolder));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "isSleeping2", STATE), mapHolder, state));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isSleeping2", BOOLEAN, STATE), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -255,10 +258,10 @@ class Collections {
 			(new ConstructorCallTransactionRequest(gamete, _200_000, classpath, new ConstructorSignature(MAP_HOLDER)));
 
 		StorageValue state = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "get10"), mapHolder));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "isWaiting2", STATE), mapHolder, state));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isWaiting2", BOOLEAN, STATE), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -269,10 +272,10 @@ class Collections {
 			(new ConstructorCallTransactionRequest(gamete, _200_000, classpath, new ConstructorSignature(MAP_HOLDER)));
 
 		StorageValue state = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "get0"), mapHolder));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "isRunning3", COMPARABLE), mapHolder, state));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isRunning3", BOOLEAN, COMPARABLE), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -283,10 +286,10 @@ class Collections {
 			(new ConstructorCallTransactionRequest(gamete, _200_000, classpath, new ConstructorSignature(MAP_HOLDER)));
 
 		StorageValue state = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "get1"), mapHolder));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "isSleeping3", COMPARABLE), mapHolder, state));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isSleeping3", BOOLEAN, COMPARABLE), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -297,10 +300,10 @@ class Collections {
 			(new ConstructorCallTransactionRequest(gamete, _200_000, classpath, new ConstructorSignature(MAP_HOLDER)));
 
 		StorageValue state = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "get10"), mapHolder));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, classpath, new MethodSignature(MAP_HOLDER, "isWaiting3", COMPARABLE), mapHolder, state));
+			(gamete, _200_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isWaiting3", BOOLEAN, COMPARABLE), mapHolder, state));
 
 		assertTrue(result.value);
 	}

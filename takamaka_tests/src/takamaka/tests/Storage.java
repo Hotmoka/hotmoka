@@ -19,9 +19,10 @@ import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
@@ -84,7 +85,7 @@ class Storage {
 		StorageReference storage = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_SIMPLE_STORAGE));
 		StorageValue value = blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(SIMPLE_STORAGE, "get"), storage));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage));
 		assertTrue(value instanceof IntValue);
 	}
 
@@ -93,7 +94,7 @@ class Storage {
 		StorageReference storage = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_SIMPLE_STORAGE));
 		IntValue value = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(SIMPLE_STORAGE, "get"), storage));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage));
 		assertEquals(value.value, 0);
 	}
 
@@ -102,9 +103,9 @@ class Storage {
 		StorageReference storage = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_SIMPLE_STORAGE));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13)));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13)));
 		IntValue value = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(SIMPLE_STORAGE, "get"), storage));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage));
 		assertEquals(value.value, 13);
 	}
 
@@ -113,11 +114,11 @@ class Storage {
 		StorageReference storage = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_SIMPLE_STORAGE));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13)));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(17)));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(17)));
 		IntValue value = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(SIMPLE_STORAGE, "get"), storage));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage));
 		assertEquals(value.value, 17);
 	}
 }

@@ -6,6 +6,7 @@ package takamaka.tests;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static takamaka.blockchain.types.BasicTypes.BOOLEAN;
 import static takamaka.blockchain.types.BasicTypes.INT;
 
 import java.math.BigInteger;
@@ -20,9 +21,10 @@ import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
@@ -119,7 +121,7 @@ class CrowdFundingSimplified {
 	void createCampaign() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", new ClassType("takamaka.lang.PayableContract"), ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		assertNotNull(campaign);
@@ -129,22 +131,22 @@ class CrowdFundingSimplified {
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", new ClassType("takamaka.lang.PayableContract"), ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder1, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder2, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), campaign));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", CAMPAIGN),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign));
 
 		assertFalse(reached.value);
@@ -154,22 +156,22 @@ class CrowdFundingSimplified {
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", new ClassType("takamaka.lang.PayableContract"), ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder1, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder2, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), campaign));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", CAMPAIGN),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign));
 
 		assertTrue(reached.value);

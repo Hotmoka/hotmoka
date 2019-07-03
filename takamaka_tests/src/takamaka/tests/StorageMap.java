@@ -4,6 +4,8 @@
 package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static takamaka.blockchain.types.BasicTypes.BOOLEAN;
+import static takamaka.blockchain.types.BasicTypes.INT;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -18,9 +20,10 @@ import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
@@ -91,7 +94,7 @@ class StorageMap {
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_STORAGE_MAP));
 
 		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "size"), map));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
 
 		assertEquals(new IntValue(0), size);
 	}
@@ -102,7 +105,7 @@ class StorageMap {
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_STORAGE_MAP));
 
 		BooleanValue size = (BooleanValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "isEmpty"), map));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "isEmpty", BOOLEAN), map));
 
 		assertEquals(BooleanValue.TRUE, size);
 	}
@@ -116,11 +119,11 @@ class StorageMap {
 			(gamete, _1_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount")));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
 				map, eoa, ONE));
 
 		BigIntegerValue get = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "get", ClassType.OBJECT), map, eoa));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa));
 
 		assertEquals(ONE, get);
 	}
@@ -137,11 +140,11 @@ class StorageMap {
 			(gamete, _1_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount")));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
 				map, eoa1, ONE));
 
 		StorageValue get = (StorageValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "get", ClassType.OBJECT), map, eoa2));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa2));
 
 		assertEquals(NullValue.INSTANCE, get);
 	}
@@ -158,11 +161,11 @@ class StorageMap {
 			(gamete, _1_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount")));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
 				map, eoa1, ONE));
 
 		StorageValue get = (StorageValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT),
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT),
 				map, eoa2, TWO));
 
 		assertEquals(TWO, get);
@@ -179,12 +182,12 @@ class StorageMap {
 					(gamete, _1_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount")));
 
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
 					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
 		}
 
 		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "size"), map));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
 
 		assertEquals(100, size.value);
 	}
@@ -200,11 +203,11 @@ class StorageMap {
 		Random random = new Random();
 		for (int i = 0; i < 100; i++)
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
 					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
 
 		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "size"), map));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
 
 		assertEquals(1, size.value);
 	}
@@ -217,11 +220,11 @@ class StorageMap {
 		Random random = new Random();
 		for (int i = 0; i < 100; i++)
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
 					map, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
 
 		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "size"), map));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
 
 		assertEquals(1, size.value);
 	}
@@ -239,12 +242,12 @@ class StorageMap {
 				min = bi;
 
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
 					map, new BigIntegerValue(bi), new StringValue("hello")));
 		}
 
 		BigIntegerValue result = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "min"),
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "min", ClassType.OBJECT),
 			map));
 
 		assertEquals(min, result.value);
@@ -263,17 +266,17 @@ class StorageMap {
 					(gamete, _1_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount")));
 
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
 					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
 		}
 		while (++i < 100);
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(STORAGE_MAP, "remove", ClassType.OBJECT),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(STORAGE_MAP, "remove", ClassType.OBJECT),
 			map, eoa));
 
 		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "size"), map));
+			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
 
 		assertEquals(99, size.value);
 	}
@@ -289,11 +292,11 @@ class StorageMap {
 					(gamete, _1_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount")));
 
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
 					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
 
 			BooleanValue contains = (BooleanValue) blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new MethodSignature(STORAGE_MAP, "contains", ClassType.OBJECT),
+				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath, new NonVoidMethodSignature(STORAGE_MAP, "contains", BOOLEAN, ClassType.OBJECT),
 				map, eoa));
 
 			assertEquals(true, contains.value);

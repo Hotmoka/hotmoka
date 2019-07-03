@@ -8,7 +8,7 @@ import takamaka.lang.Immutable;
  * The signature of a method of a class.
  */
 @Immutable
-public final class MethodSignature extends CodeSignature {
+public abstract class MethodSignature extends CodeSignature {
 
 	private static final long serialVersionUID = -1068494776407417852L;
 
@@ -28,17 +28,6 @@ public final class MethodSignature extends CodeSignature {
 		super(definingClass, formals);
 
 		this.methodName = methodName;
-	}
-
-	/**
-	 * Builds the signature of a method.
-	 * 
-	 * @param definingClass the name of the class of the method
-	 * @param methodName the name of the method
-	 * @param formals the formal arguments of the method
-	 */
-	public MethodSignature(String definingClass, String methodName, StorageType... formals) {
-		this(ClassType.mk(definingClass), methodName, formals);
 	}
 
 	@Override

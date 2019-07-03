@@ -645,10 +645,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 				return null;
 			else {
 				StorageValue result = ((MethodCallTransactionSuccessfulResponse) response).result;
-				if (result instanceof StorageReference)
-					result = ((StorageReference) result).contextualizeAt(transaction);
-
-				return result;
+				return result instanceof StorageReference ?
+					((StorageReference) result).contextualizeAt(transaction) : result;
 			}
 		});
 	}
@@ -718,10 +716,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 				return null;
 			else {
 				StorageValue result = ((MethodCallTransactionSuccessfulResponse) response).result;
-				if (result instanceof StorageReference)
-					result = ((StorageReference) result).contextualizeAt(transaction);
-
-				return result;
+				return result instanceof StorageReference ?
+					((StorageReference) result).contextualizeAt(transaction) : result;
 			}
 		});
 	}

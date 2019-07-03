@@ -6,6 +6,7 @@ package takamaka.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static takamaka.blockchain.types.BasicTypes.BOOLEAN;
 import static takamaka.blockchain.types.BasicTypes.INT;
 
 import java.math.BigInteger;
@@ -20,9 +21,10 @@ import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
@@ -117,7 +119,7 @@ class CrowdFunding {
 	void createCampaign() throws TransactionException, CodeExecutionException {
 		IntValue id = (IntValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "newCampaign", new ClassType("takamaka.lang.PayableContract"), ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		assertEquals(0, id.value);
@@ -127,12 +129,12 @@ class CrowdFunding {
 	void createTwoCampaigns() throws TransactionException, CodeExecutionException {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "newCampaign", new ClassType("takamaka.lang.PayableContract"), ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		IntValue id = (IntValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "newCampaign", new ClassType("takamaka.lang.PayableContract"), ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		assertEquals(1, id.value);
@@ -142,22 +144,22 @@ class CrowdFunding {
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException {
 		IntValue id = (IntValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "newCampaign", new ClassType("takamaka.lang.PayableContract"), ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder1, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
+			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), id));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder2, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
+			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), id));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "checkGoalReached", INT),
+			new NonVoidMethodSignature(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id));
 
 		assertFalse(reached.value);
@@ -167,22 +169,22 @@ class CrowdFunding {
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException {
 		IntValue id = (IntValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "newCampaign", new ClassType("takamaka.lang.PayableContract"), ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder1, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
+			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), id));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder2, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
+			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), id));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpath,
-			new MethodSignature(CROWD_FUNDING, "checkGoalReached", INT),
+			new NonVoidMethodSignature(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id));
 
 		assertTrue(reached.value);

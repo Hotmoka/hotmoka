@@ -18,9 +18,9 @@ import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
@@ -126,7 +126,7 @@ class Purchase {
 
 		try {
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new MethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(18)));
+				(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new VoidMethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(18)));
 		}
 		catch (TransactionException e) {
 			if (e.getCause() instanceof RequirementViolationException)
@@ -144,7 +144,7 @@ class Purchase {
 			new IntValue(20)));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new MethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(20)));
+			(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new VoidMethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(20)));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmReceived()")
@@ -155,7 +155,7 @@ class Purchase {
 
 		try {
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new MethodSignature(PURCHASE, "confirmReceived"), purchase));
+				(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new VoidMethodSignature(PURCHASE, "confirmReceived"), purchase));
 		}
 		catch (TransactionException e) {
 			if (e.getCause() instanceof RequirementViolationException)
@@ -173,9 +173,9 @@ class Purchase {
 			new IntValue(20)));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new MethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(20)));
+			(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new VoidMethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(20)));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new MethodSignature(PURCHASE, "confirmReceived"), purchase));
+			(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new VoidMethodSignature(PURCHASE, "confirmReceived"), purchase));
 	}
 }

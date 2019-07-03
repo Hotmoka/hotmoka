@@ -25,8 +25,10 @@ import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
@@ -77,15 +79,15 @@ class BlindAuction {
 	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("takamaka.tests.auction.BlindAuction$RevealedBid"),
 			ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32);
 
-	private static final MethodSignature BID = new MethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
+	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
 
-	private static final MethodSignature REVEAL = new MethodSignature(BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
+	private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
 
-	private static final MethodSignature AUCTION_END = new MethodSignature(BLIND_AUCTION, "auctionEnd");
+	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
 
-	private static final MethodSignature GET_BALANCE = new MethodSignature(new ClassType("takamaka.lang.TestExternallyOwnedAccount"), "getBalance");
-	
-	private static final MethodSignature ADD = new MethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
+	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(new ClassType("takamaka.lang.TestExternallyOwnedAccount"), "getBalance", ClassType.BIG_INTEGER);
+
+	private static final MethodSignature ADD = new VoidMethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
 
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 

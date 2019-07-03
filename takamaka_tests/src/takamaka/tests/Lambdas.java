@@ -5,6 +5,7 @@ package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static takamaka.blockchain.types.BasicTypes.INT;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -18,9 +19,10 @@ import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
@@ -90,7 +92,7 @@ class Lambdas {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "invest", ClassType.BIG_INTEGER),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(LAMBDAS, "invest", ClassType.BIG_INTEGER),
 			lambdas, new BigIntegerValue(BigInteger.ONE)));
 	}
 
@@ -99,7 +101,7 @@ class Lambdas {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testLambdaWithThis"),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(LAMBDAS, "testLambdaWithThis"),
 			lambdas));
 	}
 
@@ -108,7 +110,7 @@ class Lambdas {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testLambdaWithoutThis"),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThis"),
 			lambdas));
 	}
 
@@ -117,7 +119,7 @@ class Lambdas {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testLambdaWithoutThisGetStatic"),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThisGetStatic"),
 			lambdas));
 	}
 
@@ -126,7 +128,7 @@ class Lambdas {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
 		IntValue result = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testMethodReferenceToEntry"),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntry", INT),
 			lambdas));
 
 		assertEquals(11, result.value);
@@ -137,7 +139,7 @@ class Lambdas {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testMethodReferenceToEntryOfOtherClass"),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(LAMBDAS, "testMethodReferenceToEntryOfOtherClass"),
 			lambdas));
 	}
 
@@ -148,7 +150,7 @@ class Lambdas {
 
 		try {
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract"),
+				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT),
 				lambdas));
 		}
 		catch (TransactionException e) {
@@ -166,7 +168,7 @@ class Lambdas {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
 		IntValue result = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testConstructorReferenceToEntry"),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntry", INT),
 			lambdas));
 
 		assertEquals(11, result.value);
@@ -177,7 +179,7 @@ class Lambdas {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new MethodSignature(LAMBDAS, "testConstructorReferenceToEntryPopResult"),
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntryPopResult"),
 			lambdas));
 	}
 }

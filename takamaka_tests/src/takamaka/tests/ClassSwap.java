@@ -19,11 +19,13 @@ import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.DeserializationError;
 import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.memory.InitializedMemoryBlockchain;
@@ -37,7 +39,7 @@ class ClassSwap {
 
 	private static final ConstructorSignature CONSTRUCTOR_C = new ConstructorSignature("C");
 
-	private static final MethodSignature GET = new MethodSignature("C", "get");
+	private static final MethodSignature GET = new NonVoidMethodSignature("C", "get", BasicTypes.INT);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
