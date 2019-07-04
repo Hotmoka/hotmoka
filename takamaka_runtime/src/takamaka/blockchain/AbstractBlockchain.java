@@ -72,7 +72,6 @@ import takamaka.lang.ThrowsExceptions;
 import takamaka.lang.View;
 import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
-import takamaka.translator.Program;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -281,39 +280,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
 	}
 
-	/**
-	 * Expands the given list with the dependent class paths, recursively.
-	 * 
-	 * @param classpath the class path whose dependencies must be added, recursively
-	 * @param paths the list that gets expanded
-	 * @throws Exception if the class paths cannot be found
-	 */
-	private void extractPathsRecursively(Classpath classpath, List<Path> paths) throws Exception {
-		// if the class path is recursive, we consider its dependencies as well, recursively
-		if (classpath.recursive) {
-			TransactionRequest request = getRequestAt(classpath.transaction);
-			if (!(request instanceof AbstractJarStoreTransactionRequest))
-				throw new IllegalTransactionRequestException("classpath does not refer to a jar store transaction");
-
-			Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
-
-			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-				extractPathsRecursively(dependency, paths);
-		}
-
-		TransactionResponse response = getResponseAt(classpath.transaction);
-		if (!(response instanceof AbstractJarStoreTransactionResponse))
-			throw new IllegalTransactionRequestException("classpath does not refer to a successful jar store transaction");
-
-		byte[] instrumentedJarBytes = ((AbstractJarStoreTransactionResponse) response).getInstrumentedJar();
-
-		try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
-			Path classpathElement = Files.createTempFile("classpath", ".jar");
-			paths.add(classpathElement);
-			Files.copy(is, classpathElement, StandardCopyOption.REPLACE_EXISTING);
-		}
-	}
-
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 
 	/**
@@ -404,7 +370,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			String appendedClassPath = original.toString();
 			Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies())) {
-				new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()), jarClassLoader);
+				new JarInstrumentation(original, instrumented, jarClassLoader);
 			}
 
 			byte[] instrumentedBytes = Files.readAllBytes(instrumented);
@@ -495,7 +461,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					String appendedClassPath = Stream.of(classLoader.getURLs()).map(URL::getFile).collect(Collectors.joining(":", original.toString() + ":", ""));
 					Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies())) {
-						new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()), jarClassLoader);
+						new JarInstrumentation(original, instrumented, jarClassLoader);
 					}
 
 					byte[] instrumentedBytes = Files.readAllBytes(instrumented);
@@ -1415,29 +1381,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	private BigInteger remainingGas() {
 		return gas;
-	}
-
-	/**
-	 * Builds the program that contains the classes of a jar and its dependencies.
-	 * 
-	 * @param jar the jar
-	 * @param dependencies the dependencies
-	 * @return the resulting program
-	 * @throws Exception if the program cannot be built
-	 */
-	private Program mkProgram(Path jar, Stream<Classpath> dependencies) throws Exception {
-		List<Path> result = new ArrayList<>();
-		result.add(jar);
-
-		for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-			extractPathsRecursively(dependency, result);
-
-		Program program = new Program(result.stream());
-		for (Path classpathElement: result)
-			if (classpathElement != jar)
-				Files.delete(classpathElement);
-
-		return program;
 	}
 
 	/**
