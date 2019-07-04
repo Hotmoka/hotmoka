@@ -26,9 +26,11 @@ public class JarInstrumentation {
 	 * @param destination the jar file to generate
 	 * @param program the program that contains all classes of the program,
 	 *                including those of {@code origin}
+	 * @param classLoader the class loader that can be used to resolve the classes of the program,
+	 *                    including those of {@code origin}
 	 */
-	public JarInstrumentation(Path origin, Path destination, Program program) {
-		new Initializer(origin, destination, program);
+	public JarInstrumentation(Path origin, Path destination, Program program, ClassLoader classLoader) {
+		new Initializer(origin, destination, program, classLoader);
 	}
 
 	/**
@@ -52,17 +54,25 @@ public class JarInstrumentation {
 		private final Program program;
 
 		/**
+		 * The class loader that can be used to resolve the classes of the program.
+		 */
+		private final ClassLoader classLoader;
+
+		/**
 		 * Performs the instrumentation of the given jar file into another jar file.
 		 * 
 		 * @param origin the jar file to instrument
 		 * @param destination the jar file to generate
 		 * @param program the program that contains all classes of the program,
 		 *                including those of {@code origin}
+		 * @param classLoader the class loader that can be used to resolve the classes of the program,
+		 *                    including those of {@code origin}
 		 */
-		private Initializer(Path origin, Path destination, Program program) {
+		private Initializer(Path origin, Path destination, Program program, ClassLoader classLoader) {
 			LOGGER.fine(() -> "Processing " + origin);
 
 			this.program = program;
+			this.classLoader = classLoader;
 
 			try (JarFile originalJar = this.originalJar = new JarFile(origin.toFile());
 				 JarOutputStream instrumentedJar = this.instrumentedJar = new JarOutputStream(new FileOutputStream(destination.toFile()))) {
@@ -89,7 +99,7 @@ public class JarInstrumentation {
 					instrumentedJar.putNextEntry(new JarEntry(entryName));
 
 					// dump an instrumented class file inside that entry
-					new ClassInstrumentation(input, entryName, instrumentedJar, program);
+					new ClassInstrumentation(input, entryName, instrumentedJar, program, classLoader);
 				}
 				else
 					LOGGER.fine(() -> "Dropping non-class file " + entryName);

@@ -403,8 +403,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 			// we keep the BCEL repository to a minimum
 			String appendedClassPath = original.toString();
 			Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
-			new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()));
-			Files.delete(original);
+			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies())) {
+				new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()), jarClassLoader);
+			}
+
 			byte[] instrumentedBytes = Files.readAllBytes(instrumented);
 			Files.delete(instrumented);
 		
@@ -492,9 +494,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 					// whole hierarchy of classes must be available to BCEL through its repository
 					String appendedClassPath = Stream.of(classLoader.getURLs()).map(URL::getFile).collect(Collectors.joining(":", original.toString() + ":", ""));
 					Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
-					new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()));
+					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies())) {
+						new JarInstrumentation(original, instrumented, mkProgram(original, request.getDependencies()), jarClassLoader);
+					}
 
-					Files.delete(original);
 					byte[] instrumentedBytes = Files.readAllBytes(instrumented);
 					Files.delete(instrumented);
 					BigInteger consumedGas = request.gas.subtract(remainingGas());
@@ -821,14 +824,31 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * Builds the class loader for the given class path and its dependencies.
 		 * 
 		 * @param classpath the class path
-		 * @throws IOException if a disk access error occurs
+		 * @throws Exception if an error occurs
 		 */
 		private BlockchainClassLoader(Classpath classpath) throws Exception {
 			// we initially build it without URLs
-			super(new URL[0], classpath.getClass().getClassLoader());
+			super(new URL[0], ClassLoader.getSystemClassLoader());
 
 			// then we add the URLs corresponding to the class path and its dependencies, recursively
 			addURLs(classpath);
+		}
+
+		/**
+		 * Builds the class loader for the given jar and its dependencies.
+		 * 
+		 * @param jar the jar
+		 * @param dependencies the dependencies
+		 * @throws Exception if an error occurs
+		 */
+		private BlockchainClassLoader(Path jar, Stream<Classpath> dependencies) throws Exception {
+			// we initially build it without URLs
+			super(new URL[] { jar.toFile().toURI().toURL() }, ClassLoader.getSystemClassLoader());
+
+			classpathElements.add(jar);
+
+			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
+				addURLs(dependency);
 		}
 
 		private void addURLs(Classpath classpath) throws Exception {

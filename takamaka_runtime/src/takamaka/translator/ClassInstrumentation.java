@@ -2,8 +2,11 @@ package takamaka.translator;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -21,7 +24,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
-import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ClassFormatException;
@@ -34,12 +36,11 @@ import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
-import org.apache.bcel.classfile.ElementValuePair;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
-import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.ATHROW;
+import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.ClassGen;
@@ -105,12 +106,8 @@ class ClassInstrumentation {
 	private final static String ENTRY = "entry";
 	private final static String IN_STORAGE_NAME = "inStorage";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
-	private final static String ENTRY_CLASS_NAME_JB = 'L' + Entry.class.getName().replace('.', '/') + ';';
-	private final static String PAYABLE_CLASS_NAME_JB = 'L' + Payable.class.getName().replace('.', '/') + ';';
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
-	private final static String CONTRACT_CLASS_NAME_JB = 'L' + CONTRACT_CLASS_NAME.replace('.', '/') + ';';
 	private final static String DUMMY_CLASS_NAME = Dummy.class.getName();
-	private final static String DUMMY_CLASS_NAME_JB = 'L' + DUMMY_CLASS_NAME.replace('.', '/') + ';';
 	private final static String TAKAMAKA_CLASS_NAME = Takamaka.class.getName();
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
 	private final static String ENUM_CLASS_NAME = Enum.class.getName();
@@ -145,18 +142,19 @@ class ClassInstrumentation {
 	 * @param input the input stream containing the class to instrument
 	 * @param className the name of the class
 	 * @param instrumentedJar the jar where the instrumented class will be added
-	 * @param program the collection of the classes under instrumentation of of their dependent libraries
+	 * @param program the collection of the classes under instrumentation and of their dependent libraries
+	 * @param classLoader the class loader for resolving the classes under instrumentation and of their dependent libraries
 	 * @throws ClassFormatException if some class file is not legal
 	 * @throws IOException if there is an error accessing the disk
 	 */
-	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program) throws ClassFormatException, IOException {
+	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, Program program, ClassLoader classLoader) throws ClassFormatException, IOException {
 		LOGGER.fine(() -> "Instrumenting " + className);
 
 		// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
 		ClassGen classGen = new ClassGen(new ClassParser(input, className).parse());
 
 		// performs instrumentation on that image
-		new Initializer(classGen, program);
+		new Initializer(classGen, program, classLoader);
 
 		// dump the image on disk
 		classGen.getJavaClass().dump(instrumentedJar);
@@ -166,8 +164,6 @@ class ClassInstrumentation {
 	 * Local scope for the instrumentation of a single class.
 	 */
 	private class Initializer {
-
-		private static final String OBJECT_CLASS_NAME = "java.lang.Object";
 
 		/**
 		 * The class that is being instrumented.
@@ -224,6 +220,11 @@ class ClassInstrumentation {
 		private final Program program;
 
 		/**
+		 * The class loader for resolving the classes under instrumentation and those of the supporting libraries.
+		 */
+		private final ClassLoader classLoader;
+
+		/**
 		 * The bootstrap methods of the class being processed.
 		 */
 		private final BootstrapMethod[] bootstrapMethods;
@@ -235,18 +236,37 @@ class ClassInstrumentation {
 		private final Set<BootstrapMethod> bootstrapMethodsThatWillRequireExtraThis = new HashSet<>();
 
 		/**
+		 * The class token of the contract class.
+		 */
+		private final Class<?> contractClass;
+
+		/**
+		 * The class token of the storage class.
+		 */
+		private final Class<?> storageClass;
+
+		/**
 		 * Performs the instrumentation of a single class.
 		 * 
 		 * @param classGen the class to instrument
 		 * @param program the collection of all classes under instrumentation and those of the
 		 *                supporting libraries
+		 * @param classLoader the class loader for resolving the classes under instrumentation and those of
+		 *        the dependent libraries
 		 */
-		private Initializer(ClassGen classGen, Program program) {
+		private Initializer(ClassGen classGen, Program program, ClassLoader classLoader) {
+			try {
+				this.contractClass = classLoader.loadClass(CONTRACT_CLASS_NAME);
+				this.storageClass = classLoader.loadClass(STORAGE_CLASS_NAME);
+			} catch (ClassNotFoundException e) {
+				throw new IncompleteClasspathError(e);
+			}
 			this.classGen = classGen;
 			this.className = classGen.getClassName();
 			this.cpg = classGen.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
 			this.program = program;
+			this.classLoader = classLoader;
 			this.isStorage = !className.equals(STORAGE_CLASS_NAME) && isStorage(className);
 			this.isContract = isContract(className);
 
@@ -651,8 +671,8 @@ class ClassInstrumentation {
 			addContractToCallsToEntries(methodGen);
 
 			String callerContract;
-			if (isContract && (callerContract = isEntry(className, method.getName(), method.getSignature())) != null)
-				instrumentEntry(methodGen, callerContract, isPayable(method.getName(), method.getSignature()));
+			if (isContract && (callerContract = isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType())) != null)
+				instrumentEntry(methodGen, callerContract, getAnnotation(className, method.getName(), method.getArgumentTypes(), method.getReturnType(), Payable.class) != null);
 
 			addGasUpdates(methodGen);
 
@@ -891,19 +911,18 @@ class ClassInstrumentation {
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isEntryPossiblyAlreadyInstrumented(String className, String methodName, String signature) {
-			if (isEntry(className, methodName, signature) != null)
+			Type[] formals = Type.getArgumentTypes(signature);
+			Type returnType = Type.getReturnType(signature);
+			if (isEntry(className, methodName, formals, returnType) != null)
 				return true;
 
 			// the method might have been already instrumented, since it comes from
 			// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
-			int whereToAddParameters = signature.lastIndexOf(')');
-			if (whereToAddParameters > 0) {
-				signature = signature.substring(0, whereToAddParameters) + CONTRACT_CLASS_NAME_JB + DUMMY_CLASS_NAME_JB + signature.substring(whereToAddParameters);
-				if (isEntry(className, methodName, signature) != null)
-					return true;
-			}
-
-			return false;
+			Type[] formalsExpanded = new Type[formals.length + 2];
+			System.arraycopy(formals, 0, formalsExpanded, 0, formals.length);
+			formalsExpanded[formals.length] = CONTRACT_OT;
+			formalsExpanded[formals.length + 1] = DUMMY_OT;
+			return isEntry(className, methodName, formalsExpanded, returnType) != null;
 		}
 
 		/**
@@ -912,22 +931,16 @@ class ClassInstrumentation {
 		 * 
 		 * @param className the class of the constructor or method
 		 * @param methodName the name of the constructor or method
-		 * @param methodSignature the signature of the constructor or method
+		 * @param formals the types of the formal arguments of the method
+		 * @param returnType the return type of the method
 		 * @return the value of the annotation, if it is a contract. For instance, for {@code @@Entry(PayableContract.class)}
 		 *         this return value will be the string {@code takamaka.lang.PayableContract}
 		 */
-		private String isEntry(String className, String methodName, String methodSignature) {
-			AnnotationEntry annotation = getAnnotation(className, methodName, methodSignature, ENTRY_CLASS_NAME_JB);
+		private String isEntry(String className, String methodName, Type[] formals, Type returnType) {
+			Annotation annotation = getAnnotation(className, methodName, formals, returnType, Entry.class);
 			if (annotation != null) {
-				ElementValuePair[] pairs = annotation.getElementValuePairs();
-				if (pairs.length == 1) {
-					String callerContract = Utility.signatureToString(pairs[0].getValue().stringifyValue());
-					if (isContract(callerContract))
-						return callerContract;
-				}
-
-				// default
-				return CONTRACT_CLASS_NAME;
+				Class<?> contractClass = ((Entry) annotation).value();
+				return contractClass != Object.class ? contractClass.getName() : CONTRACT_CLASS_NAME;
 			}
 
 			return null;
@@ -938,59 +951,65 @@ class ClassInstrumentation {
 		 * 
 		 * @param className the class of the constructor or method
 		 * @param methodName the name of the constructor or method
-		 * @param methodSignature the signature of the constructor or method
-		 * @param annotationNameJB the name of the annotation, in Java bytecode style (such as {@code Ljava/lang/Object;})
+		 * @param formals the types of the formal arguments of the method or constructor
+		 * @param returnType the return type of the method or constructor
+		 * @param annotation the class token of the annotation
 		 * @return the annotation, if any. Yields {@code null} if the method or constructor has no such annotation
 		 */
-		private AnnotationEntry getAnnotation(String className, String methodName, String methodSignature, String annotationNameJB) {
-			if (className.equals(OBJECT_CLASS_NAME))
-				return null;
-
-			JavaClass clazz = program.get(className);
-			if (clazz == null)
-				return null;
-
-			Optional<Method> definition = Stream.of(clazz.getMethods())
-				.filter(m -> m.getName().equals(methodName) && m.getSignature().equals(methodSignature))
-				.findAny();
-
-			if (definition.isPresent()) {
-				List<AnnotationEntry> annotations = Stream.of(definition.get().getAnnotationEntries())
-					.filter(annotation -> annotation.getAnnotationType().equals(annotationNameJB))
-					.collect(Collectors.toList());
-
-				if (annotations.size() == 1)
-					return annotations.get(0);
-
-				if (definition.get().isPrivate())
-					return null;
-			}
-
+		private Annotation getAnnotation(String className, String methodName, Type[] formals, Type returnType, Class<? extends Annotation> annotation) {
 			if (methodName.equals(Const.CONSTRUCTOR_NAME))
-				return null;
-
-			AnnotationEntry annotation = getAnnotation(clazz.getSuperclassName(), methodName, methodSignature, annotationNameJB);
-			if (annotation != null)
-				return annotation;
-
-			for (String _interface: clazz.getInterfaceNames()) {
-				annotation = getAnnotation(_interface, methodName, methodSignature, annotationNameJB);
-				if (annotation != null)
-					return annotation;
-			}
-
-			return null;
+				return getAnnotationOfConstructor(className, formals, annotation);
+			else
+				return getAnnotationOfMethod(className, methodName, formals, returnType, annotation);
 		}
 
-		/**
-		 * Determines if the given constructor method is annotated as payable.
-		 * 
-		 * @param methodName the name of the constructor or method
-		 * @param methodSignature the signature of the constructor or method
-		 * @return true if and only if that condition holds
-		 */
-		private boolean isPayable(String methodName, String methodSignature) {
-			return getAnnotation(className, methodName, methodSignature, PAYABLE_CLASS_NAME_JB) != null;
+		private Annotation getAnnotationOfConstructor(String className, Type[] formals, Class<? extends Annotation> annotation) {
+			Class<?>[] formalsClass = Stream.of(formals).map(this::bcelToClass).toArray(Class[]::new);
+
+			try {
+				Class<?> clazz = classLoader.loadClass(className);
+				Optional<java.lang.reflect.Constructor<?>> definition = Stream.of(clazz.getDeclaredConstructors())
+					.filter(c -> Arrays.equals(c.getParameterTypes(), formalsClass))
+					.findFirst();
+
+				if (definition.isPresent())
+					return definition.get().getAnnotation(annotation);
+				else
+					return null;
+			}
+			catch (ClassNotFoundException e) {
+				throw new IncompleteClasspathError(e);
+			}
+		}
+
+		private Annotation getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, Class<? extends Annotation> annotation) {
+			Class<?> returnTypeClass = bcelToClass(returnType);
+			Class<?>[] formalsClass = Stream.of(formals).map(this::bcelToClass).toArray(Class[]::new);
+
+			try {
+				Class<?> clazz = classLoader.loadClass(className);
+				Optional<java.lang.reflect.Method> definition = Stream.of(clazz.getDeclaredMethods())
+					.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
+					.findFirst();
+
+				if (definition.isPresent()) {
+					Annotation result = definition.get().getAnnotation(annotation);
+					if (result != null)
+						return result;
+
+					if (Modifier.isPrivate(definition.get().getModifiers()))
+						return null;
+				}
+
+				Class<?> superclass = clazz.getSuperclass();
+				if (superclass == null)
+					return null;
+				else
+					return getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotation);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IncompleteClasspathError(e);
+			}
 		}
 
 		/**
@@ -1716,17 +1735,10 @@ class ClassInstrumentation {
 		 * @return true if and only if that class extends {@link takamaka.lang.Storage}
 		 */
 		private boolean isStorage(String className) {
-			// we also consider Contract since it is normally not included in the class path of the Takamaka runtime
-			if (className.equals(STORAGE_CLASS_NAME) || className.equals(CONTRACT_CLASS_NAME))
-				return true;
-			else {
-				JavaClass clazz = program.get(className);
-				if (clazz == null)
-					return false;
-				else {
-					String superclassName = clazz.getSuperclassName();
-					return superclassName != null && isStorage(superclassName);
-				}
+			try {
+				return storageClass.isAssignableFrom(classLoader.loadClass(className));
+			} catch (ClassNotFoundException e) {
+				throw new IncompleteClasspathError(e);
 			}
 		}
 
@@ -1737,68 +1749,110 @@ class ClassInstrumentation {
 		 * @return true if and only if that class extends {@link java.lang.Enum}
 		 */
 		private boolean isEnum(String className) {
-			// we also consider Contract since it is normally not included in the class path of the Takamaka runtime
-			if (className.equals(ENUM_CLASS_NAME))
-				return true;
-			else {
-				JavaClass clazz = program.get(className);
-				if (clazz == null)
-					return false;
-				else {
-					String superclassName = clazz.getSuperclassName();
-					return superclassName != null && isEnum(superclassName);
-				}
+			try {
+				return Enum.class.isAssignableFrom(classLoader.loadClass(className));
+			} catch (ClassNotFoundException e) {
+				throw new IncompleteClasspathError(e);
 			}
 		}
 
 		/**
-		 * Determines if a field is transient.
+		 * Determines if an instance field of a storage class is transient.
 		 * 
-		 * @param className the class from which the field must be looked-up
+		 * @param className the class from which the field must be looked-up. This is guaranteed to be a storage class
 		 * @param fieldName the name of the field
 		 * @param fieldType the type of the field
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isTransient(String className, String fieldName, Type fieldType) {
-			JavaClass clazz = program.get(className);
-			if (clazz == null)
-				return false;
+			try {
+				Class<?> clazz = classLoader.loadClass(className);
+				
+				do {
+					Optional<java.lang.reflect.Field> match = Stream.of(clazz.getDeclaredFields())
+						.filter(field -> field.getName().equals(fieldName) && bcelToClass(fieldType) == field.getType())
+						.findFirst();
 
-			for (Field field: clazz.getFields())
-				if (field.getName().equals(fieldName) && field.getType().equals(fieldType))
-					return field.isTransient();
+					if (match.isPresent())
+						return Modifier.isTransient(match.get().getModifiers());
+				}
+				while (clazz != storageClass && clazz != contractClass);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IncompleteClasspathError(e);
+			}
 
-			if (className.equals(STORAGE_CLASS_NAME) || className.equals(CONTRACT_CLASS_NAME))
-				return false;
-			else {
-				String superclassName = clazz.getSuperclassName();
-				return superclassName != null && isTransient(superclassName, fieldName, fieldType);
+			return false;
+		}
+
+		/**
+		 * Computes the Java token class for the given BCEL type.
+		 * 
+		 * @param type the BCEL type
+		 * @return type the class token corresponding to {@code type}
+		 */
+		private Class<?> bcelToClass(Type type) {
+			if (type == BasicType.BOOLEAN)
+				return boolean.class;
+			else if (type == BasicType.BYTE)
+				return byte.class;
+			else if (type == BasicType.CHAR)
+				return char.class;
+			else if (type == BasicType.DOUBLE)
+				return double.class;
+			else if (type == BasicType.FLOAT)
+				return float.class;
+			else if (type == BasicType.INT)
+				return int.class;
+			else if (type == BasicType.LONG)
+				return long.class;
+			else if (type == BasicType.SHORT)
+				return short.class;
+			else if (type == BasicType.VOID)
+				return void.class;
+			else if (type instanceof ObjectType)
+				try {
+					return classLoader.loadClass(type.toString()); //getSignature().replace('/', '.'));
+				}
+				catch (ClassNotFoundException e) {
+					throw new IncompleteClasspathError(e);
+				}
+			else { // array
+				Class<?> elementsClass = bcelToClass(((ArrayType) type).getElementType());
+				// trick: we build an array of 0 elements just to access its class token
+				return java.lang.reflect.Array.newInstance(elementsClass, 0).getClass();
 			}
 		}
 
 		/**
-		 * Determines if a field is transient or final.
+		 * Determines if an instance field of a storage class is transient or final.
 		 * 
-		 * @param className the class from which the field must be looked-up
+		 * @param className the class from which the field must be looked-up. This is guaranteed to be a storage class
 		 * @param fieldName the name of the field
 		 * @param fieldType the type of the field
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isTransientOrFinal(String className, String fieldName, Type fieldType) {
-			JavaClass clazz = program.get(className);
-			if (clazz == null)
-				return false;
+			try {
+				Class<?> clazz = classLoader.loadClass(className);
+				
+				do {
+					Optional<java.lang.reflect.Field> match = Stream.of(clazz.getDeclaredFields())
+						.filter(field -> field.getName().equals(fieldName) && bcelToClass(fieldType) == field.getType())
+						.findFirst();
 
-			for (Field field: clazz.getFields())
-				if (field.getName().equals(fieldName) && field.getType().equals(fieldType))
-					return field.isTransient() || field.isFinal();
-
-			if (className.equals(STORAGE_CLASS_NAME) || className.equals(CONTRACT_CLASS_NAME))
-				return false;
-			else {
-				String superclassName = clazz.getSuperclassName();
-				return superclassName != null && isTransientOrFinal(superclassName, fieldName, fieldType);
+					if (match.isPresent()) {
+						int modifiers = match.get().getModifiers();
+						return Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers);
+					}
+				}
+				while (clazz != storageClass && clazz != contractClass);
 			}
+			catch (ClassNotFoundException e) {
+				throw new IncompleteClasspathError(e);
+			}
+
+			return false;
 		}
 
 		/**
@@ -1808,16 +1862,10 @@ class ClassInstrumentation {
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isContract(String className) {
-			if (className.equals(CONTRACT_CLASS_NAME))
-				return true;
-			else {
-				JavaClass clazz = program.get(className);
-				if (clazz == null)
-					return false;
-				else {
-					String superclassName = clazz.getSuperclassName();
-					return superclassName != null && isContract(superclassName);
-				}
+			try {
+				return contractClass.isAssignableFrom(classLoader.loadClass(className));
+			} catch (ClassNotFoundException e) {
+				throw new IncompleteClasspathError(e);
 			}
 		}
 	}
