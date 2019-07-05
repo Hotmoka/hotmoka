@@ -3,7 +3,6 @@ package takamaka.translator;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -48,7 +47,7 @@ public class Translator {
 		    		for (String lib: libJarNames)
 		    			urls.add(new File(lib).toURI().toURL());
 
-		    	ClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]), ClassLoader.getSystemClassLoader());
+		    	TakamakaClassLoader classLoader = new TakamakaClassLoader(urls.toArray(new URL[urls.size()]));
 		    	new JarInstrumentation(origin, destination, classLoader);
 		    }
 	    }

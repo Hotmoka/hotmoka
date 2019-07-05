@@ -11,9 +11,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
 import java.util.ArrayList;
@@ -72,6 +72,7 @@ import takamaka.lang.ThrowsExceptions;
 import takamaka.lang.View;
 import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
+import takamaka.translator.TakamakaClassLoader;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -369,7 +370,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			// we keep the BCEL repository to a minimum
 			String appendedClassPath = original.toString();
 			Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
-			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies())) {
+			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 				new JarInstrumentation(original, instrumented, jarClassLoader);
 			}
 
@@ -397,7 +398,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			if (request.initialAmount.signum() < 0)
 				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
+			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				// we do not count gas for this creation
 				initTransaction(BigInteger.valueOf(-1L), previous);
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
@@ -426,7 +427,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
+			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				checkMinimalGas(request.gas);
 				initTransaction(request.gas, previous);
 				Storage deserializedCaller = request.caller.deserialize(this);
@@ -460,7 +461,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					// whole hierarchy of classes must be available to BCEL through its repository
 					String appendedClassPath = Stream.of(classLoader.getURLs()).map(URL::getFile).collect(Collectors.joining(":", original.toString() + ":", ""));
 					Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
-					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies())) {
+					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 						new JarInstrumentation(original, instrumented, jarClassLoader);
 					}
 
@@ -494,7 +495,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
+			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				checkMinimalGas(request.gas);
 				initTransaction(request.gas, previous);
 				Storage deserializedCaller = request.caller.deserialize(this);
@@ -553,7 +554,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
+			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				checkMinimalGas(request.gas);
 				initTransaction(request.gas, previous);
 				Storage deserializedCaller = request.caller.deserialize(this);
@@ -624,7 +625,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath)) {
+			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				checkMinimalGas(request.gas);
 				initTransaction(request.gas, previous);
 				Storage deserializedCaller = request.caller.deserialize(this);
@@ -779,7 +780,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * A class loader used to access the definition of the classes
 	 * of Takamaka methods or constructors executed during a transaction.
 	 */
-	private class BlockchainClassLoader extends URLClassLoader implements AutoCloseable {
+	private static class BlockchainClassLoader extends TakamakaClassLoader {
 
 		/**
 		 * The temporary files that hold the class path for a transaction.
@@ -792,12 +793,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param classpath the class path
 		 * @throws Exception if an error occurs
 		 */
-		private BlockchainClassLoader(Classpath classpath) throws Exception {
-			// we initially build it without URLs
-			super(new URL[0], ClassLoader.getSystemClassLoader());
+		private BlockchainClassLoader(Classpath classpath, AbstractBlockchain blockchain) throws Exception {
+			super(collectURLs(Stream.of(classpath), blockchain, null));
 
-			// then we add the URLs corresponding to the class path and its dependencies, recursively
-			addURLs(classpath);
+			for (URL url: getURLs())
+				classpathElements.add(Paths.get(url.toURI()));
 		}
 
 		/**
@@ -807,29 +807,37 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param dependencies the dependencies
 		 * @throws Exception if an error occurs
 		 */
-		private BlockchainClassLoader(Path jar, Stream<Classpath> dependencies) throws Exception {
-			// we initially build it without URLs
-			super(new URL[] { jar.toFile().toURI().toURL() }, ClassLoader.getSystemClassLoader());
+		private BlockchainClassLoader(Path jar, Stream<Classpath> dependencies, AbstractBlockchain blockchain) throws Exception {
+			super(collectURLs(dependencies, blockchain, jar.toUri().toURL()));
 
-			classpathElements.add(jar);
-
-			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-				addURLs(dependency);
+			for (URL url: getURLs())
+				classpathElements.add(Paths.get(url.toURI()));
 		}
 
-		private void addURLs(Classpath classpath) throws Exception {
+		private static URL[] collectURLs(Stream<Classpath> classpaths, AbstractBlockchain blockchain, URL start) throws Exception {
+			List<URL> urls = new ArrayList<>();
+			if (start != null)
+				urls.add(start);
+
+			for (Classpath classpath: classpaths.toArray(Classpath[]::new))
+				urls = addURLs(classpath, blockchain, urls);
+
+			return urls.toArray(new URL[urls.size()]);
+		}
+
+		private static List<URL> addURLs(Classpath classpath, AbstractBlockchain blockchain, List<URL> bag) throws Exception {
 			// if the class path is recursive, we consider its dependencies as well, recursively
 			if (classpath.recursive) {
-				TransactionRequest request = getRequestAt(classpath.transaction);
+				TransactionRequest request = blockchain.getRequestAt(classpath.transaction);
 				if (!(request instanceof AbstractJarStoreTransactionRequest))
 					throw new IllegalTransactionRequestException("classpath does not refer to a jar store transaction");
 
 				Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
 				for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-					addURLs(dependency);
+					addURLs(dependency, blockchain, bag);
 			}
 
-			TransactionResponse response = getResponseAt(classpath.transaction);
+			TransactionResponse response = blockchain.getResponseAt(classpath.transaction);
 			if (!(response instanceof AbstractJarStoreTransactionResponse))
 				throw new IllegalTransactionRequestException("classpath does not refer to a successful jar store transaction");
 
@@ -837,12 +845,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
 				Path classpathElement = Files.createTempFile(null, "@" + classpath.transaction + ".jar");
-				classpathElements.add(classpathElement);
 				Files.copy(is, classpathElement, StandardCopyOption.REPLACE_EXISTING);
 
 				// we add, for class loading, the jar containing the instrumented code
-				addURL(classpathElement.toFile().toURI().toURL());
+				bag.add(classpathElement.toFile().toURI().toURL());
 			}
+
+			return bag;
 		}
 
 		@Override

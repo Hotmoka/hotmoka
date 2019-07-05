@@ -5,15 +5,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.generic.ClassGen;
 
 /**
  * An instrumenter of a jar file. It generates another jar files that
@@ -32,7 +32,7 @@ public class JarInstrumentation {
 	 * @param classLoader the class loader that can be used to resolve the classes of the program,
 	 *                    including those of {@code origin}
 	 */
-	public JarInstrumentation(Path origin, Path destination, ClassLoader classLoader) {
+	public JarInstrumentation(Path origin, Path destination, TakamakaClassLoader classLoader) throws IOException {
 		new Initializer(origin, destination, classLoader);
 	}
 
@@ -47,11 +47,6 @@ public class JarInstrumentation {
 		private final JarFile originalJar;
 
 		/**
-		 * A map from the class entries of the jar to process to their parsed BCEL class.
-		 */
-		private final Map<String, ClassGen> classes = new HashMap<>();
-
-		/**
 		 * The resulting, instrumented jar file.
 		 */
 		private final JarOutputStream instrumentedJar;
@@ -59,7 +54,7 @@ public class JarInstrumentation {
 		/**
 		 * The class loader that can be used to resolve the classes of the program.
 		 */
-		private final ClassLoader classLoader;
+		private final TakamakaClassLoader classLoader;
 
 		/**
 		 * Performs the instrumentation of the given jar file into another jar file.
@@ -69,42 +64,42 @@ public class JarInstrumentation {
 		 * @param classLoader the class loader that can be used to resolve the classes of the program,
 		 *                    including those of {@code origin}
 		 */
-		private Initializer(Path origin, Path destination, ClassLoader classLoader) {
+		private Initializer(Path origin, Path destination, TakamakaClassLoader classLoader) throws IOException {
 			LOGGER.fine(() -> "Processing " + origin);
 
 			this.classLoader = classLoader;
 
-			try (JarFile originalJar = this.originalJar = new JarFile(origin.toFile())) {
-				// we cannot proceed in parallel since the BCEL library is not thread-safe
-				originalJar.stream().forEach(this::parseClassEntry);
-			}
-			catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
+			try {
+				SortedSet<VerifiedClassGen> classes;
 
-			try (JarOutputStream instrumentedJar = this.instrumentedJar = new JarOutputStream(new FileOutputStream(destination.toFile()))) {
-				// we cannot proceed in parallel since the BCEL library is not thread-safe
-				classes.entrySet().stream().forEach(this::addEntry);
+				try (JarFile originalJar = this.originalJar = new JarFile(origin.toFile())) {
+					// we cannot proceed in parallel since the BCEL library is not thread-safe
+					classes = originalJar.stream()
+							.filter(entry -> entry.getName().endsWith(".class"))
+							.map(this::parseClassEntry)
+							.collect(Collectors.toCollection(TreeSet::new));
+				}
+
+				try (JarOutputStream instrumentedJar = this.instrumentedJar = new JarOutputStream(new FileOutputStream(destination.toFile()))) {
+					// we cannot proceed in parallel since the BCEL library is not thread-safe
+					classes.stream().forEach(this::addEntry);
+				}
 			}
-			catch (IOException e) {
-				throw new UncheckedIOException(e);
+			catch (UncheckedIOException e) {
+				throw e.getCause();
 			}
 		}
 
 		/**
-		 * Instruments the given entry of a jar file, if it is a class file.
+		 * Yields a BCEL class from the given entry of the jar file.
 		 * 
 		 * @param entry the entry
+		 * @return the BCEL class
 		 */
-		private void parseClassEntry(JarEntry entry) {
+		private VerifiedClassGen parseClassEntry(JarEntry entry) {
 			try (InputStream input = originalJar.getInputStream(entry)) {
-				String entryName = entry.getName();
-
-				if (entryName.endsWith(".class"))
-					// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-					classes.put(entryName, new ClassGen(new ClassParser(input, entryName).parse()));
-				else
-					LOGGER.fine(() -> "Dropping non-class file " + entryName);
+				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
+				return new VerifiedClassGen(new ClassParser(input, entry.getName()).parse(), classLoader);
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
@@ -116,13 +111,13 @@ public class JarInstrumentation {
 		 * 
 		 * @param entry the entry
 		 */
-		private void addEntry(Map.Entry<String, ClassGen> entry) {
+		private void addEntry(VerifiedClassGen entry) {
 			try {
 				// add the same entry to the resulting jar
-				instrumentedJar.putNextEntry(new JarEntry(entry.getKey()));
+				instrumentedJar.putNextEntry(new JarEntry(entry.getClassName().replace('.', '/') + ".class"));
 
 				// dump an instrumented class file inside that entry
-				new ClassInstrumentation(entry.getValue(), instrumentedJar, classLoader);
+				new ClassInstrumentation(entry, instrumentedJar, classLoader);
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
