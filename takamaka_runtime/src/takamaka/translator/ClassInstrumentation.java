@@ -269,8 +269,14 @@ class ClassInstrumentation {
 				this.bootstrapMethods = new BootstrapMethod[0];
 
 			// the fields of the class are relevant only for storage classes
-			if (isStorage)
-				collectNonTransientInstanceFieldsOf(className);
+			if (isStorage) {
+				try {
+					collectNonTransientInstanceFieldsOf(classLoader.loadClass(className), true);
+				}
+				catch (ClassNotFoundException e) {
+					throw new IncompleteClasspathError(e);
+				}
+			}
 
 			instrumentClass();
 		}
@@ -1656,18 +1662,10 @@ class ClassInstrumentation {
 			eagerNonTransientInstanceFields.getLast().forEach(putField);
 		}
 
-		private void collectNonTransientInstanceFieldsOf(String className) {
-			if (!className.equals(STORAGE_CLASS_NAME)) {
-				Class<?> clazz;
-				try {
-					clazz = classLoader.loadClass(className);
-				}
-				catch (ClassNotFoundException e) {
-					throw new IncompleteClasspathError(e);
-				}
-
+		private void collectNonTransientInstanceFieldsOf(Class<?> clazz, boolean firstCall) {
+			if (clazz != storageClass) {
 				// we put at the beginning the fields of the superclasses
-				collectNonTransientInstanceFieldsOf(clazz.getSuperclass().getName());
+				collectNonTransientInstanceFieldsOf(clazz.getSuperclass(), false);
 
 				// then the eager fields of className, in order
 				eagerNonTransientInstanceFields.add(Stream.of(clazz.getDeclaredFields())
@@ -1675,7 +1673,7 @@ class ClassInstrumentation {
 					.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
 
 				// we collect lazy fields as well, but only for the class being instrumented
-				if (className.equals(this.className))
+				if (firstCall)
 					Stream.of(clazz.getDeclaredFields())
 						.filter(field -> !Modifier.isStatic(field.getModifiers()) && !Modifier.isTransient(field.getModifiers()) && !isAddedByTakamaka(field) && isLazilyLoaded(field.getType()))
 						.forEach(lazyNonTransientInstanceFields::add);
@@ -1699,7 +1697,7 @@ class ClassInstrumentation {
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isLazilyLoaded(Class<?> type) {
-			return !(type.isPrimitive() || type == String.class || type == BigInteger.class || type.isEnum());
+			return !type.isPrimitive() && type != String.class && type != BigInteger.class && !type.isEnum();
 		}
 
 		/**
