@@ -19,7 +19,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.jar.JarOutputStream;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -91,7 +90,6 @@ import takamaka.lang.Takamaka;
  * by adding the serialization support, and contracts, to deal with entries.
  */
 class ClassInstrumentation {
-	private final static Logger LOGGER = Logger.getLogger(ClassInstrumentation.class.getName());
 	private final static String OLD_PREFIX = "§old_";
 	private final static String IF_ALREADY_LOADED_PREFIX = "§ifAlreadyLoaded_";
 	private final static String ENSURE_LOADED_PREFIX = "§ensureLoaded_";
@@ -106,12 +104,10 @@ class ClassInstrumentation {
 	private final static String IN_STORAGE_NAME = "inStorage";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
-	private final static String DUMMY_CLASS_NAME = Dummy.class.getName();
 	private final static String TAKAMAKA_CLASS_NAME = Takamaka.class.getName();
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
-	private final static String ENUM_CLASS_NAME = Enum.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
-	private final static short PUBLIC_SYNTHETIC_FINAL = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC | Const.ACC_FINAL;
+	private final static short PUBLIC_SYNTHETIC_FINAL = PUBLIC_SYNTHETIC | Const.ACC_FINAL;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
@@ -121,18 +117,18 @@ class ClassInstrumentation {
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName).thenComparing(field -> field.getType().toString());
 
 	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
-	private final static ObjectType ENUM_OT = new ObjectType(ENUM_CLASS_NAME);
+	private final static ObjectType ENUM_OT = new ObjectType(Enum.class.getName());
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
 	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
-	private final static ObjectType DUMMY_OT = new ObjectType(DUMMY_CLASS_NAME);
-	private final static Type[] THREE_STRINGS_ARGS = new Type[] { Type.STRING, Type.STRING, Type.STRING };
-	private final static Type[] EXTRACT_UPDATES_ARGS = new Type[] { SET_OT, SET_OT, LIST_OT };
-	private final static Type[] ADD_UPDATES_FOR_ARGS = new Type[] { Type.STRING, Type.STRING, SET_OT };
-	private final static Type[] RECURSIVE_EXTRACT_ARGS = new Type[] { Type.OBJECT, SET_OT, SET_OT, LIST_OT };
-	private final static Type[] ENTRY_ARGS = new Type[] { CONTRACT_OT };
-	private final static Type[] ONE_INT_ARGS = new Type[] { Type.INT };
-	private final static Type[] ONE_LONG_ARGS = new Type[] { Type.LONG };
-	private final static Type[] TWO_OBJECTS_ARGS = new Type[] { Type.OBJECT, Type.OBJECT };
+	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
+	private final static Type[] THREE_STRINGS_ARGS = { Type.STRING, Type.STRING, Type.STRING };
+	private final static Type[] EXTRACT_UPDATES_ARGS = { SET_OT, SET_OT, LIST_OT };
+	private final static Type[] ADD_UPDATES_FOR_ARGS = { Type.STRING, Type.STRING, SET_OT };
+	private final static Type[] RECURSIVE_EXTRACT_ARGS = { Type.OBJECT, SET_OT, SET_OT, LIST_OT };
+	private final static Type[] ENTRY_ARGS = { CONTRACT_OT };
+	private final static Type[] ONE_INT_ARGS = { Type.INT };
+	private final static Type[] ONE_LONG_ARGS = { Type.LONG };
+	private final static Type[] TWO_OBJECTS_ARGS = { Type.OBJECT, Type.OBJECT };
 
 	/**
 	 * Performs the instrumentation of a single class file.
@@ -145,8 +141,6 @@ class ClassInstrumentation {
 	 * @throws IOException if there is an error accessing the disk
 	 */
 	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, ClassLoader classLoader) throws ClassFormatException, IOException {
-		LOGGER.fine(() -> "Instrumenting " + className);
-
 		// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
 		ClassGen classGen = new ClassGen(new ClassParser(input, className).parse());
 
@@ -299,7 +293,7 @@ class ClassInstrumentation {
 		 */
 		private void globalInstrumentation() {
 			if (isStorage) {
-				// storage classes need all the serialization machinery
+				// storage classes need the serialization machinery
 				addOldAndIfAlreadyLoadedFields();
 				addConstructorForDeserializationFromBlockchain();
 				addAccessorMethods();
@@ -326,9 +320,9 @@ class ClassInstrumentation {
 			int initialSize;
 			do {
 				initialSize = result.size();
-				for (BootstrapMethod bootstrap: bootstrapMethods)
-					if (lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, result))
-						result.add(bootstrap);
+				Stream.of(bootstrapMethods)
+					.filter(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, result))
+					.forEach(result::add);
 			}
 			while (result.size() > initialSize);
 
@@ -664,7 +658,7 @@ class ClassInstrumentation {
 			replaceFieldAccessesWithAccessors(methodGen);
 			addContractToCallsToEntries(methodGen);
 
-			String callerContract;
+			Class<?> callerContract;
 			if (isContract && (callerContract = isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType())) != null)
 				instrumentEntry(methodGen, callerContract, getAnnotation(className, method.getName(), method.getArgumentTypes(), method.getReturnType(), Payable.class) != null);
 
@@ -928,13 +922,13 @@ class ClassInstrumentation {
 		 * @param formals the types of the formal arguments of the method
 		 * @param returnType the return type of the method
 		 * @return the value of the annotation, if it is a contract. For instance, for {@code @@Entry(PayableContract.class)}
-		 *         this return value will be the string {@code takamaka.lang.PayableContract}
+		 *         this return value will be {@code takamaka.lang.PayableContract.class}
 		 */
-		private String isEntry(String className, String methodName, Type[] formals, Type returnType) {
+		private Class<?> isEntry(String className, String methodName, Type[] formals, Type returnType) {
 			Annotation annotation = getAnnotation(className, methodName, formals, returnType, Entry.class);
 			if (annotation != null) {
 				Class<?> contractClass = ((Entry) annotation).value();
-				return contractClass != Object.class ? contractClass.getName() : CONTRACT_CLASS_NAME;
+				return contractClass != Object.class ? contractClass : this.contractClass;
 			}
 
 			return null;
@@ -1011,10 +1005,10 @@ class ClassInstrumentation {
 		 * for payable entries.
 		 * 
 		 * @param method the entry
-		 * @param callerContract the name of the caller class. This is a contract
+		 * @param callerContract the class of the caller contract
 		 * @param isPayable true if and only if the entry is payable
 		 */
-		private void instrumentEntry(MethodGen method, String callerContract, boolean isPayable) {
+		private void instrumentEntry(MethodGen method, Class<?> callerContract, boolean isPayable) {
 			// slotForCaller is the local variable used for the extra "caller" parameter;
 			// there is no need to shift the local variables one slot up, since the use
 			// of caller is limited to the prolog of the synthetic code
@@ -1027,11 +1021,11 @@ class ClassInstrumentation {
 		 * Instruments an entry by calling the contract method that sets caller and balance.
 		 * 
 		 * @param method the entry
-		 * @param callerContract the name of the caller class. This is a contract
+		 * @param callerContract the class of the caller contract
 		 * @param slotForCaller the local variable for the caller implicit argument
 		 * @param isPayable true if and only if the entry is payable
 		 */
-		private void setCallerAndBalance(MethodGen method, String callerContract, int slotForCaller, boolean isPayable) {
+		private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) {
 			InstructionList il = method.getInstructionList();
 
 			// the call to the method that sets caller and balance cannot be put at the
@@ -1042,8 +1036,8 @@ class ClassInstrumentation {
 
 			il.insert(start, InstructionFactory.createThis());
 			il.insert(start, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
-			if (!callerContract.equals(CONTRACT_CLASS_NAME))
-				il.insert(start, factory.createCast(CONTRACT_OT, new ObjectType(callerContract)));
+			if (callerContract != contractClass)
+				il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
 			if (isPayable) {
 				// a payable entry method can have a first argument of type int/long/BigInteger
 				Type amountType = method.getArgumentType(0);
