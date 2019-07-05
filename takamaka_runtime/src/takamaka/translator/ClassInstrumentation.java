@@ -1,7 +1,6 @@
 package takamaka.translator;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -27,7 +26,6 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ClassFormatException;
-import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
@@ -133,22 +131,18 @@ class ClassInstrumentation {
 	/**
 	 * Performs the instrumentation of a single class file.
 	 * 
-	 * @param input the input stream containing the class to instrument
-	 * @param className the name of the class
+	 * @param clazz the class to instrument
 	 * @param instrumentedJar the jar where the instrumented class will be added
 	 * @param classLoader the class loader for resolving the classes under instrumentation and of their dependent libraries
 	 * @throws ClassFormatException if some class file is not legal
 	 * @throws IOException if there is an error accessing the disk
 	 */
-	public ClassInstrumentation(InputStream input, String className, JarOutputStream instrumentedJar, ClassLoader classLoader) throws ClassFormatException, IOException {
-		// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-		ClassGen classGen = new ClassGen(new ClassParser(input, className).parse());
-
+	public ClassInstrumentation(ClassGen clazz, JarOutputStream instrumentedJar, ClassLoader classLoader) throws ClassFormatException, IOException {
 		// performs instrumentation on that image
-		new Initializer(classGen, classLoader);
+		new Initializer(clazz, classLoader);
 
 		// dump the image on disk
-		classGen.getJavaClass().dump(instrumentedJar);
+		clazz.getJavaClass().dump(instrumentedJar);
 	}
 
 	/**
