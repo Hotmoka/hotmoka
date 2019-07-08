@@ -187,7 +187,9 @@ public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable
 	}
 
 	/**
-	 * Gets the given annotation from the given constructor or method.
+	 * Gets the given annotation from the given constructor or method. For methods, looks
+	 * in the given class and, if no such method is found there, looks also in the superclass.
+	 * If no annotation is found in the superclass, it looks in the super-interfaces as well.
 	 * 
 	 * @param className the class of the constructor or method
 	 * @param methodName the name of the constructor or method
@@ -229,20 +231,23 @@ public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable
 				.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
 				.findFirst();
 
-			if (definition.isPresent()) {
-				Annotation result = definition.get().getAnnotation(annotation);
-				if (result != null)
-					return result;
-
-				if (Modifier.isPrivate(definition.get().getModifiers()))
-					return null;
-			}
+			if (definition.isPresent())
+				return definition.get().getAnnotation(annotation);
 
 			Class<?> superclass = clazz.getSuperclass();
-			if (superclass == null)
-				return null;
-			else
-				return getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotation);
+			if (superclass != null) {
+				Annotation result = getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotation);
+				if (result != null)
+					return result;
+			}
+
+			for (Class<?> interf: clazz.getInterfaces()) {
+				Annotation result = getAnnotationOfMethod(interf.getName(), methodName, formals, returnType, annotation);
+				if (result != null)
+					return result;
+			}
+
+			return null;
 		}
 		catch (ClassNotFoundException e) {
 			throw new IncompleteClasspathError(e);
@@ -253,7 +258,7 @@ public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable
 	 * Computes the Java token class for the given BCEL type.
 	 * 
 	 * @param type the BCEL type
-	 * @return type the class token corresponding to {@code type}
+	 * @return the class token corresponding to {@code type}
 	 */
 	public final Class<?> bcelToClass(Type type) {
 		if (type == BasicType.BOOLEAN)
@@ -286,5 +291,19 @@ public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable
 			// trick: we build an array of 0 elements just to access its class token
 			return java.lang.reflect.Array.newInstance(elementsClass, 0).getClass();
 		}
+	}
+
+	/**
+	 * Computes the Java token classes for the given BCEL types.
+	 * 
+	 * @param types the BCEL types
+	 * @return the class tokens corresponding to {@code types}
+	 */
+	public final Class<?>[] bcelToClass(Type[] types) {
+		Class<?>[] result = new Class<?>[types.length];
+		for (int pos = 0; pos < result.length; pos++)
+			result[pos] = bcelToClass(types[pos]);
+
+		return result;
 	}
 }

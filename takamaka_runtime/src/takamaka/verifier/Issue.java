@@ -17,12 +17,12 @@ public abstract class Issue implements Comparable<Issue> {
 	}
 
 	protected Issue(ClassGen where, String message) {
-		this.where = where.getFileName() != null ? where.getFileName() : where.getClassName();
+		this.where = where.getClassName();
 		this.message = message;
 	}
 
 	protected Issue(ClassGen clazz, Method where, String message) {
-		this.where = (clazz.getFileName() != null ? clazz.getFileName() : clazz.getClassName()) + "." + where.getName();
+		this.where = clazz.getClassName() + " method " + where.getName();
 		this.message = message;
 	}
 

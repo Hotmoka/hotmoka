@@ -35,17 +35,17 @@ public class SubWithErrors extends Super {
 		System.out.println("Sub.m3 with caller " + caller());
 	}
 
-	@Override
+	@Override @Payable @Entry
 	public String m4(int amount) {
 		return "Sub.m4 receives " + amount + " coins from " + caller();
 	}
 
-	@Override
+	@Override @Payable @Entry
 	public String m4_1(long amount) {
 		return "Sub.m4_1 receives " + amount + " coins from " + caller();
 	}
 
-	@Override
+	@Override @Payable @Entry
 	public String m4_2(BigInteger amount) {
 		return "Sub.m4_2 receives " + amount + " coins from " + caller();
 	}
