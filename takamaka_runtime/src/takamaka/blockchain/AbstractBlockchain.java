@@ -73,6 +73,7 @@ import takamaka.lang.View;
 import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.TakamakaClassLoader;
+import takamaka.verifier.VerificationException;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -371,7 +372,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			String appendedClassPath = original.toString();
 			Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-				new JarInstrumentation(original, instrumented, jarClassLoader);
+				JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader);
+				if (instrumentation.verificationFailed())
+					throw new VerificationException(instrumentation.getFirstError().get().toString());
 			}
 
 			byte[] instrumentedBytes = Files.readAllBytes(instrumented);
@@ -462,7 +465,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 					String appendedClassPath = Stream.of(classLoader.getURLs()).map(URL::getFile).collect(Collectors.joining(":", original.toString() + ":", ""));
 					Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-						new JarInstrumentation(original, instrumented, jarClassLoader);
+						JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader);
+						if (instrumentation.verificationFailed())
+							throw new VerificationException(instrumentation.getFirstError().get().toString());
 					}
 
 					byte[] instrumentedBytes = Files.readAllBytes(instrumented);

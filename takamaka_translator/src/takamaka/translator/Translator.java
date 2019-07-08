@@ -48,7 +48,11 @@ public class Translator {
 		    			urls.add(new File(lib).toURI().toURL());
 
 		    	TakamakaClassLoader classLoader = new TakamakaClassLoader(urls.toArray(new URL[urls.size()]));
-		    	new JarInstrumentation(origin, destination, classLoader);
+		    	JarInstrumentation instrumentation = new JarInstrumentation(origin, destination, classLoader);
+		    	if (instrumentation.verificationFailed()) {
+		    		System.err.println("Verification failed with the following issues, no instrumented jar was generated:");
+		    		instrumentation.issues().forEach(System.err::println);
+		    	}
 		    }
 	    }
 	    catch (ParseException e) {

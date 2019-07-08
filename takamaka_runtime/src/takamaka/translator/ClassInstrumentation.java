@@ -75,7 +75,6 @@ import it.univr.bcel.StackMapReplacer;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.lang.Contract;
-import takamaka.lang.Payable;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
 
@@ -634,7 +633,7 @@ class ClassInstrumentation {
 
 			Class<?> callerContract;
 			if (isContract && (callerContract = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType())) != null)
-				instrumentEntry(methodGen, callerContract, classLoader.getAnnotation(className, method.getName(), method.getArgumentTypes(), method.getReturnType(), Payable.class) != null);
+				instrumentEntry(methodGen, callerContract, classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()));
 
 			addGasUpdates(methodGen);
 

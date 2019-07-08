@@ -18,6 +18,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import takamaka.lang.Entry;
+import takamaka.lang.Payable;
 import takamaka.lang.Storage;
 
 /**
@@ -152,7 +153,20 @@ public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable
 	}
 
 	/**
-	 * Determines if the given constructor method is annotated as entry.
+	 * Determines if the given constructor or method is annotated as payable.
+	 * 
+	 * @param className the class of the constructor or method
+	 * @param methodName the name of the constructor or method
+	 * @param formals the types of the formal arguments of the method
+	 * @param returnType the return type of the method
+	 * @return true if and only if that condition holds
+	 */
+	public final boolean isPayable(String className, String methodName, Type[] formals, Type returnType) {
+		return getAnnotation(className, methodName, formals, returnType, Payable.class) != null;
+	}
+
+	/**
+	 * Determines if the given constructor or method is annotated as entry.
 	 * Yields the argument of the annotation.
 	 * 
 	 * @param className the class of the constructor or method

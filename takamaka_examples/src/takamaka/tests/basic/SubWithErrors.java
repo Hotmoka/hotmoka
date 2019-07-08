@@ -58,6 +58,4 @@ public class SubWithErrors extends Super {
 	}
 
 	public static @Entry void m6() {} // error at compile time
-
-	public @Payable void m7() {} // error at compile time
 }
