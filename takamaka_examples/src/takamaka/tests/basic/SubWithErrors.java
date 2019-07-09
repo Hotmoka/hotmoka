@@ -52,8 +52,5 @@ public class SubWithErrors extends Super {
 
 	public void m5() {
 		super.m2(); // ok
-		caller(); // error at compile time
-		SubWithErrors c = new SubWithErrors();
-		c.caller(); // error at compile time
 	}
 }

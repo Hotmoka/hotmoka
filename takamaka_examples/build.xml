@@ -48,6 +48,8 @@
   	<jar jarfile="${dist}/entryonnoncontract.jar" basedir="${build}" includes="**/takamaka/tests/errors/entryonnoncontract/**"/>
   	<jar jarfile="${dist}/entryonnonpublic.jar" basedir="${build}" includes="**/takamaka/tests/errors/entryonnonpublic/**"/>
   	<jar jarfile="${dist}/entryonstatic.jar" basedir="${build}" includes="**/takamaka/tests/errors/entryonstatic/**"/>
+  	<jar jarfile="${dist}/callernotonthis.jar" basedir="${build}" includes="**/takamaka/tests/errors/callernotonthis/**"/>
+  	<jar jarfile="${dist}/calleroutsideentry.jar" basedir="${build}" includes="**/takamaka/tests/errors/calleroutsideentry/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**"/>
   </target>
 

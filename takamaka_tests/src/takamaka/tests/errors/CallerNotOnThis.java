@@ -3,6 +3,8 @@
  */
 package takamaka.tests.errors;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -16,8 +18,9 @@ import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.memory.InitializedMemoryBlockchain;
+import takamaka.verifier.VerificationException;
 
-class ConsistentEntry {
+class CallerNotOnThis {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -33,8 +36,18 @@ class ConsistentEntry {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
-		blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/consistententry.jar")), blockchain.takamakaBase));		
+		try {
+			blockchain.addJarStoreTransaction
+				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+				Files.readAllBytes(Paths.get("../takamaka_examples/dist/callernotonthis.jar")), blockchain.takamakaBase));		
+		}
+		catch (TransactionException e) {
+			if (e.getCause() instanceof VerificationException)
+				return;
+
+			fail("wrong exception");
+		}
+
+		fail("no exception");
 	}
 }

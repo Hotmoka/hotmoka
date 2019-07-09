@@ -20,4 +20,8 @@ public abstract class Error extends Issue {
 	protected Error(ClassGen clazz, Method where, String message) {
 		super(clazz, where, message);
 	}
+
+	protected Error(ClassGen clazz, Method where, int line, String message) {
+		super(clazz, where, line, message);
+	}
 }

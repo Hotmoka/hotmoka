@@ -21,10 +21,20 @@ public abstract class Issue implements Comparable<Issue> {
 		this.message = message;
 	}
 
+	protected Issue(ClassGen clazz, Method where, String message) {
+		this.where = inferSourceFile(clazz) + " method " + where.getName();
+		this.message = message;
+	}
+
+	protected Issue(ClassGen clazz, Method where, int line, String message) {
+		this.where = inferSourceFile(clazz) + (line >= 0 ? (":" + line) : (" method " + where.getName()));
+		this.message = message;
+	}
+
 	private String inferSourceFile(ClassGen clazz) {
 		String sourceFile = clazz.getFileName();
 		String className = clazz.getClassName();
-
+	
 		if (sourceFile != null) {
 			int lastDot = className.lastIndexOf('.');
 			if (lastDot > 0)
@@ -32,13 +42,8 @@ public abstract class Issue implements Comparable<Issue> {
 			else
 				return sourceFile;
 		}
-
+	
 		return className;
-	}
-
-	protected Issue(ClassGen clazz, Method where, String message) {
-		this.where = inferSourceFile(clazz) + " method " + where.getName();
-		this.message = message;
 	}
 
 	@Override

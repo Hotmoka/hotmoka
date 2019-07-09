@@ -4,11 +4,23 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.LineNumberTable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
+import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.Instruction;
+import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InstructionList;
+import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.LoadInstruction;
+import org.apache.bcel.generic.MethodGen;
+import org.apache.bcel.generic.NOP;
+import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import takamaka.translator.IncompleteClasspathError;
@@ -30,7 +42,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	public VerifiedClassGen(JavaClass clazz, TakamakaClassLoader classLoader, Consumer<Issue> issueHandler) throws VerificationException {
 		super(clazz);
 
-		new Verification(classLoader, issueHandler);
+		new ClassVerification(classLoader, issueHandler);
 	}
 
 	@Override
@@ -39,9 +51,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	/**
+	 * The Java bytecode signature of the {@code caller()} method of {@link #takamaka.lang.Contract}.
+	 */
+	private final static String TAKAMAKA_CALLER_SIG = "()Ltakamaka/lang/Contract;";
+
+	/**
 	 * The algorithms that perform the verification of the BCEL class.
 	 */
-	private class Verification {
+	private class ClassVerification {
+
 		/**
 		 * The name of the class under verification.
 		 */
@@ -59,19 +77,28 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		private final Consumer<Issue> issueHandler;
 
 		/**
+		 * The constant pool of the class being verified.
+		 */
+		private final ConstantPoolGen cpg;
+
+		/**
 		 * True if and only if at least an error was issued during verification.
 		 */
 		private boolean hasErrors;
 
-		private Verification(TakamakaClassLoader classLoader, Consumer<Issue> issueHandler) throws VerificationException {
+		private ClassVerification(TakamakaClassLoader classLoader, Consumer<Issue> issueHandler) throws VerificationException {
 			this.className = getClassName();
 			this.classLoader = classLoader;
 			this.issueHandler = issueHandler;
+			this.cpg = getConstantPool();
 
 			entryIsLegal();
 			entryIsConsistentAlongSubclasses();
 			payableIsOnlyAppliedToEntries();
 			payableIsConsistentAlongSubclasses();
+
+			Stream.of(getMethods())
+				.forEach(MethodVerification::new);
 
 			if (hasErrors)
 				throw new VerificationException();
@@ -186,20 +213,91 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			String name = method.getName();
 			Type returnType = method.getReturnType();
 			Type[] args = method.getArgumentTypes();
-
+		
 			if (Stream.of(clazz.getDeclaredMethods())
 					.filter(m -> Modifier.isPublic(m.getModifiers())
 							&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
 							&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
 					.anyMatch(m -> wasPayable != classLoader.isPayable(clazz.getName(), name, args, returnType)))
 				issue(new InconsistentPayableError(VerifiedClassGen.this, method, clazz.getName()));
-
+		
 			Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null)
 				isIdenticallyPayableInSupertypesOf(superclass, method, wasPayable);
-
+		
 			for (Class<?> interf: clazz.getInterfaces())
 				isIdenticallyPayableInSupertypesOf(interf, method, wasPayable);
+		}
+
+		private class MethodVerification {
+			private final Method method;
+			private final InstructionList instructions;
+			private final LineNumberTable lines;
+
+			private MethodVerification(Method method) {
+				this.method = method;
+				MethodGen methodGen = new MethodGen(method, className, cpg);
+				this.instructions = methodGen.getInstructionList();
+				this.lines = methodGen.getLineNumberTable(cpg);
+
+				callerOccursOnThisInEntries();
+			}
+
+			/**
+			 * Yields the source line number from which the given instruction was compiled.
+			 * 
+			 * @param ih the instruction
+			 * @return the line number, or -1 if not available
+			 */
+			private int lineOf(InstructionHandle ih) {
+				return lines != null ? lines.getSourceLine(ih.getPosition()) : -1;
+			}
+
+			/**
+			 * Checks that {@code caller()}, inside the given method of the class being verified,
+			 * is only used with {@code this} as receiver and inside an {@code @@Entry} method or constructor.
+			 */
+			private void callerOccursOnThisInEntries() {
+				boolean isEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) != null;
+
+				if (instructions != null)
+					StreamSupport.stream(instructions.spliterator(), false)
+						.filter(this::isCallToContractCaller)
+						.forEach(ih -> {
+							if (!isEntry)
+								issue(new CallerOutsideEntry(VerifiedClassGen.this, method, lineOf(ih)));
+
+							if (!previousIsLoad0(ih))
+								issue(new CallerNotOnThis(VerifiedClassGen.this, method, lineOf(ih)));
+						});
+			}
+
+			private boolean previousIsLoad0(InstructionHandle ih) {
+				// we skip NOPs
+				for (ih = ih.getPrev(); ih != null && ih.getInstruction() instanceof NOP; ih = ih.getPrev());
+
+				if (ih != null) {
+					Instruction ins = ih.getInstruction();
+					return ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0;
+				}
+				else
+					return false;
+			}
+
+			private boolean isCallToContractCaller(InstructionHandle ih) {
+				Instruction ins = ih.getInstruction();
+				if (ins instanceof InvokeInstruction) {
+					InvokeInstruction invoke = (InvokeInstruction) ins;
+					ReferenceType receiver;
+
+					return "caller".equals(invoke.getMethodName(cpg))
+						&& TAKAMAKA_CALLER_SIG.equals(invoke.getSignature(cpg))
+						&& (receiver = invoke.getReferenceType(cpg)) instanceof ObjectType
+						&& classLoader.isContract(((ObjectType) receiver).getClassName());
+				}
+				else
+					return false;
+			}
 		}
 	}
 }
