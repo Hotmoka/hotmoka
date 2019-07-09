@@ -41,7 +41,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	/**
 	 * The algorithms that perform the verification of the BCEL class.
 	 */
-	private class Verification implements Consumer<Issue> {
+	private class Verification {
 		/**
 		 * The name of the class under verification.
 		 */
@@ -77,8 +77,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				throw new VerificationException();
 		}
 
-		@Override
-		public void accept(Issue issue) {
+		private void issue(Issue issue) {
 			issueHandler.accept(issue);
 			hasErrors |= issue instanceof Error;
 		}
@@ -93,9 +92,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				Class<?> isEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 				if (isEntry != null) {
 					if (!classLoader.contractClass.isAssignableFrom(isEntry))
-						accept(new IllegalEntryArgumentError(VerifiedClassGen.this, method));
+						issue(new IllegalEntryArgumentError(VerifiedClassGen.this, method));
 					if (!method.isPublic() || method.isStatic() || !isContract)
-						accept(new IllegalEntryMethodError(VerifiedClassGen.this, method));
+						issue(new IllegalEntryMethodError(VerifiedClassGen.this, method));
 				}
 			}
 		}
@@ -129,7 +128,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 							&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
 							&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
 					.anyMatch(m -> !compatibleEntries(contractTypeForEntry, classLoader.isEntry(clazz.getName(), name, args, returnType))))
-				accept(new InconsistentEntryError(VerifiedClassGen.this, method, clazz.getName()));
+				issue(new InconsistentEntryError(VerifiedClassGen.this, method, clazz.getName()));
 
 			Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null)
@@ -162,7 +161,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			for (Method method: getMethods())
 				if (classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())
 						&& classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) == null)
-					accept(new PayableWithoutEntryError(VerifiedClassGen.this, method));
+					issue(new PayableWithoutEntryError(VerifiedClassGen.this, method));
 		}
 
 		/**
@@ -193,7 +192,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 							&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
 							&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
 					.anyMatch(m -> wasPayable != classLoader.isPayable(clazz.getName(), name, args, returnType)))
-				accept(new InconsistentPayableError(VerifiedClassGen.this, method, clazz.getName()));
+				issue(new InconsistentPayableError(VerifiedClassGen.this, method, clazz.getName()));
 
 			Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null)
