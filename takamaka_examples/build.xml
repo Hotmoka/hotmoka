@@ -41,6 +41,14 @@
   	<jar jarfile="${dist}/payablewithoutentry2.jar" basedir="${build}" includes="**/takamaka/tests/errors/payablewithoutentry2/**"/>
   	<jar jarfile="${dist}/inconsistentpayable1.jar" basedir="${build}" includes="**/takamaka/tests/errors/inconsistentpayable1/**"/>
 	<jar jarfile="${dist}/inconsistentpayable2.jar" basedir="${build}" includes="**/takamaka/tests/errors/inconsistentpayable2/**"/>
+  	<jar jarfile="${dist}/inconsistententry1.jar" basedir="${build}" includes="**/takamaka/tests/errors/inconsistententry1/**"/>
+	<jar jarfile="${dist}/inconsistententry2.jar" basedir="${build}" includes="**/takamaka/tests/errors/inconsistententry2/**"/>
+  	<jar jarfile="${dist}/inconsistententry3.jar" basedir="${build}" includes="**/takamaka/tests/errors/inconsistententry3/**"/>
+  	<jar jarfile="${dist}/consistententry.jar" basedir="${build}" includes="**/takamaka/tests/errors/consistententry/**"/>
+  	<jar jarfile="${dist}/entryonnoncontract.jar" basedir="${build}" includes="**/takamaka/tests/errors/entryonnoncontract/**"/>
+  	<jar jarfile="${dist}/entryonnonpublic.jar" basedir="${build}" includes="**/takamaka/tests/errors/entryonnonpublic/**"/>
+  	<jar jarfile="${dist}/entryonstatic.jar" basedir="${build}" includes="**/takamaka/tests/errors/entryonstatic/**"/>
+  	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**"/>
   </target>
 
 </project>

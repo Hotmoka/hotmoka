@@ -19,19 +19,19 @@ public class SubWithErrors extends Super {
 		super(true); // exception at run time
 	}
 
-	@Override
-	public void m1() { // this is implicitly @Entry by inheritance
+	@Override @Entry
+	public void m1() {
 		super.m1(); // exception at run time
 		System.out.println("Sub.m1");
 	}
 
-	@Override @Entry // this cannot become @Entry: error at compile time
+	@Override
 	public void m2() {
 		super.m2();
 	}
 
-	@Override
-	public void m3() { // this is implicitly @Entry
+	@Override @Entry
+	public void m3() {
 		System.out.println("Sub.m3 with caller " + caller());
 	}
 
@@ -56,6 +56,4 @@ public class SubWithErrors extends Super {
 		SubWithErrors c = new SubWithErrors();
 		c.caller(); // error at compile time
 	}
-
-	public static @Entry void m6() {} // error at compile time
 }

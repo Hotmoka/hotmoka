@@ -14,7 +14,7 @@ public abstract class Super extends Contract {
 	private InternationalTime t;
 
 	protected Super(int a) {}
-	protected @Entry Super(boolean b) {}
+	public @Entry Super(boolean b) {}
 	public @Entry @Payable Super(int amount, int a, boolean b) {}
 	public @Entry void m1() {}
 	public void m2() {}
