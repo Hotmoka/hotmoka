@@ -42,7 +42,8 @@ class EntryOnStatic {
 				Files.readAllBytes(Paths.get("../takamaka_examples/dist/entryonstatic.jar")), blockchain.takamakaBase));		
 		}
 		catch (TransactionException e) {
-			if (e.getCause() instanceof VerificationException)
+			if (e.getCause() instanceof VerificationException
+					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.IllegalEntryMethodError)
 				return;
 
 			fail("wrong exception");

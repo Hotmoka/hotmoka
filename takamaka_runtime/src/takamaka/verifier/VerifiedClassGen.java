@@ -1,6 +1,7 @@
 package takamaka.verifier;
 
 import java.lang.reflect.Modifier;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -56,6 +57,11 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	private final static String TAKAMAKA_CALLER_SIG = "()Ltakamaka/lang/Contract;";
 
 	/**
+	 * The BCEL type for BigInteger.
+	 */
+	private final static ObjectType BIG_INTEGER_OT = new ObjectType(BigInteger.class.getName());
+
+	/**
 	 * The algorithms that perform the verification of the BCEL class.
 	 */
 	private class ClassVerification {
@@ -92,10 +98,11 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			this.issueHandler = issueHandler;
 			this.cpg = getConstantPool();
 
-			entryIsLegal();
+			entryIsOnlyAppliedToInstancePublicCodeOfContracts();
 			entryIsConsistentAlongSubclasses();
 			payableIsOnlyAppliedToEntries();
 			payableIsConsistentAlongSubclasses();
+			payableMethodsReceiveAmount();
 
 			Stream.of(getMethods())
 				.forEach(MethodVerification::new);
@@ -112,7 +119,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		/**
 		 * Checks that {@code @@Entry} is applied only to instance public methods or constructors of contracts.
 		 */
-		private void entryIsLegal() {
+		private void entryIsOnlyAppliedToInstancePublicCodeOfContracts() {
 			boolean isContract = classLoader.isContract(className);
 
 			for (Method method: getMethods()) {
@@ -207,6 +214,19 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 						throw new IncompleteClasspathError(e);
 					}
 				}
+		}
+
+		private void payableMethodsReceiveAmount() {
+			Stream.of(getMethods())
+				.filter(method -> classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
+				.filter(method -> !startsWithAmount(method))
+				.map(method -> new PayableWithoutAmountError(VerifiedClassGen.this, method))
+				.forEach(this::issue);
+		}
+
+		private boolean startsWithAmount(Method method) {
+			Type[] args = method.getArgumentTypes();
+			return args.length > 0 && (args[0] == Type.INT || args[0] == Type.LONG || BIG_INTEGER_OT.equals(args[0]));
 		}
 
 		private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, Method method, boolean wasPayable) {

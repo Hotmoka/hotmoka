@@ -42,7 +42,8 @@ class InconsistentPayable2 {
 				Files.readAllBytes(Paths.get("../takamaka_examples/dist/inconsistentpayable2.jar")), blockchain.takamakaBase));		
 		}
 		catch (TransactionException e) {
-			if (e.getCause() instanceof VerificationException)
+			if (e.getCause() instanceof VerificationException
+					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.InconsistentPayableError)
 				return;
 
 			fail("wrong exception");

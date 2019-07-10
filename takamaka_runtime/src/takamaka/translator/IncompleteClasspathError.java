@@ -5,6 +5,8 @@ package takamaka.translator;
  * some class of the Takamaka runtime or some dependency.
  */
 public class IncompleteClasspathError extends Error {
+	private static final long serialVersionUID = 6525998903613112872L;
+
 	public IncompleteClasspathError(ClassNotFoundException e) {
 		super(e);
 	}

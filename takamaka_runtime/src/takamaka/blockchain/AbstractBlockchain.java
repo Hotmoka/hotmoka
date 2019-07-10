@@ -374,7 +374,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 				JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader);
 				if (instrumentation.verificationFailed())
-					throw new VerificationException(instrumentation.getFirstError().get().toString());
+					throw new VerificationException(instrumentation.getFirstError().get());
 			}
 
 			byte[] instrumentedBytes = Files.readAllBytes(instrumented);
@@ -467,7 +467,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 						JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader);
 						if (instrumentation.verificationFailed())
-							throw new VerificationException(instrumentation.getFirstError().get().toString());
+							throw new VerificationException(instrumentation.getFirstError().get());
 					}
 
 					byte[] instrumentedBytes = Files.readAllBytes(instrumented);

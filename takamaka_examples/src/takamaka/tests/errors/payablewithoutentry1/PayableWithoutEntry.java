@@ -4,5 +4,5 @@ import takamaka.lang.Contract;
 import takamaka.lang.Payable;
 
 public class PayableWithoutEntry extends Contract {
-	public @Payable void m() {};
+	public @Payable void m(int amount) {};
 }

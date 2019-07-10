@@ -39,6 +39,8 @@
   	<jar jarfile="${dist}/tictactoe.jar" basedir="${build}" includes="**/takamaka/tests/tictactoe/**"/>
   	<jar jarfile="${dist}/payablewithoutentry1.jar" basedir="${build}" includes="**/takamaka/tests/errors/payablewithoutentry1/**"/>
   	<jar jarfile="${dist}/payablewithoutentry2.jar" basedir="${build}" includes="**/takamaka/tests/errors/payablewithoutentry2/**"/>
+	<jar jarfile="${dist}/payablewithoutamount1.jar" basedir="${build}" includes="**/takamaka/tests/errors/payablewithoutamount1/**"/>
+  	<jar jarfile="${dist}/payablewithoutamount2.jar" basedir="${build}" includes="**/takamaka/tests/errors/payablewithoutamount2/**"/>
   	<jar jarfile="${dist}/inconsistentpayable1.jar" basedir="${build}" includes="**/takamaka/tests/errors/inconsistentpayable1/**"/>
 	<jar jarfile="${dist}/inconsistentpayable2.jar" basedir="${build}" includes="**/takamaka/tests/errors/inconsistentpayable2/**"/>
   	<jar jarfile="${dist}/inconsistententry1.jar" basedir="${build}" includes="**/takamaka/tests/errors/inconsistententry1/**"/>
