@@ -120,7 +120,8 @@ public class JarInstrumentation {
 					classes = originalJar.stream()
 						.filter(entry -> entry.getName().endsWith(".class"))
 						.map(this::buildVerifiedClass)
-						.filter(clazz -> clazz != null) // we do not collect null's standing for classes that do not verify
+						.filter(Optional::isPresent) // we only consider classes that did verify
+						.map(Optional::get)
 						.collect(Collectors.toCollection(TreeSet::new));
 				}
 
@@ -140,18 +141,18 @@ public class JarInstrumentation {
 		 * Yields a verified BCEL class from the given entry of the jar file.
 		 * 
 		 * @param entry the entry
-		 * @return the BCEL class, or {@code null} if the class for {@code entry} did not verify
+		 * @return the BCEL class, if the class for {@code entry} did verify
 		 */
-		private VerifiedClassGen buildVerifiedClass(JarEntry entry) {
+		private Optional<VerifiedClassGen> buildVerifiedClass(JarEntry entry) {
 			try (InputStream input = originalJar.getInputStream(entry)) {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return new VerifiedClassGen(new ClassParser(input, entry.getName()).parse(), classLoader, issues::add);
+				return Optional.of(new VerifiedClassGen(new ClassParser(input, entry.getName()).parse(), classLoader, issues::add));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}
 			catch (VerificationException e) {
-				return null;
+				return Optional.empty();
 			}
 		}
 

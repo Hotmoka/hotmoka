@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -172,8 +173,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
 	}
 
-	private boolean lambdaCallsEntry(BootstrapMethod bootstrap, ConstantPoolGen cpg) {
+	private Optional<Method> getLambdaFor(BootstrapMethod bootstrap) {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
+			ConstantPoolGen cpg = getConstantPool();
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			if (constant instanceof ConstantMethodHandle) {
 				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
@@ -187,23 +189,24 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
 					// a lambda bridge can only be present in the same class that calls it
-					if (className.equals(getClassName())) {
-						Optional<Method> lambda = Stream.of(getMethods())
+					if (className.equals(getClassName()))
+						return Stream.of(getMethods())
 							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
 							.findAny();
-
-						return lambda.isPresent() && callsEntry(lambda.get());
-					}
 				}
 			}
-		};
+		}
 
-		return false;
+		return Optional.empty();
+	}
+
+	private boolean lambdaCallsEntry(BootstrapMethod bootstrap, ConstantPoolGen cpg) {
+		Optional<Method> lambda = getLambdaFor(bootstrap);
+		return lambda.isPresent() && callsEntry(lambda.get());
 	}
 
 	/**
-	 * Determines if the given lambda method calls an entry, possibly through an
-	 * {@code invokedynamic} with one of the given bootstraps.
+	 * Determines if the given lambda method calls an entry, possibly indirectly.
 	 * 
 	 * @param lambda the lambda method
 	 * @return true if that condition holds
@@ -212,17 +215,29 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		if (!lambda.isAbstract()) {
 			MethodGen mg = new MethodGen(lambda, getClassName(), getConstantPool());
 			return StreamSupport.stream(mg.getInstructionList().spliterator(), false)
-				.anyMatch(instruction -> callsEntry(instruction));
+				.anyMatch(ih -> callsEntry(ih, true));
 		}
 
 		return false;
 	}
 
-	private boolean callsEntry(InstructionHandle ih) {
+	/**
+	 * Determines if the given instruction calls an @Entry, possibly indirectly.
+	 * 
+	 * @param ih the instruction
+	 * @param alsoIndirectly true if the call might also occur indirectly
+	 * @return true if and only if that condition holds
+	 */
+	private boolean callsEntry(InstructionHandle ih, boolean alsoIndirectly) {
 		Instruction instruction = ih.getInstruction();
 
-		if (instruction instanceof INVOKEDYNAMIC)
-			return bootstrapMethodsLeadingToEntries.contains(getBootstrapFor((INVOKEDYNAMIC) instruction));
+		if (instruction instanceof INVOKEDYNAMIC) {
+			BootstrapMethod bootstrap = getBootstrapFor((INVOKEDYNAMIC) instruction);
+			if (alsoIndirectly)
+				return bootstrapMethodsLeadingToEntries.contains(bootstrap);
+			else
+				return lambdaIsEntry(bootstrap);
+		}
 		else if (instruction instanceof INVOKESPECIAL || instruction instanceof INVOKEVIRTUAL || instruction instanceof INVOKEINTERFACE) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ConstantPoolGen cpg = getConstantPool();
@@ -233,6 +248,29 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		}
 
 		return false;
+	}
+
+	/**
+	 * Yields the name of the entry that is directly called by the givuen instruction.
+	 * 
+	 * @param ih the instruction
+	 * @return the name of the entry
+	 */
+	private String nameOfEntryCalledDirectly(InstructionHandle ih) {
+		Instruction instruction = ih.getInstruction();
+		ConstantPoolGen cpg = getConstantPool();
+
+		if (instruction instanceof INVOKEDYNAMIC) {
+			BootstrapMethod bootstrap = getBootstrapFor((INVOKEDYNAMIC) instruction);
+			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+			ConstantMethodref mr = (ConstantMethodref) constant2;
+			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+			return ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+		}
+		else
+			return ((InvokeInstruction) instruction).getMethodName(cpg);
 	}
 
 	/**
@@ -266,6 +304,18 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		private final ConstantPoolGen cpg;
 
 		/**
+		 * The set of lambda methods that might be reachable from a static method
+		 * that is not a lambda itself: they cannot call entries.
+		 */
+		private final Set<Method> lambdasReachableFromStaticMethods = new HashSet<>();
+
+		/**
+		 * The set of lambda that are unreachable from static methods that are not lambdas themselves:
+		 * they can call entries.
+		 */
+		private final Set<Method> lambdasUnreachableFromStaticMethods = new HashSet<>();
+
+		/**
 		 * True if and only if at least an error was issued during verification.
 		 */
 		private boolean hasErrors;
@@ -274,6 +324,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			this.className = getClassName();
 			this.issueHandler = issueHandler;
 			this.cpg = getConstantPool();
+
+			if (classLoader.isContract(className))
+				computeLambdasUnreachableFromStaticMethods();
 
 			entryIsOnlyAppliedToInstancePublicCodeOfContracts();
 			entryIsConsistentAlongSubclasses();
@@ -286,6 +339,53 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 
 			if (hasErrors)
 				throw new VerificationException();
+		}
+
+		private void computeLambdasUnreachableFromStaticMethods() {
+			// we initially compute the set of all lambdas
+			Set<Method> lambdas = getBootstraps()
+				.map(VerifiedClassGen.this::getLambdaFor)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.collect(Collectors.toSet());
+
+			//System.out.println("all lambdas: " + lambdas);
+
+			// then we consider all lambdas that might be called, directly, from a static method
+			// that is not a lambda: they must be considered as reachable from a static method
+			Stream.of(getMethods())
+				.filter(Method::isStatic)
+				.filter(method -> !lambdas.contains(method))
+				.forEach(this::addCalledLambdasAsReachableFromStatic);
+
+			// then we iterate on the same lambdas that have been found to be reachable from
+			// the static methods and process them, recursively
+			int initialSize;
+			do {
+				initialSize = lambdasReachableFromStaticMethods.size();
+				new HashSet<>(lambdasReachableFromStaticMethods).stream().forEach(this::addCalledLambdasAsReachableFromStatic);
+			}
+			while (lambdasReachableFromStaticMethods.size() > initialSize);
+
+			//System.out.println("reachable from static methods: " + lambdasReachableFromStaticMethods);
+			lambdasUnreachableFromStaticMethods.addAll(lambdas);
+			lambdasUnreachableFromStaticMethods.removeAll(lambdasReachableFromStaticMethods);
+		}
+
+		private void addCalledLambdasAsReachableFromStatic(Method method) {
+			MethodGen methodGen = new MethodGen(method, className, cpg);
+			InstructionList instructions = methodGen.getInstructionList();
+			if (instructions != null) {
+				StreamSupport.stream(instructions.spliterator(), false)
+					.map(InstructionHandle::getInstruction)
+					.filter(instruction -> instruction instanceof INVOKEDYNAMIC)
+					.map(instruction -> (INVOKEDYNAMIC) instruction)
+					.map(VerifiedClassGen.this::getBootstrapFor)
+					.map(VerifiedClassGen.this::getLambdaFor)
+					.filter(Optional::isPresent)
+					.map(Optional::get)
+					.forEach(lambdasReachableFromStaticMethods::add);
+			}
 		}
 
 		private void issue(Issue issue) {
@@ -504,11 +604,11 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			}
 
 			private void entriesAreOnlyCalledFromInstanceCodeOfContracts() {
-				instructions()
-					.filter(VerifiedClassGen.this::callsEntry)
-					.forEach(ih -> {
-						//System.out.println(lineOf(ih) + " inside " + method);
-					});
+				if (!classLoader.isContract(className) || (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
+					instructions()
+						.filter(ih -> callsEntry(ih, false))
+						.map(ih -> new IllegalCallToEntryError(VerifiedClassGen.this, method, nameOfEntryCalledDirectly(ih), lineOf(ih)))
+						.forEach(ClassVerification.this::issue);
 			}
 		}
 	}

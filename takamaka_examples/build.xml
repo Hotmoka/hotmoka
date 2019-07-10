@@ -52,6 +52,12 @@
   	<jar jarfile="${dist}/entryonstatic.jar" basedir="${build}" includes="**/takamaka/tests/errors/entryonstatic/**"/>
   	<jar jarfile="${dist}/callernotonthis.jar" basedir="${build}" includes="**/takamaka/tests/errors/callernotonthis/**"/>
   	<jar jarfile="${dist}/calleroutsideentry.jar" basedir="${build}" includes="**/takamaka/tests/errors/calleroutsideentry/**"/>
+	<jar jarfile="${dist}/illegalcalltoentry1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltoentry1/**"/>
+  	<jar jarfile="${dist}/illegalcalltoentry2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltoentry2/**"/>
+  	<jar jarfile="${dist}/illegalcalltoentry3.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltoentry3/**"/>
+  	<jar jarfile="${dist}/illegalcalltoentry4.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltoentry4/**"/>
+  	<jar jarfile="${dist}/illegalcalltoentry5.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltoentry5/**"/>
+  	<jar jarfile="${dist}/legalcalltoentry1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcalltoentry1/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**"/>
   </target>
 
