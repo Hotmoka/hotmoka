@@ -6,6 +6,6 @@ import org.apache.bcel.generic.ClassGen;
 public class PayableWithoutAmountError extends Error {
 
 	public PayableWithoutAmountError(ClassGen clazz, Method where) {
-		super(clazz, where, "this @Payable method must have a first argument of type int, long or BigInteger");
+		super(clazz, where, "a @Payable method must have a first argument for the payed amount, of type int, long or BigInteger");
 	}
 }

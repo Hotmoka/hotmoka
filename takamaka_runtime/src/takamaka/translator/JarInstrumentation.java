@@ -156,17 +156,17 @@ public class JarInstrumentation {
 		}
 
 		/**
-		 * Instruments the given entry of a jar file, that is a class file.
+		 * Instruments the given class from a jar file.
 		 * 
-		 * @param entry the entry
+		 * @param clazz the class
 		 */
-		private void dumpInstrumentedClass(VerifiedClassGen entry) {
+		private void dumpInstrumentedClass(VerifiedClassGen clazz) {
 			try {
 				// add the same entry to the resulting jar
-				instrumentedJar.putNextEntry(new JarEntry(entry.getClassName().replace('.', '/') + ".class"));
+				instrumentedJar.putNextEntry(new JarEntry(clazz.getClassName().replace('.', '/') + ".class"));
 
 				// dump an instrumented class file inside that entry
-				new ClassInstrumentation(entry, instrumentedJar, classLoader);
+				new ClassInstrumentation(clazz, instrumentedJar, classLoader);
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

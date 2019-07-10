@@ -29,6 +29,8 @@ public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable
 
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
+	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
+	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
 	/**
 	 * The class token of the contract class.
@@ -184,6 +186,29 @@ public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable
 		}
 
 		return null;
+	}
+
+	/**
+	 * Determines if a method is an entry, possibly already instrumented.
+	 * 
+	 * @param className the name of the class defining the method
+	 * @param methodName the name of the method
+	 * @param signature the signature of the method
+	 * @return true if and only if that condition holds
+	 */
+	public boolean isEntryPossiblyAlreadyInstrumented(String className, String methodName, String signature) {
+		Type[] formals = Type.getArgumentTypes(signature);
+		Type returnType = Type.getReturnType(signature);
+		if (isEntry(className, methodName, formals, returnType) != null)
+			return true;
+
+		// the method might have been already instrumented, since it comes from
+		// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
+		Type[] formalsExpanded = new Type[formals.length + 2];
+		System.arraycopy(formals, 0, formalsExpanded, 0, formals.length);
+		formalsExpanded[formals.length] = CONTRACT_OT;
+		formalsExpanded[formals.length + 1] = DUMMY_OT;
+		return isEntry(className, methodName, formalsExpanded, returnType) != null;
 	}
 
 	/**

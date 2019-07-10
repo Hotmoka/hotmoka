@@ -3,16 +3,32 @@ package takamaka.verifier;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.BootstrapMethod;
+import org.apache.bcel.classfile.BootstrapMethods;
+import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantClass;
+import org.apache.bcel.classfile.ConstantInvokeDynamic;
+import org.apache.bcel.classfile.ConstantMethodHandle;
+import org.apache.bcel.classfile.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LineNumberTable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.INVOKEDYNAMIC;
+import org.apache.bcel.generic.INVOKEINTERFACE;
+import org.apache.bcel.generic.INVOKESPECIAL;
+import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
@@ -33,6 +49,22 @@ import takamaka.translator.TakamakaClassLoader;
 public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedClassGen> {
 
 	/**
+	 * The class loader used to load the class under verification and the other classes of the program
+	 * it belongs to.
+	 */
+	private final TakamakaClassLoader classLoader;
+
+	/**
+	 * The bootstrap methods of this class.
+	 */
+	private final BootstrapMethod[] bootstrapMethods;
+
+	/**
+	 * The bootstrap methods of this class that lead to an entry, possibly indirectly.
+	 */
+	private final Set<BootstrapMethod> bootstrapMethodsLeadingToEntries = new HashSet<>();
+
+	/**
 	 * Builds and verify a BCEL class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
@@ -43,12 +75,164 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	public VerifiedClassGen(JavaClass clazz, TakamakaClassLoader classLoader, Consumer<Issue> issueHandler) throws VerificationException {
 		super(clazz);
 
-		new ClassVerification(classLoader, issueHandler);
+		this.classLoader = classLoader;
+		this.bootstrapMethods = computeBootstraps();
+		collectBootstrapsLeadingToEntries();
+
+		new ClassVerification(issueHandler);
 	}
 
 	@Override
 	public int compareTo(VerifiedClassGen other) {
 		return getClassName().compareTo(other.getClassName());
+	}
+
+	/**
+	 * Yields the bootstrap methods in this class.
+	 * 
+	 * @return the bootstrap methods
+	 */
+	public Stream<BootstrapMethod> getBootstraps() {
+		return Stream.of(bootstrapMethods);
+	}
+
+	/**
+	 * Yields the subset of the bootstrap methods of this class that lead to an entry,
+	 * possibly indirectly.
+	 * 
+	 * @return the bootstrap methods that lead to an entry
+	 */
+	public Stream<BootstrapMethod> getBootstrapsLeadingToEntries() {
+		return bootstrapMethodsLeadingToEntries.stream();
+	}
+
+	/**
+	 * Yields the bootstrap method associated with the given instruction.
+	 * 
+	 * @param invokedynamic the instruction
+	 * @return the bootstrap method
+	 */
+	public BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) {
+		ConstantInvokeDynamic cid = (ConstantInvokeDynamic) getConstantPool().getConstant(invokedynamic.getIndex());
+		return bootstrapMethods[cid.getBootstrapMethodAttrIndex()];
+	}
+
+	/**
+	 * Determines if the given bootstrap method calls an entry as target code.
+	 * 
+	 * @param bootstrap the bootstrap method
+	 * @return true if and only if that condition holds
+	 */
+	public boolean lambdaIsEntry(BootstrapMethod bootstrap) {
+		if (bootstrap.getNumBootstrapArguments() == 3) {
+			ConstantPoolGen cpg = getConstantPool();
+
+			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+			if (constant instanceof ConstantMethodHandle) {
+				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+				if (constant2 instanceof ConstantMethodref) {
+					ConstantMethodref mr = (ConstantMethodref) constant2;
+					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+
+					return classLoader.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
+				}
+			}
+		};
+
+		return false;
+	}
+
+	private BootstrapMethod[] computeBootstraps() {
+		Optional<BootstrapMethods> bootstraps = Stream.of(getAttributes())
+			.filter(attribute -> attribute instanceof BootstrapMethods)
+			.map(attribute -> (BootstrapMethods) attribute)
+			.findAny();
+	
+		if (bootstraps.isPresent())
+			return bootstraps.get().getBootstrapMethods();
+		else
+			return new BootstrapMethod[0];
+	}
+
+	private void collectBootstrapsLeadingToEntries() {
+		ConstantPoolGen cpg = getConstantPool();
+
+		int initialSize;
+		do {
+			initialSize = bootstrapMethodsLeadingToEntries.size();
+			getBootstraps()
+				.filter(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, cpg))
+				.forEach(bootstrapMethodsLeadingToEntries::add);
+		}
+		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
+	}
+
+	private boolean lambdaCallsEntry(BootstrapMethod bootstrap, ConstantPoolGen cpg) {
+		if (bootstrap.getNumBootstrapArguments() == 3) {
+			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+			if (constant instanceof ConstantMethodHandle) {
+				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+				if (constant2 instanceof ConstantMethodref) {
+					ConstantMethodref mr = (ConstantMethodref) constant2;
+					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+
+					// a lambda bridge can only be present in the same class that calls it
+					if (className.equals(getClassName())) {
+						Optional<Method> lambda = Stream.of(getMethods())
+							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
+							.findAny();
+
+						return lambda.isPresent() && callsEntry(lambda.get());
+					}
+				}
+			}
+		};
+
+		return false;
+	}
+
+	/**
+	 * Determines if the given lambda method calls an entry, possibly through an
+	 * {@code invokedynamic} with one of the given bootstraps.
+	 * 
+	 * @param lambda the lambda method
+	 * @return true if that condition holds
+	 */
+	private boolean callsEntry(Method lambda) {
+		if (!lambda.isAbstract()) {
+			MethodGen mg = new MethodGen(lambda, getClassName(), getConstantPool());
+			return StreamSupport.stream(mg.getInstructionList().spliterator(), false)
+				.anyMatch(instruction -> callsEntry(instruction));
+		}
+
+		return false;
+	}
+
+	private boolean callsEntry(InstructionHandle ih) {
+		Instruction instruction = ih.getInstruction();
+
+		if (instruction instanceof INVOKEDYNAMIC)
+			return bootstrapMethodsLeadingToEntries.contains(getBootstrapFor((INVOKEDYNAMIC) instruction));
+		else if (instruction instanceof INVOKESPECIAL || instruction instanceof INVOKEVIRTUAL || instruction instanceof INVOKEINTERFACE) {
+			InvokeInstruction invoke = (InvokeInstruction) instruction;
+			ConstantPoolGen cpg = getConstantPool();
+			ReferenceType receiver = invoke.getReferenceType(cpg);
+			if (receiver instanceof ObjectType)
+			return classLoader.isEntryPossiblyAlreadyInstrumented
+				(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+		}
+
+		return false;
 	}
 
 	/**
@@ -72,12 +256,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		private final String className;
 
 		/**
-		 * The class loader used to load the class under verification and the other classes of the program
-		 * it belongs to.
-		 */
-		private final TakamakaClassLoader classLoader;
-
-		/**
 		 * The handler that must be notified of issues found in the class.
 		 */
 		private final Consumer<Issue> issueHandler;
@@ -92,9 +270,8 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 */
 		private boolean hasErrors;
 
-		private ClassVerification(TakamakaClassLoader classLoader, Consumer<Issue> issueHandler) throws VerificationException {
+		private ClassVerification(Consumer<Issue> issueHandler) throws VerificationException {
 			this.className = getClassName();
-			this.classLoader = classLoader;
 			this.issueHandler = issueHandler;
 			this.cpg = getConstantPool();
 
@@ -261,6 +438,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				this.lines = methodGen.getLineNumberTable(cpg);
 
 				callerOccursOnThisInEntries();
+				entriesAreOnlyCalledFromInstanceCodeOfContracts();
 			}
 
 			/**
@@ -273,6 +451,13 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				return lines != null ? lines.getSourceLine(ih.getPosition()) : -1;
 			}
 
+			private Stream<InstructionHandle> instructions() {
+				if (instructions == null)
+					return Stream.empty();
+				else
+					return StreamSupport.stream(instructions.spliterator(), false);
+			}
+
 			/**
 			 * Checks that {@code caller()}, inside the given method of the class being verified,
 			 * is only used with {@code this} as receiver and inside an {@code @@Entry} method or constructor.
@@ -280,16 +465,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			private void callerOccursOnThisInEntries() {
 				boolean isEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) != null;
 
-				if (instructions != null)
-					StreamSupport.stream(instructions.spliterator(), false)
-						.filter(this::isCallToContractCaller)
-						.forEach(ih -> {
-							if (!isEntry)
-								issue(new CallerOutsideEntry(VerifiedClassGen.this, method, lineOf(ih)));
-
-							if (!previousIsLoad0(ih))
-								issue(new CallerNotOnThis(VerifiedClassGen.this, method, lineOf(ih)));
-						});
+				instructions()
+					.filter(this::isCallToContractCaller)
+					.forEach(ih -> {
+						if (!isEntry)
+							issue(new CallerOutsideEntry(VerifiedClassGen.this, method, lineOf(ih)));
+	
+						if (!previousIsLoad0(ih))
+							issue(new CallerNotOnThis(VerifiedClassGen.this, method, lineOf(ih)));
+					});
 			}
 
 			private boolean previousIsLoad0(InstructionHandle ih) {
@@ -309,7 +493,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				if (ins instanceof InvokeInstruction) {
 					InvokeInstruction invoke = (InvokeInstruction) ins;
 					ReferenceType receiver;
-
+			
 					return "caller".equals(invoke.getMethodName(cpg))
 						&& TAKAMAKA_CALLER_SIG.equals(invoke.getSignature(cpg))
 						&& (receiver = invoke.getReferenceType(cpg)) instanceof ObjectType
@@ -317,6 +501,14 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				}
 				else
 					return false;
+			}
+
+			private void entriesAreOnlyCalledFromInstanceCodeOfContracts() {
+				instructions()
+					.filter(VerifiedClassGen.this::callsEntry)
+					.forEach(ih -> {
+						//System.out.println(lineOf(ih) + " inside " + method);
+					});
 			}
 		}
 	}

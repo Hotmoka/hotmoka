@@ -22,9 +22,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
-import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ClassFormatException;
-import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
@@ -36,7 +34,6 @@ import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
-import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.ExceptionThrower;
@@ -46,9 +43,7 @@ import org.apache.bcel.generic.GETFIELD;
 import org.apache.bcel.generic.GotoInstruction;
 import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
-import org.apache.bcel.generic.INVOKEINTERFACE;
 import org.apache.bcel.generic.INVOKESPECIAL;
-import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
@@ -77,6 +72,7 @@ import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.lang.Contract;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
+import takamaka.verifier.VerifiedClassGen;
 
 /**
  * An instrumenter of a single class file. For instance, it instruments storage classes,
@@ -132,7 +128,7 @@ class ClassInstrumentation {
 	 * @throws ClassFormatException if some class file is not legal
 	 * @throws IOException if there is an error accessing the disk
 	 */
-	public ClassInstrumentation(ClassGen clazz, JarOutputStream instrumentedJar, TakamakaClassLoader classLoader) throws ClassFormatException, IOException {
+	public ClassInstrumentation(VerifiedClassGen clazz, JarOutputStream instrumentedJar, TakamakaClassLoader classLoader) throws ClassFormatException, IOException {
 		// performs instrumentation on that image
 		new Initializer(clazz, classLoader);
 
@@ -148,7 +144,7 @@ class ClassInstrumentation {
 		/**
 		 * The class that is being instrumented.
 		 */
-		private final ClassGen classGen;
+		private final VerifiedClassGen classGen;
 
 		/**
 		 * The name of the class being instrumented.
@@ -199,11 +195,6 @@ class ClassInstrumentation {
 		private final TakamakaClassLoader classLoader;
 
 		/**
-		 * The bootstrap methods of the class being processed.
-		 */
-		private final BootstrapMethod[] bootstrapMethods;
-
-		/**
 		 * The bootstrap methods that have been instrumented since they must receive
 		 * an extra parameter, since they call an entry and need the calling contract for that.
 		 */
@@ -216,7 +207,7 @@ class ClassInstrumentation {
 		 * @param classLoader the class loader for resolving the classes under instrumentation and those of
 		 *        the dependent libraries
 		 */
-		private Initializer(ClassGen classGen, TakamakaClassLoader classLoader) {
+		private Initializer(VerifiedClassGen classGen, TakamakaClassLoader classLoader) {
 			this.classGen = classGen;
 			this.className = classGen.getClassName();
 			this.cpg = classGen.getConstantPool();
@@ -224,16 +215,6 @@ class ClassInstrumentation {
 			this.classLoader = classLoader;
 			this.isStorage = !className.equals(STORAGE_CLASS_NAME) && classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
-
-			Optional<BootstrapMethods> bootstraps = Stream.of(classGen.getAttributes())
-				.filter(attribute -> attribute instanceof BootstrapMethods)
-				.map(attribute -> (BootstrapMethods) attribute)
-				.findAny();
-
-			if (bootstraps.isPresent())
-				this.bootstrapMethods = bootstraps.get().getBootstrapMethods();
-			else
-				this.bootstrapMethods = new BootstrapMethod[0];
 
 			// the fields of the class are relevant only for storage classes
 			if (isStorage) {
@@ -283,117 +264,12 @@ class ClassInstrumentation {
 		 * instruction. That instruction will be later instrumented during local instrumentation.
 		 */
 		private void instrumentBootstrapsInvokingEntries() {
-			collectBootstrapsLeadingToEntries().stream()
+			classGen.getBootstrapsLeadingToEntries()
 				.forEach(this::instrumentBootstrapCallingEntry);
 		}
 
-		private Set<BootstrapMethod> collectBootstrapsLeadingToEntries() {
-			Set<BootstrapMethod> result = new HashSet<>();
-
-			int initialSize;
-			do {
-				initialSize = result.size();
-				Stream.of(bootstrapMethods)
-					.filter(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, result))
-					.forEach(result::add);
-			}
-			while (result.size() > initialSize);
-
-			return result;
-		}
-
-		private boolean lambdaCallsEntry(BootstrapMethod bootstrap, Set<BootstrapMethod> bootstrapsCallingEntry) {
-			if (bootstrap.getNumBootstrapArguments() == 3) {
-				Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-				if (constant instanceof ConstantMethodHandle) {
-					ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-					Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-					if (constant2 instanceof ConstantMethodref) {
-						ConstantMethodref mr = (ConstantMethodref) constant2;
-						int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-						String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-						ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-						String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-						String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-
-						// a lambda bridge can only be present in the same class that calls it
-						if (className.equals(this.className)) {
-							Optional<Method> lambda = Stream.of(classGen.getMethods())
-								.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
-								.findAny();
-
-							return lambda.isPresent() && callsEntry(lambda.get(), bootstrapsCallingEntry);
-						}
-					}
-				}
-			};
-
-			return false;
-		}
-
-		/**
-		 * Determines if the given lambda method calls an entry, possibly through an
-		 * {@code invokedynamic} with one of the given bootstraps.
-		 * 
-		 * @param lambda the lambda method
-		 * @param bootstrapsCallingEntry the bootstraps known to call an entry
-		 * @return true if that condition holds
-		 */
-		private boolean callsEntry(Method lambda, Set<BootstrapMethod> bootstrapsCallingEntry) {
-			if (!lambda.isAbstract()) {
-				MethodGen mg = new MethodGen(lambda, className, cpg);
-				return StreamSupport.stream(mg.getInstructionList().spliterator(), false)
-					.anyMatch(instruction -> callsEntry(instruction.getInstruction(), bootstrapsCallingEntry));
-			}
-
-			return false;
-		}
-
-		private boolean callsEntry(Instruction instruction, Set<BootstrapMethod> bootstrapsCallingEntry) {
-			if (instruction instanceof INVOKEDYNAMIC) {
-				INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) instruction;
-				ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
-				return bootstrapsCallingEntry.contains(bootstrapMethods[cid.getBootstrapMethodAttrIndex()]);
-			}
-			else if (instruction instanceof INVOKESPECIAL || instruction instanceof INVOKEVIRTUAL || instruction instanceof INVOKEINTERFACE) {
-				InvokeInstruction invoke = (InvokeInstruction) instruction;
-				return isEntryPossiblyAlreadyInstrumented
-					(invoke.getClassName(cpg), invoke.getMethodName(cpg), invoke.getSignature(cpg));
-			}
-
-			return false;
-		}
-
-		/**
-		 * Determines if the given bootstrap method calls an entry as target code.
-		 * 
-		 * @param bootstrap the bootstrap method
-		 * @return true if and only if that condition holds
-		 */
-		private boolean lambdaIsEntry(BootstrapMethod bootstrap) {
-			if (bootstrap.getNumBootstrapArguments() == 3) {
-				Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-				if (constant instanceof ConstantMethodHandle) {
-					ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-					Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-					if (constant2 instanceof ConstantMethodref) {
-						ConstantMethodref mr = (ConstantMethodref) constant2;
-						int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-						String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-						ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-						String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-						String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-
-						return isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
-					}
-				}
-			};
-
-			return false;
-		}
-
 		private void instrumentBootstrapCallingEntry(BootstrapMethod bootstrap) {
-			if (lambdaIsEntry(bootstrap))
+			if (classGen.lambdaIsEntry(bootstrap))
 				instrumentLambdaEntry(bootstrap);
 			else
 				instrumentLambdaCallingEntry(bootstrap);
@@ -846,44 +722,16 @@ class ClassInstrumentation {
 		 * @return true if and only if that condition holds
 		 */
 		private boolean isCallToEntry(Instruction instruction) {
-			if (instruction instanceof INVOKEDYNAMIC) {
-				INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) instruction;
-				ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
-				BootstrapMethod bootstrap = bootstrapMethods[cid.getBootstrapMethodAttrIndex()];
-				if (bootstrapMethodsThatWillRequireExtraThis.contains(bootstrap))
-					return true;
-			}
+			if (instruction instanceof INVOKEDYNAMIC)
+				return bootstrapMethodsThatWillRequireExtraThis.contains(classGen.getBootstrapFor((INVOKEDYNAMIC) instruction));
 			else if (instruction instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
 				ReferenceType receiver = invoke.getReferenceType(cpg);
 				if (receiver instanceof ObjectType)
-					return isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+					return classLoader.isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 			}
 
 			return false;
-		}
-
-		/**
-		 * Determines if a method is an entry, possibly already instrumented.
-		 * 
-		 * @param className the name of the class defining the method
-		 * @param methodName the name of the method
-		 * @param signature the signature of the method
-		 * @return true if and only if that condition holds
-		 */
-		private boolean isEntryPossiblyAlreadyInstrumented(String className, String methodName, String signature) {
-			Type[] formals = Type.getArgumentTypes(signature);
-			Type returnType = Type.getReturnType(signature);
-			if (classLoader.isEntry(className, methodName, formals, returnType) != null)
-				return true;
-
-			// the method might have been already instrumented, since it comes from
-			// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
-			Type[] formalsExpanded = new Type[formals.length + 2];
-			System.arraycopy(formals, 0, formalsExpanded, 0, formals.length);
-			formalsExpanded[formals.length] = CONTRACT_OT;
-			formalsExpanded[formals.length + 1] = DUMMY_OT;
-			return classLoader.isEntry(className, methodName, formalsExpanded, returnType) != null;
 		}
 
 		/**
