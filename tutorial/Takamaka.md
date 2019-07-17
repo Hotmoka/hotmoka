@@ -2547,7 +2547,7 @@ If there is a winner, it sends the highest bid to the beneficiary.
 Note the use of methods `onlyBefore()` and `onlyAfter()` to guarantee
 that some methods are only run at the right moment.
 
-## Events <a name="events"></a[Specialized Storage Array Classes](#specialized-storage-array-classes)>
+## Events <a name="events">
 
 The code of the blind auction contract contains some lines that generate
 _events_, such as:
