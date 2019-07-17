@@ -702,7 +702,7 @@ that belong to the so called _storage types_. Storage values are
 doubles and booleans), or
 2. reference values whose class extends `takamaka.lang.Storage` (that is, _storage objects_), or
 3. `null`, or
-4. elements of immutable `enum`s, or
+4. elements of an `enum` without instance non-transient fields, or
 5. a few special reference values: `java.math.BigInteger`s and `java.lang.String`s.
 
 Storage values cross the
@@ -729,7 +729,7 @@ fields of a storage objects are part of the representation of such
 objects and must, themselves, be kept in blockchain. Hence, a storage object:
 1. has a class that extends (directly or indirectly) `takamaka.lang.Storage`, and
 2. is such that all its fields hold storage values (primitives, storage objects, `null`,
-elements of immutable `enum`s, a `java.math.BigInteger` or a `java.lang.String`).
+elements of `enum`s without instance non-transient fields, a `java.math.BigInteger` or a `java.lang.String`).
 
 Note that the above conditions hold for the class `Person` defined above. Instead,
 the following are examples of what is **not** allowed in a field of a storage object:
@@ -1587,17 +1587,15 @@ import takamaka.util.StorageArray;
 public class TicTacToe extends Contract {
 
   public static enum Tile {
-    EMPTY(" "), CROSS("X"), CIRCLE("O");
-
-    private final String name;
-
-    private Tile(String name) {
-      this.name = name;
-    }
+    EMPTY, CROSS, CIRCLE;
 
     @Override
     public String toString() {
-      return name;
+      switch (this) {
+      case EMPTY: return " ";
+      case CROSS: return "X";
+      default: return "O";
+      }
     }
 
     private Tile nextTurn() {
@@ -1795,17 +1793,15 @@ import takamaka.util.StorageArray;
 public class TicTacToe extends Contract {
 
   public static enum Tile {
-    EMPTY(" "), CROSS("X"), CIRCLE("O");
-
-    private final String name;
-
-    private Tile(String name) {
-      this.name = name;
-    }
+    EMPTY, CROSS, CIRCLE;
 
     @Override
     public String toString() {
-      return name;
+      switch (this) {
+      case EMPTY: return " ";
+      case CROSS: return "X";
+      default: return "O";
+      }
     }
 
     private Tile nextTurn() {

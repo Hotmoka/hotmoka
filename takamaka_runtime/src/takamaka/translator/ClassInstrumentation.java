@@ -530,10 +530,10 @@ class ClassInstrumentation {
 		 */
 		private void addGasUpdates(MethodGen method) {
 			SortedSet<InstructionHandle> dominators = computeDominators(method);
-			dominators.stream().forEachOrdered(dominator -> addGasUpdate(dominator, method.getInstructionList(), dominators));
+			dominators.stream().forEachOrdered(dominator -> addGasUpdate(dominator, method.getInstructionList(), method.getExceptionHandlers(), dominators));
 		}
 
-		private void addGasUpdate(InstructionHandle dominator, InstructionList il, SortedSet<InstructionHandle> dominators) {
+		private void addGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators) {
 			long cost = gasCostOf(dominator, dominators);
 			InstructionHandle newTarget;
 
@@ -542,7 +542,7 @@ class ClassInstrumentation {
 				newTarget = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
 			else {
 				InstructionHandle pushCost;
-				// up to 5, there is special, compact methods
+				// we determine if we can use an integer or we need a long (highly unlikely...)
 				if (cost < Integer.MAX_VALUE)
 					pushCost = il.insert(dominator, factory.createConstant((int) cost));
 				else
@@ -555,6 +555,7 @@ class ClassInstrumentation {
 			}
 
 			il.redirectBranches(dominator, newTarget);
+			il.redirectExceptionHandlers(ceg, dominator, newTarget);
 		}
 
 		private long gasCostOf(InstructionHandle dominator, SortedSet<InstructionHandle> dominators) {

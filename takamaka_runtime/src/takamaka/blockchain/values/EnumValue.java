@@ -2,7 +2,6 @@ package takamaka.blockchain.values;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.DeserializationError;
-import takamaka.blockchain.types.ClassType;
 import takamaka.lang.Immutable;
 
 /**
@@ -38,8 +37,7 @@ public final class EnumValue implements StorageValue {
 	@Override
 	public Enum<?> deserialize(AbstractBlockchain blockchain) {
 		try {
-			Class<?> enumClass = (Class<?>) new ClassType(enumClassName).toClass(blockchain);
-			return Enum.valueOf((Class<? extends Enum>) enumClass, name);
+			return Enum.valueOf((Class<? extends Enum>) blockchain.loadClass(enumClassName), name);
 		}
 		catch (ClassNotFoundException e) {
 			throw new DeserializationError(e);

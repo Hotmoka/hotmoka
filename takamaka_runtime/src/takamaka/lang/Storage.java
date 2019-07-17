@@ -1,9 +1,12 @@
 package takamaka.lang;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import takamaka.blockchain.ClassTag;
 import takamaka.blockchain.DeserializationError;
@@ -181,6 +184,7 @@ public abstract class Storage {
 	 * @param fieldClassName the name of the type of the field
 	 * @param s the value set to the field
 	 */
+	@SuppressWarnings("unchecked")
 	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet, String fieldClassName, Object s) {
 		// these values are not recursively followed
 		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
@@ -193,7 +197,7 @@ public abstract class Storage {
 			Storage storage = (Storage) s;
 			updates.add(new UpdateOfStorage(storageReference, field, storage.storageReference));
 
-			// if the new value has not yet been consider, we put in the list of object still to be processed
+			// if the new value has not yet been considered, we put in the list of object still to be processed
 			if (seen.add(storage.storageReference))
 				workingSet.add(storage);
 		}
@@ -203,10 +207,26 @@ public abstract class Storage {
 			updates.add(new UpdateOfString(storageReference, field, (String) s));
 		else if (s instanceof BigInteger)
 			updates.add(new UpdateOfBigInteger(storageReference, field, (BigInteger) s));
-		else if (s instanceof Enum<?>)
+		else if (s instanceof Enum<?>) {
+			if (hasInstanceFields((Class<? extends Enum<?>>) s.getClass()))
+				throw new DeserializationError("field " + field + " of a storage object cannot hold an enumeration of class " + s.getClass().getName() + ": it has instance non-transient fields");
+
 			updates.add(new UpdateOfEnumLazy(storageReference, field, s.getClass().getName(), ((Enum<?>) s).name()));
+		}
 		else
 			throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
+	}
+
+	/**
+	 * Determines if the given enumeration type has at least an instance, non-transient field.
+	 * 
+	 * @param clazz the class
+	 * @return true only if that condition holds
+	 */
+	private boolean hasInstanceFields(Class<? extends Enum<?>> clazz) {
+		return Stream.of(clazz.getDeclaredFields())
+			.map(Field::getModifiers)
+			.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));
 	}
 
 	/**

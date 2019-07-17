@@ -25,17 +25,15 @@ import takamaka.util.StorageArray;
 public class TicTacToe extends Contract {
 
 	public static enum Tile {
-		EMPTY(" "), CROSS("X"), CIRCLE("O");
-
-		private final String name;
-
-		private Tile(String name) {
-			this.name = name;
-		}
+		EMPTY, CROSS, CIRCLE;
 
 		@Override
 		public String toString() {
-			return name;
+			switch (this) {
+			case EMPTY: return " ";
+			case CROSS: return "X";
+			default: return "O";
+			}
 		}
 
 		private Tile nextTurn() {

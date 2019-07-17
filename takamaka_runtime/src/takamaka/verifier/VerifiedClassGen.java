@@ -1,5 +1,6 @@
 package takamaka.verifier;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -543,9 +544,10 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			}
 		}
 
+		@SuppressWarnings("unchecked")
 		private boolean isTypeAllowedForStorageFields(Class<?> type) {
 			return type.isPrimitive() || type == String.class || type == BigInteger.class
-				|| (type.isEnum() && isEnumAllowedInStorage(type))
+				|| (type.isEnum() && !hasInstanceFields((Class<? extends Enum<?>>) type))
 				|| (!type.isArray() && classLoader.isStorage(type.getName()))
 				// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
 				// will check later if the actual type of the object in this field is allowed
@@ -553,14 +555,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		}
 
 		/**
-		 * Determines if the given enum is allowed in storage. Not all enum's are allowed.
-		 * Namely, only {@code final} immutable enum's are allowed in storage.
+		 * Determines if the given enumeration type has at least an instance, non-transient field.
 		 * 
-		 * @param type the enum type
-		 * @return true if and only if {@code type} is {@code final} and immutable
+		 * @param clazz the class
+		 * @return true only if that condition holds
 		 */
-		private boolean isEnumAllowedInStorage(Class<?> type) {
-			return Modifier.isFinal(type.getModifiers());  // TODO: check if immutable
+		private boolean hasInstanceFields(Class<? extends Enum<?>> clazz) {
+			return Stream.of(clazz.getDeclaredFields())
+				.map(Field::getModifiers)
+				.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));
 		}
 
 		private class MethodVerification {

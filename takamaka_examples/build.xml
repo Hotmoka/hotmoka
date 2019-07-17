@@ -59,6 +59,8 @@
   	<jar jarfile="${dist}/illegalcalltoentry5.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltoentry5/**"/>
   	<jar jarfile="${dist}/legalcalltoentry1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcalltoentry1/**"/>
   	<jar jarfile="${dist}/illegaltypeforstoragefield1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegaltypeforstoragefield1/**"/>
+  	<jar jarfile="${dist}/illegaltypeforstoragefield2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegaltypeforstoragefield2/**"/>
+  	<jar jarfile="${dist}/illegaltypeforstoragefield3.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegaltypeforstoragefield3/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**"/>
   </target>
 
