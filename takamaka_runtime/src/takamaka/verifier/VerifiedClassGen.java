@@ -333,6 +333,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			payableIsOnlyAppliedToEntries();
 			payableIsConsistentAlongSubclasses();
 			payableMethodsReceiveAmount();
+			storageClassesHaveFieldsOfStorageType();
 
 			Stream.of(getMethods())
 				.forEach(MethodVerification::new);
@@ -524,6 +525,42 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		
 			for (Class<?> interf: clazz.getInterfaces())
 				isIdenticallyPayableInSupertypesOf(interf, method, wasPayable);
+		}
+
+		private void storageClassesHaveFieldsOfStorageType() {
+			if (classLoader.isStorage(className)) {
+				try {
+					Class<?> clazz = classLoader.loadClass(className);
+					Stream.of(clazz.getDeclaredFields())
+						.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
+						.filter(field -> !isTypeAllowedForStorageFields(field.getType()))
+						.map(field -> new IllegalTypeForStorageFieldError(VerifiedClassGen.this, field))
+						.forEach(this::issue);
+				}
+				catch (ClassNotFoundException e) {
+					throw new IncompleteClasspathError(e);
+				}
+			}
+		}
+
+		private boolean isTypeAllowedForStorageFields(Class<?> type) {
+			return type.isPrimitive() || type == String.class || type == BigInteger.class
+				|| (type.isEnum() && isEnumAllowedInStorage(type))
+				|| (!type.isArray() && classLoader.isStorage(type.getName()))
+				// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
+				// will check later if the actual type of the object in this field is allowed
+				|| type == Object.class;
+		}
+
+		/**
+		 * Determines if the given enum is allowed in storage. Not all enum's are allowed.
+		 * Namely, only {@code final} immutable enum's are allowed in storage.
+		 * 
+		 * @param type the enum type
+		 * @return true if and only if {@code type} is {@code final} and immutable
+		 */
+		private boolean isEnumAllowedInStorage(Class<?> type) {
+			return Modifier.isFinal(type.getModifiers());  // TODO: check if immutable
 		}
 
 		private class MethodVerification {

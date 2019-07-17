@@ -1,5 +1,7 @@
 package takamaka.verifier;
 
+import java.lang.reflect.Field;
+
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
 
@@ -18,6 +20,10 @@ public abstract class Error extends Issue {
 	}
 
 	protected Error(ClassGen clazz, Method where, String message) {
+		super(clazz, where, message);
+	}
+
+	protected Error(ClassGen clazz, Field where, String message) {
 		super(clazz, where, message);
 	}
 

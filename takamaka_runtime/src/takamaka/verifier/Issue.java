@@ -1,5 +1,7 @@
 package takamaka.verifier;
 
+import java.lang.reflect.Field;
+
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
 
@@ -23,6 +25,11 @@ public abstract class Issue implements Comparable<Issue> {
 
 	protected Issue(ClassGen clazz, Method where, String message) {
 		this.where = inferSourceFile(clazz) + " method " + where.getName();
+		this.message = message;
+	}
+
+	protected Issue(ClassGen clazz, Field where, String message) {
+		this.where = inferSourceFile(clazz) + " field " + where.getName();
 		this.message = message;
 	}
 
