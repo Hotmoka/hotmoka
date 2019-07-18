@@ -351,8 +351,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				.map(Optional::get)
 				.collect(Collectors.toSet());
 
-			//System.out.println("all lambdas: " + lambdas);
-
 			// then we consider all lambdas that might be called, directly, from a static method
 			// that is not a lambda: they must be considered as reachable from a static method
 			Stream.of(getMethods())
@@ -577,8 +575,41 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				this.instructions = methodGen.getInstructionList();
 				this.lines = methodGen.getLineNumberTable(cpg);
 
+				isNotStaticInitializer();
 				callerOccursOnThisInEntries();
 				entriesAreOnlyCalledFromInstanceCodeOfContracts();
+			}
+
+			private void isNotStaticInitializer() {
+				if (!method.isAbstract() && method.getName().equals(Const.STATIC_INITIALIZER_NAME))
+					if (isEnum() || isSynthetic()) {
+						// checks that the static fields of {@code enum}'s or synthetic classes
+						// with a static initializer
+						// are either {@code synthetic} or {@code enum} elements or final static fields with
+						// an explicit constant initializer. This check is necessary
+						// since we cannot forbid static initializers in such classes, hence we do at least
+						// avoid the existence of extra static fields
+						Class<?> clazz;
+						try {
+							clazz = classLoader.loadClass(className);
+							Stream.of(clazz.getDeclaredFields())
+								.filter(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
+										&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field)))
+								.findAny()
+								.ifPresent(field -> issue(new IllegalStaticInitializationError(VerifiedClassGen.this, method, lineOf(instructions.getStart()))));
+						}
+						catch (ClassNotFoundException e) {
+							throw new IncompleteClasspathError(e);
+						}
+					}
+					else
+						issue(new IllegalStaticInitializationError(VerifiedClassGen.this, method, lineOf(instructions.getStart())));
+			}
+
+			private boolean hasExplicitConstantValue(Field field) {
+				return Stream.of(getFields())
+					.filter(f -> f.isStatic() && f.getName().equals(field.getName()) && classLoader.bcelToClass(f.getType()) == field.getType())
+					.allMatch(f -> f.getConstantValue() != null);
 			}
 
 			/**

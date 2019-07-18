@@ -61,6 +61,13 @@
   	<jar jarfile="${dist}/illegaltypeforstoragefield1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegaltypeforstoragefield1/**"/>
   	<jar jarfile="${dist}/illegaltypeforstoragefield2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegaltypeforstoragefield2/**"/>
   	<jar jarfile="${dist}/illegaltypeforstoragefield3.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegaltypeforstoragefield3/**"/>
+  	<jar jarfile="${dist}/illegalstaticinitialization1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalstaticinitialization1/**"/>
+  	<jar jarfile="${dist}/illegalstaticinitialization2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalstaticinitialization2/**"/>
+  	<jar jarfile="${dist}/illegalstaticinitialization3.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalstaticinitialization3/**"/>
+  	<jar jarfile="${dist}/illegalstaticinitialization4.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalstaticinitialization4/**"/>
+  	<jar jarfile="${dist}/legalstaticinitialization1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization1/**"/>
+  	<jar jarfile="${dist}/legalstaticinitialization2.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization2/**"/>
+  	<jar jarfile="${dist}/legalstaticinitialization3.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization3/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**"/>
   </target>
 
