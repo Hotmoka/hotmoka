@@ -159,7 +159,7 @@ public abstract class Storage {
 	}
 
 	/**
-	 * Yields the last value assigned to the given lazy field of this storage object.
+	 * Yields the last value assigned to the given lazy, non-{@code final} field of this storage object.
 	 * 
 	 * @param definingClass the class of the field. This can only be the class of this storage object
 	 *                      of one of its superclasses
@@ -170,6 +170,20 @@ public abstract class Storage {
 	 */
 	protected final Object deserializeLastLazyUpdateFor(String definingClass, String name, String fieldClassName) throws Exception {
 		return Takamaka.getBlockchain().deserializeLastLazyUpdateFor((StorageReferenceAlreadyInBlockchain) storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+	}
+
+	/**
+	 * Yields the last value assigned to the given lazy, {@code final} field of this storage object.
+	 * 
+	 * @param definingClass the class of the field. This can only be the class of this storage object
+	 *                      of one of its superclasses
+	 * @param name the name of the field
+	 * @param fieldClassName the name of the type of the field
+	 * @return the value of the field
+	 * @throws Exception if the value could not be found
+	 */
+	protected final Object deserializeLastLazyUpdateForFinal(String definingClass, String name, String fieldClassName) throws Exception {
+		return Takamaka.getBlockchain().deserializeLastLazyUpdateForFinal((StorageReferenceAlreadyInBlockchain) storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**

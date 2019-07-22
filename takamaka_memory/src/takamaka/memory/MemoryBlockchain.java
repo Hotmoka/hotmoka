@@ -255,6 +255,16 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
 	}
 
+	@Override
+	protected UpdateOfField getLastLazyUpdateForFinal(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception {
+		// goes directly to the transaction that created the object
+		UpdateOfField update = getLastUpdateFor(object, field, object.transaction);
+		if (update != null)
+			return update;
+
+		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
+	}
+
 	/**
 	 * Yields the update to the given field of the object at the given reference,
 	 * generated during a given transaction.

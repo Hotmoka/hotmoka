@@ -92,6 +92,7 @@ class ClassInstrumentation {
 	private final static String ENTRY = "entry";
 	private final static String IN_STORAGE_NAME = "inStorage";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
+	private final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
 	private final static String TAKAMAKA_CLASS_NAME = Takamaka.class.getName();
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
@@ -1214,10 +1215,12 @@ class ClassInstrumentation {
 		 * Adds the ensure loaded method for the given lazy field.
 		 */
 		private void addEnsureLoadedMethodFor(Field field) {
+			boolean fieldIsFinal = Modifier.isFinal(field.getModifiers());
+
 			// final fields cannot remain as such, since the ensureMethod will update them
 			// and it is not a constructor. Java < 9 will not check this constraint but
 			// newer versions of Java would reject the code without this change
-			if (Modifier.isFinal(field.getModifiers())) {
+			if (fieldIsFinal) {
 				org.apache.bcel.classfile.Field oldField = Stream.of(classGen.getFields())
 					.filter(f -> f.getName().equals(field.getName()) && f.getType().equals(Type.getType(field.getType())))
 					.findFirst()
@@ -1245,7 +1248,9 @@ class ClassInstrumentation {
 			il.insert(_return, factory.createConstant(className));
 			il.insert(_return, factory.createConstant(fieldName));
 			il.insert(_return, factory.createConstant(field.getType().getName()));
-			il.insert(_return, factory.createInvoke(className, DESERIALIZE_LAST_UPDATE_FOR, ObjectType.OBJECT, THREE_STRINGS_ARGS, Const.INVOKEVIRTUAL));
+			il.insert(_return, factory.createInvoke(className,
+				fieldIsFinal ? DESERIALIZE_LAST_UPDATE_FOR_FINAL : DESERIALIZE_LAST_UPDATE_FOR,
+				ObjectType.OBJECT, THREE_STRINGS_ARGS, Const.INVOKEVIRTUAL));
 			il.insert(_return, factory.createCast(ObjectType.OBJECT, type));
 			il.insert(_return, InstructionConst.DUP2);
 			il.insert(_return, factory.createPutField(className, fieldName, type));

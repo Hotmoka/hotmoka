@@ -237,7 +237,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 	protected abstract void collectEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, Set<Update> updates) throws Exception;
 
 	/**
-	 * Yields the most recent update for the given field, of lazy type, of the object at given storage reference.
+	 * Yields the most recent update for the given non-{@code final} field,
+	 * of lazy type, of the object at given storage reference.
 	 * Conceptually, this amounts to scanning backwards the blockchain, from its tip,
 	 * looking for the latest update.
 	 * 
@@ -247,6 +248,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the update could not be found
 	 */
 	protected abstract UpdateOfField getLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception;
+
+	/**
+	 * Yields the most recent update for the given {@code final} field,
+	 * of lazy type, of the object at given storage reference.
+	 * Conceptually, this amounts to accessing the storage reference when the object was
+	 * created and reading the value of the field there.
+	 * 
+	 * @param object the storage reference
+	 * @param field the field whose update is being looked for
+	 * @return the update, if any
+	 * @throws Exception if the update could not be found
+	 */
+	protected abstract UpdateOfField getLastLazyUpdateForFinal(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception;
 
 	/**
 	 * Yields the UTC time when the currently executing transaction is being run.
@@ -715,9 +729,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	
 	/**
 	 * Yields the latest value for the given field, of lazy type, of the given storage reference.
+	 * The field is not {@code final}.
 	 * Conceptually, this method goes backwards from the tip of the blockchain, looking for the latest
-	 * update of the given field. This can be of course made more efficient. For instance, {@code final}
-	 * fields can only be looked for in the transaction where the reference was created.
+	 * update of the given field.
 	 * 
 	 * @param reference the storage reference
 	 * @param field the field, of lazy type
@@ -726,6 +740,20 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	public final Object deserializeLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain reference, FieldSignature field) throws Exception {
 		return getLastLazyUpdateFor(reference, field).getValue().deserialize(this);
+	}
+
+	/**
+	 * Yields the latest value for the given field, of lazy type, of the given storage reference.
+	 * The field is {@code final}. Conceptually, this method looks for the value of the field
+	 * in the transaction where the reference was created.
+	 * 
+	 * @param reference the storage reference
+	 * @param field the field, of lazy type
+	 * @return the value of the field
+	 * @throws Exception if the look up fails
+	 */
+	public final Object deserializeLastLazyUpdateForFinal(StorageReferenceAlreadyInBlockchain reference, FieldSignature field) throws Exception {
+		return getLastLazyUpdateForFinal(reference, field).getValue().deserialize(this);
 	}
 
 	/**
