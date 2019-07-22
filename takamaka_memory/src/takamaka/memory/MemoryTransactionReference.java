@@ -80,13 +80,8 @@ final class MemoryTransactionReference extends TransactionReference {
 		return blockNumber.toString(16) + "." + Integer.toHexString(transactionNumber);
 	}
 
-	/**
-	 * Yields the reference to the transaction that precedes this one.
-	 * 
-	 * @return the previous transaction reference, if any. Yields {@code null} if this
-	 *         refers to the first transaction in blockchain
-	 */
-	protected MemoryTransactionReference getPrevious() {
+	@Override
+	public MemoryTransactionReference getPrevious() {
 		if (transactionNumber == 0)
 			if (blockNumber.signum() == 0)
 				return null;

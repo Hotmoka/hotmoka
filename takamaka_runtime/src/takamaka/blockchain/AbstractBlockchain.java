@@ -115,7 +115,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	private BlockchainClassLoader classLoader;	
+	private BlockchainClassLoader classLoader;
+
+	/**
+	 * The transaction reference after which the current transaction is being executed.
+	 * This is {@code null} for the first transaction.
+	 */
+	protected TransactionReference previous;
 
 	// ABSTRACT TEMPLATE METHODS
 	// Any implementation of a blockchain must implement the following and leave the rest unchanged
@@ -182,6 +188,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		FieldSignature.clearCache();
 		this.gas = gas;
 		oldGas.clear();
+		this.previous = previous;
 	}
 
 	/**
@@ -228,43 +235,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 	};
 	
-	/**
-	 * Puts in the given set all the latest updates for the fields of eager type of the
-	 * object at the given storage reference.
-	 * 
-	 * @param object the storage reference
-	 * @param updates the set where the latest updates must be added
-	 * @param eagerFields the number of eager fields whose latest update needs to be found
-	 * @throws Exception if the operation fails
-	 */
-	protected abstract void collectEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, Set<Update> updates, int eagerFields) throws Exception;
-
-	/**
-	 * Yields the most recent update for the given non-{@code final} field,
-	 * of lazy type, of the object at given storage reference.
-	 * Conceptually, this amounts to scanning backwards the blockchain, from its tip,
-	 * looking for the latest update.
-	 * 
-	 * @param object the storage reference
-	 * @param field the field whose update is being looked for
-	 * @return the update, if any
-	 * @throws Exception if the update could not be found
-	 */
-	protected abstract UpdateOfField getLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception;
-
-	/**
-	 * Yields the most recent update for the given {@code final} field,
-	 * of lazy type, of the object at given storage reference.
-	 * Conceptually, this amounts to accessing the storage reference when the object was
-	 * created and reading the value of the field there.
-	 * 
-	 * @param object the storage reference
-	 * @param field the field whose update is being looked for
-	 * @return the update, if any
-	 * @throws Exception if the update could not be found
-	 */
-	protected abstract UpdateOfField getLastLazyUpdateForFinal(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception;
-
 	/**
 	 * Yields the UTC time when the currently executing transaction is being run.
 	 * This might be for instance the time of creation of the block where the transaction
@@ -768,6 +738,122 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	public final Class<?> loadClass(String name) throws ClassNotFoundException {
 		return classLoader.loadClass(name);
+	}
+
+	/**
+	 * Puts in the given set all the latest updates for the fields of eager type of the
+	 * object at the given storage reference.
+	 * 
+	 * @param object the storage reference
+	 * @param updates the set where the latest updates must be added
+	 * @param eagerFields the number of eager fields whose latest update needs to be found
+	 * @throws Exception if the operation fails
+	 */
+	private void collectEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, Set<Update> updates, int eagerFields) throws Exception {
+		// goes back from the transaction that precedes that being executed;
+		// there is no reason to look before the transaction that created the object;
+		// moreover, there is no reason to look beyond the total number of fields
+		// whose update was expected to be found
+		for (TransactionReference cursor = previous; updates.size() < eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
+			// adds the eager updates from the cursor, if any and if they are the latest
+			addEagerUpdatesFor(object, cursor, updates);
+	}
+
+	/**
+	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param transaction the transaction
+	 * @param updates the set where they must be added
+	 * @throws IOException if there is an error while accessing the disk
+	 */
+	private void addEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, TransactionReference transaction, Set<Update> updates) throws Exception {
+		TransactionResponse response = getResponseAt(transaction);
+		if (response instanceof AbstractTransactionResponseWithUpdates)
+			((AbstractTransactionResponseWithUpdates) response).getUpdates()
+				.map(update -> update.contextualizeAt(transaction))
+				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
+				.forEach(updates::add);
+	}
+
+	/**
+	 * Determines if the given set of updates contains an update for the
+	 * same object and field as the given update.
+	 * 
+	 * @param update the given update
+	 * @param updates the set
+	 * @return true if and only if that condition holds
+	 */
+	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
+		return updates.stream().anyMatch(update::isForSamePropertyAs);
+	}
+
+	/**
+	 * Yields the most recent update for the given non-{@code final} field,
+	 * of lazy type, of the object at given storage reference.
+	 * Conceptually, this amounts to scanning backwards the blockchain, from its tip,
+	 * looking for the latest update.
+	 * 
+	 * @param object the storage reference
+	 * @param field the field whose update is being looked for
+	 * @return the update, if any
+	 * @throws Exception if the update could not be found
+	 */
+	private UpdateOfField getLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception {
+		// goes back from the previous transaction;
+		// there is no reason to look before the transaction that created the object
+		for (TransactionReference cursor = previous; !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
+			UpdateOfField update = getLastUpdateFor(object, field, cursor);
+			if (update != null)
+				return update;
+		}
+	
+		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
+	}
+
+	/**
+	 * Yields the update to the given field of the object at the given reference,
+	 * generated during a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param transaction the block where the update is being looked for
+	 * @return the update, if any. If the field of {@code reference} was not modified during
+	 *         the {@code transaction}, this method returns {@code null}
+	 */
+	private UpdateOfField getLastUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field, TransactionReference transaction) throws Exception {
+		TransactionResponse response = getResponseAt(transaction);
+		if (response instanceof AbstractTransactionResponseWithUpdates)
+			return ((AbstractTransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfField)
+				.map(update -> update.contextualizeAt(transaction))
+				.map(update -> (UpdateOfField) update)
+				.filter(update -> update.object.equals(object) && update.getField().equals(field))
+				.findAny()
+				.orElse(null);
+	
+		return null;
+	}
+
+	/**
+	 * Yields the most recent update for the given {@code final} field,
+	 * of lazy type, of the object at given storage reference.
+	 * Conceptually, this amounts to accessing the storage reference when the object was
+	 * created and reading the value of the field there.
+	 * 
+	 * @param object the storage reference
+	 * @param field the field whose update is being looked for
+	 * @return the update, if any
+	 * @throws Exception if the update could not be found
+	 */
+	private UpdateOfField getLastLazyUpdateForFinal(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception {
+		// goes directly to the transaction that created the object
+		UpdateOfField update = getLastUpdateFor(object, field, object.transaction);
+		if (update != null)
+			return update;
+	
+		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
 	}
 
 	private static void checkMinimalGas(BigInteger gas) throws IllegalTransactionRequestException {

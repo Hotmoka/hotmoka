@@ -35,4 +35,12 @@ public abstract class TransactionReference implements Serializable, Comparable<T
 
 	@Override
 	public abstract String toString();
+
+	/**
+	 * Yields the reference to the transaction that precedes this one.
+	 * 
+	 * @return the previous transaction reference, if any. Yields {@code null} if this
+	 *         refers to the first transaction in blockchain
+	 */
+	public abstract TransactionReference getPrevious();
 }
