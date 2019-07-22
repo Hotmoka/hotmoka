@@ -203,10 +203,12 @@ public class MemoryBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected void collectEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, Set<Update> updates) throws Exception {
+	protected void collectEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, Set<Update> updates, int eagerFields) throws Exception {
 		// goes back from the transaction that precedes that being executed;
-		// there is no reason to look before the transaction that created the object
-		for (MemoryTransactionReference cursor = previous; !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
+		// there is no reason to look before the transaction that created the object;
+		// moreover, there is no reason to look beyond the total number of fields
+		// whose update was expected to be found
+		for (MemoryTransactionReference cursor = previous; updates.size() < eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
 			// adds the eager updates from the cursor, if any and if they are the latest
 			addEagerUpdatesFor(object, cursor, updates);
 	}
@@ -225,7 +227,7 @@ public class MemoryBlockchain extends AbstractBlockchain {
 		if (response instanceof AbstractTransactionResponseWithUpdates) {
 			((AbstractTransactionResponseWithUpdates) response).getUpdates()
 				.map(update -> update.contextualizeAt(transaction))
-				.filter(update -> update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
+				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
 				.forEach(updates::add);
 		}
 	}

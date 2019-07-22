@@ -95,6 +95,16 @@ public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable
 	}
 
 	/**
+	 * Determines if a field of a storage class, having the given field, is eagerly loaded.
+	 * 
+	 * @param type the type
+	 * @return true if and only if that condition holds
+	 */
+	public final boolean isEagerlyLoaded(Class<?> type) {
+		return !isLazilyLoaded(type);
+	}
+
+	/**
 	 * Determines if an instance field of a storage class is transient.
 	 * 
 	 * @param className the class from which the field must be looked-up. This is guaranteed to be a storage class

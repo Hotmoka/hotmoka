@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.response.AbstractJarStoreTransactionResponse;
+import takamaka.blockchain.response.AbstractTransactionResponseWithUpdates;
 import takamaka.blockchain.response.ConstructorCallTransactionExceptionResponse;
 import takamaka.blockchain.response.ConstructorCallTransactionFailedResponse;
 import takamaka.blockchain.response.ConstructorCallTransactionResponse;
@@ -232,9 +234,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * 
 	 * @param object the storage reference
 	 * @param updates the set where the latest updates must be added
+	 * @param eagerFields the number of eager fields whose latest update needs to be found
 	 * @throws Exception if the operation fails
 	 */
-	protected abstract void collectEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, Set<Update> updates) throws Exception;
+	protected abstract void collectEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, Set<Update> updates, int eagerFields) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given non-{@code final} field,
@@ -905,9 +908,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	private Storage deserializeAnew(StorageReferenceAlreadyInBlockchain reference) {
 		try {
-			SortedSet<Update> updates = new TreeSet<>(updateComparator);
-			collectEagerUpdatesFor(reference, updates);
-	
+			SortedSet<Update> updates;
+			TransactionReference transaction = reference.transaction;
+
+			TransactionResponse response = getResponseAt(transaction);
+			if (response instanceof AbstractTransactionResponseWithUpdates) {
+				updates = ((AbstractTransactionResponseWithUpdates) response).getUpdates()
+					.map(update -> update.contextualizeAt(transaction))
+					.filter(update -> update.object.equals(reference) && update.isEager())
+					.collect(Collectors.toCollection(() -> new TreeSet<>(updateComparator)));
+			}
+			else
+				throw new DeserializationError("Storage reference " + reference + " does not contain updates");
+
 			Optional<ClassTag> classTag = updates.stream()
 					.filter(update -> update instanceof ClassTag)
 					.map(update -> (ClassTag) update)
@@ -915,6 +928,20 @@ public abstract class AbstractBlockchain implements Blockchain {
 	
 			if (!classTag.isPresent())
 				throw new DeserializationError("No class tag found for " + reference);
+
+			// we drop the class tag
+			updates.remove(classTag.get());
+
+			// we drop updates to non-final fields
+			Set<Field> eagerFields = collectEagerFieldsOf(classTag.get().className);
+			Iterator<Update> it = updates.iterator();
+			while (it.hasNext())
+				if (!updatesFinalField(it.next(), eagerFields))
+					it.remove();
+
+			// the updates set contains the updates to eager final fields now:
+			// we must still collect the latest updates to the non-final fields
+			collectEagerUpdatesFor(reference, updates, eagerFields.size());
 
 			String className = classTag.get().className;
 			List<Class<?>> formals = new ArrayList<>();
@@ -924,12 +951,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 			formals.add(StorageReferenceAlreadyInBlockchain.class);
 			actuals.add(reference);
 	
-			for (Update update: updates)
-				if (update instanceof UpdateOfField) {
-					UpdateOfField updateOF = (UpdateOfField) update;
-					formals.add(updateOF.getField().type.toClass(this));
-					actuals.add(updateOF.getValue().deserialize(this));
-				}
+			for (Update update: updates) {
+				UpdateOfField updateOF = (UpdateOfField) update;
+				formals.add(updateOF.getField().type.toClass(this));
+				actuals.add(updateOF.getValue().deserialize(this));
+			}
 	
 			Class<?> clazz = classLoader.loadClass(className);
 			TransactionReference actual = transactionThatInstalledJarFor(clazz);
@@ -951,6 +977,46 @@ public abstract class AbstractBlockchain implements Blockchain {
 		catch (Exception e) {
 			throw new DeserializationError(e);
 		}
+	}
+
+	/**
+	 * Determines if the given update affects a {@code final} eager field contained in the given set.
+	 * 
+	 * @param update the update
+	 * @param eagerFields the set of all possible eager fields
+	 * @return true if and only if that condition holds
+	 */
+	private boolean updatesFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
+		if (update instanceof AbstractUpdateOfField) {
+			FieldSignature sig = ((AbstractUpdateOfField) update).field;
+			Class<?> type = sig.type.toClass(this);
+			String name = sig.name;
+			return eagerFields.stream()
+				.anyMatch(field -> Modifier.isFinal(field.getModifiers()) && field.getType() == type && field.getName().equals(name));
+		}
+
+		return false;
+	}
+
+	/**
+	 * Collects all eager fields of the given storage class, including those of its superclasses,
+	 * up to and excluding {@link takamaka.lang.Storage}.
+	 * 
+	 * @param className the name of the storage class
+	 * @return the eager fields
+	 */
+	private Set<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException {
+		Set<Field> bag = new HashSet<>();
+
+		// fields added by instrumentation by Takamaka itself are not considered, since they are transient
+		for (Class<?> clazz = loadClass(className); clazz != Storage.class; clazz = clazz.getSuperclass())
+			Stream.of(clazz.getDeclaredFields())
+			.filter(field -> !Modifier.isTransient(field.getModifiers())
+					&& !Modifier.isStatic(field.getModifiers())
+					&& classLoader.isEagerlyLoaded(field.getType()))
+			.forEach(bag::add);
+
+		return bag;
 	}
 
 	/**

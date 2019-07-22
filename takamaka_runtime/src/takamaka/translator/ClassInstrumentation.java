@@ -100,6 +100,7 @@ class ClassInstrumentation {
 	private final static short PUBLIC_SYNTHETIC_FINAL = PUBLIC_SYNTHETIC | Const.ACC_FINAL;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
+	private final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_TRANSIENT;
 
 	/**
 	 * The order used for generating the parameters of the instrumented constructors.
@@ -1280,14 +1281,14 @@ class ClassInstrumentation {
 		 * Adds the field for the loading state of the fields of a storage class.
 		 */
 		private void addIfAlreadyLoadedFieldFor(Field field) {
-			classGen.addField(new FieldGen(PRIVATE_SYNTHETIC, BasicType.BOOLEAN, IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
+			classGen.addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN, IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
 		}
 
 		/**
 		 * Adds the field for the old value of the fields of a storage class.
 		 */
 		private void addOldFieldFor(Field field) {
-			classGen.addField(new FieldGen(PRIVATE_SYNTHETIC, Type.getType(field.getType()), OLD_PREFIX + field.getName(), cpg).getField());
+			classGen.addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()), OLD_PREFIX + field.getName(), cpg).getField());
 		}
 
 		/**
@@ -1403,25 +1404,15 @@ class ClassInstrumentation {
 
 				// then the eager fields of className, in order
 				eagerNonTransientInstanceFields.add(Stream.of(clazz.getDeclaredFields())
-					.filter(field -> !Modifier.isStatic(field.getModifiers()) && !Modifier.isTransient(field.getModifiers()) && !isAddedByTakamaka(field) && !classLoader.isLazilyLoaded(field.getType()))
+					.filter(field -> !Modifier.isStatic(field.getModifiers()) && !Modifier.isTransient(field.getModifiers()) && classLoader.isEagerlyLoaded(field.getType()))
 					.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
 
 				// we collect lazy fields as well, but only for the class being instrumented
 				if (firstCall)
 					Stream.of(clazz.getDeclaredFields())
-						.filter(field -> !Modifier.isStatic(field.getModifiers()) && !Modifier.isTransient(field.getModifiers()) && !isAddedByTakamaka(field) && classLoader.isLazilyLoaded(field.getType()))
+						.filter(field -> !Modifier.isStatic(field.getModifiers()) && !Modifier.isTransient(field.getModifiers()) && classLoader.isLazilyLoaded(field.getType()))
 						.forEach(lazyNonTransientInstanceFields::add);
 			}
-		}
-
-		/**
-		 * Determines if the given field has been added by this instrumenter.
-		 * 
-		 * @param field the field
-		 * @return true if and only if that condition holds
-		 */
-		private boolean isAddedByTakamaka(Field field) {
-			return field.getName().startsWith("§");
 		}
 	}
 
