@@ -32,6 +32,10 @@ executed in blockchain.
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
+5. [Code Verification](#code-verification)
+    - [JVM Bytecode Verification](#jvm-bytecode-verification)
+    - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
+    - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
 
 # Introduction <a name="introduction"></a>
 
@@ -352,7 +356,7 @@ public class Main {
       blockchain.takamakaBase
     ));
 
-    Classpath classpath = new CUpdate Takamaka.mdlasspath(family, true);
+    Classpath classpath = new Classpath(family, true);
 
     StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
@@ -539,7 +543,7 @@ import java.nio.file.Paths;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
@@ -583,7 +587,7 @@ public class Main {
       blockchain.account(1), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       classpath, // reference tofamily.jar and its dependency takamaka_base.jar
-      new MethodSignature(PERSON, "toString"), // method Person.toString()
+      new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING), // method String Person.toString()
       albert // receiver of toString()
     ));
 
@@ -595,8 +599,10 @@ public class Main {
 
 Look at the call to `addInstanceMethodCallTransaction()` added at its end.
 This time, we let the second account `blockchain.account(1)` pay for the transaction.
-We specify to resolve method `Person.toString()` using `albert` as receiver and
-to run the resolved method. The result is `s`, that we subsequently print on the standard output.
+We specify to resolve method `Person.toString()` using `albert` as receiver
+(the type `ClassType.STRING` is instead the return type of the method) and
+to run the resolved method. The result is stored in
+`s`, that we subsequently print on the standard output.
 If you run class `Main`, you will see the following on the screen:
 
 ```
@@ -655,9 +661,9 @@ such resolved method is not found (for instance, if we tried to call `tostring` 
 of `toString`), then `addInstanceMethodCallTransaction()` would end up in
 a failed transaction. Moreover, the usual resolution mechanism of Java methods is
 applied. If, for instance, we called
-`new MethodSignature(ClassType.OBJECT, "toString")`
+`new NonVoidMethodSignature(ClassType.OBJECT, "toString", ClassType.STRING)`
 instead of
-`new MethodSignature(PERSON, "toString")`,
+`new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING)`,
 then method `toString` would be resolved from the run-time class of
 `albert`, looking for the most specific implementation of `toString()`,
 up to the `java.lang.Object` class, which would anyway end up in
@@ -672,7 +678,7 @@ blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionReq
   blockchain.account(1), // this account pays for the transaction
   _100_000, // gas provided to the transaction
   classpath, // reference to family.jar and its dependency takamaka_base.jar
-  new MethodSignature(PERSON, "toString", INT), // method Person.toString(int)
+  new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING, INT), // method String Person.toString(int)
   albert, // receiver of toString(int)
   new IntValue(2019) // actual argument(s)
 ));
@@ -1380,9 +1386,9 @@ import java.nio.file.Paths;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
@@ -1427,7 +1433,7 @@ public class Main {
       player2, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method GradualPonzi.invest(BigInteger)
+      new VoidMethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method void GradualPonzi.invest(BigInteger)
       gradualPonzi, // receiver of invest()
       new BigIntegerValue(BigInteger.valueOf(1_200)))); // actual argument, that is, the investment
 
@@ -1436,7 +1442,7 @@ public class Main {
       player3, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method GradualPonzi.invest(BigInteger)
+      new VoidMethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method void GradualPonzi.invest(BigInteger)
       gradualPonzi, // receiver of invest()
       new BigIntegerValue(BigInteger.valueOf(1_500)))); // actual argument, that is, the investment
 
@@ -1445,7 +1451,7 @@ public class Main {
       player3, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method GradualPonzi.invest(BigInteger)
+      new VoidMethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method void GradualPonzi.invest(BigInteger)
       gradualPonzi, // receiver of invest()
       new BigIntegerValue(BigInteger.valueOf(900)))); // actual argument, that is, the investment
   }
@@ -1957,9 +1963,10 @@ import java.nio.file.Paths;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
@@ -2013,7 +2020,7 @@ public class Main {
       player1, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _100L, _1, _1)); // actual parameters
 
@@ -2022,7 +2029,7 @@ public class Main {
       player2, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _100L, _2, _1)); // actual parameters
 
@@ -2031,7 +2038,7 @@ public class Main {
       player1, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _0L, _1, _2)); // actual parameters
 
@@ -2040,7 +2047,7 @@ public class Main {
       player2, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _0L, _2, _2)); // actual parameters
 
@@ -2049,7 +2056,7 @@ public class Main {
       player1, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _0L, _1, _3)); // actual parameters
 
@@ -2058,7 +2065,7 @@ public class Main {
       player1, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "toString"), // TicTacToe.toString()
+      new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING), // String TicTacToe.toString()
       ticTacToe)); // receiver of the call
 
     System.out.println(toString);
@@ -2068,7 +2075,7 @@ public class Main {
       player2, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _0L, _2, _3)); // actual parameters
   }
@@ -2646,8 +2653,10 @@ import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
@@ -2689,11 +2698,11 @@ public class Main {
   private static final ConstructorSignature CONSTRUCTOR_STORAGE_LIST = new ConstructorSignature(ClassType.STORAGE_LIST);
   private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("takamaka.tests.auction.BlindAuction$RevealedBid"),
 	ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32);
-  private static final MethodSignature BID = new MethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
-  private static final MethodSignature REVEAL = new MethodSignature(BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
-  private static final MethodSignature AUCTION_END = new MethodSignature(BLIND_AUCTION, "auctionEnd");
-  private static final MethodSignature GET_BALANCE = new MethodSignature(new ClassType("takamaka.lang.TestExternallyOwnedAccount"), "getBalance");
-  private static final MethodSignature ADD = new MethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
+  private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
+  private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
+  private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
+  private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(new ClassType("takamaka.lang.TestExternallyOwnedAccount"), "getBalance", ClassType.BIG_INTEGER);
+  private static final MethodSignature ADD = new VoidMethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
 
   public static void main(String[] args) throws NoSuchAlgorithmException, TransactionException, IOException, CodeExecutionException {
     // the hashing algorithm used to hide the bids
@@ -3022,3 +3031,167 @@ object (different at each run, in general), such as:
 expected winner: 1.0#0
 actual winner: 1.0#0
 ```
+
+# Code Verification <a name="code-verification"></a>
+
+Code verification checks that code adheres to some constraints, that should
+guarantee that its execution does not run into errors. Modern programming
+languages apply more or less extensive code verification, since this helps
+programmers write reliable code. This can both occur at run time and at compile
+time. Run-time (_dynamic_) code verification is typically stronger, since it can exploit
+exact information on run-time values flowing thorugh the code. However,
+compile-time (_static_) code verification has the advantage that it runs only
+once, at compilation time o jar installation, and can prove, once and for all,
+that some errors will never occur, regardless of the execution path that will
+be followed at run time.
+
+Takamaka applies a combination of static and dynamic code verification.
+Static verification runs only once, on the jars that get
+installed in blockchain, or when classes are loaded for the first time
+at run time.
+Dynamic verification runs every time some piece of
+code that gets executed.
+
+## JVM Bytecode Verification <a name="jvm-bytecode-verification"></a>
+
+Takamaka code is written in Java, compiled into Java bytecode, instrumented
+and run inside the Java Virtual Machine (_JVM_). Hence, all code verifications
+executed by the JVM apply to Takamaka code as well. In particular, the JVM verifies
+some structural and dynamic constraints of class files, including their
+type correctness.
+Moreover, the JVM executes run-time checks as well: for instance, class casts
+are checked at run time, as well as pointer dereferences and
+array stores. Violations result in exceptions. For a thorough discussion,
+we refer the interested
+reader to the [official documentation about Java bytecode class verification](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.9).
+
+## Takamaka Bytecode Verification <a name="takamaka-bytecode-verification"></a>
+
+Takamaka verifies extra constraints, that are not checked as part of
+standard JVM bytecode verification. Such constraints are mainly related to
+the correct use of Takamaka annotations and contracts. Such extra constraints
+are either static or dynamic. Static constraints are checked when a
+jar is installed into blockchain, hence only once. If a static constraint
+is violated, the transaction that tries to install a jar fails with
+an exception. Dynamic constraints
+are checked every time a piece of code is run. If a dynamic constraint is
+violated, the transaction that runs the code fails with an exception.
+
+The static constraints verified by Takamaka are the following (remember that
+`@Entry` is shorthand for `@Entry(Contract.class)`; the constraints related
+to overridden methods follow by Liskov's principle):
+
+1. the `@Entry(C.class)` annotation is only applied to public constructors or
+  instance methods of a contract;
+2. in every use of the `@Entry(C.class)` annotation, class `C` is a subclass
+  of `takamaka.lang.Contract`;
+3. if a method is annotated as `@Entry(C.class)` and overrides another method,
+  then the latter is annotated as `@Entry(D.class)` as well, and `D` is a
+  (non-strict) subclass of `C`;
+4. if a method is annotated as `@Entry(D.class)` and is overridden by another method,
+  then the latter is annotated as `@Entry(C.class)` as well, and `D` is a
+  (non-strict) subclass of `C`;
+5. if a method is annotated as `@Payable`, then it is also annotated as
+  `@Entry(C.class)` for some `C`;
+6. if a method is annotated as `@Payable`, then it has a first formal argument
+  (the payed amount) of type `int`, `long` or `BigInteger`;
+7. if a method is annotated as `@Payable` and overrides another method,
+  then the latter is annotated as `@Payable` as well;
+8. if a method is annotated as `@Payable` and is overridden by another method,
+  then the latter is annotated as `@Payable` as well;
+9. classes that extend `takamaka.lang.Storage` have instance non-transient
+  fields whose type
+  is primitive (`char`, `byte`, `short`, `int`, `long`, `float`,
+  `double` or `boolean`), a class that extends `takamaka.lang.Storage`,
+  an `enum` without instance non-transient fields,
+  `java.math.BigInteger`, `java.lang.String` or `java.lang.Object`
+  (see [Storage Types and Constraints on Storage Classes](#storage-types)).
+
+> The choice of allowing, inside a storage type, fields of type
+> `java.lang.Object` can be surprising. After all, any reference value can be
+> stored in such a field, which requires to verify, at run time, if the field
+> actually contain a storage value or not (see the dynamic checks, below).
+> The reason for this choice was to allow generic storage types, such as
+> `StorageMap<K,V>`, whose values are storage values as long as `K` and `V`
+> are replaced with storage types. Since Java implements generics by erasure,
+> such class will end up having fields of type `java.lang.Object`. An alternative
+> solution would be to bound `K` and `V` from above
+> (`StorageMap<K extends Storage, V extends Storage>`). This second choice
+> will be erased by using `Storage` as static type of the erased fields of the
+> class. However, not all storage reference values extend `Storage`. For instance,
+> this solution would not allow one to write `StorageMap<MyEnum, BigInteger>`, where
+> `MyEnum` is an enumeration type with no instance non-transient fields: both
+> `MyEnum` and `BigInteger` are storage types, but neither extend `Storage`.
+
+10. there are no static initializer methods
+
+> Static initializer methods are run the first time their class is loaded. They
+> are either coded explicitly, inside a `static { ... }` block, or are
+> implicitly generated by the compiler in order to initialize the static fields
+> of the class. The reason for forbidding such static initializers is that,
+> inside Takamaka, they would end up being run many times, at each transacttion
+> that uses the class, and reset the static method of a class,
+> since static fields are not kept in blockchain.
+> This is a significant divergence from the expected
+> semantics of Java, that requires static initialization of a class to only
+> occur once during the lifetime of that class. Note that the absence of
+> static initializers still allows a class to have static fields, as long as
+> they are bound to constant primitive or `String` values.
+
+11. calls to `caller()` occur only inside `@Entry` constructors or methods
+    and on `this`;
+12. calls to constructors or methods annotated as `@Entry` occur
+    only from constructors or instance methods of a contract;
+13. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
+    methods, bytecodes `astore 0`, `istore 0`, `lstore 0`, `dstore 0` and
+    `fstore 0` are not used;
+14. there are no exception handlers that could catch
+    unchecked exceptions (that is,
+    instances of `java.lang.RuntimeException` or of `java.lang.Error`).
+
+> By forbidding exception handlers for unchecked exceptions, it follows that
+> unchecked exceptions will always make a transaction fail: all object
+> updates up to the exception will be discarded. In practice,
+> transactions failed because of an unchecked exception leave no trace on
+> the blockchain state, but for the gas of the caller being consumed. The reason for
+> forbidding exception handlers for unchecked exceptions is that they could
+> occur in unexpected places and leave a contract in an inconsistent state.
+> Consider for instance the following (illegal) code:
+> ```java
+> try {
+>   this.list.add(x);
+>   x.flagAsInList();
+>   this.counter++;
+> }
+> catch (Exception e) { // illegal in Takamaka
+> }
+> ```
+> Here, the programmer might expect the invariant that
+> the size of `this.list` is `this.counter`. However, if `x` holds
+> `null`, an unchecked `NullPointerException` is raised just before
+> `this.counter` could be incremented, and the invariant is lost.
+> The contract will remain in blockchain in an inconsistent state,
+> for ever. The situation would be worse if an `OutOfGasError` would
+> be caught: the caller might chooce exactly the amount of gas needed to
+> reach the `flagAsInList()` call, and leave the contract in an inconsistent
+> state. Checked exceptions, instead, are explicitly checked by the
+> compiler, which should ring a bell in the head of the programmer.
+>
+> For a more dangerous example, consider the following Java bytecode:
+> ```
+> 10: goto 10
+> exception handler for takamaka.lang.OutOfGasError: 10 11 10 // illegal in Takamaka
+> ```
+> This Java bytecode exception handler states that any `OutOfGasError`
+> thrown by an instruction from line 10 (included) to line 11 (excluded)
+> redirects control to line 10. Hence, this code will exhaust the gas by looping at line
+> 10. Once all gas is consumed, an `OutOfGasError` is thrown, that is redirected
+> to line 10. Hence another `OutOfGasError` will occur, that redirects the
+> executor to line 10, again. And so on, indefinitely. That is, this code
+> disables the guarantee that Takamaka transactions always terminate,
+> possibly with an `OutOfGasError`, and could be used for
+> a DOS attack to the blockchain. Although this code cannot be written in Java,
+> it is well possible to write it directly, with a bytecode editor,
+> and submit it to the Takamaka blockchain.
+
+## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
