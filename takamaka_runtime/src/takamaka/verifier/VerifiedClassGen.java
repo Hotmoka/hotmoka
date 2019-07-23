@@ -631,8 +631,12 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			private void checkIfItIsIllegal(InstructionHandle ih) {
 				Instruction ins = ih.getInstruction();
 
-				if (ins instanceof PUTSTATIC)
-					issue(new IllegalPutstaticInstructionError(VerifiedClassGen.this, method, lineOf(ih)));
+				if (ins instanceof PUTSTATIC) {
+					// static field updates are allowed inside the synthetic methods or static initializer,
+					// for instance in an enumeration
+					if (!method.isSynthetic() && !method.getName().equals(Const.STATIC_INITIALIZER_NAME))
+						issue(new IllegalPutstaticInstructionError(VerifiedClassGen.this, method, lineOf(ih)));
+				}
 				else if (ins instanceof JsrInstruction)
 					issue(new IllegalJsrInstructionError(VerifiedClassGen.this, method, lineOf(ih)));
 				else if (ins instanceof RET)
