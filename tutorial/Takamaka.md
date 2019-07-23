@@ -3180,15 +3180,14 @@ to overridden methods follow by Liskov's principle):
 > For a more dangerous example, consider the following Java bytecode:
 > ```
 > 10: goto 10
-> exception handler for takamaka.lang.OutOfGasError: // illegal in Takamaka
-> 10 11 10
+> exception handler for takamaka.lang.OutOfGasError: 10 11 10 // illegal in Takamaka
 > ```
 > This Java bytecode exception handler states that any `OutOfGasError`
 > thrown by an instruction from line 10 (included) to line 11 (excluded)
 > redirects control to line 10. Hence, this code will exhaust the gas by looping at line
 > 10. Once all gas is consumed, an `OutOfGasError` is thrown, that is redirected
 > to line 10. Hence another `OutOfGasError` will occur, that redirects the
-> executor to line 10. And so on, indefinitely. That is, this code
+> executor to line 10, again. And so on, indefinitely. That is, this code
 > disables the guarantee that Takamaka transactions always terminate,
 > possibly with an `OutOfGasError`, and could be used for
 > a DOS attack to the blockchain. Although this code cannot be written in Java,
