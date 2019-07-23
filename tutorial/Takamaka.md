@@ -33,7 +33,7 @@ executed in blockchain.
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
 5. [Code Verification](#code-verification)
-    - [Java Bytecode Verification](#java-bytecode-verification)
+    - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
     - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
 
@@ -3052,7 +3052,7 @@ at run time.
 Dynamic verification runs every time some piece of
 code that gets executed.
 
-## Java Bytecode Verification <a name="java-bytecode-verification"></a>
+## JVM Bytecode Verification <a name="jvm-bytecode-verification"></a>
 
 Takamaka code is written in Java, compiled into Java bytecode, instrumented
 and run inside the Java Virtual Machine (_JVM_). Hence, all code verifications
@@ -3066,5 +3066,45 @@ we refer the interested
 reader to the [official documentation about Java bytecode class verification](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.9).
 
 ## Takamaka Bytecode Verification <a name="takamaka-bytecode-verification"></a>
+
+Takamaka verifies extra constraints, that are not checked as part of
+standard JVM bytecode verification. Such constraints are mainly related to
+the correct use of Takamaka annotations and contracts. Such extra constraints
+are either static or dynamic. Static constraints are checked when a
+jar is installed into blockchain, hence only once. If a static constraint
+is violated, the transaction that tries to install a jar fails with
+an exception. Dynamic constraints
+are checked every time a piece of code is run. If a dynamic constraint is
+violated, the transaction that runs the code fails with an exception.
+
+The static constraints verified by Takamaka are the following (remember that
+`@Entry` is shorthand for `@Entry(Contract.class)`; the constraints related
+to overridden methods follow by Liskov's principle):
+
+- the `@Entry(C.class)` annotation is only applied to public constructors or
+  instance methods of a contract;
+- in every use of the `@Entry(C.class)` annotation, class `C` is a subclass
+  of `takamaka.lang.Contract`;
+- if a method is annotated as `@Entry(C.class)` and overrides another method,
+  then the latter is annotated as `@Entry(D.class)` as well, and `D` is a
+  (non-strict) subclass of `C`;
+- if a method is annotated as `@Entry(D.class)` and is overridden by another method,
+  then the latter is annotated as `@Entry(C.class)` as well, and `D` is a
+  (non-strict) subclass of `C`;
+- if a method is annotated as `@Payable`, then it is also annotated as
+  `@Entry(C.class)` for some `C`;
+- if a method is annotated as `@Payable`, then it has a first formal argument
+  (the payed amount) of type `int`, `long` or `BigInteger`;
+- if a method is annotated as `@Payable` and overrides another method,
+  then the latter is annotated as `@Payable` as well;
+- if a method is annotated as `@Payable` and is overridden by another method,
+  then the latter is annotated as `@Payable` as well;
+- classes that extend `takamaka.lang.Storage` have instance non-transient
+  fields whose type
+  is primitive ('char`, 'byte', 'short', 'int', 'long', 'float',
+  'double' or 'boolean'), a class that extends `takamaka.lang.Storage`,
+  an `enum` without instance non-transient fields,
+  `java.math.BigInteger`, `java.lang.String` or `java.lang.Object`
+  (see [Storage Types and Constraints on Storage Classes](#storage-types)).
 
 ## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
