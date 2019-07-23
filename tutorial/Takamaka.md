@@ -32,6 +32,10 @@ executed in blockchain.
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
+5. [Code Verification](#code-verification)
+    - [Java Bytecode Verification](#java-bytecode-verification)
+    - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
+    - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
 
 # Introduction <a name="introduction"></a>
 
@@ -3027,3 +3031,40 @@ object (different at each run, in general), such as:
 expected winner: 1.0#0
 actual winner: 1.0#0
 ```
+
+# Code Verification <a name="code-verification"></a>
+
+Code verification checks that code adheres to some constraints, that should
+guarantee that its execution does not run into errors. Modern programming
+languages apply more or less extensive code verification, since this helps
+programmers write reliable code. This can both occur at run time and at compile
+time. Run-time (_dynamic_) code verification is typically stronger, since it can exploit
+exact information on run-time values flowing thorugh the code. However,
+compile-time (_static_) code verification has the advantage that it runs only
+once, at compilation time o jar installation, and can prove, once and for all,
+that some errors will never occur, regardless of the execution path that will
+be followed at run time.
+
+Takamaka applies a combination of static and dynamic code verification.
+Static verification runs only once, on the jars that get
+installed in blockchain, or when classes are loaded for the first time
+at run time.
+Dynamic verification runs every time some piece of
+code that gets executed.
+
+## Java Bytecode Verification <a name="java-bytecode-verification"></a>
+
+Takamaka code is written in Java, compiled into Java bytecode, instrumented
+and run inside the Java Virtual Machine (_JVM_). Hence, all code verifications
+executed by the JVM apply to Takamaka code as well. In particular, the JVM verifies
+some structural and dynamic constraints of class files, including their
+type correctness.
+Moreover, the JVM executes run-time checks as well: for instance, class casts
+are checked at run time, as well as pointer dereferences and
+array stores. Violations result in exceptions. For a thorough discussion,
+we refer the interested
+reader to the [official documentation about Java bytecode class verification](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.9).
+
+## Takamaka Bytecode Verification <a name="takamaka-bytecode-verification"></a>
+
+## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
