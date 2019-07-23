@@ -3183,14 +3183,14 @@ to overridden methods follow by Liskov's principle):
 > exception handler for takamaka.lang.OutOfGasError: // illegal in Takamaka
 > 10 11 10
 > ```
-> This Java bytecode exception handler states that any `OutOfGasException`
+> This Java bytecode exception handler states that any `OutOfGasError`
 > thrown by an instruction from line 10 (included) to line 11 (excluded)
 > redirects control to line 10. Hence, this code will exhaust the gas by looping at line
 > 10. Once all gas is consumed, an `OutOfGasError` is thrown, that is redirected
 > to line 10. Hence another `OutOfGasError` will occur, that redirects the
-> executor to line 10. And so on, indefinitely. That is, this code would
-> disable the guarantee that Takamaka transactions always terminate,
-> possibly with an `OutOfGasError`. This code could be used for
+> executor to line 10. And so on, indefinitely. That is, this code
+> disables the guarantee that Takamaka transactions always terminate,
+> possibly with an `OutOfGasError`, and could be used for
 > a DOS attack to the blockchain. Although this code cannot be written in Java,
 > it is well possible to write it directly, with a bytecode editor,
 > and submit it to the Takamaka blockchain.
