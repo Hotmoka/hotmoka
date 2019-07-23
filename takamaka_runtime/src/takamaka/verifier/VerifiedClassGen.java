@@ -40,6 +40,7 @@ import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.PUTSTATIC;
 import org.apache.bcel.generic.RET;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
@@ -630,7 +631,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			private void checkIfItIsIllegal(InstructionHandle ih) {
 				Instruction ins = ih.getInstruction();
 
-				if (ins instanceof JsrInstruction)
+				if (ins instanceof PUTSTATIC)
+					issue(new IllegalPutstaticInstructionError(VerifiedClassGen.this, method, lineOf(ih)));
+				else if (ins instanceof JsrInstruction)
 					issue(new IllegalJsrInstructionError(VerifiedClassGen.this, method, lineOf(ih)));
 				else if (ins instanceof RET)
 					issue(new IllegalRetInstructionError(VerifiedClassGen.this, method, lineOf(ih)));

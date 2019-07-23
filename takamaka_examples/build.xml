@@ -68,6 +68,7 @@
   	<jar jarfile="${dist}/legalstaticinitialization1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization1/**"/>
   	<jar jarfile="${dist}/legalstaticinitialization2.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization2/**"/>
   	<jar jarfile="${dist}/legalstaticinitialization3.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization3/**"/>
+  	<jar jarfile="${dist}/illegalstaticfieldupdate.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalstaticfieldupdate/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**"/>
   </target>
 
