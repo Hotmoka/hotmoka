@@ -352,7 +352,7 @@ public class Main {
       blockchain.takamakaBase
     ));
 
-    Classpath classpath = new CUpdate Takamaka.mdlasspath(family, true);
+    Classpath classpath = new Classpath(family, true);
 
     StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
@@ -539,7 +539,7 @@ import java.nio.file.Paths;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
@@ -583,7 +583,7 @@ public class Main {
       blockchain.account(1), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       classpath, // reference tofamily.jar and its dependency takamaka_base.jar
-      new MethodSignature(PERSON, "toString"), // method Person.toString()
+      new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING), // method String Person.toString()
       albert // receiver of toString()
     ));
 
@@ -595,8 +595,10 @@ public class Main {
 
 Look at the call to `addInstanceMethodCallTransaction()` added at its end.
 This time, we let the second account `blockchain.account(1)` pay for the transaction.
-We specify to resolve method `Person.toString()` using `albert` as receiver and
-to run the resolved method. The result is `s`, that we subsequently print on the standard output.
+We specify to resolve method `Person.toString()` using `albert` as receiver
+(the type `ClassType.STRING` is instead the return type of the method) and
+to run the resolved method. The result is stored in
+`s`, that we subsequently print on the standard output.
 If you run class `Main`, you will see the following on the screen:
 
 ```
@@ -655,9 +657,9 @@ such resolved method is not found (for instance, if we tried to call `tostring` 
 of `toString`), then `addInstanceMethodCallTransaction()` would end up in
 a failed transaction. Moreover, the usual resolution mechanism of Java methods is
 applied. If, for instance, we called
-`new MethodSignature(ClassType.OBJECT, "toString")`
+`new NonVoidMethodSignature(ClassType.OBJECT, "toString", ClassType.STRING)`
 instead of
-`new MethodSignature(PERSON, "toString")`,
+`new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING)`,
 then method `toString` would be resolved from the run-time class of
 `albert`, looking for the most specific implementation of `toString()`,
 up to the `java.lang.Object` class, which would anyway end up in
@@ -672,7 +674,7 @@ blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionReq
   blockchain.account(1), // this account pays for the transaction
   _100_000, // gas provided to the transaction
   classpath, // reference to family.jar and its dependency takamaka_base.jar
-  new MethodSignature(PERSON, "toString", INT), // method Person.toString(int)
+  new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING, INT), // method String Person.toString(int)
   albert, // receiver of toString(int)
   new IntValue(2019) // actual argument(s)
 ));
@@ -1380,9 +1382,9 @@ import java.nio.file.Paths;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
@@ -1427,7 +1429,7 @@ public class Main {
       player2, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method GradualPonzi.invest(BigInteger)
+      new VoidMethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method void GradualPonzi.invest(BigInteger)
       gradualPonzi, // receiver of invest()
       new BigIntegerValue(BigInteger.valueOf(1_200)))); // actual argument, that is, the investment
 
@@ -1436,7 +1438,7 @@ public class Main {
       player3, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method GradualPonzi.invest(BigInteger)
+      new VoidMethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method void GradualPonzi.invest(BigInteger)
       gradualPonzi, // receiver of invest()
       new BigIntegerValue(BigInteger.valueOf(1_500)))); // actual argument, that is, the investment
 
@@ -1445,7 +1447,7 @@ public class Main {
       player3, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method GradualPonzi.invest(BigInteger)
+      new VoidMethodSignature(GRADUAL_PONZI, "invest", ClassType.BIG_INTEGER), // method void GradualPonzi.invest(BigInteger)
       gradualPonzi, // receiver of invest()
       new BigIntegerValue(BigInteger.valueOf(900)))); // actual argument, that is, the investment
   }
@@ -1957,9 +1959,10 @@ import java.nio.file.Paths;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
@@ -2013,7 +2016,7 @@ public class Main {
       player1, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _100L, _1, _1)); // actual parameters
 
@@ -2022,7 +2025,7 @@ public class Main {
       player2, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _100L, _2, _1)); // actual parameters
 
@@ -2031,7 +2034,7 @@ public class Main {
       player1, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _0L, _1, _2)); // actual parameters
 
@@ -2040,7 +2043,7 @@ public class Main {
       player2, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _0L, _2, _2)); // actual parameters
 
@@ -2049,7 +2052,7 @@ public class Main {
       player1, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _0L, _1, _3)); // actual parameters
 
@@ -2058,7 +2061,7 @@ public class Main {
       player1, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "toString"), // TicTacToe.toString()
+      new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING), // String TicTacToe.toString()
       ticTacToe)); // receiver of the call
 
     System.out.println(toString);
@@ -2068,7 +2071,7 @@ public class Main {
       player2, // this account pays for the transaction
       _20_000, // gas provided to the transaction
       classpath,
-      new MethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // TicTacToe.play(long, int, int)
+      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
       _0L, _2, _3)); // actual parameters
   }
@@ -2646,8 +2649,10 @@ import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
@@ -2689,11 +2694,11 @@ public class Main {
   private static final ConstructorSignature CONSTRUCTOR_STORAGE_LIST = new ConstructorSignature(ClassType.STORAGE_LIST);
   private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("takamaka.tests.auction.BlindAuction$RevealedBid"),
 	ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32);
-  private static final MethodSignature BID = new MethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
-  private static final MethodSignature REVEAL = new MethodSignature(BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
-  private static final MethodSignature AUCTION_END = new MethodSignature(BLIND_AUCTION, "auctionEnd");
-  private static final MethodSignature GET_BALANCE = new MethodSignature(new ClassType("takamaka.lang.TestExternallyOwnedAccount"), "getBalance");
-  private static final MethodSignature ADD = new MethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
+  private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
+  private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
+  private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
+  private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(new ClassType("takamaka.lang.TestExternallyOwnedAccount"), "getBalance", ClassType.BIG_INTEGER);
+  private static final MethodSignature ADD = new VoidMethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
 
   public static void main(String[] args) throws NoSuchAlgorithmException, TransactionException, IOException, CodeExecutionException {
     // the hashing algorithm used to hide the bids
