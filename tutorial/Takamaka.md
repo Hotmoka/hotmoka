@@ -3101,8 +3101,8 @@ to overridden methods follow by Liskov's principle):
   then the latter is annotated as `@Payable` as well;
 - classes that extend `takamaka.lang.Storage` have instance non-transient
   fields whose type
-  is primitive ('char`, 'byte', 'short', 'int', 'long', 'float',
-  'double' or 'boolean'), a class that extends `takamaka.lang.Storage`,
+  is primitive (`char`, `byte`, `short`, `int`, `long`, `float`,
+  `double` or `boolean`), a class that extends `takamaka.lang.Storage`,
   an `enum` without instance non-transient fields,
   `java.math.BigInteger`, `java.lang.String` or `java.lang.Object`
   (see [Storage Types and Constraints on Storage Classes](#storage-types)).
