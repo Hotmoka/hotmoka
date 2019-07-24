@@ -1,1 +1,4 @@
-instrumented/*.jar
+bin/
+build/
+dist/
+instrumented/
