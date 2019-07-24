@@ -3277,7 +3277,7 @@ The jars in `jars` are those that we will verify and instrument.
 `takamaka_base.jar` is needed as dependency of the others.
 `family.jar` is the second example of this tutorial, where a class
 `Person` extends `Storage` correctly. Instead, `family_wrong.jar` contains
-a wrong version of that examples, where there are three errors:
+a wrong version of that example, where there are three errors:
 
 ```java
 package takamaka.tests.family;
