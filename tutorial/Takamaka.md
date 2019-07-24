@@ -3077,9 +3077,11 @@ an exception. Dynamic constraints
 are checked every time a piece of code is run. If a dynamic constraint is
 violated, the transaction that runs the code fails with an exception.
 
-The static constraints verified by Takamaka are the following (remember that
-`@Entry` is shorthand for `@Entry(Contract.class)`; the constraints related
-to overridden methods follow by Liskov's principle):
+Below, remember that `@Entry` is shorthand for `@Entry(Contract.class)`.
+Moreover, note that the constraints related
+to overridden methods follow by Liskov's principle.
+
+Takamaka verifies the following static constraints:
 
 1. the `@Entry(C.class)` annotation is only applied to public constructors or
   instance methods of a contract;
@@ -3105,7 +3107,7 @@ to overridden methods follow by Liskov's principle):
   `double` or `boolean`), a class that extends `takamaka.lang.Storage`,
   an `enum` without instance non-transient fields,
   `java.math.BigInteger`, `java.lang.String` or `java.lang.Object`
-  (see [Storage Types and Constraints on Storage Classes](#storage-types)).
+  (see [Storage Types and Constraints on Storage Classes](#storage-types));
 
 > The choice of allowing, inside a storage type, fields of type
 > `java.lang.Object` can be surprising. After all, any reference value can be
@@ -3123,7 +3125,7 @@ to overridden methods follow by Liskov's principle):
 > `MyEnum` is an enumeration type with no instance non-transient fields: both
 > `MyEnum` and `BigInteger` are storage types, but neither extend `Storage`.
 
-10. there are no static initializer methods
+10. there are no static initializer methods;
 
 > Static initializer methods are run the first time their class is loaded. They
 > are either coded explicitly, inside a `static { ... }` block, or are
@@ -3145,9 +3147,9 @@ to overridden methods follow by Liskov's principle):
 13. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
     methods, bytecodes `astore 0`, `istore 0`, `lstore 0`, `dstore 0` and
     `fstore 0` are not used;
-14. there are no exception handlers that could catch
+14. there are no exception handlers that may catch
     unchecked exceptions (that is,
-    instances of `java.lang.RuntimeException` or of `java.lang.Error`).
+    instances of `java.lang.RuntimeException` or of `java.lang.Error`);
 
 > By forbidding exception handlers for unchecked exceptions, it follows that
 > unchecked exceptions will always make a transaction fail: all object
@@ -3194,4 +3196,157 @@ to overridden methods follow by Liskov's principle):
 > it is well possible to write it directly, with a bytecode editor,
 > and submit it to the Takamaka blockchain.
 
+15. classes installed in the blockchain are not in packages `java.*`, `javax.*`
+    or `takamaka.*`, with the exception of `takamaka.tests.*`, which is allowed;
+    moreover, during blockchain initialization also packages `takamaka.*` are
+    allowed;
+
+> The goal of the previous constraints is to make it impossible to change
+> the semantics of the Java or Takamaka runtime. For instance, it is not
+> possible to replace class `takamaka.lang.Contract`, which could thoroughly
+> revolutionize the execution of the contracts. During blockchain initialization,
+> that occurs once at blockchain start-up, it is allowed to install the
+> runtime of Takamaka (the `takamaka_base.jar` archive used in the examples
+> of the previous chapters).
+
+16. all referenced classes, constructors, methods and fields must be white-listed.
+    Those from classes installed in blockchain are always white-listed by
+    default. Other classes loaded from the Java classpath must have been explicitly
+    annotated as `@takamaka.lang.WhiteListed`.
+
+> Hence, for instance, class `takamaka.lang.Storage` is white-listed, since it
+> is inside `takamaka_base.jar`, installed in blockchain. Classes from user
+> jars installed in blockchain are similarly white-listed. Class
+> `takamaka.lang.Takamaka` is loaded from the Java classpath and
+> is white-listed since it is explicitly annotated
+> as such. Method `java.lang.System.currentTimeMillis()` is not white-listed,
+> since it is loaded from the Java classpath and is not annotated as white-listed.
+
+Takamaka verifies the following dynamic constraints:
+
+1. every `@Payable` constructor or method is passed a non-`null` and
+   non-negative amount of funds;
+2. a call to a `@Payable` constructor or method succeeds only if the caller
+   has enough funds to pay for the call (i.e., the amount first parameter of
+   the `@Payable` method);
+3. a call to an `@Entry(C.class)` constructor or method succeeds only if
+   the caller is an instance of `C` and is not the receiver of the call;
+
+> This means that a contract cannot call an `@Entry` method on itself,
+> although it can call that method on another object of the same class.
+> This guarantees that `@Entry` methods are actually entries, that is,
+> entry points from another contract object. Note that this constraint
+> forbids chained calls from an `@Entry` method to its overriden version
+> in the superclass, that must be an `@Entry` by static constraints
+> (`super.m(...)`), as well as calls from an `@Entry`
+> constructor to an `@Entry` constructor of the superclass (`super(...)`). 
+
+4. a bytecode instruction is executed only if there is enough gas for
+   its execution.
+
 ## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
+
+If a jar being installed in blockchain does not satisfy the static
+constraints verified by Takamaka, the installation transaction fails with
+a verification exception, no jar is actually installed but the gas of the
+caller gets consumed. Hence it is not practical to realize that a
+static constraint does not hold only by trying to install a jar in blockchain.
+It would be desirable to verify all constraints off line, correct all
+violations (if any) and only then install the jar in blockchain. This is
+possible by using a utility that performs the same identical jar
+verification and transformation that would be executed when the jar is
+installed in blockchain.
+
+Create then a directory with three subdirectories: `lib` will contain
+all libraries needed to run the utility; `jars` will contain the
+jars that we want to verify and instrument; and `instrumented` will be
+populated with the instrumented jars that pass verification without errors.
+Initially, the three directories will be like below:
+
+```shell
+$ ls -R
+./instrumented:
+ 
+./jars:
+family.jar  family_wrong.jar  takamaka_base.jar
+
+./lib:
+bcel-6.2.jar  commons-cli-1.4.jar  stackmap.jar  takamaka_runtime.jar  takamaka_translator.jar
+```
+The jars in `jars` are those that we will verify and instrument.
+`takamaka_base.jar` is needed as dependency of the others.
+`family.jar` is the second example of this tutorial, where a class
+`Person` extends `Storage` correctly. Instead, `family_wrong.jar` contains
+a wrong version of that example, where there are three errors:
+
+```java
+package takamaka.tests.family;
+
+import takamaka.lang.Entry;
+import takamaka.lang.Storage;
+
+public class Person extends Storage {
+  private final String name;
+  private final int day;
+  private final int month;
+  private final int year;
+  public final Person[] parents = new Person[2]; // error: arrays are not allowed in storage
+  public static int toStringCounter;
+
+  public Person(String name, int day, int month, int year, Person parent1, Person parent2) {
+    this.name = name;
+    this.day = day;
+    this.month = month;
+    this.year = year;
+    this.parents[0] = parent1;
+    this.parents[1] = parent2;
+  }
+
+  public @Entry Person(String name, int day, int month, int year) { // error: @Entry only applies to contracts
+	this(name, day, month, year, null, null);
+  }
+
+  @Override
+  public String toString() {
+    toStringCounter++; // error (line 29): static update (putstatic) is now allowed
+    return name +" (" + day + "/" + month + "/" + year + ")";
+  }
+}
+```
+We can run the utility without parameters, just to discover its syntax:
+```shell
+$ export JARS=lib/takamaka_translator.jar:lib/commons-cli-1.4.jar:lib/bcel-6.2.jar:lib/stackmap.jar:lib/takamaka_runtime.jar
+$ java -classpath $JARS takamaka.translator.Translator
+
+Syntax error: Missing required options: app, o
+usage: java takamaka.translator.Translator
+ -app <JARS>   instrument the given application jars
+ -lib <JARS>   use the given library jars
+ -o <DIR>      dump the instrumented jar with the given name
+```
+
+Let us verify and instrument `takamaka_base.jar` now. We ask to store its
+instrumented version inside `instrumented`:
+```shell
+$ java -classpath $JARS takamaka.translator.Translator -app jars/takamaka_base.jar -o instrumented/takamaka_base.jar
+```
+No error will be issued, since the code does not violate any static constraint.
+
+Let us verify and instrument `family.jar` now. It uses classes from `takamaka_base.jar`,
+hence it depends on it. We specify this with the `-lib` option, that must
+refer to an already instrumented jar:
+```shell
+$ java -classpath $JARS takamaka.translator.Translator -app jars/family.jar -lib instrumented/takamaka_base.jar -o instrumented/family.jar
+```
+Also this time, no error will be issued, since the code verifies all static constraints.
+
+Let us now verify and try to instrument the `family_wrong.jar` archive, that
+(we know) contains three errors. This time, verification will fail, the errors will
+be print on screen and no instrumented jar will be generated:
+```shell
+$ java -classpath $JARS takamaka.translator.Translator -app jars/family_wrong.jar -lib instrumented/takamaka_base.jar -o instrumented/family_wrong.jar
+Verification failed with the following issues, no instrumented jar was generated:
+takamaka/tests/family/Person.java field parents: type not allowed for a field of a storage class
+takamaka/tests/family/Person.java method <init>: @Entry can only be applied to public constructors or instance methods of a contract
+takamaka/tests/family/Person.java:29: static fields cannot be updated
+```
