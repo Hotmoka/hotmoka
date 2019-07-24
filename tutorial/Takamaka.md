@@ -3241,4 +3241,112 @@ Takamaka verifies the following dynamic constraints:
 > (`super.m(...)`), as well as calls from an `@Entry`
 > constructor to an `@Entry` constructor of the superclass (`super(...)`). 
 
+4. a bytecode instruction is executed only if there is enough gas for
+   its execution.
+
 ## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
+
+If a jar being installed in blockchain does not satisfy the static
+constraints verified by Takamaka, the installation transaction fails with
+a verification exception, no jar is actually installed but the gas of the
+caller gets consumed. Hence it is not practical to realize that a
+static constraint does not hold only by trying to install a jar in blockchain.
+It would be desirable to verify all constraints off line, correct all
+violations (if any) and only then install the jar in blockchain. This is
+possible by using a utility that performs the same identical jar
+verification and transformation that would be executed when the jar is
+installed in blockchain.
+
+Create then a directory with three subdirectories: `lib` will contain
+all libraries needed to run the utility; `jars` will contain the
+jars that we want to verify and instrument; and `instrumented` will be
+populated with the instrumented jars that pass verification without errors.
+Initially, the three directories will be like below:
+
+```shell
+$ ls -R
+./instrumented:
+ 
+./jars:
+family.jar  family_wrong.jar  takamaka_base.jar
+
+./lib:
+bcel-6.2.jar  commons-cli-1.4.jar  stackmap.jar  takamaka_runtime.jar  takamaka_translator.jar
+```
+The jars in `jars` are those that we will verify and instrument.
+`takamaka_base.jar` is needed as dependency of the others.
+`family.jar` is the second example of this tutorial, where a class
+`Person` extends `Storage` correctly. Instead, `family_wrong.jar` contains
+a wrong version of that examples, where there are three errors:
+
+```java
+package takamaka.tests.family;
+
+import takamaka.lang.Entry;
+import takamaka.lang.Storage;
+
+public class Person extends Storage {
+  private final String name;
+  private final int day;
+  private final int month;
+  private final int year;
+  public final Person[] parents = new Person[2]; // error: arrays are not allowed in storage
+  public static int toStringCounter;
+
+  public Person(String name, int day, int month, int year, Person parent1, Person parent2) {
+    this.name = name;
+    this.day = day;
+    this.month = month;
+    this.year = year;
+    this.parents[0] = parent1;
+    this.parents[1] = parent2;
+  }
+
+  public @Entry Person(String name, int day, int month, int year) { // error: @Entry only applies to contracts
+	this(name, day, month, year, null, null);
+  }
+
+  @Override
+  public String toString() {
+    toStringCounter++; // error (line 29): static update (putstatic) is now allowed
+    return name +" (" + day + "/" + month + "/" + year + ")";
+  }
+}
+```
+We can run the utility without parameters, just to discover its syntax:
+```shell
+$ export JARS=lib/takamaka_translator.jar:lib/commons-cli-1.4.jar:lib/bcel-6.2.jar:lib/stackmap.jar:lib/takamaka_runtime.jar
+$ java -classpath $JARS takamaka.translator.Translator
+
+Syntax error: Missing required options: app, o
+usage: java takamaka.translator.Translator
+ -app <JARS>   instrument the given application jars
+ -lib <JARS>   use the given library jars
+ -o <DIR>      dump the instrumented jar with the given name
+```
+
+Let us verify and instrument `takamaka_base.jar` now. We ask to store its
+instrumented version inside `instrumented`:
+```shell
+$ java -classpath $JARS takamaka.translator.Translator -app jars/takamaka_base.jar -o instrumented/takamaka_base.jar
+```
+No error will be issued, since the code does not violate any static constraint.
+
+Let us verify and instrument `family.jar` now. It uses classes from `takamaka_base.jar`,
+hence it depends on it. We specify this with the `-lib` option, that must
+refer to an already instrumented jar:
+```shell
+$ java -classpath $JARS takamaka.translator.Translator -app jars/family.jar -lib instrumented/takamaka_base.jar -o instrumented/family.jar
+```
+Also this time, no error will be issued, since the code verifies all static constraints.
+
+Let us now verify and try to instrument the `family_wrong.jar` archive, that
+(we know) contains three errors. This time, verification will fail, the errors will
+be print on screen and no instrumented jar will be generated:
+```shell
+$ java -classpath $JARS takamaka.translator.Translator -app jars/family_wrong.jar -lib instrumented/takamaka_base.jar -o instrumented/family_wrong.jar
+Verification failed with the following issues, no instrumented jar was generated:
+takamaka/tests/family/Person.java field parents: type not allowed for a field of a storage class
+takamaka/tests/family/Person.java method <init>: @Entry can only be applied to public constructors or instance methods of a contract
+takamaka/tests/family/Person.java:29: static fields cannot be updated
+```
