@@ -3145,9 +3145,9 @@ to overridden methods follow by Liskov's principle):
 13. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
     methods, bytecodes `astore 0`, `istore 0`, `lstore 0`, `dstore 0` and
     `fstore 0` are not used;
-14. there are no exception handlers that could catch
+14. there are no exception handlers that may catch
     unchecked exceptions (that is,
-    instances of `java.lang.RuntimeException` or of `java.lang.Error`).
+    instances of `java.lang.RuntimeException` or of `java.lang.Error`);
 
 > By forbidding exception handlers for unchecked exceptions, it follows that
 > unchecked exceptions will always make a transaction fail: all object
@@ -3193,5 +3193,31 @@ to overridden methods follow by Liskov's principle):
 > a DOS attack to the blockchain. Although this code cannot be written in Java,
 > it is well possible to write it directly, with a bytecode editor,
 > and submit it to the Takamaka blockchain.
+
+15. classes installed in the blockchain are not in packages `java.*`, `javax.*`
+    or `takamaka.*`, with the exception of `takamaka.tests.*`, which is allowed;
+    moreover, during blockchain initialization also packages `takamaka.*` are
+    allowed;
+
+> The goal of the previous constraints is to make it impossible to change
+> the semantics of the Java or Takamaka runtime. For instance, it is not
+> possible to replace class `takamaka.lang.Contract`, which could thoroughly
+> revolutionize the execution of the contracts. During blockchain initialization,
+> that occurs once at blockchain start-up, it is allowed to install the
+> runtime of Takamaka (the `takamaka_base.jar` archive used in the examples
+> of the previous chapters).
+
+16. all referenced classes, constructors, methods and fields must be white-listed.
+    Those from classes installed in blockchain are always white-listed by
+    default. Other classes loaded from the Java classpath must have been explicitly
+    annotated as `@takamaka.lang.WhiteListed`.
+
+> Hence, for instance, class `takamaka.lang.Storage` is white-listed, since it
+> is inside `takamaka_base.jar`, installed in blockchain. Classes from user
+> jars installed in blockchain are similarly white-listed. Class
+> `takamaka.lang.Takamaka` is loaded from the Java classpath and
+> is white-listed since it is explicitly annotated
+> as such. Method `java.lang.System.currentTimeMillis()` is not white-listed,
+> since it is loaded from the Java classpath and is not annotated as white-listed.
 
 ## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
