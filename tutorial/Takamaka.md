@@ -3077,9 +3077,11 @@ an exception. Dynamic constraints
 are checked every time a piece of code is run. If a dynamic constraint is
 violated, the transaction that runs the code fails with an exception.
 
-The static constraints verified by Takamaka are the following (remember that
-`@Entry` is shorthand for `@Entry(Contract.class)`; the constraints related
-to overridden methods follow by Liskov's principle):
+Below, remember that `@Entry` is shorthand for `@Entry(Contract.class)`.
+Moreover, note that the constraints related
+to overridden methods follow by Liskov's principle.
+
+Takamaka verifies the following static constraints:
 
 1. the `@Entry(C.class)` annotation is only applied to public constructors or
   instance methods of a contract;
@@ -3105,7 +3107,7 @@ to overridden methods follow by Liskov's principle):
   `double` or `boolean`), a class that extends `takamaka.lang.Storage`,
   an `enum` without instance non-transient fields,
   `java.math.BigInteger`, `java.lang.String` or `java.lang.Object`
-  (see [Storage Types and Constraints on Storage Classes](#storage-types)).
+  (see [Storage Types and Constraints on Storage Classes](#storage-types));
 
 > The choice of allowing, inside a storage type, fields of type
 > `java.lang.Object` can be surprising. After all, any reference value can be
@@ -3123,7 +3125,7 @@ to overridden methods follow by Liskov's principle):
 > `MyEnum` is an enumeration type with no instance non-transient fields: both
 > `MyEnum` and `BigInteger` are storage types, but neither extend `Storage`.
 
-10. there are no static initializer methods
+10. there are no static initializer methods;
 
 > Static initializer methods are run the first time their class is loaded. They
 > are either coded explicitly, inside a `static { ... }` block, or are
@@ -3219,5 +3221,24 @@ to overridden methods follow by Liskov's principle):
 > is white-listed since it is explicitly annotated
 > as such. Method `java.lang.System.currentTimeMillis()` is not white-listed,
 > since it is loaded from the Java classpath and is not annotated as white-listed.
+
+Takamaka verifies the following dynamic constraints:
+
+1. every `@Payable` constructor or method is passed a non-`null` and
+   non-negative amount of funds;
+2. a call to a `@Payable` constructor or method succeeds only if the caller
+   has enough funds to pay for the call (i.e., the amount first parameter of
+   the `@Payable` method);
+3. a call to an `@Entry(C.class)` constructor or method succeeds only if
+   the caller is an instance of `C` and is not the receiver of the call;
+
+> This means that a contract cannot call an `@Entry` method on itself,
+> although it can call that method on another object of the same class.
+> This guarantees that `@Entry` methods are actually entries, that is,
+> entry points from another contract object. Note that this constraint
+> forbids chained calls from an `@Entry` method to its overriden version
+> in the superclass, that must be an `@Entry` by static constraints
+> (`super.m(...)`), as well as calls from an `@Entry`
+> constructor to an `@Entry` constructor of the superclass (`super(...)`). 
 
 ## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
