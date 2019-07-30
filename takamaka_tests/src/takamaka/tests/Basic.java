@@ -12,6 +12,7 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -507,8 +508,8 @@ class Basic {
 		fail("expected exception");
 	}
 
-	@Test @DisplayName("new EntryFilter().foo5() called by an ExternallyOwnedAccount throws CodeExecutionException since ClassCastException")
-	void entryFilterFailsWothThrowsExceptions() throws CodeExecutionException, TransactionException {
+	@Test @DisplayName("new EntryFilter().foo5() throws CodeExecutionException since MyCheckedException")
+	void entryFilterFailsWithThrowsExceptions() throws CodeExecutionException, TransactionException {
 		ClassType entryFilter = new ClassType("takamaka.tests.basic.EntryFilter");
 		StorageReference ef = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _1_000, classpath, new ConstructorSignature(entryFilter)));
@@ -518,12 +519,23 @@ class Basic {
 				(new InstanceMethodCallTransactionRequest(master, _1_000, classpath, new VoidMethodSignature(entryFilter, "foo5"), ef));
 		}
 		catch (CodeExecutionException e) {
-			if (e.getCause() instanceof ClassCastException)
+			if (e.getCause().getClass().getName().equals("takamaka.tests.basic.MyCheckedException"))
 				return;
 
 			fail("wrong exception");
 		}
 
 		fail("expected exception");
+	}
+
+	@Test @DisplayName("new EntryFilter().foo6() fails")
+	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException {
+		ClassType entryFilter = new ClassType("takamaka.tests.basic.EntryFilter");
+		StorageReference ef = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(master, _1_000, classpath, new ConstructorSignature(entryFilter)));
+
+		Assertions.assertThrows(TransactionException.class, () ->
+			blockchain.addInstanceMethodCallTransaction
+				(new InstanceMethodCallTransactionRequest(master, _1_000, classpath, new VoidMethodSignature(entryFilter, "foo6"), ef)));
 	}
 }

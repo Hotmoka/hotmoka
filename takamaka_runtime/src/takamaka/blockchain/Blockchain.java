@@ -123,8 +123,7 @@ public interface Blockchain {
 	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
 	 * @throws CodeExecutionException if the constructor is annotated as {@link takamaka.lang.ThrowsExceptions} and its execution
-	 *                                failed with an exception that is an instance of
-	 *                                {@link java.lang.Exception} (that exception is available as
+	 *                                failed with a checked exception (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link takamaka.blockchain.TransactionException} is thrown
@@ -157,8 +156,7 @@ public interface Blockchain {
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
 	 * @throws CodeExecutionException if the method is annotated as {@link takamaka.lang.ThrowsExceptions} and its execution
-	 *                                failed with an exception that is an instance of
-	 *                                {@link java.lang.Exception} (that exception is available as
+	 *                                failed with a checked exception (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link takamaka.blockchain.TransactionException} is thrown
@@ -191,8 +189,7 @@ public interface Blockchain {
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
 	 * @throws CodeExecutionException if the method is annotated as {@link takamaka.lang.ThrowsExceptions} and its execution
-	 *                                failed with an exception that is an instance of
-	 *                                {@link java.lang.Exception} (that exception is available as
+	 *                                failed with a checked exception (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link takamaka.blockchain.TransactionException} is thrown

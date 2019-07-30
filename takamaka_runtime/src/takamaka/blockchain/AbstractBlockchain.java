@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -1400,6 +1401,25 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			return result;
 		}
+
+		protected final boolean isChecked(Throwable t) {
+			return !(t instanceof RuntimeException || t instanceof Error);
+		}
+
+		/**
+		 * Yields the same exception, if it is checked and the executable is annotated as {@link takamaka.lang.ThrowsExceptions}.
+		 * Otherwise, yields its cause.
+		 * 
+		 * @param e the exception
+		 * @param executable the method or constructor whose execution has thrown the exception
+		 * @return the same exception, or its cause
+		 */
+		protected final Throwable unwrapInvocationException(InvocationTargetException e, Executable executable) {
+			if (isChecked(e.getCause()) && executable.isAnnotationPresent(ThrowsExceptions.class))
+				return e;
+			else
+				return e.getCause();
+		}
 	}
 
 	/**
@@ -1423,7 +1443,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		@Override
 		public void run() {
 			try {
-				Class<?> clazz = classLoader.loadClass(methodOrConstructor.definingClass.name);
+				Class<?> clazz = loadClass(methodOrConstructor.definingClass.name);
 				Constructor<?> constructorJVM;
 				Object[] deserializedActuals;
 
@@ -1436,22 +1456,18 @@ public abstract class AbstractBlockchain implements Blockchain {
 					// if not found, we try to add the trailing types that characterize the @Entry constructors
 					try {
 						constructorJVM = clazz.getConstructor(formalsAsClassForEntry());
+						deserializedActuals = addExtraActualsForEntry();
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the constructor as the user sees it
 					}
-
-					deserializedActuals = addExtraActualsForEntry();
 				}
 
 				try {
 					result = (Storage) constructorJVM.newInstance(deserializedActuals);
 				}
 				catch (InvocationTargetException e) {
-					if (e.getCause() instanceof Exception && constructorJVM.isAnnotationPresent(ThrowsExceptions.class))
-						exception = e;
-					else
-						exception = e.getCause();
+					exception = unwrapInvocationException(e, constructorJVM);
 				}
 			}
 			catch (Throwable t) {
@@ -1494,26 +1510,24 @@ public abstract class AbstractBlockchain implements Blockchain {
 					// if not found, we try to add the trailing types that characterize the @Entry methods
 					try {
 						methodJVM = getEntryMethod();
+						deserializedActuals = addExtraActualsForEntry();
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the method as the user sees it
 					}
-					deserializedActuals = addExtraActualsForEntry();
 				}
 
 				if (Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
 
+				isVoidMethod = methodJVM.getReturnType() == void.class;
+				isViewMethod = methodJVM.isAnnotationPresent(View.class);
+
 				try {
 					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
-					isVoidMethod = methodJVM.getReturnType() == void.class;
-					isViewMethod = methodJVM.isAnnotationPresent(View.class);
 				}
 				catch (InvocationTargetException e) {
-					if (e.getCause() instanceof Exception && methodJVM.isAnnotationPresent(ThrowsExceptions.class))
-						exception = e;
-					else
-						exception = e.getCause();
+					exception = unwrapInvocationException(e, methodJVM);
 				}
 			}
 			catch (Throwable t) {
@@ -1549,16 +1563,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 				if (!Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
 
+				isVoidMethod = methodJVM.getReturnType() == void.class;
+				isViewMethod = methodJVM.isAnnotationPresent(View.class);
+
 				try {
 					result = methodJVM.invoke(null, deserializedActuals);
-					isVoidMethod = methodJVM.getReturnType() == void.class;
-					isViewMethod = methodJVM.isAnnotationPresent(View.class);
 				}
 				catch (InvocationTargetException e) {
-					if (e.getCause() instanceof Exception && methodJVM.isAnnotationPresent(ThrowsExceptions.class))
-						exception = e;
-					else
-						exception = e.getCause();
+					exception = unwrapInvocationException(e, methodJVM);
 				}
 			}
 			catch (Throwable t) {

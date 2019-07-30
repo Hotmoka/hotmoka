@@ -3196,7 +3196,16 @@ Takamaka verifies the following static constraints:
 > it is well possible to write it directly, with a bytecode editor,
 > and submit it to the Takamaka blockchain.
 
-15. classes installed in the blockchain are not in packages `java.*`, `javax.*`
+15. if a method or constructor is annotated as `@ThrowsException`,
+    then it is public;
+
+16. if a method is annotated as `@ThrowsException` and overrides another method,
+  then the latter is annotated as `@ThrowsException` as well;
+
+17. if a method is annotated as `@ThrowsException` and is overridden by another method,
+  then the latter is annotated as `@ThrowsException` as well;
+  
+18. classes installed in the blockchain are not in packages `java.*`, `javax.*`
     or `takamaka.*`, with the exception of `takamaka.tests.*`, which is allowed;
     moreover, during blockchain initialization also packages `takamaka.*` are
     allowed;
@@ -3209,7 +3218,7 @@ Takamaka verifies the following static constraints:
 > runtime of Takamaka (the `takamaka_base.jar` archive used in the examples
 > of the previous chapters).
 
-16. all referenced classes, constructors, methods and fields must be white-listed.
+19. all referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in blockchain are always white-listed by
     default. Other classes loaded from the Java classpath must have been explicitly
     annotated as `@takamaka.lang.WhiteListed`.
