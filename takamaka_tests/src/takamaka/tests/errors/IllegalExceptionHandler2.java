@@ -20,7 +20,7 @@ import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.verifier.VerificationException;
 
-class CallerOutsideEntry {
+class IllegalExceptionHandler2 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -39,13 +39,14 @@ class CallerOutsideEntry {
 		try {
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-				Files.readAllBytes(Paths.get("../takamaka_examples/dist/calleroutsideentry.jar")), blockchain.takamakaBase));		
+				Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegalexceptionhandler2.jar")), blockchain.takamakaBase));		
 		}
 		catch (TransactionException e) {
 			if (e.getCause() instanceof VerificationException
-					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.CallerOutsideEntryError)
+					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.CatchForUncheckedExceptionError)
 				return;
 
+			e.printStackTrace();
 			fail("wrong exception");
 		}
 

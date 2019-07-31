@@ -69,6 +69,13 @@
   	<jar jarfile="${dist}/legalstaticinitialization2.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization2/**"/>
   	<jar jarfile="${dist}/legalstaticinitialization3.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization3/**"/>
   	<jar jarfile="${dist}/illegalstaticfieldupdate.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalstaticfieldupdate/**"/>
+  	<jar jarfile="${dist}/illegalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler1/**"/>
+  	<jar jarfile="${dist}/illegalexceptionhandler2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler2/**"/>
+  	<jar jarfile="${dist}/illegalexceptionhandler3.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler3/**"/>
+  	<jar jarfile="${dist}/illegalexceptionhandler4.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler4/**"/>
+  	<jar jarfile="${dist}/illegalexceptionhandler5.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler5/**"/>
+  	<jar jarfile="${dist}/illegalexceptionhandler6.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler6/**"/>
+  	<jar jarfile="${dist}/legalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalexceptionhandler1/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**"/>
   </target>
 

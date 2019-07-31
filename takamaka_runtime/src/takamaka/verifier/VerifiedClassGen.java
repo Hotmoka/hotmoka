@@ -15,6 +15,7 @@ import java.util.stream.StreamSupport;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.BootstrapMethods;
+import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
@@ -583,6 +584,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				thereAreNoUnusualBytecodes();
 				callerOccursOnThisInEntries();
 				entriesAreOnlyCalledFromInstanceCodeOfContracts();
+				exceptionHandlersAreForCheckedExceptionsOnly();
 			}
 
 			private void isNotStaticInitializer() {
@@ -673,10 +675,10 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 					.filter(this::isCallToContractCaller)
 					.forEach(ih -> {
 						if (!isEntry)
-							issue(new CallerOutsideEntry(VerifiedClassGen.this, method, lineOf(ih)));
+							issue(new CallerOutsideEntryError(VerifiedClassGen.this, method, lineOf(ih)));
 	
 						if (!previousIsLoad0(ih))
-							issue(new CallerNotOnThis(VerifiedClassGen.this, method, lineOf(ih)));
+							issue(new CallerNotOnThisError(VerifiedClassGen.this, method, lineOf(ih)));
 					});
 			}
 
@@ -713,6 +715,41 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 						.filter(ih -> callsEntry(ih, false))
 						.map(ih -> new IllegalCallToEntryError(VerifiedClassGen.this, method, nameOfEntryCalledDirectly(ih), lineOf(ih)))
 						.forEach(ClassVerification.this::issue);
+			}
+
+			private void exceptionHandlersAreForCheckedExceptionsOnly() {
+				if (!method.isAbstract()) {
+					CodeException[] excs = method.getCode().getExceptionTable();
+					if (excs != null)
+						for (CodeException exc: excs) {
+							int classIndex = exc.getCatchType();
+							String exceptionName = classIndex == 0 ?
+								"java.lang.Throwable" :
+								((ConstantClass) cpg.getConstant(classIndex)).getBytes(cpg.getConstantPool()).replace('/', '.');
+
+							// enum's are sometimes compiled with synthetic methods that catch NoSuchFieldError
+							if (((isEnum() && method.isSynthetic())
+									|| (method.getName().equals(Const.STATIC_INITIALIZER_NAME) && isSynthetic()))
+								&& exceptionName.equals("java.lang.NoSuchFieldError"))
+								continue;
+
+							if (canCatchUncheckedExceptions(exceptionName))
+								issue(new CatchForUncheckedExceptionError(VerifiedClassGen.this, method, lines != null ? lines.getSourceLine(exc.getHandlerPC()) : -1, exceptionName));
+						}
+				}
+			}
+
+			private boolean canCatchUncheckedExceptions(String exceptionName) {
+				try {
+					Class<?> clazz = classLoader.loadClass(exceptionName);
+					return RuntimeException.class.isAssignableFrom(clazz) ||
+						clazz.isAssignableFrom(RuntimeException.class) ||
+						java.lang.Error.class.isAssignableFrom(clazz) ||
+						clazz.isAssignableFrom(java.lang.Error.class);
+				}
+				catch (ClassNotFoundException e) {
+					throw new IncompleteClasspathError(e);
+				}
 			}
 		}
 	}

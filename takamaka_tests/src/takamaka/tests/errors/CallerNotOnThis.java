@@ -43,7 +43,7 @@ class CallerNotOnThis {
 		}
 		catch (TransactionException e) {
 			if (e.getCause() instanceof VerificationException
-					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.CallerNotOnThis)
+					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.CallerNotOnThisError)
 				return;
 
 			fail("wrong exception");
