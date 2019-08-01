@@ -360,7 +360,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			String appendedClassPath = original.toString();
 			Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-				JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader);
+				JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader, true);
 				if (instrumentation.verificationFailed())
 					throw new VerificationException(instrumentation.getFirstError().get());
 			}
@@ -453,7 +453,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					String appendedClassPath = Stream.of(classLoader.getURLs()).map(URL::getFile).collect(Collectors.joining(":", original.toString() + ":", ""));
 					Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-						JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader);
+						JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader, false);
 						if (instrumentation.verificationFailed())
 							throw new VerificationException(instrumentation.getFirstError().get());
 					}

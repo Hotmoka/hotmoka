@@ -77,16 +77,17 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * @param clazz the parsed class file
 	 * @param classLoader the Takamaka class loader for the context of the class
 	 * @param issueHandler the handler that is notified of every verification error or warning
+	 * @param duringInitialization true if and only if the class is built during blockchain initialization
 	 * @throws VefificationException if the class could not be verified
 	 */
-	public VerifiedClassGen(JavaClass clazz, TakamakaClassLoader classLoader, Consumer<Issue> issueHandler) throws VerificationException {
+	public VerifiedClassGen(JavaClass clazz, TakamakaClassLoader classLoader, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 		super(clazz);
 
 		this.classLoader = classLoader;
 		this.bootstrapMethods = computeBootstraps();
 		collectBootstrapsLeadingToEntries();
 
-		new ClassVerification(issueHandler);
+		new ClassVerification(issueHandler, duringInitialization);
 	}
 
 	@Override
@@ -322,18 +323,34 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		private final Set<Method> lambdasUnreachableFromStaticMethods = new HashSet<>();
 
 		/**
+		 * True if and only if the code instrumentation occurs during.
+		 * blockchain initialization.
+		 */
+
+		private final boolean duringInitialization;
+
+		/**
 		 * True if and only if at least an error was issued during verification.
 		 */
 		private boolean hasErrors;
 
-		private ClassVerification(Consumer<Issue> issueHandler) throws VerificationException {
+		/**
+		 * Performs the static verification of this class.
+		 * 
+		 * @param issueHandler the handler to call when an issue is found
+		 * @param duringInitialization true if and only if verification is performed during blockchain initialization
+		 * @throws VerificationException
+		 */
+		private ClassVerification(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 			this.className = getClassName();
 			this.issueHandler = issueHandler;
+			this.duringInitialization = duringInitialization;
 			this.cpg = getConstantPool();
 
 			if (classLoader.isContract(className))
 				computeLambdasUnreachableFromStaticMethods();
 
+			packagesAreLegal();
 			entryIsOnlyAppliedToInstancePublicCodeOfContracts();
 			entryIsConsistentAlongSubclasses();
 			payableIsOnlyAppliedToEntries();
@@ -346,6 +363,14 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 
 			if (hasErrors)
 				throw new VerificationException();
+		}
+
+		private void packagesAreLegal() {
+			if (className.startsWith("java.") || className.startsWith("javax."))
+				issue(new IllegalPackageNameError(VerifiedClassGen.this));
+
+			if (!duringInitialization && className.startsWith("takamaka.") && !className.startsWith("takamaka.tests"))
+				issue(new IllegalPackageNameError(VerifiedClassGen.this));
 		}
 
 		private void computeLambdasUnreachableFromStaticMethods() {

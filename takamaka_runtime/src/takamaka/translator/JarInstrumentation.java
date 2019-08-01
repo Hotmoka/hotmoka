@@ -44,10 +44,12 @@ public class JarInstrumentation {
 	 * @param destination the jar file to generate
 	 * @param classLoader the class loader that can be used to resolve the classes of the program,
 	 *                    including those of {@code origin}
+	 * @param duringInitialization true if and only if the code instrumentation occurs during
+	 *                             blockchain initialization
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 */
-	public JarInstrumentation(Path origin, Path destination, TakamakaClassLoader classLoader) throws IOException {
-		new Initializer(origin, destination, classLoader);
+	public JarInstrumentation(Path origin, Path destination, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
+		new Initializer(origin, destination, classLoader, duringInitialization);
 	}
 
 	/**
@@ -99,17 +101,26 @@ public class JarInstrumentation {
 		private final TakamakaClassLoader classLoader;
 
 		/**
+		 * True if and only if the code instrumentation occurs during.
+		 * blockchain initialization.
+		 */
+
+		private final boolean duringInitialization;
+
+		/**
 		 * Performs the instrumentation of the given jar file into another jar file.
 		 * 
 		 * @param origin the jar file to instrument
 		 * @param destination the jar file to generate
 		 * @param classLoader the class loader that can be used to resolve the classes of the program,
 		 *                    including those of {@code origin}
+		 * @param duringInitialization true if and only if the instrumentation is performed during blockchain initialization
 		 */
-		private Initializer(Path origin, Path destination, TakamakaClassLoader classLoader) throws IOException {
+		private Initializer(Path origin, Path destination, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
 			LOGGER.fine(() -> "Processing " + origin);
 
 			this.classLoader = classLoader;
+			this.duringInitialization = duringInitialization;
 
 			try {
 				SortedSet<VerifiedClassGen> classes;
@@ -146,7 +157,7 @@ public class JarInstrumentation {
 		private Optional<VerifiedClassGen> buildVerifiedClass(JarEntry entry) {
 			try (InputStream input = originalJar.getInputStream(entry)) {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClassGen(new ClassParser(input, entry.getName()).parse(), classLoader, issues::add));
+				return Optional.of(new VerifiedClassGen(new ClassParser(input, entry.getName()).parse(), classLoader, issues::add, duringInitialization));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

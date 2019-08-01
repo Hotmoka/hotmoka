@@ -37,7 +37,9 @@ public class Translator {
 	    	String[] appJarNames = line.getOptionValues("app");
 	    	String[] libJarNames = line.getOptionValues("lib");
 	    	String destinationName = line.getOptionValue("o");
-		    for (String appJarName: appJarNames) {
+	    	boolean duringInitialization = line.hasOption("init");
+
+	    	for (String appJarName: appJarNames) {
 		    	Path origin = Paths.get(appJarName);
 		    	Path destination = Paths.get(destinationName);
 
@@ -48,7 +50,7 @@ public class Translator {
 		    			urls.add(new File(lib).toURI().toURL());
 
 		    	TakamakaClassLoader classLoader = new TakamakaClassLoader(urls.toArray(new URL[urls.size()]));
-		    	JarInstrumentation instrumentation = new JarInstrumentation(origin, destination, classLoader);
+		    	JarInstrumentation instrumentation = new JarInstrumentation(origin, destination, classLoader, duringInitialization);
 		    	if (instrumentation.verificationFailed()) {
 		    		System.err.println("Verification failed with the following issues, no instrumented jar was generated:");
 		    		instrumentation.issues().forEach(System.err::println);
@@ -65,7 +67,8 @@ public class Translator {
 		Options options = new Options();
 		options.addOption(Option.builder("app").desc("instrument the given application jars").hasArgs().argName("JARS").required().build());
 		options.addOption(Option.builder("lib").desc("use the given library jars").hasArgs().argName("JARS").build());
-		options.addOption(Option.builder("o").desc("dump the instrumented jar with the given name").hasArg().argName("DIR").required().build());
+		options.addOption(Option.builder("o").desc("dump the instrumented jar with the given name").hasArg().argName("FILENAME").required().build());
+		options.addOption(Option.builder("init").desc("instrument as during blockchain initialization").build());
 
 		return options;
 	}
