@@ -77,7 +77,7 @@
   	<jar jarfile="${dist}/illegalexceptionhandler5.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler5/**"/>
   	<jar jarfile="${dist}/illegalexceptionhandler6.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler6/**"/>
   	<jar jarfile="${dist}/legalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalexceptionhandler1/**"/>
-  	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**"/>
+  	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**,**/takamaka/lang/**"/>
   </target>
 
 </project>
