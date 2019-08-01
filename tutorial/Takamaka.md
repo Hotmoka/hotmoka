@@ -3083,7 +3083,7 @@ to overridden methods follow by Liskov's principle.
 
 Takamaka verifies the following static constraints:
 
-1. the `@Entry(C.class)` annotation is only applied to public constructors or
+1. the `@Entry(C.class)` annotation is only applied to constructors or
   instance methods of a contract;
 2. in every use of the `@Entry(C.class)` annotation, class `C` is a subclass
   of `takamaka.lang.Contract`;

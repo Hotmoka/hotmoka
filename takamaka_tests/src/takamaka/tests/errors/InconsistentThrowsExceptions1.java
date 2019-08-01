@@ -20,7 +20,7 @@ import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.verifier.VerificationException;
 
-class EntryOnNonPublic {
+class InconsistentThrowsExceptions1 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -39,11 +39,11 @@ class EntryOnNonPublic {
 		try {
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-				Files.readAllBytes(Paths.get("../takamaka_examples/dist/entryonnonpublic.jar")), blockchain.takamakaBase));		
+				Files.readAllBytes(Paths.get("../takamaka_examples/dist/inconsistentthrowsexceptions1.jar")), blockchain.takamakaBase));		
 		}
 		catch (TransactionException e) {
 			if (e.getCause() instanceof VerificationException
-					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.IllegalEntryMethodError)
+					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.InconsistentThrowsExceptionsError)
 				return;
 
 			fail("wrong exception");

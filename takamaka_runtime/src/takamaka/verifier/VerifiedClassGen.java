@@ -351,11 +351,13 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				computeLambdasUnreachableFromStaticMethods();
 
 			packagesAreLegal();
-			entryIsOnlyAppliedToInstancePublicCodeOfContracts();
+			entryIsOnlyAppliedToInstanceCodeOfContracts();
 			entryIsConsistentAlongSubclasses();
 			payableIsOnlyAppliedToEntries();
 			payableIsConsistentAlongSubclasses();
 			payableMethodsReceiveAmount();
+			throwsExceptionsIsOnlyAppliedToPublic();
+			throwsExceptionsIsConsistentAlongSubclasses();
 			storageClassesHaveFieldsOfStorageType();
 
 			Stream.of(getMethods())
@@ -424,9 +426,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		}
 
 		/**
-		 * Checks that {@code @@Entry} is applied only to instance public methods or constructors of contracts.
+		 * Checks that {@code @@Entry} is applied only to instance methods or constructors of contracts.
 		 */
-		private void entryIsOnlyAppliedToInstancePublicCodeOfContracts() {
+		private void entryIsOnlyAppliedToInstanceCodeOfContracts() {
 			boolean isContract = classLoader.isContract(className);
 
 			for (Method method: getMethods()) {
@@ -434,7 +436,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				if (isEntry != null) {
 					if (!classLoader.contractClass.isAssignableFrom(isEntry))
 						issue(new IllegalEntryArgumentError(VerifiedClassGen.this, method));
-					if (!method.isPublic() || method.isStatic() || !isContract)
+					if (method.isStatic() || !isContract)
 						issue(new IllegalEntryMethodError(VerifiedClassGen.this, method));
 				}
 			}
@@ -447,7 +449,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 */
 		private void entryIsConsistentAlongSubclasses() {
 			for (Method method: getMethods())
-				if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
+				if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
 					Class<?> contractTypeForEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 
 					try {
@@ -465,7 +467,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			Type[] args = method.getArgumentTypes();
 
 			if (Stream.of(clazz.getDeclaredMethods())
-					.filter(m -> Modifier.isPublic(m.getModifiers())
+					.filter(m -> !Modifier.isPrivate(m.getModifiers())
 							&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
 							&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
 					.anyMatch(m -> !compatibleEntries(contractTypeForEntry, classLoader.isEntry(clazz.getName(), name, args, returnType))))
@@ -506,12 +508,21 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		}
 
 		/**
+		 * Checks that {@code @@ThrowsExceptions} methods are public.
+		 */
+		private void throwsExceptionsIsOnlyAppliedToPublic() {
+			for (Method method: getMethods())
+				if (!method.isPublic() && classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
+					issue(new ThrowsExceptionsOnNonPublicError(VerifiedClassGen.this, method));
+		}
+
+		/**
 		 * Checks that {@code @@Payable} methods only redefine {@code @@Payable} methods and that
 		 * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
 		 */
 		private void payableIsConsistentAlongSubclasses() {
 			for (Method method: getMethods())
-				if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
+				if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
 					boolean wasPayable = classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 
 					try {
@@ -521,6 +532,44 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 						throw new IncompleteClasspathError(e);
 					}
 				}
+		}
+
+		/**
+		 * Checks that {@code @@Payable} methods only redefine {@code @@Payable} methods and that
+		 * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
+		 */
+		private void throwsExceptionsIsConsistentAlongSubclasses() {
+			for (Method method: getMethods())
+				if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
+					boolean wasThrowsExceptions = classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+
+					try {
+						isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), method, wasThrowsExceptions);
+					}
+					catch (ClassNotFoundException e) {
+						throw new IncompleteClasspathError(e);
+					}
+				}
+		}
+
+		private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, Method method, boolean wasThrowsExceptions) {
+			String name = method.getName();
+			Type returnType = method.getReturnType();
+			Type[] args = method.getArgumentTypes();
+		
+			if (Stream.of(clazz.getDeclaredMethods())
+					.filter(m -> !Modifier.isPrivate(m.getModifiers())
+							&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
+							&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
+					.anyMatch(m -> wasThrowsExceptions != classLoader.isThrowsExceptions(clazz.getName(), name, args, returnType)))
+				issue(new InconsistentThrowsExceptionsError(VerifiedClassGen.this, method, clazz.getName()));
+		
+			Class<?> superclass = clazz.getSuperclass();
+			if (superclass != null)
+				isIdenticallyThrowsExceptionsInSupertypesOf(superclass, method, wasThrowsExceptions);
+		
+			for (Class<?> interf: clazz.getInterfaces())
+				isIdenticallyThrowsExceptionsInSupertypesOf(interf, method, wasThrowsExceptions);
 		}
 
 		private void payableMethodsReceiveAmount() {
@@ -542,7 +591,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			Type[] args = method.getArgumentTypes();
 		
 			if (Stream.of(clazz.getDeclaredMethods())
-					.filter(m -> Modifier.isPublic(m.getModifiers())
+					.filter(m -> !Modifier.isPrivate(m.getModifiers())
 							&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
 							&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
 					.anyMatch(m -> wasPayable != classLoader.isPayable(clazz.getName(), name, args, returnType)))

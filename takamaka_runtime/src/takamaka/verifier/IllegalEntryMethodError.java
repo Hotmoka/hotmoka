@@ -6,6 +6,6 @@ import org.apache.bcel.generic.ClassGen;
 public class IllegalEntryMethodError extends Error {
 
 	public IllegalEntryMethodError(ClassGen clazz, Method where) {
-		super(clazz, where, "@Entry can only be applied to public constructors or instance methods of a contract");
+		super(clazz, where, "@Entry can only be applied to constructors or instance methods of a contract");
 	}
 }
