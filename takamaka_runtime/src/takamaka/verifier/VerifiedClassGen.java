@@ -3,10 +3,8 @@ package takamaka.verifier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
-import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -51,6 +49,7 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import takamaka.lang.WhiteListed;
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
 
@@ -833,41 +832,81 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 
 			private void onlyWhiteListedCodeIsUsed() {
 				instructions()
-					.map(InstructionHandle::getInstruction)
 					.filter(this::usesNonWhiteListed);
-					//.forEach(this::printNonWhiteListed);
+				//.forEach(this::printNonWhiteListed);
 				//TODO: bootstrap loaders should be checked for optimized calls
 			}
 
-			private boolean usesNonWhiteListed(Instruction ins) {
-				// invokedynamic's refer to a bootstrap loader of the same class, hence it is that method
-				// that will be checked to see if it refers to non-white-listed code
-				return ins instanceof FieldInstruction || (ins instanceof InvokeInstruction && !(ins instanceof INVOKEDYNAMIC));
+			private boolean usesNonWhiteListed(InstructionHandle ih) {
+				Instruction ins = ih.getInstruction();
+				return accessesNonWhiteListedField(ins) || callsNonWhiteListedConstructorOrMethod(ins);
 			}
 
-			private void printNonWhiteListed(Instruction ins) {
+			private boolean accessesNonWhiteListedField(Instruction ins) {
+				if (ins instanceof FieldInstruction) {
+					FieldInstruction fi = ((FieldInstruction) ins);
+					String name = fi.getFieldName(cpg);
+					Class<?> type = classLoader.bcelToClass(fi.getFieldType(cpg));
+					ReferenceType holder = fi.getReferenceType(cpg);
+					if (holder instanceof ObjectType) {
+						Optional<Field> field = resolveField(((ObjectType) holder).getClassName(), name, type);
+						return field.isPresent() && !isWhiteListed(field.get());
+					}
+				}
+
+				return false;
+			}
+
+			private boolean callsNonWhiteListedConstructorOrMethod(Instruction ins) {
+				// invokedynamic's refer to a bootstrap loader of the same class, hence it is that method
+				// that will be checked to see if it refers to non-white-listed code
+				if (ins instanceof InvokeInstruction && !(ins instanceof INVOKEDYNAMIC)) {
+					// TODO
+				}
+
+				return false;
+			}
+
+			/**
+			 * Determines if the given field is white-listed.
+			 * 
+			 * @param field the field, already resolved
+			 * @return true if and only if the field belongs to a class installed in blockchain or if it is explicitly
+			 *         annotated as {@code @@WhiteListed}
+			 */
+			private boolean isWhiteListed(Field field) {
+				// if the class defining the field has been loaded by the blockchain class loader,
+				// then it comes from blockchain and the field is white-listed
+				return field.getDeclaringClass().getClassLoader() == classLoader
+					// otherwise, since fields cannot be redefined in Java, either is the field explicitly
+					// annotated as white-listed, or it is not white-listed
+					|| field.isAnnotationPresent(WhiteListed.class); // TODO: use annotated library
+			}
+
+			private Optional<Field> resolveField(String className, String name, Class<?> type) {
+				try {
+					for (Class<?> clazz = classLoader.loadClass(className); clazz != null; clazz = clazz.getSuperclass()) {
+						Optional<Field> result = Stream.of(clazz.getDeclaredFields())
+							.filter(field -> field.getType() == type && field.getName().equals(name))
+							.findFirst();
+
+						if (result.isPresent())
+							return result;
+					}
+				}
+				catch (ClassNotFoundException e) {
+					throw new IncompleteClasspathError(e);
+				}
+
+				return Optional.empty();
+			}
+
+			private void printNonWhiteListed(InstructionHandle ih) {
+				Instruction ins = ih.getInstruction();
 				if (ins instanceof FieldOrMethod) {
 					FieldOrMethod fm = (FieldOrMethod) ins;
 					ReferenceType rec = fm.getReferenceType(cpg);
 					System.out.println(rec + "." + fm.getName(cpg) + ":" + fm.getSignature(cpg) + " [inside " + className + "." + method + "]");
-					if (rec instanceof ObjectType) {
-						String className = ((ObjectType) rec).getClassName();
-						Class<?> clazz;
-						try {
-							clazz = classLoader.loadClass(className);
-						}
-						catch (ClassNotFoundException e) {
-							throw new IncompleteClasspathError(e);
-						}
-
-						CodeSource src = clazz.getProtectionDomain().getCodeSource();
-						if (src == null)
-							System.out.println("   " + null + ": " + Objects.hash(clazz.getClassLoader()));
-						else {
-							String classpath = src.getLocation().getPath();
-							System.out.println("   " + classpath + ": " + Objects.hash(clazz.getClassLoader()));
-						}
-					}
 				}
 			}
 		}
