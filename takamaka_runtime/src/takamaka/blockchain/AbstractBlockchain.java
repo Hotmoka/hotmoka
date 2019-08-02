@@ -270,8 +270,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
 	}
 
-	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
-
 	/**
 	 * Decreases the available gas by the given amount.
 	 * 

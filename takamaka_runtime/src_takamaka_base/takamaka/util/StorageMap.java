@@ -934,6 +934,6 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 	 * @return the stream
 	 */
 	public Stream<K> keys() {
-		return stream().map(entry -> entry.getKey());
+		return stream().map(Entry::getKey);
 	}
 }

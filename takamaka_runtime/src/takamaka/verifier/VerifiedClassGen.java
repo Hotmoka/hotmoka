@@ -3,8 +3,10 @@ package takamaka.verifier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -28,6 +30,8 @@ import org.apache.bcel.classfile.LineNumberTable;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.FieldInstruction;
+import org.apache.bcel.generic.FieldOrMethod;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKEINTERFACE;
 import org.apache.bcel.generic.INVOKESPECIAL;
@@ -659,6 +663,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				callerOccursOnThisInEntries();
 				entriesAreOnlyCalledFromInstanceCodeOfContracts();
 				exceptionHandlersAreForCheckedExceptionsOnly();
+				onlyWhiteListedCodeIsUsed();
 			}
 
 			private void isNotStaticInitializer() {
@@ -823,6 +828,46 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				}
 				catch (ClassNotFoundException e) {
 					throw new IncompleteClasspathError(e);
+				}
+			}
+
+			private void onlyWhiteListedCodeIsUsed() {
+				instructions()
+					.map(InstructionHandle::getInstruction)
+					.filter(this::usesNonWhiteListed);
+					//.forEach(this::printNonWhiteListed);
+				//TODO: bootstrap loaders should be checked for optimized calls
+			}
+
+			private boolean usesNonWhiteListed(Instruction ins) {
+				// invokedynamic's refer to a bootstrap loader of the same class, hence it is that method
+				// that will be checked to see if it refers to non-white-listed code
+				return ins instanceof FieldInstruction || (ins instanceof InvokeInstruction && !(ins instanceof INVOKEDYNAMIC));
+			}
+
+			private void printNonWhiteListed(Instruction ins) {
+				if (ins instanceof FieldOrMethod) {
+					FieldOrMethod fm = (FieldOrMethod) ins;
+					ReferenceType rec = fm.getReferenceType(cpg);
+					System.out.println(rec + "." + fm.getName(cpg) + ":" + fm.getSignature(cpg) + " [inside " + className + "." + method + "]");
+					if (rec instanceof ObjectType) {
+						String className = ((ObjectType) rec).getClassName();
+						Class<?> clazz;
+						try {
+							clazz = classLoader.loadClass(className);
+						}
+						catch (ClassNotFoundException e) {
+							throw new IncompleteClasspathError(e);
+						}
+
+						CodeSource src = clazz.getProtectionDomain().getCodeSource();
+						if (src == null)
+							System.out.println("   " + null + ": " + Objects.hash(clazz.getClassLoader()));
+						else {
+							String classpath = src.getLocation().getPath();
+							System.out.println("   " + classpath + ": " + Objects.hash(clazz.getClassLoader()));
+						}
+					}
 				}
 			}
 		}
