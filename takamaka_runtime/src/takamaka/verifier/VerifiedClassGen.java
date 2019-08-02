@@ -52,6 +52,7 @@ import org.apache.bcel.generic.Type;
 import takamaka.lang.WhiteListed;
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
+import takamaka.whitelisted.Anchor;
 
 /**
  * A BCEL class generator, specialized in order to verify some constraints required by Takamaka.
@@ -831,18 +832,17 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			}
 
 			private void onlyWhiteListedCodeIsUsed() {
-				instructions()
-					.filter(this::usesNonWhiteListed);
-				//.forEach(this::printNonWhiteListed);
+				if (instructions != null) {
+					for (InstructionHandle ih: instructions) {
+						Optional<Field> field = accessedNonWhiteListedField(ih.getInstruction());
+						if (field.isPresent())
+							issue(new IllegalAccessToNonWhiteListedFieldError(VerifiedClassGen.this, method, lineOf(ih), field.get()));
+					}
+				}
 				//TODO: bootstrap loaders should be checked for optimized calls
 			}
 
-			private boolean usesNonWhiteListed(InstructionHandle ih) {
-				Instruction ins = ih.getInstruction();
-				return accessesNonWhiteListedField(ins) || callsNonWhiteListedConstructorOrMethod(ins);
-			}
-
-			private boolean accessesNonWhiteListedField(Instruction ins) {
+			private Optional<Field> accessedNonWhiteListedField(Instruction ins) {
 				if (ins instanceof FieldInstruction) {
 					FieldInstruction fi = ((FieldInstruction) ins);
 					String name = fi.getFieldName(cpg);
@@ -850,11 +850,12 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 					ReferenceType holder = fi.getReferenceType(cpg);
 					if (holder instanceof ObjectType) {
 						Optional<Field> field = resolveField(((ObjectType) holder).getClassName(), name, type);
-						return field.isPresent() && !isWhiteListed(field.get());
+						if (field.isPresent() && !isWhiteListed(field.get()))
+							return field;
 					}
 				}
 
-				return false;
+				return Optional.empty();
 			}
 
 			private boolean callsNonWhiteListedConstructorOrMethod(Instruction ins) {
@@ -880,7 +881,29 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				return field.getDeclaringClass().getClassLoader() == classLoader
 					// otherwise, since fields cannot be redefined in Java, either is the field explicitly
 					// annotated as white-listed, or it is not white-listed
-					|| field.isAnnotationPresent(WhiteListed.class); // TODO: use annotated library
+					|| field.isAnnotationPresent(WhiteListed.class)
+					|| fieldIsInWhiteListedLibrary(field);
+			}
+
+			private boolean fieldIsInWhiteListedLibrary(Field field) {
+				String expandedClassName = Anchor.WHITE_LISTED_ROOT + "." + field.getDeclaringClass().getName();
+				Class<?> classInWhiteListedLibrary;
+
+				try {
+					classInWhiteListedLibrary = Class.forName(expandedClassName);
+				}
+				catch (ClassNotFoundException e) {
+					// the field is not in the library of white-listed code
+					return false;
+				}
+
+				Optional<Field> fieldInWhiteListedLibrary = Stream.of(classInWhiteListedLibrary.getDeclaredFields())
+					.filter(field2 -> field2.getType() == field.getType() && field2.getName().equals(field.getName()))
+					.findFirst();
+
+				// if the field has been reported in the white-listed library, then it is automatically white-listed,
+				// regardless of its annotations
+				return fieldInWhiteListedLibrary.isPresent();
 			}
 
 			private Optional<Field> resolveField(String className, String name, Class<?> type) {

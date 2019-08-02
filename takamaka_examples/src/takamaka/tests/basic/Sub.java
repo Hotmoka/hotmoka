@@ -18,12 +18,10 @@ public class Sub extends Super {
 	@Override @Entry
 	public void m1() {
 		super.m1(); // exception at run time
-		System.out.println("Sub.m1");
 	}
 
 	@Override @Entry
 	public void m3() {
-		System.out.println("Sub.m3 with caller " + caller());
 	}
 
 	@Override @Payable @Entry
