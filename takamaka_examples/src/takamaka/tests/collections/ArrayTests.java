@@ -14,7 +14,7 @@ public class ArrayTests extends Storage {
 
 	public static @View int testRandomInitialization() {
 		StorageArray<BigInteger> array = new StorageArray<>(100);
-		Random random = new Random();
+		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
@@ -24,7 +24,7 @@ public class ArrayTests extends Storage {
 
 	public static @View long countNullsAfterRandomInitialization() {
 		StorageArray<BigInteger> array = new StorageArray<>(100);
-		Random random = new Random();
+		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(100), BigInteger.valueOf(i)) != null);
@@ -35,7 +35,7 @@ public class ArrayTests extends Storage {
 
 	public static @View int testUpdateWithDefault1() {
 		StorageArray<BigInteger> array = new StorageArray<>(100);
-		Random random = new Random();
+		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);
@@ -48,7 +48,7 @@ public class ArrayTests extends Storage {
 
 	public static @View int testUpdateWithDefault2() {
 		StorageArray<BigInteger> array = new StorageArray<>(100);
-		Random random = new Random();
+		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
 			array.update(random.nextInt(100), BigInteger.ZERO, BigInteger.valueOf(i)::add);
@@ -58,7 +58,7 @@ public class ArrayTests extends Storage {
 
 	public static @View int testGetOrDefault() {
 		StorageArray<BigInteger> array = new StorageArray<>(100);
-		Random random = new Random();
+		Random random = new Random(12345L);
 
 		for (int i = 0; i < 50; i++)
 			while (array.setIfAbsent(random.nextInt(array.length), BigInteger.valueOf(i)) != null);

@@ -105,7 +105,7 @@ public abstract class Storage {
 		}
 	}
 
-	@Override
+	@Override @WhiteListed
 	public String toString() {
 		return "";
 	}

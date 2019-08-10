@@ -79,6 +79,7 @@
   	<jar jarfile="${dist}/illegalexceptionhandler5.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler5/**"/>
   	<jar jarfile="${dist}/illegalexceptionhandler6.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler6/**"/>
   	<jar jarfile="${dist}/illegalaccesstononwhitelistedfield1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalaccesstononwhitelistedfield1/**"/>
+  	<jar jarfile="${dist}/illegalcalltononwhitelistedconstructor1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedconstructor1/**"/>
   	<jar jarfile="${dist}/legalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalexceptionhandler1/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**,**/takamaka/lang/**"/>
   </target>

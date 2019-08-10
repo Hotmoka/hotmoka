@@ -1,5 +1,6 @@
 package takamaka.verifier;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
@@ -834,9 +835,14 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			private void onlyWhiteListedCodeIsUsed() {
 				if (instructions != null) {
 					for (InstructionHandle ih: instructions) {
-						Optional<Field> field = accessedNonWhiteListedField(ih.getInstruction());
+						Instruction ins = ih.getInstruction();
+						Optional<Field> field = accessedNonWhiteListedField(ins);
 						if (field.isPresent())
 							issue(new IllegalAccessToNonWhiteListedFieldError(VerifiedClassGen.this, method, lineOf(ih), field.get()));
+
+						Optional<Constructor<?>> constructor = calledNonWhiteListedConstructor(ins);
+						if (constructor.isPresent())
+							issue(new IllegalCallToNonWhiteListedConstructorError(VerifiedClassGen.this, method, lineOf(ih), constructor.get()));						
 					}
 				}
 				//TODO: bootstrap loaders should be checked for optimized calls
@@ -845,10 +851,10 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			private Optional<Field> accessedNonWhiteListedField(Instruction ins) {
 				if (ins instanceof FieldInstruction) {
 					FieldInstruction fi = ((FieldInstruction) ins);
-					String name = fi.getFieldName(cpg);
-					Class<?> type = classLoader.bcelToClass(fi.getFieldType(cpg));
 					ReferenceType holder = fi.getReferenceType(cpg);
 					if (holder instanceof ObjectType) {
+						String name = fi.getFieldName(cpg);
+						Class<?> type = classLoader.bcelToClass(fi.getFieldType(cpg));
 						Optional<Field> field = resolveField(((ObjectType) holder).getClassName(), name, type);
 						if (field.isPresent() && !isWhiteListed(field.get()))
 							return field;
@@ -856,6 +862,34 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				}
 
 				return Optional.empty();
+			}
+
+			private Optional<Constructor<?>> calledNonWhiteListedConstructor(Instruction ins) {
+				if (ins instanceof INVOKESPECIAL) {
+					INVOKESPECIAL invokespecial = (INVOKESPECIAL) ins;
+					if (Const.CONSTRUCTOR_NAME.equals(invokespecial.getMethodName(cpg))) {
+						ReferenceType receiver = invokespecial.getReferenceType(cpg);
+						if (receiver instanceof ObjectType) {
+							Class<?>[] args = classLoader.bcelToClass(invokespecial.getArgumentTypes(cpg));
+							Optional<Constructor<?>> constructor = resolveConstructor(((ObjectType) receiver).getClassName(), args);
+							if (constructor.isPresent() && !isWhiteListed(constructor.get()))
+								return constructor;
+						}
+					}
+				}
+
+				return Optional.empty();
+			}
+
+			private Optional<Constructor<?>> resolveConstructor(String className, Class<?>[] args) {
+				try {
+					return Stream.of(classLoader.loadClass(className).getDeclaredConstructors())
+						.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), args))
+						.findFirst();
+				}
+				catch (ClassNotFoundException e) {
+					throw new IncompleteClasspathError(e);
+				}
 			}
 
 			private boolean callsNonWhiteListedConstructorOrMethod(Instruction ins) {
@@ -885,6 +919,16 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 					|| fieldIsInWhiteListedLibrary(field);
 			}
 
+			private boolean isWhiteListed(Constructor<?> constructor) {
+				// if the class defining the constructor has been loaded by the blockchain class loader,
+				// then it comes from blockchain and the constructor is white-listed
+				return constructor.getDeclaringClass().getClassLoader() == classLoader
+					// otherwise, since constructors cannot be redefined in Java, either is the constructor explicitly
+					// annotated as white-listed, or it is not white-listed
+					|| constructor.isAnnotationPresent(WhiteListed.class)
+					|| constructorIsInWhiteListedLibrary(constructor);
+			}
+
 			private boolean fieldIsInWhiteListedLibrary(Field field) {
 				String expandedClassName = Anchor.WHITE_LISTED_ROOT + "." + field.getDeclaringClass().getName();
 				Class<?> classInWhiteListedLibrary;
@@ -904,6 +948,29 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				// if the field has been reported in the white-listed library, then it is automatically white-listed,
 				// regardless of its annotations
 				return fieldInWhiteListedLibrary.isPresent();
+			}
+
+			private boolean constructorIsInWhiteListedLibrary(Constructor<?> constructor) {
+				String expandedClassName = Anchor.WHITE_LISTED_ROOT + "." + constructor.getDeclaringClass().getName();
+				Class<?> classInWhiteListedLibrary;
+
+				try {
+					classInWhiteListedLibrary = Class.forName(expandedClassName);
+				}
+				catch (ClassNotFoundException e) {
+					// the constructor is not in the library of white-listed code
+					return false;
+				}
+
+				try {
+					classInWhiteListedLibrary.getDeclaredConstructor(constructor.getParameterTypes());
+					// if the constructor has been reported in the white-listed library, then it is automatically white-listed,
+					// regardless of its annotations
+					return true;
+				}
+				catch (NoSuchMethodException e) {
+					return false;
+				}
 			}
 
 			private Optional<Field> resolveField(String className, String name, Class<?> type) {

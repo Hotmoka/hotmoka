@@ -8,6 +8,8 @@ import java.math.BigInteger;
  */
 @SuppressWarnings("serial")
 public class InsufficientFundsError extends Error {
+
+	@WhiteListed
 	public InsufficientFundsError(BigInteger amount) {
 		super("Missing " + amount + " coin units to invoke payable code");
 	}

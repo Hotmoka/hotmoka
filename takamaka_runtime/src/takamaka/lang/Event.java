@@ -5,4 +5,7 @@ package takamaka.lang;
  * end of a successful execution of a blockchain transaction.
  */
 public abstract class Event extends Storage {
+
+	@WhiteListed
+	protected Event() {}
 }
