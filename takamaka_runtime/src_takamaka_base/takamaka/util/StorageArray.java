@@ -98,7 +98,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	public StorageArray(int length, V initialValue) {
 		this(length);
 
-		IntStream.range(0, length).forEach(index -> set(index, initialValue));
+		IntStream.range(0, length).forEachOrdered(index -> set(index, initialValue));
 	}
 
 	/**
@@ -113,7 +113,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	public StorageArray(int length, Supplier<V> supplier) {
 		this(length);
 
-		IntStream.range(0, length).forEach(index -> set(index, supplier.get()));
+		IntStream.range(0, length).forEachOrdered(index -> set(index, supplier.get()));
 	}
 
 	/**
@@ -130,7 +130,7 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 	public StorageArray(int length, IntFunction<V> supplier) {
 		this(length);
 
-		IntStream.range(0, length).forEach(index -> set(index, supplier.apply(index)));
+		IntStream.range(0, length).forEachOrdered(index -> set(index, supplier.apply(index)));
 	}
 
 	/**

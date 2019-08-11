@@ -1264,7 +1264,7 @@ public class GradualPonzi extends Contract {
   public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
     require(amount.compareTo(MINIMUM_INVESTMENT) >= 0, () -> "you must invest at least " + MINIMUM_INVESTMENT);
     BigInteger eachInvestorGets = amount.divide(BigInteger.valueOf(investors.size()));
-    investors.stream().forEach(investor -> investor.receive(eachInvestorGets));
+    investors.stream().forEachOrdered(investor -> investor.receive(eachInvestorGets));
     investors.add((PayableContract) caller());
   }
 }
@@ -1283,7 +1283,7 @@ and sent back to each of them. Note that Takamaka allows one to use
 Java 8 lambdas and streams.
 Old fashioned Java programmers, who don't feel at home with such treats,
 can exploit the fact that
-lists are iterable and replace the single line `forEach()` call
+lists are iterable and replace the single line `forEachOrdered()` call
 with a more traditional (but gas-hungrier):
 
 ```java
@@ -1691,7 +1691,7 @@ inside a constructor for `TicTacToe`:
 
 ```java
 public TicTacToe() {
-  rangeClosed(0, 8).forEach(index -> board.set(index, Tile.EMPTY));
+  rangeClosed(0, 8).forEachOrdered(index -> board.set(index, Tile.EMPTY));
 }
 ```
 
@@ -2402,7 +2402,7 @@ public class BlindAuction extends Contract {
     Iterator<Bid> it = bids.iterator();
     revealedBids.stream()
       .map(revealed -> refundFor(bidder, it.next(), revealed, digest))
-      .forEach(bidder::receive);
+      .forEachOrdered(bidder::receive);
 
     // make it impossible for the caller to re-claim the same deposits
     this.bids.remove(bidder);

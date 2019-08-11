@@ -6,7 +6,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="/takamaka_runtime/dist/takamaka_base.jar"/>
+	<classpathentry kind="lib" path="/takamaka_runtime/dist/takamaka_base.jar" sourcepath="/takamaka_runtime/src_takamaka_base"/>
 	<classpathentry kind="lib" path="/takamaka_runtime/dist/takamaka_runtime.jar" sourcepath="/takamaka_runtime/src"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

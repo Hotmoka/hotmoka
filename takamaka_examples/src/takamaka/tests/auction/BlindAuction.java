@@ -170,7 +170,7 @@ public class BlindAuction extends Contract {
         Iterator<Bid> it = bids.iterator();
         revealedBids.stream()
         	.map(revealed -> refundFor(bidder, it.next(), revealed, digest))
-        	.forEach(bidder::receive);
+        	.forEachOrdered(bidder::receive);
 
         // make it impossible for the caller to re-claim the same deposits
         this.bids.remove(bidder);

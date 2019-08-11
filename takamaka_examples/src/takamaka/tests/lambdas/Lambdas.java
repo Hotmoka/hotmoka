@@ -31,21 +31,21 @@ public class Lambdas extends ExternallyOwnedAccount {
 		Lambdas other = new Lambdas(BigInteger.TEN);
 		Lambdas other2 = new Lambdas(BigInteger.TEN);
 		investors.add((PayableContract) caller());
-		investors.stream().forEach(investor -> other.entry2(other2::entry3));
-		investors.stream().forEach(investor -> other.entry4(Lambdas::new));
+		investors.stream().forEachOrdered(investor -> other.entry2(other2::entry3));
+		investors.stream().forEachOrdered(investor -> other.entry4(Lambdas::new));
 	}
 
 	public void testLambdaWithoutThis() {
 		BigInteger one = BigInteger.ONE;
-		investors.stream().forEach(investor -> investor.receive(one));
+		investors.stream().forEachOrdered(investor -> investor.receive(one));
 	}
 
 	public void testLambdaWithoutThisGetStatic() {
-		investors.stream().forEach(investor -> investor.receive(BigInteger.ONE));
+		investors.stream().forEachOrdered(investor -> investor.receive(BigInteger.ONE));
 	}
 
 	public void testLambdaWithThis() {
-		investors.stream().forEach(investor -> investor.receive(MINIMUM_INVESTMENT));
+		investors.stream().forEachOrdered(investor -> investor.receive(MINIMUM_INVESTMENT));
 	}
 
 	public int testMethodReferenceToEntry() {
@@ -55,7 +55,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public void testMethodReferenceToEntryOfOtherClass() {
 		PayableContract investor = investors.first();
-		Stream.of(BigInteger.TEN, BigInteger.ONE).forEach(investor::receive);
+		Stream.of(BigInteger.TEN, BigInteger.ONE).forEachOrdered(investor::receive);
 	}
 
 	public int testMethodReferenceToEntrySameContract() {
@@ -72,7 +72,7 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public @Entry void testConstructorReferenceToEntryPopResult() {
 		Stream.of(BigInteger.TEN, BigInteger.ONE)
-			.forEach(Lambdas::new);
+			.forEachOrdered(Lambdas::new);
 	}
 
 	private BigInteger getAmount() {
