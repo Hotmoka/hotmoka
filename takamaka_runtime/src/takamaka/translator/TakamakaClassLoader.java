@@ -27,7 +27,6 @@ import takamaka.lang.ThrowsExceptions;
  * of a Takamaka program.
  */
 public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable {
-
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
 	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);

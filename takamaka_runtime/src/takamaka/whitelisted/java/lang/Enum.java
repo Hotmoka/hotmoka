@@ -1,10 +1,6 @@
 package takamaka.whitelisted.java.lang;
 
-import takamaka.lang.WhiteListed;
-
-public class Enum {
-
-	@WhiteListed
-	public Enum(String name, int ordinal) {
-	}
+public abstract class Enum {
+	public Enum(java.lang.String name, int ordinal) {}
+	public abstract java.lang.Enum<?> valueOf(java.lang.Class<?> clazz, java.lang.String name);
 }

@@ -74,6 +74,7 @@ public abstract class Storage {
 	 * @return -1 if this object is older than {@code other}; 1 if {@code other}
 	 *         is older than this object; 0 if they are the same object
 	 */
+	@WhiteListed
 	public int compareAge(Storage other) {
 		return storageReference.compareTo(other.storageReference);
 	}
