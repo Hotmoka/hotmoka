@@ -37,7 +37,7 @@ public class IntMapTests extends Storage {
 			map.put(key, BigInteger.valueOf(key));
 
 		// we add one to the value bound to each key
-		map.keys().forEach(key -> map.update(key, BigInteger.ONE::add));
+		map.keys().forEachOrdered(key -> map.update(key, BigInteger.ONE::add));
 
 		return map.stream().map(Entry::getValue).mapToInt(BigInteger::intValue).sum();
 	}

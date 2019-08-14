@@ -30,5 +30,12 @@ public abstract class Time extends Storage implements Comparable<Time> {
 		return secondsFromStartOfDay - other.secondsFromStartOfDay;
 	}
 
+	protected final String twoDigits(int i) {
+		if (i < 10)
+			return "0" + i;
+		else
+			return String.valueOf(i);
+	}
+
 	public abstract String toString();
 }

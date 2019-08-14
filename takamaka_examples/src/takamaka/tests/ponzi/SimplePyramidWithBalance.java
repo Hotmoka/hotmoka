@@ -41,7 +41,7 @@ public class SimplePyramidWithBalance extends Contract {
 
 		if (investors.size() == previousLayerSize * 4 - 1) {
 			// pay out previous layer: note that currentLayer's size is even here
-			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEach(investor -> balances.update(investor, BigInteger.ZERO, MINIMUM_INVESTMENT::add));
+			investors.stream().skip(previousLayerSize - 1).limit(previousLayerSize).forEachOrdered(investor -> balances.update(investor, BigInteger.ZERO, MINIMUM_INVESTMENT::add));
 			// spread remaining money among all participants
 			BigInteger eachInvestorGets = pyramidBalance.subtract(MINIMUM_INVESTMENT.multiply(BigInteger.valueOf(previousLayerSize))).divide(BigInteger.valueOf(investors.size()));
 			investors.forEach(investor -> balances.update(investor, BigInteger.ZERO, eachInvestorGets::add));

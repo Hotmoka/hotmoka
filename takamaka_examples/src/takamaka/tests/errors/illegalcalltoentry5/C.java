@@ -13,9 +13,9 @@ public class C extends Contract {
 		String[] arr = { "hello", "how", "are", "you" };
 		C c = new C();
 		Stream.of(arr)
-			.forEach(s -> {
+			.forEachOrdered(s -> {
 				if (s.length() > 3)
-					Stream.of(arr).forEach(c::entry);
+					Stream.of(arr).forEachOrdered(c::entry);
 			});
 	}
 }

@@ -41,7 +41,8 @@ public class AmericanTime extends Time {
 		else if (hours > 12)
 			hours -= 12;
 
-		return String.format("%02d:%02d:%02d%s", hours, (secondsFromStartOfDay / 60) % 60, secondsFromStartOfDay % 60, period);
+		return twoDigits(hours) + ':' + twoDigits((secondsFromStartOfDay / 60) % 60)
+			+ ':' + twoDigits(secondsFromStartOfDay % 60) + period;
 	}
 
 	@Override

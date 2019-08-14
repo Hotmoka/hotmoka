@@ -15,7 +15,8 @@ public class InternationalTime extends Time {
 
 	@Override
 	public String toString() {
-		return String.format("%02d:%02d:%02d", secondsFromStartOfDay / 3600, (secondsFromStartOfDay / 60) % 60, secondsFromStartOfDay % 60);
+		return twoDigits(secondsFromStartOfDay / 3600) + ':' + twoDigits((secondsFromStartOfDay / 60) % 60)
+			+ ':' + twoDigits(secondsFromStartOfDay % 60);
 	}
 
 	@Override

@@ -848,6 +848,8 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 					}
 				}
 				//TODO: bootstrap loaders should be checked for optimized calls
+				//TODO: check @MustBeFalse
+				//TODO: check @MustRedefineHashcode
 			}
 
 			private Optional<Field> accessedNonWhiteListedField(Instruction ins) {

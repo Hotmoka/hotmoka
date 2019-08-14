@@ -13,6 +13,6 @@ public class C extends Contract {
 		String[] arr = { "hello", "how", "are", "you" };
 		C c = new C();
 		Stream.of(arr)
-			.forEach(c::entry);
+			.forEachOrdered(c::entry);
 	}
 }
