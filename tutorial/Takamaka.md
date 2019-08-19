@@ -3221,7 +3221,7 @@ Takamaka verifies the following static constraints:
 19. all referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in blockchain are always white-listed by
     default. Other classes loaded from the Java classpath must have been explicitly
-    annotated as `@takamaka.lang.WhiteListed`.
+    annotated as `@takamaka.lang.WhiteListed`;
 
 > Hence, for instance, class `takamaka.lang.Storage` is white-listed, since it
 > is inside `takamaka_base.jar`, installed in blockchain. Classes from user
@@ -3230,6 +3230,15 @@ Takamaka verifies the following static constraints:
 > is white-listed since it is explicitly annotated
 > as such. Method `java.lang.System.currentTimeMillis()` is not white-listed,
 > since it is loaded from the Java classpath and is not annotated as white-listed.
+
+20. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
+    resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
+    or of `java.lang.invoke.StringConcatFactory.makeConcatWithConstants`.
+
+> This condition is needed since other call-site resolvers could call any
+> method, depending on their algorithmic implementation, actually
+> side-stepping the white-listing constraint imposed by Takamaka.
+> Java compilers currently do not generate other call-site resolvers.
 
 Takamaka verifies the following dynamic constraints:
 
