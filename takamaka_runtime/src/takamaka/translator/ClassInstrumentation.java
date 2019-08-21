@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -240,8 +241,6 @@ class ClassInstrumentation {
 		 * performs the instrumentation.
 		 */
 		private void instrumentClass() {
-			instrumentBootstrapsInvokingEntries();
-
 			// local instrumentations are those that apply at method level
 			localInstrumentation();
 
@@ -489,27 +488,46 @@ class ClassInstrumentation {
 		 * Performs method-level instrumentations.
 		 */
 		private void localInstrumentation() {
+			applyToAllMethods(this::preProcess);
+			instrumentBootstrapsInvokingEntries();
+			applyToAllMethods(this::postProcess);
+		}
+
+		private void applyToAllMethods(Function<Method, Method> what) {
 			Method[] methods = classGen.getMethods();
 
-			// the replacement of each method
-			List<Method> instrumentedMethods =
+			List<Method> processedMethods =
 				Stream.of(methods)
-					.map(this::instrument)
+					.map(what)
 					.collect(Collectors.toList());
 
 			// replacing old with new methods
 			int pos = 0;
-			for (Method instrumented: instrumentedMethods)
-				classGen.replaceMethod(methods[pos++], instrumented);
+			for (Method processed: processedMethods)
+				classGen.replaceMethod(methods[pos++], processed);
 		}
 
 		/**
-		 * Instruments a single method of the class.
+		 * Pre-processing instrumentation of a single method of the class.
+		 * This is performed before instrumentation of the bootstraps.
 		 * 
 		 * @param method the method to instrument
 		 * @return the result of the instrumentation
 		 */
-		private Method instrument(Method method) {
+		private Method preProcess(Method method) {
+			MethodGen methodGen = new MethodGen(method, className, cpg);
+			addRuntimeChecksFroWhiteListingProofObligations(methodGen);
+			return methodGen.getMethod();
+		}
+
+		/**
+		 * Post-processing instrumentation of a single method of the class.
+		 * This is performed after instrumentation of the bootstraps.
+		 * 
+		 * @param method the method to instrument
+		 * @return the result of the instrumentation
+		 */
+		private Method postProcess(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
 			replaceFieldAccessesWithAccessors(methodGen);
 			addContractToCallsToEntries(methodGen);
@@ -548,8 +566,8 @@ class ClassInstrumentation {
 					}
 				}
 
-				if (fields + methods > 0)
-					System.out.println("I must prove " + (fields + methods) + " proof obligations for " + method);
+				//if (fields + methods > 0)
+					//System.out.println("I must prove " + (fields + methods) + " proof obligations for " + method);
 			}
 		}
 
