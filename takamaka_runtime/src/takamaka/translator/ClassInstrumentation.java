@@ -1,6 +1,8 @@
 package takamaka.translator;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
@@ -70,6 +72,9 @@ import it.univr.bcel.StackMapReplacer;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.lang.Contract;
+import takamaka.lang.MustBeFalse;
+import takamaka.lang.MustRedefineHashCode;
+import takamaka.lang.MustRedefineHashCodeOrToString;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
 import takamaka.verifier.VerifiedClassGen;
@@ -523,6 +528,54 @@ class ClassInstrumentation {
 			}
 
 			return methodGen.getMethod();
+		}
+
+		private void addRuntimeChecksFroWhiteListingProofObligations(MethodGen method) {
+			if (!method.isAbstract()) {
+				int fields = 0, methods = 0;
+
+				for (InstructionHandle ih: method.getInstructionList()) {
+					Instruction ins = ih.getInstruction();
+					if (ins instanceof FieldInstruction) {
+						Field model = classGen.whiteListingModelOf((FieldInstruction) ins);
+						if (containsProofObligations(model))
+							fields++;
+					}
+					else if (ins instanceof InvokeInstruction) {
+						Executable model = classGen.whiteListingModelOf((InvokeInstruction) ins);
+						if (containsProofObligations(model))
+							methods++;
+					}
+				}
+
+				if (fields + methods > 0)
+					System.out.println("I must prove " + (fields + methods) + " proof obligations for " + method);
+			}
+		}
+
+		private boolean containsProofObligations(Field field) {
+			return
+				Stream.of(field.getAnnotations())
+					.map(Annotation::annotationType)
+					.anyMatch(this::isProofObligation);
+		}
+
+		private boolean containsProofObligations(Executable method) {
+			return
+				Stream.of(method.getAnnotations())
+					.map(Annotation::annotationType)
+					.anyMatch(this::isProofObligation)
+				
+				||
+				
+				Stream.of(method.getParameterAnnotations())
+					.flatMap(Stream::of)
+					.map(Annotation::annotationType)
+					.anyMatch(this::isProofObligation);
+		}
+
+		private boolean isProofObligation(Class<?> annotation) {
+			return annotation == MustRedefineHashCode.class || annotation == MustRedefineHashCodeOrToString.class || annotation == MustBeFalse.class;
 		}
 
 		/**
