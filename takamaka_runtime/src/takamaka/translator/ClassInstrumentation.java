@@ -47,6 +47,7 @@ import org.apache.bcel.generic.GotoInstruction;
 import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKESPECIAL;
+import org.apache.bcel.generic.INVOKESTATIC;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
@@ -78,6 +79,7 @@ import takamaka.lang.MustRedefineHashCode;
 import takamaka.lang.MustRedefineHashCodeOrToString;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
+import takamaka.lang.WhiteListingProofObligation;
 import takamaka.verifier.VerifiedClassGen;
 
 /**
@@ -107,6 +109,7 @@ class ClassInstrumentation {
 	private final static short PUBLIC_SYNTHETIC_FINAL = PUBLIC_SYNTHETIC | Const.ACC_FINAL;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
+	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 	private final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_TRANSIENT;
 
 	/**
@@ -550,26 +553,105 @@ class ClassInstrumentation {
 		}
 
 		private void addRuntimeChecksFroWhiteListingProofObligations(MethodGen method) {
-			if (!method.isAbstract()) {
-				int fields = 0, methods = 0;
-
+			if (!method.isAbstract())
 				for (InstructionHandle ih: method.getInstructionList()) {
 					Instruction ins = ih.getInstruction();
 					if (ins instanceof FieldInstruction) {
 						Field model = classGen.whiteListingModelOf((FieldInstruction) ins);
-						if (containsProofObligations(model))
-							fields++;
+						if (containsProofObligations(model)) {
+							//TODO
+						}
 					}
 					else if (ins instanceof InvokeInstruction) {
 						Executable model = classGen.whiteListingModelOf((InvokeInstruction) ins);
-						if (containsProofObligations(model))
-							methods++;
+						if (containsProofObligations(model)) {
+							addWhiteListVerificationMethod((InvokeInstruction) ins, model);
+						}
 					}
 				}
+		}
 
-				//if (fields + methods > 0)
-					//System.out.println("I must prove " + (fields + methods) + " proof obligations for " + method);
+		/**
+		 * Adds a static method to the class under instrumentation, that checks
+		 * that the white-listing proof obligations in the model hold at run time.
+		 * 
+		 * @param ins the call instruction whose parameters must be verified
+		 * @param model the model that contains the proof obligations in order, for the call,
+		 *              to be white-listed
+		 */
+		private void addWhiteListVerificationMethod(InvokeInstruction ins, Executable model) {
+			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
+			Type verifierReturnType = ins.getReturnType(cpg);
+			InstructionList il = new InstructionList();
+			List<Type> args = new ArrayList<>();
+			boolean hasReceiver = !(ins instanceof INVOKESTATIC) && !(ins instanceof INVOKEDYNAMIC);
+			int index = 0;
+
+			if (hasReceiver) {
+				ReferenceType receiver = ins.getReferenceType(cpg);
+				if (receiver instanceof ObjectType)
+					args.add(receiver);
+				else
+					args.add(ObjectType.OBJECT);
+
+				il.append(InstructionFactory.createLoad(receiver, index));
+				index += receiver.getSize();
+				addWhiteListingChecksFor(model.getAnnotations(), receiver, il);
 			}
+
+			int par = 0;
+			Annotation[][] anns = model.getParameterAnnotations();
+
+			for (Class<?> arg: model.getParameterTypes()) {
+				Type argType = Type.getType(arg);
+				args.add(Type.getType(arg));
+				il.append(InstructionFactory.createLoad(argType, index));
+				index += argType.getSize();
+				addWhiteListingChecksFor(anns[par], argType, il);
+				par++;
+			}
+
+			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args.toArray(new Type[args.size()]), null, verifierName, className, il, cpg);
+
+			il.append(ins);
+			il.append(InstructionFactory.createReturn(verifierReturnType));
+
+			il.setPositions();
+			addedVerifier.setMaxLocals();
+			addedVerifier.setMaxStack();
+			classGen.addMethod(addedVerifier.getMethod());
+		}
+
+		private void addWhiteListingChecksFor(Annotation[] annotations, Type argType, InstructionList il) {
+			Stream.of(annotations)
+				.filter(annotation -> annotation.annotationType().isAnnotationPresent(WhiteListingProofObligation.class))
+				.map(annotation -> lowerInitial(annotation.annotationType().getSimpleName()))
+				.map(this::getTakamakaCheckNamed)
+				.map(checkMethod -> factory.createInvoke(TAKAMAKA_CLASS_NAME, checkMethod.getName(), Type.VOID, new Type[] { Type.getType(checkMethod.getParameterTypes()[0]) }, Const.INVOKESTATIC))
+				.forEachOrdered(invoke -> {
+					il.append(InstructionFactory.createDup(argType.getSize()));
+					il.append(invoke);
+				});
+		}
+
+		private java.lang.reflect.Method getTakamakaCheckNamed(String name) {
+			Optional<java.lang.reflect.Method> checkMethod =
+				Stream.of(Takamaka.class.getDeclaredMethods())
+					.filter(method -> method.getName().equals(name))
+					.findFirst();
+
+			if (!checkMethod.isPresent())
+				throw new IllegalStateException("unexpected white-list annotation " + upperInitial(name));
+
+			return checkMethod.get();
+		}
+
+		private String lowerInitial(String name) {
+			return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+		}
+
+		private String upperInitial(String name) {
+			return Character.toUpperCase(name.charAt(0)) + name.substring(1);
 		}
 
 		private boolean containsProofObligations(Field field) {

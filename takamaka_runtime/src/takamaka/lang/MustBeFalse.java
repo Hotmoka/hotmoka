@@ -15,5 +15,6 @@ import java.lang.annotation.Target;
 @Target(value={ ElementType.PARAMETER })
 @Inherited
 @Documented
+@WhiteListingProofObligation
 public @interface MustBeFalse {
 }

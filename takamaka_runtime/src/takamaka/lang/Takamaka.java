@@ -1,8 +1,11 @@
 package takamaka.lang;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import takamaka.blockchain.AbstractBlockchain;
 
@@ -153,6 +156,29 @@ public abstract class Takamaka {
 	@WhiteListed
 	public static long now() {
 		return blockchain.getNow();
+	}
+
+	public static void mustBeFalse(boolean value) {
+		if (value)
+			throw new NotWhiteListedCallException("parameter must be false");
+	}
+
+	public static void mustRedefineHashCode(Object value) {
+		if (value != null)
+			if (Stream.of(value.getClass().getMethods())
+				.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
+				.map(Method::getName)
+				.noneMatch("hashCode"::equals))
+				throw new NotWhiteListedCallException("value must redefine Object.hashCode()");
+	}
+
+	public static void mustRedefineHashCodeOrToString(Object value) {
+		if (value != null)
+			if (Stream.of(value.getClass().getMethods())
+				.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
+				.map(Method::getName)
+				.noneMatch(name -> "hashCode".equals(name) || "toString".equals(name)))
+				throw new NotWhiteListedCallException("value must redefine Object.hashCode() or Object.toString()");
 	}
 
 	/**
