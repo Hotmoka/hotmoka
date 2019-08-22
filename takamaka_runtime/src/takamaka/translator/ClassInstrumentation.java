@@ -90,7 +90,8 @@ class ClassInstrumentation {
 	private final static String ENSURE_LOADED_PREFIX = "§ensureLoaded_";
 	private final static String GETTER_PREFIX = "§get_";
 	private final static String SETTER_PREFIX = "§set_";
-	private final static String EXTRA_LAMBDA_PREFIX = "§takamakalambda";
+	private final static String EXTRA_LAMBDA_NAME = "lambda";
+	private final static String EXTRA_VERIFIER_NAME = "verifier";
 	private final static String EXTRACT_UPDATES = "extractUpdates";
 	private final static String RECURSIVE_EXTRACT = "recursiveExtract";
 	private final static String ADD_UPDATE_FOR = "addUpdateFor";
@@ -351,7 +352,7 @@ class ClassInstrumentation {
 			// into invokespecial className.lambda(C, pars):r where the name "lambda" is
 			// not used in className. The extra parameter className is not added for
 			// constructor references, since they create the new object themselves
-			String lambdaName = getNewNameForPrivateMethod();
+			String lambdaName = getNewNameForPrivateMethod(EXTRA_LAMBDA_NAME);
 
 			Type[] lambdaArgs;
 			if (invokeKind == Const.REF_newInvokeSpecial)
@@ -471,13 +472,13 @@ class ClassInstrumentation {
 			return index;
 		}
 
-		private String getNewNameForPrivateMethod() {
+		private String getNewNameForPrivateMethod(String innerName) {
 			int counter = 0;
 			String newName;
 			Method[] methods = classGen.getMethods();
 
 			do {
-				newName = EXTRA_LAMBDA_PREFIX + counter++;
+				newName = "§" + innerName + counter++;
 			}
 			while (Stream.of(methods).map(Method::getName).anyMatch(newName::equals));
 
@@ -682,7 +683,7 @@ class ClassInstrumentation {
 						.collect(Collectors.toList());
 
 				for (InstructionHandle ih: callsToEntries)
-					passContractToCallToEntry(il, ih);
+					passContractToCallToEntry(il, ih, method.getName());
 			}
 		}
 
@@ -692,8 +693,9 @@ class ClassInstrumentation {
 		 * 
 		 * @param il the instructions of the method being instrumented
 		 * @param ih the call to the entry
+		 * @param callee the name of the method where the calls are being looked for
 		 */
-		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih) {
+		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, String callee) {
 			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
 			if (invoke instanceof INVOKEDYNAMIC) {
 				INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) invoke;
@@ -715,6 +717,9 @@ class ClassInstrumentation {
 				forEachPusher(ih, slots, where -> {
 					il.append(where, where.getInstruction());
 					where.setInstruction(InstructionConst.ALOAD_0);
+				},
+				() -> {
+					throw new IllegalStateException("Cannot find stack pushers for calls inside " + callee);
 				});
 			}
 			else {
@@ -739,7 +744,7 @@ class ClassInstrumentation {
 		 * @param ih the start instruction of the look up
 		 * @param slots the difference in stack height
 		 */
-		private void forEachPusher(InstructionHandle ih, int slots, Consumer<InstructionHandle> what) {
+		private void forEachPusher(InstructionHandle ih, int slots, Consumer<InstructionHandle> what, Runnable ifCannotFollow) {
 			Set<HeightAtBytecode> seen = new HashSet<>();
 			List<HeightAtBytecode> workingSet = new ArrayList<>();
 			HeightAtBytecode start = new HeightAtBytecode(ih, slots);
@@ -770,7 +775,7 @@ class ClassInstrumentation {
 					// we proceed with the instructions that jump at currentIh
 					InstructionTargeter[] targeters = currentIh.getTargeters();
 					if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
-						throw new IllegalStateException("Cannot find stack pushers for " + start);
+						ifCannotFollow.run();
 
 					Stream.of(targeters)
 						.filter(targeter -> targeter instanceof BranchInstruction)
