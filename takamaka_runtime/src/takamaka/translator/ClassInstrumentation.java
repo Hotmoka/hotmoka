@@ -2,6 +2,7 @@ package takamaka.translator;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -26,6 +27,7 @@ import java.util.stream.StreamSupport;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.ClassFormatException;
+import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
@@ -387,19 +389,7 @@ class ClassInstrumentation {
 				local += arg.getSize();
 			}
 
-			short invoke;
-			if (invokeKind == Const.REF_invokeVirtual)
-				invoke = Const.INVOKEVIRTUAL;
-			else if (invokeKind == Const.REF_invokeSpecial)
-				invoke = Const.INVOKESPECIAL;
-			else if (invokeKind == Const.REF_invokeInterface)
-				invoke = Const.INVOKEINTERFACE;
-			else if (invokeKind == Const.REF_newInvokeSpecial)
-				invoke = Const.INVOKESPECIAL;
-			else
-				throw new IllegalStateException("Unexpected lambda invocation kind " + invokeKind);
-
-			il.append(factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs, invoke));
+			il.append(factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs, invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 			il.append(InstructionFactory.createReturn(lambdaReturnType));
 
 			MethodGen addedLambda = new MethodGen(PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
@@ -408,6 +398,17 @@ class ClassInstrumentation {
 			addedLambda.setMaxStack();
 			classGen.addMethod(addedLambda.getMethod());
 			bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
+		}
+
+		private short invokeCorrespondingToBootstrapInvocationType(int invokeKind) {
+			switch (invokeKind) {
+			case Const.REF_invokeVirtual: return Const.INVOKEVIRTUAL;
+			case Const.REF_invokeSpecial:
+			case Const.REF_newInvokeSpecial: return Const.INVOKESPECIAL;
+			case Const.REF_invokeInterface: return Const.INVOKEINTERFACE;
+			case Const.REF_invokeStatic: return Const.INVOKESTATIC;
+			default: throw new IllegalStateException("Unexpected lambda invocation kind " + invokeKind);
+			}
 		}
 
 		/**
@@ -564,11 +565,28 @@ class ClassInstrumentation {
 					}
 					else if (ins instanceof InvokeInstruction) {
 						Executable model = classGen.whiteListingModelOf((InvokeInstruction) ins);
-						if (containsProofObligations(model)) {
+						if (containsProofObligations(model))
 							addWhiteListVerificationMethod((InvokeInstruction) ins, model);
-						}
 					}
 				}
+		}
+
+		private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
+			BootstrapMethod bootstrap = classGen.getBootstrapFor(invokedynamic);
+			Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
+			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+			ConstantMethodref mr = (ConstantMethodref) constant2;
+			int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+			String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+			String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+			String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+
+			// this meta-factory is used by Java compilers for optimized concatenation into string
+			return "java.lang.invoke.StringConcatFactory".equals(className) &&
+					"makeConcatWithConstants".equals(methodName) &&
+					"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;".equals(methodSignature);
 		}
 
 		/**
@@ -580,14 +598,91 @@ class ClassInstrumentation {
 		 *              to be white-listed
 		 */
 		private void addWhiteListVerificationMethod(InvokeInstruction ins, Executable model) {
+			if (ins instanceof INVOKEDYNAMIC)
+				if (isCallToConcatenationMetaFactory((INVOKEDYNAMIC) ins))
+					addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation((INVOKEDYNAMIC) ins);
+				else
+					addWhiteListVerificationMethod((INVOKEDYNAMIC) ins, model);
+			else
+				addWhiteListVerificationMethodForNonINVOKEDYNAMIC(ins, model);
+		}
+
+		private void addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC ins) {
+			//System.out.println(ins);
+		}
+
+		/**
+		 * Adds a static method to the class under instrumentation, that checks
+		 * that the white-listing proof obligations in the model hold at run time.
+		 * 
+		 * @param invokedynamic the call instruction whose parameters must be verified
+		 * @param model the model that contains the proof obligations in order, for the call,
+		 *              to be white-listed
+		 */
+		private void addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
+			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
+			InstructionList il = new InstructionList();
+			List<Type> args = new ArrayList<>();
+			BootstrapMethod bootstrap = classGen.getBootstrapFor(invokedynamic);
+			int[] bootstrapArgs = bootstrap.getBootstrapArguments();
+			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(bootstrapArgs[1]);
+			int invokeKind = mh.getReferenceKind();
+			Executable target = classGen.getTargetOf(invokedynamic);
+			Class<?> receiverClass = target.getDeclaringClass();
+			if (receiverClass.isArray())
+				receiverClass = Object.class;
+			Type receiver = Type.getType(receiverClass);
+			Type verifierReturnType = target instanceof Constructor<?> ?
+				Type.VOID :
+				Type.getType(((java.lang.reflect.Method) target).getReturnType());
+			int index = 0;
+
+			if (!Modifier.isStatic(target.getModifiers())) {
+				il.append(InstructionFactory.createLoad(receiver, index));
+				index += receiver.getSize();
+				addWhiteListingChecksFor(model.getAnnotations(), receiver, il);
+			}
+
+			int par = 0;
+			Annotation[][] anns = model.getParameterAnnotations();
+
+			for (Class<?> arg: target.getParameterTypes()) {
+				Type argType = Type.getType(arg);
+				args.add(argType);
+				il.append(InstructionFactory.createLoad(argType, index));
+				index += argType.getSize();
+				addWhiteListingChecksFor(anns[par], argType, il);
+				par++;
+			}
+
+			Type[] argsAsArray = args.toArray(new Type[args.size()]);
+			il.append(factory.createInvoke(receiverClass.getName(), target.getName(), verifierReturnType, argsAsArray, invokeCorrespondingToBootstrapInvocationType(invokeKind)));
+			il.append(InstructionFactory.createReturn(verifierReturnType));
+
+			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
+
+			il.setPositions();
+			addedVerifier.setMaxLocals();
+			addedVerifier.setMaxStack();
+			classGen.addMethod(addedVerifier.getMethod());
+		}
+
+		/**
+		 * Adds a static method to the class under instrumentation, that checks
+		 * that the white-listing proof obligations in the model hold at run time.
+		 * 
+		 * @param ins the call instruction whose parameters must be verified
+		 * @param model the model that contains the proof obligations in order, for the call,
+		 *              to be white-listed
+		 */
+		private void addWhiteListVerificationMethodForNonINVOKEDYNAMIC(InvokeInstruction ins, Executable model) {
 			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
 			Type verifierReturnType = ins.getReturnType(cpg);
 			InstructionList il = new InstructionList();
 			List<Type> args = new ArrayList<>();
-			boolean hasReceiver = !(ins instanceof INVOKESTATIC) && !(ins instanceof INVOKEDYNAMIC);
 			int index = 0;
 
-			if (hasReceiver) {
+			if (!(ins instanceof INVOKESTATIC)) {
 				ReferenceType receiver = ins.getReferenceType(cpg);
 				if (receiver instanceof ObjectType)
 					args.add(receiver);
@@ -602,9 +697,8 @@ class ClassInstrumentation {
 			int par = 0;
 			Annotation[][] anns = model.getParameterAnnotations();
 
-			for (Class<?> arg: model.getParameterTypes()) {
-				Type argType = Type.getType(arg);
-				args.add(Type.getType(arg));
+			for (Type argType: ins.getArgumentTypes(cpg)) {
+				args.add(argType);
 				il.append(InstructionFactory.createLoad(argType, index));
 				index += argType.getSize();
 				addWhiteListingChecksFor(anns[par], argType, il);

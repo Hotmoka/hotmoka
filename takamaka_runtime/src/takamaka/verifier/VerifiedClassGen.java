@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -132,6 +133,16 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	public BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) {
 		ConstantInvokeDynamic cid = (ConstantInvokeDynamic) getConstantPool().getConstant(invokedynamic.getIndex());
 		return bootstrapMethods[cid.getBootstrapMethodAttrIndex()];
+	}
+
+	/**
+	 * Yields the lambda method that is called by the given instruction.
+	 * 
+	 * @param invokedynamic the instruction
+	 * @return the lambda method
+	 */
+	public Executable getTargetOf(INVOKEDYNAMIC invokedynamic) {
+		return getTargetOf(getBootstrapFor(invokedynamic)).get();
 	}
 
 	/**
@@ -318,12 +329,13 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
 	
 			// this factory is used to create call sites that lead to string concatenation of every
-			// possible argument type. Generically, we yield the string concatenation against Object
+			// possible argument type. Generically, we yield the Objects.toString(Object) method, since
+			// all parameters must be checked in order for the call to be white-listed
 			try {
-				return Optional.of(String.class.getMethod("concat", String.class));
+				return Optional.of(Objects.class.getMethod("toString", Object.class));
 			}
 			catch (NoSuchMethodException | SecurityException e) {
-				throw new IncompleteClasspathError(new ClassNotFoundException("java.lang.String"));
+				throw new IncompleteClasspathError(new ClassNotFoundException("java.util.Objects"));
 			}
 		}
 	
@@ -627,7 +639,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		return resolveConstructorAux(className, expandArgsForEntry(args));
 	}
 
-	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws IncompleteClasspathError {
+	private Class<?>[] expandArgsForEntry(Class<?>[] args) {
 		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
 		System.arraycopy(args, 0, expandedArgs, 0, args.length);
 		Class<?> contractClass;

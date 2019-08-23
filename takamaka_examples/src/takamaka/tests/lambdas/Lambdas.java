@@ -1,7 +1,9 @@
 package takamaka.tests.lambdas;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import takamaka.lang.Entry;
@@ -98,5 +100,16 @@ public class Lambdas extends ExternallyOwnedAccount {
 
 	public @Entry void entry4(Function<BigInteger, Lambdas> fun) {
 		fun.apply(BigInteger.ONE).receive(4);
+	}
+
+	public int whiteList1(String[] ss) {
+		return Stream.of(ss)
+			.map(Objects::toString)
+			.collect(Collectors.joining())
+			.length();
+	}
+
+	public String concatenation(String s1, String s2, String s3) {
+		return s1 + s2 + s3;
 	}
 }
