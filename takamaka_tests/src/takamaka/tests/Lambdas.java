@@ -28,10 +28,13 @@ import takamaka.blockchain.request.GameteCreationTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.BigIntegerValue;
 import takamaka.blockchain.values.IntValue;
+import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.StorageReference;
+import takamaka.blockchain.values.StringValue;
 import takamaka.lang.RequirementViolationException;
 import takamaka.memory.MemoryBlockchain;
 
@@ -181,5 +184,31 @@ class Lambdas {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new VoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntryPopResult"),
 			lambdas));
+	}
+
+	@Test @DisplayName("new Lambdas().whiteListChecks(13,1,1973)==7")
+	void testWhiteListChecks() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+		IntValue result = (IntValue) blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath,
+					new NonVoidMethodSignature(LAMBDAS, "whiteListChecks", INT, ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT),
+			lambdas, new BigIntegerValue(BigInteger.valueOf(13L)), new BigIntegerValue(BigInteger.valueOf(1L)), new BigIntegerValue(BigInteger.valueOf(1973L))));
+
+		assertEquals(7, result.value);
+	}
+
+	@Test @DisplayName("new Lambdas().concatenation(\"hello\", \"hi\", self, 1973L, 13)==\"\"")
+	void testConcatenation() throws TransactionException, CodeExecutionException {
+		StorageReference lambdas = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
+		StringValue result = (StringValue) blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath,
+					new NonVoidMethodSignature(LAMBDAS, "concatenation", ClassType.STRING,
+					ClassType.STRING, ClassType.OBJECT, LAMBDAS, BasicTypes.LONG, INT),
+			lambdas,
+			new StringValue("hello"), new StringValue("hi"), lambdas, new LongValue(1973L), new IntValue(13)));
+
+		assertEquals("hellohian externally owned account197313", result.value);
 	}
 }

@@ -607,8 +607,45 @@ class ClassInstrumentation {
 				addWhiteListVerificationMethodForNonINVOKEDYNAMIC(ins, model);
 		}
 
-		private void addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC ins) {
-			//System.out.println(ins);
+		private void addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) {
+			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
+			InstructionList il = new InstructionList();
+			String signature = invokedynamic.getSignature(cpg);
+			Type verifierReturnType = Type.getReturnType(signature);
+			Type[] args = Type.getArgumentTypes(signature);
+
+			int index = 0;
+
+			for (Type argType: args) {
+				il.append(InstructionFactory.createLoad(argType, index));
+				index += argType.getSize();
+				if (argType instanceof ObjectType) {
+					Class<?> argClass;
+					try {
+						argClass = classLoader.loadClass(((ObjectType) argType).getClassName());
+					}
+					catch (ClassNotFoundException e) {
+						throw new IncompleteClasspathError(e);
+					}
+
+					// we check if we can statically verify that the value redefines hashCode or toString
+					if (!Takamaka.redefinesHashCodeOrToString(argClass)) {
+						il.append(InstructionFactory.createDup(argType.getSize()));
+						il.append(factory.createInvoke(TAKAMAKA_CLASS_NAME, lowerInitial(MustRedefineHashCodeOrToString.class.getSimpleName()),
+								Type.VOID, new Type[] { Type.OBJECT }, Const.INVOKESTATIC));
+					}
+				}
+			}
+
+			il.append(invokedynamic);
+			il.append(InstructionFactory.createReturn(verifierReturnType));
+
+			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args, null, verifierName, className, il, cpg);
+
+			il.setPositions();
+			addedVerifier.setMaxLocals();
+			addedVerifier.setMaxStack();
+			classGen.addMethod(addedVerifier.getMethod());
 		}
 
 		/**

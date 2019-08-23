@@ -173,12 +173,15 @@ public abstract class Takamaka {
 	}
 
 	public static void mustRedefineHashCodeOrToString(Object value) {
-		if (value != null)
-			if (Stream.of(value.getClass().getMethods())
-				.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
-				.map(Method::getName)
-				.noneMatch(name -> "hashCode".equals(name) || "toString".equals(name)))
-				throw new NotWhiteListedCallException("value must redefine Object.hashCode() or Object.toString()");
+		if (value != null && !redefinesHashCodeOrToString(value.getClass()))
+			throw new NotWhiteListedCallException("value must redefine Object.hashCode() or Object.toString()");
+	}
+
+	public static boolean redefinesHashCodeOrToString(Class<?> clazz) {
+		return Stream.of(clazz.getMethods())
+			.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
+			.map(Method::getName)
+			.anyMatch(name -> "hashCode".equals(name) || "toString".equals(name));
 	}
 
 	/**
