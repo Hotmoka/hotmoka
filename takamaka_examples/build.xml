@@ -83,6 +83,12 @@
   	<jar jarfile="${dist}/illegalcalltononwhitelistedconstructor2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedconstructor2/**"/>
   	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod1/**"/>
 	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod2/**"/>
+  	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod3.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod3/**"/>
+	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod4.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod4/**"/>
+	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod5.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod5/**"/>
+  	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod6.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod6/**"/>
+	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod7.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod7/**"/>
+	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod8.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod8/**"/>
   	<jar jarfile="${dist}/legalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalexceptionhandler1/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**,**/takamaka/lang/**"/>
   </target>

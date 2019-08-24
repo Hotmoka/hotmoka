@@ -158,23 +158,23 @@ public abstract class Takamaka {
 		return blockchain.getNow();
 	}
 
-	public static void mustBeFalse(boolean value) {
+	public static void mustBeFalse(boolean value, String methodName) {
 		if (value)
-			throw new NotWhiteListedCallException("parameter must be false");
+			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must be false");
 	}
 
-	public static void mustRedefineHashCode(Object value) {
+	public static void mustRedefineHashCode(Object value, String methodName) {
 		if (value != null)
 			if (Stream.of(value.getClass().getMethods())
 				.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
 				.map(Method::getName)
 				.noneMatch("hashCode"::equals))
-				throw new NotWhiteListedCallException("value must redefine Object.hashCode()");
+				throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must redefine Object.hashCode()");
 	}
 
-	public static void mustRedefineHashCodeOrToString(Object value) {
+	public static void mustRedefineHashCodeOrToString(Object value, String methodName) {
 		if (value != null && !redefinesHashCodeOrToString(value.getClass()))
-			throw new NotWhiteListedCallException("value must redefine Object.hashCode() or Object.toString()");
+			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must redefine Object.hashCode() or Object.toString()");
 	}
 
 	public static boolean redefinesHashCodeOrToString(Class<?> clazz) {

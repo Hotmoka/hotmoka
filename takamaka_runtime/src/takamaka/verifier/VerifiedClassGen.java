@@ -1318,8 +1318,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 							}
 						}
 					}
-				//TODO: check @MustBeFalse
-				//TODO: check @MustRedefineHashcode
 			}
 		}
 	}
