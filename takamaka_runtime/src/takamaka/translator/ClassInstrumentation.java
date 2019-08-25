@@ -116,8 +116,7 @@ class ClassInstrumentation {
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
-	private final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC
-			| Const.ACC_TRANSIENT;
+	private final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_TRANSIENT;
 
 	/**
 	 * The order used for generating the parameters of the instrumented
@@ -602,14 +601,14 @@ class ClassInstrumentation {
 					}
 					else if (ins instanceof InvokeInstruction) {
 						// we share the same checker for equivalent invoke instructions
-						String key = keyFor((InvokeInstruction) ins);
+						String key = keyFor(ih);
 						InvokeInstruction replacement = whiteListingCache.get(key);
 						if (replacement != null)
 							ih.setInstruction(replacement);
 						else {
 							Executable model = classGen.whiteListingModelOf((InvokeInstruction) ins);
 							if (containsProofObligations(model)) {
-								replacement = addWhiteListVerificationMethod(ih, (InvokeInstruction) ins, model);
+								replacement = addWhiteListVerificationMethod(ih, (InvokeInstruction) ins, model, key);
 								whiteListingCache.put(key, replacement);
 								ih.setInstruction(replacement);
 							}
@@ -645,25 +644,64 @@ class ClassInstrumentation {
 		 * @param ins the call instruction whose parameters must be verified
 		 * @param model the model that contains the proof obligations in order, for the
 		 *              call, to be white-listed
+		 * @param key the key used to identify equivalent invoke instructions. It is used to check which
+		 *            proof obligations need to be checked at run time
 		 * @return the invoke instruction that must be used, instead of {@code ins}, to
 		 *         call the freshly added method
 		 */
-		private InvokeInstruction addWhiteListVerificationMethod(InstructionHandle ih, InvokeInstruction ins, Executable model) {
+		private InvokeInstruction addWhiteListVerificationMethod(InstructionHandle ih, InvokeInstruction ins, Executable model, String key) {
 			if (ins instanceof INVOKEDYNAMIC)
 				if (isCallToConcatenationMetaFactory((INVOKEDYNAMIC) ins))
 					return addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation((INVOKEDYNAMIC) ins);
 				else
 					return addWhiteListVerificationMethod((INVOKEDYNAMIC) ins, model);
 			else
-				return addWhiteListVerificationMethodForNonINVOKEDYNAMIC(ih, ins, model);
+				return addWhiteListVerificationMethodForNonINVOKEDYNAMIC(ih, ins, model, key);
 		}
 
-		private String keyFor(InvokeInstruction ins) {
+		private String keyFor(InstructionHandle ih) {
+			InvokeInstruction ins = (InvokeInstruction) ih.getInstruction();
+
 			String key;
 			if (ins instanceof INVOKEDYNAMIC)
 				key = ins.getName() + " #" + ((ConstantInvokeDynamic) cpg.getConstant(((INVOKEDYNAMIC) ins).getIndex())).getBootstrapMethodAttrIndex();
-			else
+			else {
 				key = ins.getName() + " " + ins.getReferenceType(cpg) + "." + ins.getMethodName(cpg) + ins.getSignature(cpg);
+				// we add a mask that specifies the white-listing proof obligations that can be discharged, since
+				// we can use the same verifier only if two instructions need verification of the same proof obligations
+				Executable model = classGen.whiteListingModelOf((InvokeInstruction) ins);
+				if (containsProofObligations(model)) {
+					int slots = ins.consumeStack(cpg);
+					String mask = "";
+
+					if (!(ins instanceof INVOKESTATIC)) {
+						int slotsCopy = slots;
+						mask += Stream.of(model.getAnnotations())
+								.map(Annotation::annotationType)
+								.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
+								.map(annotationType -> canBeStaticallyDicharged(annotationType, ih, slotsCopy) ? "0" : "1")
+								.collect(Collectors.joining());
+						slots--;
+					}
+
+					Annotation[][] anns = model.getParameterAnnotations();
+					int par = 0;
+					for (Type argType: ins.getArgumentTypes(cpg)) {
+						int slotsCopy = slots;
+						mask += Stream.of(anns[par])
+								.flatMap(Stream::of)
+								.map(Annotation::annotationType)
+								.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
+								.map(annotationType -> canBeStaticallyDicharged(annotationType, ih, slotsCopy) ? "0" : "1")
+								.collect(Collectors.joining());
+						par++;
+						slots -= argType.getSize();
+					}
+
+					key = mask + ": " + key;
+				}
+			}
+
 			return key;
 		}
 
@@ -684,7 +722,8 @@ class ClassInstrumentation {
 					Class<?> argClass;
 					try {
 						argClass = classLoader.loadClass(((ObjectType) argType).getClassName());
-					} catch (ClassNotFoundException e) {
+					}
+					catch (ClassNotFoundException e) {
 						throw new IncompleteClasspathError(e);
 					}
 
@@ -702,7 +741,9 @@ class ClassInstrumentation {
 			}
 
 			// if all proof obligations can be discharged statically, we do not generate
-			// any verification method and yield the same invoke instruction
+			// any verification method and yield the same invoke instruction. Note that this
+			// optimization depends on the static types of the arguments of the call only,
+			// hence it can be safely cached
 			if (!atLeastOneCheck)
 				return invokedynamic;
 
@@ -747,7 +788,7 @@ class ClassInstrumentation {
 			if (!Modifier.isStatic(target.getModifiers())) {
 				il.append(InstructionFactory.createLoad(receiver, index));
 				index += receiver.getSize();
-				addWhiteListingChecksFor(null, -1, model.getAnnotations(), receiver, il, target.getName());
+				addWhiteListingChecksFor(null, model.getAnnotations(), receiver, il, target.getName(), null, -1);
 			}
 
 			int par = 0;
@@ -758,7 +799,7 @@ class ClassInstrumentation {
 				args.add(argType);
 				il.append(InstructionFactory.createLoad(argType, index));
 				index += argType.getSize();
-				addWhiteListingChecksFor(null, -1, anns[par], argType, il, target.getName());
+				addWhiteListingChecksFor(null, anns[par], argType, il, target.getName(), null, -1);
 				par++;
 			}
 
@@ -787,19 +828,21 @@ class ClassInstrumentation {
 		 * Adds a static method to the class under instrumentation, that checks that the
 		 * white-listing proof obligations in the model hold at run time.
 		 * 
-		 * @param invoke   the call instruction whose parameters must be verified
+		 * @param invoke the call instruction whose parameters must be verified
+		 * @param key the key used to identify equivalent invoke instructions. It is used to check which
+		 *            proof obligations need to be checked at run time
 		 * @param model the model that contains the proof obligations in order, for the
 		 *              call, to be white-listed
 		 */
-		private InvokeInstruction addWhiteListVerificationMethodForNonINVOKEDYNAMIC(InstructionHandle ih, InvokeInstruction invoke, Executable model) {
+		private InvokeInstruction addWhiteListVerificationMethodForNonINVOKEDYNAMIC(InstructionHandle ih, InvokeInstruction invoke, Executable model, String key) {
 			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
 			Type verifierReturnType = invoke.getReturnType(cpg);
 			String methodName = invoke.getMethodName(cpg);
-			int consumed = invoke.consumeStack(cpg);
 			InstructionList il = new InstructionList();
 			List<Type> args = new ArrayList<>();
 			int index = 0;
 			boolean atLeastOne = false;
+			int annotationsCursor = 0;
 
 			if (!(invoke instanceof INVOKESTATIC)) {
 				ReferenceType receiver = invoke.getReferenceType(cpg);
@@ -809,8 +852,10 @@ class ClassInstrumentation {
 					args.add(ObjectType.OBJECT);
 
 				il.append(InstructionFactory.createLoad(receiver, index));
-				atLeastOne |= addWhiteListingChecksFor(ih, consumed, model.getAnnotations(), receiver, il, methodName);
+				Annotation[] anns = model.getAnnotations();
+				atLeastOne |= addWhiteListingChecksFor(ih, anns, receiver, il, methodName, key, annotationsCursor);
 				index++;
+				annotationsCursor += anns.length;
 			}
 
 			int par = 0;
@@ -819,8 +864,9 @@ class ClassInstrumentation {
 			for (Type argType: invoke.getArgumentTypes(cpg)) {
 				args.add(argType);
 				il.append(InstructionFactory.createLoad(argType, index));
-				atLeastOne |= addWhiteListingChecksFor(ih, consumed - index, anns[par], argType, il, methodName);
+				atLeastOne |= addWhiteListingChecksFor(ih, anns[par], argType, il, methodName, key, annotationsCursor);
 				index += argType.getSize();
+				annotationsCursor += anns[par].length;
 				par++;
 			}
 
@@ -843,22 +889,21 @@ class ClassInstrumentation {
 			return factory.createInvoke(className, verifierName, verifierReturnType, argsAsArray, Const.INVOKESTATIC);
 		}
 
-		private boolean addWhiteListingChecksFor(InstructionHandle ih, int slots, Annotation[] annotations, Type argType, InstructionList il, String methodName) {
+		private boolean addWhiteListingChecksFor(InstructionHandle ih, Annotation[] annotations, Type argType, InstructionList il, String methodName, String key, int annotationsCursor) {
 			int initialSize = il.getLength();
 
-			Stream.of(annotations)
-				.map(Annotation::annotationType)
-				.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
-				.filter(annotationType -> ih == null || !canBeStaticallyDicharged(annotationType, ih, slots))
-				.map(annotationType -> lowerInitial(annotationType.getSimpleName()))
-				.map(this::getTakamakaCheckNamed)
-				.map(checkMethod -> factory.createInvoke(TAKAMAKA_CLASS_NAME, checkMethod.getName(), Type.VOID,
-					new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC))
-				.forEachOrdered(invoke -> {
-					il.append(InstructionFactory.createDup(argType.getSize()));
-					il.append(factory.createConstant(methodName));
-					il.append(invoke);
-				});
+			for (Annotation ann: annotations) {
+				Class<?> annotationType = ann.annotationType();
+				if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
+					// we check if the annotation could not be statically discharged
+					if (ih == null || key.charAt(annotationsCursor++) == '1') {
+						il.append(InstructionFactory.createDup(argType.getSize()));
+						java.lang.reflect.Method checkMethod = getTakamakaCheckNamed(lowerInitial(annotationType.getSimpleName()));
+						il.append(factory.createConstant(methodName));
+						il.append(factory.createInvoke(TAKAMAKA_CLASS_NAME, checkMethod.getName(), Type.VOID,
+							new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC));
+					}
+			}
 
 			return il.getLength() > initialSize;
 		}
