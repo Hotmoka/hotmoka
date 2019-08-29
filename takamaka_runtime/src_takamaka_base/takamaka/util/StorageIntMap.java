@@ -104,6 +104,11 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 		public V getValue() {
 			return value;
 		}
+
+		@Override
+		public int hashCode() { // to allow to store Nodes inside Java lists
+			return 42;
+		}
 	}
 
 	/**

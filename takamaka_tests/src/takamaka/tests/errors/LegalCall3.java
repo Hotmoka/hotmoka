@@ -1,6 +1,6 @@
 package takamaka.tests.errors;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -13,16 +13,17 @@ import org.junit.jupiter.api.Test;
 
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
+import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
-import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
+import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
-import takamaka.lang.NonWhiteListedCallException;
+import takamaka.blockchain.values.BooleanValue;
 import takamaka.memory.InitializedMemoryBlockchain;
 
-class IllegalCallToNonWhiteListedMethod10 {
+class LegalCall3 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -36,25 +37,16 @@ class IllegalCallToNonWhiteListedMethod10 {
 		blockchain = new InitializedMemoryBlockchain(Paths.get("../takamaka_runtime/dist/takamaka_base.jar"), _1_000_000_000);
 	}
 
-	@Test @DisplayName("C.test() fails with a white-listing exception")
-	void installJar() throws TransactionException, CodeExecutionException, IOException {
+	@Test @DisplayName("C.test() == false")
+	void callTest() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegalcalltononwhitelistedmethod10.jar")), blockchain.takamakaBase));		
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall3.jar")), blockchain.takamakaBase));
 
-		try {
-			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+		BooleanValue result = (BooleanValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 				(blockchain.account(0), _20_000, new Classpath(jar, true),
-				new VoidMethodSignature(new ClassType("takamaka.tests.errors.illegalcalltononwhitelistedmethod10.C"), "test")));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof NonWhiteListedCallException)
-				return;
+				new NonVoidMethodSignature(new ClassType("takamaka.tests.errors.legalcall3.C"), "test", BasicTypes.BOOLEAN)));
 
-			e.printStackTrace();
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+		assertFalse(result.value);
 	}
 }

@@ -1,5 +1,6 @@
 package takamaka.whitelisted.java.util;
 
+import takamaka.lang.MustBeOrdered;
 import takamaka.lang.MustRedefineHashCode;
 
 public interface Collection<E> {
@@ -18,4 +19,5 @@ public interface Collection<E> {
 	boolean removeIf(java.util.function.Predicate<? super E> filter);
 	boolean retainAll(java.util.Collection<?> c);
 	void clear();
+	@MustBeOrdered java.util.stream.Stream<E> stream();
 }

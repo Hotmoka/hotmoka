@@ -1,13 +1,15 @@
 package takamaka.tests.errors.legalcall2;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
-public class C {
+import takamaka.lang.Storage;
+
+public class C extends Storage {
 	private String s = "";
 
 	public void test() {
-		List<String> list = new ArrayList<>();
+		Collection<String> list = new ArrayList<>();
 		list.add("hello");
 		list.add("how");
 		list.add("are");

@@ -94,6 +94,7 @@
   	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod10.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod10/**"/>
   	<jar jarfile="${dist}/legalcall1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcall1/**"/>
   	<jar jarfile="${dist}/legalcall2.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcall2/**"/>
+  	<jar jarfile="${dist}/legalcall3.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcall3/**"/>
   	<jar jarfile="${dist}/legalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalexceptionhandler1/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**,**/takamaka/lang/**"/>
   </target>

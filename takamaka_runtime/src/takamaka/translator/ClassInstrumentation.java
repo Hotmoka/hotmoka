@@ -80,6 +80,7 @@ import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.lang.Contract;
 import takamaka.lang.MustBeFalse;
+import takamaka.lang.MustBeOrdered;
 import takamaka.lang.MustRedefineHashCode;
 import takamaka.lang.MustRedefineHashCodeOrToString;
 import takamaka.lang.Storage;
@@ -919,11 +920,35 @@ class ClassInstrumentation {
 		}
 
 		private boolean canBeStaticallyDicharged(Class<? extends Annotation> annotationType, InstructionHandle ih, int slots) {
+			// ih contains an InvokeInstructoin distinct from INVOKEDYNAMIC
+
 			List<Instruction> pushers = new ArrayList<>();
 
 			if (annotationType == MustBeFalse.class) {
 				forEachPusher(ih, slots, where -> pushers.add(where.getInstruction()), () -> pushers.add(null));
 				return pushers.stream().allMatch(ins -> ins != null && ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
+			}
+			else if (annotationType == MustBeOrdered.class) {
+				InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
+				int consumed = invoke.consumeStack(cpg);
+				Type type;
+
+				if (invoke instanceof INVOKESTATIC)
+					type = invoke.getArgumentTypes(cpg)[consumed - slots];
+				else if (consumed == slots)
+					type = invoke.getReferenceType(cpg);
+				else
+					type = invoke.getArgumentTypes(cpg)[consumed - slots - 1];
+
+				Class<?> clazz;
+				try {
+					clazz = classLoader.loadClass(((ObjectType) type).getClassName());
+				}
+				catch (ClassNotFoundException e) {
+					throw new IncompleteClasspathError(e);
+				}
+
+				return type instanceof ObjectType && Takamaka.isOrdered(clazz);
 			}
 
 			return false;
@@ -961,7 +986,9 @@ class ClassInstrumentation {
 		}
 
 		private boolean isProofObligation(Class<?> annotation) {
-			return annotation == MustRedefineHashCode.class || annotation == MustRedefineHashCodeOrToString.class
+			return annotation == MustRedefineHashCode.class
+					|| annotation == MustRedefineHashCodeOrToString.class
+					|| annotation == MustBeOrdered.class
 					|| annotation == MustBeFalse.class;
 		}
 
