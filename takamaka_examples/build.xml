@@ -34,6 +34,7 @@
   	<jar jarfile="${dist}/voting.jar" basedir="${build}" includes="**/takamaka/tests/voting/**"/>
   	<jar jarfile="${dist}/crowdfunding.jar" basedir="${build}" includes="**/takamaka/tests/crowdfunding/**"/>
   	<jar jarfile="${dist}/collections.jar" basedir="${build}" includes="**/takamaka/tests/collections/**"/>
+  	<jar jarfile="${dist}/javacollections.jar" basedir="${build}" includes="**/takamaka/tests/javacollections/**"/>
   	<jar jarfile="${dist}/ponzi.jar" basedir="${build}" includes="**/takamaka/tests/ponzi/**"/>
   	<jar jarfile="${dist}/lambdas.jar" basedir="${build}" includes="**/takamaka/tests/lambdas/**"/>
   	<jar jarfile="${dist}/tictactoe.jar" basedir="${build}" includes="**/takamaka/tests/tictactoe/**"/>
@@ -89,6 +90,10 @@
   	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod6.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod6/**"/>
 	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod7.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod7/**"/>
 	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod8.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod8/**"/>
+  	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod9.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod9/**"/>
+  	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod10.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod10/**"/>
+  	<jar jarfile="${dist}/legalcall1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcall1/**"/>
+  	<jar jarfile="${dist}/legalcall2.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcall2/**"/>
   	<jar jarfile="${dist}/legalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalexceptionhandler1/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**,**/takamaka/lang/**"/>
   </target>

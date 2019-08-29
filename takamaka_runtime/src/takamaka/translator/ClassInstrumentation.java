@@ -845,11 +845,21 @@ class ClassInstrumentation {
 			int annotationsCursor = 0;
 
 			if (!(invoke instanceof INVOKESTATIC)) {
-				ReferenceType receiver = invoke.getReferenceType(cpg);
-				if (receiver instanceof ObjectType)
+				ReferenceType receiver;
+
+				if (invoke instanceof INVOKESPECIAL && !Const.CONSTRUCTOR_NAME.equals(methodName)) {
+					// call to a private instance method or to an instance method through super.m():
+					// we provide a more precise type for the receiver, that is needed for JVM verification
+					receiver = new ObjectType(className);
 					args.add(receiver);
-				else
-					args.add(ObjectType.OBJECT);
+				}
+				else {
+					receiver = invoke.getReferenceType(cpg);
+					if (receiver instanceof ObjectType)
+						args.add(receiver);
+					else
+						args.add(ObjectType.OBJECT);
+				}
 
 				il.append(InstructionFactory.createLoad(receiver, index));
 				Annotation[] anns = model.getAnnotations();

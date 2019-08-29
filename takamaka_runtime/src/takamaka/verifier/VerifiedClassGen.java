@@ -52,6 +52,8 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import takamaka.lang.MustRedefineHashCode;
+import takamaka.lang.MustRedefineHashCodeOrToString;
 import takamaka.lang.WhiteListed;
 import takamaka.translator.Dummy;
 import takamaka.translator.IncompleteClasspathError;
@@ -185,9 +187,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 *         and all accessed have been proved to be white-listed (up to possible proof obligations
 	 *         contained in the model).
 	 */
-	public Field whiteListingModelOf(FieldInstruction ins) {
+	public Field whiteListingModelOf(FieldInstruction fi) {
 		// it has already been verified that the access is white-listed, hence it must exist
-		return whiteListingModelOf(resolvedFieldFor(ins).get()).get();
+		return whiteListingModelOf(resolvedFieldFor(fi).get()).get();
 	}
 
 	/**
@@ -200,9 +202,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 *         and all accessed have been proved to be white-listed (up to possible proof obligations
 	 *         contained in the model).
 	 */
-	public Executable whiteListingModelOf(InvokeInstruction ins) {
+	public Executable whiteListingModelOf(InvokeInstruction invoke) {
 		// it has already been verified that the access is white-listed, hence it must exist
-		return whiteListingModelOf(resolvedExecutableFor(ins).get()).get();
+		return whiteListingModelOf(resolvedExecutableFor(invoke).get(), invoke).get();
 	}
 
 	private Optional<Field> resolvedFieldFor(FieldInstruction ins) {
@@ -371,9 +373,10 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * class, if it belongs to some Java run-time support class.
 	 * 
 	 * @param executable the method or constructor whose model is looked for
+	 * @param invoke the call to the method or constructor
 	 * @return the model of its white-listing, if it exists
 	 */
-	private Optional<? extends Executable> whiteListingModelOf(Executable executable) {
+	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
 		// if the class defining the constructor has been loaded by the blockchain class loader,
 		// then it comes from blockchain and the constructor is white-listed
 		Class<?> declaringClass = executable.getDeclaringClass();
@@ -383,14 +386,14 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		// otherwise, since constructors cannot be redefined in Java, either is the constructor explicitly
 		// annotated as white-listed, or it is not white-listed
 		else if (executable.isAnnotationPresent(WhiteListed.class))
-			return Optional.of(executable);
+			return checkINVOKESPECIAL(invoke, executable);
 		else if (executable instanceof Constructor<?>)
 			return constructorInWhiteListedLibraryFor((Constructor<?>) executable);
 		else {
 			java.lang.reflect.Method method = (java.lang.reflect.Method) executable;
 			Optional<? extends Executable> result = methodInWhiteListedLibraryFor(method);
 			if (result.isPresent())
-				return result;
+				return checkINVOKESPECIAL(invoke, result.get());
 
 			// a method might not be explicitly white-listed, but it might override a method
 			// of a superclass that is white-listed. Hence we check that possibility
@@ -399,24 +402,44 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				if (superclass != null) {
 					Optional<java.lang.reflect.Method> overridden = resolveMethod(superclass.getName(), method.getName(), method.getParameterTypes(), method.getReturnType());
 					if (overridden.isPresent()) {
-						result = whiteListingModelOf(overridden.get());
+						result = whiteListingModelOf(overridden.get(), invoke);
 						if (result.isPresent())
-							return result;
+							return checkINVOKESPECIAL(invoke, result.get());
 					}
 				}
 
 				for (Class<?> superinterface: declaringClass.getInterfaces()) {
 					Optional<java.lang.reflect.Method> overridden = resolveMethod(superinterface.getName(), method.getName(), method.getParameterTypes(), method.getReturnType());
 					if (overridden.isPresent()) {
-						result = whiteListingModelOf(overridden.get());
+						result = whiteListingModelOf(overridden.get(), invoke);
 						if (result.isPresent())
-							return result;
+							return checkINVOKESPECIAL(invoke, result.get());
 					}
 				}
 			}
 		}
 
 		return Optional.empty();
+	}
+
+	/**
+	 * If the given invoke instruction is an {@code invokespecial} and the given model
+	 * is annotated with {@link takamaka.lang.MustRedefineHashCode} or with
+	 * {@link takamaka.lang.MustRedefineHashCodeOrToString}, checks if the model
+	 * resolved target of the invoke is not in {@code java.lang.Object}. This check
+	 * is important in order to forbid calls such as super.hashCode() to the hashCode()
+	 * method of Object, that would be non-deterministic.
+	 * 
+	 * @param invoke the invoke instruction
+	 * @param model the white-listing model of the invoke
+	 * @return the optional containing the model, or the empty optional if the check fails
+	 */
+	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Executable model) {
+		if (invoke instanceof INVOKESPECIAL && resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
+			if (model.isAnnotationPresent(MustRedefineHashCode.class) || model.isAnnotationPresent(MustRedefineHashCodeOrToString.class))
+				return Optional.empty();
+
+		return Optional.of(model);
 	}
 
 	private Optional<Field> fieldInWhiteListedLibraryFor(Field field) {
@@ -1310,7 +1333,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 								issue(new UnresolvedCallError(VerifiedClassGen.this, method, lineOf(ih), invoke.getReferenceType(cpg).toString(), invoke.getMethodName(cpg)));
 							else {
 								Executable target = executable.get();
-								if (!whiteListingModelOf(target).isPresent())
+								if (!whiteListingModelOf(target, invoke).isPresent())
 									if (target instanceof Constructor<?>)
 										issue(new IllegalCallToNonWhiteListedConstructorError(VerifiedClassGen.this, method, lineOf(ih), target.getDeclaringClass().getName()));
 									else
