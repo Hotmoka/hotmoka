@@ -13,8 +13,6 @@ public interface Map<K, V> {
 	V remove(@MustRedefineHashCode java.lang.Object key);
 	void putAll(java.util.Map<? extends K, ? extends V> m);
 	void clear();
-	java.util.Collection<V> values();
-	java.util.Set<java.util.Map.Entry<K, V>> entrySet();
 	V getOrDefault(@MustRedefineHashCode java.lang.Object key, V defaultValue);
 	void forEach(java.util.function.BiConsumer<? super K, ? super V> action);
 	void replaceAll(java.util.function.BiFunction<? super K, ? super V, ? extends V> function);

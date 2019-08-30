@@ -1,6 +1,7 @@
 package takamaka.tests.errors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -21,15 +22,17 @@ import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StringValue;
+import takamaka.lang.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
 
-class LegalCall2 {
+class LegalCall4 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
-	private static final ClassType C = new ClassType("takamaka.tests.errors.legalcall2.C");
+	private static final ClassType C = new ClassType("takamaka.tests.errors.legalcall4.C");
 
 	/**
 	 * The blockchain under test. This is recreated before each test.
@@ -45,14 +48,14 @@ class LegalCall2 {
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall2.jar")), blockchain.takamakaBase));
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall4.jar")), blockchain.takamakaBase));
 	}
 
-	@Test @DisplayName("new C().test(); toString() == \"53331\"")
+	@Test @DisplayName("new C().test(); toString() == \"33531\"")
 	void newTestToString() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall2.jar")), blockchain.takamakaBase));
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall4.jar")), blockchain.takamakaBase));
 
 		Classpath classpath = new Classpath(jar, true);
 
@@ -65,6 +68,6 @@ class LegalCall2 {
 		StringValue result = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(blockchain.account(0), _20_000, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c));
 
-		assertEquals("53331", result.value);
+		assertEquals("33531", result.value);
 	}
 }
