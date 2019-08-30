@@ -22,6 +22,7 @@
 		<!--	    	debug="true" debuglevel="lines,vars,source" includeantruntime="true" -->
       <classpath>
     	<fileset dir="lib" includes="*.jar" />
+      	<pathelement path="../takamaka_white_listing/bin" />
       </classpath>
     </javac>
   </target>

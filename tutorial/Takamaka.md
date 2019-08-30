@@ -139,11 +139,11 @@ Let us hence create another Eclipse project, that will start
 a local simulation of a blockchain node, actually working over the disk memory
 of our local machine. That blockchain simulation in memory is inside a third Takamaka jar.
 Create then another Eclipse project named `blockchain`, add a `lib` folder and
-include three Takamaka jars inside `lib`; both `takamaka_runtime.jar` and
+include four Takamaka jars inside `lib`; `takamaka_runtime.jar`, `takamaka_white_listing.jar` and
 `takamaka_memory.jar` must be added to the build path of this project;
-do not add, instead, `takamaka_base.jar` to the build path: these base classes are
+do not add, instead, `takamaka_base.jar` to the build path: its classes are
 needed for developing Takamaka code (as shown before) and will be installed in blockchain
-and referenced thorugh the classpath of our running code. But they must not be part of the build path
+and referenced through the classpath of our running code. But they must not be part of the build path
 of the blockchain simulation project.
 Finally, add inside `lib` and to the build path the BCEL jar that Takamaka uses for code instrumentation
 and the jar that Takamaka uses for recomputing bytecode stack maps after code instrumentation.
@@ -3198,13 +3198,10 @@ Takamaka verifies the following static constraints:
 
 15. if a method or constructor is annotated as `@ThrowsException`,
     then it is public;
-
 16. if a method is annotated as `@ThrowsException` and overrides another method,
   then the latter is annotated as `@ThrowsException` as well;
-
 17. if a method is annotated as `@ThrowsException` and is overridden by another method,
-  then the latter is annotated as `@ThrowsException` as well;
-  
+  then the latter is annotated as `@ThrowsException` as well;  
 18. classes installed in the blockchain are not in packages `java.*`, `javax.*`
     or `takamaka.*`, with the exception of `takamaka.tests.*`, which is allowed;
     moreover, during blockchain initialization also packages `takamaka.*` are
@@ -3233,7 +3230,7 @@ Takamaka verifies the following static constraints:
 
 20. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
-    or of `java.lang.invoke.StringConcatFactory.makeConcatWithConstants`.
+    or of `java.lang.invoke.StringConcatFactory.makeConcatWithConstants`;
 
 > This condition is needed since other call-site resolvers could call any
 > method, depending on their algorithmic implementation, actually
@@ -3241,7 +3238,6 @@ Takamaka verifies the following static constraints:
 > Java compilers currently do not generate other call-site resolvers.
 
 21. there are no native methods;
-
 22. there are no `synchronized` methods, nor `synchronized` blocks.
 
 Takamaka verifies the following dynamic constraints:
@@ -3265,7 +3261,6 @@ Takamaka verifies the following dynamic constraints:
 
 4. a bytecode instruction is executed only if there is enough gas for
    its execution;
-
 5. a white-listed method or constructor with white-listing proof obligations
    is executed only if those proof obligations are satisfied.
 
