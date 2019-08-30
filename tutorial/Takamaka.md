@@ -3291,7 +3291,7 @@ $ ls -R
 family.jar  family_wrong.jar  takamaka_base.jar
 
 ./lib:
-bcel-6.2.jar  commons-cli-1.4.jar  stackmap.jar  takamaka_runtime.jar  takamaka_translator.jar
+bcel-6.2.jar  commons-cli-1.4.jar  stackmap.jar  takamaka_runtime.jar  takamaka_translator.jar takamaka_white_listing.jar
 ```
 The jars in `jars` are those that we will verify and instrument.
 `takamaka_base.jar` is needed as dependency of the others.
@@ -3335,7 +3335,7 @@ public class Person extends Storage {
 ```
 We can run the utility without parameters, just to discover its syntax:
 ```shell
-$ export JARS=lib/takamaka_translator.jar:lib/commons-cli-1.4.jar:lib/bcel-6.2.jar:lib/stackmap.jar:lib/takamaka_runtime.jar
+$ export JARS=lib/takamaka_translator.jar:lib/commons-cli-1.4.jar:lib/bcel-6.2.jar:lib/stackmap.jar:lib/takamaka_runtime.jar:lib/takamaka_white_listing.jar
 $ java -classpath $JARS takamaka.translator.Translator
 
 Syntax error: Missing required options: app, o
