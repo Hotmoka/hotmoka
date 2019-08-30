@@ -43,7 +43,7 @@ class IllegalExceptionHandler3 {
 		}
 		catch (TransactionException e) {
 			if (e.getCause() instanceof VerificationException
-					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.CatchForUncheckedExceptionError)
+					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.UncheckedExceptionHandlerError)
 				return;
 
 			e.printStackTrace();

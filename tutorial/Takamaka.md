@@ -3229,7 +3229,7 @@ Takamaka verifies the following static constraints:
 > `takamaka.lang.Takamaka` is loaded from the Java classpath and
 > is white-listed since it is explicitly annotated
 > as such. Method `java.lang.System.currentTimeMillis()` is not white-listed,
-> since it is loaded from the Java classpath and is not annotated as white-listed.
+> since it is loaded from the Java classpath and is not annotated as white-listed;
 
 20. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
@@ -3239,6 +3239,10 @@ Takamaka verifies the following static constraints:
 > method, depending on their algorithmic implementation, actually
 > side-stepping the white-listing constraint imposed by Takamaka.
 > Java compilers currently do not generate other call-site resolvers.
+
+21. there are no native methods;
+
+22. there are no `synchronized` methods, nor `synchronized` blocks.
 
 Takamaka verifies the following dynamic constraints:
 
@@ -3260,7 +3264,10 @@ Takamaka verifies the following dynamic constraints:
 > constructor to an `@Entry` constructor of the superclass (`super(...)`). 
 
 4. a bytecode instruction is executed only if there is enough gas for
-   its execution.
+   its execution;
+
+5. a white-listed method or constructor with white-listing proof obligations
+   is executed only if those proof obligations are satisfied.
 
 ## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
 

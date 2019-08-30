@@ -43,6 +43,8 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.JsrInstruction;
 import org.apache.bcel.generic.LoadInstruction;
+import org.apache.bcel.generic.MONITORENTER;
+import org.apache.bcel.generic.MONITOREXIT;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
@@ -571,7 +573,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * @return true if that condition holds
 	 */
 	private boolean callsEntry(Method lambda) {
-		if (!lambda.isAbstract()) {
+		if (hasCode(lambda)) {
 			MethodGen mg = new MethodGen(lambda, getClassName(), getConstantPool());
 			return StreamSupport.stream(mg.getInstructionList().spliterator(), false)
 				.anyMatch(ih -> callsEntry(ih, true));
@@ -753,6 +755,10 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		}
 	
 		return Optional.empty();
+	}
+
+	private boolean hasCode(Method method) {
+		return method.getCode() != null;
 	}
 
 	/**
@@ -1143,15 +1149,27 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				this.lines = methodGen.getLineNumberTable(cpg);
 
 				isNotStaticInitializer();
+				isNotNative();
 				thereAreNoUnusualBytecodes();
+				isNotSynchronized();
 				callerOccursOnThisInEntries();
 				entriesAreOnlyCalledFromInstanceCodeOfContracts();
 				exceptionHandlersAreForCheckedExceptionsOnly();
 				onlyWhiteListedCodeIsUsed();
 			}
 
+			private void isNotSynchronized() {
+				if (method.isSynchronized())
+					issue(new IllegalSynchronizationError(VerifiedClassGen.this, method));
+			}
+
+			private void isNotNative() {
+				if (method.isNative())
+					issue(new IllegalNativeMethodError(VerifiedClassGen.this, method));
+			}
+
 			private void isNotStaticInitializer() {
-				if (!method.isAbstract() && method.getName().equals(Const.STATIC_INITIALIZER_NAME))
+				if (hasCode(method) && method.getName().equals(Const.STATIC_INITIALIZER_NAME))
 					if (isEnum() || isSynthetic()) {
 						// checks that the static fields of {@code enum}'s or synthetic classes
 						// with a static initializer
@@ -1189,7 +1207,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			 * since they make code verification more difficult.
 			 */
 			private void thereAreNoUnusualBytecodes() {
-				if (!method.isAbstract())
+				if (hasCode(method))
 					instructions().forEach(this::checkIfItIsIllegal);
 			}
 
@@ -1208,6 +1226,8 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 					issue(new IllegalRetInstructionError(VerifiedClassGen.this, method, lineOf(ih)));
 				else if (!method.isStatic() && ins instanceof StoreInstruction && ((StoreInstruction) ins).getIndex() == 0)
 					issue(new IllegalUpdateOfLocal0Error(VerifiedClassGen.this, method, lineOf(ih)));					
+				else if (ins instanceof MONITORENTER || ins instanceof MONITOREXIT)
+					issue(new IllegalSynchronizationError(VerifiedClassGen.this, method, lineOf(ih)));
 			}
 
 			/**
@@ -1281,7 +1301,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			}
 
 			private void exceptionHandlersAreForCheckedExceptionsOnly() {
-				if (!method.isAbstract()) {
+				if (hasCode(method)) {
 					CodeException[] excs = method.getCode().getExceptionTable();
 					if (excs != null)
 						for (CodeException exc: excs) {
@@ -1297,7 +1317,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 								continue;
 
 							if (canCatchUncheckedExceptions(exceptionName))
-								issue(new CatchForUncheckedExceptionError(VerifiedClassGen.this, method, lines != null ? lines.getSourceLine(exc.getHandlerPC()) : -1, exceptionName));
+								issue(new UncheckedExceptionHandlerError(VerifiedClassGen.this, method, lines != null ? lines.getSourceLine(exc.getHandlerPC()) : -1, exceptionName));
 						}
 				}
 			}

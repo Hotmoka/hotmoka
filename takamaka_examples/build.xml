@@ -73,6 +73,9 @@
   	<jar jarfile="${dist}/legalstaticinitialization2.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization2/**"/>
   	<jar jarfile="${dist}/legalstaticinitialization3.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization3/**"/>
   	<jar jarfile="${dist}/illegalstaticfieldupdate.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalstaticfieldupdate/**"/>
+  	<jar jarfile="${dist}/illegalnative.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalnative/**"/>
+  	<jar jarfile="${dist}/illegalsynchronized1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalsynchronized1/**"/>
+  	<jar jarfile="${dist}/illegalsynchronized2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalsynchronized2/**"/>
   	<jar jarfile="${dist}/illegalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler1/**"/>
   	<jar jarfile="${dist}/illegalexceptionhandler2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler2/**"/>
   	<jar jarfile="${dist}/illegalexceptionhandler3.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler3/**"/>
