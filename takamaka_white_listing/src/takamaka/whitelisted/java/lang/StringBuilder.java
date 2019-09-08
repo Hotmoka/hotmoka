@@ -1,5 +1,7 @@
 package takamaka.whitelisted.java.lang;
 
+import takamaka.lang.MustRedefineHashCodeOrToString;
+
 public abstract class StringBuilder {
 
 	public StringBuilder() {
@@ -18,5 +20,6 @@ public abstract class StringBuilder {
 	public abstract java.lang.StringBuilder append(float f);
 	public abstract java.lang.StringBuilder append(double d);
 	public abstract java.lang.StringBuilder append(java.lang.String s);
+	public abstract java.lang.StringBuilder append(@MustRedefineHashCodeOrToString java.lang.Object o);
 	public abstract java.lang.String toString();
 }

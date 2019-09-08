@@ -483,7 +483,20 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	private Optional<java.lang.reflect.Method> methodInWhiteListedLibraryFor(java.lang.reflect.Method method) {
-		String expandedClassName = Anchor.WHITE_LISTED_ROOT + "." + method.getDeclaringClass().getName();
+		Class<?> declaringClass = method.getDeclaringClass();
+
+		// Method Object.getClass() is white-listed but we cannot put it in the white-listed library,
+		// since that method is final in Object
+		if (declaringClass == Object.class && "getClass".equals(method.getName()))
+			try {
+				return Optional.of(Object.class.getMethod("getClass"));
+			}
+			catch (NoSuchMethodException e) {
+				// this will never happen
+				throw new IllegalStateException("Cannot find method Object.getClass()");
+			}
+
+		String expandedClassName = Anchor.WHITE_LISTED_ROOT + "." + declaringClass.getName();
 		Class<?> classInWhiteListedLibrary;
 	
 		try {
