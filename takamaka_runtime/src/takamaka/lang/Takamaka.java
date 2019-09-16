@@ -3,6 +3,8 @@ package takamaka.lang;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+import java.util.List;
+import java.util.SortedSet;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -158,23 +160,28 @@ public abstract class Takamaka {
 		return blockchain.getNow();
 	}
 
-	public static void mustBeFalse(boolean value) {
+	public static void mustBeFalse(boolean value, String methodName) {
 		if (value)
-			throw new NotWhiteListedCallException("parameter must be false");
+			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must be false");
 	}
 
-	public static void mustRedefineHashCode(Object value) {
+	public static void mustRedefineHashCode(Object value, String methodName) {
 		if (value != null)
 			if (Stream.of(value.getClass().getMethods())
 				.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
 				.map(Method::getName)
 				.noneMatch("hashCode"::equals))
-				throw new NotWhiteListedCallException("value must redefine Object.hashCode()");
+				throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must redefine Object.hashCode()");
 	}
 
-	public static void mustRedefineHashCodeOrToString(Object value) {
+	public static void mustRedefineHashCodeOrToString(Object value, String methodName) {
 		if (value != null && !redefinesHashCodeOrToString(value.getClass()))
-			throw new NotWhiteListedCallException("value must redefine Object.hashCode() or Object.toString()");
+			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must redefine Object.hashCode() or Object.toString()");
+	}
+
+	public static void mustBeOrdered(Object value, String methodName) {
+		if (value != null && !isOrdered(value.getClass()))
+			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must be an ordered collection");
 	}
 
 	public static boolean redefinesHashCodeOrToString(Class<?> clazz) {
@@ -182,6 +189,10 @@ public abstract class Takamaka {
 			.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
 			.map(Method::getName)
 			.anyMatch(name -> "hashCode".equals(name) || "toString".equals(name));
+	}
+
+	public static boolean isOrdered(Class<?> clazz) {
+		return List.class.isAssignableFrom(clazz) || SortedSet.class.isAssignableFrom(clazz);
 	}
 
 	/**

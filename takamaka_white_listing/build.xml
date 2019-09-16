@@ -1,0 +1,29 @@
+<project name="takamaka_white_listing" default="dist" basedir=".">
+  <description>
+    Compiles the takamaka_white_listing project
+  </description>
+
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist" location="dist"/>
+
+  <target name="clean" description="clean up">
+	<delete dir="${build}"/>
+	<delete dir="${dist}"/>
+  </target>
+
+  <target name="init" depends="clean">
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init" description="compile the source">
+    <javac srcdir="${src}" destdir="${build}" >
+    </javac>
+  </target>
+
+  <target name="dist" depends="compile" description="generate the distribution">
+    <mkdir dir="${dist}"/>
+    <jar jarfile="${dist}/takamaka_white_listing.jar" basedir="${build}" />
+  </target>
+
+</project>

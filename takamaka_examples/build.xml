@@ -34,6 +34,7 @@
   	<jar jarfile="${dist}/voting.jar" basedir="${build}" includes="**/takamaka/tests/voting/**"/>
   	<jar jarfile="${dist}/crowdfunding.jar" basedir="${build}" includes="**/takamaka/tests/crowdfunding/**"/>
   	<jar jarfile="${dist}/collections.jar" basedir="${build}" includes="**/takamaka/tests/collections/**"/>
+  	<jar jarfile="${dist}/javacollections.jar" basedir="${build}" includes="**/takamaka/tests/javacollections/**"/>
   	<jar jarfile="${dist}/ponzi.jar" basedir="${build}" includes="**/takamaka/tests/ponzi/**"/>
   	<jar jarfile="${dist}/lambdas.jar" basedir="${build}" includes="**/takamaka/tests/lambdas/**"/>
   	<jar jarfile="${dist}/tictactoe.jar" basedir="${build}" includes="**/takamaka/tests/tictactoe/**"/>
@@ -72,6 +73,9 @@
   	<jar jarfile="${dist}/legalstaticinitialization2.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization2/**"/>
   	<jar jarfile="${dist}/legalstaticinitialization3.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalstaticinitialization3/**"/>
   	<jar jarfile="${dist}/illegalstaticfieldupdate.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalstaticfieldupdate/**"/>
+  	<jar jarfile="${dist}/illegalnative.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalnative/**"/>
+  	<jar jarfile="${dist}/illegalsynchronized1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalsynchronized1/**"/>
+  	<jar jarfile="${dist}/illegalsynchronized2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalsynchronized2/**"/>
   	<jar jarfile="${dist}/illegalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler1/**"/>
   	<jar jarfile="${dist}/illegalexceptionhandler2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler2/**"/>
   	<jar jarfile="${dist}/illegalexceptionhandler3.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalexceptionhandler3/**"/>
@@ -83,6 +87,17 @@
   	<jar jarfile="${dist}/illegalcalltononwhitelistedconstructor2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedconstructor2/**"/>
   	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod1.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod1/**"/>
 	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod2.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod2/**"/>
+  	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod3.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod3/**"/>
+	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod4.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod4/**"/>
+	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod5.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod5/**"/>
+  	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod6.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod6/**"/>
+	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod7.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod7/**"/>
+	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod8.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod8/**"/>
+  	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod9.jar" basedir="${build}" includes="**/takamaka/tests/errors/illegalcalltononwhitelistedmethod9/**"/>
+  	<jar jarfile="${dist}/legalcall1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcall1/**"/>
+  	<jar jarfile="${dist}/legalcall2.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcall2/**"/>
+  	<jar jarfile="${dist}/legalcall3.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcall3/**"/>
+  	<jar jarfile="${dist}/legalcall4.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalcall4/**"/>
   	<jar jarfile="${dist}/legalexceptionhandler1.jar" basedir="${build}" includes="**/takamaka/tests/errors/legalexceptionhandler1/**"/>
   	<jar jarfile="${dist}/errors.jar" basedir="${build}" includes="**/takamaka/tests/errors/**,**/takamaka/lang/**"/>
   </target>

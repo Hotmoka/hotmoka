@@ -3,14 +3,13 @@ package takamaka.tests.collections;
 import java.math.BigInteger;
 import java.util.Random;
 
-import takamaka.lang.Storage;
 import takamaka.lang.View;
 import takamaka.util.StorageArray;
 
 /**
  * This class defines methods that test the storage array implementation.
  */
-public class ArrayTests extends Storage {
+public class ArrayTests {
 
 	public static @View int testRandomInitialization() {
 		StorageArray<BigInteger> array = new StorageArray<>(100);

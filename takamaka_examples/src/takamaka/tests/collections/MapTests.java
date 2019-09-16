@@ -2,7 +2,6 @@ package takamaka.tests.collections;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Storage;
 import takamaka.lang.View;
 import takamaka.util.StorageMap;
 import takamaka.util.StorageMap.Entry;
@@ -10,7 +9,7 @@ import takamaka.util.StorageMap.Entry;
 /**
  * This class defines methods that test the storage map implementation.
  */
-public class MapTests extends Storage {
+public class MapTests {
 
 	public static @View int testIteration1() {
 		StorageMap<BigInteger, BigInteger> map = new StorageMap<>();

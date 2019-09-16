@@ -72,6 +72,11 @@ public class StorageArray<V> extends Storage implements Iterable<V> {
 			this.value = value;
 			this.color = color;
 		}
+
+		@Override
+		public int hashCode() { // to allow to store Nodes inside Java lists
+			return 42;
+		}
 	}
 
 	/**

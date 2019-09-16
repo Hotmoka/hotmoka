@@ -59,11 +59,11 @@ public abstract class Issue implements Comparable<Issue> {
 		if (diff != 0)
 			return diff;
 
-		diff = message.compareTo(other.message);
+		diff = getClass().getName().compareTo(other.getClass().getName());
 		if (diff != 0)
 			return diff;
 		else
-			return getClass().getName().compareTo(other.getClass().getName());
+			return message.compareTo(other.message);
 	}
 
 	@Override

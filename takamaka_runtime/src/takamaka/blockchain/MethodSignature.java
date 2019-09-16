@@ -24,7 +24,7 @@ public abstract class MethodSignature extends CodeSignature {
 	 * @param methodName the name of the method
 	 * @param formals the formal arguments of the method
 	 */
-	public MethodSignature(ClassType definingClass, String methodName, StorageType... formals) {
+	protected MethodSignature(ClassType definingClass, String methodName, StorageType... formals) {
 		super(definingClass, formals);
 
 		this.methodName = methodName;

@@ -5,8 +5,8 @@ package takamaka.lang;
  * with a parameter (or receiver) that makes it non-white-listed.
  */
 @SuppressWarnings("serial")
-public class NotWhiteListedCallException extends IllegalStateException {
-	public NotWhiteListedCallException(String message) {
+public class NonWhiteListedCallException extends IllegalStateException {
+	public NonWhiteListedCallException(String message) {
 		super(message);
 	}
 }
