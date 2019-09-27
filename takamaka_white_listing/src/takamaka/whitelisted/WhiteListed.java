@@ -1,6 +1,7 @@
-package takamaka.lang;
+package takamaka.whitelisted;
 
 import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 
 import java.lang.annotation.Documented;
@@ -16,7 +17,7 @@ import java.lang.annotation.Target;
  * and for the {@code takamaka.*} hierarchy.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value={ METHOD, CONSTRUCTOR })
+@Target(value={ FIELD, METHOD, CONSTRUCTOR })
 @Inherited
 @Documented
 public @interface WhiteListed {

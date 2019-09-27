@@ -1,6 +1,6 @@
 package takamaka.whitelisted.java.util;
 
-import takamaka.lang.MustRedefineHashCodeOrToString;
+import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 
 public interface Objects {
 	<T> T requireNonNull(T obj);

@@ -1,6 +1,6 @@
 package takamaka.whitelisted.java.util;
 
-import takamaka.lang.MustRedefineHashCode;
+import takamaka.whitelisted.MustRedefineHashCode;
 
 public interface Map<K, V> {
 	int size();

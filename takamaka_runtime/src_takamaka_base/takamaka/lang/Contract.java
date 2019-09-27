@@ -26,7 +26,6 @@ public abstract class Contract extends Storage {
 	/**
 	 * Builds a contract with zero balance.
 	 */
-	@WhiteListed
 	protected Contract() {
 		this.balance = BigInteger.ZERO;
 	}
@@ -36,7 +35,6 @@ public abstract class Contract extends Storage {
 	 * 
 	 * @return the caller
 	 */
-	@WhiteListed
 	protected final Contract caller() {
 		return caller;
 	}
@@ -46,12 +44,11 @@ public abstract class Contract extends Storage {
 	 * 
 	 * @return the balance
 	 */
-	@WhiteListed
 	protected final BigInteger balance() {
 		return balance;
 	}
 
-	@WhiteListed @Override
+	@Override
 	public String toString() {
 		return "a contract";
 	}

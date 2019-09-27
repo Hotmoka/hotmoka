@@ -1,6 +1,6 @@
 package takamaka.whitelisted.java.lang;
 
-import takamaka.lang.MustRedefineHashCodeOrToString;
+import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 
 public abstract class String {
 	public abstract int length();

@@ -54,13 +54,13 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import takamaka.lang.MustRedefineHashCode;
-import takamaka.lang.MustRedefineHashCodeOrToString;
-import takamaka.lang.WhiteListed;
 import takamaka.translator.Dummy;
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
 import takamaka.whitelisted.Anchor;
+import takamaka.whitelisted.MustRedefineHashCode;
+import takamaka.whitelisted.MustRedefineHashCodeOrToString;
+import takamaka.whitelisted.WhiteListed;
 
 /**
  * A BCEL class generator, specialized in order to verify some constraints required by Takamaka.

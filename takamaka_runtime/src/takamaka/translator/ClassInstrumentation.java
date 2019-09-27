@@ -79,14 +79,14 @@ import it.univr.bcel.StackMapReplacer;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.lang.Contract;
-import takamaka.lang.MustBeFalse;
-import takamaka.lang.MustBeOrdered;
-import takamaka.lang.MustRedefineHashCode;
-import takamaka.lang.MustRedefineHashCodeOrToString;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
-import takamaka.lang.WhiteListingProofObligation;
 import takamaka.verifier.VerifiedClassGen;
+import takamaka.whitelisted.MustBeFalse;
+import takamaka.whitelisted.MustBeOrdered;
+import takamaka.whitelisted.MustRedefineHashCode;
+import takamaka.whitelisted.MustRedefineHashCodeOrToString;
+import takamaka.whitelisted.WhiteListingProofObligation;
 
 /**
  * An instrumenter of a single class file. For instance, it instruments storage

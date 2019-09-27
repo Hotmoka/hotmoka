@@ -1,7 +1,7 @@
 package takamaka.whitelisted.java.lang;
 
-import takamaka.lang.MustRedefineHashCode;
-import takamaka.lang.MustRedefineHashCodeOrToString;
+import takamaka.whitelisted.MustRedefineHashCode;
+import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 
 public abstract class Object {
 	public Object() {}

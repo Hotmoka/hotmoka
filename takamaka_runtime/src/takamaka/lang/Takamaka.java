@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import takamaka.blockchain.AbstractBlockchain;
+import takamaka.whitelisted.WhiteListed;
 
 /**
  * A class that acts as a global context for statements added

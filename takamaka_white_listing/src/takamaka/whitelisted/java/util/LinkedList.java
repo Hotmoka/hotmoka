@@ -1,6 +1,6 @@
 package takamaka.whitelisted.java.util;
 
-import takamaka.lang.MustRedefineHashCode;
+import takamaka.whitelisted.MustRedefineHashCode;
 
 public abstract class LinkedList<E> {
 	public LinkedList() {}
