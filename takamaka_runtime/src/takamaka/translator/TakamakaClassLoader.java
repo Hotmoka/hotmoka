@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -21,12 +20,13 @@ import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.lang.Storage;
 import takamaka.lang.ThrowsExceptions;
+import takamaka.whitelisted.ResolvingClassLoader;
 
 /**
  * A class loader used to access the definition of the classes
  * of a Takamaka program.
  */
-public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable {
+public class TakamakaClassLoader extends ResolvingClassLoader {
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
 	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
 	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
@@ -46,7 +46,7 @@ public class TakamakaClassLoader extends URLClassLoader implements AutoCloseable
 	 * Builds a class loader with the given URLs.
 	 */
 	protected TakamakaClassLoader(URL[] urls) {
-		super(urls, ClassLoader.getSystemClassLoader());
+		super(urls);
 
 		try {
 			this.contractClass = loadClass(CONTRACT_CLASS_NAME);

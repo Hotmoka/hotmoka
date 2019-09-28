@@ -57,10 +57,9 @@ import org.apache.bcel.generic.Type;
 import takamaka.translator.Dummy;
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
-import takamaka.whitelisted.Anchor;
 import takamaka.whitelisted.MustRedefineHashCode;
 import takamaka.whitelisted.MustRedefineHashCodeOrToString;
-import takamaka.whitelisted.WhiteListed;
+import takamaka.whitelisted.WhiteListingWizard;
 
 /**
  * A BCEL class generator, specialized in order to verify some constraints required by Takamaka.
@@ -72,6 +71,11 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * it belongs to.
 	 */
 	private final TakamakaClassLoader classLoader;
+
+	/**
+	 * The object that knows about the methods that can be called from Takamaka smart contracts.
+	 */
+	private final WhiteListingWizard whiteListingWizard;
 
 	/**
 	 * The bootstrap methods of this class.
@@ -98,6 +102,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		super(clazz);
 
 		this.classLoader = classLoader;
+		this.whiteListingWizard = new WhiteListingWizard(classLoader);
 		this.bootstrapMethods = computeBootstraps();
 		collectBootstrapsLeadingToEntries();
 
@@ -191,7 +196,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 */
 	public Field whiteListingModelOf(FieldInstruction fi) {
 		// it has already been verified that the access is white-listed, hence it must exist
-		return whiteListingModelOf(resolvedFieldFor(fi).get()).get();
+		return whiteListingWizard.whiteListingModelOf(resolvedFieldFor(fi).get()).get();
 	}
 
 	/**
@@ -216,7 +221,12 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		if (holder instanceof ObjectType) {
 			String name = ins.getFieldName(cpg);
 			Class<?> type = classLoader.bcelToClass(ins.getFieldType(cpg));
-			return resolveField(((ObjectType) holder).getClassName(), name, type);
+			try {
+				return classLoader.resolveField(((ObjectType) holder).getClassName(), name, type);
+			}
+			catch (ClassNotFoundException e) {
+				throw new IncompleteClasspathError(e);
+			}
 		}
 	
 		return Optional.empty();
@@ -229,7 +239,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			// the type of the receiver of a call to a constructor can only be a class
 			ObjectType receiver = (ObjectType) ins.getReferenceType(cpg);
 			Class<?>[] args = classLoader.bcelToClass(ins.getArgumentTypes(cpg));
-			return resolveConstructor(receiver.getClassName(), args);
+			return resolveConstructorWithPossiblyExpandedArgs(receiver.getClassName(), args);
 		}
 		else if (ins instanceof INVOKEDYNAMIC)
 			// invokedynamic can call a target that is an optimized reference to an executable
@@ -240,7 +250,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			Class<?>[] args = classLoader.bcelToClass(ins.getArgumentTypes(cpg));
 			Class<?> returnType = classLoader.bcelToClass(ins.getReturnType(cpg));
 	
-			return resolveInterfaceMethod(((ObjectType) receiver).getClassName(), methodName, args, returnType);
+			return resolveInterfaceMethodWithPossiblyExpandedArgs(((ObjectType) receiver).getClassName(), methodName, args, returnType);
 		}
 		else {
 			InvokeInstruction invoke = (InvokeInstruction) ins;
@@ -250,11 +260,11 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			Class<?> returnType = classLoader.bcelToClass(invoke.getReturnType(cpg));
 	
 			if (receiver instanceof ObjectType)
-				return resolveMethod(((ObjectType) receiver).getClassName(), methodName, args, returnType);
+				return resolveMethodWithPossiblyExpandedArgs(((ObjectType) receiver).getClassName(), methodName, args, returnType);
 			else
 				// it is possible to call a method on an array: in that case, the callee
 				// is a method of java.lang.Object: a couple of them are considered white-listed for arrays
-				return resolveMethod("java.lang.Object", methodName, args, returnType);
+				return resolveMethodWithPossiblyExpandedArgs("java.lang.Object", methodName, args, returnType);
 		}
 	}
 
@@ -310,9 +320,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 					Class<?> returnType = classLoader.bcelToClass(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
-						return resolveConstructor(className2, args);
+						return resolveConstructorWithPossiblyExpandedArgs(className2, args);
 					else
-						return resolveMethod(className2, methodName2, args, returnType);
+						return resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 				else if (constant2 instanceof ConstantInterfaceMethodref) {
 					ConstantInterfaceMethodref mr = (ConstantInterfaceMethodref) constant2;
@@ -324,7 +334,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 					Class<?>[] args = classLoader.bcelToClass(Type.getArgumentTypes(methodSignature2));
 					Class<?> returnType = classLoader.bcelToClass(Type.getReturnType(methodSignature2));
 	
-					return resolveInterfaceMethod(className2, methodName2, args, returnType);
+					return resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 			}
 		}
@@ -347,81 +357,23 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	/**
-	 * Looks for a white-listing model of the given field. That is a field declaration
-	 * that justifies why the field is white-listed. It can be the field itself, if it
-	 * belongs to a class installed in blockchain, or otherwise a field of a white-listing
-	 * class, if it belongs to some Java run-time support class.
-	 * 
-	 * @param field the field whose model is looked for
-	 * @return the model of its white-listing, if it exists
-	 */
-	private Optional<Field> whiteListingModelOf(Field field) {
-		// if the class defining the field has been loaded by the blockchain class loader,
-		// then it comes from blockchain and the field is white-listed
-		if (field.getDeclaringClass().getClassLoader() == classLoader)
-			return Optional.of(field);
-		// otherwise, since fields cannot be redefined in Java, either is the field explicitly
-		// annotated as white-listed, or it is not white-listed
-		else if (field.isAnnotationPresent(WhiteListed.class))
-			return Optional.of(field);
-		else
-			return fieldInWhiteListedLibraryFor(field);
-	}
-
-	/**
 	 * Looks for a white-listing model of the given method or constructor. That is a constructor declaration
 	 * that justifies why the method or constructor is white-listed. It can be the method or constructor itself, if it
 	 * belongs to a class installed in blockchain, or otherwise a method or constructor of a white-listing
-	 * class, if it belongs to some Java run-time support class.
+	 * class, if it belongs to some Java run-time support class. If the instruction is a special call
+	 * to a method of a superclass, it checks that white-listing annotations on the receiver are not fooled.
 	 * 
 	 * @param executable the method or constructor whose model is looked for
 	 * @param invoke the call to the method or constructor
 	 * @return the model of its white-listing, if it exists
 	 */
 	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
-		// if the class defining the constructor has been loaded by the blockchain class loader,
-		// then it comes from blockchain and the constructor is white-listed
-		Class<?> declaringClass = executable.getDeclaringClass();
-
-		if (declaringClass.getClassLoader() == classLoader)
-			return Optional.of(executable);
-		// otherwise, since constructors cannot be redefined in Java, either is the constructor explicitly
-		// annotated as white-listed, or it is not white-listed
-		else if (executable.isAnnotationPresent(WhiteListed.class))
-			return checkINVOKESPECIAL(invoke, executable);
-		else if (executable instanceof Constructor<?>)
-			return constructorInWhiteListedLibraryFor((Constructor<?>) executable);
-		else {
-			java.lang.reflect.Method method = (java.lang.reflect.Method) executable;
-			Optional<? extends Executable> result = methodInWhiteListedLibraryFor(method);
-			if (result.isPresent())
-				return checkINVOKESPECIAL(invoke, result.get());
-
-			// a method might not be explicitly white-listed, but it might override a method
-			// of a superclass that is white-listed. Hence we check that possibility
-			if (!Modifier.isStatic(method.getModifiers()) && !Modifier.isPrivate(method.getModifiers())) {
-				Class<?> superclass = declaringClass.getSuperclass();
-				if (superclass != null) {
-					Optional<java.lang.reflect.Method> overridden = resolveMethod(superclass.getName(), method.getName(), method.getParameterTypes(), method.getReturnType());
-					if (overridden.isPresent()) {
-						result = whiteListingModelOf(overridden.get(), invoke);
-						if (result.isPresent())
-							return checkINVOKESPECIAL(invoke, result.get());
-					}
-				}
-
-				for (Class<?> superinterface: declaringClass.getInterfaces()) {
-					Optional<java.lang.reflect.Method> overridden = resolveMethod(superinterface.getName(), method.getName(), method.getParameterTypes(), method.getReturnType());
-					if (overridden.isPresent()) {
-						result = whiteListingModelOf(overridden.get(), invoke);
-						if (result.isPresent())
-							return checkINVOKESPECIAL(invoke, result.get());
-					}
-				}
-			}
+		try {
+			return checkINVOKESPECIAL(invoke, whiteListingWizard.whiteListingModelOf(executable));
 		}
-
-		return Optional.empty();
+		catch (ClassNotFoundException e) {
+			throw new IncompleteClasspathError(e);
+		}
 	}
 
 	/**
@@ -436,83 +388,14 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * @param model the white-listing model of the invoke
 	 * @return the optional containing the model, or the empty optional if the check fails
 	 */
-	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Executable model) {
-		if (invoke instanceof INVOKESPECIAL && resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
-			if (model.isAnnotationPresent(MustRedefineHashCode.class) || model.isAnnotationPresent(MustRedefineHashCodeOrToString.class))
-				return Optional.empty();
-
-		return Optional.of(model);
-	}
-
-	private Optional<Field> fieldInWhiteListedLibraryFor(Field field) {
-		String expandedClassName = Anchor.WHITE_LISTED_ROOT + "." + field.getDeclaringClass().getName();
-		Class<?> classInWhiteListedLibrary;
-	
-		try {
-			classInWhiteListedLibrary = Class.forName(expandedClassName);
-		}
-		catch (ClassNotFoundException e) {
-			// the field is not in the library of white-listed code
+	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Optional<? extends Executable> model) {
+		if (invoke instanceof INVOKESPECIAL &&
+			model.isPresent() &&
+			(model.get().isAnnotationPresent(MustRedefineHashCode.class) || model.get().isAnnotationPresent(MustRedefineHashCodeOrToString.class)) &&
+			resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
 			return Optional.empty();
-		}
-	
-		return Stream.of(classInWhiteListedLibrary.getDeclaredFields())
-			.filter(field2 -> field2.getType() == field.getType() && field2.getName().equals(field.getName()))
-			.findFirst();
-	}
-
-	private Optional<Constructor<?>> constructorInWhiteListedLibraryFor(Constructor<?> constructor) {
-		String expandedClassName = Anchor.WHITE_LISTED_ROOT + "." + constructor.getDeclaringClass().getName();
-		Class<?> classInWhiteListedLibrary;
-	
-		try {
-			classInWhiteListedLibrary = Class.forName(expandedClassName);
-		}
-		catch (ClassNotFoundException e) {
-			// the constructor is not in the library of white-listed code
-			return Optional.empty();
-		}
-	
-		try {
-			// if the constructor has been reported in the white-listed library, then it is automatically white-listed
-			return Optional.of(classInWhiteListedLibrary.getDeclaredConstructor(constructor.getParameterTypes()));
-		}
-		catch (NoSuchMethodException e) {
-			return Optional.empty();
-		}
-	}
-
-	private Optional<java.lang.reflect.Method> methodInWhiteListedLibraryFor(java.lang.reflect.Method method) {
-		Class<?> declaringClass = method.getDeclaringClass();
-
-		// Method Object.getClass() is white-listed but we cannot put it in the white-listed library,
-		// since that method is final in Object
-		if (declaringClass == Object.class && "getClass".equals(method.getName()))
-			try {
-				return Optional.of(Object.class.getMethod("getClass"));
-			}
-			catch (NoSuchMethodException e) {
-				// this will never happen
-				throw new IllegalStateException("Cannot find method Object.getClass()");
-			}
-
-		String expandedClassName = Anchor.WHITE_LISTED_ROOT + "." + declaringClass.getName();
-		Class<?> classInWhiteListedLibrary;
-	
-		try {
-			classInWhiteListedLibrary = Class.forName(expandedClassName);
-		}
-		catch (ClassNotFoundException e) {
-			// the method is not in the library of white-listed code
-			return Optional.empty();
-		}
-	
-		Optional<java.lang.reflect.Method> methodInWhiteListedLibrary = Stream.of(classInWhiteListedLibrary.getDeclaredMethods())
-			.filter(method2 -> method2.getReturnType() == method.getReturnType() && method2.getName().equals(method.getName())
-						&& Arrays.equals(method2.getParameterTypes(), method.getParameterTypes()))
-			.findFirst();
-	
-		return methodInWhiteListedLibrary;
+		else
+			return model;
 	}
 
 	private BootstrapMethod[] computeBootstraps() {
@@ -647,127 +530,55 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			return ((InvokeInstruction) instruction).getMethodName(cpg);
 	}
 
-	private Optional<Field> resolveField(String className, String name, Class<?> type) {
+	private Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) {
 		try {
-			for (Class<?> clazz = classLoader.loadClass(className); clazz != null; clazz = clazz.getSuperclass()) {
-				Optional<Field> result = Stream.of(clazz.getDeclaredFields())
-					.filter(field -> field.getType() == type && field.getName().equals(name))
-					.findFirst();
-	
-				if (result.isPresent())
-					return result;
-			}
+			Optional<Constructor<?>> result = classLoader.resolveConstructor(className, args);
+			if (result.isPresent())
+				return result;
+
+			// we try to add the instrumentation arguments. This is important when
+			// a bootstrap calls an entry of a jar already installed (and instrumented)
+			// in blockchain. In that case, it will find the target only with these
+			// extra arguments added during instrumentation
+			return classLoader.resolveConstructor(className, expandArgsForEntry(args));
 		}
 		catch (ClassNotFoundException e) {
 			throw new IncompleteClasspathError(e);
 		}
-	
-		return Optional.empty();
 	}
 
-	private Optional<Constructor<?>> resolveConstructor(String className, Class<?>[] args) {
-		Optional<Constructor<?>> result = resolveConstructorAux(className, args);
-		if (result.isPresent())
-			return result;
-
-		// we try to add the instrumentation arguments. This is important when
-		// a bootstrap calls an entry of a jar already installed (and instrumented)
-		// in blockchain. In that case, it will find the target only with these
-		// extra arguments added during instrumentation
-		return resolveConstructorAux(className, expandArgsForEntry(args));
-	}
-
-	private Class<?>[] expandArgsForEntry(Class<?>[] args) {
+	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws ClassNotFoundException {
 		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
 		System.arraycopy(args, 0, expandedArgs, 0, args.length);
-		Class<?> contractClass;
-		try {
-			contractClass = classLoader.loadClass(CONTRACT_CLASS_NAME);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
-		expandedArgs[args.length] = contractClass;
+		expandedArgs[args.length] = classLoader.loadClass(CONTRACT_CLASS_NAME);
 		expandedArgs[args.length + 1] = Dummy.class;
 		return expandedArgs;
 	}
 
-	private Optional<Constructor<?>> resolveConstructorAux(String className, Class<?>[] args) {
+	private Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
 		try {
-			return Stream.of(classLoader.loadClass(className).getDeclaredConstructors())
-				.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), args))
-				.findFirst();
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
-	}
-
-	private Optional<java.lang.reflect.Method> resolveMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		Optional<java.lang.reflect.Method> result = resolveMethodAux(className, methodName, args, returnType);
-		if (result.isPresent())
-			return result;
-
-		return resolveMethodAux(className, methodName, expandArgsForEntry(args), returnType);
-	}
-
-	private Optional<java.lang.reflect.Method> resolveMethodAux(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		try {
-			Class<?> clazz = classLoader.loadClass(className);
-
-			for (Class<?> cursor = clazz; cursor != null; cursor = cursor.getSuperclass()) {
-				Optional<java.lang.reflect.Method> result = Stream.of(cursor.getDeclaredMethods())
-						.filter(method -> method.getReturnType() == returnType && method.getName().equals(methodName)
-						&& Arrays.equals(method.getParameterTypes(), args))
-						.findFirst();
-
-				if (result.isPresent())
-					return result;
-			}
-
-			for (Class<?> interf: clazz.getInterfaces()) {
-				Optional<java.lang.reflect.Method>result = resolveInterfaceMethodAux(interf.getName(), methodName, args, returnType);
-				if (result.isPresent())
-					return result;
-			}
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
-	
-		return Optional.empty();
-	}
-
-	private Optional<java.lang.reflect.Method> resolveInterfaceMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		Optional<java.lang.reflect.Method> result = resolveInterfaceMethodAux(className, methodName, args, returnType);
-		if (result.isPresent())
-			return result;
-
-		return resolveInterfaceMethodAux(className, methodName, expandArgsForEntry(args), returnType);
-	}
-
-	private Optional<java.lang.reflect.Method> resolveInterfaceMethodAux(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		try {
-			Class<?> clazz = classLoader.loadClass(className);
-			Optional<java.lang.reflect.Method> result = Stream.of(clazz.getDeclaredMethods())
-					.filter(method -> method.getReturnType() == returnType && method.getName().equals(methodName)
-					&& Arrays.equals(method.getParameterTypes(), args))
-					.findFirst();
-
+			Optional<java.lang.reflect.Method> result = classLoader.resolveMethod(className, methodName, args, returnType);
 			if (result.isPresent())
 				return result;
 
-			for (Class<?> interf: clazz.getInterfaces()) {
-				result = resolveInterfaceMethodAux(interf.getName(), methodName, args, returnType);
-				if (result.isPresent())
-					return result;
-			}
+			return classLoader.resolveMethod(className, methodName, expandArgsForEntry(args), returnType);
 		}
 		catch (ClassNotFoundException e) {
 			throw new IncompleteClasspathError(e);
 		}
-	
-		return Optional.empty();
+	}
+
+	private Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
+		try {
+			Optional<java.lang.reflect.Method> result = classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
+			if (result.isPresent())
+				return result;
+
+			return classLoader.resolveInterfaceMethod(className, methodName, expandArgsForEntry(args), returnType);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IncompleteClasspathError(e);
+		}
 	}
 
 	private boolean hasCode(Method method) {
@@ -1355,7 +1166,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 						if (ins instanceof FieldInstruction) {
 							FieldInstruction fi = (FieldInstruction) ins;
 							Optional<Field> field = resolvedFieldFor(fi);
-							if (!field.isPresent() || !whiteListingModelOf(field.get()).isPresent())
+							if (!field.isPresent() || !whiteListingWizard.whiteListingModelOf(field.get()).isPresent())
 								issue(new IllegalAccessToNonWhiteListedFieldError(VerifiedClassGen.this, method, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
 						}
 
