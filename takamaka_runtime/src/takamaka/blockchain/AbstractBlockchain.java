@@ -18,7 +18,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,6 +76,7 @@ import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.TakamakaClassLoader;
 import takamaka.verifier.VerificationException;
+import takamaka.whitelisted.WhiteListingWizard;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -976,15 +976,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		@Override
-		protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-			if (name.equals("java.lang.Object")) {
-			}
-			//TODO
-			// we should replace java.lang.Object, so that methods become deterministic
-			return super.loadClass(name, resolve);
-		}
-
-		@Override
 		public void close() throws IOException {
 			// we delete all paths elements that were used to build this class loader
 			for (Path classpathElement: classpathElements)
@@ -1220,7 +1211,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * from the class path and deserializes receiver and actuals. Then calls the code and serializes
 	 * the resulting value back.
 	 */
-	public abstract class CodeExecutor extends Thread {
+	private abstract class CodeExecutor extends Thread {
 
 		/**
 		 * The exception resulting from the execution of the method or constructor, if any.
@@ -1266,6 +1257,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected final Object[] deserializedActuals;
 
 		/**
+		 * The object that knows which fields, constructors and methods can be called
+		 * from Takamaka code, with which proof obligations.
+		 */
+		protected final WhiteListingWizard whiteListingWizard;
+
+		/**
 		 * Builds the executor of a method or constructor.
 		 * 
 		 * @param classLoader the class loader that must be used to find the classes during the execution of the method or constructor
@@ -1287,6 +1284,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.methodOrConstructor = methodOrConstructor;
 			this.deserializedReceiver = receiver != null ? receiver.deserialize(AbstractBlockchain.this) : null;
 			this.deserializedActuals = actuals.map(actual -> actual.deserialize(AbstractBlockchain.this)).toArray(Object[]::new);
+			this.whiteListingWizard = new WhiteListingWizard(classLoader);
 		}
 
 		/**
@@ -1314,16 +1312,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @throws SecurityException if the method could not be accessed
 		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 		 */
-		protected Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
+		protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
 			MethodSignature method = (MethodSignature) methodOrConstructor;
 			Class<?> returnType = method instanceof NonVoidMethodSignature ? ((NonVoidMethodSignature) method).returnType.toClass(AbstractBlockchain.this) : void.class;
 			Class<?>[] argTypes = formalsAsClass();
 
-			Optional<Method> resolved = Stream.of(classLoader.loadClass(method.definingClass.name).getMethods())
-				.filter(m -> m.getName().equals(method.methodName) && m.getReturnType() == returnType && Arrays.equals(m.getParameterTypes(), argTypes))
-				.findFirst();
-
-			return resolved.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 
 		/**
@@ -1334,16 +1329,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @throws SecurityException if the method could not be accessed
 		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 		 */
-		protected Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+		protected final Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 			MethodSignature method = (MethodSignature) methodOrConstructor;
 			Class<?> returnType = method instanceof NonVoidMethodSignature ? ((NonVoidMethodSignature) method).returnType.toClass(AbstractBlockchain.this) : void.class;
 			Class<?>[] argTypes = formalsAsClassForEntry();
 
-			Optional<Method> resolved = Stream.of(classLoader.loadClass(method.definingClass.name).getMethods())
-				.filter(m -> m.getName().equals(method.methodName) && m.getReturnType() == returnType && Arrays.equals(m.getParameterTypes(), argTypes))
-				.findFirst();
-
-			return resolved.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 
 		/**
@@ -1352,7 +1344,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param deserializedCaller the caller contract
 		 * @return true  if and only if that condition holds
 		 */
-		protected boolean onlyAffectedBalanceOf(Storage deserializedCaller) {
+		protected final boolean onlyAffectedBalanceOf(Storage deserializedCaller) {
 			return updates().allMatch
 				(update -> update.object.equals(deserializedCaller.storageReference)
 				&& update instanceof UpdateOfField
@@ -1447,28 +1439,63 @@ public abstract class AbstractBlockchain implements Blockchain {
 			super(deserializedCaller, constructor, null, actuals);
 		}
 
+		/**
+		 * Resolves the constructor that must be called.
+		 * 
+		 * @return the constructor
+		 * @throws NoSuchMethodException if the constructor could not be found
+		 * @throws SecurityException if the constructor could not be accessed
+		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+		 */
+		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
+			Class<?>[] argTypes = formalsAsClass();
+
+			return classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
+				.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
+		}
+
+		/**
+		 * Resolves the constructor that must be called, assuming that it is an entry.
+		 * 
+		 * @return the constructor
+		 * @throws NoSuchMethodException if the constructor could not be found
+		 * @throws SecurityException if the constructor could not be accessed
+		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+		 */
+		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
+			Class<?>[] argTypes = formalsAsClassForEntry();
+
+			return classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
+				.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
+		}
+
 		@Override
 		public void run() {
 			try {
-				Class<?> clazz = loadClass(methodOrConstructor.definingClass.name);
 				Constructor<?> constructorJVM;
 				Object[] deserializedActuals;
 
 				try {
 					// we first try to call the constructor with exactly the parameter types explicitly provided
-					constructorJVM = clazz.getConstructor(formalsAsClass());
+					constructorJVM = getConstructor();
 					deserializedActuals = this.deserializedActuals;
 				}
 				catch (NoSuchMethodException e) {
 					// if not found, we try to add the trailing types that characterize the @Entry constructors
 					try {
-						constructorJVM = clazz.getConstructor(formalsAsClassForEntry());
+						constructorJVM = getEntryConstructor();
 						deserializedActuals = addExtraActualsForEntry();
 					}
 					catch (NoSuchMethodException ee) {
 						throw e; // the message must be relative to the constructor as the user sees it
 					}
 				}
+
+				Optional<? extends Executable> model = whiteListingWizard.whiteListingModelOf(constructorJVM);
+				if (!model.isPresent())
+					throw new IllegalTransactionRequestException("illegal call to non-white-listed constructor of "
+						+ ((MethodSignature) methodOrConstructor).definingClass.name);
+				//TODO check proof obligations
 
 				try {
 					result = (Storage) constructorJVM.newInstance(deserializedActuals);
@@ -1527,6 +1554,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 				if (Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
 
+				Optional<? extends Executable> model = whiteListingWizard.whiteListingModelOf(methodJVM);
+				if (!model.isPresent())
+					throw new IllegalTransactionRequestException("illegal call to non-white-listed method "
+						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
+				//TODO check proof obligations
+
 				isVoidMethod = methodJVM.getReturnType() == void.class;
 				isViewMethod = methodJVM.isAnnotationPresent(View.class);
 
@@ -1569,6 +1602,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 				if (!Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
+
+				Optional<? extends Executable> model = whiteListingWizard.whiteListingModelOf(methodJVM);
+				if (!model.isPresent())
+					throw new IllegalTransactionRequestException("illegal call to non-white-listed method "
+						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
+				//TODO check proof obligations
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
 				isViewMethod = methodJVM.isAnnotationPresent(View.class);

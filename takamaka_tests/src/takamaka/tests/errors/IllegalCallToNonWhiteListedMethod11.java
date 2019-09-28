@@ -11,13 +11,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import takamaka.blockchain.CodeExecutionException;
+import takamaka.blockchain.IllegalTransactionRequestException;
 import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.memory.InitializedMemoryBlockchain;
-import takamaka.verifier.IllegalCallToNonWhiteListedMethodError;
-import takamaka.verifier.VerificationException;
 
 class IllegalCallToNonWhiteListedMethod11 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
@@ -41,8 +40,7 @@ class IllegalCallToNonWhiteListedMethod11 {
 				new NonVoidMethodSignature(System.class.getName(), "currentTimeMillis", BasicTypes.LONG)));
 		}
 		catch (TransactionException e) {
-			if (e.getCause() instanceof VerificationException
-					&& ((VerificationException) e.getCause()).getError() instanceof IllegalCallToNonWhiteListedMethodError)
+			if (e.getCause() instanceof IllegalTransactionRequestException)
 				return;
 
 			e.printStackTrace();
