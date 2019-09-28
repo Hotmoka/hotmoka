@@ -586,7 +586,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	/**
-	 * The Java bytecode signature of the {@code caller()} method of {@link #takamaka.lang.Contract}.
+	 * The Java bytecode types of the {@code caller()} method of {@link #takamaka.lang.Contract}.
 	 */
 	private final static String TAKAMAKA_CALLER_SIG = "()Ltakamaka/lang/Contract;";
 

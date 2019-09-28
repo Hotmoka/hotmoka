@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.IllegalTransactionRequestException;
 import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
@@ -20,6 +19,7 @@ import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
 import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReference;
+import takamaka.lang.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 class IllegalCallToNonWhiteListedMethod12 {
@@ -47,7 +47,7 @@ class IllegalCallToNonWhiteListedMethod12 {
 				new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa));
 		}
 		catch (TransactionException e) {
-			if (e.getCause() instanceof IllegalTransactionRequestException)
+			if (e.getCause() instanceof NonWhiteListedCallException)
 				return;
 
 			e.printStackTrace();

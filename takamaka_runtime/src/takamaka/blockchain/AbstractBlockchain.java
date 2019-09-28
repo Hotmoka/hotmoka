@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -67,6 +68,7 @@ import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Event;
 import takamaka.lang.InsufficientFundsError;
+import takamaka.lang.NonWhiteListedCallException;
 import takamaka.lang.OutOfGasError;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
@@ -1419,6 +1421,52 @@ public abstract class AbstractBlockchain implements Blockchain {
 			else
 				return e.getCause();
 		}
+
+		/**
+		 * Checks that the given method or constructor can be called from Takamaka code, that is,
+		 * is white-listed and its white-listing proof-obligations hold.
+		 * 
+		 * @param executable the method or constructor
+		 * @param actuals the actual arguments passed to {@code executable}, including the
+		 *                receiver for instance methods
+		 * @throws ClassNotFoundException if some class could not be found during the check
+		 */
+		protected final void ensureWhiteListingOf(Executable executable, Object[] actuals) throws ClassNotFoundException {
+			Optional<? extends Executable> model = whiteListingWizard.whiteListingModelOf(executable);
+			if (!model.isPresent())
+				if (executable instanceof Constructor<?>)
+					throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of "
+						+ ((MethodSignature) methodOrConstructor).definingClass.name);
+				else
+					throw new NonWhiteListedCallException("illegal call to non-white-listed method "
+						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
+
+			if (executable instanceof java.lang.reflect.Method && !Modifier.isStatic(executable.getModifiers()))
+				checkWhiteListingProofObligations(model.get().getName(), deserializedReceiver, model.get().getAnnotations());
+
+			Annotation[][] anns = model.get().getParameterAnnotations();
+			for (int pos = 0; pos < anns.length; pos++)
+				checkWhiteListingProofObligations(model.get().getName(), actuals[pos], anns[pos]);
+		}
+
+		private void checkWhiteListingProofObligations(String methodName, Object value, Annotation[] annotations) {
+			Stream.of(annotations)
+				.map(Takamaka::getWhiteListingCheckFor)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.forEachOrdered(checkMethod -> {
+					try {
+						// white-listing check methods are static
+						checkMethod.invoke(null, value, methodName);
+					}
+					catch (InvocationTargetException e) {
+						throw (NonWhiteListedCallException) e.getCause();
+					}
+					catch (IllegalAccessException | IllegalArgumentException e) {
+						throw new IllegalStateException("could not check white-listing proof-obligations for " + methodName, e);
+					}
+				});
+		}
 	}
 
 	/**
@@ -1491,11 +1539,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					}
 				}
 
-				Optional<? extends Executable> model = whiteListingWizard.whiteListingModelOf(constructorJVM);
-				if (!model.isPresent())
-					throw new IllegalTransactionRequestException("illegal call to non-white-listed constructor of "
-						+ ((MethodSignature) methodOrConstructor).definingClass.name);
-				//TODO check proof obligations
+				ensureWhiteListingOf(constructorJVM, deserializedActuals);
 
 				try {
 					result = (Storage) constructorJVM.newInstance(deserializedActuals);
@@ -1554,11 +1598,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				if (Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
 
-				Optional<? extends Executable> model = whiteListingWizard.whiteListingModelOf(methodJVM);
-				if (!model.isPresent())
-					throw new IllegalTransactionRequestException("illegal call to non-white-listed method "
-						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
-				//TODO check proof obligations
+				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
 				isViewMethod = methodJVM.isAnnotationPresent(View.class);
@@ -1603,11 +1643,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				if (!Modifier.isStatic(methodJVM.getModifiers()))
 					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
 
-				Optional<? extends Executable> model = whiteListingWizard.whiteListingModelOf(methodJVM);
-				if (!model.isPresent())
-					throw new IllegalTransactionRequestException("illegal call to non-white-listed method "
-						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
-				//TODO check proof obligations
+				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
 				isViewMethod = methodJVM.isAnnotationPresent(View.class);

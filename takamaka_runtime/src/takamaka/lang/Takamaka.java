@@ -1,9 +1,11 @@
 package takamaka.lang;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
@@ -11,6 +13,7 @@ import java.util.stream.Stream;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.whitelisted.WhiteListed;
+import takamaka.whitelisted.WhiteListingProofObligation;
 
 /**
  * A class that acts as a global context for statements added
@@ -159,6 +162,29 @@ public abstract class Takamaka {
 	@WhiteListed
 	public static long now() {
 		return blockchain.getNow();
+	}
+
+	public static Optional<Method> getWhiteListingCheckFor(Annotation annotation) {
+		return getWhiteListingCheckFor(annotation.annotationType());
+	}
+
+	public static Optional<Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
+		if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class)) {
+			String checkName = lowerInitial(annotationType.getSimpleName());
+			Optional<Method> checkMethod = Stream.of(Takamaka.class.getDeclaredMethods())
+				.filter(method -> method.getName().equals(checkName)).findFirst();
+
+			if (!checkMethod.isPresent())
+				throw new IllegalStateException("unexpected white-list annotation " + annotationType.getSimpleName());
+
+			return checkMethod;
+		}
+
+		return Optional.empty();
+	}
+
+	private static String lowerInitial(String name) {
+		return Character.toLowerCase(name.charAt(0)) + name.substring(1);
 	}
 
 	public static void mustBeFalse(boolean value, String methodName) {

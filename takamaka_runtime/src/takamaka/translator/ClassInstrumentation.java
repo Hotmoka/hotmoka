@@ -84,7 +84,6 @@ import takamaka.lang.Takamaka;
 import takamaka.verifier.VerifiedClassGen;
 import takamaka.whitelisted.MustBeFalse;
 import takamaka.whitelisted.MustBeOrdered;
-import takamaka.whitelisted.MustRedefineHashCode;
 import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 import takamaka.whitelisted.WhiteListingProofObligation;
 
@@ -150,8 +149,7 @@ class ClassInstrumentation {
 	 * @throws ClassFormatException if some class file is not legal
 	 * @throws IOException          if there is an error accessing the disk
 	 */
-	public ClassInstrumentation(VerifiedClassGen clazz, JarOutputStream instrumentedJar,
-			TakamakaClassLoader classLoader) throws ClassFormatException, IOException {
+	public ClassInstrumentation(VerifiedClassGen clazz, JarOutputStream instrumentedJar, TakamakaClassLoader classLoader) throws ClassFormatException, IOException {
 		// performs instrumentation on that image
 		new Initializer(clazz, classLoader);
 
@@ -596,7 +594,7 @@ class ClassInstrumentation {
 					if (ins instanceof FieldInstruction) {
 						FieldInstruction fi = (FieldInstruction) ins;
 						Field model = classGen.whiteListingModelOf(fi);
-						if (containsProofObligations(model))
+						if (hasProofObligations(model))
 							// proof obligations are currently not implemented nor used on fields
 							throw new IllegalStateException("unexpected white-listing proof obligation for field " + fi.getReferenceType(cpg) + "." + fi.getFieldName(cpg));
 					}
@@ -608,7 +606,7 @@ class ClassInstrumentation {
 							ih.setInstruction(replacement);
 						else {
 							Executable model = classGen.whiteListingModelOf((InvokeInstruction) ins);
-							if (containsProofObligations(model)) {
+							if (hasProofObligations(model)) {
 								replacement = addWhiteListVerificationMethod(ih, (InvokeInstruction) ins, model, key);
 								whiteListingCache.put(key, replacement);
 								ih.setInstruction(replacement);
@@ -671,7 +669,7 @@ class ClassInstrumentation {
 				// we add a mask that specifies the white-listing proof obligations that can be discharged, since
 				// we can use the same verifier only if two instructions need verification of the same proof obligations
 				Executable model = classGen.whiteListingModelOf((InvokeInstruction) ins);
-				if (containsProofObligations(model)) {
+				if (hasProofObligations(model)) {
 					int slots = ins.consumeStack(cpg);
 					String mask = "";
 
@@ -732,10 +730,7 @@ class ClassInstrumentation {
 					if (!Takamaka.redefinesHashCodeOrToString(argClass)) {
 						il.append(InstructionFactory.createDup(argType.getSize()));
 						il.append(factory.createConstant("string concatenation"));
-						il.append(factory.createInvoke(TAKAMAKA_CLASS_NAME,
-								lowerInitial(MustRedefineHashCodeOrToString.class.getSimpleName()), Type.VOID,
-								new Type[] { Type.OBJECT, Type.STRING }, Const.INVOKESTATIC));
-
+						il.append(createInvokeForWhiteListingCheck(Takamaka.getWhiteListingCheckFor(MustRedefineHashCodeOrToString.class).get()));
 						atLeastOneCheck = true;
 					}
 				}
@@ -904,19 +899,22 @@ class ClassInstrumentation {
 			int initialSize = il.getLength();
 
 			for (Annotation ann: annotations) {
-				Class<?> annotationType = ann.annotationType();
-				if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
+				Optional<java.lang.reflect.Method> checkMethod = Takamaka.getWhiteListingCheckFor(ann);
+				if (checkMethod.isPresent())
 					// we check if the annotation could not be statically discharged
 					if (ih == null || key.charAt(annotationsCursor++) == '1') {
 						il.append(InstructionFactory.createDup(argType.getSize()));
-						java.lang.reflect.Method checkMethod = getTakamakaCheckNamed(lowerInitial(annotationType.getSimpleName()));
 						il.append(factory.createConstant(methodName));
-						il.append(factory.createInvoke(TAKAMAKA_CLASS_NAME, checkMethod.getName(), Type.VOID,
-							new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC));
+						il.append(createInvokeForWhiteListingCheck(checkMethod.get()));
 					}
 			}
 
 			return il.getLength() > initialSize;
+		}
+
+		private InvokeInstruction createInvokeForWhiteListingCheck(java.lang.reflect.Method checkMethod) {
+			return factory.createInvoke(TAKAMAKA_CLASS_NAME, checkMethod.getName(), Type.VOID,
+				new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC);
 		}
 
 		private boolean canBeStaticallyDicharged(Class<? extends Annotation> annotationType, InstructionHandle ih, int slots) {
@@ -954,42 +952,14 @@ class ClassInstrumentation {
 			return false;
 		}
 
-		private java.lang.reflect.Method getTakamakaCheckNamed(String name) {
-			Optional<java.lang.reflect.Method> checkMethod = Stream.of(Takamaka.class.getDeclaredMethods())
-					.filter(method -> method.getName().equals(name)).findFirst();
-
-			if (!checkMethod.isPresent())
-				throw new IllegalStateException("unexpected white-list annotation " + upperInitial(name));
-
-			return checkMethod.get();
+		private boolean hasProofObligations(Field field) {
+			return Stream.of(field.getAnnotations()).map(Annotation::annotationType).anyMatch(annotation -> annotation.isAnnotationPresent(WhiteListingProofObligation.class));
 		}
 
-		private String lowerInitial(String name) {
-			return Character.toLowerCase(name.charAt(0)) + name.substring(1);
-		}
-
-		private String upperInitial(String name) {
-			return Character.toUpperCase(name.charAt(0)) + name.substring(1);
-		}
-
-		private boolean containsProofObligations(Field field) {
-			return Stream.of(field.getAnnotations()).map(Annotation::annotationType).anyMatch(this::isProofObligation);
-		}
-
-		private boolean containsProofObligations(Executable method) {
-			return Stream.of(method.getAnnotations()).map(Annotation::annotationType).anyMatch(this::isProofObligation)
-
+		private boolean hasProofObligations(Executable method) {
+			return Stream.of(method.getAnnotations()).map(Annotation::annotationType).anyMatch(annotation -> annotation.isAnnotationPresent(WhiteListingProofObligation.class))
 					||
-
-					Stream.of(method.getParameterAnnotations()).flatMap(Stream::of).map(Annotation::annotationType)
-							.anyMatch(this::isProofObligation);
-		}
-
-		private boolean isProofObligation(Class<?> annotation) {
-			return annotation == MustRedefineHashCode.class
-					|| annotation == MustRedefineHashCodeOrToString.class
-					|| annotation == MustBeOrdered.class
-					|| annotation == MustBeFalse.class;
+				Stream.of(method.getParameterAnnotations()).flatMap(Stream::of).map(Annotation::annotationType).anyMatch(annotation -> annotation.isAnnotationPresent(WhiteListingProofObligation.class));
 		}
 
 		/**

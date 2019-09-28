@@ -11,11 +11,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import takamaka.blockchain.CodeExecutionException;
-import takamaka.blockchain.IllegalTransactionRequestException;
 import takamaka.blockchain.NonVoidMethodSignature;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.BasicTypes;
+import takamaka.lang.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 class IllegalCallToNonWhiteListedMethod11 {
@@ -40,7 +40,7 @@ class IllegalCallToNonWhiteListedMethod11 {
 				new NonVoidMethodSignature(System.class.getName(), "currentTimeMillis", BasicTypes.LONG)));
 		}
 		catch (TransactionException e) {
-			if (e.getCause() instanceof IllegalTransactionRequestException)
+			if (e.getCause() instanceof NonWhiteListedCallException)
 				return;
 
 			e.printStackTrace();
