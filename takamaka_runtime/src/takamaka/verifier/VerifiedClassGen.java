@@ -113,8 +113,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 */
 	private final Set<BootstrapMethod> bootstrapMethodsLeadingToEntries = new HashSet<>();
 
-	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
-
 	/**
 	 * Builds and verify a BCEL class from the given class file.
 	 * 
@@ -247,12 +245,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		if (holder instanceof ObjectType) {
 			String name = ins.getFieldName(cpg);
 			Class<?> type = classLoader.bcelToClass(ins.getFieldType(cpg));
-			try {
-				return classLoader.resolveField(((ObjectType) holder).getClassName(), name, type);
-			}
-			catch (ClassNotFoundException e) {
-				throw new IncompleteClasspathError(e);
-			}
+
+			return IncompleteClasspathError.insteadOfClassNotFoundException
+				(() -> classLoader.resolveField(((ObjectType) holder).getClassName(), name, type));
 		}
 	
 		return Optional.empty();
@@ -394,12 +389,8 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * @return the model of its white-listing, if it exists
 	 */
 	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
-		try {
-			return checkINVOKESPECIAL(invoke, whiteListingWizard.whiteListingModelOf(executable));
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+		return IncompleteClasspathError.insteadOfClassNotFoundException
+			(() -> checkINVOKESPECIAL(invoke, whiteListingWizard.whiteListingModelOf(executable)));
 	}
 
 	/**
@@ -526,8 +517,8 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			ConstantPoolGen cpg = getConstantPool();
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			if (receiver instanceof ObjectType)
-			return classLoader.isEntryPossiblyAlreadyInstrumented
-				(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+				return classLoader.isEntryPossiblyAlreadyInstrumented
+					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 
 		return false;
@@ -557,54 +548,36 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	private Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) {
-		try {
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Optional<Constructor<?>> result = classLoader.resolveConstructor(className, args);
-			if (result.isPresent())
-				return result;
-
 			// we try to add the instrumentation arguments. This is important when
 			// a bootstrap calls an entry of a jar already installed (and instrumented)
 			// in blockchain. In that case, it will find the target only with these
 			// extra arguments added during instrumentation
-			return classLoader.resolveConstructor(className, expandArgsForEntry(args));
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+			return result.isPresent() ? result : classLoader.resolveConstructor(className, expandArgsForEntry(args));
+		});
 	}
 
 	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws ClassNotFoundException {
 		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
 		System.arraycopy(args, 0, expandedArgs, 0, args.length);
-		expandedArgs[args.length] = classLoader.loadClass(CONTRACT_CLASS_NAME);
+		expandedArgs[args.length] = classLoader.contractClass;
 		expandedArgs[args.length + 1] = Dummy.class;
 		return expandedArgs;
 	}
 
 	private Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		try {
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Optional<java.lang.reflect.Method> result = classLoader.resolveMethod(className, methodName, args, returnType);
-			if (result.isPresent())
-				return result;
-
-			return classLoader.resolveMethod(className, methodName, expandArgsForEntry(args), returnType);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+			return result.isPresent() ? result : classLoader.resolveMethod(className, methodName, expandArgsForEntry(args), returnType);
+		});
 	}
 
 	private Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		try {
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Optional<java.lang.reflect.Method> result = classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
-			if (result.isPresent())
-				return result;
-
-			return classLoader.resolveInterfaceMethod(className, methodName, expandArgsForEntry(args), returnType);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+			return result.isPresent() ? result : classLoader.resolveInterfaceMethod(className, methodName, expandArgsForEntry(args), returnType);
+		});
 	}
 
 	private boolean hasCode(Method method) {
@@ -792,17 +765,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 * the kind of contract allowed in entries can only be enlarged in subclasses.
 		 */
 		private void entryIsConsistentAlongSubclasses() {
-			for (Method method: getMethods())
-				if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
+			Stream.of(getMethods())
+				.filter(method -> !method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate())
+				.forEachOrdered(method -> {
 					Class<?> contractTypeForEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 
-					try {
+					IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 						isIdenticallyEntryInSupertypesOf(classLoader.loadClass(className), method, contractTypeForEntry);
-					}
-					catch (ClassNotFoundException e) {
-						throw new IncompleteClasspathError(e);
-					}
-				}
+					});
+				});
 		}
 
 		private void isIdenticallyEntryInSupertypesOf(Class<?> clazz, Method method, Class<?> contractTypeForEntry) {
@@ -865,35 +836,31 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
 		 */
 		private void payableIsConsistentAlongSubclasses() {
-			for (Method method: getMethods())
-				if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
+			Stream.of(getMethods())
+				.filter(method -> !method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate())
+				.forEachOrdered(method -> {
 					boolean wasPayable = classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 
-					try {
+					IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 						isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), method, wasPayable);
-					}
-					catch (ClassNotFoundException e) {
-						throw new IncompleteClasspathError(e);
-					}
-				}
+					});
+				});
 		}
 
 		/**
-		 * Checks that {@code @@Payable} methods only redefine {@code @@Payable} methods and that
-		 * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
+		 * Checks that {@code @@ThrowsExceptions} methods only redefine {@code @@ThrowsExceptions} methods and that
+		 * {@code @@ThrowsExceptions} methods are only redefined by {@code @@ThrowsExceptions} methods.
 		 */
 		private void throwsExceptionsIsConsistentAlongSubclasses() {
-			for (Method method: getMethods())
-				if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
+			Stream.of(getMethods())
+				.filter(method -> !method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic())
+				.forEachOrdered(method -> {
 					boolean wasThrowsExceptions = classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 
-					try {
+					IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 						isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), method, wasThrowsExceptions);
-					}
-					catch (ClassNotFoundException e) {
-						throw new IncompleteClasspathError(e);
-					}
-				}
+					});
+				});
 		}
 
 		private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, Method method, boolean wasThrowsExceptions) {
@@ -918,8 +885,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 
 		private void payableMethodsReceiveAmount() {
 			Stream.of(getMethods())
-				.filter(method -> classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
-				.filter(method -> !startsWithAmount(method))
+				.filter(method -> classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) && !startsWithAmount(method))
 				.map(method -> new PayableWithoutAmountError(VerifiedClassGen.this, method))
 				.forEach(this::issue);
 		}
@@ -950,29 +916,23 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		}
 
 		private void storageClassesHaveFieldsOfStorageType() {
-			if (classLoader.isStorage(className)) {
-				try {
-					Class<?> clazz = classLoader.loadClass(className);
-					Stream.of(clazz.getDeclaredFields())
+			if (classLoader.isStorage(className))
+				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+					Stream.of(classLoader.loadClass(className).getDeclaredFields())
 						.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 						.filter(field -> !isTypeAllowedForStorageFields(field.getType()))
 						.map(field -> new IllegalTypeForStorageFieldError(VerifiedClassGen.this, field))
 						.forEach(this::issue);
-				}
-				catch (ClassNotFoundException e) {
-					throw new IncompleteClasspathError(e);
-				}
-			}
+				});
 		}
 
 		@SuppressWarnings("unchecked")
 		private boolean isTypeAllowedForStorageFields(Class<?> type) {
-			return type.isPrimitive() || type == String.class || type == BigInteger.class
+			// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
+			// will check later if the actual type of the object in this field is allowed
+			return type.isPrimitive() || type == Object.class || type == String.class || type == BigInteger.class
 				|| (type.isEnum() && !hasInstanceFields((Class<? extends Enum<?>>) type))
-				|| (!type.isArray() && classLoader.isStorage(type.getName()))
-				// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
-				// will check later if the actual type of the object in this field is allowed
-				|| type == Object.class;
+				|| (!type.isArray() && classLoader.isStorage(type.getName()));
 		}
 
 		/**
@@ -1021,24 +981,17 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			private void isNotStaticInitializer() {
 				if (hasCode(method) && method.getName().equals(Const.STATIC_INITIALIZER_NAME))
 					if (isEnum() || isSynthetic()) {
-						// checks that the static fields of {@code enum}'s or synthetic classes
-						// with a static initializer
-						// are either {@code synthetic} or {@code enum} elements or final static fields with
-						// an explicit constant initializer. This check is necessary
-						// since we cannot forbid static initializers in such classes, hence we do at least
-						// avoid the existence of extra static fields
-						Class<?> clazz;
-						try {
-							clazz = classLoader.loadClass(className);
-							Stream.of(clazz.getDeclaredFields())
+						// checks that the static fields of enum's or synthetic classes with a static initializer
+						// are either synthetic or enum elements or final static fields with
+						// an explicit constant initializer. This check is necessary since we cannot forbid static initializers
+						// in such classes, hence we do at least avoid the existence of extra static fields
+						IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+							Stream.of(classLoader.loadClass(className).getDeclaredFields())
 								.filter(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
-										&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field)))
+									&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field)))
 								.findAny()
 								.ifPresent(field -> issue(new IllegalStaticInitializationError(VerifiedClassGen.this, method, lineOf(instructions.getStart()))));
-						}
-						catch (ClassNotFoundException e) {
-							throw new IncompleteClasspathError(e);
-						}
+						});
 					}
 					else
 						issue(new IllegalStaticInitializationError(VerifiedClassGen.this, method, lineOf(instructions.getStart())));
@@ -1091,10 +1044,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			}
 
 			private Stream<InstructionHandle> instructions() {
-				if (instructions == null)
-					return Stream.empty();
-				else
-					return StreamSupport.stream(instructions.spliterator(), false);
+				return instructions == null ? Stream.empty() : StreamSupport.stream(instructions.spliterator(), false);
 			}
 
 			/**
@@ -1173,16 +1123,13 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			}
 
 			private boolean canCatchUncheckedExceptions(String exceptionName) {
-				try {
+				return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 					Class<?> clazz = classLoader.loadClass(exceptionName);
 					return RuntimeException.class.isAssignableFrom(clazz) ||
 						clazz.isAssignableFrom(RuntimeException.class) ||
 						java.lang.Error.class.isAssignableFrom(clazz) ||
 						clazz.isAssignableFrom(java.lang.Error.class);
-				}
-				catch (ClassNotFoundException e) {
-					throw new IncompleteClasspathError(e);
-				}
+				});
 			}
 
 			private void onlyWhiteListedCodeIsUsed() {

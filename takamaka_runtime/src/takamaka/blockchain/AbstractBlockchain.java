@@ -86,8 +86,6 @@ import takamaka.whitelisted.WhiteListingWizard;
  * as a generic layer for all blockchain implementations.
  */
 public abstract class AbstractBlockchain implements Blockchain {
-	private static final String CONTRACT_NAME = "takamaka.lang.Contract";
-	private static final String EXTERNALLY_OWNED_ACCOUNT_NAME = "takamaka.lang.ExternallyOwnedAccount";
 
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
@@ -393,16 +391,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 				// we do not count gas for this creation
 				initTransaction(BigInteger.valueOf(-1L), previous);
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-				Class<?> gameteClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
-				Class<?> contractClass = classLoader.loadClass(CONTRACT_NAME);
-				Storage gamete = (Storage) gameteClass.newInstance();
+				Storage gamete = (Storage) classLoader.externallyOwnedAccount.newInstance();
 				// we set the balance field of the gamete
-				Field balanceField = contractClass.getDeclaredField("balance");
+				Field balanceField = classLoader.contractClass.getDeclaredField("balance");
 				balanceField.setAccessible(true); // since the field is private
 				balanceField.set(gamete, request.initialAmount);
-				StorageReference gameteRef = gamete.storageReference;
 
-				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), gameteRef);
+				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), gamete.storageReference);
 			}
 		});
 	}
@@ -1121,13 +1116,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private static BigInteger decreaseBalance(Storage eoa, BigInteger gas)
+	private BigInteger decreaseBalance(Storage eoa, BigInteger gas)
 			throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
 		BigInteger delta = GasCosts.toCoin(gas);
-		Class<?> contractClass = eoa.getClass().getClassLoader().loadClass(CONTRACT_NAME);
-		Field balanceField = contractClass.getDeclaredField("balance");
+		Field balanceField = classLoader.contractClass.getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
 		if (previousBalance.compareTo(delta) < 0)
@@ -1149,13 +1143,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private static void increaseBalance(Storage eoa, BigInteger gas)
+	private void increaseBalance(Storage eoa, BigInteger gas)
 			throws ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
 		BigInteger delta = GasCosts.toCoin(gas);
-		Class<?> contractClass = eoa.getClass().getClassLoader().loadClass(CONTRACT_NAME);
-		Field balanceField = contractClass.getDeclaredField("balance");
+		Field balanceField = classLoader.contractClass.getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
 		balanceField.set(eoa, previousBalance.add(delta));
@@ -1170,8 +1163,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 *                                in the class path of the transaction
 	 */
 	private void checkIsExternallyOwned(Storage object) throws ClassNotFoundException, IllegalTransactionRequestException {
-		Class<?> eoaClass = classLoader.loadClass(EXTERNALLY_OWNED_ACCOUNT_NAME);
-		if (!eoaClass.isAssignableFrom(object.getClass()))
+		if (!classLoader.externallyOwnedAccount.isAssignableFrom(object.getClass()))
 			throw new IllegalTransactionRequestException("Only an externally owned contract can start a transaction");
 	}
 
@@ -1380,7 +1372,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
 				classes.add(type.toClass(AbstractBlockchain.this));
 
-			classes.add(classLoader.loadClass(CONTRACT_NAME));
+			classes.add(classLoader.contractClass);
 			classes.add(Dummy.class);
 
 			return classes.toArray(new Class<?>[classes.size()]);

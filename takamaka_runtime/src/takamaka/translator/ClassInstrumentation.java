@@ -142,18 +142,18 @@ class ClassInstrumentation {
 	/**
 	 * Performs the instrumentation of a single class file.
 	 * 
-	 * @param clazz           the class to instrument
+	 * @param clazz the class to instrument
 	 * @param instrumentedJar the jar where the instrumented class will be added
-	 * @param classLoader     the class loader for resolving the classes under
-	 *                        instrumentation and of their dependent libraries
+	 * @param classLoader the class loader for resolving the classes under
+	 *                    instrumentation and of their dependent libraries
 	 * @throws ClassFormatException if some class file is not legal
-	 * @throws IOException          if there is an error accessing the disk
+	 * @throws IOException if there is an error accessing the disk
 	 */
-	public ClassInstrumentation(VerifiedClassGen clazz, JarOutputStream instrumentedJar, TakamakaClassLoader classLoader) throws ClassFormatException, IOException {
-		// performs instrumentation on that image
+	ClassInstrumentation(VerifiedClassGen clazz, JarOutputStream instrumentedJar, TakamakaClassLoader classLoader) throws ClassFormatException, IOException {
+		// performs instrumentation on the class
 		new Initializer(clazz, classLoader);
 
-		// dump the image on disk
+		// dump the instrumented class on disk
 		clazz.getJavaClass().dump(instrumentedJar);
 	}
 
@@ -252,13 +252,10 @@ class ClassInstrumentation {
 			this.isContract = classLoader.isContract(className);
 
 			// the fields of the class are relevant only for storage classes
-			if (isStorage) {
-				try {
+			if (isStorage)
+				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 					collectNonTransientInstanceFieldsOf(classLoader.loadClass(className), true);
-				} catch (ClassNotFoundException e) {
-					throw new IncompleteClasspathError(e);
-				}
-			}
+				});
 
 			instrumentClass();
 		}
@@ -714,7 +711,7 @@ class ClassInstrumentation {
 			int index = 0;
 			boolean atLeastOneCheck = false;
 
-			for (Type argType : args) {
+			for (Type argType: args) {
 				il.append(InstructionFactory.createLoad(argType, index));
 				index += argType.getSize();
 				if (argType instanceof ObjectType) {
@@ -746,8 +743,7 @@ class ClassInstrumentation {
 			il.append(invokedynamic);
 			il.append(InstructionFactory.createReturn(verifierReturnType));
 
-			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args, null,
-					verifierName, className, il, cpg);
+			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args, null, verifierName, className, il, cpg);
 
 			il.setPositions();
 			addedVerifier.setMaxLocals();
@@ -938,15 +934,9 @@ class ClassInstrumentation {
 				else
 					type = invoke.getArgumentTypes(cpg)[consumed - slots - 1];
 
-				Class<?> clazz;
-				try {
-					clazz = classLoader.loadClass(((ObjectType) type).getClassName());
-				}
-				catch (ClassNotFoundException e) {
-					throw new IncompleteClasspathError(e);
-				}
-
-				return type instanceof ObjectType && Takamaka.isOrdered(clazz);
+				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+					return type instanceof ObjectType && Takamaka.isOrdered(classLoader.loadClass(((ObjectType) type).getClassName()));
+				});
 			}
 
 			return false;

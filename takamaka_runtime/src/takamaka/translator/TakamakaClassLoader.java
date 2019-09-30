@@ -27,15 +27,18 @@ import takamaka.whitelisted.ResolvingClassLoader;
  * of a Takamaka program.
  */
 public class TakamakaClassLoader extends ResolvingClassLoader {
-	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
-	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
-	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
+	private final static ObjectType CONTRACT_OT = new ObjectType("takamaka.lang.Contract");
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
 	/**
 	 * The class token of the contract class.
 	 */
 	public final Class<?> contractClass;
+
+	/**
+	 * The class token of the externally owned account class.
+	 */
+	public final Class<?> externallyOwnedAccount;
 
 	/**
 	 * The class token of the storage class.
@@ -49,8 +52,9 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 		super(urls);
 
 		try {
-			this.contractClass = loadClass(CONTRACT_CLASS_NAME);
-			this.storageClass = loadClass(STORAGE_CLASS_NAME);
+			this.contractClass = loadClass("takamaka.lang.Contract");
+			this.externallyOwnedAccount = loadClass("takamaka.lang.ExternallyOwnedAccount");
+			this.storageClass = loadClass(Storage.class.getName());
 		} catch (ClassNotFoundException e) {
 			throw new IncompleteClasspathError(e);
 		}
@@ -63,11 +67,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	 * @return true if and only if that class extends {@link takamaka.lang.Storage}
 	 */
 	public final boolean isStorage(String className) {
-		try {
-			return storageClass.isAssignableFrom(loadClass(className));
-		} catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> storageClass.isAssignableFrom(loadClass(className)));
 	}
 
 	/**
@@ -77,11 +77,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	 * @return true if and only if that condition holds
 	 */
 	public final boolean isContract(String className) {
-		try {
-			return contractClass.isAssignableFrom(loadClass(className));
-		} catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> contractClass.isAssignableFrom(loadClass(className)));
 	}
 
 	/**
@@ -113,7 +109,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	 * @return true if and only if that condition holds
 	 */
 	public final boolean isTransient(String className, String fieldName, Class<?> fieldType) {
-		try {
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Class<?> clazz = loadClass(className);
 			
 			do {
@@ -123,14 +119,13 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 
 				if (match.isPresent())
 					return Modifier.isTransient(match.get().getModifiers());
+
+				clazz = clazz.getSuperclass();
 			}
 			while (clazz != storageClass && clazz != contractClass);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
 
-		return false;
+			return false;
+		});
 	}
 
 	/**
@@ -142,7 +137,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	 * @return true if and only if that condition holds
 	 */
 	public final boolean isTransientOrFinal(String className, String fieldName, Class<?> fieldType) {
-		try {
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Class<?> clazz = loadClass(className);
 			
 			do {
@@ -154,14 +149,13 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 					int modifiers = match.get().getModifiers();
 					return Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers);
 				}
+
+				clazz = clazz.getSuperclass();
 			}
 			while (clazz != storageClass && clazz != contractClass);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
 
-		return false;
+			return false;
+		});
 	}
 
 	/**
@@ -256,24 +250,20 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	private Annotation getAnnotationOfConstructor(String className, Type[] formals, Class<? extends Annotation> annotation) {
 		Class<?>[] formalsClass = Stream.of(formals).map(this::bcelToClass).toArray(Class[]::new);
 
-		try {
-			Class<?> clazz = loadClass(className);
-			Optional<Constructor<?>> definition = Stream.of(clazz.getDeclaredConstructors())
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			Optional<Constructor<?>> definition = Stream.of(loadClass(className).getDeclaredConstructors())
 				.filter(c -> Arrays.equals(c.getParameterTypes(), formalsClass))
 				.findFirst();
 
 			return definition.isPresent() ? definition.get().getAnnotation(annotation) : null;
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+		});
 	}
 
 	private Annotation getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, Class<? extends Annotation> annotation) {
 		Class<?> returnTypeClass = bcelToClass(returnType);
 		Class<?>[] formalsClass = Stream.of(formals).map(this::bcelToClass).toArray(Class[]::new);
 
-		try {
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Class<?> clazz = loadClass(className);
 			Optional<java.lang.reflect.Method> definition = Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
@@ -296,10 +286,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 			}
 
 			return null;
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+		});
 	}
 
 	/**
@@ -328,12 +315,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 		else if (type == BasicType.VOID)
 			return void.class;
 		else if (type instanceof ObjectType)
-			try {
-				return loadClass(type.toString()); //getSignature().replace('/', '.'));
-			}
-			catch (ClassNotFoundException e) {
-				throw new IncompleteClasspathError(e);
-			}
+			return IncompleteClasspathError.insteadOfClassNotFoundException(() -> loadClass(type.toString()));
 		else { // array
 			Class<?> elementsClass = bcelToClass(((ArrayType) type).getElementType());
 			// trick: we build an array of 0 elements just to access its class token
