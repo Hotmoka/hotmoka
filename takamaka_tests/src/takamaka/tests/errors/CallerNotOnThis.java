@@ -19,6 +19,7 @@ import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.verifier.VerificationException;
+import takamaka.verifier.errors.CallerNotOnThisError;
 
 class CallerNotOnThis {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
@@ -43,7 +44,7 @@ class CallerNotOnThis {
 		}
 		catch (TransactionException e) {
 			if (e.getCause() instanceof VerificationException
-					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.CallerNotOnThisError)
+					&& ((VerificationException) e.getCause()).getError() instanceof CallerNotOnThisError)
 				return;
 
 			fail("wrong exception");

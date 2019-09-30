@@ -57,12 +57,38 @@ import org.apache.bcel.generic.Type;
 import takamaka.translator.Dummy;
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
+import takamaka.verifier.errors.CallerNotOnThisError;
+import takamaka.verifier.errors.CallerOutsideEntryError;
+import takamaka.verifier.errors.IllegalAccessToNonWhiteListedFieldError;
+import takamaka.verifier.errors.IllegalBootstrapMethodError;
+import takamaka.verifier.errors.IllegalCallToEntryError;
+import takamaka.verifier.errors.IllegalCallToNonWhiteListedConstructorError;
+import takamaka.verifier.errors.IllegalCallToNonWhiteListedMethodError;
+import takamaka.verifier.errors.IllegalEntryArgumentError;
+import takamaka.verifier.errors.IllegalEntryMethodError;
+import takamaka.verifier.errors.IllegalJsrInstructionError;
+import takamaka.verifier.errors.IllegalNativeMethodError;
+import takamaka.verifier.errors.IllegalPackageNameError;
+import takamaka.verifier.errors.IllegalPutstaticInstructionError;
+import takamaka.verifier.errors.IllegalRetInstructionError;
+import takamaka.verifier.errors.IllegalStaticInitializationError;
+import takamaka.verifier.errors.IllegalSynchronizationError;
+import takamaka.verifier.errors.IllegalTypeForStorageFieldError;
+import takamaka.verifier.errors.IllegalUpdateOfLocal0Error;
+import takamaka.verifier.errors.InconsistentEntryError;
+import takamaka.verifier.errors.InconsistentPayableError;
+import takamaka.verifier.errors.InconsistentThrowsExceptionsError;
+import takamaka.verifier.errors.PayableWithoutAmountError;
+import takamaka.verifier.errors.PayableWithoutEntryError;
+import takamaka.verifier.errors.ThrowsExceptionsOnNonPublicError;
+import takamaka.verifier.errors.UncheckedExceptionHandlerError;
+import takamaka.verifier.errors.UnresolvedCallError;
 import takamaka.whitelisted.MustRedefineHashCode;
 import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 import takamaka.whitelisted.WhiteListingWizard;
 
 /**
- * A BCEL class generator, specialized in order to verify some constraints required by Takamaka.
+ * A BCEL class, that passed the static Takamaka verification tests.
  */
 public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedClassGen> {
 

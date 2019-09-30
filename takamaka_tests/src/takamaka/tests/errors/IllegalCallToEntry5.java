@@ -19,6 +19,7 @@ import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.verifier.VerificationException;
+import takamaka.verifier.errors.IllegalCallToEntryError;
 
 class IllegalCallToEntry5 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
@@ -43,10 +44,9 @@ class IllegalCallToEntry5 {
 		}
 		catch (TransactionException e) {
 			if (e.getCause() instanceof VerificationException
-					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.IllegalCallToEntryError)
+					&& ((VerificationException) e.getCause()).getError() instanceof IllegalCallToEntryError)
 				return;
 
-			e.printStackTrace();
 			fail("wrong exception");
 		}
 

@@ -43,7 +43,6 @@ class IllegalCallToNonWhiteListedMethod11 {
 			if (e.getCause() instanceof NonWhiteListedCallException)
 				return;
 
-			e.printStackTrace();
 			fail("wrong exception");
 		}
 

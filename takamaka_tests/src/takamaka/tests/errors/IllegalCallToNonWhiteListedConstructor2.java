@@ -15,8 +15,8 @@ import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.memory.InitializedMemoryBlockchain;
-import takamaka.verifier.IllegalCallToNonWhiteListedConstructorError;
 import takamaka.verifier.VerificationException;
+import takamaka.verifier.errors.IllegalCallToNonWhiteListedConstructorError;
 
 class IllegalCallToNonWhiteListedConstructor2 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
@@ -44,7 +44,6 @@ class IllegalCallToNonWhiteListedConstructor2 {
 					&& ((VerificationException) e.getCause()).getError() instanceof IllegalCallToNonWhiteListedConstructorError)
 				return;
 
-			e.printStackTrace();
 			fail("wrong exception");
 		}
 

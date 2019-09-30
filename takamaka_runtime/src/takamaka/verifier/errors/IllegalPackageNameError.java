@@ -1,6 +1,8 @@
-package takamaka.verifier;
+package takamaka.verifier.errors;
 
 import org.apache.bcel.generic.ClassGen;
+
+import takamaka.verifier.Error;
 
 public class IllegalPackageNameError extends Error {
 

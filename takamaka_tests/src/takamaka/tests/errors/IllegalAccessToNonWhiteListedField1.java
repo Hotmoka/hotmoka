@@ -15,8 +15,8 @@ import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.memory.InitializedMemoryBlockchain;
-import takamaka.verifier.IllegalAccessToNonWhiteListedFieldError;
 import takamaka.verifier.VerificationException;
+import takamaka.verifier.errors.IllegalAccessToNonWhiteListedFieldError;
 
 class IllegalAccessToNonWhiteListedField1 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
@@ -44,7 +44,6 @@ class IllegalAccessToNonWhiteListedField1 {
 					&& ((VerificationException) e.getCause()).getError() instanceof IllegalAccessToNonWhiteListedFieldError)
 				return;
 
-			e.printStackTrace();
 			fail("wrong exception");
 		}
 

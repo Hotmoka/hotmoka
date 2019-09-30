@@ -42,7 +42,6 @@ class IllegalCallToNonWhiteListedMethod10 {
 			if (e.getCause() instanceof ClassCastException)
 				return;
 
-			e.printStackTrace();
 			fail("wrong exception");
 		}
 

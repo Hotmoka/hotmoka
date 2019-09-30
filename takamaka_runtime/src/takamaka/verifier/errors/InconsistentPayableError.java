@@ -1,7 +1,9 @@
-package takamaka.verifier;
+package takamaka.verifier.errors;
 
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
+
+import takamaka.verifier.Error;
 
 public class InconsistentPayableError extends Error {
 

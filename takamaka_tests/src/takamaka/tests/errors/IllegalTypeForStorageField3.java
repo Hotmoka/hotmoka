@@ -19,6 +19,7 @@ import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.verifier.VerificationException;
+import takamaka.verifier.errors.IllegalTypeForStorageFieldError;
 
 class IllegalTypeForStorageField3 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
@@ -43,7 +44,7 @@ class IllegalTypeForStorageField3 {
 		}
 		catch (TransactionException e) {
 			if (e.getCause() instanceof VerificationException
-					&& ((VerificationException) e.getCause()).getError() instanceof takamaka.verifier.IllegalTypeForStorageFieldError)
+					&& ((VerificationException) e.getCause()).getError() instanceof IllegalTypeForStorageFieldError)
 				return;
 
 			fail("wrong exception");
