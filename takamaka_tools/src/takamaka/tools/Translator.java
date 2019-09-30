@@ -1,4 +1,4 @@
-package takamaka.translator;
+package takamaka.tools;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +15,9 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
+import takamaka.translator.JarInstrumentation;
+import takamaka.translator.TakamakaClassLoader;
 
 /**
  * A simple test to parse, check and instrument a jar. It performs the same tasks that

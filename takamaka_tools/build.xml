@@ -1,6 +1,6 @@
-<project name="takamaka_translator" default="dist" basedir=".">
+<project name="takamaka_tools" default="dist" basedir=".">
   <description>
-    Compiles the takamaka_translator project
+    Compiles the takamaka_tools project
   </description>
 
   <property name="src" location="src"/>
@@ -27,7 +27,7 @@
 
   <target name="dist" depends="compile" description="generate the distribution">
     <mkdir dir="${dist}"/>
-    <jar jarfile="${dist}/takamaka_translator.jar" basedir="${build}" />
+    <jar jarfile="${dist}/takamaka_tools.jar" basedir="${build}" />
   </target>
 
 </project>

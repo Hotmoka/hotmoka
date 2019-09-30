@@ -45,7 +45,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	/**
 	 * Builds a class loader with the given URLs.
 	 */
-	protected TakamakaClassLoader(URL[] urls) {
+	public TakamakaClassLoader(URL[] urls) {
 		super(urls);
 
 		try {
