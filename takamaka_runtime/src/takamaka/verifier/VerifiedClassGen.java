@@ -4,8 +4,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -54,30 +52,29 @@ import org.apache.bcel.generic.Type;
 import takamaka.translator.Dummy;
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
+import takamaka.verifier.checks.BootstrapsAreLegalCheck;
+import takamaka.verifier.checks.EntryIsConsistentAlongSubclassesCheck;
+import takamaka.verifier.checks.EntryIsOnlyAppliedToInstanceCodeOfContractsCheck;
+import takamaka.verifier.checks.PackagesAreLegalCheck;
+import takamaka.verifier.checks.PayableIsConsistentAlongSubclassesCheck;
+import takamaka.verifier.checks.PayableIsOnlyAppliedToEntriesCheck;
+import takamaka.verifier.checks.PayableMethodsReceiveAmountCheck;
+import takamaka.verifier.checks.StorageClassesHaveFieldsOfStorageTypeCheck;
+import takamaka.verifier.checks.ThrowsExceptionsIsConsistentAlongSubclassesCheck;
+import takamaka.verifier.checks.ThrowsExceptionsIsOnlyAppliedToPublicCheck;
 import takamaka.verifier.errors.CallerNotOnThisError;
 import takamaka.verifier.errors.CallerOutsideEntryError;
 import takamaka.verifier.errors.IllegalAccessToNonWhiteListedFieldError;
-import takamaka.verifier.errors.IllegalBootstrapMethodError;
 import takamaka.verifier.errors.IllegalCallToEntryError;
 import takamaka.verifier.errors.IllegalCallToNonWhiteListedConstructorError;
 import takamaka.verifier.errors.IllegalCallToNonWhiteListedMethodError;
-import takamaka.verifier.errors.IllegalEntryArgumentError;
-import takamaka.verifier.errors.IllegalEntryMethodError;
 import takamaka.verifier.errors.IllegalJsrInstructionError;
 import takamaka.verifier.errors.IllegalNativeMethodError;
-import takamaka.verifier.errors.IllegalPackageNameError;
 import takamaka.verifier.errors.IllegalPutstaticInstructionError;
 import takamaka.verifier.errors.IllegalRetInstructionError;
 import takamaka.verifier.errors.IllegalStaticInitializationError;
 import takamaka.verifier.errors.IllegalSynchronizationError;
-import takamaka.verifier.errors.IllegalTypeForStorageFieldError;
 import takamaka.verifier.errors.IllegalUpdateOfLocal0Error;
-import takamaka.verifier.errors.InconsistentEntryError;
-import takamaka.verifier.errors.InconsistentPayableError;
-import takamaka.verifier.errors.InconsistentThrowsExceptionsError;
-import takamaka.verifier.errors.PayableWithoutAmountError;
-import takamaka.verifier.errors.PayableWithoutEntryError;
-import takamaka.verifier.errors.ThrowsExceptionsOnNonPublicError;
 import takamaka.verifier.errors.UncheckedExceptionHandlerError;
 import takamaka.verifier.errors.UnresolvedCallError;
 import takamaka.whitelisted.MustRedefineHashCode;
@@ -338,7 +335,8 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Optional<? extends Executable> model) {
 		if (invoke instanceof INVOKESPECIAL &&
 			model.isPresent() &&
-			(model.get().isAnnotationPresent(MustRedefineHashCode.class) || model.get().isAnnotationPresent(MustRedefineHashCodeOrToString.class)) &&
+			(model.get().isAnnotationPresent(MustRedefineHashCode.class) ||
+			 model.get().isAnnotationPresent(MustRedefineHashCodeOrToString.class)) &&
 			resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
 			return Optional.empty();
 		else
@@ -445,14 +443,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	private final static String TAKAMAKA_CALLER_SIG = "()Ltakamaka/lang/Contract;";
 
 	/**
-	 * The BCEL type for BigInteger.
-	 */
-	private final static ObjectType BIG_INTEGER_OT = new ObjectType(BigInteger.class.getName());
-
-	/**
 	 * The algorithms that perform the verification of the BCEL class.
 	 */
-	private class ClassVerification {
+	public class ClassVerification {
 
 		/**
 		 * The name of the class under verification.
@@ -497,7 +490,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 * 
 		 * @param issueHandler the handler to call when an issue is found
 		 * @param duringInitialization true if and only if verification is performed during blockchain initialization
-		 * @throws VerificationException
+		 * @throws VerificationException if some verification error occurs
 		 */
 		private ClassVerification(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 			this.className = getClassName();
@@ -508,16 +501,16 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			if (classLoader.isContract(className))
 				computeLambdasUnreachableFromStaticMethods();
 
-			packagesAreLegal();
-			bookstrapsAreLegal();
-			entryIsOnlyAppliedToInstanceCodeOfContracts();
-			entryIsConsistentAlongSubclasses();
-			payableIsOnlyAppliedToEntries();
-			payableIsConsistentAlongSubclasses();
-			payableMethodsReceiveAmount();
-			throwsExceptionsIsOnlyAppliedToPublic();
-			throwsExceptionsIsConsistentAlongSubclasses();
-			storageClassesHaveFieldsOfStorageType();
+			new PackagesAreLegalCheck(this);
+			new BootstrapsAreLegalCheck(this);
+			new EntryIsOnlyAppliedToInstanceCodeOfContractsCheck(this);
+			new EntryIsConsistentAlongSubclassesCheck(this);
+			new PayableIsOnlyAppliedToEntriesCheck(this);
+			new PayableIsConsistentAlongSubclassesCheck(this);
+			new PayableMethodsReceiveAmountCheck(this);
+			new ThrowsExceptionsIsOnlyAppliedToPublicCheck(this);
+			new ThrowsExceptionsIsConsistentAlongSubclassesCheck(this);
+			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
 
 			Stream.of(getMethods())
 				.forEach(MethodVerification::new);
@@ -526,26 +519,27 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				throw new VerificationException();
 		}
 
-		/**
-		 * Checks that only standard bootstrap methods invoking methods are used. For instance,
-		 * no bootstraps reading a field are used. Moreover, only standard call-site
-		 * resolvers are used for the bootstrap methods. In theory, Java compilers should not
-		 * generate the latter.
-		 */
-		private void bookstrapsAreLegal() {
-			classBootstraps.getBootstraps()
-				.map(VerifiedClassGen.this::getTargetOf)
-				.filter(target -> !target.isPresent())
-				.findAny()
-				.ifPresent(target -> issue(new IllegalBootstrapMethodError(VerifiedClassGen.this)));
-		}
+		public abstract class ClassLevelCheck {
+			protected final ClassBootstraps classBootstraps = VerifiedClassGen.this.classBootstraps;
+			protected final VerifiedClassGen clazz = VerifiedClassGen.this;
+			protected final TakamakaClassLoader classLoader = clazz.classLoader;
+			protected final boolean duringInitialization = ClassVerification.this.duringInitialization;
+			protected final String className = ClassVerification.this.className;
 
-		private void packagesAreLegal() {
-			if (className.startsWith("java.") || className.startsWith("javax."))
-				issue(new IllegalPackageNameError(VerifiedClassGen.this));
+			/**
+			 * Yields the target method or constructor called by the given bootstrap. It can also be outside
+			 * the class that we are processing.
+			 * 
+			 * @param bootstrap the bootstrap
+			 * @return the target called method or constructor
+			 */
+			protected final Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) {
+				return VerifiedClassGen.this.getTargetOf(bootstrap);
+			}
 
-			if (!duringInitialization && className.startsWith("takamaka.") && !className.startsWith("takamaka.tests"))
-				issue(new IllegalPackageNameError(VerifiedClassGen.this));
+			protected final void issue(Issue issue) {
+				ClassVerification.this.issue(issue);
+			}
 		}
 
 		private void computeLambdasUnreachableFromStaticMethods() {
@@ -595,211 +589,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		private void issue(Issue issue) {
 			issueHandler.accept(issue);
 			hasErrors |= issue instanceof Error;
-		}
-
-		/**
-		 * Checks that {@code @@Entry} is applied only to instance methods or constructors of contracts.
-		 */
-		private void entryIsOnlyAppliedToInstanceCodeOfContracts() {
-			boolean isContract = classLoader.isContract(className);
-
-			for (Method method: getMethods()) {
-				Class<?> isEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
-				if (isEntry != null) {
-					if (!classLoader.contractClass.isAssignableFrom(isEntry))
-						issue(new IllegalEntryArgumentError(VerifiedClassGen.this, method));
-					if (method.isStatic() || !isContract)
-						issue(new IllegalEntryMethodError(VerifiedClassGen.this, method));
-				}
-			}
-		}
-
-		/**
-		 * Checks that {@code @@Entry} methods only redefine {@code @@Entry} methods and that
-		 * {@code @@Entry} methods are only redefined by {@code @@Entry} methods. Moreover,
-		 * the kind of contract allowed in entries can only be enlarged in subclasses.
-		 */
-		private void entryIsConsistentAlongSubclasses() {
-			Stream.of(getMethods())
-				.filter(method -> !method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate())
-				.forEachOrdered(method -> {
-					Class<?> contractTypeForEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
-
-					IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-						isIdenticallyEntryInSupertypesOf(classLoader.loadClass(className), method, contractTypeForEntry);
-					});
-				});
-		}
-
-		private void isIdenticallyEntryInSupertypesOf(Class<?> clazz, Method method, Class<?> contractTypeForEntry) {
-			String name = method.getName();
-			Type returnType = method.getReturnType();
-			Type[] args = method.getArgumentTypes();
-
-			if (Stream.of(clazz.getDeclaredMethods())
-					.filter(m -> !Modifier.isPrivate(m.getModifiers())
-							&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
-							&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
-					.anyMatch(m -> !compatibleEntries(contractTypeForEntry, classLoader.isEntry(clazz.getName(), name, args, returnType))))
-				issue(new InconsistentEntryError(VerifiedClassGen.this, method, clazz.getName()));
-
-			Class<?> superclass = clazz.getSuperclass();
-			if (superclass != null)
-				isIdenticallyEntryInSupertypesOf(superclass, method, contractTypeForEntry);
-
-			for (Class<?> interf: clazz.getInterfaces())
-				isIdenticallyEntryInSupertypesOf(interf, method, contractTypeForEntry);
-		}
-
-		/**
-		 * Determines if an entry annotation for a given method in a subclass is compatible with the entry annotation
-		 * for a method overridden in a superclass by that method.
-		 * 
-		 * @param contractTypeInSubclass the type of contracts allowed by the annotation in the subclass
-		 * @param contractTypeInSuperclass the type of contracts allowed by the annotation in the superclass
-		 * @return true if and only both types are {@code null} or (both are non-{@code null} and
-		 *         {@code contractTypeInSubclass} is a non-strict superclass of {@code contractTypeInSuperclass})
-		 */
-		private boolean compatibleEntries(Class<?> contractTypeInSubclass, Class<?> contractTypeInSuperclass) {
-			if (contractTypeInSubclass == null && contractTypeInSuperclass == null)
-				return true;
-			else
-				return contractTypeInSubclass != null && contractTypeInSuperclass != null && contractTypeInSubclass.isAssignableFrom(contractTypeInSuperclass);
-		}
-
-		/**
-		 * Checks that {@code @@Payable} methods are also annotated as {@code @@Entry}.
-		 */
-		private void payableIsOnlyAppliedToEntries() {
-			for (Method method: getMethods())
-				if (classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())
-						&& classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) == null)
-					issue(new PayableWithoutEntryError(VerifiedClassGen.this, method));
-		}
-
-		/**
-		 * Checks that {@code @@ThrowsExceptions} methods are public.
-		 */
-		private void throwsExceptionsIsOnlyAppliedToPublic() {
-			for (Method method: getMethods())
-				if (!method.isPublic() && classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
-					issue(new ThrowsExceptionsOnNonPublicError(VerifiedClassGen.this, method));
-		}
-
-		/**
-		 * Checks that {@code @@Payable} methods only redefine {@code @@Payable} methods and that
-		 * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
-		 */
-		private void payableIsConsistentAlongSubclasses() {
-			Stream.of(getMethods())
-				.filter(method -> !method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate())
-				.forEachOrdered(method -> {
-					boolean wasPayable = classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
-
-					IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-						isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), method, wasPayable);
-					});
-				});
-		}
-
-		/**
-		 * Checks that {@code @@ThrowsExceptions} methods only redefine {@code @@ThrowsExceptions} methods and that
-		 * {@code @@ThrowsExceptions} methods are only redefined by {@code @@ThrowsExceptions} methods.
-		 */
-		private void throwsExceptionsIsConsistentAlongSubclasses() {
-			Stream.of(getMethods())
-				.filter(method -> !method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic())
-				.forEachOrdered(method -> {
-					boolean wasThrowsExceptions = classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
-
-					IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-						isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), method, wasThrowsExceptions);
-					});
-				});
-		}
-
-		private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, Method method, boolean wasThrowsExceptions) {
-			String name = method.getName();
-			Type returnType = method.getReturnType();
-			Type[] args = method.getArgumentTypes();
-		
-			if (Stream.of(clazz.getDeclaredMethods())
-					.filter(m -> !Modifier.isPrivate(m.getModifiers())
-							&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
-							&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
-					.anyMatch(m -> wasThrowsExceptions != classLoader.isThrowsExceptions(clazz.getName(), name, args, returnType)))
-				issue(new InconsistentThrowsExceptionsError(VerifiedClassGen.this, method, clazz.getName()));
-		
-			Class<?> superclass = clazz.getSuperclass();
-			if (superclass != null)
-				isIdenticallyThrowsExceptionsInSupertypesOf(superclass, method, wasThrowsExceptions);
-		
-			for (Class<?> interf: clazz.getInterfaces())
-				isIdenticallyThrowsExceptionsInSupertypesOf(interf, method, wasThrowsExceptions);
-		}
-
-		private void payableMethodsReceiveAmount() {
-			Stream.of(getMethods())
-				.filter(method -> classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) && !startsWithAmount(method))
-				.map(method -> new PayableWithoutAmountError(VerifiedClassGen.this, method))
-				.forEach(this::issue);
-		}
-
-		private boolean startsWithAmount(Method method) {
-			Type[] args = method.getArgumentTypes();
-			return args.length > 0 && (args[0] == Type.INT || args[0] == Type.LONG || BIG_INTEGER_OT.equals(args[0]));
-		}
-
-		private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, Method method, boolean wasPayable) {
-			String name = method.getName();
-			Type returnType = method.getReturnType();
-			Type[] args = method.getArgumentTypes();
-		
-			if (Stream.of(clazz.getDeclaredMethods())
-					.filter(m -> !Modifier.isPrivate(m.getModifiers())
-							&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
-							&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
-					.anyMatch(m -> wasPayable != classLoader.isPayable(clazz.getName(), name, args, returnType)))
-				issue(new InconsistentPayableError(VerifiedClassGen.this, method, clazz.getName()));
-		
-			Class<?> superclass = clazz.getSuperclass();
-			if (superclass != null)
-				isIdenticallyPayableInSupertypesOf(superclass, method, wasPayable);
-		
-			for (Class<?> interf: clazz.getInterfaces())
-				isIdenticallyPayableInSupertypesOf(interf, method, wasPayable);
-		}
-
-		private void storageClassesHaveFieldsOfStorageType() {
-			if (classLoader.isStorage(className))
-				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-					Stream.of(classLoader.loadClass(className).getDeclaredFields())
-						.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
-						.filter(field -> !isTypeAllowedForStorageFields(field.getType()))
-						.map(field -> new IllegalTypeForStorageFieldError(VerifiedClassGen.this, field))
-						.forEach(this::issue);
-				});
-		}
-
-		@SuppressWarnings("unchecked")
-		private boolean isTypeAllowedForStorageFields(Class<?> type) {
-			// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
-			// will check later if the actual type of the object in this field is allowed
-			return type.isPrimitive() || type == Object.class || type == String.class || type == BigInteger.class
-				|| (type.isEnum() && !hasInstanceFields((Class<? extends Enum<?>>) type))
-				|| (!type.isArray() && classLoader.isStorage(type.getName()));
-		}
-
-		/**
-		 * Determines if the given enumeration type has at least an instance, non-transient field.
-		 * 
-		 * @param clazz the class
-		 * @return true only if that condition holds
-		 */
-		private boolean hasInstanceFields(Class<? extends Enum<?>> clazz) {
-			return Stream.of(clazz.getDeclaredFields())
-				.map(Field::getModifiers)
-				.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));
 		}
 
 		private class MethodVerification {
