@@ -178,7 +178,7 @@ public class JarInstrumentation {
 				instrumentedJar.putNextEntry(new JarEntry(clazz.getClassName().replace('.', '/') + ".class"));
 
 				// dump an instrumented class file inside that entry
-				new ClassInstrumentation(clazz, instrumentedJar, classLoader);
+				new ClassInstrumentation(clazz, instrumentedJar);
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

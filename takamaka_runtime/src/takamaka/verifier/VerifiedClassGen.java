@@ -89,11 +89,13 @@ import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedClassGen> {
 
 	/**
-	 * The class loader used to load the class under verification and the other classes of the program
-	 * it belongs to.
+	 * The class loader used to load this class and the other classes of the program it belongs to.
 	 */
-	final TakamakaClassLoader classLoader;
+	private final TakamakaClassLoader classLoader;
 
+	/**
+	 * The object that provides utilities about the lambda bootstraps contained in this class.
+	 */
 	private final ClassBootstraps classBootstraps;
 
 	/**
@@ -113,59 +115,37 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		new ClassVerification(issueHandler, duringInitialization);
 	}
 
+	/**
+	 * Yields the class loader used to load this class and the other classes of the program it belongs to.
+	 * 
+	 * @return the class loader
+	 */
+	public TakamakaClassLoader getClassLoader() {
+		return classLoader;
+	}
+
+	/**
+	 * Yields an object that provides utility methods about lambda bootstraps in this class.
+	 * 
+	 * @return the utility
+	 */
+	public ClassBootstraps getClassBootstraps() {
+		return classBootstraps;
+	}
+
 	@Override
 	public int compareTo(VerifiedClassGen other) {
 		return getClassName().compareTo(other.getClassName());
 	}
 
 	/**
-	 * Yields the subset of the bootstrap methods of this class that lead to an entry,
-	 * possibly indirectly.
-	 * 
-	 * @return the bootstrap methods that lead to an entry
-	 */
-	public Stream<BootstrapMethod> getBootstrapsLeadingToEntries() {
-		return classBootstraps.getBootstrapsLeadingToEntries();
-	}
-
-	/**
-	 * Yields the bootstrap method associated with the given instruction.
-	 * 
-	 * @param invokedynamic the instruction
-	 * @return the bootstrap method
-	 */
-	public BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) {
-		return classBootstraps.getBootstrapFor(invokedynamic);
-	}
-
-	/**
-	 * Yields the lambda method that is called by the given instruction.
-	 * 
-	 * @param invokedynamic the instruction
-	 * @return the lambda method
-	 */
-	public Executable getTargetOf(INVOKEDYNAMIC invokedynamic) {
-		return classBootstraps.getTargetOf(invokedynamic);
-	}
-
-	/**
-	 * Determines if the given bootstrap method is a method reference to an entry.
-	 * 
-	 * @param bootstrap the bootstrap method
-	 * @return true if and only if that condition holds
-	 */
-	public boolean lambdaIsEntry(BootstrapMethod bootstrap) {
-		return classBootstraps.lambdaIsEntry(bootstrap);
-	}
-
-	/**
 	 * Yields the proof obligation for the field accessed by the given instruction.
-	 * This means that that instruction accesses a field but that access is white-listed
+	 * This means that that instruction accesses that field but that access is white-listed
 	 * only if the resulting proof obligation is verified.
 	 * 
-	 * @param ih the instruction that accesses the field
-	 * @return the proof obligation. This must exist, since the class has been verified
-	 *         and all accessed have been proved to be white-listed (up to possible proof obligations
+	 * @param fi the instruction that accesses the field
+	 * @return the proof obligation. This must exist, since the class is verified
+	 *         and all accesses have been proved to be white-listed (up to possible proof obligations
 	 *         contained in the model).
 	 */
 	public Field whiteListingModelOf(FieldInstruction fi) {
@@ -174,13 +154,13 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	/**
-	 * Yields the proof obligation for the field accessed by the given instruction.
-	 * This means that that instruction accesses a field but that access is white-listed
+	 * Yields the proof obligation for the method called by the given instruction.
+	 * This means that that instruction calls that method but that call is white-listed
 	 * only if the resulting proof obligation is verified.
 	 * 
-	 * @param ih the instruction that accesses the field
-	 * @return the proof obligation. This must exist, since the class has been verified
-	 *         and all accessed have been proved to be white-listed (up to possible proof obligations
+	 * @param invoke the instruction that calls the method
+	 * @return the proof obligation. This must exist, since the class is verified
+	 *         and all calls have been proved to be white-listed (up to possible proof obligations
 	 *         contained in the model).
 	 */
 	public Executable whiteListingModelOf(InvokeInstruction invoke) {
@@ -214,7 +194,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		}
 		else if (ins instanceof INVOKEDYNAMIC)
 			// invokedynamic can call a target that is an optimized reference to an executable
-			return getTargetOf(getBootstrapFor((INVOKEDYNAMIC) ins));
+			return getTargetOf(classBootstraps.getBootstrapFor((INVOKEDYNAMIC) ins));
 		else if (ins instanceof INVOKEINTERFACE) {
 			ReferenceType receiver = ins.getReferenceType(cpg);
 			String methodName = ins.getMethodName(cpg);
@@ -410,7 +390,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		ConstantPoolGen cpg = getConstantPool();
 
 		if (instruction instanceof INVOKEDYNAMIC) {
-			BootstrapMethod bootstrap = getBootstrapFor((INVOKEDYNAMIC) instruction);
+			BootstrapMethod bootstrap = classBootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction);
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
@@ -604,7 +584,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 					.map(InstructionHandle::getInstruction)
 					.filter(instruction -> instruction instanceof INVOKEDYNAMIC)
 					.map(instruction -> (INVOKEDYNAMIC) instruction)
-					.map(VerifiedClassGen.this::getBootstrapFor)
+					.map(classBootstraps::getBootstrapFor)
 					.map(VerifiedClassGen.this::getLambdaFor)
 					.filter(Optional::isPresent)
 					.map(Optional::get)

@@ -144,14 +144,12 @@ class ClassInstrumentation {
 	 * 
 	 * @param clazz the class to instrument
 	 * @param instrumentedJar the jar where the instrumented class will be added
-	 * @param classLoader the class loader for resolving the classes under
-	 *                    instrumentation and of their dependent libraries
 	 * @throws ClassFormatException if some class file is not legal
 	 * @throws IOException if there is an error accessing the disk
 	 */
-	ClassInstrumentation(VerifiedClassGen clazz, JarOutputStream instrumentedJar, TakamakaClassLoader classLoader) throws ClassFormatException, IOException {
+	ClassInstrumentation(VerifiedClassGen clazz, JarOutputStream instrumentedJar) throws ClassFormatException, IOException {
 		// performs instrumentation on the class
-		new Initializer(clazz, classLoader);
+		new Initializer(clazz);
 
 		// dump the instrumented class on disk
 		clazz.getJavaClass().dump(instrumentedJar);
@@ -212,8 +210,7 @@ class ClassInstrumentation {
 		private final SortedSet<Field> lazyNonTransientInstanceFields = new TreeSet<>(fieldOrder);
 
 		/**
-		 * The class loader for resolving the classes under instrumentation and those of
-		 * the supporting libraries.
+		 * The class loader that loaded the class under instrumentation and those of the program it belongs to.
 		 */
 		private final TakamakaClassLoader classLoader;
 
@@ -238,16 +235,14 @@ class ClassInstrumentation {
 		/**
 		 * Performs the instrumentation of a single class.
 		 * 
-		 * @param classGen    the class to instrument
-		 * @param classLoader the class loader for resolving the classes under
-		 *                    instrumentation and those of the dependent libraries
+		 * @param classGen the class to instrument
 		 */
-		private Initializer(VerifiedClassGen classGen, TakamakaClassLoader classLoader) {
+		private Initializer(VerifiedClassGen classGen) {
 			this.classGen = classGen;
 			this.className = classGen.getClassName();
+			this.classLoader = classGen.getClassLoader();
 			this.cpg = classGen.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
-			this.classLoader = classLoader;
 			this.isStorage = !className.equals(STORAGE_CLASS_NAME) && classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
 
@@ -293,11 +288,11 @@ class ClassInstrumentation {
 		 * That instruction will be later instrumented during local instrumentation.
 		 */
 		private void instrumentBootstrapsInvokingEntries() {
-			classGen.getBootstrapsLeadingToEntries().forEach(this::instrumentBootstrapCallingEntry);
+			classGen.getClassBootstraps().getBootstrapsLeadingToEntries().forEach(this::instrumentBootstrapCallingEntry);
 		}
 
 		private void instrumentBootstrapCallingEntry(BootstrapMethod bootstrap) {
-			if (classGen.lambdaIsEntry(bootstrap))
+			if (classGen.getClassBootstraps().lambdaIsEntry(bootstrap))
 				instrumentLambdaEntry(bootstrap);
 			else
 				instrumentLambdaCallingEntry(bootstrap);
@@ -586,7 +581,7 @@ class ClassInstrumentation {
 
 		private void addRuntimeChecksFroWhiteListingProofObligations(MethodGen method) {
 			if (!method.isAbstract())
-				for (InstructionHandle ih : method.getInstructionList()) {
+				for (InstructionHandle ih: method.getInstructionList()) {
 					Instruction ins = ih.getInstruction();
 					if (ins instanceof FieldInstruction) {
 						FieldInstruction fi = (FieldInstruction) ins;
@@ -614,7 +609,7 @@ class ClassInstrumentation {
 		}
 
 		private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
-			BootstrapMethod bootstrap = classGen.getBootstrapFor(invokedynamic);
+			BootstrapMethod bootstrap = classGen.getClassBootstraps().getBootstrapFor(invokedynamic);
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
@@ -765,11 +760,11 @@ class ClassInstrumentation {
 			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
 			InstructionList il = new InstructionList();
 			List<Type> args = new ArrayList<>();
-			BootstrapMethod bootstrap = classGen.getBootstrapFor(invokedynamic);
+			BootstrapMethod bootstrap = classGen.getClassBootstraps().getBootstrapFor(invokedynamic);
 			int[] bootstrapArgs = bootstrap.getBootstrapArguments();
 			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(bootstrapArgs[1]);
 			int invokeKind = mh.getReferenceKind();
-			Executable target = classGen.getTargetOf(invokedynamic);
+			Executable target = classGen.getClassBootstraps().getTargetOf(invokedynamic);
 			Class<?> receiverClass = target.getDeclaringClass();
 			if (receiverClass.isArray())
 				receiverClass = Object.class;
@@ -1157,7 +1152,7 @@ class ClassInstrumentation {
 		private boolean isCallToEntry(Instruction instruction) {
 			if (instruction instanceof INVOKEDYNAMIC)
 				return bootstrapMethodsThatWillRequireExtraThis
-						.contains(classGen.getBootstrapFor((INVOKEDYNAMIC) instruction));
+					.contains(classGen.getClassBootstraps().getBootstrapFor((INVOKEDYNAMIC) instruction));
 			else if (instruction instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
 				ReferenceType receiver = invoke.getReferenceType(cpg);
