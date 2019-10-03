@@ -15,6 +15,12 @@ import java.util.stream.Stream;
 public abstract class ResolvingClassLoader extends URLClassLoader implements AutoCloseable {
 
 	/**
+	 * An object that knows about methods that can be called from Takamaka code
+	 * and under which conditions.
+	 */
+	public final WhiteListingWizard whiteListingWizard = new WhiteListingWizard(this);
+
+	/**
 	 * Builds a class loader with the given URLs.
 	 */
 	protected ResolvingClassLoader(URL[] urls) {

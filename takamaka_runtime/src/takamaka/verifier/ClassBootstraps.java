@@ -1,0 +1,323 @@
+package takamaka.verifier;
+
+import java.lang.reflect.Executable;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import org.apache.bcel.Const;
+import org.apache.bcel.classfile.BootstrapMethod;
+import org.apache.bcel.classfile.BootstrapMethods;
+import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantClass;
+import org.apache.bcel.classfile.ConstantInterfaceMethodref;
+import org.apache.bcel.classfile.ConstantInvokeDynamic;
+import org.apache.bcel.classfile.ConstantMethodHandle;
+import org.apache.bcel.classfile.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.ConstantUtf8;
+import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.INVOKEDYNAMIC;
+import org.apache.bcel.generic.INVOKEINTERFACE;
+import org.apache.bcel.generic.INVOKESPECIAL;
+import org.apache.bcel.generic.INVOKEVIRTUAL;
+import org.apache.bcel.generic.Instruction;
+import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.MethodGen;
+import org.apache.bcel.generic.ObjectType;
+import org.apache.bcel.generic.ReferenceType;
+import org.apache.bcel.generic.Type;
+
+import takamaka.translator.IncompleteClasspathError;
+
+class ClassBootstraps {
+
+	private final VerifiedClassGen clazz;
+
+	/**
+	 * The bootstrap methods of this class.
+	 */
+	private final BootstrapMethod[] bootstrapMethods;
+
+	/**
+	 * The bootstrap methods of this class that lead to an entry, possibly indirectly.
+	 */
+	private final Set<BootstrapMethod> bootstrapMethodsLeadingToEntries = new HashSet<>();
+
+	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
+
+	ClassBootstraps(VerifiedClassGen clazz) {
+		this.clazz = clazz;
+		this.bootstrapMethods = computeBootstraps();
+		collectBootstrapsLeadingToEntries();
+	}
+
+	/**
+	 * Determines if the given bootstrap method is a method reference to an entry.
+	 * 
+	 * @param bootstrap the bootstrap method
+	 * @return true if and only if that condition holds
+	 */
+	public boolean lambdaIsEntry(BootstrapMethod bootstrap) {
+		if (bootstrap.getNumBootstrapArguments() == 3) {
+			ConstantPoolGen cpg = clazz.getConstantPool();
+
+			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+			if (constant instanceof ConstantMethodHandle) {
+				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+				if (constant2 instanceof ConstantMethodref) {
+					ConstantMethodref mr = (ConstantMethodref) constant2;
+					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+
+					return clazz.classLoader.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
+				}
+			}
+		};
+
+		return false;
+	}
+
+	/**
+	 * Yields the bootstrap methods in this class.
+	 * 
+	 * @return the bootstrap methods
+	 */
+	public Stream<BootstrapMethod> getBootstraps() {
+		return Stream.of(bootstrapMethods);
+	}
+
+	/**
+	 * Yields the subset of the bootstrap methods of this class that lead to an entry,
+	 * possibly indirectly.
+	 * 
+	 * @return the bootstrap methods that lead to an entry
+	 */
+	public Stream<BootstrapMethod> getBootstrapsLeadingToEntries() {
+		return bootstrapMethodsLeadingToEntries.stream();
+	}
+
+	/**
+	 * Yields the bootstrap method associated with the given instruction.
+	 * 
+	 * @param invokedynamic the instruction
+	 * @return the bootstrap method
+	 */
+	public BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) {
+		ConstantInvokeDynamic cid = (ConstantInvokeDynamic) clazz.getConstantPool().getConstant(invokedynamic.getIndex());
+		return bootstrapMethods[cid.getBootstrapMethodAttrIndex()];
+	}
+
+	/**
+	 * Yields the lambda method that is called by the given instruction.
+	 * 
+	 * @param invokedynamic the instruction
+	 * @return the lambda method
+	 */
+	public Executable getTargetOf(INVOKEDYNAMIC invokedynamic) {
+		return getTargetOf(getBootstrapFor(invokedynamic)).get();
+	}
+
+	/**
+	 * Determines if the given instruction calls an @Entry, possibly indirectly.
+	 * 
+	 * @param ih the instruction
+	 * @param alsoIndirectly true if the call might also occur indirectly
+	 * @return true if and only if that condition holds
+	 */
+	boolean callsEntry(InstructionHandle ih, boolean alsoIndirectly) {
+		Instruction instruction = ih.getInstruction();
+	
+		if (instruction instanceof INVOKEDYNAMIC) {
+			BootstrapMethod bootstrap = getBootstrapFor((INVOKEDYNAMIC) instruction);
+			if (alsoIndirectly)
+				return bootstrapMethodsLeadingToEntries.contains(bootstrap);
+			else
+				return lambdaIsEntry(bootstrap);
+		}
+		else if (instruction instanceof INVOKESPECIAL || instruction instanceof INVOKEVIRTUAL || instruction instanceof INVOKEINTERFACE) {
+			InvokeInstruction invoke = (InvokeInstruction) instruction;
+			ConstantPoolGen cpg = clazz.getConstantPool();
+			ReferenceType receiver = invoke.getReferenceType(cpg);
+			if (receiver instanceof ObjectType)
+				return clazz.classLoader.isEntryPossiblyAlreadyInstrumented
+					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+		}
+	
+		return false;
+	}
+
+	/**
+	 * Yields the target method or constructor called by the given bootstrap. It can also be outside
+	 * the class that we are processing.
+	 * 
+	 * @param bootstrap the bootstrap
+	 * @return the target called method or constructor
+	 */
+	private Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) {
+		ConstantPoolGen cpg = clazz.getConstantPool();
+
+		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
+		if (constant instanceof ConstantMethodHandle) {
+			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+			if (constant2 instanceof ConstantMethodref) {
+				ConstantMethodref mr = (ConstantMethodref) constant2;
+				int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+				String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+				ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+				String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+				String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+	
+				return getTargetOfCallSite(bootstrap, className, methodName, methodSignature);
+			}
+		}
+	
+		return Optional.empty();
+	}
+
+	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) {
+		ConstantPoolGen cpg = clazz.getConstantPool();
+
+		if ("java.lang.invoke.LambdaMetafactory".equals(className) &&
+				"metafactory".equals(methodName) &&
+				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
+	
+			// this is the standard factory used to create call sites
+			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+			if (constant instanceof ConstantMethodHandle) {
+				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+				if (constant2 instanceof ConstantMethodref) {
+					ConstantMethodref mr = (ConstantMethodref) constant2;
+					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+					String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+					Class<?>[] args = clazz.classLoader.bcelToClass(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.classLoader.bcelToClass(Type.getReturnType(methodSignature2));
+	
+					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
+						return clazz.resolveConstructorWithPossiblyExpandedArgs(className2, args);
+					else
+						return clazz.resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+				}
+				else if (constant2 instanceof ConstantInterfaceMethodref) {
+					ConstantInterfaceMethodref mr = (ConstantInterfaceMethodref) constant2;
+					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+					String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+					Class<?>[] args = clazz.classLoader.bcelToClass(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.classLoader.bcelToClass(Type.getReturnType(methodSignature2));
+	
+					return clazz.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+				}
+			}
+		}
+		else if ("java.lang.invoke.StringConcatFactory".equals(className) &&
+				"makeConcatWithConstants".equals(methodName) &&
+				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
+	
+			// this factory is used to create call sites that lead to string concatenation of every
+			// possible argument type. Generically, we yield the Objects.toString(Object) method, since
+			// all parameters must be checked in order for the call to be white-listed
+			try {
+				return Optional.of(Objects.class.getMethod("toString", Object.class));
+			}
+			catch (NoSuchMethodException | SecurityException e) {
+				throw new IncompleteClasspathError(new ClassNotFoundException("java.util.Objects"));
+			}
+		}
+	
+		return Optional.empty();
+	}
+
+	private BootstrapMethod[] computeBootstraps() {
+		Optional<BootstrapMethods> bootstraps = Stream.of(clazz.getAttributes())
+			.filter(attribute -> attribute instanceof BootstrapMethods)
+			.map(attribute -> (BootstrapMethods) attribute)
+			.findFirst();
+
+		return bootstraps.isPresent() ? bootstraps.get().getBootstrapMethods() : NO_BOOTSTRAPS;
+	}
+
+	private void collectBootstrapsLeadingToEntries() {
+		ConstantPoolGen cpg = clazz.getConstantPool();
+
+		int initialSize;
+		do {
+			initialSize = bootstrapMethodsLeadingToEntries.size();
+			getBootstraps()
+				.filter(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, cpg))
+				.forEach(bootstrapMethodsLeadingToEntries::add);
+		}
+		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
+	}
+
+	private boolean lambdaCallsEntry(BootstrapMethod bootstrap, ConstantPoolGen cpg) {
+		Optional<Method> lambda = getLambdaFor(bootstrap);
+		return lambda.isPresent() && callsEntry(lambda.get());
+	}
+
+	/**
+	 * Yields the lambda bridge method called by the given bootstrap.
+	 * It must belong to the same class that we are processing.
+	 * 
+	 * @param bootstrap the bootstrap
+	 * @return the lambda bridge method
+	 */
+	private Optional<Method> getLambdaFor(BootstrapMethod bootstrap) {
+		if (bootstrap.getNumBootstrapArguments() == 3) {
+			ConstantPoolGen cpg = clazz.getConstantPool();
+			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+			if (constant instanceof ConstantMethodHandle) {
+				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+				if (constant2 instanceof ConstantMethodref) {
+					ConstantMethodref mr = (ConstantMethodref) constant2;
+					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+
+					// a lambda bridge can only be present in the same class that calls it
+					if (className.equals(clazz.getClassName()))
+						return Stream.of(clazz.getMethods())
+							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
+							.findFirst();
+				}
+			}
+		}
+
+		return Optional.empty();
+	}
+
+	/**
+	 * Determines if the given lambda method calls an entry, possibly indirectly.
+	 * 
+	 * @param lambda the lambda method
+	 * @return true if that condition holds
+	 */
+	private boolean callsEntry(Method lambda) {
+		if (lambda.getCode() != null) {
+			MethodGen mg = new MethodGen(lambda, clazz.getClassName(), clazz.getConstantPool());
+			return StreamSupport.stream(mg.getInstructionList().spliterator(), false)
+				.anyMatch(ih -> callsEntry(ih, true));
+		}
+
+		return false;
+	}
+}

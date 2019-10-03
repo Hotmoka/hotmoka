@@ -78,7 +78,6 @@ import takamaka.translator.Dummy;
 import takamaka.translator.JarInstrumentation;
 import takamaka.translator.TakamakaClassLoader;
 import takamaka.verifier.VerificationException;
-import takamaka.whitelisted.WhiteListingWizard;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -1251,12 +1250,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected final Object[] deserializedActuals;
 
 		/**
-		 * The object that knows which fields, constructors and methods can be called
-		 * from Takamaka code, with which proof obligations.
-		 */
-		protected final WhiteListingWizard whiteListingWizard;
-
-		/**
 		 * Builds the executor of a method or constructor.
 		 * 
 		 * @param classLoader the class loader that must be used to find the classes during the execution of the method or constructor
@@ -1278,7 +1271,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.methodOrConstructor = methodOrConstructor;
 			this.deserializedReceiver = receiver != null ? receiver.deserialize(AbstractBlockchain.this) : null;
 			this.deserializedActuals = actuals.map(actual -> actual.deserialize(AbstractBlockchain.this)).toArray(Object[]::new);
-			this.whiteListingWizard = new WhiteListingWizard(classLoader);
 		}
 
 		/**
@@ -1424,7 +1416,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @throws ClassNotFoundException if some class could not be found during the check
 		 */
 		protected final void ensureWhiteListingOf(Executable executable, Object[] actuals) throws ClassNotFoundException {
-			Optional<? extends Executable> model = whiteListingWizard.whiteListingModelOf(executable);
+			Optional<? extends Executable> model = classLoader.whiteListingWizard.whiteListingModelOf(executable);
 			if (!model.isPresent())
 				if (executable instanceof Constructor<?>)
 					throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of "

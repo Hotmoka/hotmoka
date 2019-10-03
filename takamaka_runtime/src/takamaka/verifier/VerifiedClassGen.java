@@ -17,12 +17,10 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
-import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInterfaceMethodref;
-import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
@@ -36,7 +34,6 @@ import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKEINTERFACE;
 import org.apache.bcel.generic.INVOKESPECIAL;
-import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
@@ -85,7 +82,6 @@ import takamaka.verifier.errors.UncheckedExceptionHandlerError;
 import takamaka.verifier.errors.UnresolvedCallError;
 import takamaka.whitelisted.MustRedefineHashCode;
 import takamaka.whitelisted.MustRedefineHashCodeOrToString;
-import takamaka.whitelisted.WhiteListingWizard;
 
 /**
  * A BCEL class, that passed the static Takamaka verification tests.
@@ -96,22 +92,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * The class loader used to load the class under verification and the other classes of the program
 	 * it belongs to.
 	 */
-	private final TakamakaClassLoader classLoader;
+	final TakamakaClassLoader classLoader;
 
-	/**
-	 * The object that knows about the methods that can be called from Takamaka smart contracts.
-	 */
-	private final WhiteListingWizard whiteListingWizard;
-
-	/**
-	 * The bootstrap methods of this class.
-	 */
-	private final BootstrapMethod[] bootstrapMethods;
-
-	/**
-	 * The bootstrap methods of this class that lead to an entry, possibly indirectly.
-	 */
-	private final Set<BootstrapMethod> bootstrapMethodsLeadingToEntries = new HashSet<>();
+	private final ClassBootstraps classBootstraps;
 
 	/**
 	 * Builds and verify a BCEL class from the given class file.
@@ -126,10 +109,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		super(clazz);
 
 		this.classLoader = classLoader;
-		this.whiteListingWizard = new WhiteListingWizard(classLoader);
-		this.bootstrapMethods = computeBootstraps();
-		collectBootstrapsLeadingToEntries();
-
+		this.classBootstraps = new ClassBootstraps(this);
 		new ClassVerification(issueHandler, duringInitialization);
 	}
 
@@ -139,22 +119,13 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	/**
-	 * Yields the bootstrap methods in this class.
-	 * 
-	 * @return the bootstrap methods
-	 */
-	public Stream<BootstrapMethod> getBootstraps() {
-		return Stream.of(bootstrapMethods);
-	}
-
-	/**
 	 * Yields the subset of the bootstrap methods of this class that lead to an entry,
 	 * possibly indirectly.
 	 * 
 	 * @return the bootstrap methods that lead to an entry
 	 */
 	public Stream<BootstrapMethod> getBootstrapsLeadingToEntries() {
-		return bootstrapMethodsLeadingToEntries.stream();
+		return classBootstraps.getBootstrapsLeadingToEntries();
 	}
 
 	/**
@@ -164,8 +135,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * @return the bootstrap method
 	 */
 	public BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) {
-		ConstantInvokeDynamic cid = (ConstantInvokeDynamic) getConstantPool().getConstant(invokedynamic.getIndex());
-		return bootstrapMethods[cid.getBootstrapMethodAttrIndex()];
+		return classBootstraps.getBootstrapFor(invokedynamic);
 	}
 
 	/**
@@ -175,37 +145,17 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * @return the lambda method
 	 */
 	public Executable getTargetOf(INVOKEDYNAMIC invokedynamic) {
-		return getTargetOf(getBootstrapFor(invokedynamic)).get();
+		return classBootstraps.getTargetOf(invokedynamic);
 	}
 
 	/**
-	 * Determines if the given bootstrap method calls an entry as target code.
+	 * Determines if the given bootstrap method is a method reference to an entry.
 	 * 
 	 * @param bootstrap the bootstrap method
 	 * @return true if and only if that condition holds
 	 */
 	public boolean lambdaIsEntry(BootstrapMethod bootstrap) {
-		if (bootstrap.getNumBootstrapArguments() == 3) {
-			ConstantPoolGen cpg = getConstantPool();
-
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (constant instanceof ConstantMethodHandle) {
-				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref) {
-					ConstantMethodref mr = (ConstantMethodref) constant2;
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-
-					return classLoader.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
-				}
-			}
-		};
-
-		return false;
+		return classBootstraps.lambdaIsEntry(bootstrap);
 	}
 
 	/**
@@ -220,7 +170,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 */
 	public Field whiteListingModelOf(FieldInstruction fi) {
 		// it has already been verified that the access is white-listed, hence it must exist
-		return whiteListingWizard.whiteListingModelOf(resolvedFieldFor(fi).get()).get();
+		return classLoader.whiteListingWizard.whiteListingModelOf(resolvedFieldFor(fi).get()).get();
 	}
 
 	/**
@@ -390,7 +340,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 */
 	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
 		return IncompleteClasspathError.insteadOfClassNotFoundException
-			(() -> checkINVOKESPECIAL(invoke, whiteListingWizard.whiteListingModelOf(executable)));
+			(() -> checkINVOKESPECIAL(invoke, classLoader.whiteListingWizard.whiteListingModelOf(executable)));
 	}
 
 	/**
@@ -413,31 +363,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			return Optional.empty();
 		else
 			return model;
-	}
-
-	private BootstrapMethod[] computeBootstraps() {
-		Optional<BootstrapMethods> bootstraps = Stream.of(getAttributes())
-			.filter(attribute -> attribute instanceof BootstrapMethods)
-			.map(attribute -> (BootstrapMethods) attribute)
-			.findAny();
-	
-		if (bootstraps.isPresent())
-			return bootstraps.get().getBootstrapMethods();
-		else
-			return new BootstrapMethod[0];
-	}
-
-	private void collectBootstrapsLeadingToEntries() {
-		ConstantPoolGen cpg = getConstantPool();
-
-		int initialSize;
-		do {
-			initialSize = bootstrapMethodsLeadingToEntries.size();
-			getBootstraps()
-				.filter(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, cpg))
-				.forEach(bootstrapMethodsLeadingToEntries::add);
-		}
-		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
 	}
 
 	/**
@@ -474,56 +399,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		return Optional.empty();
 	}
 
-	private boolean lambdaCallsEntry(BootstrapMethod bootstrap, ConstantPoolGen cpg) {
-		Optional<Method> lambda = getLambdaFor(bootstrap);
-		return lambda.isPresent() && callsEntry(lambda.get());
-	}
-
-	/**
-	 * Determines if the given lambda method calls an entry, possibly indirectly.
-	 * 
-	 * @param lambda the lambda method
-	 * @return true if that condition holds
-	 */
-	private boolean callsEntry(Method lambda) {
-		if (hasCode(lambda)) {
-			MethodGen mg = new MethodGen(lambda, getClassName(), getConstantPool());
-			return StreamSupport.stream(mg.getInstructionList().spliterator(), false)
-				.anyMatch(ih -> callsEntry(ih, true));
-		}
-
-		return false;
-	}
-
-	/**
-	 * Determines if the given instruction calls an @Entry, possibly indirectly.
-	 * 
-	 * @param ih the instruction
-	 * @param alsoIndirectly true if the call might also occur indirectly
-	 * @return true if and only if that condition holds
-	 */
-	private boolean callsEntry(InstructionHandle ih, boolean alsoIndirectly) {
-		Instruction instruction = ih.getInstruction();
-
-		if (instruction instanceof INVOKEDYNAMIC) {
-			BootstrapMethod bootstrap = getBootstrapFor((INVOKEDYNAMIC) instruction);
-			if (alsoIndirectly)
-				return bootstrapMethodsLeadingToEntries.contains(bootstrap);
-			else
-				return lambdaIsEntry(bootstrap);
-		}
-		else if (instruction instanceof INVOKESPECIAL || instruction instanceof INVOKEVIRTUAL || instruction instanceof INVOKEINTERFACE) {
-			InvokeInstruction invoke = (InvokeInstruction) instruction;
-			ConstantPoolGen cpg = getConstantPool();
-			ReferenceType receiver = invoke.getReferenceType(cpg);
-			if (receiver instanceof ObjectType)
-				return classLoader.isEntryPossiblyAlreadyInstrumented
-					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
-		}
-
-		return false;
-	}
-
 	/**
 	 * Yields the name of the entry that is directly called by the givuen instruction.
 	 * 
@@ -547,7 +422,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			return ((InvokeInstruction) instruction).getMethodName(cpg);
 	}
 
-	private Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) {
+	Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) {
 		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Optional<Constructor<?>> result = classLoader.resolveConstructor(className, args);
 			// we try to add the instrumentation arguments. This is important when
@@ -558,26 +433,26 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		});
 	}
 
-	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws ClassNotFoundException {
-		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
-		System.arraycopy(args, 0, expandedArgs, 0, args.length);
-		expandedArgs[args.length] = classLoader.contractClass;
-		expandedArgs[args.length + 1] = Dummy.class;
-		return expandedArgs;
-	}
-
-	private Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
+	Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
 		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Optional<java.lang.reflect.Method> result = classLoader.resolveMethod(className, methodName, args, returnType);
 			return result.isPresent() ? result : classLoader.resolveMethod(className, methodName, expandArgsForEntry(args), returnType);
 		});
 	}
 
-	private Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
+	Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
 		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Optional<java.lang.reflect.Method> result = classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
 			return result.isPresent() ? result : classLoader.resolveInterfaceMethod(className, methodName, expandArgsForEntry(args), returnType);
 		});
+	}
+
+	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws ClassNotFoundException {
+		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
+		System.arraycopy(args, 0, expandedArgs, 0, args.length);
+		expandedArgs[args.length] = classLoader.contractClass;
+		expandedArgs[args.length + 1] = Dummy.class;
+		return expandedArgs;
 	}
 
 	private boolean hasCode(Method method) {
@@ -678,11 +553,11 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 * generate the latter.
 		 */
 		private void bookstrapsAreLegal() {
-			for (BootstrapMethod bootstrap: bootstrapMethods) {
-				Optional<? extends Executable> target = getTargetOf(bootstrap);
-				if (!target.isPresent())
-					issue(new IllegalBootstrapMethodError(VerifiedClassGen.this));
-			}
+			classBootstraps.getBootstraps()
+				.map(VerifiedClassGen.this::getTargetOf)
+				.filter(target -> !target.isPresent())
+				.findAny()
+				.ifPresent(target -> issue(new IllegalBootstrapMethodError(VerifiedClassGen.this)));
 		}
 
 		private void packagesAreLegal() {
@@ -695,7 +570,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 
 		private void computeLambdasUnreachableFromStaticMethods() {
 			// we initially compute the set of all lambdas
-			Set<Method> lambdas = getBootstraps()
+			Set<Method> lambdas = classBootstraps.getBootstraps()
 				.map(VerifiedClassGen.this::getLambdaFor)
 				.filter(Optional::isPresent)
 				.map(Optional::get)
@@ -1095,7 +970,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			private void entriesAreOnlyCalledFromInstanceCodeOfContracts() {
 				if (!classLoader.isContract(className) || (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
 					instructions()
-						.filter(ih -> callsEntry(ih, false))
+						.filter(ih -> classBootstraps.callsEntry(ih, false))
 						.map(ih -> new IllegalCallToEntryError(VerifiedClassGen.this, method, nameOfEntryCalledDirectly(ih), lineOf(ih)))
 						.forEach(ClassVerification.this::issue);
 			}
@@ -1125,10 +1000,8 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			private boolean canCatchUncheckedExceptions(String exceptionName) {
 				return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 					Class<?> clazz = classLoader.loadClass(exceptionName);
-					return RuntimeException.class.isAssignableFrom(clazz) ||
-						clazz.isAssignableFrom(RuntimeException.class) ||
-						java.lang.Error.class.isAssignableFrom(clazz) ||
-						clazz.isAssignableFrom(java.lang.Error.class);
+					return RuntimeException.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(RuntimeException.class) ||
+						java.lang.Error.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(java.lang.Error.class);
 				});
 			}
 
@@ -1139,7 +1012,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 						if (ins instanceof FieldInstruction) {
 							FieldInstruction fi = (FieldInstruction) ins;
 							Optional<Field> field = resolvedFieldFor(fi);
-							if (!field.isPresent() || !whiteListingWizard.whiteListingModelOf(field.get()).isPresent())
+							if (!field.isPresent() || !classLoader.whiteListingWizard.whiteListingModelOf(field.get()).isPresent())
 								issue(new IllegalAccessToNonWhiteListedFieldError(VerifiedClassGen.this, method, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
 						}
 

@@ -16,17 +16,16 @@ public class WhiteListingWizard {
 	private final static String WHITE_LISTED_ROOT = WhiteListingWizard.class.getPackage().getName();
 
 	/**
-	 * The class loader used to load the classes of the Takamaka program.
+	 * The class loader used to load the classes whose code is checked for white-listing.
 	 */
-	private final ResolvingClassLoader classLoader;
+	protected final ResolvingClassLoader classLoader;
 
 	/**
-	 * Builds an object that knows about fields, methods and constructors that can be called from
-	 * Takamaka code and their proof-obligations.
+	 * Builds a wizard.
 	 * 
-	 * @param classLoader the class loader used to load the classes of the Takamaka program
+	 * @param classLoader the class loader used to load the classes whose code is checked for white-listing
 	 */
-	public WhiteListingWizard(ResolvingClassLoader classLoader) {
+	protected WhiteListingWizard(ResolvingClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
 
