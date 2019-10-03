@@ -133,13 +133,13 @@ public class ClassBootstraps {
 	}
 
 	/**
-	 * Determines if the given instruction calls an @Entry, possibly indirectly.
+	 * Determines if the given instruction calls an {@code @@Entry}, possibly indirectly.
 	 * 
 	 * @param ih the instruction
 	 * @param alsoIndirectly true if the call might also occur indirectly
 	 * @return true if and only if that condition holds
 	 */
-	boolean callsEntry(InstructionHandle ih, boolean alsoIndirectly) {
+	public boolean callsEntry(InstructionHandle ih, boolean alsoIndirectly) {
 		Instruction instruction = ih.getInstruction();
 	
 		if (instruction instanceof INVOKEDYNAMIC) {

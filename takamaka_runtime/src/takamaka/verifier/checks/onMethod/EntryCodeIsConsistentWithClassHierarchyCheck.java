@@ -1,4 +1,4 @@
-package takamaka.verifier.checks;
+package takamaka.verifier.checks.onMethod;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -17,20 +17,18 @@ import takamaka.verifier.errors.InconsistentEntryError;
  * {@code @@Entry} methods are only redefined by {@code @@Entry} methods. Moreover,
  * the kind of contract allowed in entries can only be enlarged in subclasses.
  */
-public class EntryIsConsistentAlongSubclassesCheck extends VerifiedClassGen.ClassVerification.ClassLevelCheck {
+public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
 
-	public EntryIsConsistentAlongSubclassesCheck(VerifiedClassGen.ClassVerification verification) {
-		verification.super();
+	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+		verifier.super();
 
-		Stream.of(clazz.getMethods())
-			.filter(method -> !method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate())
-			.forEachOrdered(method -> {
-				Class<?> contractTypeForEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+		if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
+			Class<?> contractTypeForEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 	
-				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-					isIdenticallyEntryInSupertypesOf(classLoader.loadClass(className), method, contractTypeForEntry);
-				});
+			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+				isIdenticallyEntryInSupertypesOf(classLoader.loadClass(className), method, contractTypeForEntry);
 			});
+		}
 	}
 
 	private void isIdenticallyEntryInSupertypesOf(Class<?> clazz, Method method, Class<?> contractTypeForEntry) {

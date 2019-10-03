@@ -1,4 +1,4 @@
-package takamaka.verifier.checks;
+package takamaka.verifier.checks.onClass;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -12,10 +12,10 @@ import takamaka.verifier.errors.IllegalTypeForStorageFieldError;
 /**
  * A checks that payable methods have an amount first argument.
  */
-public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassGen.ClassVerification.ClassLevelCheck {
+public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassGen.Verifier.Check {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassGen.ClassVerification verification) {
-		verification.super();
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassGen.Verifier verifier) {
+		verifier.super();
 
 		if (classLoader.isStorage(className))
 			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {

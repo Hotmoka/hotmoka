@@ -1,4 +1,4 @@
-package takamaka.verifier.checks;
+package takamaka.verifier.checks.onMethod;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -16,20 +16,18 @@ import takamaka.verifier.errors.InconsistentPayableError;
  * A check that {@code @@Payable} methods only redefine {@code @@Payable} methods and that
  * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
  */
-public class PayableIsConsistentAlongSubclassesCheck extends VerifiedClassGen.ClassVerification.ClassLevelCheck {
+public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
 
-	public PayableIsConsistentAlongSubclassesCheck(VerifiedClassGen.ClassVerification verification) {
-		verification.super();
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+		verifier.super();
 
-		Stream.of(clazz.getMethods())
-			.filter(method -> !method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate())
-			.forEachOrdered(method -> {
-				boolean wasPayable = classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+		if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
+			boolean wasPayable = classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 	
-				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-					isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), method, wasPayable);
-				});
+			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+				isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), method, wasPayable);
 			});
+		}
 	}
 
 	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, Method method, boolean wasPayable) {

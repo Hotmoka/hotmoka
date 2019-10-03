@@ -1,7 +1,6 @@
-package takamaka.verifier.checks;
+package takamaka.verifier.checks.onMethod;
 
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ObjectType;
@@ -13,15 +12,13 @@ import takamaka.verifier.errors.PayableWithoutAmountError;
 /**
  * A checks that payable methods have an amount first argument.
  */
-public class PayableMethodsReceiveAmountCheck extends VerifiedClassGen.ClassVerification.ClassLevelCheck {
+public class PayableCodeReceivesAmountCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
 
-	public PayableMethodsReceiveAmountCheck(VerifiedClassGen.ClassVerification verification) {
-		verification.super();
+	public PayableCodeReceivesAmountCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+		verifier.super();
 
-		Stream.of(clazz.getMethods())
-			.filter(method -> classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) && !startsWithAmount(method))
-			.map(method -> new PayableWithoutAmountError(clazz, method))
-			.forEach(this::issue);
+		if (classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) && !startsWithAmount(method))
+			issue(new PayableWithoutAmountError(clazz, method));
 	}
 
 	private final static ObjectType BIG_INTEGER_OT = new ObjectType(BigInteger.class.getName());

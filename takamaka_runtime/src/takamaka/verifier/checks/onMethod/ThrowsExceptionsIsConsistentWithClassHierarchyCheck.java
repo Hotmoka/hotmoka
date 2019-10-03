@@ -1,4 +1,4 @@
-package takamaka.verifier.checks;
+package takamaka.verifier.checks.onMethod;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -16,20 +16,18 @@ import takamaka.verifier.errors.InconsistentThrowsExceptionsError;
  * A check that {@code @@ThrowsExceptions} methods only redefine {@code @@ThrowsExceptions} methods and that
  * {@code @@ThrowsExceptions} methods are only redefined by {@code @@ThrowsExceptions} methods.
  */
-public class ThrowsExceptionsIsConsistentAlongSubclassesCheck extends VerifiedClassGen.ClassVerification.ClassLevelCheck {
+public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
 
-	public ThrowsExceptionsIsConsistentAlongSubclassesCheck(VerifiedClassGen.ClassVerification verification) {
-		verification.super();
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+		verifier.super();
 
-		Stream.of(clazz.getMethods())
-			.filter(method -> !method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic())
-			.forEachOrdered(method -> {
-				boolean wasThrowsExceptions = classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+		if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
+			boolean wasThrowsExceptions = classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 	
-				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-					isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), method, wasThrowsExceptions);
-				});
+			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+				isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), method, wasThrowsExceptions);
 			});
+		}
 	}
 
 	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, Method method, boolean wasThrowsExceptions) {

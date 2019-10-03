@@ -1,4 +1,4 @@
-package takamaka.verifier.checks;
+package takamaka.verifier.checks.onMethod;
 
 import java.util.stream.Stream;
 
@@ -8,10 +8,10 @@ import takamaka.verifier.errors.ThrowsExceptionsOnNonPublicError;
 /**
  * A checks that {@code @@ThrowsExceptions} methods are public.
  */
-public class ThrowsExceptionsIsOnlyAppliedToPublicCheck extends VerifiedClassGen.ClassVerification.ClassLevelCheck {
+public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
 
-	public ThrowsExceptionsIsOnlyAppliedToPublicCheck(VerifiedClassGen.ClassVerification verification) {
-		verification.super();
+	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+		verifier.super();
 
 		Stream.of(clazz.getMethods())
 			.filter(method -> !method.isPublic() && classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))

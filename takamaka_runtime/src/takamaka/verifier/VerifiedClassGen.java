@@ -3,7 +3,6 @@ package takamaka.verifier;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,7 +14,6 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
-import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInterfaceMethodref;
@@ -32,51 +30,35 @@ import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKEINTERFACE;
 import org.apache.bcel.generic.INVOKESPECIAL;
-import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
-import org.apache.bcel.generic.JsrInstruction;
-import org.apache.bcel.generic.LoadInstruction;
-import org.apache.bcel.generic.MONITORENTER;
-import org.apache.bcel.generic.MONITOREXIT;
 import org.apache.bcel.generic.MethodGen;
-import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
-import org.apache.bcel.generic.PUTSTATIC;
-import org.apache.bcel.generic.RET;
 import org.apache.bcel.generic.ReferenceType;
-import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 import takamaka.translator.Dummy;
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
-import takamaka.verifier.checks.BootstrapsAreLegalCheck;
-import takamaka.verifier.checks.EntryIsConsistentAlongSubclassesCheck;
-import takamaka.verifier.checks.EntryIsOnlyAppliedToInstanceCodeOfContractsCheck;
-import takamaka.verifier.checks.PackagesAreLegalCheck;
-import takamaka.verifier.checks.PayableIsConsistentAlongSubclassesCheck;
-import takamaka.verifier.checks.PayableIsOnlyAppliedToEntriesCheck;
-import takamaka.verifier.checks.PayableMethodsReceiveAmountCheck;
-import takamaka.verifier.checks.StorageClassesHaveFieldsOfStorageTypeCheck;
-import takamaka.verifier.checks.ThrowsExceptionsIsConsistentAlongSubclassesCheck;
-import takamaka.verifier.checks.ThrowsExceptionsIsOnlyAppliedToPublicCheck;
-import takamaka.verifier.errors.CallerNotOnThisError;
-import takamaka.verifier.errors.CallerOutsideEntryError;
-import takamaka.verifier.errors.IllegalAccessToNonWhiteListedFieldError;
-import takamaka.verifier.errors.IllegalCallToEntryError;
-import takamaka.verifier.errors.IllegalCallToNonWhiteListedConstructorError;
-import takamaka.verifier.errors.IllegalCallToNonWhiteListedMethodError;
-import takamaka.verifier.errors.IllegalJsrInstructionError;
-import takamaka.verifier.errors.IllegalNativeMethodError;
-import takamaka.verifier.errors.IllegalPutstaticInstructionError;
-import takamaka.verifier.errors.IllegalRetInstructionError;
-import takamaka.verifier.errors.IllegalStaticInitializationError;
-import takamaka.verifier.errors.IllegalSynchronizationError;
-import takamaka.verifier.errors.IllegalUpdateOfLocal0Error;
-import takamaka.verifier.errors.UncheckedExceptionHandlerError;
-import takamaka.verifier.errors.UnresolvedCallError;
+import takamaka.verifier.checks.onClass.BootstrapsAreLegalCheck;
+import takamaka.verifier.checks.onClass.PackagesAreLegalCheck;
+import takamaka.verifier.checks.onClass.StorageClassesHaveFieldsOfStorageTypeCheck;
+import takamaka.verifier.checks.onMethod.BytecodesAreLegalCheck;
+import takamaka.verifier.checks.onMethod.CallerIsUsedOnThisAndInEntryCheck;
+import takamaka.verifier.checks.onMethod.EntriesAreOnlyCalledFromContractsCheck;
+import takamaka.verifier.checks.onMethod.EntryCodeIsConsistentWithClassHierarchyCheck;
+import takamaka.verifier.checks.onMethod.EntryCodeIsInstanceAndInContractsCheck;
+import takamaka.verifier.checks.onMethod.ExceptionHandlersAreForCheckedExceptionsCheck;
+import takamaka.verifier.checks.onMethod.IsNotNativeCheck;
+import takamaka.verifier.checks.onMethod.IsNotStaticInitializerCheck;
+import takamaka.verifier.checks.onMethod.IsNotSynchronizedCheck;
+import takamaka.verifier.checks.onMethod.PayableCodeIsConsistentWithClassHierarchyCheck;
+import takamaka.verifier.checks.onMethod.PayableCodeIsEntryCheck;
+import takamaka.verifier.checks.onMethod.PayableCodeReceivesAmountCheck;
+import takamaka.verifier.checks.onMethod.ThrowsExceptionsCodeIsPublicCheck;
+import takamaka.verifier.checks.onMethod.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
+import takamaka.verifier.checks.onMethod.UsedCodeIsWhiteListedCheck;
 import takamaka.whitelisted.MustRedefineHashCode;
 import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 
@@ -109,7 +91,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 
 		this.classLoader = classLoader;
 		this.classBootstraps = new ClassBootstraps(this);
-		new ClassVerification(issueHandler, duringInitialization);
+		new Verifier(issueHandler, duringInitialization);
 	}
 
 	/**
@@ -377,29 +359,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		return Optional.empty();
 	}
 
-	/**
-	 * Yields the name of the entry that is directly called by the givuen instruction.
-	 * 
-	 * @param ih the instruction
-	 * @return the name of the entry
-	 */
-	private String nameOfEntryCalledDirectly(InstructionHandle ih) {
-		Instruction instruction = ih.getInstruction();
-		ConstantPoolGen cpg = getConstantPool();
-
-		if (instruction instanceof INVOKEDYNAMIC) {
-			BootstrapMethod bootstrap = classBootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction);
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-			ConstantMethodref mr = (ConstantMethodref) constant2;
-			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-			return ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-		}
-		else
-			return ((InvokeInstruction) instruction).getMethodName(cpg);
-	}
-
 	Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) {
 		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Optional<Constructor<?>> result = classLoader.resolveConstructor(className, args);
@@ -433,34 +392,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		return expandedArgs;
 	}
 
-	private boolean hasCode(Method method) {
-		return method.getCode() != null;
-	}
-
-	/**
-	 * The Java bytecode types of the {@code caller()} method of {@link #takamaka.lang.Contract}.
-	 */
-	private final static String TAKAMAKA_CALLER_SIG = "()Ltakamaka/lang/Contract;";
-
 	/**
 	 * The algorithms that perform the verification of the BCEL class.
 	 */
-	public class ClassVerification {
-
-		/**
-		 * The name of the class under verification.
-		 */
-		private final String className;
+	public class Verifier {
 
 		/**
 		 * The handler that must be notified of issues found in the class.
 		 */
 		private final Consumer<Issue> issueHandler;
-
-		/**
-		 * The constant pool of the class being verified.
-		 */
-		private final ConstantPoolGen cpg;
 
 		/**
 		 * The set of lambda methods that might be reachable from a static method
@@ -492,39 +432,32 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 * @param duringInitialization true if and only if verification is performed during blockchain initialization
 		 * @throws VerificationException if some verification error occurs
 		 */
-		private ClassVerification(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
-			this.className = getClassName();
+		private Verifier(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 			this.issueHandler = issueHandler;
 			this.duringInitialization = duringInitialization;
-			this.cpg = getConstantPool();
 
-			if (classLoader.isContract(className))
+			if (classLoader.isContract(getClassName()))
 				computeLambdasUnreachableFromStaticMethods();
 
 			new PackagesAreLegalCheck(this);
 			new BootstrapsAreLegalCheck(this);
-			new EntryIsOnlyAppliedToInstanceCodeOfContractsCheck(this);
-			new EntryIsConsistentAlongSubclassesCheck(this);
-			new PayableIsOnlyAppliedToEntriesCheck(this);
-			new PayableIsConsistentAlongSubclassesCheck(this);
-			new PayableMethodsReceiveAmountCheck(this);
-			new ThrowsExceptionsIsOnlyAppliedToPublicCheck(this);
-			new ThrowsExceptionsIsConsistentAlongSubclassesCheck(this);
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
 
 			Stream.of(getMethods())
-				.forEach(MethodVerification::new);
+				.forEach(MethodVerifier::new);
 
 			if (hasErrors)
 				throw new VerificationException();
 		}
 
-		public abstract class ClassLevelCheck {
+		public abstract class Check {
 			protected final ClassBootstraps classBootstraps = VerifiedClassGen.this.classBootstraps;
 			protected final VerifiedClassGen clazz = VerifiedClassGen.this;
 			protected final TakamakaClassLoader classLoader = clazz.classLoader;
-			protected final boolean duringInitialization = ClassVerification.this.duringInitialization;
-			protected final String className = ClassVerification.this.className;
+			protected final boolean duringInitialization = Verifier.this.duringInitialization;
+			protected final String className = getClassName();
+			protected final ConstantPoolGen cpg = getConstantPool();
+			protected final Set<Method> lambdasUnreachableFromStaticMethods = Verifier.this.lambdasUnreachableFromStaticMethods;
 
 			/**
 			 * Yields the target method or constructor called by the given bootstrap. It can also be outside
@@ -538,7 +471,20 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			}
 
 			protected final void issue(Issue issue) {
-				ClassVerification.this.issue(issue);
+				issueHandler.accept(issue);
+				hasErrors |= issue instanceof Error;
+			}
+
+			protected final Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
+				return VerifiedClassGen.this.whiteListingModelOf(executable, invoke);
+			}
+
+			protected final Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction ins) {
+				return VerifiedClassGen.this.resolvedExecutableFor(ins);
+			}
+
+			protected final Optional<Field> resolvedFieldFor(FieldInstruction ins)  {
+				return VerifiedClassGen.this.resolvedFieldFor(ins);
 			}
 		}
 
@@ -571,7 +517,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		}
 
 		private void addCalledLambdasAsReachableFromStatic(Method method) {
-			MethodGen methodGen = new MethodGen(method, className, cpg);
+			MethodGen methodGen = new MethodGen(method, getClassName(), getConstantPool());
 			InstructionList instructions = methodGen.getInstructionList();
 			if (instructions != null) {
 				StreamSupport.stream(instructions.spliterator(), false)
@@ -586,220 +532,65 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			}
 		}
 
-		private void issue(Issue issue) {
-			issueHandler.accept(issue);
-			hasErrors |= issue instanceof Error;
-		}
-
-		private class MethodVerification {
+		public class MethodVerifier {
 			private final Method method;
 			private final InstructionList instructions;
 			private final LineNumberTable lines;
 
-			private MethodVerification(Method method) {
+			public abstract class Check extends Verifier.Check {
+				protected final Method method = MethodVerifier.this.method;
+
+				/**
+				 * Yields the instructions of the method.
+				 * 
+				 * @return the instructions
+				 */
+				protected final Stream<InstructionHandle> instructions() {
+					return instructions == null ? Stream.empty() : StreamSupport.stream(instructions.spliterator(), false);
+				}
+
+				/**
+				 * Yields the source line number from which the given instruction was compiled.
+				 * 
+				 * @param ih the instruction
+				 * @return the line number, or -1 if not available
+				 */
+				protected final int lineOf(InstructionHandle ih) {
+					return lineOf(ih.getPosition());
+				}
+
+				/**
+				 * Yields the source line number for the instruction at the given program point.
+				 * 
+				 * @param pc the program point
+				 * @return the line number, or -1 if not available
+				 */
+				protected final int lineOf(int pc) {
+					return lines != null ? lines.getSourceLine(pc) : -1;
+				}
+			}
+
+			private MethodVerifier(Method method) {
 				this.method = method;
-				MethodGen methodGen = new MethodGen(method, className, cpg);
+				MethodGen methodGen = new MethodGen(method, getClassName(), getConstantPool());
 				this.instructions = methodGen.getInstructionList();
-				this.lines = methodGen.getLineNumberTable(cpg);
+				this.lines = methodGen.getLineNumberTable(getConstantPool());
 
-				isNotStaticInitializer();
-				isNotNative();
-				thereAreNoUnusualBytecodes();
-				isNotSynchronized();
-				callerOccursOnThisInEntries();
-				entriesAreOnlyCalledFromInstanceCodeOfContracts();
-				exceptionHandlersAreForCheckedExceptionsOnly();
-				onlyWhiteListedCodeIsUsed();
-			}
-
-			private void isNotSynchronized() {
-				if (method.isSynchronized())
-					issue(new IllegalSynchronizationError(VerifiedClassGen.this, method));
-			}
-
-			private void isNotNative() {
-				if (method.isNative())
-					issue(new IllegalNativeMethodError(VerifiedClassGen.this, method));
-			}
-
-			private void isNotStaticInitializer() {
-				if (hasCode(method) && method.getName().equals(Const.STATIC_INITIALIZER_NAME))
-					if (isEnum() || isSynthetic()) {
-						// checks that the static fields of enum's or synthetic classes with a static initializer
-						// are either synthetic or enum elements or final static fields with
-						// an explicit constant initializer. This check is necessary since we cannot forbid static initializers
-						// in such classes, hence we do at least avoid the existence of extra static fields
-						IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-							Stream.of(classLoader.loadClass(className).getDeclaredFields())
-								.filter(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
-									&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field)))
-								.findAny()
-								.ifPresent(field -> issue(new IllegalStaticInitializationError(VerifiedClassGen.this, method, lineOf(instructions.getStart()))));
-						});
-					}
-					else
-						issue(new IllegalStaticInitializationError(VerifiedClassGen.this, method, lineOf(instructions.getStart())));
-			}
-
-			private boolean hasExplicitConstantValue(Field field) {
-				return Stream.of(getFields())
-					.filter(f -> f.isStatic() && f.getName().equals(field.getName()) && classLoader.bcelToClass(f.getType()) == field.getType())
-					.allMatch(f -> f.getConstantValue() != null);
-			}
-
-			/**
-			 * Checks that the method has no unusual bytecodes, such as {@code jsr}, {@code ret}
-			 * or updates of local 0 in instance methods. Such bytecodes are allowed in
-			 * Java bytecode, although they are never generated by modern compilers. Takamaka forbids them
-			 * since they make code verification more difficult.
-			 */
-			private void thereAreNoUnusualBytecodes() {
-				if (hasCode(method))
-					instructions().forEach(this::checkIfItIsIllegal);
-			}
-
-			private void checkIfItIsIllegal(InstructionHandle ih) {
-				Instruction ins = ih.getInstruction();
-
-				if (ins instanceof PUTSTATIC) {
-					// static field updates are allowed inside the synthetic methods or static initializer,
-					// for instance in an enumeration
-					if (!method.isSynthetic() && !method.getName().equals(Const.STATIC_INITIALIZER_NAME))
-						issue(new IllegalPutstaticInstructionError(VerifiedClassGen.this, method, lineOf(ih)));
-				}
-				else if (ins instanceof JsrInstruction)
-					issue(new IllegalJsrInstructionError(VerifiedClassGen.this, method, lineOf(ih)));
-				else if (ins instanceof RET)
-					issue(new IllegalRetInstructionError(VerifiedClassGen.this, method, lineOf(ih)));
-				else if (!method.isStatic() && ins instanceof StoreInstruction && ((StoreInstruction) ins).getIndex() == 0)
-					issue(new IllegalUpdateOfLocal0Error(VerifiedClassGen.this, method, lineOf(ih)));					
-				else if (ins instanceof MONITORENTER || ins instanceof MONITOREXIT)
-					issue(new IllegalSynchronizationError(VerifiedClassGen.this, method, lineOf(ih)));
-			}
-
-			/**
-			 * Yields the source line number from which the given instruction was compiled.
-			 * 
-			 * @param ih the instruction
-			 * @return the line number, or -1 if not available
-			 */
-			private int lineOf(InstructionHandle ih) {
-				return lines != null ? lines.getSourceLine(ih.getPosition()) : -1;
-			}
-
-			private Stream<InstructionHandle> instructions() {
-				return instructions == null ? Stream.empty() : StreamSupport.stream(instructions.spliterator(), false);
-			}
-
-			/**
-			 * Checks that {@code caller()}, inside the given method of the class being verified,
-			 * is only used with {@code this} as receiver and inside an {@code @@Entry} method or constructor.
-			 */
-			private void callerOccursOnThisInEntries() {
-				boolean isEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) != null;
-
-				instructions()
-					.filter(this::isCallToContractCaller)
-					.forEach(ih -> {
-						if (!isEntry)
-							issue(new CallerOutsideEntryError(VerifiedClassGen.this, method, lineOf(ih)));
-	
-						if (!previousIsLoad0(ih))
-							issue(new CallerNotOnThisError(VerifiedClassGen.this, method, lineOf(ih)));
-					});
-			}
-
-			private boolean previousIsLoad0(InstructionHandle ih) {
-				// we skip NOPs
-				for (ih = ih.getPrev(); ih != null && ih.getInstruction() instanceof NOP; ih = ih.getPrev());
-
-				if (ih != null) {
-					Instruction ins = ih.getInstruction();
-					return ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0;
-				}
-				else
-					return false;
-			}
-
-			private boolean isCallToContractCaller(InstructionHandle ih) {
-				Instruction ins = ih.getInstruction();
-				if (ins instanceof InvokeInstruction) {
-					InvokeInstruction invoke = (InvokeInstruction) ins;
-					ReferenceType receiver;
-			
-					return "caller".equals(invoke.getMethodName(cpg))
-						&& TAKAMAKA_CALLER_SIG.equals(invoke.getSignature(cpg))
-						&& (receiver = invoke.getReferenceType(cpg)) instanceof ObjectType
-						&& classLoader.isContract(((ObjectType) receiver).getClassName());
-				}
-				else
-					return false;
-			}
-
-			private void entriesAreOnlyCalledFromInstanceCodeOfContracts() {
-				if (!classLoader.isContract(className) || (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
-					instructions()
-						.filter(ih -> classBootstraps.callsEntry(ih, false))
-						.map(ih -> new IllegalCallToEntryError(VerifiedClassGen.this, method, nameOfEntryCalledDirectly(ih), lineOf(ih)))
-						.forEach(ClassVerification.this::issue);
-			}
-
-			private void exceptionHandlersAreForCheckedExceptionsOnly() {
-				if (hasCode(method)) {
-					CodeException[] excs = method.getCode().getExceptionTable();
-					if (excs != null)
-						for (CodeException exc: excs) {
-							int classIndex = exc.getCatchType();
-							String exceptionName = classIndex == 0 ?
-								"java.lang.Throwable" :
-								((ConstantClass) cpg.getConstant(classIndex)).getBytes(cpg.getConstantPool()).replace('/', '.');
-
-							// enum's are sometimes compiled with synthetic methods that catch NoSuchFieldError
-							if (((isEnum() && method.isSynthetic())
-									|| (method.getName().equals(Const.STATIC_INITIALIZER_NAME) && isSynthetic()))
-								&& exceptionName.equals("java.lang.NoSuchFieldError"))
-								continue;
-
-							if (canCatchUncheckedExceptions(exceptionName))
-								issue(new UncheckedExceptionHandlerError(VerifiedClassGen.this, method, lines != null ? lines.getSourceLine(exc.getHandlerPC()) : -1, exceptionName));
-						}
-				}
-			}
-
-			private boolean canCatchUncheckedExceptions(String exceptionName) {
-				return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-					Class<?> clazz = classLoader.loadClass(exceptionName);
-					return RuntimeException.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(RuntimeException.class) ||
-						java.lang.Error.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(java.lang.Error.class);
-				});
-			}
-
-			private void onlyWhiteListedCodeIsUsed() {
-				if (instructions != null)
-					for (InstructionHandle ih: instructions) {
-						Instruction ins = ih.getInstruction();
-						if (ins instanceof FieldInstruction) {
-							FieldInstruction fi = (FieldInstruction) ins;
-							Optional<Field> field = resolvedFieldFor(fi);
-							if (!field.isPresent() || !classLoader.whiteListingWizard.whiteListingModelOf(field.get()).isPresent())
-								issue(new IllegalAccessToNonWhiteListedFieldError(VerifiedClassGen.this, method, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
-						}
-
-						if (ins instanceof InvokeInstruction) {
-							InvokeInstruction invoke = (InvokeInstruction) ins;
-							Optional<? extends Executable> executable = resolvedExecutableFor(invoke);
-							if (!executable.isPresent())
-								issue(new UnresolvedCallError(VerifiedClassGen.this, method, lineOf(ih), invoke.getReferenceType(cpg).toString(), invoke.getMethodName(cpg)));
-							else {
-								Executable target = executable.get();
-								if (!whiteListingModelOf(target, invoke).isPresent())
-									if (target instanceof Constructor<?>)
-										issue(new IllegalCallToNonWhiteListedConstructorError(VerifiedClassGen.this, method, lineOf(ih), target.getDeclaringClass().getName()));
-									else
-										issue(new IllegalCallToNonWhiteListedMethodError(VerifiedClassGen.this, method, lineOf(ih), target.getDeclaringClass().getName(), target.getName()));
-							}
-						}
-					}
+				new PayableCodeReceivesAmountCheck(this);
+				new ThrowsExceptionsCodeIsPublicCheck(this);
+				new PayableCodeIsEntryCheck(this);
+				new EntryCodeIsInstanceAndInContractsCheck(this);
+				new EntryCodeIsConsistentWithClassHierarchyCheck(this);
+				new PayableCodeIsConsistentWithClassHierarchyCheck(this);
+				new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(this);
+				new IsNotStaticInitializerCheck(this);
+				new IsNotNativeCheck(this);
+				new BytecodesAreLegalCheck(this);
+				new IsNotSynchronizedCheck(this);
+				new CallerIsUsedOnThisAndInEntryCheck(this);
+				new EntriesAreOnlyCalledFromContractsCheck(this);
+				new ExceptionHandlersAreForCheckedExceptionsCheck(this);
+				new UsedCodeIsWhiteListedCheck(this);
 			}
 		}
 	}
