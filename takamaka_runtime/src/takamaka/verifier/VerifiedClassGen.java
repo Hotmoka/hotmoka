@@ -1,10 +1,8 @@
 package takamaka.verifier;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -12,15 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.bcel.Const;
-import org.apache.bcel.classfile.BootstrapMethod;
-import org.apache.bcel.classfile.Constant;
-import org.apache.bcel.classfile.ConstantClass;
-import org.apache.bcel.classfile.ConstantInterfaceMethodref;
-import org.apache.bcel.classfile.ConstantMethodHandle;
-import org.apache.bcel.classfile.ConstantMethodref;
-import org.apache.bcel.classfile.ConstantNameAndType;
-import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LineNumberTable;
 import org.apache.bcel.classfile.Method;
@@ -28,7 +17,6 @@ import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
-import org.apache.bcel.generic.INVOKEINTERFACE;
 import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
@@ -36,9 +24,7 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
-import org.apache.bcel.generic.Type;
 
-import takamaka.translator.Dummy;
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
 import takamaka.verifier.checks.onClass.BootstrapsAreLegalCheck;
@@ -91,7 +77,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 
 		this.classLoader = classLoader;
 		this.classBootstraps = new ClassBootstraps(this);
-		new Verifier(issueHandler, duringInitialization);
+		new Verification(issueHandler, duringInitialization);
 	}
 
 	/**
@@ -118,33 +104,29 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	/**
-	 * Yields the proof obligation for the field accessed by the given instruction.
+	 * Yields the white-listing model for the field accessed by the given instruction.
 	 * This means that that instruction accesses that field but that access is white-listed
-	 * only if the resulting proof obligation is verified.
+	 * only if the resulting model is verified.
 	 * 
 	 * @param fi the instruction that accesses the field
-	 * @return the proof obligation. This must exist, since the class is verified
-	 *         and all accesses have been proved to be white-listed (up to possible proof obligations
-	 *         contained in the model).
+	 * @return the model. This must exist, since the class is verified and all accesses have been proved
+	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
 	public Field whiteListingModelOf(FieldInstruction fi) {
-		// it has already been verified that the access is white-listed, hence it must exist
 		return classLoader.whiteListingWizard.whiteListingModelOf(resolvedFieldFor(fi).get()).get();
 	}
 
 	/**
-	 * Yields the proof obligation for the method called by the given instruction.
+	 * Yields the white-listing model for the method called by the given instruction.
 	 * This means that that instruction calls that method but that call is white-listed
-	 * only if the resulting proof obligation is verified.
+	 * only if the resulting model is verified.
 	 * 
 	 * @param invoke the instruction that calls the method
-	 * @return the proof obligation. This must exist, since the class is verified
-	 *         and all calls have been proved to be white-listed (up to possible proof obligations
-	 *         contained in the model).
+	 * @return the model. This must exist, since the class is verified and all calls have been proved
+	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
 	public Executable whiteListingModelOf(InvokeInstruction invoke) {
-		// it has already been verified that the access is white-listed, hence it must exist
-		return whiteListingModelOf(resolvedExecutableFor(invoke).get(), invoke).get();
+		return whiteListingModelOf(classBootstraps.resolvedExecutableFor(invoke).get(), invoke).get();
 	}
 
 	private Optional<Field> resolvedFieldFor(FieldInstruction ins) {
@@ -157,130 +139,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 
 			return IncompleteClasspathError.insteadOfClassNotFoundException
 				(() -> classLoader.resolveField(((ObjectType) holder).getClassName(), name, type));
-		}
-	
-		return Optional.empty();
-	}
-
-	private Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction ins) {
-		ConstantPoolGen cpg = getConstantPool();
-
-		if (ins instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(ins.getMethodName(cpg))) {
-			// the type of the receiver of a call to a constructor can only be a class
-			ObjectType receiver = (ObjectType) ins.getReferenceType(cpg);
-			Class<?>[] args = classLoader.bcelToClass(ins.getArgumentTypes(cpg));
-			return resolveConstructorWithPossiblyExpandedArgs(receiver.getClassName(), args);
-		}
-		else if (ins instanceof INVOKEDYNAMIC)
-			// invokedynamic can call a target that is an optimized reference to an executable
-			return getTargetOf(classBootstraps.getBootstrapFor((INVOKEDYNAMIC) ins));
-		else if (ins instanceof INVOKEINTERFACE) {
-			ReferenceType receiver = ins.getReferenceType(cpg);
-			String methodName = ins.getMethodName(cpg);
-			Class<?>[] args = classLoader.bcelToClass(ins.getArgumentTypes(cpg));
-			Class<?> returnType = classLoader.bcelToClass(ins.getReturnType(cpg));
-	
-			return resolveInterfaceMethodWithPossiblyExpandedArgs(((ObjectType) receiver).getClassName(), methodName, args, returnType);
-		}
-		else {
-			InvokeInstruction invoke = (InvokeInstruction) ins;
-			ReferenceType receiver = invoke.getReferenceType(cpg);
-			String methodName = invoke.getMethodName(cpg);
-			Class<?>[] args = classLoader.bcelToClass(invoke.getArgumentTypes(cpg));
-			Class<?> returnType = classLoader.bcelToClass(invoke.getReturnType(cpg));
-	
-			if (receiver instanceof ObjectType)
-				return resolveMethodWithPossiblyExpandedArgs(((ObjectType) receiver).getClassName(), methodName, args, returnType);
-			else
-				// it is possible to call a method on an array: in that case, the callee
-				// is a method of java.lang.Object: a couple of them are considered white-listed for arrays
-				return resolveMethodWithPossiblyExpandedArgs("java.lang.Object", methodName, args, returnType);
-		}
-	}
-
-	/**
-	 * Yields the target method or constructor called by the given bootstrap. It can also be outside
-	 * the class that we are processing.
-	 * 
-	 * @param bootstrap the bootstrap
-	 * @return the target called method or constructor
-	 */
-	private Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) {
-		ConstantPoolGen cpg = getConstantPool();
-
-		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
-		if (constant instanceof ConstantMethodHandle) {
-			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-			if (constant2 instanceof ConstantMethodref) {
-				ConstantMethodref mr = (ConstantMethodref) constant2;
-				int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-				String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-				ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-				String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-				String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-	
-				return getTargetOfCallSite(bootstrap, className, methodName, methodSignature);
-			}
-		}
-	
-		return Optional.empty();
-	}
-
-	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) {
-		ConstantPoolGen cpg = getConstantPool();
-
-		if ("java.lang.invoke.LambdaMetafactory".equals(className) &&
-				"metafactory".equals(methodName) &&
-				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
-	
-			// this is the standard factory used to create call sites
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (constant instanceof ConstantMethodHandle) {
-				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref) {
-					ConstantMethodref mr = (ConstantMethodref) constant2;
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-					String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = classLoader.bcelToClass(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = classLoader.bcelToClass(Type.getReturnType(methodSignature2));
-	
-					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
-						return resolveConstructorWithPossiblyExpandedArgs(className2, args);
-					else
-						return resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
-				}
-				else if (constant2 instanceof ConstantInterfaceMethodref) {
-					ConstantInterfaceMethodref mr = (ConstantInterfaceMethodref) constant2;
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-					String className2 = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = classLoader.bcelToClass(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = classLoader.bcelToClass(Type.getReturnType(methodSignature2));
-	
-					return resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
-				}
-			}
-		}
-		else if ("java.lang.invoke.StringConcatFactory".equals(className) &&
-				"makeConcatWithConstants".equals(methodName) &&
-				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
-	
-			// this factory is used to create call sites that lead to string concatenation of every
-			// possible argument type. Generically, we yield the Objects.toString(Object) method, since
-			// all parameters must be checked in order for the call to be white-listed
-			try {
-				return Optional.of(Objects.class.getMethod("toString", Object.class));
-			}
-			catch (NoSuchMethodException | SecurityException e) {
-				throw new IncompleteClasspathError(new ClassNotFoundException("java.util.Objects"));
-			}
 		}
 	
 		return Optional.empty();
@@ -319,94 +177,21 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			model.isPresent() &&
 			(model.get().isAnnotationPresent(MustRedefineHashCode.class) ||
 			 model.get().isAnnotationPresent(MustRedefineHashCodeOrToString.class)) &&
-			resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
+			classBootstraps.resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
 			return Optional.empty();
 		else
 			return model;
 	}
 
 	/**
-	 * Yields the lambda bridge method called by the given bootstrap.
-	 * It must belong to the same class that we are processing.
-	 * 
-	 * @param bootstrap the bootstrap
-	 * @return the lambda bridge method
-	 */
-	private Optional<Method> getLambdaFor(BootstrapMethod bootstrap) {
-		if (bootstrap.getNumBootstrapArguments() == 3) {
-			ConstantPoolGen cpg = getConstantPool();
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (constant instanceof ConstantMethodHandle) {
-				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref) {
-					ConstantMethodref mr = (ConstantMethodref) constant2;
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-
-					// a lambda bridge can only be present in the same class that calls it
-					if (className.equals(getClassName()))
-						return Stream.of(getMethods())
-							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
-							.findAny();
-				}
-			}
-		}
-
-		return Optional.empty();
-	}
-
-	Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) {
-		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Optional<Constructor<?>> result = classLoader.resolveConstructor(className, args);
-			// we try to add the instrumentation arguments. This is important when
-			// a bootstrap calls an entry of a jar already installed (and instrumented)
-			// in blockchain. In that case, it will find the target only with these
-			// extra arguments added during instrumentation
-			return result.isPresent() ? result : classLoader.resolveConstructor(className, expandArgsForEntry(args));
-		});
-	}
-
-	Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Optional<java.lang.reflect.Method> result = classLoader.resolveMethod(className, methodName, args, returnType);
-			return result.isPresent() ? result : classLoader.resolveMethod(className, methodName, expandArgsForEntry(args), returnType);
-		});
-	}
-
-	Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Optional<java.lang.reflect.Method> result = classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
-			return result.isPresent() ? result : classLoader.resolveInterfaceMethod(className, methodName, expandArgsForEntry(args), returnType);
-		});
-	}
-
-	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws ClassNotFoundException {
-		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
-		System.arraycopy(args, 0, expandedArgs, 0, args.length);
-		expandedArgs[args.length] = classLoader.contractClass;
-		expandedArgs[args.length + 1] = Dummy.class;
-		return expandedArgs;
-	}
-
-	/**
 	 * The algorithms that perform the verification of the BCEL class.
 	 */
-	public class Verifier {
+	public class Verification {
 
 		/**
 		 * The handler that must be notified of issues found in the class.
 		 */
 		private final Consumer<Issue> issueHandler;
-
-		/**
-		 * The set of lambda methods that might be reachable from a static method
-		 * that is not a lambda itself: they cannot call entries.
-		 */
-		private final Set<Method> lambdasReachableFromStaticMethods = new HashSet<>();
 
 		/**
 		 * The set of lambda that are unreachable from static methods that are not lambdas themselves:
@@ -417,7 +202,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		/**
 		 * True if and only if the code verification occurs during blockchain initialization.
 		 */
-
 		private final boolean duringInitialization;
 
 		/**
@@ -432,7 +216,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 * @param duringInitialization true if and only if verification is performed during blockchain initialization
 		 * @throws VerificationException if some verification error occurs
 		 */
-		private Verifier(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
+		private Verification(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 			this.issueHandler = issueHandler;
 			this.duringInitialization = duringInitialization;
 
@@ -444,54 +228,18 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
 
 			Stream.of(getMethods())
-				.forEach(MethodVerifier::new);
+				.forEach(MethodVerification::new);
 
 			if (hasErrors)
 				throw new VerificationException();
 		}
 
-		public abstract class Check {
-			protected final ClassBootstraps classBootstraps = VerifiedClassGen.this.classBootstraps;
-			protected final VerifiedClassGen clazz = VerifiedClassGen.this;
-			protected final TakamakaClassLoader classLoader = clazz.classLoader;
-			protected final boolean duringInitialization = Verifier.this.duringInitialization;
-			protected final String className = getClassName();
-			protected final ConstantPoolGen cpg = getConstantPool();
-			protected final Set<Method> lambdasUnreachableFromStaticMethods = Verifier.this.lambdasUnreachableFromStaticMethods;
-
-			/**
-			 * Yields the target method or constructor called by the given bootstrap. It can also be outside
-			 * the class that we are processing.
-			 * 
-			 * @param bootstrap the bootstrap
-			 * @return the target called method or constructor
-			 */
-			protected final Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) {
-				return VerifiedClassGen.this.getTargetOf(bootstrap);
-			}
-
-			protected final void issue(Issue issue) {
-				issueHandler.accept(issue);
-				hasErrors |= issue instanceof Error;
-			}
-
-			protected final Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
-				return VerifiedClassGen.this.whiteListingModelOf(executable, invoke);
-			}
-
-			protected final Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction ins) {
-				return VerifiedClassGen.this.resolvedExecutableFor(ins);
-			}
-
-			protected final Optional<Field> resolvedFieldFor(FieldInstruction ins)  {
-				return VerifiedClassGen.this.resolvedFieldFor(ins);
-			}
-		}
-
 		private void computeLambdasUnreachableFromStaticMethods() {
+			Set<Method> lambdasReachableFromStaticMethods = new HashSet<>();
+
 			// we initially compute the set of all lambdas
 			Set<Method> lambdas = classBootstraps.getBootstraps()
-				.map(VerifiedClassGen.this::getLambdaFor)
+				.map(classBootstraps::getLambdaFor)
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.collect(Collectors.toSet());
@@ -501,14 +249,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			Stream.of(getMethods())
 				.filter(Method::isStatic)
 				.filter(method -> !lambdas.contains(method))
-				.forEach(this::addCalledLambdasAsReachableFromStatic);
+				.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));
 
 			// then we iterate on the same lambdas that have been found to be reachable from
 			// the static methods and process them, recursively
 			int initialSize;
 			do {
 				initialSize = lambdasReachableFromStaticMethods.size();
-				new HashSet<>(lambdasReachableFromStaticMethods).stream().forEach(this::addCalledLambdasAsReachableFromStatic);
+				new HashSet<>(lambdasReachableFromStaticMethods).stream()
+					.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));
 			}
 			while (lambdasReachableFromStaticMethods.size() > initialSize);
 
@@ -516,29 +265,80 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			lambdasUnreachableFromStaticMethods.removeAll(lambdasReachableFromStaticMethods);
 		}
 
-		private void addCalledLambdasAsReachableFromStatic(Method method) {
+		private void addLambdasReachableFromStatic(Method method, Set<Method> lambdasReachableFromStaticMethods) {
 			MethodGen methodGen = new MethodGen(method, getClassName(), getConstantPool());
 			InstructionList instructions = methodGen.getInstructionList();
-			if (instructions != null) {
+			if (instructions != null)
 				StreamSupport.stream(instructions.spliterator(), false)
 					.map(InstructionHandle::getInstruction)
 					.filter(instruction -> instruction instanceof INVOKEDYNAMIC)
 					.map(instruction -> (INVOKEDYNAMIC) instruction)
 					.map(classBootstraps::getBootstrapFor)
-					.map(VerifiedClassGen.this::getLambdaFor)
+					.map(classBootstraps::getLambdaFor)
 					.filter(Optional::isPresent)
 					.map(Optional::get)
 					.forEach(lambdasReachableFromStaticMethods::add);
+		}
+
+		public abstract class Check {
+			protected final VerifiedClassGen clazz = VerifiedClassGen.this;
+			protected final TakamakaClassLoader classLoader = clazz.classLoader;
+			protected final boolean duringInitialization = Verification.this.duringInitialization;
+			protected final String className = getClassName();
+			protected final ConstantPoolGen cpg = getConstantPool();
+		
+			protected final void issue(Issue issue) {
+				issueHandler.accept(issue);
+				hasErrors |= issue instanceof Error;
+			}
+		
+			protected final Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
+				return clazz.whiteListingModelOf(executable, invoke);
+			}
+		
+			protected final Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction ins) {
+				return clazz.classBootstraps.resolvedExecutableFor(ins);
+			}
+		
+			protected final Optional<Field> resolvedFieldFor(FieldInstruction ins)  {
+				return clazz.resolvedFieldFor(ins);
+			}
+
+			protected final boolean mightBeReachedFromStaticMethods(Method method) {
+				return !lambdasUnreachableFromStaticMethods.contains(method);
 			}
 		}
 
-		public class MethodVerifier {
+		public class MethodVerification {
 			private final Method method;
 			private final InstructionList instructions;
 			private final LineNumberTable lines;
 
-			public abstract class Check extends Verifier.Check {
-				protected final Method method = MethodVerifier.this.method;
+			private MethodVerification(Method method) {
+				this.method = method;
+				MethodGen methodGen = new MethodGen(method, getClassName(), getConstantPool());
+				this.instructions = methodGen.getInstructionList();
+				this.lines = methodGen.getLineNumberTable(getConstantPool());
+			
+				new PayableCodeReceivesAmountCheck(this);
+				new ThrowsExceptionsCodeIsPublicCheck(this);
+				new PayableCodeIsEntryCheck(this);
+				new EntryCodeIsInstanceAndInContractsCheck(this);
+				new EntryCodeIsConsistentWithClassHierarchyCheck(this);
+				new PayableCodeIsConsistentWithClassHierarchyCheck(this);
+				new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(this);
+				new IsNotStaticInitializerCheck(this);
+				new IsNotNativeCheck(this);
+				new BytecodesAreLegalCheck(this);
+				new IsNotSynchronizedCheck(this);
+				new CallerIsUsedOnThisAndInEntryCheck(this);
+				new EntriesAreOnlyCalledFromContractsCheck(this);
+				new ExceptionHandlersAreForCheckedExceptionsCheck(this);
+				new UsedCodeIsWhiteListedCheck(this);
+			}
+
+			public abstract class Check extends Verification.Check {
+				protected final Method method = MethodVerification.this.method;
 
 				/**
 				 * Yields the instructions of the method.
@@ -568,29 +368,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				protected final int lineOf(int pc) {
 					return lines != null ? lines.getSourceLine(pc) : -1;
 				}
-			}
-
-			private MethodVerifier(Method method) {
-				this.method = method;
-				MethodGen methodGen = new MethodGen(method, getClassName(), getConstantPool());
-				this.instructions = methodGen.getInstructionList();
-				this.lines = methodGen.getLineNumberTable(getConstantPool());
-
-				new PayableCodeReceivesAmountCheck(this);
-				new ThrowsExceptionsCodeIsPublicCheck(this);
-				new PayableCodeIsEntryCheck(this);
-				new EntryCodeIsInstanceAndInContractsCheck(this);
-				new EntryCodeIsConsistentWithClassHierarchyCheck(this);
-				new PayableCodeIsConsistentWithClassHierarchyCheck(this);
-				new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(this);
-				new IsNotStaticInitializerCheck(this);
-				new IsNotNativeCheck(this);
-				new BytecodesAreLegalCheck(this);
-				new IsNotSynchronizedCheck(this);
-				new CallerIsUsedOnThisAndInEntryCheck(this);
-				new EntriesAreOnlyCalledFromContractsCheck(this);
-				new ExceptionHandlersAreForCheckedExceptionsCheck(this);
-				new UsedCodeIsWhiteListedCheck(this);
 			}
 		}
 	}

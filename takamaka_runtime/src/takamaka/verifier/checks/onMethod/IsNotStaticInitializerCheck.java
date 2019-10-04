@@ -13,9 +13,9 @@ import takamaka.verifier.errors.IllegalStaticInitializationError;
 /**
  * A check the method is not the static class initializer.
  */
-public class IsNotStaticInitializerCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class IsNotStaticInitializerCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public IsNotStaticInitializerCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public IsNotStaticInitializerCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
 		if (method.getCode() != null && method.getName().equals(Const.STATIC_INITIALIZER_NAME))

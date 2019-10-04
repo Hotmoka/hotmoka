@@ -12,9 +12,9 @@ import takamaka.verifier.errors.PayableWithoutAmountError;
 /**
  * A checks that payable methods have an amount first argument.
  */
-public class PayableCodeReceivesAmountCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class PayableCodeReceivesAmountCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public PayableCodeReceivesAmountCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public PayableCodeReceivesAmountCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
 		if (classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) && !startsWithAmount(method))

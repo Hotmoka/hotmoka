@@ -16,9 +16,9 @@ import takamaka.verifier.errors.InconsistentPayableError;
  * A check that {@code @@Payable} methods only redefine {@code @@Payable} methods and that
  * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
  */
-public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
 		if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {

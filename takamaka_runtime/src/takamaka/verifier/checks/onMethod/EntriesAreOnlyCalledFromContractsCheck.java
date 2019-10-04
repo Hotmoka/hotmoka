@@ -17,14 +17,14 @@ import takamaka.verifier.errors.IllegalCallToEntryError;
 /**
  * A check that {@code @@Entry} methods or constructors are called only from instance methods of contracts.
  */
-public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
-		if (!classLoader.isContract(className) || (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
+		if (!classLoader.isContract(className) || (method.isStatic() && mightBeReachedFromStaticMethods(method)))
 			instructions()
-				.filter(ih -> classBootstraps.callsEntry(ih, false))
+				.filter(ih -> clazz.getClassBootstraps().callsEntry(ih, false))
 				.map(ih -> new IllegalCallToEntryError(clazz, method, nameOfEntryCalledDirectly(ih), lineOf(ih)))
 				.forEach(this::issue);
 	}
@@ -39,7 +39,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Ver
 		Instruction instruction = ih.getInstruction();
 
 		if (instruction instanceof INVOKEDYNAMIC) {
-			BootstrapMethod bootstrap = classBootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction);
+			BootstrapMethod bootstrap = clazz.getClassBootstraps().getBootstrapFor((INVOKEDYNAMIC) instruction);
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());

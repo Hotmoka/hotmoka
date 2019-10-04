@@ -17,9 +17,9 @@ import takamaka.verifier.errors.InconsistentEntryError;
  * {@code @@Entry} methods are only redefined by {@code @@Entry} methods. Moreover,
  * the kind of contract allowed in entries can only be enlarged in subclasses.
  */
-public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
 		if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {

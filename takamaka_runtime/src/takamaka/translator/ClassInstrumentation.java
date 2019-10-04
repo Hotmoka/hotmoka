@@ -545,7 +545,7 @@ class ClassInstrumentation {
 		 */
 		private Method preProcess(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
-			addRuntimeChecksFroWhiteListingProofObligations(methodGen);
+			addRuntimeChecksForWhiteListingProofObligations(methodGen);
 			return methodGen.getMethod();
 		}
 
@@ -579,7 +579,7 @@ class ClassInstrumentation {
 			return methodGen.getMethod();
 		}
 
-		private void addRuntimeChecksFroWhiteListingProofObligations(MethodGen method) {
+		private void addRuntimeChecksForWhiteListingProofObligations(MethodGen method) {
 			if (!method.isAbstract())
 				for (InstructionHandle ih: method.getInstructionList()) {
 					Instruction ins = ih.getInstruction();

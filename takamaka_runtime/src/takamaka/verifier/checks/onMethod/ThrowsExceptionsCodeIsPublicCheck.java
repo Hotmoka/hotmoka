@@ -8,9 +8,9 @@ import takamaka.verifier.errors.ThrowsExceptionsOnNonPublicError;
 /**
  * A checks that {@code @@ThrowsExceptions} methods are public.
  */
-public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
 		Stream.of(clazz.getMethods())

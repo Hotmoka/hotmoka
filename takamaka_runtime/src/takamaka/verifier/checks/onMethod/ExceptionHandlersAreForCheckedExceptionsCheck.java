@@ -12,9 +12,9 @@ import takamaka.verifier.errors.UncheckedExceptionHandlerError;
 /**
  * A check that the exception handlers of a method are only for checked exceptions.
  */
-public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
 		Code code = method.getCode();

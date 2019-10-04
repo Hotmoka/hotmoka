@@ -6,13 +6,13 @@ import takamaka.verifier.errors.IllegalBootstrapMethodError;
 /**
  * A check that lambda bootstraps are only among those allowed by Takamaka.
  */
-public class BootstrapsAreLegalCheck extends VerifiedClassGen.Verifier.Check {
+public class BootstrapsAreLegalCheck extends VerifiedClassGen.Verification.Check {
 
-	public BootstrapsAreLegalCheck(VerifiedClassGen.Verifier verifier) {
+	public BootstrapsAreLegalCheck(VerifiedClassGen.Verification verifier) {
 		verifier.super();
 
-		classBootstraps.getBootstraps()
-			.map(this::getTargetOf)
+		clazz.getClassBootstraps().getBootstraps()
+			.map(bootstrap -> clazz.getClassBootstraps().getTargetOf(bootstrap))
 			.filter(target -> !target.isPresent())
 			.findAny()
 			.ifPresent(target -> issue(new IllegalBootstrapMethodError(clazz)));

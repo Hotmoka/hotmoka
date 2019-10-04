@@ -1,5 +1,6 @@
 package takamaka.verifier;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.util.HashSet;
 import java.util.Objects;
@@ -22,6 +23,8 @@ import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
+import org.apache.bcel.generic.INVOKEINTERFACE;
+import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.INVOKESTATIC;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
@@ -31,6 +34,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import takamaka.translator.Dummy;
 import takamaka.translator.IncompleteClasspathError;
 
 /**
@@ -168,7 +172,7 @@ public class ClassBootstraps {
 	 * @param bootstrap the bootstrap
 	 * @return the target called method or constructor
 	 */
-	private Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) {
+	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) {
 		ConstantPoolGen cpg = clazz.getConstantPool();
 
 		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
@@ -188,6 +192,97 @@ public class ClassBootstraps {
 		}
 	
 		return Optional.empty();
+	}
+
+	Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction ins) {
+		if (ins instanceof INVOKEDYNAMIC)
+			// invokedynamic can call a target that is an optimized reference to an executable
+			return getTargetOf(getBootstrapFor((INVOKEDYNAMIC) ins));
+
+		ConstantPoolGen cpg = clazz.getConstantPool();
+		String methodName = ins.getMethodName(cpg);
+		ReferenceType receiver = ins.getReferenceType(cpg);
+		// it is possible to call a method on an array: in that case, the callee is a method of java.lang.Object
+		String receiverClassName = receiver instanceof ObjectType ? ((ObjectType) receiver).getClassName() : "java.lang.Object";
+		Class<?>[] args = clazz.getClassLoader().bcelToClass(ins.getArgumentTypes(cpg));
+
+		if (ins instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
+			return resolveConstructorWithPossiblyExpandedArgs(receiverClassName, args);
+		else {
+			Class<?> returnType = clazz.getClassLoader().bcelToClass(ins.getReturnType(cpg));
+
+			if (ins instanceof INVOKEINTERFACE)
+				return resolveInterfaceMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
+			else
+				return resolveMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
+		}
+	}
+
+	/**
+	 * Yields the lambda bridge method called by the given bootstrap.
+	 * It must belong to the same class that we are processing.
+	 * 
+	 * @param bootstrap the bootstrap
+	 * @return the lambda bridge method
+	 */
+	Optional<Method> getLambdaFor(BootstrapMethod bootstrap) {
+		if (bootstrap.getNumBootstrapArguments() == 3) {
+			ConstantPoolGen cpg = clazz.getConstantPool();
+			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+			if (constant instanceof ConstantMethodHandle) {
+				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+				if (constant2 instanceof ConstantMethodref) {
+					ConstantMethodref mr = (ConstantMethodref) constant2;
+					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+	
+					// a lambda bridge can only be present in the same class that calls it
+					if (className.equals(clazz.getClassName()))
+						return Stream.of(clazz.getMethods())
+							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
+							.findFirst();
+				}
+			}
+		}
+	
+		return Optional.empty();
+	}
+
+	private Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) {
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			Optional<Constructor<?>> result = clazz.getClassLoader().resolveConstructor(className, args);
+			// we try to add the instrumentation arguments. This is important when
+			// a bootstrap calls an entry of a jar already installed (and instrumented)
+			// in blockchain. In that case, it will find the target only with these
+			// extra arguments added during instrumentation
+			return result.isPresent() ? result : clazz.getClassLoader().resolveConstructor(className, expandArgsForEntry(args));
+		});
+	}
+
+	private Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			Optional<java.lang.reflect.Method> result = clazz.getClassLoader().resolveMethod(className, methodName, args, returnType);
+			return result.isPresent() ? result : clazz.getClassLoader().resolveMethod(className, methodName, expandArgsForEntry(args), returnType);
+		});
+	}
+
+	private Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
+		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			Optional<java.lang.reflect.Method> result = clazz.getClassLoader().resolveInterfaceMethod(className, methodName, args, returnType);
+			return result.isPresent() ? result : clazz.getClassLoader().resolveInterfaceMethod(className, methodName, expandArgsForEntry(args), returnType);
+		});
+	}
+
+	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws ClassNotFoundException {
+		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
+		System.arraycopy(args, 0, expandedArgs, 0, args.length);
+		expandedArgs[args.length] = clazz.getClassLoader().contractClass;
+		expandedArgs[args.length + 1] = Dummy.class;
+		return expandedArgs;
 	}
 
 	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) {
@@ -213,9 +308,9 @@ public class ClassBootstraps {
 					Class<?> returnType = clazz.getClassLoader().bcelToClass(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
-						return clazz.resolveConstructorWithPossiblyExpandedArgs(className2, args);
+						return resolveConstructorWithPossiblyExpandedArgs(className2, args);
 					else
-						return clazz.resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+						return resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 				else if (constant2 instanceof ConstantInterfaceMethodref) {
 					ConstantInterfaceMethodref mr = (ConstantInterfaceMethodref) constant2;
@@ -227,7 +322,7 @@ public class ClassBootstraps {
 					Class<?>[] args = clazz.getClassLoader().bcelToClass(Type.getArgumentTypes(methodSignature2));
 					Class<?> returnType = clazz.getClassLoader().bcelToClass(Type.getReturnType(methodSignature2));
 	
-					return clazz.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+					return resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 			}
 		}
@@ -272,40 +367,6 @@ public class ClassBootstraps {
 	private boolean lambdaCallsEntry(BootstrapMethod bootstrap) {
 		Optional<Method> lambda = getLambdaFor(bootstrap);
 		return lambda.isPresent() && callsEntry(lambda.get());
-	}
-
-	/**
-	 * Yields the lambda bridge method called by the given bootstrap.
-	 * It must belong to the same class that we are processing.
-	 * 
-	 * @param bootstrap the bootstrap
-	 * @return the lambda bridge method
-	 */
-	private Optional<Method> getLambdaFor(BootstrapMethod bootstrap) {
-		if (bootstrap.getNumBootstrapArguments() == 3) {
-			ConstantPoolGen cpg = clazz.getConstantPool();
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
-			if (constant instanceof ConstantMethodHandle) {
-				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-				if (constant2 instanceof ConstantMethodref) {
-					ConstantMethodref mr = (ConstantMethodref) constant2;
-					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-
-					// a lambda bridge can only be present in the same class that calls it
-					if (className.equals(clazz.getClassName()))
-						return Stream.of(clazz.getMethods())
-							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
-							.findFirst();
-				}
-			}
-		}
-
-		return Optional.empty();
 	}
 
 	/**

@@ -16,9 +16,9 @@ import takamaka.verifier.errors.CallerOutsideEntryError;
  * A check that {@code caller()} is only used with {@code this} as receiver
  * and inside an {@code @@Entry} method or constructor.
  */
-public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
 		boolean isEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) != null;

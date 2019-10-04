@@ -16,9 +16,9 @@ import takamaka.verifier.errors.InconsistentThrowsExceptionsError;
  * A check that {@code @@ThrowsExceptions} methods only redefine {@code @@ThrowsExceptions} methods and that
  * {@code @@ThrowsExceptions} methods are only redefined by {@code @@ThrowsExceptions} methods.
  */
-public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
 		if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {

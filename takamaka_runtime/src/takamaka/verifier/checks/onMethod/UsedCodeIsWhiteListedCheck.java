@@ -18,9 +18,9 @@ import takamaka.verifier.errors.UnresolvedCallError;
 /**
  * A check that a method calls white-listed methods only and accesses white-listed fields only.
  */
-public class UsedCodeIsWhiteListedCheck extends VerifiedClassGen.Verifier.MethodVerifier.Check {
+public class UsedCodeIsWhiteListedCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClassGen.Verifier.MethodVerifier verifier) {
+	public UsedCodeIsWhiteListedCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
 		verifier.super();
 
 		instructions().forEach(ih -> {
