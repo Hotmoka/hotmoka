@@ -8,8 +8,8 @@ import takamaka.verifier.errors.IllegalPackageNameError;
  */
 public class PackagesAreLegalCheck extends VerifiedClassGen.Verification.Check {
 
-	public PackagesAreLegalCheck(VerifiedClassGen.Verification verifier) {
-		verifier.super();
+	public PackagesAreLegalCheck(VerifiedClassGen.Verification verification) {
+		verification.super();
 
 		if (className.startsWith("java.") || className.startsWith("javax."))
 			issue(new IllegalPackageNameError(clazz));

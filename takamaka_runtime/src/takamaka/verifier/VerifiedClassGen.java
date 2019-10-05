@@ -2,9 +2,8 @@ package takamaka.verifier;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,7 +15,6 @@ import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldInstruction;
-import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
@@ -193,10 +191,14 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		private final Consumer<Issue> issueHandler;
 
 		/**
-		 * The set of lambda that are unreachable from static methods that are not lambdas themselves:
-		 * they can call entries.
+		 * A map from each method to its editable version.
 		 */
-		private final Set<Method> lambdasUnreachableFromStaticMethods = new HashSet<>();
+		private final Map<Method, MethodGen> methods;
+
+		/**
+		 * A map from each method to its line number table.
+		 */
+		private final Map<Method, LineNumberTable> lines;
 
 		/**
 		 * True if and only if the code verification occurs during blockchain initialization.
@@ -216,67 +218,22 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 * @throws VerificationException if some verification error occurs
 		 */
 		private Verification(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
+			String className = getClassName();
+			ConstantPoolGen cpg = getConstantPool();
 			this.issueHandler = issueHandler;
+			this.methods = Stream.of(getMethods()).collect(Collectors.toMap(method -> method, method -> new MethodGen(method, className, cpg)));
+			this.lines = Stream.of(getMethods()).collect(Collectors.toMap(method -> method, method -> methods.get(method).getLineNumberTable(cpg)));
 			this.duringInitialization = duringInitialization;
-
-			if (classLoader.isContract(getClassName()))
-				computeLambdasUnreachableFromStaticMethods();
 
 			new PackagesAreLegalCheck(this);
 			new BootstrapsAreLegalCheck(this);
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
+			new EntriesAreOnlyCalledFromContractsCheck(this);
 
-			Stream.of(getMethods())
-				.forEach(MethodVerification::new);
+			Stream.of(getMethods()).forEach(MethodVerification::new);
 
 			if (hasErrors)
 				throw new VerificationException();
-		}
-
-		private void computeLambdasUnreachableFromStaticMethods() {
-			Set<Method> lambdasReachableFromStaticMethods = new HashSet<>();
-
-			// we initially compute the set of all lambdas
-			Set<Method> lambdas = classBootstraps.getBootstraps()
-				.map(classBootstraps::getLambdaFor)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.collect(Collectors.toSet());
-
-			// then we consider all lambdas that might be called, directly, from a static method
-			// that is not a lambda: they must be considered as reachable from a static method
-			Stream.of(getMethods())
-				.filter(Method::isStatic)
-				.filter(method -> !lambdas.contains(method))
-				.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));
-
-			// then we iterate on the same lambdas that have been found to be reachable from
-			// the static methods and process them, recursively
-			int initialSize;
-			do {
-				initialSize = lambdasReachableFromStaticMethods.size();
-				new HashSet<>(lambdasReachableFromStaticMethods).stream()
-					.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));
-			}
-			while (lambdasReachableFromStaticMethods.size() > initialSize);
-
-			lambdasUnreachableFromStaticMethods.addAll(lambdas);
-			lambdasUnreachableFromStaticMethods.removeAll(lambdasReachableFromStaticMethods);
-		}
-
-		private void addLambdasReachableFromStatic(Method method, Set<Method> lambdasReachableFromStaticMethods) {
-			MethodGen methodGen = new MethodGen(method, getClassName(), getConstantPool());
-			InstructionList instructions = methodGen.getInstructionList();
-			if (instructions != null)
-				StreamSupport.stream(instructions.spliterator(), false)
-					.map(InstructionHandle::getInstruction)
-					.filter(instruction -> instruction instanceof INVOKEDYNAMIC)
-					.map(instruction -> (INVOKEDYNAMIC) instruction)
-					.map(classBootstraps::getBootstrapFor)
-					.map(classBootstraps::getLambdaFor)
-					.filter(Optional::isPresent)
-					.map(Optional::get)
-					.forEach(lambdasReachableFromStaticMethods::add);
 		}
 
 		public abstract class Check {
@@ -301,21 +258,48 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				return executable.isPresent() && whiteListingModelOf(executable.get(), invoke).isPresent();
 			}
 
-			protected final boolean mightBeReachedFromStaticMethods(Method method) {
-				return !lambdasUnreachableFromStaticMethods.contains(method);
+			protected final MethodGen getMethodGenFor(Method method) {
+				return methods.get(method);
+			}
+
+			protected final LineNumberTable getLinesFor(Method method) {
+				return lines.get(method);
+			}
+
+			protected final Stream<InstructionHandle> instructionsOf(Method method) {
+				InstructionList instructions = getMethodGenFor(method).getInstructionList();
+				return instructions == null ? Stream.empty() : StreamSupport.stream(instructions.spliterator(), false);
+			}
+
+			/**
+			 * Yields the source line number from which the given instruction of the given method was compiled.
+			 * 
+			 * @param method the method
+			 * @param pc the program point of the instruction
+			 * @return the line number, or -1 if not available
+			 */
+			protected final int lineOf(Method method, int pc) {
+				LineNumberTable lines = getLinesFor(method);
+				return lines != null ? lines.getSourceLine(pc) : -1;
+			}
+
+			/**
+			 * Yields the source line number from which the given instruction of the given method was compiled.
+			 * 
+			 * @param method the method
+			 * @param ih the instruction
+			 * @return the line number, or -1 if not available
+			 */
+			protected final int lineOf(Method method, InstructionHandle ih) {
+				return lineOf(method, ih.getPosition());
 			}
 		}
 
 		public class MethodVerification {
 			private final Method method;
-			private final InstructionList instructions;
-			private final LineNumberTable lines;
 
 			private MethodVerification(Method method) {
 				this.method = method;
-				MethodGen methodGen = new MethodGen(method, getClassName(), getConstantPool());
-				this.instructions = methodGen.getInstructionList();
-				this.lines = methodGen.getLineNumberTable(getConstantPool());
 			
 				new PayableCodeReceivesAmountCheck(this);
 				new ThrowsExceptionsCodeIsPublicCheck(this);
@@ -329,7 +313,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				new BytecodesAreLegalCheck(this);
 				new IsNotSynchronizedCheck(this);
 				new CallerIsUsedOnThisAndInEntryCheck(this);
-				new EntriesAreOnlyCalledFromContractsCheck(this);
 				new ExceptionHandlersAreForCheckedExceptionsCheck(this);
 				new UsedCodeIsWhiteListedCheck(this);
 			}
@@ -338,32 +321,32 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				protected final Method method = MethodVerification.this.method;
 
 				/**
-				 * Yields the instructions of the method.
+				 * Yields the instructions of the method under verification.
 				 * 
 				 * @return the instructions
 				 */
 				protected final Stream<InstructionHandle> instructions() {
-					return instructions == null ? Stream.empty() : StreamSupport.stream(instructions.spliterator(), false);
+					return instructionsOf(method);
 				}
 
 				/**
-				 * Yields the source line number from which the given instruction was compiled.
+				 * Yields the source line number from which the given instruction of the method under verification was compiled.
 				 * 
 				 * @param ih the instruction
 				 * @return the line number, or -1 if not available
 				 */
 				protected final int lineOf(InstructionHandle ih) {
-					return lineOf(ih.getPosition());
+					return lineOf(method, ih);
 				}
 
 				/**
-				 * Yields the source line number for the instruction at the given program point.
+				 * Yields the source line number for the instruction at the given program point of the method under verification.
 				 * 
 				 * @param pc the program point
 				 * @return the line number, or -1 if not available
 				 */
 				protected final int lineOf(int pc) {
-					return lines != null ? lines.getSourceLine(pc) : -1;
+					return lineOf(method, pc);
 				}
 			}
 		}
