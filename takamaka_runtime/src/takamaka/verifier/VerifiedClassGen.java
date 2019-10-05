@@ -22,8 +22,6 @@ import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
-import org.apache.bcel.generic.ObjectType;
-import org.apache.bcel.generic.ReferenceType;
 
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
@@ -64,6 +62,11 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	private final ClassBootstraps classBootstraps;
 
 	/**
+	 * The utility that can be used to resolve targets of calls and field accesses in this class.
+	 */
+	private final Resolver resolver;
+
+	/**
 	 * Builds and verify a BCEL class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
@@ -77,6 +80,8 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 
 		this.classLoader = classLoader;
 		this.classBootstraps = new ClassBootstraps(this);
+		this.resolver = new Resolver(this);
+
 		new Verification(issueHandler, duringInitialization);
 	}
 
@@ -98,6 +103,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		return classBootstraps;
 	}
 
+	/**
+	 * Yields the utility that can be used to resolve the targets of calls and field access instructions in this class.
+	 * 
+	 * @return the utility
+	 */
+	public Resolver getClassResolver() {
+		return resolver;
+	}
+
 	@Override
 	public int compareTo(VerifiedClassGen other) {
 		return getClassName().compareTo(other.getClassName());
@@ -113,7 +127,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
 	public Field whiteListingModelOf(FieldInstruction fi) {
-		return classLoader.whiteListingWizard.whiteListingModelOf(resolvedFieldFor(fi).get()).get();
+		return classLoader.whiteListingWizard.whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
 	}
 
 	/**
@@ -126,22 +140,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
 	public Executable whiteListingModelOf(InvokeInstruction invoke) {
-		return whiteListingModelOf(classBootstraps.resolvedExecutableFor(invoke).get(), invoke).get();
-	}
-
-	private Optional<Field> resolvedFieldFor(FieldInstruction ins) {
-		ConstantPoolGen cpg = getConstantPool();
-	
-		ReferenceType holder = ins.getReferenceType(cpg);
-		if (holder instanceof ObjectType) {
-			String name = ins.getFieldName(cpg);
-			Class<?> type = classLoader.bcelToClass(ins.getFieldType(cpg));
-
-			return IncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> classLoader.resolveField(((ObjectType) holder).getClassName(), name, type));
-		}
-	
-		return Optional.empty();
+		return whiteListingModelOf(resolver.resolvedExecutableFor(invoke).get(), invoke).get();
 	}
 
 	/**
@@ -177,7 +176,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			model.isPresent() &&
 			(model.get().isAnnotationPresent(MustRedefineHashCode.class) ||
 			 model.get().isAnnotationPresent(MustRedefineHashCodeOrToString.class)) &&
-			classBootstraps.resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
+			resolver.resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
 			return Optional.empty();
 		else
 			return model;
@@ -291,17 +290,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				issueHandler.accept(issue);
 				hasErrors |= issue instanceof Error;
 			}
-		
-			protected final Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
-				return clazz.whiteListingModelOf(executable, invoke);
+
+			protected final boolean hasWhiteListingModel(FieldInstruction fi) {
+				Optional<Field> field = resolver.resolvedFieldFor(fi);
+				return field.isPresent() && classLoader.whiteListingWizard.whiteListingModelOf(field.get()).isPresent();
 			}
-		
-			protected final Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction ins) {
-				return clazz.classBootstraps.resolvedExecutableFor(ins);
-			}
-		
-			protected final Optional<Field> resolvedFieldFor(FieldInstruction ins)  {
-				return clazz.resolvedFieldFor(ins);
+
+			protected final boolean hasWhiteListingModel(InvokeInstruction invoke) {
+				Optional<? extends Executable> executable = resolver.resolvedExecutableFor(invoke);
+				return executable.isPresent() && whiteListingModelOf(executable.get(), invoke).isPresent();
 			}
 
 			protected final boolean mightBeReachedFromStaticMethods(Method method) {

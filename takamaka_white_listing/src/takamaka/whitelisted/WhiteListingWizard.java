@@ -51,7 +51,6 @@ public class WhiteListingWizard {
 			return fieldInWhiteListedLibraryFor(field);
 	}
 
-
 	/**
 	 * Looks for a white-listing model of the given method or constructor. That is a constructor declaration
 	 * that justifies why the method or constructor is white-listed. It can be the method or constructor itself, if it

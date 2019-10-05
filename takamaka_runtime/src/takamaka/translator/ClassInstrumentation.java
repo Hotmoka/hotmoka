@@ -81,6 +81,7 @@ import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.lang.Contract;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
+import takamaka.verifier.ClassBootstraps;
 import takamaka.verifier.VerifiedClassGen;
 import takamaka.whitelisted.MustBeFalse;
 import takamaka.whitelisted.MustBeOrdered;
@@ -304,11 +305,9 @@ class ClassInstrumentation {
 			int invokeKind = mh.getReferenceKind();
 
 			if (invokeKind == Const.REF_invokeStatic) {
-				// we instrument bootstrap methods that call a static lambda that calls an
-				// entry:
+				// we instrument bootstrap methods that call a static lambda that calls an entry:
 				// the problem is that the instrumentation of the entry will need local 0 (this)
-				// to pass the calling contract, consequently it must be made into an instance
-				// method
+				// to pass the calling contract, consequently it must be made into an instance method
 
 				ConstantMethodref mr = (ConstantMethodref) cpg.getConstant(mh.getReferenceIndex());
 				ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
@@ -758,13 +757,14 @@ class ClassInstrumentation {
 		 */
 		private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
 			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
+			ClassBootstraps classBootstraps = classGen.getClassBootstraps();
 			InstructionList il = new InstructionList();
 			List<Type> args = new ArrayList<>();
-			BootstrapMethod bootstrap = classGen.getClassBootstraps().getBootstrapFor(invokedynamic);
+			BootstrapMethod bootstrap = classBootstraps.getBootstrapFor(invokedynamic);
 			int[] bootstrapArgs = bootstrap.getBootstrapArguments();
 			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(bootstrapArgs[1]);
 			int invokeKind = mh.getReferenceKind();
-			Executable target = classGen.getClassBootstraps().getTargetOf(invokedynamic);
+			Executable target = classBootstraps.getTargetOf(classBootstraps.getBootstrapFor(invokedynamic)).get();
 			Class<?> receiverClass = target.getDeclaringClass();
 			if (receiverClass.isArray())
 				receiverClass = Object.class;
@@ -795,8 +795,7 @@ class ClassInstrumentation {
 					invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 			il.append(InstructionFactory.createReturn(verifierReturnType));
 
-			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null,
-					verifierName, className, il, cpg);
+			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 
 			il.setPositions();
 			addedVerifier.setMaxLocals();
@@ -805,7 +804,7 @@ class ClassInstrumentation {
 
 			// replace inside the bootstrap method
 			bootstrapArgs[1] = addMethodHandleToConstantPool(new ConstantMethodHandle(Const.REF_invokeStatic, cpg
-					.addMethodref(className, verifierName, Type.getMethodSignature(verifierReturnType, argsAsArray))));
+				.addMethodref(className, verifierName, Type.getMethodSignature(verifierReturnType, argsAsArray))));
 
 			// we return the same invoke instruction, but its bootstrap method has been modified
 			return invokedynamic;

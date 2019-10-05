@@ -12,7 +12,7 @@ public class BootstrapsAreLegalCheck extends VerifiedClassGen.Verification.Check
 		verifier.super();
 
 		clazz.getClassBootstraps().getBootstraps()
-			.map(bootstrap -> clazz.getClassBootstraps().getTargetOf(bootstrap))
+			.map(clazz.getClassBootstraps()::getTargetOf)
 			.filter(target -> !target.isPresent())
 			.findAny()
 			.ifPresent(target -> issue(new IllegalBootstrapMethodError(clazz)));
