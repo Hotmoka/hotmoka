@@ -34,7 +34,7 @@ public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClass
 						continue;
 
 					if (canCatchUncheckedExceptions(exceptionName))
-						issue(new UncheckedExceptionHandlerError(clazz, method, lineOf(exc.getHandlerPC()), exceptionName));
+						issue(new UncheckedExceptionHandlerError(clazz, method.getName(), lineOf(exc.getHandlerPC()), exceptionName));
 				}
 		}
 	}

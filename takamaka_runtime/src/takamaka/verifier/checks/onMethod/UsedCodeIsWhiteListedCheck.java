@@ -30,7 +30,7 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClassGen.Verification.Me
 			if (ins instanceof FieldInstruction) {
 				FieldInstruction fi = (FieldInstruction) ins;
 				if (!hasWhiteListingModel(fi))
-					issue(new IllegalAccessToNonWhiteListedFieldError(clazz, method, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
+					issue(new IllegalAccessToNonWhiteListedFieldError(clazz, method.getName(), lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
 			}
 			else if (ins instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) ins;
@@ -39,9 +39,9 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClassGen.Verification.Me
 					if (target.isPresent()) {
 						Executable executable = target.get();
 						if (executable instanceof Constructor<?>)
-							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, method, lineOf(ih), executable.getDeclaringClass().getName()));
+							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, method.getName(), lineOf(ih), executable.getDeclaringClass().getName()));
 						else
-							issue(new IllegalCallToNonWhiteListedMethodError(clazz, method, lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
+							issue(new IllegalCallToNonWhiteListedMethodError(clazz, method.getName(), lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
 					}
 					else {
 						// the call seems not resolvable
@@ -50,9 +50,9 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClassGen.Verification.Me
 						String methodName = invoke.getMethodName(cpg);
 
 						if (invoke instanceof INVOKESPECIAL && methodName.equals(Const.CONSTRUCTOR_NAME))
-							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, method, lineOf(ih), receiverClassName));
+							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, method.getName(), lineOf(ih), receiverClassName));
 						else
-							issue(new IllegalCallToNonWhiteListedMethodError(clazz, method, lineOf(ih), receiverClassName, methodName));
+							issue(new IllegalCallToNonWhiteListedMethodError(clazz, method.getName(), lineOf(ih), receiverClassName, methodName));
 					}
 				}
 			}

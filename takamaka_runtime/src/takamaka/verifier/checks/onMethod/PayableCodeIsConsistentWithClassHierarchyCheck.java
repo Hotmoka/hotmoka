@@ -40,7 +40,7 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClas
 						&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
 						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
 				.anyMatch(m -> wasPayable != classLoader.isPayable(clazz.getName(), name, args, returnType)))
-			issue(new InconsistentPayableError(this.clazz, method, clazz.getName()));
+			issue(new InconsistentPayableError(this.clazz, name, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)

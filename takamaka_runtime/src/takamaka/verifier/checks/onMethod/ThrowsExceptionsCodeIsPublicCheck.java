@@ -10,12 +10,12 @@ import takamaka.verifier.errors.ThrowsExceptionsOnNonPublicError;
  */
 public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
 		Stream.of(clazz.getMethods())
 			.filter(method -> !method.isPublic() && classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
-			.map(method -> new ThrowsExceptionsOnNonPublicError(clazz, method))
+			.map(method -> new ThrowsExceptionsOnNonPublicError(clazz, method.getName()))
 			.forEach(this::issue);
 	}
 }

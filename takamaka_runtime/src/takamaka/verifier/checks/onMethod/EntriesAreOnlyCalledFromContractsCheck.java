@@ -29,7 +29,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Ver
 		if (!classLoader.isContract(className) || (method.isStatic() && mightBeReachedFromStaticMethods(method)))
 			instructions()
 				.filter(this::callsEntry)
-				.map(ih -> new IllegalCallToEntryError(clazz, method, nameOfEntryCalledDirectly(ih), lineOf(ih)))
+				.map(ih -> new IllegalCallToEntryError(clazz, method.getName(), nameOfEntryCalledDirectly(ih), lineOf(ih)))
 				.forEach(this::issue);
 	}
 

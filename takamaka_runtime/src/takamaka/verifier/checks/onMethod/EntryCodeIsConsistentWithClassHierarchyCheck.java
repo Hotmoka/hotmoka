@@ -41,7 +41,7 @@ public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassG
 						&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
 						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
 				.anyMatch(m -> !compatibleEntries(contractTypeForEntry, classLoader.isEntry(clazz.getName(), name, args, returnType))))
-			issue(new InconsistentEntryError(this.clazz, method, clazz.getName()));
+			issue(new InconsistentEntryError(this.clazz, method.getName(), clazz.getName()));
 
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)

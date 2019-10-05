@@ -12,6 +12,6 @@ public class IsNotNativeCheck extends VerifiedClassGen.Verification.MethodVerifi
 		verifier.super();
 
 		if (method.isNative())
-			issue(new IllegalNativeMethodError(clazz, method));
+			issue(new IllegalNativeMethodError(clazz, method.getName()));
 	}
 }

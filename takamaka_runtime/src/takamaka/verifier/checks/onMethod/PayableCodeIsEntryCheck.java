@@ -1,5 +1,7 @@
 package takamaka.verifier.checks.onMethod;
 
+import org.apache.bcel.generic.Type;
+
 import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.PayableWithoutEntryError;
 
@@ -8,11 +10,13 @@ import takamaka.verifier.errors.PayableWithoutEntryError;
  */
 public class PayableCodeIsEntryCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public PayableCodeIsEntryCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public PayableCodeIsEntryCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
-		if (classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())
-				&& classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) == null)
-			issue(new PayableWithoutEntryError(clazz, method));
+		String methodName = method.getName();
+		Type[] args = method.getArgumentTypes();
+		Type returnType = method.getReturnType();
+		if (classLoader.isPayable(className, methodName, args, returnType) && classLoader.isEntry(className, methodName, args, returnType) == null)
+			issue(new PayableWithoutEntryError(clazz, methodName));
 	}
 }

@@ -14,11 +14,12 @@ import takamaka.verifier.errors.PayableWithoutAmountError;
  */
 public class PayableCodeReceivesAmountCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public PayableCodeReceivesAmountCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public PayableCodeReceivesAmountCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
-		if (classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) && !startsWithAmount(method))
-			issue(new PayableWithoutAmountError(clazz, method));
+		String methodName = method.getName();
+		if (classLoader.isPayable(className, methodName, method.getArgumentTypes(), method.getReturnType()) && !startsWithAmount(method))
+			issue(new PayableWithoutAmountError(clazz, methodName));
 	}
 
 	private final static ObjectType BIG_INTEGER_OT = new ObjectType(BigInteger.class.getName());

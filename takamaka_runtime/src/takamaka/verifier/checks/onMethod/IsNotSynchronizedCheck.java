@@ -12,6 +12,6 @@ public class IsNotSynchronizedCheck extends VerifiedClassGen.Verification.Method
 		verifier.super();
 
 		if (method.isSynchronized())
-			issue(new IllegalSynchronizationError(clazz, method));
+			issue(new IllegalSynchronizationError(clazz, method.getName()));
 	}
 }

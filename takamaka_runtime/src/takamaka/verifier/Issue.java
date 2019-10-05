@@ -1,8 +1,9 @@
 package takamaka.verifier;
 
-import java.lang.reflect.Field;
+import static java.util.Comparator.comparing;
 
-import org.apache.bcel.classfile.Method;
+import java.util.Comparator;
+
 import org.apache.bcel.generic.ClassGen;
 
 /**
@@ -12,33 +13,48 @@ import org.apache.bcel.generic.ClassGen;
 public abstract class Issue implements Comparable<Issue> {
 	public final String where;
 	public final String message;
+	private final static Comparator<Issue> comparator =
+		comparing((Issue issue) -> issue.where)
+		.thenComparing(issue -> issue.getClass().getName())
+		.thenComparing(issue -> issue.message);
 
-	protected Issue(String where, String message) {
-		this.where = where;
+	/**
+	 * Creates an issue at the given class.
+	 * 
+	 * @param clazz the class where the issue occurs
+	 * @param message the message of the issue
+	 */
+	protected Issue(ClassGen clazz, String message) {
+		this.where = inferSourceFile(clazz);
 		this.message = message;
 	}
 
-	protected Issue(ClassGen where, String message) {
-		this.where = inferSourceFile(where);
+	/**
+	 * Creates an issue at the given program field.
+	 * 
+	 * @param clazz the class where the issue occurs
+	 * @param fieldName the name of the field where the issue occurs
+	 * @param message the message of the issue
+	 */
+	protected Issue(ClassGen clazz, String fieldName, String message) {
+		this.where = inferSourceFile(clazz) + " field " + fieldName;
 		this.message = message;
 	}
 
-	protected Issue(ClassGen clazz, Method where, String message) {
-		this.where = inferSourceFile(clazz) + " method " + where.getName();
+	/**
+	 * Creates an issue at the given program line.
+	 * 
+	 * @param clazz the class where the issue occurs
+	 * @param methodName the name of the method where the issue occurs
+	 * @param line the line where the issue occurs. Use -1 if the issue is related to the method as a whole
+	 * @param message the message of the issue
+	 */
+	protected Issue(ClassGen clazz, String methodName, int line, String message) {
+		this.where = inferSourceFile(clazz) + (line >= 0 ? (":" + line) : (" method " + methodName));
 		this.message = message;
 	}
 
-	protected Issue(ClassGen clazz, Field where, String message) {
-		this.where = inferSourceFile(clazz) + " field " + where.getName();
-		this.message = message;
-	}
-
-	protected Issue(ClassGen clazz, Method where, int line, String message) {
-		this.where = inferSourceFile(clazz) + (line >= 0 ? (":" + line) : (" method " + where.getName()));
-		this.message = message;
-	}
-
-	private String inferSourceFile(ClassGen clazz) {
+	private static String inferSourceFile(ClassGen clazz) {
 		String sourceFile = clazz.getFileName();
 		String className = clazz.getClassName();
 	
@@ -55,25 +71,12 @@ public abstract class Issue implements Comparable<Issue> {
 
 	@Override
 	public final int compareTo(Issue other) {
-		int diff = where.compareTo(other.where);
-		if (diff != 0)
-			return diff;
-
-		diff = getClass().getName().compareTo(other.getClass().getName());
-		if (diff != 0)
-			return diff;
-		else
-			return message.compareTo(other.message);
+		return comparator.compare(this, other);
 	}
 
 	@Override
 	public final boolean equals(Object other) {
-		if (other instanceof Issue) {
-			Issue otherAsIssue = (Issue) other;
-			return where.equals(otherAsIssue.where) && message.equals(otherAsIssue.message) && getClass() == otherAsIssue.getClass();
-		}
-		else
-			return false;
+		return other instanceof Issue && getClass() == other.getClass() && where.equals(((Issue) other).where) && message.equals(((Issue) other).message);
 	}
 
 	@Override
@@ -82,7 +85,7 @@ public abstract class Issue implements Comparable<Issue> {
 	}
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		return where + ": " + message;
 	}
 }

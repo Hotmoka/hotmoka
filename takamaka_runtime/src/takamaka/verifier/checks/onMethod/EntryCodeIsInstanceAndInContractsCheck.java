@@ -13,13 +13,14 @@ public class EntryCodeIsInstanceAndInContractsCheck extends VerifiedClassGen.Ver
 		verifier.super();
 
 		boolean isContract = classLoader.isContract(className);
-		Class<?> isEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+		String methodName = method.getName();
+		Class<?> isEntry = classLoader.isEntry(className, methodName, method.getArgumentTypes(), method.getReturnType());
 
 		if (isEntry != null) {
 			if (!classLoader.contractClass.isAssignableFrom(isEntry))
-				issue(new IllegalEntryArgumentError(clazz, method));
+				issue(new IllegalEntryArgumentError(clazz, methodName));
 			if (method.isStatic() || !isContract)
-				issue(new IllegalEntryMethodError(clazz, method));
+				issue(new IllegalEntryMethodError(clazz, methodName));
 		}
 	}
 }

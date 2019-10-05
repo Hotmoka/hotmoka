@@ -27,10 +27,10 @@ public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassGen.Verifica
 			.filter(this::isCallToContractCaller)
 			.forEach(ih -> {
 				if (!isEntry)
-					issue(new CallerOutsideEntryError(clazz, method, lineOf(ih)));
+					issue(new CallerOutsideEntryError(clazz, method.getName(), lineOf(ih)));
 
 				if (!previousIsLoad0(ih))
-					issue(new CallerNotOnThisError(clazz, method, lineOf(ih)));
+					issue(new CallerNotOnThisError(clazz, method.getName(), lineOf(ih)));
 			});
 	}
 

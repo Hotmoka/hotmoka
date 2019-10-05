@@ -22,7 +22,7 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassGen
 				Stream.of(classLoader.loadClass(className).getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.filter(field -> !isTypeAllowedForStorageFields(field.getType()))
-					.map(field -> new IllegalTypeForStorageFieldError(clazz, field))
+					.map(field -> new IllegalTypeForStorageFieldError(clazz, field.getName(), field.getType().isEnum()))
 					.forEach(this::issue);
 			});
 	}

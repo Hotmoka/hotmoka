@@ -29,11 +29,11 @@ public class IsNotStaticInitializerCheck extends VerifiedClassGen.Verification.M
 						.filter(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
 							&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field)))
 						.findAny()
-						.ifPresent(field -> issue(new IllegalStaticInitializationError(clazz, method, lineOf(instructions().findFirst().get()))));
+						.ifPresent(field -> issue(new IllegalStaticInitializationError(clazz, method.getName(), lineOf(instructions().findFirst().get()))));
 				});
 			}
 			else
-				issue(new IllegalStaticInitializationError(clazz, method, lineOf(instructions().findFirst().get())));
+				issue(new IllegalStaticInitializationError(clazz, method.getName(), lineOf(instructions().findFirst().get())));
 	}
 
 	private boolean hasExplicitConstantValue(Field field) {

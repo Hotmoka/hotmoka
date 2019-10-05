@@ -18,11 +18,12 @@ import takamaka.verifier.errors.InconsistentThrowsExceptionsError;
  */
 public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
-		if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
-			boolean wasThrowsExceptions = classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+		String methodName = method.getName();
+		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
+			boolean wasThrowsExceptions = classLoader.isThrowsExceptions(className, methodName, method.getArgumentTypes(), method.getReturnType());
 	
 			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 				isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), method, wasThrowsExceptions);
@@ -40,7 +41,7 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends Verifie
 						&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
 						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
 				.anyMatch(m -> wasThrowsExceptions != classLoader.isThrowsExceptions(clazz.getName(), name, args, returnType)))
-			issue(new InconsistentThrowsExceptionsError(this.clazz, method, clazz.getName()));
+			issue(new InconsistentThrowsExceptionsError(this.clazz, name, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)
