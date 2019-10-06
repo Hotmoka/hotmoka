@@ -4,6 +4,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -11,7 +12,6 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LineNumberTable;
-import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldInstruction;
@@ -20,15 +20,16 @@ import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
+import org.apache.bcel.generic.Type;
 
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.translator.TakamakaClassLoader;
 import takamaka.verifier.checks.onClass.BootstrapsAreLegalCheck;
+import takamaka.verifier.checks.onClass.EntriesAreOnlyCalledFromContractsCheck;
 import takamaka.verifier.checks.onClass.PackagesAreLegalCheck;
 import takamaka.verifier.checks.onClass.StorageClassesHaveFieldsOfStorageTypeCheck;
 import takamaka.verifier.checks.onMethod.BytecodesAreLegalCheck;
 import takamaka.verifier.checks.onMethod.CallerIsUsedOnThisAndInEntryCheck;
-import takamaka.verifier.checks.onMethod.EntriesAreOnlyCalledFromContractsCheck;
 import takamaka.verifier.checks.onMethod.EntryCodeIsConsistentWithClassHierarchyCheck;
 import takamaka.verifier.checks.onMethod.EntryCodeIsInstanceAndInContractsCheck;
 import takamaka.verifier.checks.onMethod.ExceptionHandlersAreForCheckedExceptionsCheck;
@@ -65,6 +66,11 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	private final Resolver resolver;
 
 	/**
+	 * A methods of this class, in editable version.
+	 */
+	private final Set<MethodGen> methods;
+
+	/**
 	 * Builds and verify a BCEL class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
@@ -76,6 +82,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	public VerifiedClassGen(JavaClass clazz, TakamakaClassLoader classLoader, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 		super(clazz);
 
+		this.methods = Stream.of(getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).collect(Collectors.toSet());
 		this.classLoader = classLoader;
 		this.classBootstraps = new ClassBootstraps(this);
 		this.resolver = new Resolver(this);
@@ -142,6 +149,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	/**
+	 * Yields the methods inside this class, in generator form.
+	 * 
+	 * @return the methods inside this class
+	 */
+	public Stream<MethodGen> getMethodGens() {
+		return methods.stream();
+	}
+
+	/**
 	 * Looks for a white-listing model of the given method or constructor. That is a constructor declaration
 	 * that justifies why the method or constructor is white-listed. It can be the method or constructor itself, if it
 	 * belongs to a class installed in blockchain, or otherwise a method or constructor of a white-listing
@@ -191,14 +207,9 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		private final Consumer<Issue> issueHandler;
 
 		/**
-		 * A map from each method to its editable version.
-		 */
-		private final Map<Method, MethodGen> methods;
-
-		/**
 		 * A map from each method to its line number table.
 		 */
-		private final Map<Method, LineNumberTable> lines;
+		private final Map<MethodGen, LineNumberTable> lines;
 
 		/**
 		 * True if and only if the code verification occurs during blockchain initialization.
@@ -218,11 +229,8 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		 * @throws VerificationException if some verification error occurs
 		 */
 		private Verification(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
-			String className = getClassName();
-			ConstantPoolGen cpg = getConstantPool();
 			this.issueHandler = issueHandler;
-			this.methods = Stream.of(getMethods()).collect(Collectors.toMap(method -> method, method -> new MethodGen(method, className, cpg)));
-			this.lines = Stream.of(getMethods()).collect(Collectors.toMap(method -> method, method -> methods.get(method).getLineNumberTable(cpg)));
+			this.lines = methods.stream().collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(getConstantPool())));
 			this.duringInitialization = duringInitialization;
 
 			new PackagesAreLegalCheck(this);
@@ -230,7 +238,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
 			new EntriesAreOnlyCalledFromContractsCheck(this);
 
-			Stream.of(getMethods()).forEach(MethodVerification::new);
+			getMethodGens().forEach(MethodVerification::new);
 
 			if (hasErrors)
 				throw new VerificationException();
@@ -258,16 +266,12 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 				return executable.isPresent() && whiteListingModelOf(executable.get(), invoke).isPresent();
 			}
 
-			protected final MethodGen getMethodGenFor(Method method) {
-				return methods.get(method);
-			}
-
-			protected final LineNumberTable getLinesFor(Method method) {
+			protected final LineNumberTable getLinesFor(MethodGen method) {
 				return lines.get(method);
 			}
 
-			protected final Stream<InstructionHandle> instructionsOf(Method method) {
-				InstructionList instructions = getMethodGenFor(method).getInstructionList();
+			protected final Stream<InstructionHandle> instructionsOf(MethodGen method) {
+				InstructionList instructions = method.getInstructionList();
 				return instructions == null ? Stream.empty() : StreamSupport.stream(instructions.spliterator(), false);
 			}
 
@@ -278,7 +282,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			 * @param pc the program point of the instruction
 			 * @return the line number, or -1 if not available
 			 */
-			protected final int lineOf(Method method, int pc) {
+			protected final int lineOf(MethodGen method, int pc) {
 				LineNumberTable lines = getLinesFor(method);
 				return lines != null ? lines.getSourceLine(pc) : -1;
 			}
@@ -290,15 +294,15 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			 * @param ih the instruction
 			 * @return the line number, or -1 if not available
 			 */
-			protected final int lineOf(Method method, InstructionHandle ih) {
+			protected final int lineOf(MethodGen method, InstructionHandle ih) {
 				return lineOf(method, ih.getPosition());
 			}
 		}
 
 		public class MethodVerification {
-			private final Method method;
+			private final MethodGen method;
 
-			private MethodVerification(Method method) {
+			private MethodVerification(MethodGen method) {
 				this.method = method;
 			
 				new PayableCodeReceivesAmountCheck(this);
@@ -318,7 +322,10 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 			}
 
 			public abstract class Check extends Verification.Check {
-				protected final Method method = MethodVerification.this.method;
+				protected final MethodGen method = MethodVerification.this.method;
+				protected final String methodName = method.getName();
+				protected final Type[] methodArgs = method.getArgumentTypes();
+				protected final Type methodReturnType = method.getReturnType();
 
 				/**
 				 * Yields the instructions of the method under verification.

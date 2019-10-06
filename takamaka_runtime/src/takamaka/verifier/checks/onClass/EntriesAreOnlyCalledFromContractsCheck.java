@@ -1,10 +1,9 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.checks.onClass;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.bcel.classfile.BootstrapMethod;
@@ -13,13 +12,13 @@ import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
-import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKESTATIC;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
@@ -31,32 +30,30 @@ import takamaka.verifier.errors.IllegalCallToEntryError;
  */
 public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Verification.Check {
 
-	/**
-	 * The set of lambda that are unreachable from static methods that are not lambdas themselves:
-	 * they can call entries.
-	 */
-	private final Set<Method> lambdasUnreachableFromStaticMethods = new HashSet<>();
-
 	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClassGen.Verification verification) {
 		verification.super();
 
+		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call entries
+		Set<MethodGen> lambdasUnreachableFromStaticMethods = new HashSet<>();
 		boolean isContract = classLoader.isContract(className);
 		if (isContract)
-			computeLambdasUnreachableFromStaticMethods();
+			computeLambdasUnreachableFromStaticMethods(lambdasUnreachableFromStaticMethods);
 
-		for (Method method: clazz.getMethods())
-			if (!isContract || (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
+		clazz.getMethodGens()
+			.filter(method -> !isContract || (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
+			.forEach(method ->
 				instructionsOf(method)
 					.filter(this::callsEntry)
 					.map(ih -> new IllegalCallToEntryError(clazz, method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
-					.forEach(this::issue);
+					.forEach(this::issue)
+			);
 	}
 
-	private void computeLambdasUnreachableFromStaticMethods() {
-		Set<Method> lambdasReachableFromStaticMethods = new HashSet<>();
+	private void computeLambdasUnreachableFromStaticMethods(Set<MethodGen> lambdasUnreachableFromStaticMethods) {
+		Set<MethodGen> lambdasReachableFromStaticMethods = new HashSet<>();
 
 		// we initially compute the set of all lambdas
-		Set<Method> lambdas = clazz.getClassBootstraps().getBootstraps()
+		Set<MethodGen> lambdas = clazz.getClassBootstraps().getBootstraps()
 			.map(clazz.getClassBootstraps()::getLambdaFor)
 			.filter(Optional::isPresent)
 			.map(Optional::get)
@@ -64,8 +61,8 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Ver
 
 		// then we consider all lambdas that might be called, directly, from a static method
 		// that is not a lambda: they must be considered as reachable from a static method
-		Stream.of(clazz.getMethods())
-			.filter(Method::isStatic)
+		clazz.getMethodGens()
+			.filter(MethodGen::isStatic)
 			.filter(method -> !lambdas.contains(method))
 			.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));
 
@@ -83,8 +80,8 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Ver
 		lambdasUnreachableFromStaticMethods.removeAll(lambdasReachableFromStaticMethods);
 	}
 
-	private void addLambdasReachableFromStatic(Method method, Set<Method> lambdasReachableFromStaticMethods) {
-		InstructionList instructions = getMethodGenFor(method).getInstructionList();
+	private void addLambdasReachableFromStatic(MethodGen method, Set<MethodGen> lambdasReachableFromStaticMethods) {
+		InstructionList instructions = method.getInstructionList();
 		if (instructions != null)
 			StreamSupport.stream(instructions.spliterator(), false)
 				.map(InstructionHandle::getInstruction)

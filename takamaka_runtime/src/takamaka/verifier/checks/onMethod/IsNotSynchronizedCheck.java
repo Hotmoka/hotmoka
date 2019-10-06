@@ -8,10 +8,10 @@ import takamaka.verifier.errors.IllegalSynchronizationError;
  */
 public class IsNotSynchronizedCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public IsNotSynchronizedCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public IsNotSynchronizedCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
 		if (method.isSynchronized())
-			issue(new IllegalSynchronizationError(clazz, method.getName()));
+			issue(new IllegalSynchronizationError(clazz, methodName));
 	}
 }

@@ -14,8 +14,8 @@ import takamaka.verifier.errors.IllegalTypeForStorageFieldError;
  */
 public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassGen.Verification.Check {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassGen.Verification verifier) {
-		verifier.super();
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassGen.Verification verification) {
+		verification.super();
 
 		if (classLoader.isStorage(className))
 			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {

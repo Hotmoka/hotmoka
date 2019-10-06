@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
-import org.apache.bcel.classfile.Method;
-import org.apache.bcel.generic.Type;
 
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.verifier.VerifiedClassGen;
@@ -18,35 +16,31 @@ import takamaka.verifier.errors.InconsistentPayableError;
  */
 public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
-		if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
-			boolean wasPayable = classLoader.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
+			boolean wasPayable = classLoader.isPayable(className, methodName, methodArgs, methodReturnType);
 	
 			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-				isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), method, wasPayable);
+				isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), wasPayable);
 			});
 		}
 	}
 
-	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, Method method, boolean wasPayable) {
-		String name = method.getName();
-		Type returnType = method.getReturnType();
-		Type[] args = method.getArgumentTypes();
-	
+	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable) {
 		if (Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
-						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
-				.anyMatch(m -> wasPayable != classLoader.isPayable(clazz.getName(), name, args, returnType)))
-			issue(new InconsistentPayableError(this.clazz, name, clazz.getName()));
+						&& m.getName().equals(methodName) && m.getReturnType() == classLoader.bcelToClass(methodReturnType)
+						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(methodArgs)))
+				.anyMatch(m -> wasPayable != classLoader.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
+			issue(new InconsistentPayableError(this.clazz, methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)
-			isIdenticallyPayableInSupertypesOf(superclass, method, wasPayable);
+			isIdenticallyPayableInSupertypesOf(superclass, wasPayable);
 	
 		for (Class<?> interf: clazz.getInterfaces())
-			isIdenticallyPayableInSupertypesOf(interf, method, wasPayable);
+			isIdenticallyPayableInSupertypesOf(interf, wasPayable);
 	}
 }

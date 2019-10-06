@@ -2,11 +2,10 @@ package takamaka.verifier.checks.onMethod;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
-import org.apache.bcel.classfile.Method;
-import org.apache.bcel.generic.Type;
 
 import takamaka.translator.IncompleteClasspathError;
 import takamaka.verifier.VerifiedClassGen;
@@ -19,36 +18,32 @@ import takamaka.verifier.errors.InconsistentEntryError;
  */
 public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
-		if (!method.getName().equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
-			Class<?> contractTypeForEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
+			Optional<Class<?>> contractTypeForEntry = classLoader.isEntry(className, methodName, methodArgs, methodReturnType);
 	
 			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-				isIdenticallyEntryInSupertypesOf(classLoader.loadClass(className), method, contractTypeForEntry);
+				isIdenticallyEntryInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry);
 			});
 		}
 	}
 
-	private void isIdenticallyEntryInSupertypesOf(Class<?> clazz, Method method, Class<?> contractTypeForEntry) {
-		String name = method.getName();
-		Type returnType = method.getReturnType();
-		Type[] args = method.getArgumentTypes();
-
+	private void isIdenticallyEntryInSupertypesOf(Class<?> clazz, Optional<Class<?>> contractTypeForEntry) {
 		if (Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(name) && m.getReturnType() == classLoader.bcelToClass(returnType)
-						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(args)))
-				.anyMatch(m -> !compatibleEntries(contractTypeForEntry, classLoader.isEntry(clazz.getName(), name, args, returnType))))
-			issue(new InconsistentEntryError(this.clazz, method.getName(), clazz.getName()));
+						&& m.getName().equals(methodName) && m.getReturnType() == classLoader.bcelToClass(methodReturnType)
+						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(methodArgs)))
+				.anyMatch(m -> !compatibleEntries(contractTypeForEntry, classLoader.isEntry(clazz.getName(), methodName, methodArgs, methodReturnType))))
+			issue(new InconsistentEntryError(this.clazz, methodName, clazz.getName()));
 
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)
-			isIdenticallyEntryInSupertypesOf(superclass, method, contractTypeForEntry);
+			isIdenticallyEntryInSupertypesOf(superclass, contractTypeForEntry);
 
 		for (Class<?> interf: clazz.getInterfaces())
-			isIdenticallyEntryInSupertypesOf(interf, method, contractTypeForEntry);
+			isIdenticallyEntryInSupertypesOf(interf, contractTypeForEntry);
 	}
 
 	/**
@@ -60,10 +55,11 @@ public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassG
 	 * @return true if and only both types are {@code null} or (both are non-{@code null} and
 	 *         {@code contractTypeInSubclass} is a non-strict superclass of {@code contractTypeInSuperclass})
 	 */
-	private boolean compatibleEntries(Class<?> contractTypeInSubclass, Class<?> contractTypeInSuperclass) {
-		if (contractTypeInSubclass == null && contractTypeInSuperclass == null)
+	private boolean compatibleEntries(Optional<Class<?>> contractTypeInSubclass, Optional<Class<?>> contractTypeInSuperclass) {
+		if (!contractTypeInSubclass.isPresent() && !contractTypeInSuperclass.isPresent())
 			return true;
 		else
-			return contractTypeInSubclass != null && contractTypeInSuperclass != null && contractTypeInSubclass.isAssignableFrom(contractTypeInSuperclass);
+			return contractTypeInSubclass.isPresent() && contractTypeInSuperclass.isPresent()
+					&& contractTypeInSubclass.get().isAssignableFrom(contractTypeInSuperclass.get());
 	}
 }

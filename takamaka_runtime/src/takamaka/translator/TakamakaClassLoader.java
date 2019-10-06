@@ -192,17 +192,17 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	 * @param methodName the name of the constructor or method
 	 * @param formals the types of the formal arguments of the method
 	 * @param returnType the return type of the method
-	 * @return the value of the annotation, if it is a contract. For instance, for {@code @@Entry(PayableContract.class)}
+	 * @return the value of the annotation, if any. For instance, for {@code @@Entry(PayableContract.class)}
 	 *         this return value will be {@code takamaka.lang.PayableContract.class}
 	 */
-	public final Class<?> isEntry(String className, String methodName, Type[] formals, Type returnType) {
+	public final Optional<Class<?>> isEntry(String className, String methodName, Type[] formals, Type returnType) {
 		Annotation annotation = getAnnotation(className, methodName, formals, returnType, Entry.class);
 		if (annotation != null) {
 			Class<?> contractClass = ((Entry) annotation).value();
-			return contractClass != Object.class ? contractClass : this.contractClass;
+			return Optional.of(contractClass != Object.class ? contractClass : this.contractClass);
 		}
 
-		return null;
+		return Optional.empty();
 	}
 
 	/**
@@ -216,7 +216,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	public boolean isEntryPossiblyAlreadyInstrumented(String className, String methodName, String signature) {
 		Type[] formals = Type.getArgumentTypes(signature);
 		Type returnType = Type.getReturnType(signature);
-		if (isEntry(className, methodName, formals, returnType) != null)
+		if (isEntry(className, methodName, formals, returnType).isPresent())
 			return true;
 
 		// the method might have been already instrumented, since it comes from
@@ -225,7 +225,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 		System.arraycopy(formals, 0, formalsExpanded, 0, formals.length);
 		formalsExpanded[formals.length] = CONTRACT_OT;
 		formalsExpanded[formals.length + 1] = DUMMY_OT;
-		return isEntry(className, methodName, formalsExpanded, returnType) != null;
+		return isEntry(className, methodName, formalsExpanded, returnType).isPresent();
 	}
 
 	/**

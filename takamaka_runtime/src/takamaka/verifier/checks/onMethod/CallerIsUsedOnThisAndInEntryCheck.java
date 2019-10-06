@@ -18,19 +18,19 @@ import takamaka.verifier.errors.CallerOutsideEntryError;
  */
 public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
-		boolean isEntry = classLoader.isEntry(className, method.getName(), method.getArgumentTypes(), method.getReturnType()) != null;
+		boolean isEntry = classLoader.isEntry(className, methodName, methodArgs, methodReturnType).isPresent();
 
 		instructions()
 			.filter(this::isCallToContractCaller)
 			.forEach(ih -> {
 				if (!isEntry)
-					issue(new CallerOutsideEntryError(clazz, method.getName(), lineOf(ih)));
+					issue(new CallerOutsideEntryError(clazz, methodName, lineOf(ih)));
 
 				if (!previousIsLoad0(ih))
-					issue(new CallerNotOnThisError(clazz, method.getName(), lineOf(ih)));
+					issue(new CallerNotOnThisError(clazz, methodName, lineOf(ih)));
 			});
 	}
 
@@ -38,12 +38,8 @@ public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassGen.Verifica
 		// we skip NOPs
 		for (ih = ih.getPrev(); ih != null && ih.getInstruction() instanceof NOP; ih = ih.getPrev());
 
-		if (ih != null) {
-			Instruction ins = ih.getInstruction();
-			return ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0;
-		}
-		else
-			return false;
+		Instruction ins;
+		return ih != null && (ins = ih.getInstruction()) instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0;
 	}
 
 	/**

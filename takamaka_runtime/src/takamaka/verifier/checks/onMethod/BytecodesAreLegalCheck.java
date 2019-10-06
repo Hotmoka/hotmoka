@@ -25,8 +25,8 @@ import takamaka.verifier.errors.IllegalUpdateOfLocal0Error;
  */
 public class BytecodesAreLegalCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public BytecodesAreLegalCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public BytecodesAreLegalCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
 		instructions().forEach(this::checkIfItIsIllegal);
 	}
@@ -37,16 +37,16 @@ public class BytecodesAreLegalCheck extends VerifiedClassGen.Verification.Method
 		if (ins instanceof PUTSTATIC) {
 			// static field updates are allowed inside the synthetic methods or static initializer,
 			// for instance in an enumeration
-			if (!method.isSynthetic() && !method.getName().equals(Const.STATIC_INITIALIZER_NAME))
-				issue(new IllegalPutstaticInstructionError(clazz, method.getName(), lineOf(ih)));
+			if (!method.isSynthetic() && !Const.STATIC_INITIALIZER_NAME.equals(methodName))
+				issue(new IllegalPutstaticInstructionError(clazz, methodName, lineOf(ih)));
 		}
 		else if (ins instanceof JsrInstruction)
-			issue(new IllegalJsrInstructionError(clazz, method.getName(), lineOf(ih)));
+			issue(new IllegalJsrInstructionError(clazz, methodName, lineOf(ih)));
 		else if (ins instanceof RET)
-			issue(new IllegalRetInstructionError(clazz, method.getName(), lineOf(ih)));
+			issue(new IllegalRetInstructionError(clazz, methodName, lineOf(ih)));
 		else if (!method.isStatic() && ins instanceof StoreInstruction && ((StoreInstruction) ins).getIndex() == 0)
-			issue(new IllegalUpdateOfLocal0Error(clazz, method.getName(), lineOf(ih)));					
+			issue(new IllegalUpdateOfLocal0Error(clazz, methodName, lineOf(ih)));					
 		else if (ins instanceof MONITORENTER || ins instanceof MONITOREXIT)
-			issue(new IllegalSynchronizationError(clazz, method.getName(), lineOf(ih)));
+			issue(new IllegalSynchronizationError(clazz, methodName, lineOf(ih)));
 	}
 }

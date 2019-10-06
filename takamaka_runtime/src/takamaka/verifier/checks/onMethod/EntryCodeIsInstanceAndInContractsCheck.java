@@ -9,18 +9,14 @@ import takamaka.verifier.errors.IllegalEntryMethodError;
  */
 public class EntryCodeIsInstanceAndInContractsCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public EntryCodeIsInstanceAndInContractsCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public EntryCodeIsInstanceAndInContractsCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
-		boolean isContract = classLoader.isContract(className);
-		String methodName = method.getName();
-		Class<?> isEntry = classLoader.isEntry(className, methodName, method.getArgumentTypes(), method.getReturnType());
-
-		if (isEntry != null) {
-			if (!classLoader.contractClass.isAssignableFrom(isEntry))
+		classLoader.isEntry(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {
+			if (!classLoader.contractClass.isAssignableFrom(tag))
 				issue(new IllegalEntryArgumentError(clazz, methodName));
-			if (method.isStatic() || !isContract)
+			if (method.isStatic() || !classLoader.isContract(className))
 				issue(new IllegalEntryMethodError(clazz, methodName));
-		}
+		});
 	}
 }

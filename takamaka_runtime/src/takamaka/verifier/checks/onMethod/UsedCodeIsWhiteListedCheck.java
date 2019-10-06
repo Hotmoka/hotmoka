@@ -22,15 +22,15 @@ import takamaka.verifier.errors.IllegalCallToNonWhiteListedMethodError;
  */
 public class UsedCodeIsWhiteListedCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public UsedCodeIsWhiteListedCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
 		instructions().forEach(ih -> {
 			Instruction ins = ih.getInstruction();
 			if (ins instanceof FieldInstruction) {
 				FieldInstruction fi = (FieldInstruction) ins;
 				if (!hasWhiteListingModel(fi))
-					issue(new IllegalAccessToNonWhiteListedFieldError(clazz, method.getName(), lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
+					issue(new IllegalAccessToNonWhiteListedFieldError(clazz, methodName, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
 			}
 			else if (ins instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) ins;
@@ -39,9 +39,9 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClassGen.Verification.Me
 					if (target.isPresent()) {
 						Executable executable = target.get();
 						if (executable instanceof Constructor<?>)
-							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, method.getName(), lineOf(ih), executable.getDeclaringClass().getName()));
+							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, methodName, lineOf(ih), executable.getDeclaringClass().getName()));
 						else
-							issue(new IllegalCallToNonWhiteListedMethodError(clazz, method.getName(), lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
+							issue(new IllegalCallToNonWhiteListedMethodError(clazz, methodName, lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
 					}
 					else {
 						// the call seems not resolvable
@@ -49,10 +49,10 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClassGen.Verification.Me
 						String receiverClassName = receiverType instanceof ObjectType ? ((ObjectType) receiverType).getClassName() : "java.lang.Object";
 						String methodName = invoke.getMethodName(cpg);
 
-						if (invoke instanceof INVOKESPECIAL && methodName.equals(Const.CONSTRUCTOR_NAME))
-							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, method.getName(), lineOf(ih), receiverClassName));
+						if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
+							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, methodName, lineOf(ih), receiverClassName));
 						else
-							issue(new IllegalCallToNonWhiteListedMethodError(clazz, method.getName(), lineOf(ih), receiverClassName, methodName));
+							issue(new IllegalCallToNonWhiteListedMethodError(clazz, methodName, lineOf(ih), receiverClassName, methodName));
 					}
 				}
 			}

@@ -19,12 +19,12 @@ import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
-import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKESTATIC;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
@@ -158,7 +158,7 @@ public class ClassBootstraps {
 	 * @param bootstrap the bootstrap
 	 * @return the lambda bridge method
 	 */
-	public Optional<Method> getLambdaFor(BootstrapMethod bootstrap) {
+	public Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap) {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
 			ConstantPoolGen cpg = clazz.getConstantPool();
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
@@ -175,7 +175,7 @@ public class ClassBootstraps {
 	
 					// a lambda bridge can only be present in the same class that calls it
 					if (className.equals(clazz.getClassName()))
-						return Stream.of(clazz.getMethods())
+						return clazz.getMethodGens()
 							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
 							.findFirst();
 				}
@@ -271,13 +271,14 @@ public class ClassBootstraps {
 	 * @return true if that condition holds
 	 */
 	private boolean lambdaCallsEntry(BootstrapMethod bootstrap) {
-		Optional<Method> lambda = getLambdaFor(bootstrap);
-		if (lambda.isPresent() && lambda.get().getCode() != null) {
-			MethodGen mg = new MethodGen(lambda.get(), clazz.getClassName(), clazz.getConstantPool());
-			return StreamSupport.stream(mg.getInstructionList().spliterator(), false).anyMatch(this::leadsToEntry);
+		Optional<MethodGen> lambda = getLambdaFor(bootstrap);
+		if (lambda.isPresent()) {
+			InstructionList instructions = lambda.get().getInstructionList();
+			if (instructions != null)
+				return StreamSupport.stream(instructions.spliterator(), false).anyMatch(this::leadsToEntry);
 		}
-		else
-			return false;
+
+		return false;
 	}
 
 	/**

@@ -8,8 +8,8 @@ import takamaka.verifier.errors.IllegalBootstrapMethodError;
  */
 public class BootstrapsAreLegalCheck extends VerifiedClassGen.Verification.Check {
 
-	public BootstrapsAreLegalCheck(VerifiedClassGen.Verification verifier) {
-		verifier.super();
+	public BootstrapsAreLegalCheck(VerifiedClassGen.Verification verification) {
+		verification.super();
 
 		clazz.getClassBootstraps().getBootstraps()
 			.map(clazz.getClassBootstraps()::getTargetOf)

@@ -15,10 +15,10 @@ import takamaka.verifier.errors.IllegalStaticInitializationError;
  */
 public class IsNotStaticInitializerCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
 
-	public IsNotStaticInitializerCheck(VerifiedClassGen.Verification.MethodVerification verifier) {
-		verifier.super();
+	public IsNotStaticInitializerCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+		verification.super();
 
-		if (method.getCode() != null && method.getName().equals(Const.STATIC_INITIALIZER_NAME))
+		if (method.getInstructionList() != null && Const.STATIC_INITIALIZER_NAME.equals(methodName))
 			if (clazz.isEnum() || clazz.isSynthetic()) {
 				// checks that the static fields of enum's or synthetic classes with a static initializer
 				// are either synthetic or enum elements or final static fields with
@@ -29,11 +29,11 @@ public class IsNotStaticInitializerCheck extends VerifiedClassGen.Verification.M
 						.filter(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
 							&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field)))
 						.findAny()
-						.ifPresent(field -> issue(new IllegalStaticInitializationError(clazz, method.getName(), lineOf(instructions().findFirst().get()))));
+						.ifPresent(field -> issue(new IllegalStaticInitializationError(clazz, methodName, lineOf(instructions().findFirst().get()))));
 				});
 			}
 			else
-				issue(new IllegalStaticInitializationError(clazz, method.getName(), lineOf(instructions().findFirst().get())));
+				issue(new IllegalStaticInitializationError(clazz, methodName, lineOf(instructions().findFirst().get())));
 	}
 
 	private boolean hasExplicitConstantValue(Field field) {

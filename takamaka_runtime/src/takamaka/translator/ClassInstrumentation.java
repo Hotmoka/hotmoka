@@ -560,10 +560,10 @@ class ClassInstrumentation {
 			replaceFieldAccessesWithAccessors(methodGen);
 			addContractToCallsToEntries(methodGen);
 
-			Class<?> callerContract;
+			Optional<Class<?>> callerContract;
 			if (isContract && (callerContract = classLoader.isEntry(className, method.getName(),
-					method.getArgumentTypes(), method.getReturnType())) != null)
-				instrumentEntry(methodGen, callerContract, classLoader.isPayable(className, method.getName(),
+					method.getArgumentTypes(), method.getReturnType())).isPresent())
+				instrumentEntry(methodGen, callerContract.get(), classLoader.isPayable(className, method.getName(),
 						method.getArgumentTypes(), method.getReturnType()));
 
 			addGasUpdates(methodGen);

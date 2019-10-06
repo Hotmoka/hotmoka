@@ -1,7 +1,5 @@
 package takamaka.verifier.checks.onMethod;
 
-import java.util.stream.Stream;
-
 import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.ThrowsExceptionsOnNonPublicError;
 
@@ -13,7 +11,7 @@ public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassGen.Verifica
 	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassGen.Verification.MethodVerification verification) {
 		verification.super();
 
-		Stream.of(clazz.getMethods())
+		clazz.getMethodGens()
 			.filter(method -> !method.isPublic() && classLoader.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
 			.map(method -> new ThrowsExceptionsOnNonPublicError(clazz, method.getName()))
 			.forEach(this::issue);
