@@ -686,11 +686,41 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * the same object. Otherwise, it calls method {@link takamaka.blockchain.AbstractBlockchain#deserializeAnew(StorageReferenceAlreadyInBlockchain)}
 	 * and yields the resulting object.
 	 * 
-	 * @param reference the storage reference to deserialize
+	 * @param object the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	public final Storage deserialize(StorageReferenceAlreadyInBlockchain reference) {
-		return cache.computeIfAbsent(reference, this::deserializeAnew);
+	public final Storage deserialize(StorageReferenceAlreadyInBlockchain object) {
+		return cache.computeIfAbsent(object, this::deserializeAnew);
+	}
+
+	/**
+	 * Yields the run-time class of the given object.
+	 * 
+	 * @param object the object
+	 * @return the name of the class
+	 * @throws DeserializationError if the class of the object cannot be found
+	 */
+	public final String getClassNameOf(StorageReferenceAlreadyInBlockchain object) {
+		try {
+			TransactionResponse response = getResponseAt(object.transaction);
+			if (response instanceof AbstractTransactionResponseWithUpdates) {
+				Optional<ClassTag> classTag = ((AbstractTransactionResponseWithUpdates) response).getUpdates()
+					.filter(update -> update instanceof ClassTag)
+					.map(update -> (ClassTag) update)
+					.findFirst();
+
+				if (classTag.isPresent())
+					return classTag.get().className;
+			}
+		}
+		catch (DeserializationError e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new DeserializationError(e);
+		}
+
+		throw new DeserializationError("Did not find the class tag for " + object);
 	}
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION

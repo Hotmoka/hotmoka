@@ -68,4 +68,12 @@ public abstract class StorageReference implements StorageValue {
 	 * @return the resulting storage reference
 	 */
 	public abstract StorageReferenceAlreadyInBlockchain contextualizeAt(TransactionReference where);
+
+	/**
+	 * Yields the name of the class of the object referenced by this reference.
+	 * 
+	 * @param blockchain the blockchain for which the deserialization is performed
+	 * @return the name
+	 */
+	public abstract String getClassName(AbstractBlockchain blockchain);
 }

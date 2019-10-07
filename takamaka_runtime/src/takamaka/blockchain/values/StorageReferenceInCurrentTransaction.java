@@ -50,4 +50,10 @@ public final class StorageReferenceInCurrentTransaction extends StorageReference
 		// we assume the transaction is the given one
 		return StorageReferenceAlreadyInBlockchain.mk(where, progressive);
 	}
+
+	@Override
+	public String getClassName(AbstractBlockchain blockchain) {
+		// if the object is not yet in blockchain, it is not possible to deserialize it and infer its class tag
+		throw new DeserializationError("This reference identifies an object not yet in blockchain");
+	}
 }

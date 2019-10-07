@@ -82,4 +82,9 @@ public final class StorageReferenceAlreadyInBlockchain extends StorageReference 
 		// this storage reference is absolute, it won't change
 		return this;
 	}
+
+	@Override
+	public String getClassName(AbstractBlockchain blockchain) {
+		return blockchain.getClassNameOf(this);
+	}
 }

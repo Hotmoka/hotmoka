@@ -24,7 +24,6 @@ import takamaka.blockchain.types.BasicTypes;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.blockchain.values.StorageValue;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 /**
