@@ -3,6 +3,8 @@
  */
 package takamaka.tests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -77,16 +79,18 @@ class AbstractFail extends TakamakaTest {
 			new IntValue(42)));
 	}
 
-	@Test @DisplayName("new AbstractFailImpl().method()")
+	@Test @DisplayName("new AbstractFailImpl().method() yields an AbstractFailImpl")
 	void createAbstractFailImplThenCallAbstractMethod() throws TransactionException, CodeExecutionException {
 		StorageReference abstractfail = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath,
 			new ConstructorSignature(ABSTRACT_FAIL_IMPL, BasicTypes.INT),
 			new IntValue(42)));
 
-		blockchain.addInstanceMethodCallTransaction
+		StorageReference result = (StorageReference) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _20_000, classpath,
 			new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL),
 			abstractfail));
+
+		assertEquals("takamaka.tests.abstractfail.AbstractFailImpl", result.getClassName(blockchain));
 	}
 }
