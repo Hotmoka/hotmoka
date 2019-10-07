@@ -4,7 +4,6 @@
 package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 import static takamaka.blockchain.types.BasicTypes.BOOLEAN;
 import static takamaka.blockchain.types.BasicTypes.BYTE;
 import static takamaka.blockchain.types.BasicTypes.INT;
@@ -44,7 +43,7 @@ import takamaka.memory.InitializedMemoryBlockchain;
 /**
  * A test for the blind auction contract.
  */
-class BlindAuction {
+class BlindAuction extends TakamakaTest {
 
 	/**
 	 * The number of bids placed by the players.
@@ -142,7 +141,8 @@ class BlindAuction {
 		StorageReference auction = blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(blockchain.account(0), _1_000, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME)));
 
-		try {
+		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
+		{
 			Random random = new Random();
 			for (int i = 1; i <= NUM_BIDS; i++) {
 				int player = 1 + random.nextInt(3);
@@ -156,15 +156,7 @@ class BlindAuction {
 						(blockchain.account(player), _1_000, classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
 				sleep(1000);
 			}
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+		});
 	}
 
 	/**

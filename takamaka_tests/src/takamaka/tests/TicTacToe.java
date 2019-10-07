@@ -4,7 +4,6 @@
 package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 import static takamaka.blockchain.types.BasicTypes.INT;
 import static takamaka.blockchain.types.BasicTypes.LONG;
 
@@ -37,7 +36,7 @@ import takamaka.memory.InitializedMemoryBlockchain;
 /**
  * A test for the remote purchase contract.
  */
-class TicTacToe {
+class TicTacToe extends TakamakaTest {
 
 	private static final ClassType TIC_TAC_TOE = new ClassType("takamaka.tests.tictactoe.TicTacToe");
 
@@ -132,7 +131,7 @@ class TicTacToe {
 			new LongValue(100L),
 			_1, _1));
 
-		try {
+		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2,
 				_20_000,
@@ -140,16 +139,8 @@ class TicTacToe {
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
 				new LongValue(100L),
-				_1, _1));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				_1, _1))
+		);
 	}
 
 	@Test @DisplayName("new TicTacToe(), same player plays twice")
@@ -165,7 +156,7 @@ class TicTacToe {
 			new LongValue(100L),
 			_1, _1));
 
-		try {
+		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player1,
 				_20_000,
@@ -173,16 +164,8 @@ class TicTacToe {
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
 				new LongValue(100L),
-				_1, _2));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				_1, _2))
+		);
 	}
 
 	@Test @DisplayName("new TicTacToe(), second player bets too little")
@@ -198,7 +181,7 @@ class TicTacToe {
 			new LongValue(120L),
 			_1, _1));
 
-		try {
+		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2,
 				_20_000,
@@ -206,16 +189,8 @@ class TicTacToe {
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
 				new LongValue(119L),
-				_1, _2));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				_1, _2))
+		);
 	}
 
 	@Test @DisplayName("first player wins")
@@ -318,7 +293,8 @@ class TicTacToe {
 			ticTacToe,
 			new LongValue(0L),
 			_1, _3));
-		try {
+
+		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2, 
 				_20_000,
@@ -326,15 +302,7 @@ class TicTacToe {
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
 				new LongValue(0L),
-				_2, _3));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				_2, _3))
+		);
 	}
 }

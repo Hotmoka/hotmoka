@@ -3,7 +3,6 @@
  */
 package takamaka.tests;
 
-import static org.junit.jupiter.api.Assertions.fail;
 import static takamaka.blockchain.types.BasicTypes.INT;
 
 import java.math.BigInteger;
@@ -35,7 +34,7 @@ import takamaka.memory.MemoryBlockchain;
 /**
  * A test for the remote purchase contract.
  */
-class Purchase {
+class Purchase extends TakamakaTest {
 
 	private static final BigInteger _1_000 = BigInteger.valueOf(1000);
 
@@ -96,19 +95,11 @@ class Purchase {
 
 	@Test @DisplayName("new Purchase(21)")
 	void oddDeposit() throws TransactionException, CodeExecutionException {
-		try {
+		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(seller, _1_000, classpath, CONSTRUCTOR_PURCHASE,
-				new IntValue(21)));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException)
-				return;
-			
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				new IntValue(21)))
+		);
 	}
 
 	@Test @DisplayName("new Purchase(20)")
@@ -124,17 +115,10 @@ class Purchase {
 			(new ConstructorCallTransactionRequest(seller, _1_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		try {
+		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new VoidMethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(18)));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException)
-				return;
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new VoidMethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(18)))
+		);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20)")
@@ -153,17 +137,10 @@ class Purchase {
 			(new ConstructorCallTransactionRequest(seller, _1_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		try {
+		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new VoidMethodSignature(PURCHASE, "confirmReceived"), purchase));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException)
-				return;
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				(new InstanceMethodCallTransactionRequest(buyer, _1_000, classpath, new VoidMethodSignature(PURCHASE, "confirmReceived"), purchase))
+		);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20) and then purchase.confirmReception()")

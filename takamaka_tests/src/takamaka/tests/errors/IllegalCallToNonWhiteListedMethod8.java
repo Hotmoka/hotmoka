@@ -1,7 +1,5 @@
 package takamaka.tests.errors;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -21,8 +19,9 @@ import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.ClassType;
 import takamaka.lang.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
+import takamaka.tests.TakamakaTest;
 
-class IllegalCallToNonWhiteListedMethod8 {
+class IllegalCallToNonWhiteListedMethod8 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -42,18 +41,10 @@ class IllegalCallToNonWhiteListedMethod8 {
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegalcalltononwhitelistedmethod8.jar")), blockchain.takamakaBase));		
 
-		try {
+		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 				(blockchain.account(0), _20_000, new Classpath(jar, true),
-				new NonVoidMethodSignature(new ClassType("takamaka.tests.errors.illegalcalltononwhitelistedmethod8.C"), "foo", ClassType.STRING)));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof NonWhiteListedCallException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				new NonVoidMethodSignature(new ClassType("takamaka.tests.errors.illegalcalltononwhitelistedmethod8.C"), "foo", ClassType.STRING)))
+		);
 	}
 }

@@ -4,7 +4,6 @@
 package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -29,7 +28,7 @@ import takamaka.memory.InitializedMemoryBlockchain;
 /**
  * A test for the Java HashMap class.
  */
-class JavaCollections {
+class JavaCollections extends TakamakaTest {
 
 	private static final ClassType HASH_MAP_TESTS = new ClassType("takamaka.tests.javacollections.HashMapTests");
 	private static final ClassType HASH_SET_TESTS = new ClassType("takamaka.tests.javacollections.HashSetTests");
@@ -74,17 +73,10 @@ class JavaCollections {
 
 	@Test @DisplayName("HashMapTests.testToString3() fails with a run-time white-listing violation")
 	void toString3OnHashMap() throws TransactionException, CodeExecutionException {
-		try {
+		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-					(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString3", ClassType.STRING)));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof NonWhiteListedCallException)
-				return;
-
-			e.printStackTrace();
-			fail("wrong exception");
-		}
+					(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString3", ClassType.STRING)))
+		);
 	}
 
 	@Test @DisplayName("HashMapTests.testToString4() == [how, are, hello, you, ?]")
@@ -103,17 +95,10 @@ class JavaCollections {
 
 	@Test @DisplayName("HashSetTests.testToString2() == [how, are, hello, you, ?]")
 	void toString2OnHashSet() throws TransactionException, CodeExecutionException {
-		try {
+		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-				(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_SET_TESTS, "testToString2", ClassType.STRING)));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof NonWhiteListedCallException)
-				return;
-
-			e.printStackTrace();
-			fail("wrong exception");
-		}
+				(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_SET_TESTS, "testToString2", ClassType.STRING)))
+		);
 	}
 
 	@Test @DisplayName("HashSetTests.testToString3() == [how, are, hello, you, ?]")

@@ -1,8 +1,5 @@
 package takamaka.tests.errors;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 
@@ -21,8 +18,9 @@ import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.lang.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
+import takamaka.tests.TakamakaTest;
 
-class IllegalCallToNonWhiteListedMethod12 {
+class IllegalCallToNonWhiteListedMethod12 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -37,22 +35,15 @@ class IllegalCallToNonWhiteListedMethod12 {
 	}
 
 	@Test @DisplayName("new ExternallyOwnedAccount().hashCode()")
-	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException, IOException {
-		try {
-			StorageReference eoa = blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-				new ConstructorSignature(ClassType.EOA)));
+	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException {
+		StorageReference eoa = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			new ConstructorSignature(ClassType.EOA)));
+
+		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-				new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof NonWhiteListedCallException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa))
+		);
 	}
 }

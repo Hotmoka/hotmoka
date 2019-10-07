@@ -37,7 +37,7 @@ import takamaka.memory.MemoryBlockchain;
 /**
  * A test for the simple storage class.
  */
-class Storage {
+class Storage extends TakamakaTest {
 
 	private static final BigInteger _1_000 = BigInteger.valueOf(1000);
 

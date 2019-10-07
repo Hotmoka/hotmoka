@@ -4,7 +4,6 @@
 package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 import static takamaka.blockchain.types.BasicTypes.INT;
 
 import java.math.BigInteger;
@@ -41,7 +40,7 @@ import takamaka.memory.MemoryBlockchain;
 /**
  * A test for a class that uses lambda expressions referring to entries.
  */
-class Lambdas {
+class Lambdas extends TakamakaTest {
 
 	private static final BigInteger _1_000 = BigInteger.valueOf(1000);
 
@@ -151,19 +150,11 @@ class Lambdas {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(gamete, _1_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_20_000)));
 
-		try {
+		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(gamete, _20_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT),
-				lambdas));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				lambdas))
+		);
 	}
 
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntry()")

@@ -4,7 +4,6 @@
 package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -33,7 +32,7 @@ import takamaka.memory.InitializedMemoryBlockchain;
 /**
  * A test for the creation of classes with the same name but from different jars.
  */
-class ClassSwap {
+class ClassSwap extends TakamakaTest {
 
 	private static final BigInteger _1_000 = BigInteger.valueOf(1000);
 
@@ -110,17 +109,9 @@ class ClassSwap {
 			(new ConstructorCallTransactionRequest(gamete, _1_000, classpathC13, CONSTRUCTOR_C));
 
 		// the following call should fail since c13 was created from another jar
-		try {
+		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpathC17, GET, c13));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof DeserializationError)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpathC17, GET, c13))
+		);
 	}
 }

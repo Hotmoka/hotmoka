@@ -3,8 +3,6 @@
  */
 package takamaka.tests.errors;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -18,10 +16,10 @@ import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.memory.InitializedMemoryBlockchain;
-import takamaka.verifier.VerificationException;
+import takamaka.tests.TakamakaTest;
 import takamaka.verifier.errors.IllegalSynchronizationError;
 
-class IllegalSynchronized2 {
+class IllegalSynchronized2 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -37,19 +35,10 @@ class IllegalSynchronized2 {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
-		try {
+		throwsVerificationExceptionWithCause(IllegalSynchronizationError.class, () ->
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-				Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegalsynchronized2.jar")), blockchain.takamakaBase));		
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof VerificationException
-					&& ((VerificationException) e.getCause()).getError() instanceof IllegalSynchronizationError)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegalsynchronized2.jar")), blockchain.takamakaBase))
+		);
 	}
 }

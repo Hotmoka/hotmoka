@@ -40,7 +40,7 @@ import takamaka.memory.MemoryBlockchain;
 /**
  * A test for the simplified crowd funding contract.
  */
-class CrowdFundingSimplified {
+class CrowdFundingSimplified extends TakamakaTest {
 
 	private static final ClassType CAMPAIGN = new ClassType("takamaka.tests.crowdfunding.CrowdFundingSimplified$Campaign");
 

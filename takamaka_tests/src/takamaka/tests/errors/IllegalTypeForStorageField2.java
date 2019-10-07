@@ -3,8 +3,6 @@
  */
 package takamaka.tests.errors;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -25,8 +23,9 @@ import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.EnumValue;
 import takamaka.memory.InitializedMemoryBlockchain;
+import takamaka.tests.TakamakaTest;
 
-class IllegalTypeForStorageField2 {
+class IllegalTypeForStorageField2 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -47,19 +46,11 @@ class IllegalTypeForStorageField2 {
 				Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegaltypeforstoragefield2.jar")), blockchain.takamakaBase));
 		Classpath classpath = new Classpath(jar, true);
 
-		try {
+		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath,
 				new ConstructorSignature("takamaka.tests.errors.illegaltypeforstoragefield2.C", ClassType.OBJECT),
-				new EnumValue("takamaka.tests.errors.illegaltypeforstoragefield2.MyEnum", "FIRST")));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof DeserializationError)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("no exception");
+				new EnumValue("takamaka.tests.errors.illegaltypeforstoragefield2.MyEnum", "FIRST")))
+		);
 	}
 }

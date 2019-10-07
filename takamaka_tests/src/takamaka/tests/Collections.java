@@ -41,7 +41,7 @@ import takamaka.memory.MemoryBlockchain;
 /**
  * A test for the storage map Takamaka class.
  */
-class Collections {
+class Collections extends TakamakaTest {
 
 	private static final ClassType MAP_TESTS = new ClassType("takamaka.tests.collections.MapTests");
 	private static final ClassType INT_MAP_TESTS = new ClassType("takamaka.tests.collections.IntMapTests");

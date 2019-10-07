@@ -1420,7 +1420,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			if (!model.isPresent())
 				if (executable instanceof Constructor<?>)
 					throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of "
-						+ ((MethodSignature) methodOrConstructor).definingClass.name);
+						+ ((ConstructorSignature) methodOrConstructor).definingClass.name);
 				else
 					throw new NonWhiteListedCallException("illegal call to non-white-listed method "
 						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);

@@ -38,6 +38,7 @@
   	<jar jarfile="${dist}/ponzi.jar" basedir="${build}" includes="**/takamaka/tests/ponzi/**"/>
   	<jar jarfile="${dist}/lambdas.jar" basedir="${build}" includes="**/takamaka/tests/lambdas/**"/>
   	<jar jarfile="${dist}/tictactoe.jar" basedir="${build}" includes="**/takamaka/tests/tictactoe/**"/>
+  	<jar jarfile="${dist}/abstractfail.jar" basedir="${build}" includes="**/takamaka/tests/abstractfail/**"/>
   	<jar jarfile="${dist}/illegalpackagename1.jar" basedir="${build}" includes="**/takamaka/lang/illegalpackagename1/**"/>
   	<jar jarfile="${dist}/payablewithoutentry1.jar" basedir="${build}" includes="**/takamaka/tests/errors/payablewithoutentry1/**"/>
   	<jar jarfile="${dist}/payablewithoutentry2.jar" basedir="${build}" includes="**/takamaka/tests/errors/payablewithoutentry2/**"/>

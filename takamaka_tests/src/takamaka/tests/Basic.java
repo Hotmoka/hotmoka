@@ -47,7 +47,7 @@ import takamaka.memory.InitializedMemoryBlockchain;
 /**
  * A test for basic storage and contract Takamaka classes.
  */
-class Basic {
+class Basic extends TakamakaTest {
 
 	private static final BigInteger _1_000 = BigInteger.valueOf(1000);
 
@@ -167,17 +167,9 @@ class Basic {
 		StorageReference sub = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(master, _200, classpath, new ConstructorSignature("takamaka.tests.basic.Sub")));
 
-		try {
-			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, SUB_MS, sub));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof NoSuchMethodException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
+			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, SUB_MS, sub))
+		);
 	}
 
 	@Test @DisplayName("Sub.ms()")
@@ -187,17 +179,9 @@ class Basic {
 
 	@Test @DisplayName("Sub.m5() throws TransactionException since NoSuchMethodException")
 	void callInstanceAsStatic() throws CodeExecutionException, TransactionException {
-		try {
-			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(master, _20_000, classpath, SUB_M5));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof NoSuchMethodException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
+			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(master, _20_000, classpath, SUB_M5))
+		);
 	}
 
 	@Test @DisplayName("new Sub(1973) without gas")
@@ -205,18 +189,10 @@ class Basic {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(master, _20_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount")));
 
-		try {
+		throwsTransactionExceptionWithCause(IllegalTransactionRequestException.class, () ->
 			blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof IllegalTransactionRequestException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)))
+		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas but without enough coins to pay the @Entry")
@@ -226,18 +202,10 @@ class Basic {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(2000)));
 
-		try {
+		throwsTransactionExceptionWithCause(InsufficientFundsError.class, () ->
 			blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof InsufficientFundsError)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)))
+		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
@@ -365,18 +333,10 @@ class Basic {
 		StorageReference s = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _1_000, classpath, new ConstructorSignature(simple, INT), new IntValue(13)));
 
-		try {
+		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(master, _1_000, classpath, new VoidMethodSignature(simple, "foo1"), s));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof SideEffectsInViewMethodException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+				(new InstanceMethodCallTransactionRequest(master, _1_000, classpath, new VoidMethodSignature(simple, "foo1"), s))
+		);
 	}
 
 	@Test @DisplayName("new Simple(13).foo2() throws TransactionException since SideEffectsInViewMethodException")
@@ -385,18 +345,10 @@ class Basic {
 		StorageReference s = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _1_000, classpath, new ConstructorSignature(simple, INT), new IntValue(13)));
 
-		try {
+		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(master, _1_000, classpath, new NonVoidMethodSignature(simple, "foo2", simple), s));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof SideEffectsInViewMethodException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+				(new InstanceMethodCallTransactionRequest(master, _1_000, classpath, new NonVoidMethodSignature(simple, "foo2", simple), s))
+		);
 	}
 
 	@Test @DisplayName("new Simple(13).foo3() == 13")
@@ -446,19 +398,11 @@ class Basic {
 		StorageReference wl = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _1_000, classpath, new ConstructorSignature(withList)));
 		
-		try {
+		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new VoidMethodSignature(withList, "illegal"),
-				wl));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof DeserializationError)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+				wl))
+		);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo1() called by an ExternallyOwnedAccount")
@@ -494,18 +438,10 @@ class Basic {
 		StorageReference ef = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _1_000, classpath, new ConstructorSignature(entryFilter)));
 
-		try {
+		throwsTransactionExceptionWithCause(ClassCastException.class, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(master, _1_000, classpath, new VoidMethodSignature(entryFilter, "foo4"), ef));
-		}
-		catch (TransactionException e) {
-			if (e.getCause() instanceof ClassCastException)
-				return;
-
-			fail("wrong exception");
-		}
-
-		fail("expected exception");
+				(new InstanceMethodCallTransactionRequest(master, _1_000, classpath, new VoidMethodSignature(entryFilter, "foo4"), ef))
+		);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo5() throws CodeExecutionException since MyCheckedException")

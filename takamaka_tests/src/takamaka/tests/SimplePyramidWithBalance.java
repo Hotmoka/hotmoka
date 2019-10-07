@@ -37,7 +37,7 @@ import takamaka.memory.MemoryBlockchain;
 /**
  * A test for the simple pyramid with balance contract.
  */
-class SimplePyramidWithBalance {
+class SimplePyramidWithBalance extends TakamakaTest {
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 

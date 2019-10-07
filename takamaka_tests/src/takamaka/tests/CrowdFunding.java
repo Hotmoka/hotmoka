@@ -40,7 +40,7 @@ import takamaka.memory.MemoryBlockchain;
 /**
  * A test for the crowd funding contract.
  */
-class CrowdFunding {
+class CrowdFunding extends TakamakaTest {
 
 	private static final BigInteger _1_000 = BigInteger.valueOf(1000);
 
