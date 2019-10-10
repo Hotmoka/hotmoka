@@ -252,7 +252,7 @@ public abstract class Takamaka {
 	 * @param amount the amount of gas to consume
 	 */
 	public static void charge(long amount) {
-		blockchain.charge(BigInteger.valueOf(amount));
+		blockchain.chargeForCPU(BigInteger.valueOf(amount));
 	}
 
 	/**
@@ -262,7 +262,7 @@ public abstract class Takamaka {
 	 * @param amount the amount of gas to consume
 	 */
 	public static void charge(int amount) {
-		blockchain.charge(BigInteger.valueOf(amount));
+		blockchain.chargeForCPU(BigInteger.valueOf(amount));
 	}
 
 	/**
@@ -270,7 +270,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge1() {
-		blockchain.charge(BigInteger.ONE);
+		blockchain.chargeForCPU(BigInteger.ONE);
 	}
 
 	/**
@@ -278,7 +278,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge2() {
-		blockchain.charge(BigInteger.valueOf(2L));
+		blockchain.chargeForCPU(BigInteger.valueOf(2L));
 	}
 
 	/**
@@ -286,7 +286,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge3() {
-		blockchain.charge(BigInteger.valueOf(3L));
+		blockchain.chargeForCPU(BigInteger.valueOf(3L));
 	}
 
 	/**
@@ -294,7 +294,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge4() {
-		blockchain.charge(BigInteger.valueOf(4L));
+		blockchain.chargeForCPU(BigInteger.valueOf(4L));
 	}
 
 	/**
@@ -302,7 +302,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge5() {
-		blockchain.charge(BigInteger.valueOf(5L));
+		blockchain.chargeForCPU(BigInteger.valueOf(5L));
 	}
 
 	/**
@@ -310,7 +310,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge6() {
-		blockchain.charge(BigInteger.valueOf(6L));
+		blockchain.chargeForCPU(BigInteger.valueOf(6L));
 	}
 
 	/**
@@ -318,7 +318,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge7() {
-		blockchain.charge(BigInteger.valueOf(7L));
+		blockchain.chargeForCPU(BigInteger.valueOf(7L));
 	}
 
 	/**
@@ -326,7 +326,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge8() {
-		blockchain.charge(BigInteger.valueOf(8L));
+		blockchain.chargeForCPU(BigInteger.valueOf(8L));
 	}
 
 	/**
@@ -334,7 +334,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge9() {
-		blockchain.charge(BigInteger.valueOf(9L));
+		blockchain.chargeForCPU(BigInteger.valueOf(9L));
 	}
 
 	/**
@@ -342,7 +342,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge10() {
-		blockchain.charge(BigInteger.valueOf(10L));
+		blockchain.chargeForCPU(BigInteger.valueOf(10L));
 	}
 
 	/**
@@ -350,7 +350,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge11() {
-		blockchain.charge(BigInteger.valueOf(11L));
+		blockchain.chargeForCPU(BigInteger.valueOf(11L));
 	}
 
 	/**
@@ -358,7 +358,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge12() {
-		blockchain.charge(BigInteger.valueOf(12L));
+		blockchain.chargeForCPU(BigInteger.valueOf(12L));
 	}
 
 	/**
@@ -366,7 +366,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge13() {
-		blockchain.charge(BigInteger.valueOf(13L));
+		blockchain.chargeForCPU(BigInteger.valueOf(13L));
 	}
 
 	/**
@@ -374,7 +374,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge14() {
-		blockchain.charge(BigInteger.valueOf(14L));
+		blockchain.chargeForCPU(BigInteger.valueOf(14L));
 	}
 
 	/**
@@ -382,7 +382,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge15() {
-		blockchain.charge(BigInteger.valueOf(15L));
+		blockchain.chargeForCPU(BigInteger.valueOf(15L));
 	}
 
 	/**
@@ -390,7 +390,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge16() {
-		blockchain.charge(BigInteger.valueOf(16L));
+		blockchain.chargeForCPU(BigInteger.valueOf(16L));
 	}
 
 	/**
@@ -398,7 +398,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge17() {
-		blockchain.charge(BigInteger.valueOf(17L));
+		blockchain.chargeForCPU(BigInteger.valueOf(17L));
 	}
 
 	/**
@@ -406,7 +406,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge18() {
-		blockchain.charge(BigInteger.valueOf(18L));
+		blockchain.chargeForCPU(BigInteger.valueOf(18L));
 	}
 
 	/**
@@ -414,7 +414,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge19() {
-		blockchain.charge(BigInteger.valueOf(19L));
+		blockchain.chargeForCPU(BigInteger.valueOf(19L));
 	}
 
 	/**
@@ -422,7 +422,7 @@ public abstract class Takamaka {
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge20() {
-		blockchain.charge(BigInteger.valueOf(20L));
+		blockchain.chargeForCPU(BigInteger.valueOf(20L));
 	}
 
 	/**

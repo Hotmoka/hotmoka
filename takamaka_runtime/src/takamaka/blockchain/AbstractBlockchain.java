@@ -106,6 +106,21 @@ public abstract class AbstractBlockchain implements Blockchain {
 	private BigInteger gas;
 
 	/**
+	 * The amount of gas consumed for CPU execution.
+	 */
+	private BigInteger gasConsumedForCPU;
+
+	/**
+	 * The amount of gas consumed for RAM allocation.
+	 */
+	private BigInteger gasConsumedForRAM;
+
+	/**
+	 * The amount of gas consumed for storage consumption.
+	 */
+	private BigInteger gasConsumedForStorage;
+
+	/**
 	 * A stack of available gas. When a sub-computation is started
 	 * with a subset of the available gas, the latter is taken away from
 	 * the current available gas and pushed on top of this stack.
@@ -187,6 +202,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 		ClassType.clearCache();
 		FieldSignature.clearCache();
 		this.gas = gas;
+		this.gasConsumedForCPU = BigInteger.ZERO;
+		this.gasConsumedForRAM = BigInteger.ZERO;
+		this.gasConsumedForStorage = BigInteger.ZERO;
 		oldGas.clear();
 		this.previous = previous;
 	}
@@ -194,7 +212,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * A comparator that puts updates in the order required for the parameter
 	 * of the deserialization constructor of storage objects: fields of superclasses first;
-	 * then follow the fields for the same class, ordered by name and then by the
+	 * then the fields for the same class, ordered by name and then by the
 	 * {@code toString()} of their type.
 	 */
 	private final Comparator<Update> updateComparator = new Comparator<Update>() {
@@ -270,11 +288,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	/**
-	 * Decreases the available gas by the given amount.
+	 * Decreases the available gas by the given amount, for CPU execution.
 	 * 
 	 * @param amount the amount of gas to consume
 	 */
-	public final void charge(BigInteger amount) {
+	public final void chargeForCPU(BigInteger amount) {
 		if (amount.signum() <= 0)
 			throw new IllegalArgumentException("Gas can only decrease");
 
@@ -288,6 +306,51 @@ public abstract class AbstractBlockchain implements Blockchain {
 			throw new OutOfGasError();
 	
 		gas = gas.subtract(amount);
+		gasConsumedForCPU = gasConsumedForCPU.add(amount);
+	}
+
+	/**
+	 * Decreases the available gas by the given amount, for RAM execution.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	public final void chargeForRAM(BigInteger amount) {
+		if (amount.signum() <= 0)
+			throw new IllegalArgumentException("Gas can only decrease");
+
+		// gas can be negative only if it was initialized so; this special case is
+		// used for the creation of the gamete, when gas should not be counted
+		if (gas.signum() < 0)
+			return;
+
+		if (gas.compareTo(amount) < 0)
+			// we report how much gas is missing
+			throw new OutOfGasError();
+	
+		gas = gas.subtract(amount);
+		gasConsumedForRAM = gasConsumedForRAM.add(amount);
+	}
+
+	/**
+	 * Decreases the available gas by the given amount, for storage allocation.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	public final void chargeForStorage(BigInteger amount) {
+		if (amount.signum() <= 0)
+			throw new IllegalArgumentException("Gas can only decrease");
+
+		// gas can be negative only if it was initialized so; this special case is
+		// used for the creation of the gamete, when gas should not be counted
+		if (gas.signum() < 0)
+			return;
+
+		if (gas.compareTo(amount) < 0)
+			// we report how much gas is missing
+			throw new OutOfGasError();
+	
+		gas = gas.subtract(amount);
+		gasConsumedForStorage = gasConsumedForStorage.add(amount);
 	}
 
 	/**
@@ -303,7 +366,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the code runs into this exception
 	 */
 	public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		charge(amount);
+		chargeForCPU(amount);
 		oldGas.addFirst(gas);
 		gas = amount;
 	
@@ -429,9 +492,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 				// after this line, the transaction will be added to the blockchain, possibly as a failed one
 
 				try {
-					charge(GasCosts.BASE_TRANSACTION_COST);
-					charge(BigInteger.valueOf(request.getNumberOfDependencies()).multiply(GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
-					charge(BigInteger.valueOf((long) (((long) request.getJarSize()) * GasCosts.GAS_PER_BYTE_IN_JAR)));
+					chargeForCPU(GasCosts.BASE_TRANSACTION_COST);
+					chargeForCPU(BigInteger.valueOf(request.getNumberOfDependencies()).multiply(GasCosts.GAS_PER_DEPENDENCY_OF_JAR));
+					chargeForCPU(BigInteger.valueOf((long) (((long) request.getJarSize()) * GasCosts.GAS_PER_BYTE_IN_JAR)));
 
 					// we transform the array of bytes into a real jar file
 					Path original = Files.createTempFile("original", ".jar");
@@ -454,13 +517,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					byte[] instrumentedBytes = Files.readAllBytes(instrumented);
 					Files.delete(instrumented);
-					BigInteger consumedGas = request.gas.subtract(remainingGas());
 					increaseBalance(deserializedCaller, remainingGas());
-					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, collectUpdates(null, deserializedCaller, null, null).stream(), consumedGas);
+					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, collectUpdates(null, deserializedCaller, null, null).stream(), gasConsumedForCPU, gasConsumedForStorage);
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas
-					return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), collectUpdates(null, deserializedCaller, null, null).stream(), request.gas);
+					return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), collectUpdates(null, deserializedCaller, null, null).stream(), request.gas, BigInteger.ZERO);
 				}
 			}
 		});
@@ -496,7 +558,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				// after this line, the transaction can be added to the blockchain, possibly as a failed one
 
 				try {
-					charge(GasCosts.BASE_TRANSACTION_COST);
+					chargeForCPU(GasCosts.BASE_TRANSACTION_COST);
 
 					CodeExecutor executor = new ConstructorExecutor(request.constructor, deserializedCaller, request.getActuals());
 					executor.start();
@@ -504,7 +566,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 
 					if (executor.exception != null)
@@ -512,12 +574,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					increaseBalance(deserializedCaller, remainingGas());
 					return new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+						((StorageReference) StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 					Update balanceUpdate = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
-					return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas);
+					return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas, BigInteger.ZERO, BigInteger.ZERO);
 				}
 			}
 		});
@@ -555,7 +617,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				// after this line, the transaction can be added to the blockchain, possibly as a failed one
 
 				try {
-					charge(GasCosts.BASE_TRANSACTION_COST);
+					chargeForCPU(GasCosts.BASE_TRANSACTION_COST);
 
 					InstanceMethodExecutor executor = new InstanceMethodExecutor(request.method, deserializedCaller, request.receiver, request.getActuals());
 					executor.start();
@@ -563,7 +625,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 
 					if (executor.exception != null)
@@ -575,15 +637,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
 
 					if (executor.isVoidMethod)
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					else
 						return new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 					Update balanceUpdate = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
-					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas);
+					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas, BigInteger.ZERO, BigInteger.ZERO);
 				}
 			}
 		});
@@ -626,7 +688,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				// after this line, the transaction can be added to the blockchain, possibly as a failed one
 
 				try {
-					charge(GasCosts.BASE_TRANSACTION_COST);
+					chargeForCPU(GasCosts.BASE_TRANSACTION_COST);
 
 					StaticMethodExecutor executor = new StaticMethodExecutor(request.method, deserializedCaller, request.getActuals());
 					executor.start();
@@ -634,7 +696,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					if (executor.exception instanceof InvocationTargetException) {
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 
 					if (executor.exception != null)
@@ -646,15 +708,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
 
 					if (executor.isVoidMethod)
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					else
 						return new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), request.gas.subtract(remainingGas()));
+							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 					Update balanceUpdate = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
-					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas);
+					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), Stream.of(balanceUpdate), request.gas, BigInteger.ZERO, BigInteger.ZERO);
 				}
 			}
 		});

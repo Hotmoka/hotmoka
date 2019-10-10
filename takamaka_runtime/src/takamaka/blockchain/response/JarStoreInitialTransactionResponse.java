@@ -36,7 +36,6 @@ public class JarStoreInitialTransactionResponse implements TransactionResponse, 
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
-        return getClass().getSimpleName() + ":\n"
-			+ "  instrumented jar: " + sb.toString();
+        return getClass().getSimpleName() + ":\n  instrumented jar: " + sb.toString();
 	}
 }

@@ -26,10 +26,11 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	 * 
 	 * @param cause the exception that justifies why the transaction failed
 	 * @param updates the updates resulting from the execution of the transaction
-	 * @param consumedGas the amount of gas consumed by the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionFailedResponse(TransactionException cause, Stream<Update> updates, BigInteger consumedGas) {
-		super(updates, consumedGas);
+	public JarStoreTransactionFailedResponse(TransactionException cause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForStorage) {
+		super(updates, gasConsumedForCPU, gasConsumedForStorage);
 
 		this.cause = cause;
 	}

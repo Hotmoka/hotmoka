@@ -24,10 +24,11 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	 * 
 	 * @param instrumentedJar the bytes of the jar to install, instrumented
 	 * @param updates the updates resulting from the execution of the transaction
-	 * @param consumedGas the amount of gas consumed by the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<Update> updates, BigInteger consumedGas) {
-		super(updates, consumedGas);
+	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForStorage) {
+		super(updates, gasConsumedForCPU, gasConsumedForStorage);
 
 		this.instrumentedJar = instrumentedJar.clone();
 	}
@@ -43,7 +44,6 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
-        return super.toString()
-			+ "\n  instrumented jar: " + sb.toString();
+        return super.toString() + "\n  instrumented jar: " + sb.toString();
 	}
 }

@@ -35,10 +35,12 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	 * @param result the value returned by the method
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param events the events resulting from the execution of the transaction
-	 * @param consumedGas the amount of gas consumed by the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public MethodCallTransactionSuccessfulResponse(StorageValue result, Stream<Update> updates, Stream<StorageReference> events, BigInteger consumedGas) {
-		super(updates, consumedGas);
+	public MethodCallTransactionSuccessfulResponse(StorageValue result, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.events = events.toArray(StorageReference[]::new);
 		this.result = result;

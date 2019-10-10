@@ -22,19 +22,33 @@ public abstract class ConstructorCallTransactionResponse implements TransactionR
 	private final Update[] updates;
 
 	/**
-	 * The amount of gas consumed by the transaction.
+	 * The amount of gas consumed by the transaction for CPU execution.
 	 */
-	public final BigInteger consumedGas;
+	public final BigInteger gasConsumedForCPU;
+
+	/**
+	 * The amount of gas consumed by the transaction for RAM allocation.
+	 */
+	public final BigInteger gasConsumedForRAM;
+
+	/**
+	 * The amount of gas consumed by the transaction for storage consumption.
+	 */
+	public final BigInteger gasConsumedForStorage;
 
 	/**
 	 * Builds the transaction response.
 	 * 
 	 * @param updates the updates resulting from the execution of the transaction
-	 * @param consumedGas the amount of gas consumed by the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public ConstructorCallTransactionResponse(Stream<Update> updates, BigInteger consumedGas) {
+	public ConstructorCallTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		this.updates = updates.toArray(Update[]::new);
-		this.consumedGas = consumedGas;
+		this.gasConsumedForCPU = gasConsumedForCPU;
+		this.gasConsumedForRAM = gasConsumedForRAM;
+		this.gasConsumedForStorage = gasConsumedForStorage;
 	}
 
 	/**
@@ -49,7 +63,9 @@ public abstract class ConstructorCallTransactionResponse implements TransactionR
 	@Override
 	public String toString() {
         return getClass().getSimpleName() + ":\n"
-        	+ "  consumed gas: " + consumedGas + "\n"
+        	+ "  gas consumed for CPU execution: " + gasConsumedForCPU + "\n"
+        	+ "  gas consumed for RAM allocation: " + gasConsumedForRAM + "\n"
+        	+ "  gas consumed for storage consumption: " + gasConsumedForStorage + "\n"
         	+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
 	}
 }

@@ -22,19 +22,26 @@ public abstract class JarStoreTransactionResponse implements TransactionResponse
 	private final Update[] updates;
 
 	/**
-	 * The amount of gas consumed by the transaction.
+	 * The amount of gas consumed by the transaction for CPU execution.
 	 */
-	public final BigInteger consumedGas;
+	public final BigInteger gasConsumedForCPU;
+
+	/**
+	 * The amount of gas consumed by the transaction for storage consumption.
+	 */
+	public final BigInteger gasConsumedForStorage;
 
 	/**
 	 * Builds the transaction response.
 	 * 
 	 * @param updates the updates resulting from the execution of the transaction
-	 * @param consumedGas the amount of gas consumed by the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionResponse(Stream<Update> updates, BigInteger consumedGas) {
+	public JarStoreTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForStorage) {
 		this.updates = updates.toArray(Update[]::new);
-		this.consumedGas = consumedGas;
+		this.gasConsumedForCPU = gasConsumedForCPU;
+		this.gasConsumedForStorage = gasConsumedForStorage;
 	}
 
 	/**
@@ -49,7 +56,8 @@ public abstract class JarStoreTransactionResponse implements TransactionResponse
 	@Override
 	public String toString() {
         return getClass().getSimpleName() + ":\n"
-        	+ "  consumed gas: " + consumedGas + "\n"
+        	+ "  gas consumed for CPU execution: " + gasConsumedForCPU + "\n"
+        	+ "  gas consumed for storage consumption: " + gasConsumedForStorage + "\n"
         	+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
 	}
 }
