@@ -31,4 +31,11 @@ public interface StorageType extends Serializable {
 	 * @return -1 if {@code this} comes first, 1 if {@code other} comes first, 0 if they are equal
 	 */
 	int compareAgainst(StorageType other);
+
+	/**
+	 * The size of this type, in terms of storage gas units consumed if this type must be stored in blockchain.
+	 * 
+	 * @return the size of this type
+	 */
+	int size();
 }

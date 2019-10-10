@@ -102,4 +102,14 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 		else
 			return type.compareAgainst(other.type);
 	}
+
+	/**
+	 * Yields the size of this field, in terms of storage consumed if this field is
+	 * stored in blockchain.
+	 * 
+	 * @return the size
+	 */
+	public int size() {
+		return 3 + name.length() / 4 + definingClass.name.length() / 4 + type.size();
+	}
 }

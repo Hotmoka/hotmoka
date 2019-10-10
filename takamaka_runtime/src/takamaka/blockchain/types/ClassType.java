@@ -117,4 +117,9 @@ public final class ClassType implements StorageType {
 		else
 			return name.compareTo(((ClassType) other).name); // other instanceof ClassType
 	}
+
+	@Override
+	public int size() {
+		return 1 + name.length() / 4;
+	}
 }

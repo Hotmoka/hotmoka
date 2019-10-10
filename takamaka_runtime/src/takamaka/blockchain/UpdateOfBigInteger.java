@@ -76,4 +76,9 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
 		return field.type.equals(ClassType.BIG_INTEGER);
 	}
+
+	@Override
+	public int size() {
+		return super.size() + value.bitLength() / 32;
+	}
 }

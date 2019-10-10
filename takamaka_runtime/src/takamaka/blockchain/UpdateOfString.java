@@ -74,4 +74,9 @@ public final class UpdateOfString extends AbstractUpdateOfField {
 		// a lazy String could be stored into a lazy Object or Serializable or Comparable or CharSequence field
 		return field.type.equals(ClassType.STRING);
 	}
+
+	@Override
+	public int size() {
+		return super.size() + 1 + value.length() / 4;
+	}
 }

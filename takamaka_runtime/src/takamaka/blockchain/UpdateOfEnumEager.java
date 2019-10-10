@@ -85,4 +85,9 @@ public final class UpdateOfEnumEager extends AbstractUpdateOfField {
 	public boolean isEager() {
 		return true;
 	}
+
+	@Override
+	public int size() {
+		return super.size() + 1 + enumClassName.length() / 4 + 1 + name.length() / 4;
+	}
 }

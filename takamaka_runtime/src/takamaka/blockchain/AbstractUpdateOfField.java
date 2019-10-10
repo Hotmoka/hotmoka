@@ -58,4 +58,9 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	public final boolean isForSamePropertyAs(Update other) {
 		return super.isForSamePropertyAs(other) && field.equals(((AbstractUpdateOfField) other).field);
 	}
+
+	@Override
+	public int size() {
+		return 1 + field.size();
+	}
 }

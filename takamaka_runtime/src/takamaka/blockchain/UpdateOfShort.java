@@ -66,4 +66,9 @@ public final class UpdateOfShort extends AbstractUpdateOfField {
 		else
 			return this;
 	}
+
+	@Override
+	public int size() {
+		return 1 + super.size();
+	}
 }

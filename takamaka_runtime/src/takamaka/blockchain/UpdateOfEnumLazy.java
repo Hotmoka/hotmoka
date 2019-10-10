@@ -85,4 +85,9 @@ public final class UpdateOfEnumLazy extends AbstractUpdateOfField {
 	public boolean isEager() {
 		return false;
 	}
+
+	@Override
+	public int size() {
+		return super.size() + enumClassName.length() / 4 + name.length() / 4;
+	}
 }

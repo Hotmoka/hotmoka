@@ -246,27 +246,75 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by the given amount.
+	 * Charges the given amount of gas for CPU usage and for RAM usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 * 
-	 * @param amount the amount of gas to consume
+	 * @param cpu the amount of gas to consume for CPU usage
+	 * @param ram the amount of gas to consume for RAM consumption
 	 */
-	public static void charge(long amount) {
-		blockchain.chargeForCPU(BigInteger.valueOf(amount));
+	public static void charge(long cpu, int ram) {
+		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+		blockchain.chargeForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by the given amount.
+	 * Charges the given amount of gas for CPU usage and for RAM usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 * 
-	 * @param amount the amount of gas to consume
+	 * @param cpu the amount of gas to consume for CPU usage
+	 * @param ram the amount of gas to consume for RAM consumption
 	 */
-	public static void charge(int amount) {
-		blockchain.chargeForCPU(BigInteger.valueOf(amount));
+	public static void charge(long cpu, long ram) {
+		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+		blockchain.chargeForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by a unit of gas.
+	 * Charges the given amount of gas for CPU usage and for RAM usage for the current blockchain.
+	 * This method is used by the instrumented bytecode.
+	 * 
+	 * @param cpu the amount of gas to consume for CPU usage
+	 * @param ram the amount of gas to consume for RAM consumption
+	 */
+	public static void charge(int cpu, int ram) {
+		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+		blockchain.chargeForRAM(BigInteger.valueOf(ram));
+	}
+
+	/**
+	 * Charges the given amount of gas for CPU usage and for RAM usage for the current blockchain.
+	 * This method is used by the instrumented bytecode.
+	 * 
+	 * @param cpu the amount of gas to consume for CPU usage
+	 * @param ram the amount of gas to consume for RAM consumption
+	 */
+	public static void charge(int cpu, long ram) {
+		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+		blockchain.chargeForRAM(BigInteger.valueOf(ram));
+	}
+
+	/**
+	 * Charges the given amount of gas for CPU usage for the current blockchain.
+	 * This method is used by the instrumented bytecode.
+	 * 
+	 * @param cpu the amount of gas to consume
+	 */
+	public static void charge(long cpu) {
+		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+	}
+
+	/**
+	 * Charges the given amount of gas for CPU usage for the current blockchain.
+	 * This method is used by the instrumented bytecode.
+	 * 
+	 * @param cpu the amount of gas to consume
+	 */
+	public static void charge(int cpu) {
+		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+	}
+
+	/**
+	 * Charges one unit of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge1() {
@@ -274,7 +322,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by two units of gas.
+	 * Charges two units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge2() {
@@ -282,7 +330,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by three units of gas.
+	 * Charges three units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge3() {
@@ -290,7 +338,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by four units of gas.
+	 * Charges four units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge4() {
@@ -298,7 +346,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by five units of gas.
+	 * Charges five units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge5() {
@@ -306,7 +354,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by six units of gas.
+	 * Charges six units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge6() {
@@ -314,7 +362,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by seven units of gas.
+	 * Charges seven units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge7() {
@@ -322,7 +370,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by eight units of gas.
+	 * Charges eight units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge8() {
@@ -330,7 +378,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by nine units of gas.
+	 * Charges nine units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge9() {
@@ -338,7 +386,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by ten units of gas.
+	 * Charges ten units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge10() {
@@ -346,7 +394,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by eleven units of gas.
+	 * Charges eleven units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge11() {
@@ -354,7 +402,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by twelve units of gas.
+	 * Charges twelve units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge12() {
@@ -362,7 +410,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by thirteen units of gas.
+	 * Charges 13 units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge13() {
@@ -370,7 +418,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by fourteen units of gas.
+	 * Charges 14 units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge14() {
@@ -378,7 +426,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by fifteen units of gas.
+	 * Charges 15 units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge15() {
@@ -386,7 +434,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by sixteen units of gas.
+	 * Charges 16 units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge16() {
@@ -394,7 +442,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by seventeen units of gas.
+	 * Charges 17 units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge17() {
@@ -402,7 +450,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by eighteen units of gas.
+	 * Charges 18 units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge18() {
@@ -410,7 +458,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by nineteen units of gas.
+	 * Charges 19 units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge19() {
@@ -418,7 +466,7 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Decreases the available gas for the current blockchain, by twenty units of gas.
+	 * Charges 20 units of gas for CPU usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge20() {

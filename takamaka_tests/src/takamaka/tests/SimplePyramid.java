@@ -43,8 +43,6 @@ class SimplePyramid extends TakamakaTest {
 
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(BigInteger.valueOf(10_000L));
 
-	private static final BigInteger _1_000 = BigInteger.valueOf(1_000);
-
 	private static final ClassType SIMPLE_PYRAMID = new ClassType("takamaka.tests.ponzi.SimplePyramid");
 
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
@@ -94,30 +92,30 @@ class SimplePyramid extends TakamakaTest {
 
 		for (int i = 0; i < 4; i++)
 			players[i] = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, _1_000, classpath, new ConstructorSignature("takamaka.lang.TestExternallyOwnedAccount", INT), new IntValue(20_000)));
+				(gamete, _10_000, classpath, new ConstructorSignature("takamaka.lang.TestExternallyOwnedAccount", INT), new IntValue(20_000)));
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")
 	void twoInvestors() throws TransactionException, CodeExecutionException {
 		StorageReference pyramid = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(players[0], _1_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
+			(new ConstructorCallTransactionRequest(players[0], _10_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[1], _1_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(players[1], _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[0], _1_000, classpath, GET_BALANCE, players[0]));
+			(new InstanceMethodCallTransactionRequest(players[0], _10_000, classpath, GET_BALANCE, players[0]));
 		assertTrue(balance0.value.compareTo(_10_000) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
 	void threeInvestors() throws TransactionException, CodeExecutionException {
 		StorageReference pyramid = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(players[0], _1_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
+			(new ConstructorCallTransactionRequest(players[0], _10_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[1], _1_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(players[1], _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(players[2], _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[0], _1_000, classpath, GET_BALANCE, players[0]));
+			(new InstanceMethodCallTransactionRequest(players[0], _10_000, classpath, GET_BALANCE, players[0]));
 		assertTrue(balance0.value.compareTo(_20_000) > 0);
 	}
 }

@@ -45,4 +45,9 @@ public enum BasicTypes implements StorageType {
 		else
 			return -1; // other instanceof ClassType
 	}
+
+	@Override
+	public int size() {
+		return 1;
+	}
 }

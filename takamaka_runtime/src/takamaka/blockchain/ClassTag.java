@@ -76,4 +76,9 @@ public final class ClassTag extends Update {
 		else
 			return this;
 	}
+
+	@Override
+	public int size() {
+		return 2 + className.length() / 4;
+	}
 }

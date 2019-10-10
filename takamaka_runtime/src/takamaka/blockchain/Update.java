@@ -77,4 +77,12 @@ public abstract class Update implements Serializable, Comparable<Update> {
 	public boolean isForSamePropertyAs(Update other) {
 		return getClass() == other.getClass() && object.equals(other.object);
 	}
+
+	/**
+	 * Yields a measure of this update, to be used to weigh its gas cost
+	 * when stored in blockchain.
+	 * 
+	 * @return the size of this update. This must be positive
+	 */
+	public abstract int size();
 }

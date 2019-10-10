@@ -71,4 +71,9 @@ public final class UpdateOfBalance extends UpdateOfField {
 	public FieldSignature getField() {
 		return FieldSignature.BALANCE_FIELD;
 	}
+
+	@Override
+	public int size() {
+		return 1 + balance.bitLength() / 32;
+	}
 }
