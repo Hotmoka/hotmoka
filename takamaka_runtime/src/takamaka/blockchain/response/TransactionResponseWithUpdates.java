@@ -9,7 +9,7 @@ import takamaka.lang.Immutable;
  * A response for a transaction that might contain updates.
  */
 @Immutable
-public interface AbstractTransactionResponseWithUpdates {
+public interface TransactionResponseWithUpdates {
 	
 	/**
 	 * Yields the updates induced by the execution of this transaction.

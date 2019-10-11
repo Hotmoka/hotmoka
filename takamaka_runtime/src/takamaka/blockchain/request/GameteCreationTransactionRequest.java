@@ -4,7 +4,6 @@ import java.math.BigInteger;
 
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
-import takamaka.blockchain.TransactionRequest;
 import takamaka.lang.Immutable;
 
 /**

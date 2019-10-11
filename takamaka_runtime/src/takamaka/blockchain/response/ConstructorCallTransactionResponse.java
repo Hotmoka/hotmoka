@@ -2,9 +2,7 @@ package takamaka.blockchain.response;
 
 import java.math.BigInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import takamaka.blockchain.TransactionResponse;
 import takamaka.blockchain.Update;
 import takamaka.lang.Immutable;
 
@@ -12,60 +10,67 @@ import takamaka.lang.Immutable;
  * A response for a transaction that should call a constructor of a storage class in blockchain.
  */
 @Immutable
-public abstract class ConstructorCallTransactionResponse implements TransactionResponse, AbstractTransactionResponseWithUpdates {
+public abstract class ConstructorCallTransactionResponse implements TransactionResponseWithGas, TransactionResponseWithUpdates {
 
 	private static final long serialVersionUID = 6999069256965379003L;
 
 	/**
-	 * The updates resulting from the execution of the transaction.
-	 */
-	private final Update[] updates;
-
-	/**
 	 * The amount of gas consumed by the transaction for CPU execution.
 	 */
-	public final BigInteger gasConsumedForCPU;
+	private final BigInteger gasConsumedForCPU;
 
 	/**
 	 * The amount of gas consumed by the transaction for RAM allocation.
 	 */
-	public final BigInteger gasConsumedForRAM;
+	private final BigInteger gasConsumedForRAM;
 
 	/**
 	 * The amount of gas consumed by the transaction for storage consumption.
 	 */
-	public final BigInteger gasConsumedForStorage;
+	private final BigInteger gasConsumedForStorage;
 
 	/**
 	 * Builds the transaction response.
 	 * 
-	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public ConstructorCallTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		this.updates = updates.toArray(Update[]::new);
+	public ConstructorCallTransactionResponse(BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		this.gasConsumedForCPU = gasConsumedForCPU;
 		this.gasConsumedForRAM = gasConsumedForRAM;
 		this.gasConsumedForStorage = gasConsumedForStorage;
 	}
 
+	@Override
+	public String toString() {
+        return getClass().getSimpleName() + ":\n" + gasToString()
+        	+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
+	}
+
 	/**
-	 * Yields the updates induced by the execution of this transaction.
+	 * Yields a description of the gas consumption.
 	 * 
-	 * @return the updates
+	 * @return the description
 	 */
-	public final Stream<Update> getUpdates() {
-		return Stream.of(updates);
+	protected String gasToString() {
+		return "  gas consumed for CPU execution: " + gasConsumedForCPU + "\n"
+			+ "  gas consumed for RAM allocation: " + gasConsumedForRAM + "\n"
+	        + "  gas consumed for storage consumption: " + gasConsumedForStorage + "\n";
 	}
 
 	@Override
-	public String toString() {
-        return getClass().getSimpleName() + ":\n"
-        	+ "  gas consumed for CPU execution: " + gasConsumedForCPU + "\n"
-        	+ "  gas consumed for RAM allocation: " + gasConsumedForRAM + "\n"
-        	+ "  gas consumed for storage consumption: " + gasConsumedForStorage + "\n"
-        	+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
+	public BigInteger gasConsumedForCPU() {
+		return gasConsumedForCPU;
+	}
+
+	@Override
+	public BigInteger gasConsumedForRAM() {
+		return gasConsumedForRAM;
+	}
+
+	@Override
+	public BigInteger gasConsumedForStorage() {
+		return gasConsumedForStorage;
 	}
 }

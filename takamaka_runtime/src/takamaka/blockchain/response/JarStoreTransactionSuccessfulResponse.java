@@ -10,7 +10,7 @@ import takamaka.lang.Immutable;
  * A response for a successful transaction that installs a jar in a blockchain.
  */
 @Immutable
-public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse implements AbstractJarStoreTransactionResponse {
+public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse implements TransactionResponseWithInstrumentedJar {
 
 	private static final long serialVersionUID = -8888957484092351352L;
 

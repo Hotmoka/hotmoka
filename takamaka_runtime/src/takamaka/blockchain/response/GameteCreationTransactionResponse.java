@@ -3,7 +3,6 @@ package takamaka.blockchain.response;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import takamaka.blockchain.TransactionResponse;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.lang.Immutable;
@@ -12,7 +11,7 @@ import takamaka.lang.Immutable;
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
  */
 @Immutable
-public class GameteCreationTransactionResponse implements TransactionResponse, AbstractTransactionResponseWithUpdates {
+public class GameteCreationTransactionResponse implements TransactionResponse, TransactionResponseWithUpdates {
 
 	private static final long serialVersionUID = -95476487153660743L;
 

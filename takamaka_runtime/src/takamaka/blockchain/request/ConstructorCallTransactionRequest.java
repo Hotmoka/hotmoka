@@ -6,7 +6,6 @@ import java.util.stream.Stream;
 
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.TransactionRequest;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Immutable;

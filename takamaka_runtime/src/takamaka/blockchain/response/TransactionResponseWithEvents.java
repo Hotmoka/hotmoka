@@ -9,7 +9,7 @@ import takamaka.lang.Immutable;
  * A response for a transaction that might contain events.
  */
 @Immutable
-public interface AbstractTransactionResponseWithEvents {
+public interface TransactionResponseWithEvents {
 	
 	/**
 	 * Yields the events induced by the execution of this transaction.

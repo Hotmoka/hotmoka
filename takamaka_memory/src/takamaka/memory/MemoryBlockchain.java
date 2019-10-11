@@ -16,8 +16,8 @@ import java.util.Comparator;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.TransactionReference;
-import takamaka.blockchain.TransactionRequest;
-import takamaka.blockchain.TransactionResponse;
+import takamaka.blockchain.request.TransactionRequest;
+import takamaka.blockchain.response.TransactionResponse;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory

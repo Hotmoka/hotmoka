@@ -1,4 +1,4 @@
-package takamaka.blockchain;
+package takamaka.blockchain.request;
 
 import java.io.Serializable;
 

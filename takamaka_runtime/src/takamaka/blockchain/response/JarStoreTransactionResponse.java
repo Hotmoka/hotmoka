@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import takamaka.blockchain.TransactionResponse;
 import takamaka.blockchain.Update;
 import takamaka.lang.Immutable;
 
@@ -12,7 +11,7 @@ import takamaka.lang.Immutable;
  * A response for a transaction that should install a jar in the blockchain.
  */
 @Immutable
-public abstract class JarStoreTransactionResponse implements TransactionResponse, AbstractTransactionResponseWithUpdates {
+public abstract class JarStoreTransactionResponse implements TransactionResponseWithGas, TransactionResponseWithUpdates {
 
 	private static final long serialVersionUID = -8888957484092351352L;
 
@@ -24,12 +23,12 @@ public abstract class JarStoreTransactionResponse implements TransactionResponse
 	/**
 	 * The amount of gas consumed by the transaction for CPU execution.
 	 */
-	public final BigInteger gasConsumedForCPU;
+	private final BigInteger gasConsumedForCPU;
 
 	/**
 	 * The amount of gas consumed by the transaction for storage consumption.
 	 */
-	public final BigInteger gasConsumedForStorage;
+	private final BigInteger gasConsumedForStorage;
 
 	/**
 	 * Builds the transaction response.
@@ -55,9 +54,32 @@ public abstract class JarStoreTransactionResponse implements TransactionResponse
 
 	@Override
 	public String toString() {
-        return getClass().getSimpleName() + ":\n"
-        	+ "  gas consumed for CPU execution: " + gasConsumedForCPU + "\n"
-        	+ "  gas consumed for storage consumption: " + gasConsumedForStorage + "\n"
+        return getClass().getSimpleName() + ":\n" + gasToString()
         	+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
 	}
+
+	/**
+	 * Yields a description of the gas consumption.
+	 * 
+	 * @return the description
+	 */
+	protected String gasToString() {
+		return "  gas consumed for CPU execution: " + gasConsumedForCPU + "\n"
+	        + "  gas consumed for storage consumption: " + gasConsumedForStorage + "\n";
+	}
+
+	@Override
+	public BigInteger gasConsumedForCPU() {
+		return gasConsumedForCPU;
+	}
+
+	@Override
+	public BigInteger gasConsumedForRAM() {
+		return BigInteger.ZERO;
+	}
+
+	@Override
+	public BigInteger gasConsumedForStorage() {
+		return gasConsumedForStorage;
+	};
 }
