@@ -1,5 +1,7 @@
 package takamaka.blockchain.response;
 
+import java.math.BigInteger;
+
 import takamaka.lang.Immutable;
 
 /**
@@ -36,5 +38,11 @@ public class JarStoreInitialTransactionResponse implements TransactionResponse, 
             sb.append(String.format("%02x", b));
 
         return getClass().getSimpleName() + ":\n  instrumented jar: " + sb.toString();
+	}
+
+	//TODO @Override
+	public BigInteger size() {
+		// this response is for a free transaction, at initialization of the blockchain
+		return BigInteger.ZERO;
 	}
 }

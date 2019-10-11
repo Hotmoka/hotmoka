@@ -250,7 +250,7 @@ class Basic extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
 		StorageReference sub = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(eoa, _1_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 		assertEquals(new StringValue("Sub.m4_1 receives 13 coins from an externally owned account with public balance"), blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("takamaka.tests.basic.Sub", "m4_1", ClassType.STRING, LONG), sub, new LongValue(13L))));
 	}

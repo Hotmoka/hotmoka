@@ -87,4 +87,9 @@ public final class StorageReferenceAlreadyInBlockchain extends StorageReference 
 	public String getClassName(AbstractBlockchain blockchain) {
 		return blockchain.getClassNameOf(this);
 	}
+
+	@Override
+	public BigInteger size() {
+		return super.size().add(transaction.size());
+	}
 }

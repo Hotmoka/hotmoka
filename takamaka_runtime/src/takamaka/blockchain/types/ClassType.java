@@ -1,9 +1,11 @@
 package takamaka.blockchain.types;
 
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import takamaka.blockchain.AbstractBlockchain;
+import takamaka.blockchain.GasCosts;
 import takamaka.lang.Immutable;
 
 /**
@@ -119,7 +121,7 @@ public final class ClassType implements StorageType {
 	}
 
 	@Override
-	public int size() {
-		return 1 + name.length() / 4;
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.storageCostOf(name));
 	}
 }

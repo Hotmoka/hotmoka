@@ -1,5 +1,7 @@
 package takamaka.blockchain;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.values.StorageReference;
 import takamaka.lang.Immutable;
 
@@ -78,7 +80,7 @@ public final class ClassTag extends Update {
 	}
 
 	@Override
-	public int size() {
-		return 2 + className.length() / 4;
+	public BigInteger size() {
+		return super.size().add(GasCosts.storageCostOf(className)).add(jar.size());
 	}
 }

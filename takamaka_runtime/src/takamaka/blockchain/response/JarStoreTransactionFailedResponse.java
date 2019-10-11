@@ -1,8 +1,8 @@
 package takamaka.blockchain.response;
 
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
+import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.UpdateOfBalance;
 import takamaka.lang.Immutable;
@@ -32,11 +32,12 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	 * @param cause the exception that justifies why the transaction failed
 	 * @param callerBalanceUpdate the update of balance of the caller of the transaction, for paying for the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
-	public JarStoreTransactionFailedResponse(TransactionException cause, UpdateOfBalance callerBalanceUpdate, BigInteger gasConsumedForCPU, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
-		super(Stream.of(callerBalanceUpdate), gasConsumedForCPU, gasConsumedForStorage);
+	public JarStoreTransactionFailedResponse(TransactionException cause, UpdateOfBalance callerBalanceUpdate, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+		super(callerBalanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.cause = cause;
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
@@ -50,5 +51,10 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	@Override
 	public BigInteger gasConsumedForPenalty() {
 		return gasConsumedForPenalty;
+	}
+
+	@Override
+	public BigInteger size() {
+		return super.size().add(GasCosts.storageCostOf(gasConsumedForPenalty));
 	}
 }

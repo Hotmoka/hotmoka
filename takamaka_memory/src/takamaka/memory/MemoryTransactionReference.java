@@ -2,6 +2,7 @@ package takamaka.memory;
 
 import java.math.BigInteger;
 
+import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.TransactionReference;
 import takamaka.lang.Immutable;
 
@@ -110,5 +111,10 @@ final class MemoryTransactionReference extends TransactionReference {
 	 */
 	protected boolean isLastInBlock() {
 		return transactionNumber + 1 == MemoryBlockchain.TRANSACTIONS_PER_BLOCK;
+	}
+
+	@Override
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT).add(GasCosts.storageCostOf(blockNumber));
 	}
 }

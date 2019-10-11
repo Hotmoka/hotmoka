@@ -5,7 +5,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import takamaka.blockchain.Classpath;
+import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.MethodSignature;
+import takamaka.blockchain.UpdateOfBalance;
+import takamaka.blockchain.response.MethodCallTransactionFailedResponse;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.lang.Immutable;
@@ -85,5 +88,18 @@ public class InstanceMethodCallTransactionRequest implements TransactionRequest 
 			+ "  method: " + method + "\n"
 			+ "  receiver: " + receiver + "\n"
 			+ "  actuals:\n" + getActuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "    ", ""));
+	}
+
+	@Override
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT).add(caller.size()).add(GasCosts.storageCostOf(gas)).add(classpath.size())
+			.add(method.size()).add(receiver.size())
+			.add(Stream.of(actuals).map(StorageValue::size).reduce(BigInteger.ZERO, BigInteger::add));
+	}
+
+	@Override
+	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure) {
+		// we create a response whose size over-approximates that of a response in case of failure of this request
+		return gas.compareTo(GasCosts.BASE_CPU_TRANSACTION_COST.add(size()).add(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size())) >= 0;
 	}
 }

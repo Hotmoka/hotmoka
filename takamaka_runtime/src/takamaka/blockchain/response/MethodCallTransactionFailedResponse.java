@@ -3,8 +3,9 @@ package takamaka.blockchain.response;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import takamaka.blockchain.Update;
+import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.TransactionException;
+import takamaka.blockchain.Update;
 import takamaka.blockchain.UpdateOfBalance;
 import takamaka.lang.Immutable;
 
@@ -63,5 +64,10 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	@Override
 	public Stream<Update> getUpdates() {
 		return Stream.of(callerBalanceUpdate);
+	}
+
+	@Override
+	public BigInteger size() {
+		return super.size().add(GasCosts.storageCostOf(gasConsumedForPenalty));
 	}
 }

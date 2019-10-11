@@ -1,6 +1,7 @@
 package takamaka.blockchain;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 
 import takamaka.lang.Immutable;
 
@@ -43,4 +44,12 @@ public abstract class TransactionReference implements Serializable, Comparable<T
 	 *         refers to the first transaction in blockchain
 	 */
 	public abstract TransactionReference getPrevious();
+
+	/**
+	 * Yields a measure of this update, to be used to assess its gas cost
+	 * when stored in blockchain.
+	 * 
+	 * @return the size of this update. This must be positive
+	 */
+	public abstract BigInteger size();
 }

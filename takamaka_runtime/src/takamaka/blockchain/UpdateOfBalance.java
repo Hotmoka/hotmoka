@@ -73,7 +73,7 @@ public final class UpdateOfBalance extends UpdateOfField {
 	}
 
 	@Override
-	public int size() {
-		return 1 + balance.bitLength() / 32;
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.storageCostOf(balance));
 	}
 }

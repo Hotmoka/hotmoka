@@ -1,6 +1,7 @@
 package takamaka.blockchain.types;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.lang.Immutable;
@@ -33,9 +34,9 @@ public interface StorageType extends Serializable {
 	int compareAgainst(StorageType other);
 
 	/**
-	 * The size of this type, in terms of storage gas units consumed if this type must be stored in blockchain.
+	 * The size of this type, in terms of storage gas units consumed if it is stored in blockchain.
 	 * 
 	 * @return the size of this type
 	 */
-	int size();
+	BigInteger size();
 }

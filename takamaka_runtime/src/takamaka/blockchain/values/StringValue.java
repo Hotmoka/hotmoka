@@ -1,6 +1,9 @@
 package takamaka.blockchain.values;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.AbstractBlockchain;
+import takamaka.blockchain.GasCosts;
 import takamaka.lang.Immutable;
 
 /**
@@ -54,5 +57,10 @@ public final class StringValue implements StorageValue {
 			return diff;
 		else
 			return value.compareTo(((StringValue) other).value);
+	}
+
+	@Override
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.storageCostOf(value));
 	}
 }

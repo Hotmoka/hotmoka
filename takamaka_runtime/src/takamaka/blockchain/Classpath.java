@@ -1,6 +1,7 @@
 package takamaka.blockchain;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 
 import takamaka.lang.Immutable;
 
@@ -47,5 +48,14 @@ public final class Classpath implements Serializable {
 	@Override
 	public int hashCode() {
 		return transaction.hashCode();
+	}
+
+	/**
+	 * The size of this classpath, in terms of storage gas units consumed if it is stored in blockchain.
+	 * 
+	 * @return the size
+	 */
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT).add(transaction.size());
 	}
 }

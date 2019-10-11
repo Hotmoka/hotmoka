@@ -1,6 +1,9 @@
 package takamaka.blockchain.types;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.AbstractBlockchain;
+import takamaka.blockchain.GasCosts;
 import takamaka.lang.Immutable;
 
 /**
@@ -47,7 +50,7 @@ public enum BasicTypes implements StorageType {
 	}
 
 	@Override
-	public int size() {
-		return 1;
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT;
 	}
 }

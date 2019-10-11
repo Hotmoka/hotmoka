@@ -1,7 +1,10 @@
 package takamaka.blockchain.values;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.DeserializationError;
+import takamaka.blockchain.GasCosts;
 import takamaka.lang.Immutable;
 
 /**
@@ -71,5 +74,10 @@ public final class EnumValue implements StorageValue {
 			return diff;
 		else
 			return name.compareTo(((EnumValue) other).name);
+	}
+
+	@Override
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.storageCostOf(enumClassName)).add(GasCosts.storageCostOf(name));
 	}
 }

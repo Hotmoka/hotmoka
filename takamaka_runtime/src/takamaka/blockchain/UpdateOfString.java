@@ -1,5 +1,7 @@
 package takamaka.blockchain;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
@@ -76,7 +78,7 @@ public final class UpdateOfString extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public int size() {
-		return super.size() + 1 + value.length() / 4;
+	public BigInteger size() {
+		return super.size().add(GasCosts.storageCostOf(value));
 	}
 }

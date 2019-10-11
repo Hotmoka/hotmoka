@@ -1,5 +1,7 @@
 package takamaka.blockchain;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
 import takamaka.lang.Immutable;
@@ -43,5 +45,10 @@ public abstract class MethodSignature extends CodeSignature {
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ methodName.hashCode();
+	}
+
+	@Override
+	public BigInteger size() {
+		return super.size().add(GasCosts.storageCostOf(methodName));
 	}
 }

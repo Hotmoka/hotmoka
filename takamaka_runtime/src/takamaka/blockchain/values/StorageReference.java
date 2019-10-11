@@ -3,6 +3,7 @@ package takamaka.blockchain.values;
 import java.math.BigInteger;
 
 import takamaka.blockchain.AbstractBlockchain;
+import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.TransactionReference;
 import takamaka.lang.Immutable;
 import takamaka.lang.Storage;
@@ -76,4 +77,9 @@ public abstract class StorageReference implements StorageValue {
 	 * @return the name
 	 */
 	public abstract String getClassName(AbstractBlockchain blockchain);
+
+	@Override
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.storageCostOf(progressive));
+	}
 }

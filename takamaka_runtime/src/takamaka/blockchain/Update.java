@@ -1,6 +1,7 @@
 package takamaka.blockchain;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 
 import takamaka.blockchain.values.StorageReference;
 import takamaka.lang.Immutable;
@@ -79,10 +80,12 @@ public abstract class Update implements Serializable, Comparable<Update> {
 	}
 
 	/**
-	 * Yields a measure of this update, to be used to weigh its gas cost
+	 * Yields a measure of this update, to be used to assess its gas cost
 	 * when stored in blockchain.
 	 * 
 	 * @return the size of this update. This must be positive
 	 */
-	public abstract int size();
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(object.size());
+	};
 }

@@ -3,6 +3,7 @@ package takamaka.blockchain.response;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 
+import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.Update;
 import takamaka.lang.Immutable;
 
@@ -73,5 +74,11 @@ public abstract class MethodCallTransactionResponse implements TransactionRespon
 	@Override
 	public BigInteger gasConsumedForStorage() {
 		return gasConsumedForStorage;
+	}
+
+	@Override
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.storageCostOf(gasConsumedForCPU)).add(GasCosts.storageCostOf(gasConsumedForRAM)).add(GasCosts.storageCostOf(gasConsumedForStorage))
+			.add(getUpdates().map(Update::size).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 }

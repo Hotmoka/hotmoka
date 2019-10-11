@@ -4,6 +4,7 @@ import java.math.BigInteger;
 
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
+import takamaka.blockchain.UpdateOfBalance;
 import takamaka.lang.Immutable;
 
 /**
@@ -43,5 +44,17 @@ public class GameteCreationTransactionRequest implements TransactionRequest {
         return getClass().getSimpleName() + ":\n"
         	+ "  class path: " + classpath + "\n"
         	+ "  initialAmount: " + initialAmount;
+	}
+
+	@Override
+	public BigInteger size() {
+		// this request is for a free transaction, at initialization of the blockchain
+		return BigInteger.ZERO;
+	}
+
+	@Override
+	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure) {
+		// this request is for a free transaction, at initialization of the blockchain
+		return true;
 	}
 }

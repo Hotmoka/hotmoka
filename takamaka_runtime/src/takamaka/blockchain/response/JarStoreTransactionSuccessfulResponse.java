@@ -1,9 +1,9 @@
 package takamaka.blockchain.response;
 
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
-import takamaka.blockchain.Update;
+import takamaka.blockchain.GasCosts;
+import takamaka.blockchain.UpdateOfBalance;
 import takamaka.lang.Immutable;
 
 /**
@@ -23,12 +23,13 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	 * Builds the transaction response.
 	 * 
 	 * @param instrumentedJar the bytes of the jar to install, instrumented
-	 * @param updates the updates resulting from the execution of the transaction
+	 * @param callerBalanceUpdate the update of balance of the caller of the transaction, for paying for the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForStorage) {
-		super(updates, gasConsumedForCPU, gasConsumedForStorage);
+	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, UpdateOfBalance callerBalanceUpdate, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		super(callerBalanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.instrumentedJar = instrumentedJar.clone();
 	}
@@ -45,5 +46,10 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
             sb.append(String.format("%02x", b));
 
         return super.toString() + "\n  instrumented jar: " + sb.toString();
+	}
+
+	@Override
+	public BigInteger size() {
+		return super.size().add(GasCosts.storageCostForInstalling(instrumentedJar));
 	}
 }

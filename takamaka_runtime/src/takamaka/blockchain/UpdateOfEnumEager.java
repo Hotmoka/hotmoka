@@ -1,5 +1,7 @@
 package takamaka.blockchain;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.values.EnumValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
@@ -87,7 +89,7 @@ public final class UpdateOfEnumEager extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public int size() {
-		return super.size() + 1 + enumClassName.length() / 4 + 1 + name.length() / 4;
+	public BigInteger size() {
+		return super.size().add(GasCosts.storageCostOf(enumClassName)).add(GasCosts.storageCostOf(name));
 	}
 }

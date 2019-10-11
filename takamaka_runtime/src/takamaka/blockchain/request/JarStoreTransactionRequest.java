@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import takamaka.blockchain.Classpath;
+import takamaka.blockchain.GasCosts;
+import takamaka.blockchain.UpdateOfBalance;
+import takamaka.blockchain.response.JarStoreTransactionFailedResponse;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.lang.Immutable;
 
@@ -98,5 +101,19 @@ public class JarStoreTransactionRequest implements TransactionRequest, AbstractJ
         	+ "  class path: " + classpath + "\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb.toString();
+	}
+
+	@Override
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT)
+			.add(caller.size()).add(GasCosts.storageCostOf(gas)).add(classpath.size())
+			.add(getDependencies().map(Classpath::size).reduce(BigInteger.ZERO, BigInteger::add))
+			.add(GasCosts.storageCostForInstalling(jar));
+	}
+
+	@Override
+	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure) {
+		// we create a response whose size over-approximates that of a response in case of failure of this request
+		return gas.compareTo(GasCosts.BASE_CPU_TRANSACTION_COST.add(size()).add(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size())) >= 0;
 	}
 }

@@ -1,6 +1,7 @@
 package takamaka.blockchain;
 
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -109,7 +110,7 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	 * 
 	 * @return the size
 	 */
-	public int size() {
-		return 3 + name.length() / 4 + definingClass.name.length() / 4 + type.size();
+	public BigInteger size() {
+		return GasCosts.STORAGE_COST_PER_SLOT.add(definingClass.size()).add(GasCosts.storageCostOf(name)).add(type.size());
 	}
 }

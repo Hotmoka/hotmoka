@@ -989,7 +989,7 @@ class ClassInstrumentation {
 
 			InstructionHandle cursor = dominator;
 			do {
-				cost += GasCosts.costOf(cursor.getInstruction());
+				cost += GasCosts.cpuCostOf(cursor.getInstruction());
 				cursor = cursor.getNext();
 			} while (cursor != null && !dominators.contains(cursor));
 

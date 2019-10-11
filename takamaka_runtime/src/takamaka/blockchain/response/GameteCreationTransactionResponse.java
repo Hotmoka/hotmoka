@@ -1,5 +1,6 @@
 package takamaka.blockchain.response;
 
+import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,11 +37,7 @@ public class GameteCreationTransactionResponse implements TransactionResponse, T
 		this.gamete = gamete;
 	}
 
-	/**
-	 * Yields the updates induced by the execution of this trsnaction.
-	 * 
-	 * @return the updates
-	 */
+	@Override
 	public final Stream<Update> getUpdates() {
 		return Stream.of(updates);
 	}
@@ -50,5 +47,11 @@ public class GameteCreationTransactionResponse implements TransactionResponse, T
         return getClass().getSimpleName() + ":\n"
         	+ "  gamete: " + gamete + "\n"
        		+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
+	}
+
+	//TODO @Override
+	public BigInteger size() {
+		// this response is for a free transaction, at initialization of the blockchain
+		return BigInteger.ZERO;
 	}
 }

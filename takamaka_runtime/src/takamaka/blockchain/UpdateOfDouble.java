@@ -1,5 +1,7 @@
 package takamaka.blockchain;
 
+import java.math.BigInteger;
+
 import takamaka.blockchain.values.DoubleValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
@@ -68,7 +70,7 @@ public final class UpdateOfDouble extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public int size() {
-		return 1 + super.size();
+	public BigInteger size() {
+		return super.size().add(GasCosts.STORAGE_COST_PER_SLOT);
 	}
 }

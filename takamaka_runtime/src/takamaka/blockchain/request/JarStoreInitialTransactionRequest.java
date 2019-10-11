@@ -1,10 +1,12 @@
 package takamaka.blockchain.request;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.InitialTransactionRequest;
+import takamaka.blockchain.UpdateOfBalance;
 import takamaka.lang.Immutable;
 
 /**
@@ -64,5 +66,17 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
         return getClass().getSimpleName() + ":\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb.toString();
+	}
+
+	@Override
+	public BigInteger size() {
+		// this request is for a free transaction, at initialization of the blockchain
+		return BigInteger.ZERO;
+	}
+
+	@Override
+	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure) {
+		// this request is for a free transaction, at initialization of the blockchain
+		return true;
 	}
 }

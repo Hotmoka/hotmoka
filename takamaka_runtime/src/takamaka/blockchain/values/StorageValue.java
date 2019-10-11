@@ -61,4 +61,11 @@ public interface StorageValue extends Serializable, Comparable<StorageValue> {
 		else
 			throw new IllegalArgumentException("Unserializable object " + object);
 	}
+
+	/**
+	 * The size of this value, in terms of storage gas units consumed if it is stored in blockchain.
+	 * 
+	 * @return the size
+	 */
+	BigInteger size();
 }
