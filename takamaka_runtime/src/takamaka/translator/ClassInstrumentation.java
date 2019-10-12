@@ -8,7 +8,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +37,7 @@ import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.ANEWARRAY;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
@@ -63,7 +63,10 @@ import org.apache.bcel.generic.InstructionTargeter;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.LocalVariableInstruction;
+import org.apache.bcel.generic.MULTIANEWARRAY;
 import org.apache.bcel.generic.MethodGen;
+import org.apache.bcel.generic.NEW;
+import org.apache.bcel.generic.NEWARRAY;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.RET;
@@ -952,10 +955,45 @@ class ClassInstrumentation {
 		 * @param method the method that gets instrumented
 		 */
 		private void addGasUpdates(MethodGen method) {
-			SortedSet<InstructionHandle> dominators = computeDominators(method);
-			InstructionList il = method.getInstructionList();
-			CodeExceptionGen[] ceg = method.getExceptionHandlers();
-			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
+			if (!method.isAbstract()) {
+				SortedSet<InstructionHandle> dominators = computeDominators(method);
+				InstructionList il = method.getInstructionList();
+				CodeExceptionGen[] ceg = method.getExceptionHandlers();
+				dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
+				StreamSupport.stream(il.spliterator(), false).forEachOrdered(ih -> addRamGasUpdate(ih, il, ceg));			
+			}
+		}
+
+		private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) {
+			Instruction bytecode = ih.getInstruction();
+			if (bytecode instanceof NEW) {
+				NEW _new = (NEW) bytecode;
+				ObjectType createdClass = _new.getLoadClassType(cpg);
+				long size = numberOfInstanceFieldsOf(createdClass) * GasCosts.RAM_COST_PER_FIELD;
+				InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
+				il.insert(ih, chargeCall(size, "chargeForRAM"));
+				il.redirectBranches(ih, newTarget);
+				il.redirectExceptionHandlers(ceg, ih, newTarget);
+			}
+			else if (bytecode instanceof NEWARRAY || bytecode instanceof ANEWARRAY) {
+				InstructionHandle newTarget = il.insert(ih, InstructionConst.DUP);
+				il.insert(ih, factory.createInvoke(TAKAMAKA_CLASS_NAME, "chargeForRAMForArrayOfLength", Type.VOID, ONE_INT_ARGS, Const.INVOKESTATIC));
+				il.redirectBranches(ih, newTarget);
+				il.redirectExceptionHandlers(ceg, ih, newTarget);
+			}
+			else if (bytecode instanceof MULTIANEWARRAY) {
+				
+			}
+		}
+
+		private long numberOfInstanceFieldsOf(ObjectType type) {
+			return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+				long size = 0L;
+				for (Class<?> clazz = classLoader.loadClass(type.getClassName()); clazz != Object.class; clazz = clazz.getSuperclass())
+					size += Stream.of(clazz.getDeclaredFields()).filter(field -> !Modifier.isStatic(field.getModifiers())).count();
+
+				return size;
+			});
 		}
 
 		private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators) {
@@ -966,21 +1004,25 @@ class ClassInstrumentation {
 			if (cost <= Takamaka.MAX_COMPACT)
 				newTarget = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
 			else {
-				InstructionHandle pushCost;
-				// we determine if we can use an integer or we need a long (highly unlikely...)
-				if (cost < Integer.MAX_VALUE)
-					pushCost = il.insert(dominator, factory.createConstant((int) cost));
-				else
-					pushCost = il.insert(dominator, factory.createConstant(cost));
+				newTarget = il.insert(dominator, createConstantPusher(cost));
 
-				newTarget = pushCost;
-
-				il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge", Type.VOID,
-						cost < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC));
+				il.insert(dominator, chargeCall(cost, "charge"));
 			}
 
 			il.redirectBranches(dominator, newTarget);
 			il.redirectExceptionHandlers(ceg, dominator, newTarget);
+		}
+
+		private InvokeInstruction chargeCall(long value, String name) {
+			return factory.createInvoke(TAKAMAKA_CLASS_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
+		}
+
+		private Instruction createConstantPusher(long value) {
+			// we determine if we can use an integer or we need a long (highly unlikely...)
+			if (value < Integer.MAX_VALUE)
+				return factory.createConstant((int) value);
+			else
+				return factory.createConstant(value);
 		}
 
 		private long cpuCostOf(InstructionHandle dominator, SortedSet<InstructionHandle> dominators) {
@@ -1004,12 +1046,9 @@ class ClassInstrumentation {
 		 * @return the set of dominators, ordered in increasing position
 		 */
 		private SortedSet<InstructionHandle> computeDominators(MethodGen method) {
-			if (!method.isAbstract())
-				return StreamSupport.stream(method.getInstructionList().spliterator(), false).filter(this::isDominator)
-						.collect(Collectors.toCollection(() -> new TreeSet<InstructionHandle>(
-								Comparator.comparing(InstructionHandle::getPosition))));
-			else
-				return Collections.emptySortedSet();
+			return StreamSupport.stream(method.getInstructionList().spliterator(), false).filter(this::isDominator)
+					.collect(Collectors.toCollection(() -> new TreeSet<InstructionHandle>(
+							Comparator.comparing(InstructionHandle::getPosition))));
 		}
 
 		private boolean isDominator(InstructionHandle ih) {

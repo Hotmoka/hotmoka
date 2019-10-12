@@ -420,6 +420,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
+			// we do not count gas for this transaction
+			initTransaction(BigInteger.valueOf(-1L), previous);
+
 			if (previous == null) {
 				// this is the first transaction of this blockchain
 				if (request.getNumberOfDependencies() > 0)
@@ -432,9 +435,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 				else if (request.getDependencies().map(dependency -> dependency.transaction).anyMatch(previous::isOlderThan))
 					throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
 			}
-
-			// we do not count gas for this transaction
-			initTransaction(BigInteger.valueOf(-1L), previous);
 
 			// we transform the array of bytes into a real jar file
 			Path original = Files.createTempFile("original", ".jar");
@@ -468,6 +468,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
+			// we do not count gas for this creation
+			initTransaction(BigInteger.valueOf(-1L), previous);
+
 			TransactionRequest previousRequest = getRequestAt(previous);
 			if (!(previousRequest instanceof InitialTransactionRequest))
 				throw new IllegalTransactionRequestException("This blockchain is already initialized");
@@ -476,8 +479,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
-				// we do not count gas for this creation
-				initTransaction(BigInteger.valueOf(-1L), previous);
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 				Storage gamete = (Storage) classLoader.externallyOwnedAccount.newInstance();
 				// we set the balance field of the gamete
@@ -501,8 +502,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
+			initTransaction(request.gas, previous);
+
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
-				initTransaction(request.gas, previous);
 				Storage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 
@@ -581,8 +583,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
+			initTransaction(request.gas, previous);
+
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
-				initTransaction(request.gas, previous);
 				Storage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
@@ -647,8 +650,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
+			initTransaction(request.gas, previous);
+
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
-				initTransaction(request.gas, previous);
 				Storage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
@@ -729,8 +733,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	@Override
 	public final MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
+			initTransaction(request.gas, previous);
+
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
-				initTransaction(request.gas, previous);
 				Storage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				

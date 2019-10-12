@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import takamaka.blockchain.AbstractBlockchain;
+import takamaka.blockchain.GasCosts;
 import takamaka.whitelisted.WhiteListed;
 import takamaka.whitelisted.WhiteListingProofObligation;
 
@@ -246,51 +247,35 @@ public abstract class Takamaka {
 	}
 
 	/**
-	 * Charges the given amount of gas for CPU usage and for RAM usage for the current blockchain.
+	 * Charges the given amount of gas for RAM usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 * 
-	 * @param cpu the amount of gas to consume for CPU usage
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
-	public static void charge(long cpu, int ram) {
-		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+	public static void chargeForRAM(long ram) {
 		blockchain.chargeForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
-	 * Charges the given amount of gas for CPU usage and for RAM usage for the current blockchain.
+	 * Charges the given amount of gas for RAM usage for the current blockchain.
 	 * This method is used by the instrumented bytecode.
 	 * 
-	 * @param cpu the amount of gas to consume for CPU usage
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
-	public static void charge(long cpu, long ram) {
-		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+	public static void chargeForRAM(int ram) {
 		blockchain.chargeForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
-	 * Charges the given amount of gas for CPU usage and for RAM usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
+	 * Charges the amount of gas for RAM usage for the current blockchain,
+	 * needed to allocate an array of the given length.
 	 * 
-	 * @param cpu the amount of gas to consume for CPU usage
-	 * @param ram the amount of gas to consume for RAM consumption
+	 * @param length the length of the array
 	 */
-	public static void charge(int cpu, int ram) {
-		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
-		blockchain.chargeForRAM(BigInteger.valueOf(ram));
-	}
-
-	/**
-	 * Charges the given amount of gas for CPU usage and for RAM usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
-	 * 
-	 * @param cpu the amount of gas to consume for CPU usage
-	 * @param ram the amount of gas to consume for RAM consumption
-	 */
-	public static void charge(int cpu, long ram) {
-		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
-		blockchain.chargeForRAM(BigInteger.valueOf(ram));
+	public static void chargeForRAMForArrayOfLength(int length) {
+		// if the array has negative length, its creation will fail
+		if (length >= 0)
+			chargeForRAM(GasCosts.RAM_COST_PER_ARRAY + length * GasCosts.RAM_COST_PER_ARRAY_SLOT);
 	}
 
 	/**

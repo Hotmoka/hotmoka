@@ -25,7 +25,23 @@ public class GasCosts {
 	/**
 	 * The storage cost of a JVM slot for a variable inside a data structure.
 	 */
-	public static final BigInteger STORAGE_COST_PER_SLOT = BigInteger.valueOf(4L);
+	public static final BigInteger STORAGE_COST_PER_SLOT = BigInteger.valueOf(10L);
+
+	/**
+	 * The RAM cost of a single field of an object allocated in memory. This does not consider the
+	 * objects reachable from the field, if any.
+	 */
+	public static final int RAM_COST_PER_FIELD = 4;
+
+	/**
+	 * The RAM cost of a single element of an array.
+	 */
+	public static final int RAM_COST_PER_ARRAY_SLOT = 4;
+
+	/**
+	 * The RAM cost of an array, without considering its elements.
+	 */
+	public static final int RAM_COST_PER_ARRAY = 8;
 
 	/**
 	 * Provides the cost of a given amount of gas.
