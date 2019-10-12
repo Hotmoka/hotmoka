@@ -953,19 +953,18 @@ class ClassInstrumentation {
 		 */
 		private void addGasUpdates(MethodGen method) {
 			SortedSet<InstructionHandle> dominators = computeDominators(method);
-			dominators.stream().forEachOrdered(dominator -> addGasUpdate(dominator, method.getInstructionList(),
-					method.getExceptionHandlers(), dominators));
+			InstructionList il = method.getInstructionList();
+			CodeExceptionGen[] ceg = method.getExceptionHandlers();
+			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
 		}
 
-		private void addGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg,
-				SortedSet<InstructionHandle> dominators) {
-			long cost = gasCostOf(dominator, dominators);
+		private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators) {
+			long cost = cpuCostOf(dominator, dominators);
 			InstructionHandle newTarget;
 
 			// up to this value, there is a special compact method for charging gas
 			if (cost <= Takamaka.MAX_COMPACT)
-				newTarget = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID,
-						Type.NO_ARGS, Const.INVOKESTATIC));
+				newTarget = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
 			else {
 				InstructionHandle pushCost;
 				// we determine if we can use an integer or we need a long (highly unlikely...)
@@ -984,14 +983,15 @@ class ClassInstrumentation {
 			il.redirectExceptionHandlers(ceg, dominator, newTarget);
 		}
 
-		private long gasCostOf(InstructionHandle dominator, SortedSet<InstructionHandle> dominators) {
+		private long cpuCostOf(InstructionHandle dominator, SortedSet<InstructionHandle> dominators) {
 			long cost = 0L;
 
 			InstructionHandle cursor = dominator;
 			do {
 				cost += GasCosts.cpuCostOf(cursor.getInstruction());
 				cursor = cursor.getNext();
-			} while (cursor != null && !dominators.contains(cursor));
+			}
+			while (cursor != null && !dominators.contains(cursor));
 
 			return cost;
 		}

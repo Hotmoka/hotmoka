@@ -2,7 +2,13 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
+import org.apache.bcel.generic.AllocationInstruction;
+import org.apache.bcel.generic.ArithmeticInstruction;
+import org.apache.bcel.generic.ArrayInstruction;
+import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.Instruction;
+import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.Select;
 
 
 /**
@@ -35,10 +41,21 @@ public class GasCosts {
 	 * Yields the gas cost of the execution of the given bytecode instruction.
 	 * 
 	 * @param bytecode the instruction
-	 * @return the cost. This should be below 2 to the power of 47
+	 * @return the cost
 	 */
-	public static long cpuCostOf(Instruction bytecode) {
-		return 1L; //TODO
+	public static int cpuCostOf(Instruction bytecode) {
+		if (bytecode instanceof ArithmeticInstruction)
+			return 2;
+		else if (bytecode instanceof ArrayInstruction || bytecode instanceof FieldInstruction)
+			return 3;
+		else if (bytecode instanceof InvokeInstruction)
+			return 5;
+		else if (bytecode instanceof Select)
+			return 1 + ((Select) bytecode).getMatchs().length / 4;
+		else if (bytecode instanceof AllocationInstruction)
+			return 10;
+		else
+			return 1;
 	}
 
 	/**
