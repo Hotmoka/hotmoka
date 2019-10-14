@@ -252,6 +252,16 @@ public abstract class Takamaka {
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
+	public static void chargeForRAM(BigInteger ram) {
+		blockchain.chargeForRAM(ram);
+	}
+
+	/**
+	 * Charges the given amount of gas for RAM usage for the current blockchain.
+	 * This method is used by the instrumented bytecode.
+	 * 
+	 * @param ram the amount of gas to consume for RAM consumption
+	 */
 	public static void chargeForRAM(long ram) {
 		blockchain.chargeForRAM(BigInteger.valueOf(ram));
 	}
@@ -275,7 +285,8 @@ public abstract class Takamaka {
 	public static void chargeForRAMForArrayOfLength(int length) {
 		// if the array has negative length, its creation will fail
 		if (length >= 0)
-			chargeForRAM(GasCosts.RAM_COST_PER_ARRAY + length * GasCosts.RAM_COST_PER_ARRAY_SLOT);
+			// we convert into long to avoid overflow
+			chargeForRAM(GasCosts.RAM_COST_PER_ARRAY + length * (long) GasCosts.RAM_COST_PER_ARRAY_SLOT);
 	}
 
 	/**

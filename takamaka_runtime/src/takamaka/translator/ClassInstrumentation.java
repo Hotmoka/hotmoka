@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -104,6 +105,7 @@ class ClassInstrumentation {
 	private final static String SETTER_PREFIX = "§set_";
 	private final static String EXTRA_LAMBDA_NAME = "lambda";
 	private final static String EXTRA_VERIFIER_NAME = "verifier";
+	private final static String EXTRA_ALLOCATOR_NAME = "multianewarray";
 	private final static String EXTRACT_UPDATES = "extractUpdates";
 	private final static String RECURSIVE_EXTRACT = "recursiveExtract";
 	private final static String ADD_UPDATE_FOR = "addUpdateFor";
@@ -130,6 +132,7 @@ class ClassInstrumentation {
 			.thenComparing(field -> field.getType().toString());
 
 	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
+	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static ObjectType ENUM_OT = new ObjectType(Enum.class.getName());
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
 	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
@@ -141,6 +144,7 @@ class ClassInstrumentation {
 	private final static Type[] ENTRY_ARGS = { CONTRACT_OT };
 	private final static Type[] ONE_INT_ARGS = { Type.INT };
 	private final static Type[] ONE_LONG_ARGS = { Type.LONG };
+	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };
 	private final static Type[] TWO_OBJECTS_ARGS = { Type.OBJECT, Type.OBJECT };
 
 	/**
@@ -982,7 +986,62 @@ class ClassInstrumentation {
 				il.redirectExceptionHandlers(ceg, ih, newTarget);
 			}
 			else if (bytecode instanceof MULTIANEWARRAY) {
-				
+				MULTIANEWARRAY multianewarray = (MULTIANEWARRAY) bytecode;
+				Type createdType = multianewarray.getType(cpg);
+				// this bytecode might only create some dimensions of the created array type 
+				int createdDimensions = multianewarray.getDimensions();
+				//TODO exception if createdDimensions <= 0 ?
+				Type[] args = IntStream.range(0, createdDimensions)
+					.mapToObj(dim -> Type.INT)
+					.toArray(Type[]::new);
+				String allocatorName = getNewNameForPrivateMethod(EXTRA_ALLOCATOR_NAME);
+				InstructionList allocatorIl = new InstructionList();
+				IntStream.range(0, createdDimensions)
+					.mapToObj(dim -> InstructionFactory.createLoad(Type.INT, dim))
+					.forEach(allocatorIl::append);
+
+				// the allocation is moved into the allocator method
+				allocatorIl.append(multianewarray);
+				allocatorIl.append(InstructionConst.ARETURN);
+
+				// this is where to jump to create the array
+				InstructionHandle creation = allocatorIl.getStart();
+
+				// where to jump if a dimension is negative: of course this will lead to a run-time exception
+				// since dimensions of multianewarray must be non-negative
+				InstructionHandle fallBack = allocatorIl.insert(InstructionConst.POP2);
+
+				String bigInteger = BigInteger.class.getName();
+				InvokeInstruction valueOf = factory.createInvoke(bigInteger, "valueOf", BIGINTEGER_OT, ONE_LONG_ARGS, Const.INVOKESTATIC);
+				InvokeInstruction multiply = factory.createInvoke(bigInteger, "multiply", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
+
+				// we multiply the number of elements for the RAM cost of a single element
+				allocatorIl.insert(fallBack, factory.createConstant((long) GasCosts.RAM_COST_PER_ARRAY_SLOT));
+				allocatorIl.insert(fallBack, valueOf);	
+
+				// we multiply all dimensions, computing over BigInteger, to infer the number of elements that get created
+				IntStream.range(0, createdDimensions).forEach(dimension -> {
+					allocatorIl.insert(fallBack, InstructionFactory.createLoad(Type.INT, dimension));
+					allocatorIl.insert(fallBack, InstructionConst.DUP);
+					allocatorIl.insert(fallBack, InstructionFactory.createBranchInstruction(Const.IFLT, fallBack));
+					allocatorIl.insert(fallBack, InstructionConst.I2L);
+					allocatorIl.insert(fallBack, valueOf);
+					allocatorIl.insert(fallBack, multiply);
+				});
+
+				allocatorIl.insert(fallBack, factory.createInvoke(TAKAMAKA_CLASS_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
+				allocatorIl.insert(fallBack, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
+
+				MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
+
+				allocatorIl.setPositions();
+				allocator.setMaxLocals();
+				allocator.setMaxStack();
+				StackMapReplacer.replace(allocator);
+				classGen.addMethod(allocator.getMethod());
+
+				// the original multianewarray gets replaced with a call to the allocation method
+				ih.setInstruction(factory.createInvoke(className, allocatorName, createdType, args, Const.INVOKESTATIC));
 			}
 		}
 
@@ -1405,8 +1464,7 @@ class ClassInstrumentation {
 			if (!method.isAbstract()) {
 				InstructionList il = method.getInstructionList();
 				StreamSupport.stream(il.spliterator(), false).filter(this::isAccessToLazilyLoadedFieldInStorageClass)
-						.forEach(ih -> ih
-								.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
+						.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
 			}
 		}
 
@@ -1488,8 +1546,7 @@ class ClassInstrumentation {
 			for (Field field : lazyNonTransientInstanceFields)
 				end = addUpdateExtractionForLazyField(field, il, end);
 
-			MethodGen extractUpdates = new MethodGen(PROTECTED_SYNTHETIC, Type.VOID, EXTRACT_UPDATES_ARGS, null,
-					EXTRACT_UPDATES, className, il, cpg);
+			MethodGen extractUpdates = new MethodGen(PROTECTED_SYNTHETIC, Type.VOID, EXTRACT_UPDATES_ARGS, null, EXTRACT_UPDATES, className, il, cpg);
 			il.setPositions();
 			extractUpdates.setMaxLocals();
 			extractUpdates.setMaxStack();

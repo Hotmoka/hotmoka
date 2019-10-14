@@ -14,6 +14,10 @@ public class Allocations extends Storage {
 		int[] a2 = new int[f];
 		Allocations[][][][] a3 = new Allocations[f][f][f + 2][f * 3];
 		Allocations[][][][] a4 = new Allocations[f][f][][];
+		int[][][][] a5 = new int[f][f][f + 2][f * 3];
+		int[][][][] a6 = new int[f][f][][];
+		a5[1][2][3][4] = 15;
+		a6[1][2] = null;
 		this.f = a1.length + a2.length + a3.length + a4.length;
 	}
 
