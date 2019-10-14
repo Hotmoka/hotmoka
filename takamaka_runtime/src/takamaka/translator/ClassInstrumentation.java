@@ -1007,30 +1007,62 @@ class ClassInstrumentation {
 				// this is where to jump to create the array
 				InstructionHandle creation = allocatorIl.getStart();
 
-				// where to jump if a dimension is negative: of course this will lead to a run-time exception
+				// where to jump if the last dimension is negative: of course this will lead to a run-time exception
 				// since dimensions of multianewarray must be non-negative
 				InstructionHandle fallBack = allocatorIl.insert(InstructionConst.POP2);
+
+				// where to jump if a dimension is negative: of course this will lead to a run-time exception
+				// since dimensions of multianewarray must be non-negative
+				InstructionHandle fallBack2 = allocatorIl.insert(InstructionConst.POP);
 
 				String bigInteger = BigInteger.class.getName();
 				InvokeInstruction valueOf = factory.createInvoke(bigInteger, "valueOf", BIGINTEGER_OT, ONE_LONG_ARGS, Const.INVOKESTATIC);
 				InvokeInstruction multiply = factory.createInvoke(bigInteger, "multiply", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
+				InvokeInstruction add = factory.createInvoke(bigInteger, "add", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
 
-				// we multiply the number of elements for the RAM cost of a single element
-				allocatorIl.insert(fallBack, factory.createConstant((long) GasCosts.RAM_COST_PER_ARRAY_SLOT));
-				allocatorIl.insert(fallBack, valueOf);	
+				// we start from 1
+				allocatorIl.insert(fallBack2, factory.createGetStatic(bigInteger, "ONE", BIGINTEGER_OT));
 
-				// we multiply all dimensions, computing over BigInteger, to infer the number of elements that get created
-				IntStream.range(0, createdDimensions).forEach(dimension -> {
-					allocatorIl.insert(fallBack, InstructionFactory.createLoad(Type.INT, dimension));
-					allocatorIl.insert(fallBack, InstructionConst.DUP);
-					allocatorIl.insert(fallBack, InstructionFactory.createBranchInstruction(Const.IFLT, fallBack));
-					allocatorIl.insert(fallBack, InstructionConst.I2L);
-					allocatorIl.insert(fallBack, valueOf);
-					allocatorIl.insert(fallBack, multiply);
+				// we multiply all dimensions but one, computing over BigInteger, to infer the number of arrays that get created
+				IntStream.range(0, createdDimensions - 1).forEach(dimension -> {
+					allocatorIl.insert(fallBack2, InstructionFactory.createLoad(Type.INT, dimension));
+					allocatorIl.insert(fallBack2, InstructionConst.DUP);
+					allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.IFLT, fallBack));
+					allocatorIl.insert(fallBack2, InstructionConst.I2L);
+					allocatorIl.insert(fallBack2, valueOf);
+					allocatorIl.insert(fallBack2, multiply);
 				});
 
-				allocatorIl.insert(fallBack, factory.createInvoke(TAKAMAKA_CLASS_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
-				allocatorIl.insert(fallBack, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
+				// the number of arrays is duplicated and left below the stack, adding a unit for the main array
+				// and multiplying for the cost of a single array
+				allocatorIl.insert(fallBack2, InstructionConst.DUP);
+				allocatorIl.insert(fallBack2, factory.createGetStatic(bigInteger, "ONE", BIGINTEGER_OT));
+				allocatorIl.insert(fallBack2, add);
+				allocatorIl.insert(fallBack2, factory.createConstant((long) GasCosts.RAM_COST_PER_ARRAY));
+				allocatorIl.insert(fallBack2, valueOf);	
+				allocatorIl.insert(fallBack2, multiply);
+				allocatorIl.insert(fallBack2, InstructionConst.SWAP);
+
+				// the last dimension is computed apart, since it contributes to the elements only,
+				// but not to the number of created arrays
+				allocatorIl.insert(fallBack2, InstructionFactory.createLoad(Type.INT, createdDimensions - 1));
+				allocatorIl.insert(fallBack2, InstructionConst.DUP);
+				allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.IFLT, fallBack2));
+				allocatorIl.insert(fallBack2, InstructionConst.I2L);
+				allocatorIl.insert(fallBack2, valueOf);
+				allocatorIl.insert(fallBack2, multiply);
+
+				// we multiply the number of elements for the RAM cost of a single element
+				allocatorIl.insert(fallBack2, factory.createConstant((long) GasCosts.RAM_COST_PER_ARRAY_SLOT));
+				allocatorIl.insert(fallBack2, valueOf);	
+				allocatorIl.insert(fallBack2, multiply);
+
+				// we add the cost of the arrays
+				allocatorIl.insert(fallBack2, add);
+
+				// we charge the gas
+				allocatorIl.insert(fallBack2, factory.createInvoke(TAKAMAKA_CLASS_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
+				allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
 				MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
 
