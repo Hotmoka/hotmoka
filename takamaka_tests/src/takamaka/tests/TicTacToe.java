@@ -42,7 +42,7 @@ class TicTacToe extends TakamakaTest {
 
 	private static final ConstructorSignature CONSTRUCTOR_TIC_TAC_TOE = new ConstructorSignature(TIC_TAC_TOE);
 
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -81,7 +81,7 @@ class TicTacToe extends TakamakaTest {
 			_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L), BigInteger.valueOf(1_000_000L));
 
 		TransactionReference tictactoe = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(0), _200_000, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/tictactoe.jar")), blockchain.takamakaBase));
 
 		classpath = new Classpath(tictactoe, true);
@@ -93,16 +93,16 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("new TicTacToe()")
 	void createTicTacToe() throws TransactionException, CodeExecutionException {
 		blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _200_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 	}
 
 	@Test @DisplayName("new TicTacToe() then first player plays")
 	void crossPlays() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _200_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -110,7 +110,7 @@ class TicTacToe extends TakamakaTest {
 			_1, _1));
 		StringValue toString = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
 			ticTacToe));
@@ -121,10 +121,10 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("new TicTacToe(), first player plays, second player plays same position")
 	void bothPlaySamePosition() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _200_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -134,7 +134,7 @@ class TicTacToe extends TakamakaTest {
 		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2,
-				_20_000,
+				_200_000,
 				classpath,
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
@@ -146,10 +146,10 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("new TicTacToe(), same player plays twice")
 	void samePlayerPlaysTwice() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _200_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -159,7 +159,7 @@ class TicTacToe extends TakamakaTest {
 		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player1,
-				_20_000,
+				_200_000,
 				classpath,
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
@@ -171,10 +171,10 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("new TicTacToe(), second player bets too little")
 	void circleBetsTooLittle() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _200_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1,
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -184,7 +184,7 @@ class TicTacToe extends TakamakaTest {
 		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2,
-				_20_000,
+				_200_000,
 				classpath,
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
@@ -196,10 +196,10 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("first player wins")
 	void crossWins() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _200_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -207,7 +207,7 @@ class TicTacToe extends TakamakaTest {
 			_1, _1));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player2,
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -215,7 +215,7 @@ class TicTacToe extends TakamakaTest {
 			_2, _1));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -223,7 +223,7 @@ class TicTacToe extends TakamakaTest {
 			_1, _2));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player2,
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -231,7 +231,7 @@ class TicTacToe extends TakamakaTest {
 			_2, _2));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -240,7 +240,7 @@ class TicTacToe extends TakamakaTest {
 
 		StringValue toString = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
 			ticTacToe));
@@ -252,10 +252,10 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("first player wins but second continues to play")
 	void crossWinsButCircleContinues() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(creator, _20_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
+			(new ConstructorCallTransactionRequest(creator, _200_000, classpath, CONSTRUCTOR_TIC_TAC_TOE));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -263,7 +263,7 @@ class TicTacToe extends TakamakaTest {
 			_1, _1));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player2,
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -271,7 +271,7 @@ class TicTacToe extends TakamakaTest {
 			_2, _1));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -279,7 +279,7 @@ class TicTacToe extends TakamakaTest {
 			_1, _2));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player2,
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -287,7 +287,7 @@ class TicTacToe extends TakamakaTest {
 			_2, _2));
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			player1, 
-			_20_000,
+			_200_000,
 			classpath,
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
@@ -297,7 +297,7 @@ class TicTacToe extends TakamakaTest {
 		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2, 
-				_20_000,
+				_200_000,
 				classpath,
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
