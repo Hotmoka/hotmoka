@@ -1013,6 +1013,8 @@ class ClassInstrumentation {
 
 				// where to jump if a dimension is negative: of course this will lead to a run-time exception
 				// since dimensions of multianewarray must be non-negative
+				allocatorIl.insert(InstructionFactory.createBranchInstruction(Const.GOTO, creation));
+				allocatorIl.insert(InstructionConst.POP2);
 				InstructionHandle fallBack2 = allocatorIl.insert(InstructionConst.POP);
 
 				String bigInteger = BigInteger.class.getName();
