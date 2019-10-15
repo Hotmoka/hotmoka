@@ -44,6 +44,16 @@ public class GasCosts {
 	public static final int RAM_COST_PER_ARRAY = 8;
 
 	/**
+	 * The RAM cost of an activation record, without considering the variables therein.
+	 */
+	public static final long RAM_COST_PER_ACTIVATION_RECORD = 16;
+
+	/**
+	 * The RAM cost of a single variable inside an activation record.
+	 */
+	public static final long RAM_COST_PER_ACTIVATION_SLOT = 4;
+
+	/**
 	 * Provides the cost of a given amount of gas.
 	 * 
 	 * @param gas the amount of gas

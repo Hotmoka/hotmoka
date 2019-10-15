@@ -52,8 +52,10 @@ import org.apache.bcel.generic.GotoInstruction;
 import org.apache.bcel.generic.ICONST;
 import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
+import org.apache.bcel.generic.INVOKEINTERFACE;
 import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.INVOKESTATIC;
+import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
@@ -970,7 +972,24 @@ class ClassInstrumentation {
 
 		private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) {
 			Instruction bytecode = ih.getInstruction();
-			if (bytecode instanceof NEW) {
+
+			if (bytecode instanceof InvokeInstruction) {
+				// we compute an estimation of the size of the activation frame for the callee
+				InvokeInstruction invoke = (InvokeInstruction) bytecode;
+				long size = invoke.getArgumentTypes(cpg).length;
+				if (invoke instanceof INVOKEVIRTUAL || invoke instanceof INVOKESPECIAL || invoke instanceof INVOKEINTERFACE)
+					size++;
+
+				// non risk of overflow, since there are at most 256 arguments in a method
+				size *= GasCosts.RAM_COST_PER_ACTIVATION_SLOT;
+				size += GasCosts.RAM_COST_PER_ACTIVATION_RECORD;
+
+				InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
+				il.insert(ih, chargeCall(size, "chargeForRAM"));
+				il.redirectBranches(ih, newTarget);
+				il.redirectExceptionHandlers(ceg, ih, newTarget);
+			}
+			else if (bytecode instanceof NEW) {
 				NEW _new = (NEW) bytecode;
 				ObjectType createdClass = _new.getLoadClassType(cpg);
 				long size = numberOfInstanceFieldsOf(createdClass) * GasCosts.RAM_COST_PER_FIELD;
