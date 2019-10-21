@@ -157,7 +157,7 @@ public class JarInstrumentation {
 		private Optional<VerifiedClassGen> buildVerifiedClass(JarEntry entry) {
 			try (InputStream input = originalJar.getInputStream(entry)) {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClassGen(new ClassParser(input, entry.getName()).parse(), classLoader, issues::add, duringInitialization));
+				return Optional.of(VerifiedClassGen.of(new ClassParser(input, entry.getName()).parse(), classLoader, issues::add, duringInitialization));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

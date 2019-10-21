@@ -1,15 +1,15 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.internal.checks.onMethods;
 
-import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.IllegalEntryArgumentError;
 import takamaka.verifier.errors.IllegalEntryMethodError;
+import takamaka.verifier.internal.VerifiedClassGenImpl;
 
 /**
  * A check that {@code @@Entry} is applied only to instance methods or constructors of contracts.
  */
-public class EntryCodeIsInstanceAndInContractsCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
+public class EntryCodeIsInstanceAndInContractsCheck extends VerifiedClassGenImpl.Verification.MethodVerification.Check {
 
-	public EntryCodeIsInstanceAndInContractsCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+	public EntryCodeIsInstanceAndInContractsCheck(VerifiedClassGenImpl.Verification.MethodVerification verification) {
 		verification.super();
 
 		classLoader.isEntry(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {

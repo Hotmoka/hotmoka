@@ -1,4 +1,4 @@
-package takamaka.verifier;
+package takamaka.verifier.internal;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
@@ -17,29 +17,23 @@ import org.apache.bcel.generic.ReferenceType;
 
 import takamaka.translator.Dummy;
 import takamaka.translator.IncompleteClasspathError;
+import takamaka.verifier.ClassBootstraps;
 
 /**
- * An object that resolves the targets of calls and field access instructions
- * of a class of Takamaka code.
+ * An utility that implements resolving algorithms for field and methods.
  */
 public class Resolver {
-	private final VerifiedClassGen clazz;
+	private final VerifiedClassGenImpl clazz;
 
 	/**
 	 * Builds the resolver.
 	 * 
 	 * @param clazz the class, the targets of whose instructions will be resolved
 	 */
-	Resolver(VerifiedClassGen clazz) {
+	Resolver(VerifiedClassGenImpl clazz) {
 		this.clazz = clazz;
 	}
 
-	/**
-	 * Yields the resolved target of the given instruction, if it can be identified.
-	 * 
-	 * @param fi the instruction that accesses a field
-	 * @return the resolved target, if any
-	 */
 	public Optional<Field> resolvedFieldFor(FieldInstruction fi) {
 		ConstantPoolGen cpg = clazz.getConstantPool();
 	
@@ -55,16 +49,11 @@ public class Resolver {
 		return Optional.empty();
 	}
 
-	/**
-	 * Yields the resolved target of the given instruction, if it can be identified.
-	 * 
-	 * @param invoke the instruction that calls a method or constructor
-	 * @return the resolved target, if any
-	 */
 	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) {
-		if (invoke instanceof INVOKEDYNAMIC)
-			// invokedynamic can call a target that is an optimized reference to an executable
-			return clazz.getClassBootstraps().getTargetOf(clazz.getClassBootstraps().getBootstrapFor((INVOKEDYNAMIC) invoke));
+		if (invoke instanceof INVOKEDYNAMIC) {
+			ClassBootstraps bootstraps = clazz.getClassBootstraps();
+			return bootstraps.getTargetOf(bootstraps.getBootstrapFor((INVOKEDYNAMIC) invoke));
+		}
 
 		ConstantPoolGen cpg = clazz.getConstantPool();
 		String methodName = invoke.getMethodName(cpg);

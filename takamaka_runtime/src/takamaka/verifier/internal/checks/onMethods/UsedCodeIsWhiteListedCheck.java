@@ -1,4 +1,4 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.internal.checks.onMethods;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
@@ -12,17 +12,17 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.IllegalAccessToNonWhiteListedFieldError;
 import takamaka.verifier.errors.IllegalCallToNonWhiteListedConstructorError;
 import takamaka.verifier.errors.IllegalCallToNonWhiteListedMethodError;
+import takamaka.verifier.internal.VerifiedClassGenImpl;
 
 /**
  * A check that a method calls white-listed methods only and accesses white-listed fields only.
  */
-public class UsedCodeIsWhiteListedCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
+public class UsedCodeIsWhiteListedCheck extends VerifiedClassGenImpl.Verification.MethodVerification.Check {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+	public UsedCodeIsWhiteListedCheck(VerifiedClassGenImpl.Verification.MethodVerification verification) {
 		verification.super();
 
 		instructions().forEach(ih -> {

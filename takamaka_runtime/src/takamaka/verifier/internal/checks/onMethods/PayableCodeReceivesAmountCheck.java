@@ -1,19 +1,19 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.internal.checks.onMethods;
 
 import java.math.BigInteger;
 
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.PayableWithoutAmountError;
+import takamaka.verifier.internal.VerifiedClassGenImpl;
 
 /**
  * A checks that payable methods have an amount first argument.
  */
-public class PayableCodeReceivesAmountCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
+public class PayableCodeReceivesAmountCheck extends VerifiedClassGenImpl.Verification.MethodVerification.Check {
 
-	public PayableCodeReceivesAmountCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+	public PayableCodeReceivesAmountCheck(VerifiedClassGenImpl.Verification.MethodVerification verification) {
 		verification.super();
 
 		if (classLoader.isPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())

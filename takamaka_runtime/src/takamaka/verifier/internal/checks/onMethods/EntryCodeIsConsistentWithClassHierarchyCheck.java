@@ -1,4 +1,4 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.internal.checks.onMethods;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -8,17 +8,17 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 
 import takamaka.translator.IncompleteClasspathError;
-import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.InconsistentEntryError;
+import takamaka.verifier.internal.VerifiedClassGenImpl;
 
 /**
  * A checks that {@code @@Entry} methods only redefine {@code @@Entry} methods and that
  * {@code @@Entry} methods are only redefined by {@code @@Entry} methods. Moreover,
  * the kind of contract allowed in entries can only be enlarged in subclasses.
  */
-public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
+public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGenImpl.Verification.MethodVerification.Check {
 
-	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGenImpl.Verification.MethodVerification verification) {
 		verification.super();
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {

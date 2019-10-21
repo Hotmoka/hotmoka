@@ -540,7 +540,7 @@ class ClassInstrumentation {
 
 			// replacing old with new methods
 			int pos = 0;
-			for (Method processed : processedMethods)
+			for (Method processed: processedMethods)
 				classGen.replaceMethod(methods[pos++], processed);
 		}
 
@@ -773,7 +773,7 @@ class ClassInstrumentation {
 			int[] bootstrapArgs = bootstrap.getBootstrapArguments();
 			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(bootstrapArgs[1]);
 			int invokeKind = mh.getReferenceKind();
-			Executable target = classBootstraps.getTargetOf(classBootstraps.getBootstrapFor(invokedynamic)).get();
+			Executable target = classBootstraps.getTargetOf(bootstrap).get();
 			Class<?> receiverClass = target.getDeclaringClass();
 			if (receiverClass.isArray())
 				receiverClass = Object.class;

@@ -1,14 +1,14 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.internal.checks.onMethods;
 
-import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.ThrowsExceptionsOnNonPublicError;
+import takamaka.verifier.internal.VerifiedClassGenImpl;
 
 /**
  * A checks that {@code @@ThrowsExceptions} methods are public.
  */
-public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
+public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassGenImpl.Verification.MethodVerification.Check {
 
-	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassGenImpl.Verification.MethodVerification verification) {
 		verification.super();
 
 		clazz.getMethodGens()

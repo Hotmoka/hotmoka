@@ -1,4 +1,4 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.internal.checks.onMethods;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -7,15 +7,15 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 
 import takamaka.translator.IncompleteClasspathError;
-import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.IllegalStaticInitializationError;
+import takamaka.verifier.internal.VerifiedClassGenImpl;
 
 /**
  * A check the method is not the static class initializer.
  */
-public class IsNotStaticInitializerCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
+public class IsNotStaticInitializerCheck extends VerifiedClassGenImpl.Verification.MethodVerification.Check {
 
-	public IsNotStaticInitializerCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+	public IsNotStaticInitializerCheck(VerifiedClassGenImpl.Verification.MethodVerification verification) {
 		verification.super();
 
 		if (method.getInstructionList() != null && Const.STATIC_INITIALIZER_NAME.equals(methodName))

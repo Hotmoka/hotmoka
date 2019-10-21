@@ -1,4 +1,4 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.internal.checks.onMethods;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -7,16 +7,16 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 
 import takamaka.translator.IncompleteClasspathError;
-import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.InconsistentThrowsExceptionsError;
+import takamaka.verifier.internal.VerifiedClassGenImpl;
 
 /**
  * A check that {@code @@ThrowsExceptions} methods only redefine {@code @@ThrowsExceptions} methods and that
  * {@code @@ThrowsExceptions} methods are only redefined by {@code @@ThrowsExceptions} methods.
  */
-public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
+public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends VerifiedClassGenImpl.Verification.MethodVerification.Check {
 
-	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassGenImpl.Verification.MethodVerification verification) {
 		verification.super();
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {

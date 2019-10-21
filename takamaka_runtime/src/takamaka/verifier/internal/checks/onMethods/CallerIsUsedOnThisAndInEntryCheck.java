@@ -1,4 +1,4 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.internal.checks.onMethods;
 
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
@@ -8,17 +8,17 @@ import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.CallerNotOnThisError;
 import takamaka.verifier.errors.CallerOutsideEntryError;
+import takamaka.verifier.internal.VerifiedClassGenImpl;
 
 /**
  * A check that {@code caller()} is only used with {@code this} as receiver
  * and inside an {@code @@Entry} method or constructor.
  */
-public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
+public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassGenImpl.Verification.MethodVerification.Check {
 
-	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClassGenImpl.Verification.MethodVerification verification) {
 		verification.super();
 
 		boolean isEntry = classLoader.isEntry(className, methodName, methodArgs, methodReturnType).isPresent();

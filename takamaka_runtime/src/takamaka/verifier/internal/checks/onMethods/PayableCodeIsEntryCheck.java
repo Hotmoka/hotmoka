@@ -1,14 +1,14 @@
-package takamaka.verifier.checks.onMethod;
+package takamaka.verifier.internal.checks.onMethods;
 
-import takamaka.verifier.VerifiedClassGen;
 import takamaka.verifier.errors.PayableWithoutEntryError;
+import takamaka.verifier.internal.VerifiedClassGenImpl;
 
 /**
  * A check that {@code @@Entry} is applied only to instance methods or constructors of contracts.
  */
-public class PayableCodeIsEntryCheck extends VerifiedClassGen.Verification.MethodVerification.Check {
+public class PayableCodeIsEntryCheck extends VerifiedClassGenImpl.Verification.MethodVerification.Check {
 
-	public PayableCodeIsEntryCheck(VerifiedClassGen.Verification.MethodVerification verification) {
+	public PayableCodeIsEntryCheck(VerifiedClassGenImpl.Verification.MethodVerification verification) {
 		verification.super();
 
 		if (classLoader.isPayable(className, methodName, methodArgs, methodReturnType)
