@@ -12,9 +12,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.instrumentation.issues.CallerOutsideEntryError;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
-import takamaka.verifier.errors.CallerOutsideEntryError;
 
 class CallerOutsideEntry extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);

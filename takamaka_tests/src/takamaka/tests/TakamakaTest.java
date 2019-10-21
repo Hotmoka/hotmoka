@@ -3,9 +3,8 @@ package takamaka.tests;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import takamaka.blockchain.TransactionException;
-import takamaka.verifier.Error;
-import takamaka.verifier.Issue;
-import takamaka.verifier.VerificationException;
+import takamaka.instrumentation.VerificationException;
+import takamaka.instrumentation.issues.Issue;
 
 public abstract class TakamakaTest {
 	public interface TestBody {
@@ -37,7 +36,7 @@ public abstract class TakamakaTest {
 		catch (TransactionException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof VerificationException) {
-				Class<? extends Error> actual = ((VerificationException) cause).getError().getClass();
+				Class<? extends takamaka.instrumentation.issues.Error> actual = ((VerificationException) cause).getError().getClass();
 				if (expected.isAssignableFrom(actual))
 					return;
 

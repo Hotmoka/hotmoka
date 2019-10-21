@@ -68,6 +68,10 @@ import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.blockchain.values.StorageValue;
+import takamaka.instrumentation.Dummy;
+import takamaka.instrumentation.JarInstrumentation;
+import takamaka.instrumentation.TakamakaClassLoader;
+import takamaka.instrumentation.VerificationException;
 import takamaka.lang.Event;
 import takamaka.lang.InsufficientFundsError;
 import takamaka.lang.NonWhiteListedCallException;
@@ -76,10 +80,6 @@ import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
 import takamaka.lang.ThrowsExceptions;
 import takamaka.lang.View;
-import takamaka.translator.Dummy;
-import takamaka.translator.JarInstrumentation;
-import takamaka.translator.TakamakaClassLoader;
-import takamaka.verifier.VerificationException;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -447,7 +447,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 				JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader, true);
-				if (instrumentation.verificationFailed())
+				if (instrumentation.hasErrors())
 					throw new VerificationException(instrumentation.getFirstError().get());
 			}
 
@@ -543,7 +543,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 						JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader, false);
-						if (instrumentation.verificationFailed())
+						if (instrumentation.hasErrors())
 							throw new VerificationException(instrumentation.getFirstError().get());
 					}
 

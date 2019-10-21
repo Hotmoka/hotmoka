@@ -15,9 +15,9 @@ import org.junit.jupiter.api.Test;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.instrumentation.issues.IllegalTypeForStorageFieldError;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
-import takamaka.verifier.errors.IllegalTypeForStorageFieldError;
 
 class IllegalTypeForStorageField1 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);

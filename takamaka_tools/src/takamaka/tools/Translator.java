@@ -16,8 +16,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import takamaka.translator.JarInstrumentation;
-import takamaka.translator.TakamakaClassLoader;
+import takamaka.instrumentation.JarInstrumentation;
+import takamaka.instrumentation.TakamakaClassLoader;
 
 /**
  * A simple test to parse, check and instrument a jar. It performs the same tasks that
@@ -54,7 +54,7 @@ public class Translator {
 
 		    	TakamakaClassLoader classLoader = new TakamakaClassLoader(urls.toArray(new URL[urls.size()]));
 		    	JarInstrumentation instrumentation = new JarInstrumentation(origin, destination, classLoader, duringInitialization);
-		    	if (instrumentation.verificationFailed()) {
+		    	if (instrumentation.hasErrors()) {
 		    		System.err.println("Verification failed with the following issues, no instrumented jar was generated:");
 		    		instrumentation.issues().forEach(System.err::println);
 		    	}

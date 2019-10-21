@@ -15,9 +15,9 @@ import org.junit.jupiter.api.Test;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
+import takamaka.instrumentation.issues.IllegalSynchronizationError;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
-import takamaka.verifier.errors.IllegalSynchronizationError;
 
 class IllegalSynchronized2 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
