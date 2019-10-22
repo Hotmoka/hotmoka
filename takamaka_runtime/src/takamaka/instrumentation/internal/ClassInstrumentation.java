@@ -85,7 +85,6 @@ import it.univr.bcel.StackMapReplacer;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.instrumentation.Dummy;
-import takamaka.instrumentation.IncompleteClasspathError;
 import takamaka.instrumentation.TakamakaClassLoader;
 import takamaka.lang.Contract;
 import takamaka.lang.Storage;
@@ -158,7 +157,7 @@ public class ClassInstrumentation {
 	 * @throws ClassFormatException if some class file is not legal
 	 * @throws IOException if there is an error accessing the disk
 	 */
-	public ClassInstrumentation(VerifiedClassGen clazz, JarOutputStream instrumentedJar) throws ClassFormatException, IOException {
+	public ClassInstrumentation(VerifiedClass clazz, JarOutputStream instrumentedJar) throws ClassFormatException, IOException {
 		// performs instrumentation on the class
 		new Initializer(clazz);
 
@@ -174,7 +173,7 @@ public class ClassInstrumentation {
 		/**
 		 * The class that is being instrumented.
 		 */
-		private final VerifiedClassGen classGen;
+		private final VerifiedClass clazz;
 
 		/**
 		 * The name of the class being instrumented.
@@ -246,20 +245,20 @@ public class ClassInstrumentation {
 		/**
 		 * Performs the instrumentation of a single class.
 		 * 
-		 * @param classGen the class to instrument
+		 * @param clazz the class to instrument
 		 */
-		private Initializer(VerifiedClassGen classGen) {
-			this.classGen = classGen;
-			this.className = classGen.getClassName();
-			this.classLoader = classGen.getClassLoader();
-			this.cpg = classGen.getConstantPool();
+		private Initializer(VerifiedClass clazz) {
+			this.clazz = clazz;
+			this.className = clazz.getClassName();
+			this.classLoader = clazz.classLoader;
+			this.cpg = clazz.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
 			this.isStorage = !className.equals(STORAGE_CLASS_NAME) && classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
 
 			// the fields of the class are relevant only for storage classes
 			if (isStorage)
-				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 					collectNonTransientInstanceFieldsOf(classLoader.loadClass(className), true);
 				});
 
@@ -299,11 +298,11 @@ public class ClassInstrumentation {
 		 * That instruction will be later instrumented during local instrumentation.
 		 */
 		private void instrumentBootstrapsInvokingEntries() {
-			classGen.getClassBootstraps().getBootstrapsLeadingToEntries().forEach(this::instrumentBootstrapCallingEntry);
+			clazz.bootstraps.getBootstrapsLeadingToEntries().forEach(this::instrumentBootstrapCallingEntry);
 		}
 
 		private void instrumentBootstrapCallingEntry(BootstrapMethod bootstrap) {
-			if (classGen.getClassBootstraps().lambdaIsEntry(bootstrap))
+			if (clazz.bootstraps.lambdaIsEntry(bootstrap))
 				instrumentLambdaEntry(bootstrap);
 			else
 				instrumentLambdaCallingEntry(bootstrap);
@@ -323,7 +322,7 @@ public class ClassInstrumentation {
 				ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 				String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 				String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-				Optional<Method> old = Stream.of(classGen.getMethods())
+				Optional<Method> old = Stream.of(clazz.getMethods())
 						.filter(method -> method.getName().equals(methodName)
 								&& method.getSignature().equals(methodSignature) && method.isPrivate())
 						.findAny();
@@ -358,7 +357,7 @@ public class ClassInstrumentation {
 				}
 
 			StackMapReplacer.replace(_new);
-			classGen.replaceMethod(old, _new.getMethod());
+			clazz.replaceMethod(old, _new.getMethod());
 		}
 
 		private void instrumentLambdaEntry(BootstrapMethod bootstrap) {
@@ -426,7 +425,7 @@ public class ClassInstrumentation {
 			il.setPositions();
 			addedLambda.setMaxLocals();
 			addedLambda.setMaxStack();
-			classGen.addMethod(addedLambda.getMethod());
+			clazz.addMethod(addedLambda.getMethod());
 			bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
 		}
 
@@ -515,7 +514,7 @@ public class ClassInstrumentation {
 		private String getNewNameForPrivateMethod(String innerName) {
 			int counter = 0;
 			String newName;
-			Method[] methods = classGen.getMethods();
+			Method[] methods = clazz.getMethods();
 
 			do {
 				newName = "§" + innerName + counter++;
@@ -534,14 +533,14 @@ public class ClassInstrumentation {
 		}
 
 		private void applyToAllMethods(Function<Method, Method> what) {
-			Method[] methods = classGen.getMethods();
+			Method[] methods = clazz.getMethods();
 
 			List<Method> processedMethods = Stream.of(methods).map(what).collect(Collectors.toList());
 
 			// replacing old with new methods
 			int pos = 0;
 			for (Method processed: processedMethods)
-				classGen.replaceMethod(methods[pos++], processed);
+				clazz.replaceMethod(methods[pos++], processed);
 		}
 
 		/**
@@ -570,9 +569,9 @@ public class ClassInstrumentation {
 			addContractToCallsToEntries(methodGen);
 
 			Optional<Class<?>> callerContract;
-			if (isContract && (callerContract = classLoader.isEntry(className, method.getName(),
+			if (isContract && (callerContract = clazz.annotations.isEntry(className, method.getName(),
 					method.getArgumentTypes(), method.getReturnType())).isPresent())
-				instrumentEntry(methodGen, callerContract.get(), classLoader.isPayable(className, method.getName(),
+				instrumentEntry(methodGen, callerContract.get(), clazz.annotations.isPayable(className, method.getName(),
 						method.getArgumentTypes(), method.getReturnType()));
 
 			addGasUpdates(methodGen);
@@ -593,7 +592,7 @@ public class ClassInstrumentation {
 					Instruction ins = ih.getInstruction();
 					if (ins instanceof FieldInstruction) {
 						FieldInstruction fi = (FieldInstruction) ins;
-						Field model = classGen.whiteListingModelOf(fi);
+						Field model = clazz.whiteListingModelOf(fi);
 						if (hasProofObligations(model))
 							// proof obligations are currently not implemented nor used on fields
 							throw new IllegalStateException("unexpected white-listing proof obligation for field " + fi.getReferenceType(cpg) + "." + fi.getFieldName(cpg));
@@ -605,7 +604,7 @@ public class ClassInstrumentation {
 						if (replacement != null)
 							ih.setInstruction(replacement);
 						else {
-							Executable model = classGen.whiteListingModelOf((InvokeInstruction) ins);
+							Executable model = clazz.whiteListingModelOf((InvokeInstruction) ins);
 							if (hasProofObligations(model)) {
 								replacement = addWhiteListVerificationMethod(ih, (InvokeInstruction) ins, model, key);
 								whiteListingCache.put(key, replacement);
@@ -617,7 +616,7 @@ public class ClassInstrumentation {
 		}
 
 		private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
-			BootstrapMethod bootstrap = classGen.getClassBootstraps().getBootstrapFor(invokedynamic);
+			BootstrapMethod bootstrap = clazz.bootstraps.getBootstrapFor(invokedynamic);
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
@@ -628,8 +627,7 @@ public class ClassInstrumentation {
 			String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 			String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-			// this meta-factory is used by Java compilers for optimized concatenation into
-			// string
+			// this meta-factory is used by Java compilers for optimized concatenation into string
 			return "java.lang.invoke.StringConcatFactory".equals(className)
 					&& "makeConcatWithConstants".equals(methodName)
 					&& "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;"
@@ -668,7 +666,7 @@ public class ClassInstrumentation {
 				key = ins.getName() + " " + ins.getReferenceType(cpg) + "." + ins.getMethodName(cpg) + ins.getSignature(cpg);
 				// we add a mask that specifies the white-listing proof obligations that can be discharged, since
 				// we can use the same verifier only if two instructions need verification of the same proof obligations
-				Executable model = classGen.whiteListingModelOf((InvokeInstruction) ins);
+				Executable model = clazz.whiteListingModelOf((InvokeInstruction) ins);
 				if (hasProofObligations(model)) {
 					int slots = ins.consumeStack(cpg);
 					String mask = "";
@@ -718,13 +716,7 @@ public class ClassInstrumentation {
 				il.append(InstructionFactory.createLoad(argType, index));
 				index += argType.getSize();
 				if (argType instanceof ObjectType) {
-					Class<?> argClass;
-					try {
-						argClass = classLoader.loadClass(((ObjectType) argType).getClassName());
-					}
-					catch (ClassNotFoundException e) {
-						throw new IncompleteClasspathError(e);
-					}
+					Class<?> argClass = ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> classLoader.loadClass(((ObjectType) argType).getClassName()));
 
 					// we check if we can statically verify that the value redefines hashCode or toString
 					if (!Takamaka.redefinesHashCodeOrToString(argClass)) {
@@ -751,7 +743,7 @@ public class ClassInstrumentation {
 			il.setPositions();
 			addedVerifier.setMaxLocals();
 			addedVerifier.setMaxStack();
-			classGen.addMethod(addedVerifier.getMethod());
+			clazz.addMethod(addedVerifier.getMethod());
 
 			return factory.createInvoke(className, verifierName, verifierReturnType, args, Const.INVOKESTATIC);
 		}
@@ -766,7 +758,7 @@ public class ClassInstrumentation {
 		 */
 		private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
 			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
-			ClassBootstraps classBootstraps = classGen.getClassBootstraps();
+			Bootstraps classBootstraps = clazz.bootstraps;
 			InstructionList il = new InstructionList();
 			List<Type> args = new ArrayList<>();
 			BootstrapMethod bootstrap = classBootstraps.getBootstrapFor(invokedynamic);
@@ -809,7 +801,7 @@ public class ClassInstrumentation {
 			il.setPositions();
 			addedVerifier.setMaxLocals();
 			addedVerifier.setMaxStack();
-			classGen.addMethod(addedVerifier.getMethod());
+			clazz.addMethod(addedVerifier.getMethod());
 
 			// replace inside the bootstrap method
 			bootstrapArgs[1] = addMethodHandleToConstantPool(new ConstantMethodHandle(Const.REF_invokeStatic, cpg
@@ -889,7 +881,7 @@ public class ClassInstrumentation {
 			il.setPositions();
 			addedVerifier.setMaxLocals();
 			addedVerifier.setMaxStack();
-			classGen.addMethod(addedVerifier.getMethod());
+			clazz.addMethod(addedVerifier.getMethod());
 
 			return factory.createInvoke(className, verifierName, verifierReturnType, argsAsArray, Const.INVOKESTATIC);
 		}
@@ -937,7 +929,7 @@ public class ClassInstrumentation {
 				else
 					type = invoke.getArgumentTypes(cpg)[consumed - slots - 1];
 
-				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 					return type instanceof ObjectType && Takamaka.isOrdered(classLoader.loadClass(((ObjectType) type).getClassName()));
 				});
 			}
@@ -1091,7 +1083,7 @@ public class ClassInstrumentation {
 				allocator.setMaxLocals();
 				allocator.setMaxStack();
 				StackMapReplacer.replace(allocator);
-				classGen.addMethod(allocator.getMethod());
+				clazz.addMethod(allocator.getMethod());
 
 				// the original multianewarray gets replaced with a call to the allocation method
 				ih.setInstruction(factory.createInvoke(className, allocatorName, createdType, args, Const.INVOKESTATIC));
@@ -1099,7 +1091,7 @@ public class ClassInstrumentation {
 		}
 
 		private long numberOfInstanceFieldsOf(ObjectType type) {
-			return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 				long size = 0L;
 				for (Class<?> clazz = classLoader.loadClass(type.getClassName()); clazz != Object.class; clazz = clazz.getSuperclass())
 					size += Stream.of(clazz.getDeclaredFields()).filter(field -> !Modifier.isStatic(field.getModifiers())).count();
@@ -1302,13 +1294,13 @@ public class ClassInstrumentation {
 		private boolean isCallToEntry(Instruction instruction) {
 			if (instruction instanceof INVOKEDYNAMIC)
 				return bootstrapMethodsThatWillRequireExtraThis
-					.contains(classGen.getClassBootstraps().getBootstrapFor((INVOKEDYNAMIC) instruction));
+					.contains(clazz.bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
 			else if (instruction instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
 				ReferenceType receiver = invoke.getReferenceType(cpg);
 				if (receiver instanceof ObjectType)
-					return classLoader.isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
-							invoke.getMethodName(cpg), invoke.getSignature(cpg));
+					return clazz.annotations.isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
+						invoke.getMethodName(cpg), invoke.getSignature(cpg));
 			}
 
 			return false;
@@ -1433,7 +1425,7 @@ public class ClassInstrumentation {
 							// found a consumer of the aload_0: is it really a call to a constructor of the
 							// superclass?
 							if (bytecode instanceof INVOKESPECIAL
-									&& ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(classGen.getSuperclassName())
+									&& ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(clazz.getSuperclassName())
 									&& ((INVOKESPECIAL) bytecode).getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
 								callsToConstructorsOfSuperclass.add(current.ih);
 							else
@@ -1559,7 +1551,7 @@ public class ClassInstrumentation {
 				Class<?> fieldType;
 				return classLoader.isStorage(receiverClassName)
 						&& classLoader.isLazilyLoaded(fieldType = classLoader.bcelToClass(fi.getFieldType(cpg)))
-						&& !classLoader.isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
+						&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
 			} else if (instruction instanceof PUTFIELD) {
 				FieldInstruction fi = (FieldInstruction) instruction;
 				ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
@@ -1567,9 +1559,67 @@ public class ClassInstrumentation {
 				Class<?> fieldType;
 				return classLoader.isStorage(receiverClassName)
 						&& classLoader.isLazilyLoaded(fieldType = classLoader.bcelToClass(fi.getFieldType(cpg)))
-						&& !classLoader.isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
+						&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
 			} else
 				return false;
+		}
+
+		/**
+		 * Determines if an instance field of a storage class is transient.
+		 * 
+		 * @param className the class from which the field must be looked-up. This is guaranteed to be a storage class
+		 * @param fieldName the name of the field
+		 * @param fieldType the type of the field
+		 * @return true if and only if that condition holds
+		 */
+		private boolean isTransient(String className, String fieldName, Class<?> fieldType) {
+			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+				Class<?> clazz = classLoader.loadClass(className);
+				
+				do {
+					Optional<Field> match = Stream.of(clazz.getDeclaredFields())
+						.filter(field -> field.getName().equals(fieldName) && fieldType == field.getType())
+						.findFirst();
+
+					if (match.isPresent())
+						return Modifier.isTransient(match.get().getModifiers());
+
+					clazz = clazz.getSuperclass();
+				}
+				while (clazz != classLoader.storageClass && clazz != classLoader.contractClass);
+
+				return false;
+			});
+		}
+
+		/**
+		 * Determines if an instance field of a storage class is transient or final.
+		 * 
+		 * @param className the class from which the field must be looked-up. This is guaranteed to be a storage class
+		 * @param fieldName the name of the field
+		 * @param fieldType the type of the field
+		 * @return true if and only if that condition holds
+		 */
+		private boolean isTransientOrFinal(String className, String fieldName, Class<?> fieldType) {
+			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+				Class<?> clazz = classLoader.loadClass(className);
+				
+				do {
+					Optional<Field> match = Stream.of(clazz.getDeclaredFields())
+						.filter(field -> field.getName().equals(fieldName) && fieldType == field.getType())
+						.findFirst();
+
+					if (match.isPresent()) {
+						int modifiers = match.get().getModifiers();
+						return Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers);
+					}
+
+					clazz = clazz.getSuperclass();
+				}
+				while (clazz != classLoader.storageClass && clazz != classLoader.contractClass);
+
+				return false;
+			});
 		}
 
 		/**
@@ -1586,7 +1636,7 @@ public class ClassInstrumentation {
 			il.append(InstructionConst.ALOAD_1);
 			il.append(InstructionConst.ALOAD_2);
 			il.append(InstructionFactory.createLoad(LIST_OT, 3));
-			il.append(factory.createInvoke(classGen.getSuperclassName(), EXTRACT_UPDATES, Type.VOID,
+			il.append(factory.createInvoke(clazz.getSuperclassName(), EXTRACT_UPDATES, Type.VOID,
 					EXTRACT_UPDATES_ARGS, Const.INVOKESPECIAL));
 			il.append(factory.createGetField(STORAGE_CLASS_NAME, IN_STORAGE_NAME, Type.BOOLEAN));
 			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
@@ -1604,7 +1654,7 @@ public class ClassInstrumentation {
 			extractUpdates.setMaxLocals();
 			extractUpdates.setMaxStack();
 			StackMapReplacer.replace(extractUpdates);
-			classGen.addMethod(extractUpdates.getMethod());
+			clazz.addMethod(extractUpdates.getMethod());
 		}
 
 		/**
@@ -1783,7 +1833,7 @@ public class ClassInstrumentation {
 					setterNameFor(className, field.getName()), className, il, cpg);
 			setter.setMaxLocals();
 			setter.setMaxStack();
-			classGen.addMethod(setter.getMethod());
+			clazz.addMethod(setter.getMethod());
 		}
 
 		/**
@@ -1805,7 +1855,7 @@ public class ClassInstrumentation {
 					getterNameFor(className, field.getName()), className, il, cpg);
 			getter.setMaxLocals();
 			getter.setMaxStack();
-			classGen.addMethod(getter.getMethod());
+			clazz.addMethod(getter.getMethod());
 		}
 
 		private String getterNameFor(String className, String fieldName) {
@@ -1840,12 +1890,12 @@ public class ClassInstrumentation {
 			// and it is not a constructor. Java < 9 will not check this constraint but
 			// newer versions of Java would reject the code without this change
 			if (fieldIsFinal) {
-				org.apache.bcel.classfile.Field oldField = Stream.of(classGen.getFields()).filter(
+				org.apache.bcel.classfile.Field oldField = Stream.of(clazz.getFields()).filter(
 						f -> f.getName().equals(field.getName()) && f.getType().equals(Type.getType(field.getType())))
 						.findFirst().get();
 				FieldGen newField = new FieldGen(oldField, cpg);
 				newField.setAccessFlags(oldField.getAccessFlags() ^ Const.ACC_FINAL);
-				classGen.replaceField(oldField, newField.getField());
+				clazz.replaceField(oldField, newField.getField());
 			}
 
 			Type type = Type.getType(field.getType());
@@ -1883,7 +1933,7 @@ public class ClassInstrumentation {
 			ensureLoaded.setMaxLocals();
 			ensureLoaded.setMaxStack();
 			StackMapReplacer.replace(ensureLoaded);
-			classGen.addMethod(ensureLoaded.getMethod());
+			clazz.addMethod(ensureLoaded.getMethod());
 		}
 
 		/**
@@ -1903,7 +1953,7 @@ public class ClassInstrumentation {
 		 * Adds the field for the loading state of the fields of a storage class.
 		 */
 		private void addIfAlreadyLoadedFieldFor(Field field) {
-			classGen.addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN,
+			clazz.addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN,
 					IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
 		}
 
@@ -1911,7 +1961,7 @@ public class ClassInstrumentation {
 		 * Adds the field for the old value of the fields of a storage class.
 		 */
 		private void addOldFieldFor(Field field) {
-			classGen.addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()),
+			clazz.addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()),
 					OLD_PREFIX + field.getName(), cpg).getField());
 		}
 
@@ -1942,7 +1992,7 @@ public class ClassInstrumentation {
 					Const.CONSTRUCTOR_NAME, className, il, cpg);
 			constructor.setMaxLocals();
 			constructor.setMaxStack();
-			classGen.addMethod(constructor.getMethod());
+			clazz.addMethod(constructor.getMethod());
 		}
 
 		/**
@@ -1977,7 +2027,7 @@ public class ClassInstrumentation {
 			eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 					.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 
-			il.append(factory.createInvoke(classGen.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
+			il.append(factory.createInvoke(clazz.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
 					argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			return pushLoad.local;

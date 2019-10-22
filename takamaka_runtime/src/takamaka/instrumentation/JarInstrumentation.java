@@ -11,14 +11,13 @@ import java.util.TreeSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.bcel.classfile.ClassParser;
 
 import takamaka.instrumentation.internal.ClassInstrumentation;
-import takamaka.instrumentation.internal.VerifiedClassGen;
+import takamaka.instrumentation.internal.VerifiedClass;
 import takamaka.instrumentation.issues.Issue;
 
 /**
@@ -28,7 +27,6 @@ import takamaka.instrumentation.issues.Issue;
  * contracts get modified to implement entries.
  */
 public class JarInstrumentation {
-	private static final Logger LOGGER = Logger.getLogger(JarInstrumentation.class.getName());
 
 	/**
 	 * The errors and warnings generated while verifying the classes of the jar.
@@ -117,13 +115,11 @@ public class JarInstrumentation {
 		 * @param duringInitialization true if and only if the instrumentation is performed during blockchain initialization
 		 */
 		private Initializer(Path origin, Path destination, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
-			LOGGER.fine(() -> "Processing " + origin);
-
 			this.classLoader = classLoader;
 			this.duringInitialization = duringInitialization;
 
 			try {
-				SortedSet<VerifiedClassGen> classes;
+				SortedSet<VerifiedClass> classes;
 
 				// parsing and verification of the class files
 				try (JarFile originalJar = this.originalJar = new JarFile(origin.toFile())) {
@@ -154,10 +150,10 @@ public class JarInstrumentation {
 		 * @param entry the entry
 		 * @return the BCEL class, if the class for {@code entry} did verify
 		 */
-		private Optional<VerifiedClassGen> buildVerifiedClass(JarEntry entry) {
+		private Optional<VerifiedClass> buildVerifiedClass(JarEntry entry) {
 			try (InputStream input = originalJar.getInputStream(entry)) {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClassGen(new ClassParser(input, entry.getName()).parse(), classLoader, issues::add, duringInitialization));
+				return Optional.of(new VerifiedClass(new ClassParser(input, entry.getName()).parse(), classLoader, issues::add, duringInitialization));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);
@@ -172,7 +168,7 @@ public class JarInstrumentation {
 		 * 
 		 * @param clazz the class
 		 */
-		private void dumpInstrumentedClass(VerifiedClassGen clazz) {
+		private void dumpInstrumentedClass(VerifiedClass clazz) {
 			try {
 				// add the same entry to the resulting jar
 				instrumentedJar.putNextEntry(new JarEntry(clazz.getClassName().replace('.', '/') + ".class"));

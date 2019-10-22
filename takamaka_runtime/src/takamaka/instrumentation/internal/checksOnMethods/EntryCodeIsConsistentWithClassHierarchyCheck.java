@@ -1,4 +1,4 @@
-package takamaka.instrumentation.internal.checks.onMethods;
+package takamaka.instrumentation.internal.checksOnMethods;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 
-import takamaka.instrumentation.IncompleteClasspathError;
-import takamaka.instrumentation.internal.VerifiedClassGen;
+import takamaka.instrumentation.internal.ThrowIncompleteClasspathError;
+import takamaka.instrumentation.internal.VerifiedClass;
 import takamaka.instrumentation.issues.InconsistentEntryError;
 
 /**
@@ -16,15 +16,15 @@ import takamaka.instrumentation.issues.InconsistentEntryError;
  * {@code @@Entry} methods are only redefined by {@code @@Entry} methods. Moreover,
  * the kind of contract allowed in entries can only be enlarged in subclasses.
  */
-public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassGen.ClassVerification.MethodVerification.Check {
+public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
 
-	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClassGen.ClassVerification.MethodVerification verification) {
+	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
-			Optional<Class<?>> contractTypeForEntry = classLoader.isEntry(className, methodName, methodArgs, methodReturnType);
+			Optional<Class<?>> contractTypeForEntry = clazz.annotations.isEntry(className, methodName, methodArgs, methodReturnType);
 	
-			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 				isIdenticallyEntryInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry);
 			});
 		}
@@ -35,7 +35,7 @@ public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassG
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == classLoader.bcelToClass(methodReturnType)
 						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(methodArgs)))
-				.anyMatch(m -> !compatibleEntries(contractTypeForEntry, classLoader.isEntry(clazz.getName(), methodName, methodArgs, methodReturnType))))
+				.anyMatch(m -> !compatibleEntries(contractTypeForEntry, this.clazz.annotations.isEntry(clazz.getName(), methodName, methodArgs, methodReturnType))))
 			issue(new InconsistentEntryError(this.clazz, methodName, clazz.getName()));
 
 		Class<?> superclass = clazz.getSuperclass();

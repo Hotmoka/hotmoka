@@ -37,12 +37,12 @@ import takamaka.instrumentation.IncompleteClasspathError;
  * An object that provides utility methods about the lambda bootstraps
  * contained in a class.
  */
-public class ClassBootstraps {
+public class Bootstraps {
 
 	/**
 	 * The class whose bootstraps are considered.
 	 */
-	private final VerifiedClassGen clazz;
+	private final VerifiedClass clazz;
 
 	/**
 	 * The bootstrap methods of the class.
@@ -56,7 +56,7 @@ public class ClassBootstraps {
 
 	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
 
-	ClassBootstraps(VerifiedClassGen clazz) {
+	Bootstraps(VerifiedClass clazz) {
 		this.clazz = clazz;
 		this.bootstrapMethods = computeBootstraps();
 		collectBootstrapsLeadingToEntries();
@@ -84,7 +84,7 @@ public class ClassBootstraps {
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-					return clazz.getClassLoader().isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
+					return clazz.annotations.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
 				}
 			}
 		};
@@ -204,13 +204,13 @@ public class ClassBootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.getClassLoader().bcelToClass(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.getClassLoader().bcelToClass(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.classLoader.bcelToClass(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.classLoader.bcelToClass(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
-						return clazz.getClassResolver().resolveConstructorWithPossiblyExpandedArgs(className2, args);
+						return clazz.resolver.resolveConstructorWithPossiblyExpandedArgs(className2, args);
 					else
-						return clazz.getClassResolver().resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+						return clazz.resolver.resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 				else if (constant2 instanceof ConstantInterfaceMethodref) {
 					ConstantInterfaceMethodref mr = (ConstantInterfaceMethodref) constant2;
@@ -219,10 +219,10 @@ public class ClassBootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.getClassLoader().bcelToClass(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.getClassLoader().bcelToClass(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.classLoader.bcelToClass(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.classLoader.bcelToClass(Type.getReturnType(methodSignature2));
 	
-					return clazz.getClassResolver().resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+					return clazz.resolver.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 			}
 		}
@@ -297,7 +297,7 @@ public class ClassBootstraps {
 			ConstantPoolGen cpg = clazz.getConstantPool();
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				clazz.getClassLoader().isEntryPossiblyAlreadyInstrumented
+				clazz.annotations.isEntryPossiblyAlreadyInstrumented
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 		else

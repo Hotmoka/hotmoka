@@ -1,4 +1,4 @@
-package takamaka.instrumentation.internal.checks.onClass;
+package takamaka.instrumentation.internal.checksOnClass;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -22,16 +22,16 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import takamaka.instrumentation.internal.ClassBootstraps;
-import takamaka.instrumentation.internal.VerifiedClassGen;
+import takamaka.instrumentation.internal.Bootstraps;
+import takamaka.instrumentation.internal.VerifiedClass;
 import takamaka.instrumentation.issues.IllegalCallToEntryError;
 
 /**
  * A check that {@code @@Entry} methods or constructors are called only from instance methods of contracts.
  */
-public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.ClassVerification.Check {
+public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClass.ClassVerification.Check {
 
-	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClassGen.ClassVerification verification) {
+	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClass.ClassVerification verification) {
 		verification.super();
 
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call entries
@@ -54,7 +54,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Cla
 		Set<MethodGen> lambdasReachableFromStaticMethods = new HashSet<>();
 
 		// we initially compute the set of all lambdas
-		ClassBootstraps bootstraps = clazz.getClassBootstraps();
+		Bootstraps bootstraps = clazz.bootstraps;
 		Set<MethodGen> lambdas = bootstraps.getBootstraps()
 			.map(bootstraps::getLambdaFor)
 			.filter(Optional::isPresent)
@@ -85,7 +85,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Cla
 	private void addLambdasReachableFromStatic(MethodGen method, Set<MethodGen> lambdasReachableFromStaticMethods) {
 		InstructionList instructions = method.getInstructionList();
 		if (instructions != null) {
-			ClassBootstraps bootstraps = clazz.getClassBootstraps();
+			Bootstraps bootstraps = clazz.bootstraps;
 			StreamSupport.stream(instructions.spliterator(), false)
 				.map(InstructionHandle::getInstruction)
 				.filter(instruction -> instruction instanceof INVOKEDYNAMIC)
@@ -108,14 +108,14 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Cla
 		Instruction instruction = ih.getInstruction();
 		
 		if (instruction instanceof INVOKEDYNAMIC) {
-			ClassBootstraps bootstraps = clazz.getClassBootstraps();
+			Bootstraps bootstraps = clazz.bootstraps;
 			return bootstraps.lambdaIsEntry(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
 		}
 		else if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC)) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				classLoader.isEntryPossiblyAlreadyInstrumented
+				clazz.annotations.isEntryPossiblyAlreadyInstrumented
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 		else
@@ -132,7 +132,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassGen.Cla
 		Instruction instruction = ih.getInstruction();
 
 		if (instruction instanceof INVOKEDYNAMIC) {
-			BootstrapMethod bootstrap = clazz.getClassBootstraps().getBootstrapFor((INVOKEDYNAMIC) instruction);
+			BootstrapMethod bootstrap = clazz.bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction);
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());

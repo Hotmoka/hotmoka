@@ -16,20 +16,19 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
 import takamaka.instrumentation.Dummy;
-import takamaka.instrumentation.IncompleteClasspathError;
 
 /**
  * An utility that implements resolving algorithms for field and methods.
  */
 public class Resolver {
-	private final VerifiedClassGen clazz;
+	private final VerifiedClass clazz;
 
 	/**
 	 * Builds the resolver.
 	 * 
 	 * @param clazz the class, the targets of whose instructions will be resolved
 	 */
-	Resolver(VerifiedClassGen clazz) {
+	Resolver(VerifiedClass clazz) {
 		this.clazz = clazz;
 	}
 
@@ -39,10 +38,10 @@ public class Resolver {
 		ReferenceType holder = fi.getReferenceType(cpg);
 		if (holder instanceof ObjectType) {
 			String name = fi.getFieldName(cpg);
-			Class<?> type = clazz.getClassLoader().bcelToClass(fi.getFieldType(cpg));
+			Class<?> type = clazz.classLoader.bcelToClass(fi.getFieldType(cpg));
 	
-			return IncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> clazz.getClassLoader().resolveField(((ObjectType) holder).getClassName(), name, type));
+			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
+				(() -> clazz.classLoader.resolveField(((ObjectType) holder).getClassName(), name, type));
 		}
 	
 		return Optional.empty();
@@ -50,7 +49,7 @@ public class Resolver {
 
 	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) {
 		if (invoke instanceof INVOKEDYNAMIC) {
-			ClassBootstraps bootstraps = clazz.getClassBootstraps();
+			Bootstraps bootstraps = clazz.bootstraps;
 			return bootstraps.getTargetOf(bootstraps.getBootstrapFor((INVOKEDYNAMIC) invoke));
 		}
 
@@ -59,12 +58,12 @@ public class Resolver {
 		ReferenceType receiver = invoke.getReferenceType(cpg);
 		// it is possible to call a method on an array: in that case, the callee is a method of java.lang.Object
 		String receiverClassName = receiver instanceof ObjectType ? ((ObjectType) receiver).getClassName() : "java.lang.Object";
-		Class<?>[] args = clazz.getClassLoader().bcelToClass(invoke.getArgumentTypes(cpg));
+		Class<?>[] args = clazz.classLoader.bcelToClass(invoke.getArgumentTypes(cpg));
 
 		if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
 			return resolveConstructorWithPossiblyExpandedArgs(receiverClassName, args);
 		else {
-			Class<?> returnType = clazz.getClassLoader().bcelToClass(invoke.getReturnType(cpg));
+			Class<?> returnType = clazz.classLoader.bcelToClass(invoke.getReturnType(cpg));
 
 			if (invoke instanceof INVOKEINTERFACE)
 				return resolveInterfaceMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);
@@ -83,13 +82,13 @@ public class Resolver {
 	 * @return the constructor, if any
 	 */
 	Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) {
-		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Optional<Constructor<?>> result = clazz.getClassLoader().resolveConstructor(className, args);
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			Optional<Constructor<?>> result = clazz.classLoader.resolveConstructor(className, args);
 			// we try to add the instrumentation arguments. This is important when
 			// a bootstrap calls an entry of a jar already installed (and instrumented)
 			// in blockchain. In that case, it will find the target only with these
 			// extra arguments added during instrumentation
-			return result.isPresent() ? result : clazz.getClassLoader().resolveConstructor(className, expandArgsForEntry(args));
+			return result.isPresent() ? result : clazz.classLoader.resolveConstructor(className, expandArgsForEntry(args));
 		});
 	}
 
@@ -105,9 +104,9 @@ public class Resolver {
 	 * @return the method, if any
 	 */
 	Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Optional<java.lang.reflect.Method> result = clazz.getClassLoader().resolveMethod(className, methodName, args, returnType);
-			return result.isPresent() ? result : clazz.getClassLoader().resolveMethod(className, methodName, expandArgsForEntry(args), returnType);
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			Optional<java.lang.reflect.Method> result = clazz.classLoader.resolveMethod(className, methodName, args, returnType);
+			return result.isPresent() ? result : clazz.classLoader.resolveMethod(className, methodName, expandArgsForEntry(args), returnType);
 		});
 	}
 
@@ -124,16 +123,16 @@ public class Resolver {
 	 * @return the method, if any
 	 */
 	Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Optional<java.lang.reflect.Method> result = clazz.getClassLoader().resolveInterfaceMethod(className, methodName, args, returnType);
-			return result.isPresent() ? result : clazz.getClassLoader().resolveInterfaceMethod(className, methodName, expandArgsForEntry(args), returnType);
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			Optional<java.lang.reflect.Method> result = clazz.classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
+			return result.isPresent() ? result : clazz.classLoader.resolveInterfaceMethod(className, methodName, expandArgsForEntry(args), returnType);
 		});
 	}
 
 	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws ClassNotFoundException {
 		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
 		System.arraycopy(args, 0, expandedArgs, 0, args.length);
-		expandedArgs[args.length] = clazz.getClassLoader().contractClass;
+		expandedArgs[args.length] = clazz.classLoader.contractClass;
 		expandedArgs[args.length + 1] = Dummy.class;
 		return expandedArgs;
 	}

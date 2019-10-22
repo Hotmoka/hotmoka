@@ -1,24 +1,24 @@
-package takamaka.instrumentation.internal.checks.onClass;
+package takamaka.instrumentation.internal.checksOnClass;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import takamaka.instrumentation.IncompleteClasspathError;
-import takamaka.instrumentation.internal.VerifiedClassGen;
+import takamaka.instrumentation.internal.ThrowIncompleteClasspathError;
+import takamaka.instrumentation.internal.VerifiedClass;
 import takamaka.instrumentation.issues.IllegalTypeForStorageFieldError;
 
 /**
  * A checks that payable methods have an amount first argument.
  */
-public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassGen.ClassVerification.Check {
+public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClass.ClassVerification.Check {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassGen.ClassVerification verification) {
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClass.ClassVerification verification) {
 		verification.super();
 
 		if (classLoader.isStorage(className))
-			IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 				Stream.of(classLoader.loadClass(className).getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.filter(field -> !isTypeAllowedForStorageFields(field.getType()))

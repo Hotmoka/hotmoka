@@ -1,4 +1,4 @@
-package takamaka.instrumentation.internal.checks.onMethods;
+package takamaka.instrumentation.internal.checksOnMethods;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -6,16 +6,16 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 
-import takamaka.instrumentation.IncompleteClasspathError;
-import takamaka.instrumentation.internal.VerifiedClassGen;
+import takamaka.instrumentation.internal.ThrowIncompleteClasspathError;
+import takamaka.instrumentation.internal.VerifiedClass;
 import takamaka.instrumentation.issues.IllegalStaticInitializationError;
 
 /**
  * A check the method is not the static class initializer.
  */
-public class IsNotStaticInitializerCheck extends VerifiedClassGen.ClassVerification.MethodVerification.Check {
+public class IsNotStaticInitializerCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
 
-	public IsNotStaticInitializerCheck(VerifiedClassGen.ClassVerification.MethodVerification verification) {
+	public IsNotStaticInitializerCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		if (method.getInstructionList() != null && Const.STATIC_INITIALIZER_NAME.equals(methodName))
@@ -24,7 +24,7 @@ public class IsNotStaticInitializerCheck extends VerifiedClassGen.ClassVerificat
 				// are either synthetic or enum elements or final static fields with
 				// an explicit constant initializer. This check is necessary since we cannot forbid static initializers
 				// in such classes, hence we do at least avoid the existence of extra static fields
-				IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 					Stream.of(classLoader.loadClass(className).getDeclaredFields())
 						.filter(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
 							&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field)))

@@ -22,27 +22,26 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.Type;
 
-import takamaka.instrumentation.IncompleteClasspathError;
 import takamaka.instrumentation.TakamakaClassLoader;
 import takamaka.instrumentation.VerificationException;
-import takamaka.instrumentation.internal.checks.onClass.BootstrapsAreLegalCheck;
-import takamaka.instrumentation.internal.checks.onClass.EntriesAreOnlyCalledFromContractsCheck;
-import takamaka.instrumentation.internal.checks.onClass.PackagesAreLegalCheck;
-import takamaka.instrumentation.internal.checks.onClass.StorageClassesHaveFieldsOfStorageTypeCheck;
-import takamaka.instrumentation.internal.checks.onMethods.BytecodesAreLegalCheck;
-import takamaka.instrumentation.internal.checks.onMethods.CallerIsUsedOnThisAndInEntryCheck;
-import takamaka.instrumentation.internal.checks.onMethods.EntryCodeIsConsistentWithClassHierarchyCheck;
-import takamaka.instrumentation.internal.checks.onMethods.EntryCodeIsInstanceAndInContractsCheck;
-import takamaka.instrumentation.internal.checks.onMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
-import takamaka.instrumentation.internal.checks.onMethods.IsNotNativeCheck;
-import takamaka.instrumentation.internal.checks.onMethods.IsNotStaticInitializerCheck;
-import takamaka.instrumentation.internal.checks.onMethods.IsNotSynchronizedCheck;
-import takamaka.instrumentation.internal.checks.onMethods.PayableCodeIsConsistentWithClassHierarchyCheck;
-import takamaka.instrumentation.internal.checks.onMethods.PayableCodeIsEntryCheck;
-import takamaka.instrumentation.internal.checks.onMethods.PayableCodeReceivesAmountCheck;
-import takamaka.instrumentation.internal.checks.onMethods.ThrowsExceptionsCodeIsPublicCheck;
-import takamaka.instrumentation.internal.checks.onMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
-import takamaka.instrumentation.internal.checks.onMethods.UsedCodeIsWhiteListedCheck;
+import takamaka.instrumentation.internal.checksOnClass.BootstrapsAreLegalCheck;
+import takamaka.instrumentation.internal.checksOnClass.EntriesAreOnlyCalledFromContractsCheck;
+import takamaka.instrumentation.internal.checksOnClass.PackagesAreLegalCheck;
+import takamaka.instrumentation.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
+import takamaka.instrumentation.internal.checksOnMethods.BytecodesAreLegalCheck;
+import takamaka.instrumentation.internal.checksOnMethods.CallerIsUsedOnThisAndInEntryCheck;
+import takamaka.instrumentation.internal.checksOnMethods.EntryCodeIsConsistentWithClassHierarchyCheck;
+import takamaka.instrumentation.internal.checksOnMethods.EntryCodeIsInstanceAndInContractsCheck;
+import takamaka.instrumentation.internal.checksOnMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
+import takamaka.instrumentation.internal.checksOnMethods.IsNotNativeCheck;
+import takamaka.instrumentation.internal.checksOnMethods.IsNotStaticInitializerCheck;
+import takamaka.instrumentation.internal.checksOnMethods.IsNotSynchronizedCheck;
+import takamaka.instrumentation.internal.checksOnMethods.PayableCodeIsConsistentWithClassHierarchyCheck;
+import takamaka.instrumentation.internal.checksOnMethods.PayableCodeIsEntryCheck;
+import takamaka.instrumentation.internal.checksOnMethods.PayableCodeReceivesAmountCheck;
+import takamaka.instrumentation.internal.checksOnMethods.ThrowsExceptionsCodeIsPublicCheck;
+import takamaka.instrumentation.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
+import takamaka.instrumentation.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
 import takamaka.instrumentation.issues.Issue;
 import takamaka.whitelisted.MustRedefineHashCode;
 import takamaka.whitelisted.MustRedefineHashCodeOrToString;
@@ -50,22 +49,27 @@ import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 /**
  * A class that passed the static Takamaka verification tests.
  */
-public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedClassGen> {
+public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass> {
 
 	/**
 	 * The class loader used to load this class and the other classes of the program it belongs to.
 	 */
-	private final TakamakaClassLoader classLoader;
+	public final TakamakaClassLoader classLoader;
 
 	/**
-	 * The object that provides utilities about the lambda bootstraps contained in this class.
+	 * The utility about the lambda bootstraps contained in this class.
 	 */
-	private final ClassBootstraps classBootstraps;
+	public final Bootstraps bootstraps;
 
 	/**
 	 * The utility that can be used to resolve targets of calls and field accesses in this class.
 	 */
-	private final Resolver resolver;
+	public final Resolver resolver;
+
+	/**
+	 * The utility that knows about the annotations in the methods of this class.
+	 */
+	public final Annotations annotations;
 
 	/**
 	 * A methods of this class, in editable version.
@@ -73,7 +77,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	private final Set<MethodGen> methods;
 
 	/**
-	 * Builds and verify a BCEL class from the given class file.
+	 * Builds and verify a class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
 	 * @param classLoader the Takamaka class loader for the context of the class
@@ -81,37 +85,20 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * @param duringInitialization true if and only if the class is built during blockchain initialization
 	 * @throws VefificationException if the class could not be verified
 	 */
-	public VerifiedClassGen(JavaClass clazz, TakamakaClassLoader classLoader, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
+	public VerifiedClass(JavaClass clazz, TakamakaClassLoader classLoader, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 		super(clazz);
 
 		this.methods = Stream.of(getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).collect(Collectors.toSet());
 		this.classLoader = classLoader;
-		this.classBootstraps = new ClassBootstraps(this);
+		this.annotations = new Annotations(this);
+		this.bootstraps = new Bootstraps(this);
 		this.resolver = new Resolver(this);
 
 		new ClassVerification(issueHandler, duringInitialization);
 	}
 
-	/**
-	 * Yields the class loader used to load this class and the other classes of the program it belongs to.
-	 * 
-	 * @return the class loader
-	 */
-	public TakamakaClassLoader getClassLoader() {
-		return classLoader;
-	}
-
-	/**
-	 * Yields an object that provides utility methods about lambda bootstraps in this class.
-	 * 
-	 * @return the utility
-	 */
-	public ClassBootstraps getClassBootstraps() {
-		return classBootstraps;
-	}
-
 	@Override
-	public int compareTo(VerifiedClassGen other) {
+	public int compareTo(VerifiedClass other) {
 		return getClassName().compareTo(other.getClassName());
 	}
 
@@ -151,15 +138,6 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	}
 
 	/**
-	 * Yields the utility that can be used to resolve the targets of calls and field access instructions in this class.
-	 * 
-	 * @return the utility
-	 */
-	public Resolver getClassResolver() {
-		return resolver;
-	}
-
-	/**
 	 * Looks for a white-listing model of the given method or constructor. That is a constructor declaration
 	 * that justifies why the method or constructor is white-listed. It can be the method or constructor itself, if it
 	 * belongs to a class installed in blockchain, or otherwise a method or constructor of a white-listing
@@ -171,7 +149,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 	 * @return the model of its white-listing, if it exists
 	 */
 	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
-		return IncompleteClasspathError.insteadOfClassNotFoundException
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
 			(() -> checkINVOKESPECIAL(invoke, classLoader.whiteListingWizard.whiteListingModelOf(executable)));
 	}
 
@@ -247,7 +225,7 @@ public class VerifiedClassGen extends ClassGen implements Comparable<VerifiedCla
 		}
 
 		public abstract class Check {
-			protected final VerifiedClassGen clazz = VerifiedClassGen.this;
+			protected final VerifiedClass clazz = VerifiedClass.this;
 			protected final TakamakaClassLoader classLoader = clazz.classLoader;
 			protected final boolean duringInitialization = ClassVerification.this.duringInitialization;
 			protected final String className = getClassName();

@@ -1,4 +1,4 @@
-package takamaka.instrumentation.internal.checks.onMethods;
+package takamaka.instrumentation.internal.checksOnMethods;
 
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
@@ -8,7 +8,7 @@ import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import takamaka.instrumentation.internal.VerifiedClassGen;
+import takamaka.instrumentation.internal.VerifiedClass;
 import takamaka.instrumentation.issues.CallerNotOnThisError;
 import takamaka.instrumentation.issues.CallerOutsideEntryError;
 
@@ -16,12 +16,12 @@ import takamaka.instrumentation.issues.CallerOutsideEntryError;
  * A check that {@code caller()} is only used with {@code this} as receiver
  * and inside an {@code @@Entry} method or constructor.
  */
-public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassGen.ClassVerification.MethodVerification.Check {
+public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
 
-	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClassGen.ClassVerification.MethodVerification verification) {
+	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
 		verification.super();
 
-		boolean isEntry = classLoader.isEntry(className, methodName, methodArgs, methodReturnType).isPresent();
+		boolean isEntry = clazz.annotations.isEntry(className, methodName, methodArgs, methodReturnType).isPresent();
 
 		instructions()
 			.filter(this::isCallToContractCaller)

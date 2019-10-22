@@ -1,19 +1,19 @@
-package takamaka.instrumentation.internal.checks.onMethods;
+package takamaka.instrumentation.internal.checksOnMethods;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ObjectType;
 
-import takamaka.instrumentation.IncompleteClasspathError;
-import takamaka.instrumentation.internal.VerifiedClassGen;
+import takamaka.instrumentation.internal.ThrowIncompleteClasspathError;
+import takamaka.instrumentation.internal.VerifiedClass;
 import takamaka.instrumentation.issues.UncheckedExceptionHandlerError;
 
 /**
  * A check that the exception handlers of a method are only for checked exceptions.
  */
-public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClassGen.ClassVerification.MethodVerification.Check {
+public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
 
-	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassGen.ClassVerification.MethodVerification verification) {
+	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		for (CodeExceptionGen exc: method.getExceptionHandlers()) {
@@ -40,7 +40,7 @@ public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClass
 	}
 
 	private boolean canCatchUncheckedExceptions(String exceptionName) {
-		return IncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Class<?> clazz = classLoader.loadClass(exceptionName);
 			return RuntimeException.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(RuntimeException.class) ||
 				java.lang.Error.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(java.lang.Error.class);
