@@ -96,8 +96,7 @@ import takamaka.whitelisted.WhiteListingProofObligation;
 
 /**
  * An instrumenter of a single class file. For instance, it instruments storage
- * classes, by adding the serialization support, and contracts, to deal with
- * entries.
+ * classes, by adding the serialization support, and contracts, to deal with entries.
  */
 public class ClassInstrumentation {
 	private final static String OLD_PREFIX = "§old_";
@@ -226,8 +225,7 @@ public class ClassInstrumentation {
 
 		/**
 		 * The bootstrap methods that have been instrumented since they must receive an
-		 * extra parameter, since they call an entry and need the calling contract for
-		 * that.
+		 * extra parameter, since they call an entry and need the calling contract for that.
 		 */
 		private final Set<BootstrapMethod> bootstrapMethodsThatWillRequireExtraThis = new HashSet<>();
 
@@ -235,7 +233,7 @@ public class ClassInstrumentation {
 		 * A map from a description of invoke instructions that lead into a white-listed method
 		 * with proof obligations into the replacement instruction
 		 * that has been already computed for them. This is used to avoid recomputing
-		 * the replacement for invoke instructions that occurs more times inside the same
+		 * the replacement for invoke instructions that occur more times inside the same
 		 * class. This is not just an optimization, since, for invokedynamic, their bootstrap
 		 * might be modified, hence the repeated construction of their checking method
 		 * would lead into exception.
@@ -1332,8 +1330,7 @@ public class ClassInstrumentation {
 		 * @param slotForCaller  the local variable for the caller implicit argument
 		 * @param isPayable      true if and only if the entry is payable
 		 */
-		private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller,
-				boolean isPayable) {
+		private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) {
 			InstructionList il = method.getInstructionList();
 
 			// the call to the method that sets caller and balance cannot be put at the
@@ -1353,7 +1350,8 @@ public class ClassInstrumentation {
 				Type[] paybleEntryArgs = new Type[] { CONTRACT_OT, amountType };
 				il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, paybleEntryArgs,
 						Const.INVOKESPECIAL));
-			} else
+			}
+			else
 				il.insert(where, factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
 		}
 
@@ -1374,24 +1372,17 @@ public class ClassInstrumentation {
 		 * @return the instruction before which the code that sets caller and balance
 		 *         can be placed
 		 */
-		private InstructionHandle determineWhereToSetCallerAndBalance(InstructionList il, MethodGen method,
-				int slotForCaller) {
+		private InstructionHandle determineWhereToSetCallerAndBalance(InstructionList il, MethodGen method, int slotForCaller) {
 			InstructionHandle start = il.getStart();
 
 			if (method.getName().equals(Const.CONSTRUCTOR_NAME)) {
 				// we have to identify the call to the constructor of the superclass:
-				// the code of a constructor normally starts with an aload_0 whose value is
-				// consumed
-				// by a call to a constructor of the superclass. In the middle, slotForCaller is
-				// not expected
-				// to be modified. Note that this is the normal situation, as results from a
-				// normal
-				// Java compiler. In principle, the Java bytecode might instead do very weird
-				// things,
-				// including calling two constructors of the superclass at different places. In
-				// all such cases
-				// this method fails and rejects the code: such non-standard code is not
-				// supported by Takamaka
+				// the code of a constructor normally starts with an aload_0 whose value is consumed
+				// by a call to a constructor of the superclass. In the middle, slotForCaller is not expected
+				// to be modified. Note that this is the normal situation, as results from a normal
+				// Java compiler. In principle, the Java bytecode might instead do very weird things,
+				// including calling two constructors of the superclass at different places. In all such cases
+				// this method fails and rejects the code: such non-standard code is not supported by Takamaka
 				Instruction startInstruction = start.getInstruction();
 				if (startInstruction.getOpcode() == Const.ALOAD_0 || (startInstruction.getOpcode() == Const.ALOAD
 						&& ((LoadInstruction) startInstruction).getIndex() == 0)) {

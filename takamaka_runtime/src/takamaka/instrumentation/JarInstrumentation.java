@@ -21,15 +21,15 @@ import takamaka.instrumentation.internal.VerifiedClass;
 import takamaka.instrumentation.issues.Issue;
 
 /**
- * An instrumenter of a jar file. It generates another jar files that
- * contain the same classes as the former, but instrumented. This means
- * that storage classes get modified to account for persistence and
+ * An instrumenter of a jar file. It generates another jar file that
+ * contains the same classes as the former, but instrumented. This means
+ * for instance that storage classes get modified to account for persistence and
  * contracts get modified to implement entries.
  */
 public class JarInstrumentation {
 
 	/**
-	 * The errors and warnings generated while verifying the classes of the jar.
+	 * The ordered set of errors and warnings generated while verifying the classes of the jar.
 	 */
 	private final SortedSet<Issue> issues = new TreeSet<>();
 
@@ -51,16 +51,16 @@ public class JarInstrumentation {
 	}
 
 	/**
-	 * Determines if verification of at least a class of the jar failed with an error.
+	 * Determines if the verification of at least one class of the jar failed with an error.
 	 * 
 	 * @return true if and only if that condition holds
 	 */
-	public boolean hasErrors() {
-		return issues().anyMatch(issue -> issue instanceof takamaka.instrumentation.issues.Error);
+	public final boolean hasErrors() {
+		return getFirstError().isPresent();
 	}
 
 	/**
-	 * Yields the first error (hence not a warning) that occurred during verification of this jar.
+	 * Yields the first error (hence not a warning) that occurred during the verification of the origin jar.
 	 */
 	public Optional<takamaka.instrumentation.issues.Error> getFirstError() {
 		return issues()
@@ -70,9 +70,9 @@ public class JarInstrumentation {
 	}
 
 	/**
-	 * Yields the issues generated during verification of the classes of the origin jar.
+	 * Yields the issues generated during the verification of the classes of the origin jar.
 	 * 
-	 * @return the issues
+	 * @return the issues, in increasing order
 	 */
 	public Stream<Issue> issues() {
 		return issues.stream();
