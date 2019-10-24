@@ -2,6 +2,7 @@ package takamaka.whitelisted;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
@@ -22,6 +23,8 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 
 	/**
 	 * Builds a class loader with the given URLs.
+	 * 
+	 * @param urls the urls that make up the class path
 	 */
 	protected ResolvingClassLoader(URL[] urls) {
 		super(urls, ClassLoader.getSystemClassLoader());
@@ -58,16 +61,19 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 	 * @throws ClassNotFoundException if some class could not be found during resolution
 	 */
 	public final Optional<Constructor<?>> resolveConstructor(String className, Class<?>[] args) throws ClassNotFoundException {
-		return Stream.of(loadClass(className).getDeclaredConstructors())
-			.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), args))
-			.findFirst();
+		try {
+			return Optional.of(loadClass(className).getDeclaredConstructor(args));
+		}
+		catch (NoSuchMethodException e) {
+			return Optional.empty();
+		}
 	}
 
 	/**
 	 * Yields the method resolved from the given static description.
 	 * 
 	 * @param className the name of the class from which the method look-up must start
-	 * @param name the name of the method
+	 * @param methodName the name of the method
 	 * @param args the arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its superclasses or implemented interfaces
@@ -77,51 +83,91 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 		Class<?> clazz = loadClass(className);
 
 		for (Class<?> cursor = clazz; cursor != null; cursor = cursor.getSuperclass()) {
-			Optional<java.lang.reflect.Method> result = Stream.of(cursor.getDeclaredMethods())
-				.filter(method -> method.getReturnType() == returnType && method.getName().equals(methodName)
-				&& Arrays.equals(method.getParameterTypes(), args))
-				.findFirst();
-
+			Optional<java.lang.reflect.Method> result = resolveMethodExact(cursor, methodName, args, returnType);
 			if (result.isPresent())
 				return result;
 		}
 
-		for (Class<?> interf: clazz.getInterfaces()) {
-			Optional<java.lang.reflect.Method>result = resolveInterfaceMethod(interf.getName(), methodName, args, returnType);
-			if (result.isPresent())
-				return result;
-		}
-
-		return Optional.empty();
+		return resolveMethodInInterfacesOf(clazz, methodName, args, returnType);
 	}
 
 	/**
 	 * Yields the interface method resolved from the given static description.
 	 * 
 	 * @param className the name of the class from which the method look-up must start
-	 * @param name the name of the method
+	 * @param methodName the name of the method
 	 * @param args the arguments of the method
 	 * @param returnType the return type of the method
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its implemented interfaces
 	 * @throws ClassNotFoundException if some class could not be found during resolution
 	 */
 	public final Optional<java.lang.reflect.Method> resolveInterfaceMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		Class<?> clazz = loadClass(className);
+		return resolveInterfaceMethod(loadClass(className), methodName, args, returnType);
+	}
 
-		Optional<java.lang.reflect.Method> result = Stream.of(clazz.getDeclaredMethods())
-			.filter(method -> method.getReturnType() == returnType && method.getName().equals(methodName)
-			&& Arrays.equals(method.getParameterTypes(), args))
-			.findFirst();
+	/**
+	 * Yields the method of the given class with the given signature. It does not look
+	 * in superclasses nor in super-interfaces.
+	 * 
+	 * @param className the name of the class
+	 * @param methodName the name of the method
+	 * @param args the formal arguments of the method
+	 * @param returnType the return type of the method
+	 * @return the method, if any
+	 * @throws ClassNotFoundException if some class could not be found during resolution
+	 */
+	Optional<Method> resolveMethodExact(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		return resolveMethodExact(loadClass(className), methodName, args, returnType);
+	}
 
-		if (result.isPresent())
-			return result;
+	/**
+	 * Yields the interface method resolved from the given static description.
+	 * 
+	 * @param clazz the class from which the method look-up must start
+	 * @param methodName the name of the method
+	 * @param args the arguments of the method
+	 * @param returnType the return type of the method
+	 * @return the resolved method, if any. It is defined in {@code className} or in one of its implemented interfaces
+	 * @throws ClassNotFoundException if some class could not be found during resolution
+	 */
+	private static Optional<java.lang.reflect.Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		Optional<java.lang.reflect.Method> result = resolveMethodExact(clazz, methodName, args, returnType);
+		return result.isPresent() ? result : resolveMethodInInterfacesOf(clazz, methodName, args, returnType);
+	}
 
+	/**
+	 * Yields the method of an interface implemented by the given class with the given signature. It does not look in superclasses.
+	 * 
+	 * @param clazz the class
+	 * @param methodName the name of the method
+	 * @param args the formal arguments of the method
+	 * @param returnType the return type of the method
+	 * @return the method, if any
+	 */
+	private static Optional<java.lang.reflect.Method> resolveMethodInInterfacesOf(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		for (Class<?> interf: clazz.getInterfaces()) {
-			result = resolveInterfaceMethod(interf.getName(), methodName, args, returnType);
+			Optional<java.lang.reflect.Method> result = resolveInterfaceMethod(interf, methodName, args, returnType);
 			if (result.isPresent())
 				return result;
 		}
-
+	
 		return Optional.empty();
+	}
+
+	/**
+	 * Yields the method of the given class with the given signature. It does not look
+	 * in superclasses nor in super-interfaces.
+	 * 
+	 * @param clazz the class
+	 * @param methodName the name of the method
+	 * @param args the formal arguments of the method
+	 * @param returnType the return type of the method
+	 * @return the method, if any
+	 */
+	private static Optional<Method> resolveMethodExact(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+		return Stream.of(clazz.getDeclaredMethods())
+			.filter(method -> method.getReturnType() == returnType && method.getName().equals(methodName)
+					&& Arrays.equals(method.getParameterTypes(), args))
+			.findFirst();
 	}
 }

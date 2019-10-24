@@ -3,10 +3,9 @@ package takamaka.whitelisted;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * An object that knows about the fields, methods and constructors that can be called from
@@ -18,14 +17,14 @@ public class WhiteListingWizard {
 	/**
 	 * The class loader used to load the classes whose code is checked for white-listing.
 	 */
-	protected final ResolvingClassLoader classLoader;
+	private final ResolvingClassLoader classLoader;
 
 	/**
 	 * Builds a wizard.
 	 * 
 	 * @param classLoader the class loader used to load the classes whose code is checked for white-listing
 	 */
-	protected WhiteListingWizard(ResolvingClassLoader classLoader) {
+	WhiteListingWizard(ResolvingClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
 
@@ -108,73 +107,52 @@ public class WhiteListingWizard {
 	}
 
 	private Optional<Field> fieldInWhiteListedLibraryFor(Field field) {
-		String expandedClassName = WHITE_LISTED_ROOT + "." + field.getDeclaringClass().getName();
-		Class<?> classInWhiteListedLibrary;
-	
 		try {
-			classInWhiteListedLibrary = Class.forName(expandedClassName);
+			return classLoader.resolveField(mirrorClassNameFor(field), field.getName(), field.getType());
 		}
 		catch (ClassNotFoundException e) {
 			// the field is not in the library of white-listed code
 			return Optional.empty();
 		}
-	
-		return Stream.of(classInWhiteListedLibrary.getDeclaredFields())
-			.filter(field2 -> field2.getType() == field.getType() && field2.getName().equals(field.getName()))
-			.findFirst();
 	}
 
 	private Optional<Constructor<?>> constructorInWhiteListedLibraryFor(Constructor<?> constructor) {
-		String expandedClassName = WHITE_LISTED_ROOT + "." + constructor.getDeclaringClass().getName();
-		Class<?> classInWhiteListedLibrary;
-	
 		try {
-			classInWhiteListedLibrary = Class.forName(expandedClassName);
+			return classLoader.resolveConstructor(mirrorClassNameFor(constructor), constructor.getParameterTypes());
 		}
 		catch (ClassNotFoundException e) {
 			// the constructor is not in the library of white-listed code
 			return Optional.empty();
 		}
-	
-		try {
-			// if the constructor has been reported in the white-listed library, then it is automatically white-listed
-			return Optional.of(classInWhiteListedLibrary.getDeclaredConstructor(constructor.getParameterTypes()));
-		}
-		catch (NoSuchMethodException e) {
-			return Optional.empty();
-		}
 	}
 
 	private Optional<java.lang.reflect.Method> methodInWhiteListedLibraryFor(java.lang.reflect.Method method) {
-		Class<?> declaringClass = method.getDeclaringClass();
-
-		// Method Object.getClass() is white-listed but we cannot put it in the white-listed library,
-		// since that method is final in Object
-		if (declaringClass == Object.class && "getClass".equals(method.getName()))
+		// Method Object.getClass() is white-listed but we cannot put it in the white-listed library, since that method is final in Object
+		if (method.getDeclaringClass() == Object.class && "getClass".equals(method.getName()))
 			try {
 				return Optional.of(Object.class.getMethod("getClass"));
 			}
-			catch (NoSuchMethodException e) {
+			catch (NoSuchMethodException | SecurityException e) {
 				// this will never happen
-				throw new IllegalStateException("Cannot find method Object.getClass()");
+				throw new IllegalStateException("Cannot access method Object.getClass()");
 			}
-
-		String expandedClassName = WHITE_LISTED_ROOT + "." + declaringClass.getName();
-		Class<?> classInWhiteListedLibrary;
 	
 		try {
-			classInWhiteListedLibrary = Class.forName(expandedClassName);
+			return classLoader.resolveMethodExact(mirrorClassNameFor(method), method.getName(), method.getParameterTypes(), method.getReturnType());
 		}
 		catch (ClassNotFoundException e) {
 			// the method is not in the library of white-listed code
 			return Optional.empty();
 		}
-	
-		Optional<java.lang.reflect.Method> methodInWhiteListedLibrary = Stream.of(classInWhiteListedLibrary.getDeclaredMethods())
-			.filter(method2 -> method2.getReturnType() == method.getReturnType() && method2.getName().equals(method.getName())
-						&& Arrays.equals(method2.getParameterTypes(), method.getParameterTypes()))
-			.findFirst();
-	
-		return methodInWhiteListedLibrary;
+	}
+
+	/**
+	 * Yields the name of the mirror of the class of the given member, in the white-listing database.
+
+	 * @param member the member
+	 * @return the name of the mirror class
+	 */
+	private static String mirrorClassNameFor(Member member) {
+		return WHITE_LISTED_ROOT + "." + member.getDeclaringClass().getName();
 	}
 }
