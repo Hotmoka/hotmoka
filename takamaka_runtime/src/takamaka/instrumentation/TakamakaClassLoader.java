@@ -1,7 +1,12 @@
 package takamaka.instrumentation;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.net.URL;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BasicType;
@@ -11,12 +16,17 @@ import org.apache.bcel.generic.Type;
 import takamaka.instrumentation.internal.ThrowIncompleteClasspathError;
 import takamaka.lang.Storage;
 import takamaka.whitelisted.ResolvingClassLoader;
+import takamaka.whitelisted.WhiteListingWizard;
 
 /**
- * A class loader used to access the definition of the classes
- * of a Takamaka program.
+ * A class loader used to access the definition of the classes of a Takamaka program.
  */
-public class TakamakaClassLoader extends ResolvingClassLoader {
+public class TakamakaClassLoader implements ResolvingClassLoader {
+
+	/**
+	 * The decorated resolving class loader.
+	 */
+	private final ResolvingClassLoader parent;
 
 	/**
 	 * The class token of the contract class.
@@ -37,7 +47,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	 * Builds a class loader with the given URLs.
 	 */
 	public TakamakaClassLoader(URL[] urls) {
-		super(urls);
+		this.parent = ResolvingClassLoader.of(urls);
 
 		try {
 			this.contractClass = loadClass("takamaka.lang.Contract");
@@ -85,7 +95,7 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 	 * @param type the type
 	 * @return true if and only if that condition holds
 	 */
-	public final boolean isEagerlyLoaded(Class<?> type) { //TODO: also externally
+	public final boolean isEagerlyLoaded(Class<?> type) {
 		return !isLazilyLoaded(type);
 	}
 
@@ -135,5 +145,65 @@ public class TakamakaClassLoader extends ResolvingClassLoader {
 			result[pos] = bcelToClass(types[pos]);
 	
 		return result;
+	}
+
+	@Override
+	public Stream<URL> getOrigins() {
+		return parent.getOrigins();
+	}
+
+	@Override
+	public final WhiteListingWizard getWhiteListingWizard() {
+		return parent.getWhiteListingWizard();
+	}
+
+	@Override
+	public void close() throws Exception {
+		parent.close();
+	}
+
+	@Override
+	public final Class<?> loadClass(String className) throws ClassNotFoundException {
+		return parent.loadClass(className);
+	}
+
+	@Override
+	public final Optional<Field> resolveField(String className, String name, Class<?> type) throws ClassNotFoundException {
+		return parent.resolveField(className, name, type);
+	}
+
+	@Override
+	public final Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) {
+		return parent.resolveField(clazz, name, type);
+	}
+
+	@Override
+	public final Optional<Constructor<?>> resolveConstructor(String className, Class<?>[] args) throws ClassNotFoundException {
+		return parent.resolveConstructor(className, args);
+	}
+
+	@Override
+	public final Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) {
+		return parent.resolveConstructor(clazz, args);
+	}
+
+	@Override
+	public final Optional<java.lang.reflect.Method> resolveMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		return parent.resolveMethod(className, methodName, args, returnType);
+	}
+
+	@Override
+	public final Optional<java.lang.reflect.Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+		return parent.resolveMethod(clazz, methodName, args, returnType);
+	}
+
+	@Override
+	public final Optional<Method> resolveInterfaceMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		return parent.resolveInterfaceMethod(className, methodName, args, returnType);
+	}
+
+	@Override
+	public final Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+		return parent.resolveInterfaceMethod(clazz, methodName, args, returnType);
 	}
 }

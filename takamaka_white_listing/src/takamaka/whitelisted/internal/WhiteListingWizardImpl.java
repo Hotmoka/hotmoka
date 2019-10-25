@@ -7,27 +7,26 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 
-import takamaka.whitelisted.ResolvingClassLoader;
 import takamaka.whitelisted.WhiteListed;
 import takamaka.whitelisted.WhiteListingWizard;
 
 /**
  * A sealed implementation of a white-listing wizard.
  */
-public class WhiteListingWizardImpl implements WhiteListingWizard {
+class WhiteListingWizardImpl implements WhiteListingWizard {
 	private final static String WHITE_LISTED_ROOT = WhiteListingWizard.class.getPackage().getName();
 
 	/**
 	 * The class loader used to load the classes whose code is checked for white-listing.
 	 */
-	private final ResolvingClassLoader classLoader;
+	private final ResolvingClassLoaderImpl classLoader;
 
 	/**
 	 * Builds a wizard.
 	 * 
 	 * @param classLoader the class loader used to load the classes whose code is checked for white-listing
 	 */
-	public WhiteListingWizardImpl(ResolvingClassLoader classLoader) {
+	WhiteListingWizardImpl(ResolvingClassLoaderImpl classLoader) {
 		this.classLoader = classLoader;
 	}
 

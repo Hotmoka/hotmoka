@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -539,7 +540,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					// instrument and its dependencies. This is important since class instrumentation will use
 					// the repository to infer least common supertypes during type inference, hence the
 					// whole hierarchy of classes must be available to BCEL through its repository
-					String appendedClassPath = Stream.of(classLoader.getURLs()).map(URL::getFile).collect(Collectors.joining(":", original.toString() + ":", ""));
+					String appendedClassPath = classLoader.getOrigins().map(URL::getFile).collect(Collectors.joining(":", original.toString() + ":", ""));
 					Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 						JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader, false);
@@ -1076,8 +1077,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 		private BlockchainClassLoader(Classpath classpath, AbstractBlockchain blockchain) throws Exception {
 			super(collectURLs(Stream.of(classpath), blockchain, null));
 
-			for (URL url: getURLs())
-				classpathElements.add(Paths.get(url.toURI()));
+			getOrigins().forEach(url -> {
+				try {
+					classpathElements.add(Paths.get(url.toURI()));
+				} catch (URISyntaxException e) {
+					throw new IllegalStateException("Unexpected illegal URL", e);
+				}
+			});
 		}
 
 		/**
@@ -1090,8 +1096,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 		private BlockchainClassLoader(Path jar, Stream<Classpath> dependencies, AbstractBlockchain blockchain) throws Exception {
 			super(collectURLs(dependencies, blockchain, jar.toUri().toURL()));
 
-			for (URL url: getURLs())
-				classpathElements.add(Paths.get(url.toURI()));
+			getOrigins().forEach(url -> {
+				try {
+					classpathElements.add(Paths.get(url.toURI()));
+				} catch (URISyntaxException e) {
+					throw new IllegalStateException("Unexpected illegal URL", e);
+				}
+			});
 		}
 
 		private static URL[] collectURLs(Stream<Classpath> classpaths, AbstractBlockchain blockchain, URL start) throws Exception {
@@ -1137,7 +1148,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		@Override
-		public void close() throws IOException {
+		public void close() throws Exception {
 			// we delete all paths elements that were used to build this class loader
 			for (Path classpathElement: classpathElements)
 				Files.delete(classpathElement);
@@ -1427,14 +1438,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param actuals the actuals provided to the method or constructor
 		 */
 		private CodeExecutor(Storage deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
-			setContextClassLoader(new ClassLoader(classLoader.getParent()) {
-
-				@Override
-				public Class<?> loadClass(String name) throws ClassNotFoundException {
-					return classLoader.loadClass(name);
-				}
-			});
-
 			this.deserializedCaller = deseralizedCaller;
 			this.methodOrConstructor = methodOrConstructor;
 			this.deserializedReceiver = receiver != null ? receiver.deserialize(AbstractBlockchain.this) : null;
