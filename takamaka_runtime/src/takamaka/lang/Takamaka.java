@@ -4,9 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Optional;
-import java.util.SortedSet;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -207,20 +205,11 @@ public abstract class Takamaka {
 			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must redefine Object.hashCode() or Object.toString()");
 	}
 
-	public static void mustBeOrdered(Object value, String methodName) {
-		if (value != null && !isOrdered(value.getClass()))
-			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must be an ordered collection");
-	}
-
 	public static boolean redefinesHashCodeOrToString(Class<?> clazz) {
 		return Stream.of(clazz.getMethods())
 			.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
 			.map(Method::getName)
 			.anyMatch(name -> "hashCode".equals(name) || "toString".equals(name));
-	}
-
-	public static boolean isOrdered(Class<?> clazz) {
-		return List.class.isAssignableFrom(clazz) || SortedSet.class.isAssignableFrom(clazz);
 	}
 
 	/**

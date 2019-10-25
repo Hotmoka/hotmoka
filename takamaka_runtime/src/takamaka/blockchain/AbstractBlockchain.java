@@ -46,8 +46,6 @@ import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.request.TransactionRequest;
-import takamaka.blockchain.response.TransactionResponseWithInstrumentedJar;
-import takamaka.blockchain.response.TransactionResponseWithUpdates;
 import takamaka.blockchain.response.ConstructorCallTransactionExceptionResponse;
 import takamaka.blockchain.response.ConstructorCallTransactionFailedResponse;
 import takamaka.blockchain.response.ConstructorCallTransactionResponse;
@@ -62,6 +60,8 @@ import takamaka.blockchain.response.MethodCallTransactionFailedResponse;
 import takamaka.blockchain.response.MethodCallTransactionResponse;
 import takamaka.blockchain.response.MethodCallTransactionSuccessfulResponse;
 import takamaka.blockchain.response.TransactionResponse;
+import takamaka.blockchain.response.TransactionResponseWithInstrumentedJar;
+import takamaka.blockchain.response.TransactionResponseWithUpdates;
 import takamaka.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
@@ -1584,14 +1584,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @throws ClassNotFoundException if some class could not be found during the check
 		 */
 		protected final void ensureWhiteListingOf(Executable executable, Object[] actuals) throws ClassNotFoundException {
-			Optional<? extends Executable> model = classLoader.whiteListingWizard.whiteListingModelOf(executable);
-			if (!model.isPresent())
-				if (executable instanceof Constructor<?>)
+			Optional<? extends Executable> model;
+			if (executable instanceof Constructor<?>) {
+				model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
+				if (!model.isPresent())
 					throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of "
 						+ ((ConstructorSignature) methodOrConstructor).definingClass.name);
-				else
+			}
+			else {
+				model = classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable);
+				if (!model.isPresent())
 					throw new NonWhiteListedCallException("illegal call to non-white-listed method "
 						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
+			}
 
 			if (executable instanceof java.lang.reflect.Method && !Modifier.isStatic(executable.getModifiers()))
 				checkWhiteListingProofObligations(model.get().getName(), deserializedReceiver, model.get().getAnnotations());

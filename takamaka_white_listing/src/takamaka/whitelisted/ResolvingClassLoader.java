@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import takamaka.whitelisted.internal.WhiteListingWizardImpl;
+
 /**
  * A class loader that implements resolution methods for fields, constructors and methods,
  * according to Java's resolution rules.
@@ -19,7 +21,7 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 	 * An object that knows about methods that can be called from Takamaka code
 	 * and under which conditions.
 	 */
-	public final WhiteListingWizard whiteListingWizard = new WhiteListingWizard(this);
+	private WhiteListingWizard whiteListingWizard = new WhiteListingWizardImpl(this);
 
 	/**
 	 * Builds a class loader with the given URLs.
@@ -28,6 +30,15 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 	 */
 	protected ResolvingClassLoader(URL[] urls) {
 		super(urls, ClassLoader.getSystemClassLoader());
+	}
+
+	/**
+	 * Yields a white-listing wizard that uses this class loader to load classes.
+	 * 
+	 * @return the wizard
+	 */
+	public final WhiteListingWizard getWhiteListingWizard() {
+		return whiteListingWizard;
 	}
 
 	/**
@@ -40,13 +51,27 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 	 * @throws ClassNotFoundException if some class could not be found during resolution
 	 */
 	public final Optional<Field> resolveField(String className, String name, Class<?> type) throws ClassNotFoundException {
-		for (Class<?> clazz = loadClass(className); clazz != null; clazz = clazz.getSuperclass()) {
+		return resolveField(loadClass(className), name, type);
+	}
+
+	/**
+	 * Yields the field resolved from the given static description.
+	 * 
+	 * @param className the name of the class from the field look-up must start
+	 * @param name the name of the field
+	 * @param type the type of the field
+	 * @return the resolved field, if any
+	 */
+	public final Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) {
+		while (clazz != null) {
 			Optional<Field> result = Stream.of(clazz.getDeclaredFields())
-					.filter(field -> field.getType() == type && field.getName().equals(name))
-					.findFirst();
+				.filter(field -> field.getType() == type && field.getName().equals(name))
+				.findFirst();
 
 			if (result.isPresent())
 				return result;
+	
+			clazz = clazz.getSuperclass();
 		}
 
 		return Optional.empty();
@@ -61,8 +86,19 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 	 * @throws ClassNotFoundException if some class could not be found during resolution
 	 */
 	public final Optional<Constructor<?>> resolveConstructor(String className, Class<?>[] args) throws ClassNotFoundException {
+		return resolveConstructor(loadClass(className), args);
+	}
+
+	/**
+	 * Yields the constructor resolved from the given static description.
+	 * 
+	 * @param className the name of the class declaring the constructor
+	 * @param args the arguments of the constructor
+	 * @return the resolved constructor, if any
+	 */
+	public final Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) {
 		try {
-			return Optional.of(loadClass(className).getDeclaredConstructor(args));
+			return Optional.of(clazz.getDeclaredConstructor(args));
 		}
 		catch (NoSuchMethodException e) {
 			return Optional.empty();
@@ -80,8 +116,19 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 	 * @throws ClassNotFoundException if some class could not be found during resolution
 	 */
 	public final Optional<java.lang.reflect.Method> resolveMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		Class<?> clazz = loadClass(className);
+		return resolveMethod(loadClass(className), methodName, args, returnType);
+	}
 
+	/**
+	 * Yields the method resolved from the given static description.
+	 * 
+	 * @param clazz the class from which the method look-up must start
+	 * @param methodName the name of the method
+	 * @param args the arguments of the method
+	 * @param returnType the return type of the method
+	 * @return the resolved method, if any. It is defined in {@code className} or in one of its superclasses or implemented interfaces
+	 */
+	public final Optional<java.lang.reflect.Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
 		for (Class<?> cursor = clazz; cursor != null; cursor = cursor.getSuperclass()) {
 			Optional<java.lang.reflect.Method> result = resolveMethodExact(cursor, methodName, args, returnType);
 			if (result.isPresent())
@@ -101,8 +148,22 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 	 * @return the resolved method, if any. It is defined in {@code className} or in one of its implemented interfaces
 	 * @throws ClassNotFoundException if some class could not be found during resolution
 	 */
-	public final Optional<java.lang.reflect.Method> resolveInterfaceMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+	public final Optional<Method> resolveInterfaceMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		return resolveInterfaceMethod(loadClass(className), methodName, args, returnType);
+	}
+
+	/**
+	 * Yields the interface method resolved from the given static description.
+	 * 
+	 * @param clazz the class from which the method look-up must start
+	 * @param methodName the name of the method
+	 * @param args the arguments of the method
+	 * @param returnType the return type of the method
+	 * @return the resolved method, if any. It is defined in {@code className} or in one of its implemented interfaces
+	 */
+	public final Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+		Optional<java.lang.reflect.Method> result = resolveMethodExact(clazz, methodName, args, returnType);
+		return result.isPresent() ? result : resolveMethodInInterfacesOf(clazz, methodName, args, returnType);
 	}
 
 	/**
@@ -116,23 +177,9 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 	 * @return the method, if any
 	 * @throws ClassNotFoundException if some class could not be found during resolution
 	 */
-	Optional<Method> resolveMethodExact(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+	//TODO: hide
+	public Optional<Method> resolveMethodExact(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
 		return resolveMethodExact(loadClass(className), methodName, args, returnType);
-	}
-
-	/**
-	 * Yields the interface method resolved from the given static description.
-	 * 
-	 * @param clazz the class from which the method look-up must start
-	 * @param methodName the name of the method
-	 * @param args the arguments of the method
-	 * @param returnType the return type of the method
-	 * @return the resolved method, if any. It is defined in {@code className} or in one of its implemented interfaces
-	 * @throws ClassNotFoundException if some class could not be found during resolution
-	 */
-	private static Optional<java.lang.reflect.Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		Optional<java.lang.reflect.Method> result = resolveMethodExact(clazz, methodName, args, returnType);
-		return result.isPresent() ? result : resolveMethodInInterfacesOf(clazz, methodName, args, returnType);
 	}
 
 	/**
@@ -144,7 +191,7 @@ public abstract class ResolvingClassLoader extends URLClassLoader implements Aut
 	 * @param returnType the return type of the method
 	 * @return the method, if any
 	 */
-	private static Optional<java.lang.reflect.Method> resolveMethodInInterfacesOf(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+	private Optional<Method> resolveMethodInInterfacesOf(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
 		for (Class<?> interf: clazz.getInterfaces()) {
 			Optional<java.lang.reflect.Method> result = resolveInterfaceMethod(interf, methodName, args, returnType);
 			if (result.isPresent())

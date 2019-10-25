@@ -1,7 +1,9 @@
 package takamaka.instrumentation.internal;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -112,7 +114,7 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
 	public Field whiteListingModelOf(FieldInstruction fi) {
-		return classLoader.whiteListingWizard.whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
+		return classLoader.getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
 	}
 
 	/**
@@ -149,8 +151,12 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	 * @return the model of its white-listing, if it exists
 	 */
 	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-			(() -> checkINVOKESPECIAL(invoke, classLoader.whiteListingWizard.whiteListingModelOf(executable)));
+		if (executable instanceof Constructor<?>)
+			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
+				(() -> checkINVOKESPECIAL(invoke, classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable)));
+		else
+			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
+				(() -> checkINVOKESPECIAL(invoke, classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable)));
 	}
 
 	/**
@@ -238,7 +244,7 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 
 			protected final boolean hasWhiteListingModel(FieldInstruction fi) {
 				Optional<Field> field = resolver.resolvedFieldFor(fi);
-				return field.isPresent() && classLoader.whiteListingWizard.whiteListingModelOf(field.get()).isPresent();
+				return field.isPresent() && classLoader.getWhiteListingWizard().whiteListingModelOf(field.get()).isPresent();
 			}
 
 			protected final boolean hasWhiteListingModel(InvokeInstruction invoke) {

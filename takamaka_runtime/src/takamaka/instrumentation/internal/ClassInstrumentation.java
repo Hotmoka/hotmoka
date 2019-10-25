@@ -90,7 +90,6 @@ import takamaka.lang.Contract;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
 import takamaka.whitelisted.MustBeFalse;
-import takamaka.whitelisted.MustBeOrdered;
 import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 import takamaka.whitelisted.WhiteListingProofObligation;
 
@@ -914,22 +913,6 @@ public class ClassInstrumentation {
 			if (annotationType == MustBeFalse.class) {
 				forEachPusher(ih, slots, where -> pushers.add(where.getInstruction()), () -> pushers.add(null));
 				return pushers.stream().allMatch(ins -> ins != null && ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
-			}
-			else if (annotationType == MustBeOrdered.class) {
-				InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
-				int consumed = invoke.consumeStack(cpg);
-				Type type;
-
-				if (invoke instanceof INVOKESTATIC)
-					type = invoke.getArgumentTypes(cpg)[consumed - slots];
-				else if (consumed == slots)
-					type = invoke.getReferenceType(cpg);
-				else
-					type = invoke.getArgumentTypes(cpg)[consumed - slots - 1];
-
-				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-					return type instanceof ObjectType && Takamaka.isOrdered(classLoader.loadClass(((ObjectType) type).getClassName()));
-				});
 			}
 
 			return false;
