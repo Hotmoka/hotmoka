@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import io.takamaka.whitelisting.WhiteListed;
 import takamaka.blockchain.ClassTag;
 import takamaka.blockchain.DeserializationError;
 import takamaka.blockchain.FieldSignature;
@@ -33,7 +34,6 @@ import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.blockchain.values.StorageReferenceInCurrentTransaction;
-import takamaka.whitelisted.WhiteListed;
 
 /**
  * The superclass of classes whose objects can be kept in blockchain.

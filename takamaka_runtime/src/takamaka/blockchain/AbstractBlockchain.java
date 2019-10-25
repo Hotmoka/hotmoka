@@ -1148,7 +1148,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		@Override
-		public void close() throws Exception {
+		public void close() throws IOException {
 			// we delete all paths elements that were used to build this class loader
 			for (Path classpathElement: classpathElements)
 				Files.delete(classpathElement);

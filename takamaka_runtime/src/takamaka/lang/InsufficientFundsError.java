@@ -2,7 +2,7 @@ package takamaka.lang;
 
 import java.math.BigInteger;
 
-import takamaka.whitelisted.WhiteListed;
+import io.takamaka.whitelisting.WhiteListed;
 
 /**
  * An exception thrown when a contract has not enough funds to

@@ -11,6 +11,6 @@
 	<classpathentry kind="lib" path="/takamaka_runtime/dist/takamaka_runtime.jar"/>
 	<classpathentry kind="lib" path="/takamaka_runtime/lib/bcel-6.2.jar"/>
 	<classpathentry kind="lib" path="/takamaka_runtime/lib/stackmap.jar"/>
-	<classpathentry kind="lib" path="/takamaka_white_listing/dist/takamaka_white_listing.jar"/>
+	<classpathentry kind="lib" path="/takamaka_language/dist/io-takamaka-whitelisting-1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

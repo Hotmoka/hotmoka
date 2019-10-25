@@ -81,6 +81,9 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.whitelisting.MustBeFalse;
+import io.takamaka.whitelisting.MustRedefineHashCodeOrToString;
+import io.takamaka.whitelisting.WhiteListingProofObligation;
 import it.univr.bcel.StackMapReplacer;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
@@ -89,9 +92,6 @@ import takamaka.instrumentation.TakamakaClassLoader;
 import takamaka.lang.Contract;
 import takamaka.lang.Storage;
 import takamaka.lang.Takamaka;
-import takamaka.whitelisted.MustBeFalse;
-import takamaka.whitelisted.MustRedefineHashCodeOrToString;
-import takamaka.whitelisted.WhiteListingProofObligation;
 
 /**
  * An instrumenter of a single class file. For instance, it instruments storage

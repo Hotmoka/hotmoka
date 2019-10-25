@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.takamaka.whitelisting.MustRedefineHashCode;
+import io.takamaka.whitelisting.WhiteListed;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.TransactionException;
@@ -18,8 +20,6 @@ import takamaka.blockchain.values.StorageReference;
 import takamaka.lang.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
-import takamaka.whitelisted.MustRedefineHashCode;
-import takamaka.whitelisted.WhiteListed;
 
 public class IllegalCallToNonWhiteListedMethod13 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);

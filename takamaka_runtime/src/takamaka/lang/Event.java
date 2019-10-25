@@ -1,6 +1,6 @@
 package takamaka.lang;
 
-import takamaka.whitelisted.WhiteListed;
+import io.takamaka.whitelisting.WhiteListed;
 
 /**
  * An event is a storage object that remains in the blockchain at the

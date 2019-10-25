@@ -9,10 +9,10 @@ import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import io.takamaka.whitelisting.WhiteListed;
+import io.takamaka.whitelisting.WhiteListingProofObligation;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.GasCosts;
-import takamaka.whitelisted.WhiteListed;
-import takamaka.whitelisted.WhiteListingProofObligation;
 
 /**
  * A class that acts as a global context for statements added

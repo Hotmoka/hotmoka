@@ -24,6 +24,8 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.whitelisting.MustRedefineHashCode;
+import io.takamaka.whitelisting.MustRedefineHashCodeOrToString;
 import takamaka.instrumentation.TakamakaClassLoader;
 import takamaka.instrumentation.VerificationException;
 import takamaka.instrumentation.internal.checksOnClass.BootstrapsAreLegalCheck;
@@ -45,8 +47,6 @@ import takamaka.instrumentation.internal.checksOnMethods.ThrowsExceptionsCodeIsP
 import takamaka.instrumentation.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
 import takamaka.instrumentation.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
 import takamaka.instrumentation.issues.Issue;
-import takamaka.whitelisted.MustRedefineHashCode;
-import takamaka.whitelisted.MustRedefineHashCodeOrToString;
 
 /**
  * A class that passed the static Takamaka verification tests.

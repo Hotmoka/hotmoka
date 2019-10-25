@@ -1,5 +1,6 @@
 package takamaka.instrumentation;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -13,10 +14,10 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.whitelisting.ResolvingClassLoader;
+import io.takamaka.whitelisting.WhiteListingWizard;
 import takamaka.instrumentation.internal.ThrowIncompleteClasspathError;
 import takamaka.lang.Storage;
-import takamaka.whitelisted.ResolvingClassLoader;
-import takamaka.whitelisted.WhiteListingWizard;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.
@@ -158,7 +159,7 @@ public class TakamakaClassLoader implements ResolvingClassLoader {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() throws IOException {
 		parent.close();
 	}
 
