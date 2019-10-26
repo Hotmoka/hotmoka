@@ -2,8 +2,8 @@ package takamaka.blockchain.request;
 
 import java.util.stream.Stream;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.Classpath;
-import takamaka.lang.Immutable;
 
 /**
  * A request for a transaction that installs a jar in a blockchain.

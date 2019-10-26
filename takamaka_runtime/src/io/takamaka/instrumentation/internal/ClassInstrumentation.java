@@ -82,12 +82,12 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.whitelisting.MustBeFalse;
+import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
+import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 import io.takamaka.instrumentation.Dummy;
 import io.takamaka.instrumentation.TakamakaClassLoader;
 import io.takamaka.lang.Contract;
-import io.takamaka.whitelisting.MustBeFalse;
-import io.takamaka.whitelisting.MustRedefineHashCodeOrToString;
-import io.takamaka.whitelisting.WhiteListingProofObligation;
 import it.univr.bcel.StackMapReplacer;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.runtime.AbstractEvent;

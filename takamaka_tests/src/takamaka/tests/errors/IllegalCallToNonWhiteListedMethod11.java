@@ -8,9 +8,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import takamaka.blockchain.NonVoidMethodSignature;
+import takamaka.blockchain.NonWhiteListedCallException;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.BasicTypes;
-import takamaka.lang.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 

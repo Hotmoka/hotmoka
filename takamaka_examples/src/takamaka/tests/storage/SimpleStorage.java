@@ -1,6 +1,6 @@
 package takamaka.tests.storage;
+import io.takamaka.code.annotations.View;
 import io.takamaka.lang.Storage;
-import takamaka.lang.View;
 
 public class SimpleStorage extends Storage {
 	private int storedData;

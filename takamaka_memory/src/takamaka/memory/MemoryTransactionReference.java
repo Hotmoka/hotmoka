@@ -4,14 +4,12 @@ import java.math.BigInteger;
 
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.TransactionReference;
-import takamaka.lang.Immutable;
 
 /**
  * In the disk memory representation of a blockchain, a transaction can be
  * uniquely identified by a pair block/transaction inside the block. A progressive
  * identifier would also be fine.
  */
-@Immutable
 final class MemoryTransactionReference extends TransactionReference {
 
 	private static final long serialVersionUID = 5911713300386882185L;

@@ -2,7 +2,7 @@ package takamaka.blockchain;
 
 /**
  * An exception thrown when a transaction for the execution of a
- * {@link takamaka.lang.View} method has side-effects different
+ * {@link io.takamaka.code.annotations.View} method has side-effects different
  * from the modification of the balance of the caller.
  */
 @SuppressWarnings("serial")

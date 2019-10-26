@@ -10,14 +10,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import io.takamaka.code.annotations.Entry;
+import io.takamaka.code.annotations.Payable;
 import io.takamaka.lang.Contract;
 import io.takamaka.lang.PayableContract;
 import io.takamaka.lang.Storage;
 import io.takamaka.util.Bytes32;
 import io.takamaka.util.StorageList;
 import io.takamaka.util.StorageMap;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at

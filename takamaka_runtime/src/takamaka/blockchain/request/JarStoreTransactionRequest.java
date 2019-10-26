@@ -4,12 +4,12 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.UpdateOfBalance;
 import takamaka.blockchain.response.JarStoreTransactionFailedResponse;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.lang.Immutable;
 
 /**
  * A request for a transaction that installs a jar in an initialized blockchain.

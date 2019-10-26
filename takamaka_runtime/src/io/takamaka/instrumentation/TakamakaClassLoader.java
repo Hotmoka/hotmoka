@@ -14,9 +14,9 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.whitelisting.ResolvingClassLoader;
+import io.takamaka.code.whitelisting.WhiteListingWizard;
 import io.takamaka.instrumentation.internal.ThrowIncompleteClasspathError;
-import io.takamaka.whitelisting.ResolvingClassLoader;
-import io.takamaka.whitelisting.WhiteListingWizard;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.

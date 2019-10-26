@@ -2,10 +2,10 @@ package takamaka.blockchain.request;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.UpdateOfBalance;
-import takamaka.lang.Immutable;
 
 /**
  * A request for creating the initial gamete.

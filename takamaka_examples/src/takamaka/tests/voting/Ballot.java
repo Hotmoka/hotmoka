@@ -5,11 +5,11 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.takamaka.code.annotations.Entry;
 import io.takamaka.lang.Contract;
 import io.takamaka.lang.Storage;
 import io.takamaka.util.StorageList;
 import io.takamaka.util.StorageMap;
-import takamaka.lang.Entry;
 
 public class Ballot extends Contract {
 	private final Contract chairperson;

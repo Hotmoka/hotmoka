@@ -12,12 +12,12 @@ import org.junit.jupiter.api.Test;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.NonVoidMethodSignature;
+import takamaka.blockchain.NonWhiteListedCallException;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.ClassType;
-import takamaka.lang.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 

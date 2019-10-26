@@ -4,9 +4,9 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.GasCosts;
-import takamaka.lang.Immutable;
 
 /**
  * A class type that can be used for stored objects in blockchain.
@@ -70,6 +70,11 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.lang.RequirementViolationException}.
 	 */
 	public final static ClassType REQUIREMENT_VIOLATION_EXCEPTION = new ClassType("io.takamaka.lang.RequirementViolationException");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.lang.InsufficientFundsError}.
+	 */
+	public final static ClassType INSUFFICIENT_FUNDS_ERROR = new ClassType("io.takamaka.lang.InsufficientFundsError");
 
 	/**
 	 * The name of the class type.

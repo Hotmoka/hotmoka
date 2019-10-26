@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.MethodSignature;
@@ -11,7 +12,6 @@ import takamaka.blockchain.UpdateOfBalance;
 import takamaka.blockchain.response.MethodCallTransactionFailedResponse;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.lang.Immutable;
 
 /**
  * A request for calling an instance method of a storage object in blockchain.

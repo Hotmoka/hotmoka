@@ -3,7 +3,7 @@ package takamaka.tests.javacollections;
 import java.util.HashSet;
 import java.util.Set;
 
-import takamaka.lang.View;
+import io.takamaka.code.annotations.View;
 
 /**
  * This class defines methods that test the use of the Java HashSet class.

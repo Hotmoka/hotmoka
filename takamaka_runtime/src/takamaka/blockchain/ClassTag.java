@@ -2,8 +2,8 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.lang.Immutable;
 
 /**
  * An update that states that an object belongs to a given class.

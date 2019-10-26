@@ -3,8 +3,8 @@ package takamaka.blockchain.request;
 import java.io.Serializable;
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.UpdateOfBalance;
-import takamaka.lang.Immutable;
 
 @Immutable
 public interface TransactionRequest extends Serializable {

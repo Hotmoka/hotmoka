@@ -4,14 +4,14 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.lang.Immutable;
 
 /**
  * A response for a successful transaction that calls a constructor of a storage
- * class in blockchain. The constructor is annotated as {@link takamaka.lang.ThrowsExceptions}.
+ * class in blockchain. The constructor is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions}.
  * It has been called without problems but it threw an instance of {@link java.lang.Exception}.
  */
 @Immutable

@@ -7,8 +7,8 @@ import java.util.function.IntFunction;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.annotations.View;
 import io.takamaka.lang.Storage;
-import takamaka.lang.View;
 
 /**
  * A list of elements that can be kept in storage. It is possible to

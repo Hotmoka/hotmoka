@@ -1,12 +1,12 @@
 package takamaka.tests.crowdfunding;
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Entry;
+import io.takamaka.code.annotations.Payable;
 import io.takamaka.lang.Contract;
 import io.takamaka.lang.PayableContract;
 import io.takamaka.lang.Storage;
 import io.takamaka.util.StorageList;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
 
 public class CrowdFundingSimplified extends Contract {
 	public Campaign newCampaign(PayableContract beneficiary, BigInteger goal) {

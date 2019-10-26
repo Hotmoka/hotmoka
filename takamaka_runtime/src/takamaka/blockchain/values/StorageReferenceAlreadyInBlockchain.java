@@ -4,10 +4,10 @@ import java.math.BigInteger;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.TransactionReference;
 import takamaka.blockchain.runtime.AbstractStorage;
-import takamaka.lang.Immutable;
 
 /**
  * A reference to an object of class type that is already stored in the blockchain.

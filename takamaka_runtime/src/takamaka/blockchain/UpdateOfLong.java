@@ -2,10 +2,10 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.lang.Immutable;
 
 /**
  * An update of a field states that a long field of a given storage object has been

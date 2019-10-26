@@ -10,10 +10,10 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.annotations.Entry;
+import io.takamaka.code.annotations.Payable;
+import io.takamaka.code.annotations.ThrowsExceptions;
 import io.takamaka.instrumentation.Dummy;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
-import takamaka.lang.ThrowsExceptions;
 
 /**
  * A utility to check the annotations of the methods in a given class.

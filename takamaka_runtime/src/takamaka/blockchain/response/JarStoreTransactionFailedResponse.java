@@ -2,10 +2,10 @@ package takamaka.blockchain.response;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.UpdateOfBalance;
-import takamaka.lang.Immutable;
 
 /**
  * A response for a failed transaction that should have installed a jar in the blockchain.

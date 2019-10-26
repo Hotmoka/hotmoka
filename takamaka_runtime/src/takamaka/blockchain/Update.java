@@ -3,8 +3,8 @@ package takamaka.blockchain;
 import java.io.Serializable;
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.lang.Immutable;
 
 /**
  * An update states that a property of an object has been

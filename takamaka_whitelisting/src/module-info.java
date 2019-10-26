@@ -1,3 +1,3 @@
-module io.takamaka.whitelisting {
-	exports io.takamaka.whitelisting;
+module io.takamaka.code.whitelisting {
+	exports io.takamaka.code.whitelisting;
 }

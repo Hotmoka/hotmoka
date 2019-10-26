@@ -1,8 +1,8 @@
 package takamaka.blockchain;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.lang.Immutable;
 
 /**
  * An update of a field states that the field of a given storage object has been

@@ -1,6 +1,6 @@
 package takamaka.tests.errors.payablewithoutentry2;
 
-import takamaka.lang.Payable;
+import io.takamaka.code.annotations.Payable;
 
 public interface PayableWithoutEntry {
 	public @Payable void m(int amount);

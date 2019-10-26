@@ -3,7 +3,7 @@ package takamaka.blockchain;
 import java.io.Serializable;
 import java.math.BigInteger;
 
-import takamaka.lang.Immutable;
+import io.takamaka.code.annotations.Immutable;
 
 /**
  * A class path, that points to a given jar in the blockchain.

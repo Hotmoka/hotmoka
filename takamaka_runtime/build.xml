@@ -20,9 +20,9 @@
   <target name="compile" depends="init" description="compile the source">
     <javac srcdir="${src}:${src_takamaka_base}" destdir="${build}" >
 			<!--    	debug="true" debuglevel="lines,vars,source" includeantruntime="true" -->
-      <classpath>
-    	<fileset dir="lib" includes="*.jar" />
-      	<pathelement path="../takamaka_whitelisting/build" />
+	  <classpath>
+    	<fileset dir="../takamaka_distribution/libs" includes="*.jar" />
+	  	<fileset dir="../takamaka_distribution/dist" includes="*.jar" />
       </classpath>
     </javac>
   </target>

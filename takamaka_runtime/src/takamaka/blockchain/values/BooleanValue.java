@@ -2,9 +2,9 @@ package takamaka.blockchain.values;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.GasCosts;
-import takamaka.lang.Immutable;
 
 /**
  * A {@code boolean} value stored in blockchain.

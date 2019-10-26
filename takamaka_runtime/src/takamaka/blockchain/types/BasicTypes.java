@@ -2,9 +2,9 @@ package takamaka.blockchain.types;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.GasCosts;
-import takamaka.lang.Immutable;
 
 /**
  * The basic types of the Takamaka language.

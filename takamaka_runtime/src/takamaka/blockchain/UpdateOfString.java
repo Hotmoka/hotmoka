@@ -2,11 +2,11 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
 import takamaka.blockchain.values.StringValue;
-import takamaka.lang.Immutable;
 
 /**
  * An update of a field states that the {@link java.lang.String}

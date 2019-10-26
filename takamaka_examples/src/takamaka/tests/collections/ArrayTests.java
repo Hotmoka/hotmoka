@@ -3,8 +3,8 @@ package takamaka.tests.collections;
 import java.math.BigInteger;
 import java.util.Random;
 
+import io.takamaka.code.annotations.View;
 import io.takamaka.util.StorageArray;
-import takamaka.lang.View;
 
 /**
  * This class defines methods that test the storage array implementation.

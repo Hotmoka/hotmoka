@@ -2,8 +2,8 @@ package takamaka.blockchain.response;
 
 import java.util.stream.Stream;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.lang.Immutable;
 
 /**
  * A response for a transaction that might contain events.

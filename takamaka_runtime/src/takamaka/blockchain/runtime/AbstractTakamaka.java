@@ -8,12 +8,12 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
-import io.takamaka.whitelisting.WhiteListed;
-import io.takamaka.whitelisting.WhiteListingProofObligation;
+import io.takamaka.code.whitelisting.WhiteListed;
+import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.GasCosts;
-import takamaka.lang.NonWhiteListedCallException;
-import takamaka.lang.OutOfGasError;
+import takamaka.blockchain.NonWhiteListedCallException;
+import takamaka.blockchain.OutOfGasError;
 
 /**
  * A class that acts as a global context for statements added

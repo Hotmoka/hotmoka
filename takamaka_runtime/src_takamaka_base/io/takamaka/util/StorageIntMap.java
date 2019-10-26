@@ -11,8 +11,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.annotations.View;
 import io.takamaka.lang.Storage;
-import takamaka.lang.View;
 
 /**
  * A map from integer keys to (possibly {@code null}) storage values,

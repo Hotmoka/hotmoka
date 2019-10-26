@@ -1,7 +1,7 @@
 package takamaka.blockchain;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.request.TransactionRequest;
-import takamaka.lang.Immutable;
 
 @Immutable
 public interface InitialTransactionRequest extends TransactionRequest {

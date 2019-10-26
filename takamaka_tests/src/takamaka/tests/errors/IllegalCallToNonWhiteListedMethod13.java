@@ -7,17 +7,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.whitelisting.MustRedefineHashCode;
-import io.takamaka.whitelisting.WhiteListed;
+import io.takamaka.code.whitelisting.MustRedefineHashCode;
+import io.takamaka.code.whitelisting.WhiteListed;
 import takamaka.blockchain.CodeExecutionException;
 import takamaka.blockchain.ConstructorSignature;
+import takamaka.blockchain.NonWhiteListedCallException;
 import takamaka.blockchain.TransactionException;
 import takamaka.blockchain.VoidMethodSignature;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.lang.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 

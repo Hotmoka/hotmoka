@@ -4,10 +4,10 @@ import static io.takamaka.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Entry;
+import io.takamaka.code.annotations.Payable;
 import io.takamaka.lang.Contract;
 import io.takamaka.lang.PayableContract;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
 
 /**
  * A contract for a Ponzi investment scheme:

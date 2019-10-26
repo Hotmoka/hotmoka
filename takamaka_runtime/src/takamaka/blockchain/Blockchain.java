@@ -117,12 +117,12 @@ public interface Blockchain {
 	 * @param request the request of the transaction
 	 * @return the created object, if the constructor was successfully executed, without exception
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link takamaka.lang.OutOfGasError}s and {@link takamaka.lang.InsufficientFundsError}s.
+	 *                              {@link takamaka.blockchain.OutOfGasError}s and {@link io.takamaka.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
-	 * @throws CodeExecutionException if the constructor is annotated as {@link takamaka.lang.ThrowsExceptions} and its execution
+	 * @throws CodeExecutionException if the constructor is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
@@ -150,12 +150,12 @@ public interface Blockchain {
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link takamaka.lang.OutOfGasError}s and {@link takamaka.lang.InsufficientFundsError}s.
+	 *                              {@link takamaka.blockchain.OutOfGasError}s and {@link io.takamaka.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
-	 * @throws CodeExecutionException if the method is annotated as {@link takamaka.lang.ThrowsExceptions} and its execution
+	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
@@ -183,12 +183,12 @@ public interface Blockchain {
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link takamaka.lang.OutOfGasError}s and {@link takamaka.lang.InsufficientFundsError}s.
+	 *                              {@link takamaka.blockchain.OutOfGasError}s and {@link io.takamaka.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
-	 * @throws CodeExecutionException if the method is annotated as {@link takamaka.lang.ThrowsExceptions} and its execution
+	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.

@@ -10,8 +10,8 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import io.takamaka.code.annotations.View;
 import io.takamaka.lang.Storage;
-import takamaka.lang.View;
 
 /**
  * A map from storage keys to (possibly {@code null}) storage values,

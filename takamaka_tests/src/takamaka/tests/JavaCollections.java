@@ -22,7 +22,7 @@ import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StringValue;
-import takamaka.lang.NonWhiteListedCallException;
+import takamaka.blockchain.NonWhiteListedCallException;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 /**

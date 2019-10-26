@@ -4,10 +4,10 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.InitialTransactionRequest;
 import takamaka.blockchain.UpdateOfBalance;
-import takamaka.lang.Immutable;
 
 /**
  * A request for a transaction that installs a jar in a yet not initialized blockchain.

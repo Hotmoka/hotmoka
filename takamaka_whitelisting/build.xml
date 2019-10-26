@@ -1,6 +1,6 @@
 <project name="takamaka_whitelisting" default="dist Java 8" basedir=".">
   <description>
-    Compiles the Takamaka white-lisiting module
+    Compiles the Takamaka white-listing module
   </description>
 
   <property name="src" location="src"/>
@@ -31,13 +31,13 @@
   </target>
 
   <target name="dist" depends="compile" description="generate the distribution">
-    <jar jarfile="${dist}/io-takamaka-whitelisting-1.0.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/io-takamaka-code-whitelisting-1.0.jar" basedir="${build}"/>
   </target>
 
   <target name="dist Java 8" depends="compile Java 8" description="generate the distribution">
-	<jar jarfile="${dist}/io-takamaka-whitelisting-1.0.jar" basedir="${build}">
+	<jar jarfile="${dist}/io-takamaka-code-whitelisting-1.0.jar" basedir="${build}">
 		<manifest>
-			<attribute name="Automatic-Module-Name" value = "io.takamaka.whitelisting" />
+			<attribute name="Automatic-Module-Name" value = "io.takamaka.code.whitelisting" />
 		</manifest>
   	</jar>
   </target>

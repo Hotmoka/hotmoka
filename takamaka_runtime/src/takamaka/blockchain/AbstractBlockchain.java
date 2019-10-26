@@ -39,6 +39,8 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.SyntheticRepository;
 
+import io.takamaka.code.annotations.ThrowsExceptions;
+import io.takamaka.code.annotations.View;
 import io.takamaka.instrumentation.Dummy;
 import io.takamaka.instrumentation.JarInstrumentation;
 import io.takamaka.instrumentation.TakamakaClassLoader;
@@ -76,11 +78,6 @@ import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.lang.InsufficientFundsError;
-import takamaka.lang.NonWhiteListedCallException;
-import takamaka.lang.OutOfGasError;
-import takamaka.lang.ThrowsExceptions;
-import takamaka.lang.View;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -1284,7 +1281,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the balance of the contract after paying the given amount of gas
 	 * @throws IllegalTransactionRequestException if the externally owned account does not have funds
 	 *                                            for buying the given amount of gas
-	 * @throws InsufficientFundsError if the account has not enough money to pay for the gas
 	 * @throws ClassNotFoundException if the balance of the account cannot be correctly modified
 	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
 	 * @throws SecurityException if the balance of the account cannot be correctly modified
@@ -1414,7 +1410,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected boolean isVoidMethod;
 
 		/**
-		 * True if the method has been called correctly and it is annotated as {@link takamaka.lang.View}.
+		 * True if the method has been called correctly and it is annotated as {@link io.takamaka.code.annotations.View}.
 		 */
 		protected boolean isViewMethod;
 
@@ -1524,7 +1520,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		/**
 		 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-		 * and {@link takamaka.lang.Entry}. Entries are instrumented with the addition of
+		 * and {@link io.takamaka.code.annotations.Entry}. Entries are instrumented with the addition of
 		 * trailing contract formal (the caller) and of a dummy type.
 		 * 
 		 * @return the array of classes, in the same order as the formals
@@ -1543,7 +1539,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		/**
 		 * Adds to the actual parameters the implicit actuals that are passed
-		 * to {@link takamaka.lang.Entry} methods or constructors. They are the caller of
+		 * to {@link io.takamaka.code.annotations.Entry} methods or constructors. They are the caller of
 		 * the entry and {@code null} for the dummy argument.
 		 * 
 		 * @return the resulting actual parameters
@@ -1563,7 +1559,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		/**
-		 * Yields the same exception, if it is checked and the executable is annotated as {@link takamaka.lang.ThrowsExceptions}.
+		 * Yields the same exception, if it is checked and the executable is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions}.
 		 * Otherwise, yields its cause.
 		 * 
 		 * @param e the exception

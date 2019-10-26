@@ -5,9 +5,9 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
-import takamaka.lang.Immutable;
 
 /**
  * The signature of a field of a class.

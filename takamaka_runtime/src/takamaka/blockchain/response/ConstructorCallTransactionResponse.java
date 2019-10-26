@@ -3,9 +3,9 @@ package takamaka.blockchain.response;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.Update;
-import takamaka.lang.Immutable;
 
 /**
  * A response for a transaction that should call a constructor of a storage class in blockchain.

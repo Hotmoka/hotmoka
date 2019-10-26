@@ -1,6 +1,6 @@
 package takamaka.tests.errors.inconsistentpayable1;
 
-import takamaka.lang.Entry;
+import io.takamaka.code.annotations.Entry;
 
 public class Sub extends Super {
 	public @Entry void m() {}

@@ -2,10 +2,10 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.values.BigIntegerValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.lang.Immutable;
 
 /**
  * An update that states the balance of a contract.

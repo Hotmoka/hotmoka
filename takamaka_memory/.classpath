@@ -7,6 +7,6 @@
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="/takamaka_runtime/lib/bcel-6.2.jar"/>
-	<classpathentry kind="lib" path="/takamaka_runtime/dist/takamaka_runtime.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_runtime"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

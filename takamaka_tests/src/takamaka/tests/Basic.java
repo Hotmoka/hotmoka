@@ -40,7 +40,6 @@ import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StringValue;
-import takamaka.lang.InsufficientFundsError;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 /**
@@ -199,7 +198,7 @@ class Basic extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(2000)));
 
-		throwsTransactionExceptionWithCause(InsufficientFundsError.class, () ->
+		throwsTransactionExceptionWithCause(ClassType.INSUFFICIENT_FUNDS_ERROR.name, () ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)))
 		);

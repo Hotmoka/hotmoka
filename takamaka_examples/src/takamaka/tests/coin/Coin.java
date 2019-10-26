@@ -5,10 +5,10 @@ import static io.takamaka.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.annotations.Entry;
 import io.takamaka.lang.Contract;
 import io.takamaka.lang.Event;
 import io.takamaka.util.StorageMap;
-import takamaka.lang.Entry;
 
 public class Coin extends Contract {
 	private final Contract minter;

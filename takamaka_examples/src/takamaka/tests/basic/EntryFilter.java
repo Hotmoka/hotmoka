@@ -1,9 +1,9 @@
 package takamaka.tests.basic;
 
+import io.takamaka.code.annotations.Entry;
+import io.takamaka.code.annotations.ThrowsExceptions;
 import io.takamaka.lang.Contract;
 import io.takamaka.lang.PayableContract;
-import takamaka.lang.Entry;
-import takamaka.lang.ThrowsExceptions;
 
 public class EntryFilter extends Contract {
 	public @Entry void foo1() {}

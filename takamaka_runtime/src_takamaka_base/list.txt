@@ -7,4 +7,5 @@ io/takamaka/lang/Event.class
 io/takamaka/lang/Takamaka.class
 io/takamaka/lang/AssertionViolationException.class
 io/takamaka/lang/RequirementViolationException.class
+io/takamaka/lang/InsufficientFundsError.class
 io/takamaka/util/**.class

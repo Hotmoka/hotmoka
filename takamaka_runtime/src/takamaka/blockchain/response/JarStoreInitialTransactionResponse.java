@@ -2,7 +2,7 @@ package takamaka.blockchain.response;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Immutable;
+import io.takamaka.code.annotations.Immutable;
 
 /**
  * A response for a transaction that installs a jar in a yet not initialized blockchain.

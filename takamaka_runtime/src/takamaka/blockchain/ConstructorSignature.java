@@ -1,8 +1,8 @@
 package takamaka.blockchain;
 
+import io.takamaka.code.annotations.Immutable;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
-import takamaka.lang.Immutable;
 
 /**
  * The signature of a constructor of a class.

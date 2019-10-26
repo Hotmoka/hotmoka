@@ -11,6 +11,7 @@ import org.apache.bcel.generic.ReferenceType;
 import io.takamaka.instrumentation.internal.VerifiedClass;
 import io.takamaka.instrumentation.issues.CallerNotOnThisError;
 import io.takamaka.instrumentation.issues.CallerOutsideEntryError;
+import takamaka.blockchain.types.ClassType;
 
 /**
  * A check that {@code caller()} is only used with {@code this} as receiver
@@ -43,9 +44,9 @@ public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClass.ClassVerifi
 	}
 
 	/**
-	 * The Java bytecode types of the {@code caller()} method of {@link #takamaka.lang.Contract}.
+	 * The Java bytecode types of the {@code caller()} method of {@link io.takamaka.lang.Contract}.
 	 */
-	private final static String TAKAMAKA_CALLER_SIG = "()Ltakamaka/lang/Contract;";
+	private final static String TAKAMAKA_CALLER_SIG = "()L" + ClassType.CONTRACT.name.replace('.', '/') + ";";
 
 	private boolean isCallToContractCaller(InstructionHandle ih) {
 		Instruction ins = ih.getInstruction();
