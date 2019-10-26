@@ -6,11 +6,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.takamaka.lang.ExternallyOwnedAccount;
+import io.takamaka.lang.PayableContract;
+import io.takamaka.util.StorageList;
 import takamaka.lang.Entry;
-import takamaka.lang.ExternallyOwnedAccount;
 import takamaka.lang.Payable;
-import takamaka.lang.PayableContract;
-import takamaka.util.StorageList;
 
 /**
  * A test about lambda expressions that call @Entry methods.

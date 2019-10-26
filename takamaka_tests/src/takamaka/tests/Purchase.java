@@ -86,15 +86,15 @@ class Purchase extends TakamakaTest {
 		classpath = new Classpath(purchase, true);
 
 		seller = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount", INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
 
 		buyer = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount", INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
 	}
 
 	@Test @DisplayName("new Purchase(21)")
 	void oddDeposit() throws TransactionException, CodeExecutionException {
-		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
+		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 				new IntValue(21)))
@@ -114,7 +114,7 @@ class Purchase extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
+		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(buyer, _10_000, classpath, new VoidMethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(18)))
 		);
@@ -136,7 +136,7 @@ class Purchase extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException"	, () ->
+		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(buyer, _10_000, classpath, new VoidMethodSignature(PURCHASE, "confirmReceived"), purchase))
 		);

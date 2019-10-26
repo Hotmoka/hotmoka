@@ -1,6 +1,6 @@
 package takamaka.tests.errors.illegaltypeforstoragefield2;
 
-import takamaka.lang.Storage;
+import io.takamaka.lang.Storage;
 
 public class C extends Storage {
 	// the content of this field must be checked at run time, to verify that it is a storage value

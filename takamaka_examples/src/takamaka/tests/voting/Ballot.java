@@ -1,15 +1,15 @@
 package takamaka.tests.voting;
-import static takamaka.lang.Takamaka.require;
+import static io.takamaka.lang.Takamaka.require;
 
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
-import takamaka.lang.Contract;
+import io.takamaka.lang.Contract;
+import io.takamaka.lang.Storage;
+import io.takamaka.util.StorageList;
+import io.takamaka.util.StorageMap;
 import takamaka.lang.Entry;
-import takamaka.lang.Storage;
-import takamaka.util.StorageList;
-import takamaka.util.StorageMap;
 
 public class Ballot extends Contract {
 	private final Contract chairperson;

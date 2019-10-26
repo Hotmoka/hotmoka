@@ -1,8 +1,10 @@
-package takamaka.lang;
+package io.takamaka.lang;
 
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
+
+import takamaka.lang.OutOfGasError;
 
 /**
  * A class that acts as a global context for support methods of Takamaka code.

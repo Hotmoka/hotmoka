@@ -1,4 +1,4 @@
-package takamaka.lang;
+package io.takamaka.lang;
 
 /**
  * An exception thrown when a contract violates a requirement statement.

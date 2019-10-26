@@ -1,12 +1,12 @@
 package takamaka.tests.crowdfunding;
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
+import io.takamaka.lang.Contract;
+import io.takamaka.lang.PayableContract;
+import io.takamaka.lang.Storage;
+import io.takamaka.util.StorageList;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
-import takamaka.lang.PayableContract;
-import takamaka.lang.Storage;
-import takamaka.util.StorageList;
 
 public class CrowdFunding extends Contract {
 	private final StorageList<Campaign> campaigns = new StorageList<>();

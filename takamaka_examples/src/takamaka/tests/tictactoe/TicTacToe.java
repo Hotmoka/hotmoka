@@ -2,16 +2,16 @@ package takamaka.tests.tictactoe;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
-import static takamaka.lang.Takamaka.require;
+import static io.takamaka.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
+import io.takamaka.lang.Contract;
+import io.takamaka.lang.PayableContract;
+import io.takamaka.util.StorageArray;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
-import takamaka.lang.PayableContract;
 import takamaka.lang.View;
-import takamaka.util.StorageArray;
 
 /**
  * A contract for the tic-tac-toe game. Two players place, alternately,

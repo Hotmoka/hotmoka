@@ -1,6 +1,6 @@
 package takamaka.tests.errors.illegalstaticinitialization4;
 
-import takamaka.lang.Takamaka;
+import io.takamaka.lang.Takamaka;
 
 public enum MyEnum {
 	FIRST, SECOND;

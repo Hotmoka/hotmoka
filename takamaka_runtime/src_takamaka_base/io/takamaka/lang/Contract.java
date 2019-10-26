@@ -1,6 +1,8 @@
-package takamaka.lang;
+package io.takamaka.lang;
 
 import java.math.BigInteger;
+
+import takamaka.lang.InsufficientFundsError;
 
 /**
  * A contract is a storage object with a balance of coin. It is controlled

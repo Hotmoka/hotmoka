@@ -1,13 +1,13 @@
 package takamaka.tests.remotepurchase;
 
-import static takamaka.lang.Takamaka.event;
-import static takamaka.lang.Takamaka.require;
+import static io.takamaka.lang.Takamaka.event;
+import static io.takamaka.lang.Takamaka.require;
 
-import takamaka.lang.Contract;
+import io.takamaka.lang.Contract;
+import io.takamaka.lang.Event;
+import io.takamaka.lang.PayableContract;
 import takamaka.lang.Entry;
-import takamaka.lang.Event;
 import takamaka.lang.Payable;
-import takamaka.lang.PayableContract;
 
 public class Purchase extends Contract {
 	private static enum State { Created, Locked, Inactive };

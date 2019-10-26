@@ -84,6 +84,7 @@ import org.apache.bcel.generic.Type;
 
 import io.takamaka.instrumentation.Dummy;
 import io.takamaka.instrumentation.TakamakaClassLoader;
+import io.takamaka.lang.Contract;
 import io.takamaka.whitelisting.MustBeFalse;
 import io.takamaka.whitelisting.MustRedefineHashCodeOrToString;
 import io.takamaka.whitelisting.WhiteListingProofObligation;
@@ -93,7 +94,6 @@ import takamaka.blockchain.runtime.AbstractEvent;
 import takamaka.blockchain.runtime.AbstractStorage;
 import takamaka.blockchain.runtime.AbstractTakamaka;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
-import takamaka.lang.Contract;
 
 /**
  * An instrumenter of a single class file. For instance, it instruments storage
@@ -116,10 +116,10 @@ public class ClassInstrumentation {
 	private final static String IN_STORAGE_NAME = "inStorage";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
-	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
-	private final static String EVENT_CLASS_NAME = "takamaka.lang.Event";
-	private final static String TAKAMAKA_CLASS_NAME = "takamaka.lang.Takamaka";
-	private final static String STORAGE_CLASS_NAME = "takamaka.lang.Storage";
+	private final static String CONTRACT_CLASS_NAME = "io.takamaka.lang.Contract";
+	private final static String EVENT_CLASS_NAME = "io.takamaka.lang.Event";
+	private final static String TAKAMAKA_CLASS_NAME = "io.takamaka.lang.Takamaka";
+	private final static String STORAGE_CLASS_NAME = "io.takamaka.lang.Storage";
 	private final static String ABSTRACTTAKAMAKA_CLASS_NAME = AbstractTakamaka.class.getName();
 	private final static String ABSTRACTSTORAGE_CLASS_NAME = AbstractStorage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
@@ -1426,8 +1426,8 @@ public class ClassInstrumentation {
 		}
 
 		/**
-		 * Entries call {@link takamaka.lang.Contract#entry(Contract)} or
-		 * {@link takamaka.lang.Contract#payableEntry(Contract,BigInteger)} at their
+		 * Entries call {@link io.takamaka.lang.Contract#entry(Contract)} or
+		 * {@link io.takamaka.lang.Contract#payableEntry(Contract,BigInteger)} at their
 		 * beginning, to set the caller and the balance of the called entry. In general,
 		 * such call can be placed at the very beginning of the code. The only problem
 		 * is related to constructors, that require their code to start with a call to a

@@ -3,7 +3,7 @@ package takamaka.tests.errors.legalcall4;
 import java.util.HashSet;
 import java.util.Set;
 
-import takamaka.lang.Storage;
+import io.takamaka.lang.Storage;
 
 public class C extends Storage {
 	private String s = "";

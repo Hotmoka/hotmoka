@@ -2,7 +2,7 @@ package takamaka.tests.basic;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
+import io.takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 import takamaka.tests.basicdependency.InternationalTime;

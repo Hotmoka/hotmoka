@@ -1,4 +1,4 @@
-package takamaka.util;
+package io.takamaka.util;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,7 +7,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
-import takamaka.lang.Storage;
+import io.takamaka.lang.Storage;
 import takamaka.lang.View;
 
 /**

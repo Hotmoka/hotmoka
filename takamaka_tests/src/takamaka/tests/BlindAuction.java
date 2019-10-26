@@ -83,7 +83,7 @@ class BlindAuction extends TakamakaTest {
 
 	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
 
-	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(new ClassType("takamaka.lang.TestExternallyOwnedAccount"), "getBalance", ClassType.BIG_INTEGER);
+	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
 
 	private static final MethodSignature ADD = new VoidMethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
 
@@ -140,7 +140,7 @@ class BlindAuction extends TakamakaTest {
 		StorageReference auction = blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(blockchain.account(0), _100_000, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME)));
 
-		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
+		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 		{
 			Random random = new Random();
 			for (int i = 1; i <= NUM_BIDS; i++) {

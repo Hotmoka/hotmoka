@@ -19,7 +19,7 @@ import takamaka.lang.ThrowsExceptions;
  * A utility to check the annotations of the methods in a given class.
  */
 public class Annotations {
-	private final static ObjectType CONTRACT_OT = new ObjectType("takamaka.lang.Contract");
+	private final static ObjectType CONTRACT_OT = new ObjectType("io.takamaka.lang.Contract");
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
 	/**

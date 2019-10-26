@@ -17,7 +17,6 @@ import org.apache.bcel.generic.Type;
 import io.takamaka.instrumentation.internal.ThrowIncompleteClasspathError;
 import io.takamaka.whitelisting.ResolvingClassLoader;
 import io.takamaka.whitelisting.WhiteListingWizard;
-import takamaka.blockchain.runtime.AbstractStorage;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.
@@ -51,9 +50,9 @@ public class TakamakaClassLoader implements ResolvingClassLoader {
 		this.parent = ResolvingClassLoader.of(urls);
 
 		try {
-			this.contractClass = loadClass("takamaka.lang.Contract");
-			this.externallyOwnedAccount = loadClass("takamaka.lang.ExternallyOwnedAccount");
-			this.storageClass = loadClass("takamaka.lang.Storage");
+			this.contractClass = loadClass("io.takamaka.lang.Contract");
+			this.externallyOwnedAccount = loadClass("io.takamaka.lang.ExternallyOwnedAccount");
+			this.storageClass = loadClass("io.takamaka.lang.Storage");
 		}
 		catch (ClassNotFoundException e) {
 			throw new IncompleteClasspathError(e);

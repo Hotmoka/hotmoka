@@ -1,4 +1,4 @@
-package takamaka.util;
+package io.takamaka.util;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import takamaka.lang.Storage;
+import io.takamaka.lang.Storage;
 import takamaka.lang.View;
 
 /**
@@ -24,7 +24,7 @@ import takamaka.lang.View;
  * map from keys to values. The map can be kept in storage. Keys
  * and values must have types allowed in storage. Keys are kept in
  * comparable order, if they implement {@link java.lang.Comparable}.
- * Otherwise, they must extend {@link takamaka.lang.Storage} and
+ * Otherwise, they must extend {@link io.takamaka.lang.Storage} and
  * are kept in chronological order.
  *
  * This class represents an ordered symbol table of generic key-value pairs.

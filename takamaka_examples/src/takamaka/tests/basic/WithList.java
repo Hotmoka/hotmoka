@@ -1,7 +1,7 @@
 package takamaka.tests.basic;
 
-import takamaka.lang.Storage;
-import takamaka.util.StorageList;
+import io.takamaka.lang.Storage;
+import io.takamaka.util.StorageList;
 
 public class WithList extends Storage {
 	private final StorageList<Object> list = new StorageList<>();

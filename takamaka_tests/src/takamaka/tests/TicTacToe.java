@@ -130,7 +130,7 @@ class TicTacToe extends TakamakaTest {
 			new LongValue(100L),
 			_1, _1));
 
-		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
+		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2,
 				_200_000,
@@ -155,7 +155,7 @@ class TicTacToe extends TakamakaTest {
 			new LongValue(100L),
 			_1, _1));
 
-		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
+		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player1,
 				_200_000,
@@ -180,7 +180,7 @@ class TicTacToe extends TakamakaTest {
 			new LongValue(120L),
 			_1, _1));
 
-		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
+		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2,
 				_200_000,
@@ -293,7 +293,7 @@ class TicTacToe extends TakamakaTest {
 			new LongValue(0L),
 			_1, _3));
 
-		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
+		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2, 
 				_200_000,

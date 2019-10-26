@@ -1,13 +1,17 @@
-package takamaka.lang;
+package io.takamaka.lang;
 
 import java.math.BigInteger;
+
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
+import takamaka.lang.View;
 
 /**
  * A contract that can be used to pay for a transaction.
  * It is meant for tests, where it is useful to check for
  * the balance of a contract. Namely, this can be accessed
- * through the {@link takamaka.lang.TestExternallyOwnedAccount#getBalance()}
- * method. Note that {@link takamaka.lang.Contract#balance()} is
+ * through the {@link io.takamaka.lang.TestExternallyOwnedAccount#getBalance()}
+ * method. Note that {@link io.takamaka.lang.Contract#balance()} is
  * protected and cannot be accessed freely in tests.
  */
 public class TestExternallyOwnedAccount extends ExternallyOwnedAccount {

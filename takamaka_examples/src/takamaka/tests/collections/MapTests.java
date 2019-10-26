@@ -2,9 +2,9 @@ package takamaka.tests.collections;
 
 import java.math.BigInteger;
 
+import io.takamaka.util.StorageMap;
+import io.takamaka.util.StorageMap.Entry;
 import takamaka.lang.View;
-import takamaka.util.StorageMap;
-import takamaka.util.StorageMap.Entry;
 
 /**
  * This class defines methods that test the storage map implementation.

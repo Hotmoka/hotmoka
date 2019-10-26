@@ -1,6 +1,6 @@
 package takamaka.tests.errors.payablewithoutamount2;
 
-import takamaka.lang.Contract;
+import io.takamaka.lang.Contract;
 import takamaka.lang.Entry;
 import takamaka.lang.Payable;
 

@@ -103,13 +103,13 @@ class CrowdFunding extends TakamakaTest {
 		classpath = new Classpath(crowdfunding, true);
 
 		beneficiary = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount")));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA)));
 
 		funder1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount", INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
 
 		funder2 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature("takamaka.lang.ExternallyOwnedAccount", INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
 
 		crowdFunding = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(gamete, _10_000, classpath, CONSTRUCTOR_CROWD_FUNDING));

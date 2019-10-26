@@ -1,13 +1,16 @@
-package takamaka.lang;
+package io.takamaka.lang;
 
 import java.math.BigInteger;
 
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
+
 /**
  * A contract that can receive funds from any other contract, through
- * its {@link takamaka.lang.PayableContract#receive(int)} method.
+ * its {@link io.takamaka.lang.PayableContract#receive(int)} method.
  * If this class is subclassed, the resulting contract has a balance
  * that is not determined by its payable methods only, but also by the
- * funds received through {@link takamaka.lang.PayableContract#receive(int)}.
+ * funds received through {@link io.takamaka.lang.PayableContract#receive(int)}.
  */
 public abstract class PayableContract extends Contract {
 

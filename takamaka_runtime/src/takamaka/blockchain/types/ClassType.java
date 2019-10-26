@@ -32,29 +32,44 @@ public final class ClassType implements StorageType {
 	public final static ClassType BIG_INTEGER = new ClassType("java.math.BigInteger");
 
 	/**
-	 * The frequently used class type for {@link takamaka.lang.ExternallyOwnedAccount}.
+	 * The frequently used class type for {@link io.takamaka.lang.ExternallyOwnedAccount}.
 	 */
-	public final static ClassType EOA = new ClassType("takamaka.lang.ExternallyOwnedAccount");
+	public final static ClassType EOA = new ClassType("io.takamaka.lang.ExternallyOwnedAccount");
 
 	/**
-	 * The frequently used class type for {@link takamaka.lang.Contract}.
+	 * The frequently used class type for {@link io.takamaka.lang.TestExternallyOwnedAccount}.
 	 */
-	public final static ClassType CONTRACT = new ClassType("takamaka.lang.Contract");
+	public final static ClassType TEOA = new ClassType("io.takamaka.lang.TestExternallyOwnedAccount");
 
 	/**
-	 * The frequently used class type for {@link takamaka.lang.PayableContract}.
+	 * The frequently used class type for {@link io.takamaka.lang.Contract}.
 	 */
-	public final static ClassType PAYABLE_CONTRACT = new ClassType("takamaka.lang.PayableContract");
+	public final static ClassType CONTRACT = new ClassType("io.takamaka.lang.Contract");
 
 	/**
-	 * The frequently used class type for {@link takamaka.util.Bytes32}.
+	 * The frequently used class type for {@link io.takamaka.lang.PayableContract}.
 	 */
-	public final static ClassType BYTES32 = new ClassType("takamaka.util.Bytes32");
+	public final static ClassType PAYABLE_CONTRACT = new ClassType("io.takamaka.lang.PayableContract");
 
 	/**
-	 * The frequently used class type for {@link takamaka.util.StorageList}.
+	 * The frequently used class type for {@link io.takamaka.util.Bytes32}.
 	 */
-	public final static ClassType STORAGE_LIST = new ClassType("takamaka.util.StorageList");
+	public final static ClassType BYTES32 = new ClassType("io.takamaka.util.Bytes32");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.util.StorageList}.
+	 */
+	public final static ClassType STORAGE_LIST = new ClassType("io.takamaka.util.StorageList");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.util.StorageMap}.
+	 */
+	public final static ClassType STORAGE_MAP = new ClassType("io.takamaka.util.StorageMap");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.lang.RequirementViolationException}.
+	 */
+	public final static ClassType REQUIREMENT_VIOLATION_EXCEPTION = new ClassType("io.takamaka.lang.RequirementViolationException");
 
 	/**
 	 * The name of the class type.

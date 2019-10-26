@@ -149,7 +149,7 @@ class Lambdas extends TakamakaTest {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 
-		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
+		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT),
 				lambdas))

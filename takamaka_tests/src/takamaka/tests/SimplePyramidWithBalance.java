@@ -51,7 +51,7 @@ class SimplePyramidWithBalance extends TakamakaTest {
 
 	private static final MethodSignature WITHDRAW = new VoidMethodSignature(SIMPLE_PYRAMID, "withdraw");
 
-	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature("takamaka.lang.TestExternallyOwnedAccount", "getBalance", ClassType.BIG_INTEGER);
+	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
@@ -94,7 +94,7 @@ class SimplePyramidWithBalance extends TakamakaTest {
 
 		for (int i = 0; i < 4; i++)
 			players[i] = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, _50_000, classpath, new ConstructorSignature("takamaka.lang.TestExternallyOwnedAccount", INT), new IntValue(20_000)));
+				(gamete, _50_000, classpath, new ConstructorSignature(ClassType.TEOA, INT), new IntValue(20_000)));
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")

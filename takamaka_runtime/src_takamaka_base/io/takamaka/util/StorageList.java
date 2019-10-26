@@ -1,4 +1,4 @@
-package takamaka.util;
+package io.takamaka.util;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -7,7 +7,7 @@ import java.util.function.IntFunction;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import takamaka.lang.Storage;
+import io.takamaka.lang.Storage;
 import takamaka.lang.View;
 
 /**
@@ -102,7 +102,7 @@ public class StorageList<E> extends Storage implements Iterable<E> {
 
 	/**
 	 * Adds the given element as first element of this list.
-	 * This is synonym of {@link takamaka.util.StorageList#addFirst(Object)}.
+	 * This is synonym of {@link io.takamaka.util.StorageList#addFirst(Object)}.
 	 * 
 	 * @param element the element, possibly {@code null}
 	 */

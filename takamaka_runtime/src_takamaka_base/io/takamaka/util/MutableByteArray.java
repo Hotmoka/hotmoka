@@ -1,4 +1,4 @@
-package takamaka.util;
+package io.takamaka.util;
 
 import java.util.function.IntUnaryOperator;
 

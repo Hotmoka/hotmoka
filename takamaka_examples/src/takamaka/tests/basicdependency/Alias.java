@@ -2,7 +2,7 @@ package takamaka.tests.basicdependency;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Storage;
+import io.takamaka.lang.Storage;
 
 // a test on equality of deserialized values
 public class Alias extends Storage {

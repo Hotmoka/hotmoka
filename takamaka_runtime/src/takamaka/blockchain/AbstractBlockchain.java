@@ -1337,7 +1337,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * 
 	 * @param object the object to check
 	 * @throws IllegalTransactionRequestException if the object is not an externally owned account
-	 * @throws ClassNotFoundException if the {@link takamaka.lang.ExternallyOwnedAccount} class cannot be found
+	 * @throws ClassNotFoundException if the {@link io.takamaka.lang.ExternallyOwnedAccount} class cannot be found
 	 *                                in the class path of the transaction
 	 */
 	private void checkIsExternallyOwned(AbstractStorage object) throws ClassNotFoundException, IllegalTransactionRequestException {

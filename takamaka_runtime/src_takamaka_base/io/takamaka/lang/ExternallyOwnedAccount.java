@@ -1,6 +1,9 @@
-package takamaka.lang;
+package io.takamaka.lang;
 
 import java.math.BigInteger;
+
+import takamaka.lang.Entry;
+import takamaka.lang.Payable;
 
 /**
  * A contract that can be used to pay for a transaction.

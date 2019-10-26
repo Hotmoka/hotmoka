@@ -2,7 +2,7 @@ package takamaka.tests.basicdependency;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Storage;
+import io.takamaka.lang.Storage;
 
 public class Wrapper extends Storage {
 	private final Time time;

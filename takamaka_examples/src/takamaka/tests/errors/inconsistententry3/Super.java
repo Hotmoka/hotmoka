@@ -1,6 +1,6 @@
 package takamaka.tests.errors.inconsistententry3;
 
-import takamaka.lang.Contract;
+import io.takamaka.lang.Contract;
 import takamaka.lang.Entry;
 
 public class Super extends Contract {
