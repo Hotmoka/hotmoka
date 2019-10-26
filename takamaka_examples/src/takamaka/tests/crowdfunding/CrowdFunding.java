@@ -3,10 +3,10 @@ import java.math.BigInteger;
 
 import io.takamaka.code.annotations.Entry;
 import io.takamaka.code.annotations.Payable;
-import io.takamaka.lang.Contract;
-import io.takamaka.lang.PayableContract;
-import io.takamaka.lang.Storage;
-import io.takamaka.util.StorageList;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.util.StorageList;
 
 public class CrowdFunding extends Contract {
 	private final StorageList<Campaign> campaigns = new StorageList<>();

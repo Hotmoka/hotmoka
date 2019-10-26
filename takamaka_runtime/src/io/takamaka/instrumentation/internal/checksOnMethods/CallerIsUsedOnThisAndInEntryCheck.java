@@ -44,7 +44,7 @@ public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClass.ClassVerifi
 	}
 
 	/**
-	 * The Java bytecode types of the {@code caller()} method of {@link io.takamaka.lang.Contract}.
+	 * The Java bytecode types of the {@code caller()} method of {@link io.takamaka.code.lang.Contract}.
 	 */
 	private final static String TAKAMAKA_CALLER_SIG = "()L" + ClassType.CONTRACT.name.replace('.', '/') + ";";
 

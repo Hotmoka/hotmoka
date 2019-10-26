@@ -1,4 +1,4 @@
-package io.takamaka.util;
+package io.takamaka.code.util;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import io.takamaka.code.annotations.View;
-import io.takamaka.lang.Storage;
+import io.takamaka.code.lang.Storage;
 
 /**
  * A list of elements that can be kept in storage. It is possible to
@@ -102,7 +102,7 @@ public class StorageList<E> extends Storage implements Iterable<E> {
 
 	/**
 	 * Adds the given element as first element of this list.
-	 * This is synonym of {@link io.takamaka.util.StorageList#addFirst(Object)}.
+	 * This is synonym of {@link io.takamaka.code.util.StorageList#addFirst(Object)}.
 	 * 
 	 * @param element the element, possibly {@code null}
 	 */

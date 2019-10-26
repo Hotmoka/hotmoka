@@ -82,17 +82,18 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.lang.Contract;
 import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 import io.takamaka.instrumentation.Dummy;
 import io.takamaka.instrumentation.TakamakaClassLoader;
-import io.takamaka.lang.Contract;
 import it.univr.bcel.StackMapReplacer;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.runtime.AbstractEvent;
 import takamaka.blockchain.runtime.AbstractStorage;
 import takamaka.blockchain.runtime.AbstractTakamaka;
+import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 
 /**
@@ -116,10 +117,6 @@ public class ClassInstrumentation {
 	private final static String IN_STORAGE_NAME = "inStorage";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
-	private final static String CONTRACT_CLASS_NAME = "io.takamaka.lang.Contract";
-	private final static String EVENT_CLASS_NAME = "io.takamaka.lang.Event";
-	private final static String TAKAMAKA_CLASS_NAME = "io.takamaka.lang.Takamaka";
-	private final static String STORAGE_CLASS_NAME = "io.takamaka.lang.Storage";
 	private final static String ABSTRACTTAKAMAKA_CLASS_NAME = AbstractTakamaka.class.getName();
 	private final static String ABSTRACTSTORAGE_CLASS_NAME = AbstractStorage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
@@ -136,9 +133,9 @@ public class ClassInstrumentation {
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName)
 			.thenComparing(field -> field.getType().toString());
 
-	private final static ObjectType STORAGE_OT = new ObjectType(STORAGE_CLASS_NAME);
-	private final static ObjectType EVENT_OT = new ObjectType(EVENT_CLASS_NAME);
-	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
+	private final static ObjectType STORAGE_OT = new ObjectType(ClassType.STORAGE.name);
+	private final static ObjectType EVENT_OT = new ObjectType(ClassType.EVENT.name);
+	private final static ObjectType CONTRACT_OT = new ObjectType(ClassType.CONTRACT.name);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static ObjectType ENUM_OT = new ObjectType(Enum.class.getName());
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
@@ -257,7 +254,7 @@ public class ClassInstrumentation {
 			this.classLoader = clazz.classLoader;
 			this.cpg = clazz.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
-			this.isStorage = !STORAGE_CLASS_NAME.equals(className) && classLoader.isStorage(className);
+			this.isStorage = !ClassType.STORAGE.name.equals(className) && classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
 
 			// the fields of the class are relevant only for storage classes
@@ -286,7 +283,7 @@ public class ClassInstrumentation {
 		private void globalInstrumentation() {
 			replaceSuperclassOfThresholdClasses();
 
-			if (isStorage || STORAGE_CLASS_NAME.equals(className))
+			if (isStorage || ClassType.STORAGE.name.equals(className))
 				addConstructorForDeserializationFromBlockchain();
 
 			if (isStorage) {
@@ -302,14 +299,10 @@ public class ClassInstrumentation {
 		 * Some classes must extend blockchain classes, in order to inherit special abilities.
 		 */
 		private void replaceSuperclassOfThresholdClasses() {
-			switch (className) {
-			case EVENT_CLASS_NAME:
+			if (className.equals(ClassType.EVENT.name))
 				clazz.setSuperclassName(AbstractEvent.class.getName());
-				return;
-			case STORAGE_CLASS_NAME:
+			else if (className.equals(ClassType.STORAGE.name))
 				clazz.setSuperclassName(AbstractStorage.class.getName());
-				return;
-			}
 		}
 
 		/**
@@ -612,8 +605,7 @@ public class ClassInstrumentation {
 		private void instrumentMethodOfThresholdClasses(MethodGen methodGen) {
 			Type[] args;
 
-			switch (className) {
-			case EVENT_CLASS_NAME:
+			if (className.equals(ClassType.EVENT.name)) {
 				if (Const.CONSTRUCTOR_NAME.equals(methodGen.getName()) && methodGen.getArgumentTypes().length == 0) {
 					InstructionList il = new InstructionList();
 					il.append(InstructionConst.ALOAD_0);
@@ -621,10 +613,8 @@ public class ClassInstrumentation {
 					il.append(InstructionConst.RETURN);
 					methodGen.setInstructionList(il);
 				}
-
-				break;
-
-			case STORAGE_CLASS_NAME:
+			}
+			else if (className.equals(ClassType.STORAGE.name)) {
 				if ("compareAge".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 					InstructionList il = new InstructionList();
 					il.append(InstructionConst.ALOAD_0);
@@ -640,10 +630,8 @@ public class ClassInstrumentation {
 					il.append(InstructionConst.RETURN);
 					methodGen.setInstructionList(il);
 				}
-
-				break;
-
-			case TAKAMAKA_CLASS_NAME:
+			}
+			else if (className.equals(ClassType.TAKAMAKA.name)) {
 				if ("event".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 1 && EVENT_OT.equals(args[0])) {
 					InstructionList il = new InstructionList();
 					il.append(InstructionConst.ALOAD_0);
@@ -1426,8 +1414,8 @@ public class ClassInstrumentation {
 		}
 
 		/**
-		 * Entries call {@link io.takamaka.lang.Contract#entry(Contract)} or
-		 * {@link io.takamaka.lang.Contract#payableEntry(Contract,BigInteger)} at their
+		 * Entries call {@link io.takamaka.code.lang.Contract#entry(Contract)} or
+		 * {@link io.takamaka.code.lang.Contract#payableEntry(Contract,BigInteger)} at their
 		 * beginning, to set the caller and the balance of the called entry. In general,
 		 * such call can be placed at the very beginning of the code. The only problem
 		 * is related to constructors, that require their code to start with a call to a
@@ -2039,13 +2027,13 @@ public class ClassInstrumentation {
 			args.add(new ObjectType(StorageReferenceAlreadyInBlockchain.class.getName()));
 
 			// then there are the fields of the class and superclasses, with superclasses first
-			if (!STORAGE_CLASS_NAME.equals(className))
+			if (!className.equals(ClassType.STORAGE.name))
 				eagerNonTransientInstanceFields.stream().flatMap(SortedSet::stream).map(Field::getType).map(Type::getType)
 					.forEachOrdered(args::add);
 
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
-			if (!STORAGE_CLASS_NAME.equals(className))
+			if (!className.equals(ClassType.STORAGE.name))
 				addInitializationOfEagerFields(il, nextLocal);
 			il.append(InstructionConst.RETURN);
 
@@ -2085,7 +2073,7 @@ public class ClassInstrumentation {
 			;
 
 			PushLoad pushLoad = new PushLoad();
-			if (!STORAGE_CLASS_NAME.equals(className))
+			if (!className.equals(ClassType.STORAGE.name))
 				eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 					.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 

@@ -14,12 +14,13 @@ import io.takamaka.code.annotations.Entry;
 import io.takamaka.code.annotations.Payable;
 import io.takamaka.code.annotations.ThrowsExceptions;
 import io.takamaka.instrumentation.Dummy;
+import takamaka.blockchain.types.ClassType;
 
 /**
  * A utility to check the annotations of the methods in a given class.
  */
 public class Annotations {
-	private final static ObjectType CONTRACT_OT = new ObjectType("io.takamaka.lang.Contract");
+	private final static ObjectType CONTRACT_OT = new ObjectType(ClassType.CONTRACT.name);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
 	/**

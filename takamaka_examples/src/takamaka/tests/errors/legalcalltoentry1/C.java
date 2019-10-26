@@ -3,7 +3,7 @@ package takamaka.tests.errors.legalcalltoentry1;
 import java.util.stream.Stream;
 
 import io.takamaka.code.annotations.Entry;
-import io.takamaka.lang.Contract;
+import io.takamaka.code.lang.Contract;
 
 public class C extends Contract {
 

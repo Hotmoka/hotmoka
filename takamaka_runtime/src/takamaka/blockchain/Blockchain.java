@@ -117,7 +117,7 @@ public interface Blockchain {
 	 * @param request the request of the transaction
 	 * @return the created object, if the constructor was successfully executed, without exception
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link takamaka.blockchain.OutOfGasError}s and {@link io.takamaka.lang.InsufficientFundsError}s.
+	 *                              {@link takamaka.blockchain.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed.
@@ -150,7 +150,7 @@ public interface Blockchain {
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link takamaka.blockchain.OutOfGasError}s and {@link io.takamaka.lang.InsufficientFundsError}s.
+	 *                              {@link takamaka.blockchain.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
@@ -183,7 +183,7 @@ public interface Blockchain {
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link takamaka.blockchain.OutOfGasError}s and {@link io.takamaka.lang.InsufficientFundsError}s.
+	 *                              {@link takamaka.blockchain.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.

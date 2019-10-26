@@ -1,6 +1,6 @@
 package takamaka.tests.allocations;
 
-import io.takamaka.lang.Storage;
+import io.takamaka.code.lang.Storage;
 
 public class Allocations extends Storage {
 	public int f;

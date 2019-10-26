@@ -1,4 +1,4 @@
-package io.takamaka.lang;
+package io.takamaka.code.lang;
 
 /**
  * An exception thrown when a contract violates an assertion statement.

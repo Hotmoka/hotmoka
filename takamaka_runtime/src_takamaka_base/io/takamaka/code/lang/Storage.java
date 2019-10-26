@@ -1,4 +1,4 @@
-package io.takamaka.lang;
+package io.takamaka.code.lang;
 
 /**
  * The superclass of classes whose objects can be kept in blockchain.

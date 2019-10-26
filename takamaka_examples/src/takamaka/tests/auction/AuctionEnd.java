@@ -2,8 +2,8 @@ package takamaka.tests.auction;
 
 import java.math.BigInteger;
 
-import io.takamaka.lang.Event;
-import io.takamaka.lang.PayableContract;
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.PayableContract;
 
 public class AuctionEnd extends Event {
 	public final PayableContract highestBidder;

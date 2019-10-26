@@ -1,4 +1,4 @@
-package io.takamaka.lang;
+package io.takamaka.code.lang;
 
 import java.math.BigInteger;
 
@@ -10,8 +10,8 @@ import io.takamaka.code.annotations.View;
  * A contract that can be used to pay for a transaction.
  * It is meant for tests, where it is useful to check for
  * the balance of a contract. Namely, this can be accessed
- * through the {@link io.takamaka.lang.TestExternallyOwnedAccount#getBalance()}
- * method. Note that {@link io.takamaka.lang.Contract#balance()} is
+ * through the {@link io.takamaka.code.lang.TestExternallyOwnedAccount#getBalance()}
+ * method. Note that {@link io.takamaka.code.lang.Contract#balance()} is
  * protected and cannot be accessed freely in tests.
  */
 public class TestExternallyOwnedAccount extends ExternallyOwnedAccount {

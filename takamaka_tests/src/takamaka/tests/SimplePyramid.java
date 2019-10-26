@@ -49,7 +49,7 @@ class SimplePyramid extends TakamakaTest {
 
 	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
 
-	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature("io.takamaka.lang.TestExternallyOwnedAccount", "getBalance", ClassType.BIG_INTEGER);
+	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 

@@ -1,4 +1,4 @@
-package io.takamaka.util;
+package io.takamaka.code.util;
 
 import java.util.stream.IntStream;
 
@@ -60,7 +60,7 @@ public interface ByteArray extends Iterable<Byte> {
 	/**
 	 * Yields the hash code for this array. It considers its elements and their order only.
 	 * In particular, it does not consider if the array is mutable or immutable,
-	 * in order to be compatible with {@link io.takamaka.util.ByteArray#equals(Object)}.
+	 * in order to be compatible with {@link io.takamaka.code.util.ByteArray#equals(Object)}.
 	 * 
 	 * @return true if and only if the above condition holds
 	 */

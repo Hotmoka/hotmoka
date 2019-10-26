@@ -1,4 +1,4 @@
-package io.takamaka.lang;
+package io.takamaka.code.lang;
 
 import java.math.BigInteger;
 

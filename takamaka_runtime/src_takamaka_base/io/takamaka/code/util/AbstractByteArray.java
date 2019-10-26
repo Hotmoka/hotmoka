@@ -1,12 +1,12 @@
-package io.takamaka.util;
+package io.takamaka.code.util;
 
 import java.util.Iterator;
 import java.util.stream.Collectors;
 
-import io.takamaka.lang.Storage;
+import io.takamaka.code.lang.Storage;
 
 /**
- * A partial implementation of the {@link io.takamaka.util.ByteArray} interface,
+ * A partial implementation of the {@link io.takamaka.code.util.ByteArray} interface,
  * containing all methods common to its subclasses.
  */
 abstract class AbstractByteArray extends Storage implements ByteArray {

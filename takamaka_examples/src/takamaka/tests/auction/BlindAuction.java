@@ -1,8 +1,8 @@
 package takamaka.tests.auction;
 
-import static io.takamaka.lang.Takamaka.event;
-import static io.takamaka.lang.Takamaka.now;
-import static io.takamaka.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.event;
+import static io.takamaka.code.lang.Takamaka.now;
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -12,12 +12,12 @@ import java.util.Iterator;
 
 import io.takamaka.code.annotations.Entry;
 import io.takamaka.code.annotations.Payable;
-import io.takamaka.lang.Contract;
-import io.takamaka.lang.PayableContract;
-import io.takamaka.lang.Storage;
-import io.takamaka.util.Bytes32;
-import io.takamaka.util.StorageList;
-import io.takamaka.util.StorageMap;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.util.Bytes32;
+import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageMap;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at

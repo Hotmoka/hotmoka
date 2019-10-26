@@ -1,21 +1,20 @@
-package io.takamaka.util;
+package io.takamaka.code.util;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.function.IntFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import io.takamaka.code.annotations.View;
-import io.takamaka.lang.Storage;
+import io.takamaka.code.lang.Storage;
 
 /**
- * A map from integer keys to (possibly {@code null}) storage values,
+ * A map from storage keys to (possibly {@code null}) storage values,
  * that can be kept in storage. By iterating on this object, one gets
  * the key/value pairs of the map, in increasing key order.
  *
@@ -24,7 +23,7 @@ import io.takamaka.lang.Storage;
  * map from keys to values. The map can be kept in storage. Keys
  * and values must have types allowed in storage. Keys are kept in
  * comparable order, if they implement {@link java.lang.Comparable}.
- * Otherwise, they must extend {@link io.takamaka.lang.Storage} and
+ * Otherwise, they must extend {@link io.takamaka.code.lang.Storage} and
  * are kept in chronological order.
  *
  * This class represents an ordered symbol table of generic key-value pairs.
@@ -52,35 +51,37 @@ import io.takamaka.lang.Storage;
  *
  * @author Robert Sedgewick
  * @author Kevin Wayne
+ * @param <K> the type of the keys
  * @param <V> the type of the values
  */
 
-public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.Entry<V>> {
+public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entry<K,V>> {
 	private static final boolean RED   = true;
 	private static final boolean BLACK = false;
 
 	/**
 	 * The root of the tree.
 	 */
-	private Node<V> root;
+	private Node<K,V> root;
 
 	/**
 	 * A key/value pair.
 	 *
+	 * @param <K> the type of the keys
 	 * @param <V> the type of the values
 	 */
-	public interface Entry<V> {
-		int getKey();
+	public interface Entry<K,V> {
+		K getKey();
 		V getValue();
 	}
 
 	/**
 	 * A node of the binary search tree that implements the map.
 	 */
-	private static class Node<V> extends Storage implements Entry<V> {
-		private int key;
+	private static class Node<K,V> extends Storage implements Entry<K,V> {
+		private K key; // always non-null
 		private V value; // possibly null
-		private Node<V> left, right;
+		private Node<K,V> left, right;
 		private boolean color;
 
 		/**
@@ -88,7 +89,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 		 */
 		private int size;
 
-		private Node(int key, V value, boolean color, int size) {
+		private Node(K key, V value, boolean color, int size) {
 			this.key = key;
 			this.value = value;
 			this.color = color;
@@ -96,7 +97,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 		}
 
 		@Override
-		public int getKey() {
+		public K getKey() {
 			return key;
 		}
 
@@ -114,7 +115,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	/**
 	 * Builds an empty map.
 	 */
-	public StorageIntMap() {}
+	public StorageMap() {}
 
 	/**
 	 * Determines if the given node is red.
@@ -122,7 +123,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param x the node
 	 * @return true if and only if {@code x} is red
 	 */
-	private static <V> boolean isRed(Node<V> x) {
+	private static <K,V> boolean isRed(Node<K,V> x) {
 		return x != null && x.color == RED;
 	}
 
@@ -132,7 +133,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param x the node
 	 * @return true if and only if {@code x} is black
 	 */
-	private static <V> boolean isBlack(Node<V> x) {
+	private static <K,V> boolean isBlack(Node<K,V> x) {
 		return x == null || x.color == BLACK;
 	}
 
@@ -142,7 +143,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param x the root of the subtree
 	 * @return the number of nodes. Yields 0 if {@code x} is {@code null}
 	 */
-	private static <V> int size(Node<V> x) {
+	private static <K,V> int size(Node<K,V> x) {
 		if (x == null) return 0;
 		return x.size;
 	}
@@ -165,8 +166,12 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 		return root == null;
 	}
 
-	private static <K> int compareTo(int key1, int key2) {
-		return key1 - key2;
+	@SuppressWarnings("unchecked")
+	private static <K> int compareTo(K key1, K key2) {
+		if (key1 instanceof Comparable<?>)
+			return ((Comparable<K>) key1).compareTo(key2);
+		else
+			return ((Storage) key1).compareAge((Storage) key2);
 	}
 
 	/**
@@ -175,8 +180,10 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param key the key
 	 * @return the value associated with the given key if the key is in the symbol table
 	 *         and {@code null} if the key is not in the symbol table
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public @View V get(int key) {
+	public @View V get(Object key) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		return get(root, key);
 	}
 
@@ -187,7 +194,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param key the key
 	 * @return the value. Yields {@code null} if the key is not found
 	 */
-	private static <V> V get(Node<V> x, int key) {
+	private static <K,V> V get(Node<K,V> x, Object key) {
 		while (x != null) {
 			int cmp = compareTo(key, x.key);
 			if      (cmp < 0) x = x.left;
@@ -203,12 +210,14 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param key the key
 	 * @return the value associated with the given key if the key is in the symbol table.
 	 *         Yields {@code _default} if the key is not in the symbol table
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public @View V getOrDefault(int key, V _default) {
+	public @View V getOrDefault(Object key, V _default) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		return getOrDefault(root, key, _default);
 	}
 
-	private static <V> V getOrDefault(Node<V> x, int key, V _default) {
+	private static <K,V> V getOrDefault(Node<K,V> x, Object key, V _default) {
 		while (x != null) {
 			int cmp = compareTo(key, x.key);
 			if      (cmp < 0) x = x.left;
@@ -224,13 +233,15 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param key the key
 	 * @return the value associated with the given key if the key is in the symbol table.
 	 *         Yields {@code _default.get()} if the key is not in the symbol table
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public V getOrDefault(int key, Supplier<V> _default) {
+	public V getOrDefault(Object key, Supplier<V> _default) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		return getOrDefault(root, key, _default);
 	}
 
 	// value associated with the given key in subtree rooted at x; uses supplier if no such key is found
-	private static <V> V getOrDefault(Node<V> x, int key, Supplier<V> _default) {
+	private static <K,V> V getOrDefault(Node<K,V> x, Object key, Supplier<V> _default) {
 		while (x != null) {
 			int cmp = compareTo(key, x.key);
 			if      (cmp < 0) x = x.left;
@@ -245,8 +256,9 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * 
 	 * @param key the key
 	 * @return {@code true} if and only if this symbol table contains {@code key}
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public @View boolean contains(int key) {
+	public @View boolean contains(Object key) {
 		return get(key) != null;
 	}
 
@@ -256,15 +268,17 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 *
 	 * @param key the key
 	 * @param value the value
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public void put(int key, V value) {
+	public void put(K key, V value) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		root = put(root, key, value);
 		root.color = BLACK;
 		// assert check();
 	}
 
 	// insert the key-value pair in the subtree rooted at h
-	private static <V> Node<V> put(Node<V> h, int key, V value) { 
+	private static <K,V> Node<K,V> put(Node<K,V> h, K key, V value) { 
 		if (h == null) return new Node<>(key, value, RED, 1);
 
 		int cmp = compareTo(key, h.key);
@@ -299,7 +313,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	}
 
 	// delete the key-value pair with the minimum key rooted at h
-	private static <V> Node<V> removeMin(Node<V> h) { 
+	private static <K,V> Node<K,V> removeMin(Node<K,V> h) { 
 		if (h.left == null)
 			return null;
 
@@ -328,7 +342,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	}
 
 	// delete the key-value pair with the maximum key rooted at h
-	private static <V> Node<V> removeMax(Node<V> h) { 
+	private static <K,V> Node<K,V> removeMax(Node<K,V> h) { 
 		if (isRed(h.left))
 			h = rotateRight(h);
 
@@ -348,8 +362,10 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * (if the key is in this symbol table).    
 	 *
 	 * @param  key the key
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public void remove(int key) { 
+	public void remove(Object key) { 
+		if (key == null) throw new IllegalArgumentException("key is null");
 		if (contains(key)) {
 			// if both children of root are black, set root to red
 			if (isBlack(root.left) && isBlack(root.right))
@@ -362,7 +378,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	}
 
 	// delete the key-value pair with the given key rooted at h
-	private static <V> Node<V> remove(Node<V> h, int key) { 
+	private static <K,V> Node<K,V> remove(Node<K,V> h, Object key) { 
 		// assert get(h, key) != null;
 
 		if (compareTo(key, h.key) < 0)  {
@@ -378,7 +394,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 			if (isBlack(h.right) && isBlack(h.right.left))
 				h = moveRedRight(h);
 			if (compareTo(key, h.key) == 0) {
-				Node<V> x = min(h.right);
+				Node<K,V> x = min(h.right);
 				h.key = x.key;
 				h.value = x.value;
 				h.right = removeMin(h.right);
@@ -389,9 +405,9 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	}
 
 	// make a left-leaning link lean to the right
-	private static <V> Node<V> rotateRight(Node<V> h) {
+	private static <K,V> Node<K,V> rotateRight(Node<K,V> h) {
 		// assert (h != null) && isRed(h.left);
-		Node<V> x = h.left;
+		Node<K,V> x = h.left;
 		h.left = x.right;
 		x.right = h;
 		x.color = h.color;
@@ -402,9 +418,9 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	}
 
 	// make a right-leaning link lean to the left
-	private static <V> Node<V> rotateLeft(Node<V> h) {
+	private static <K,V> Node<K,V> rotateLeft(Node<K,V> h) {
 		// assert (h != null) && isRed(h.right);
-		Node<V> x = h.right;
+		Node<K,V> x = h.right;
 		h.right = x.left;
 		x.left = h;
 		x.color = h.color;
@@ -415,7 +431,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	}
 
 	// flip the colors of a node and its two children
-	private static <V> void flipColors(Node<V> h) {
+	private static <K,V> void flipColors(Node<K,V> h) {
 		// h must have opposite color of its two children
 		// assert (h != null) && (h.left != null) && (h.right != null);
 		// assert (isBlack(h) &&  isRed(h.left) &&  isRed(h.right))
@@ -427,7 +443,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 
 	// Assuming that h is red and both h.left and h.left.left
 	// are black, make h.left or one of its children red.
-	private static <V> Node<V> moveRedLeft(Node<V> h) {
+	private static <K,V> Node<K,V> moveRedLeft(Node<K,V> h) {
 		// assert (h != null);
 		// assert isRed(h) && isBlack(h.left) && isBlack(h.left.left);
 
@@ -441,7 +457,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 
 	// Assuming that h is red and both h.right and h.right.left
 	// are black, make h.right or one of its children red.
-	private static <V> Node<V> moveRedRight(Node<V> h) {
+	private static <K,V> Node<K,V> moveRedRight(Node<K,V> h) {
 		// assert (h != null);
 		// assert isRed(h) && isBlack(h.right) && isBlack(h.right.left);
 		flipColors(h);
@@ -452,7 +468,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	}
 
 	// restore red-black tree invariant
-	private static <V> Node<V> balance(Node<V> h) {
+	private static <K,V> Node<K,V> balance(Node<K,V> h) {
 		// assert (h != null);
 
 		if (isRed(h.right))                      h = rotateLeft(h);
@@ -469,13 +485,13 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @return the smallest key in the symbol table
 	 * @throws NoSuchElementException if the symbol table is empty
 	 */
-	public @View int min() {
+	public @View K min() {
 		if (isEmpty()) throw new NoSuchElementException("calls min() with empty symbol table");
 		return min(root).key;
 	} 
 
 	// the smallest key in subtree rooted at x; null if no such key
-	private static <V> Node<V> min(Node<V> x) { 
+	private static <K,V> Node<K,V> min(Node<K,V> x) { 
 		// assert x != null;
 		if (x.left == null) return x; 
 		else                return min(x.left); 
@@ -487,13 +503,13 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @return the largest key in the symbol table
 	 * @throws NoSuchElementException if the symbol table is empty
 	 */
-	public @View int max() {
+	public @View K max() {
 		if (isEmpty()) throw new NoSuchElementException("calls max() with empty symbol table");
 		return max(root).key;
 	} 
 
 	// the largest key in the subtree rooted at x; null if no such key
-	private static <V> Node<V> max(Node<V> x) { 
+	private static <K,V> Node<K,V> max(Node<K,V> x) { 
 		// assert x != null;
 		if (x.right == null) return x; 
 		else                 return max(x.right); 
@@ -505,21 +521,23 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param key the key
 	 * @return the largest key in the symbol table less than or equal to {@code key}
 	 * @throws NoSuchElementException if there is no such key
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public @View int floorKey(int key) {
+	public @View K floorKey(K key) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		if (isEmpty()) throw new NoSuchElementException();
-		Node<V> x = floorKey(root, key);
+		Node<K,V> x = floorKey(root, key);
 		if (x == null) throw new NoSuchElementException();
 		else           return x.key;
 	}    
 
 	// the largest key in the subtree rooted at x less than or equal to the given key
-	private static <V> Node<V> floorKey(Node<V> x, int key) {
+	private static <K,V> Node<K,V> floorKey(Node<K,V> x, K key) {
 		if (x == null) return null;
 		int cmp = compareTo(key, x.key);
 		if (cmp == 0) return x;
 		if (cmp < 0)  return floorKey(x.left, key);
-		Node<V> t = floorKey(x.right, key);
+		Node<K,V> t = floorKey(x.right, key);
 		if (t != null) return t; 
 		else           return x;
 	}
@@ -530,21 +548,23 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param key the key
 	 * @return the smallest key in the symbol table greater than or equal to {@code key}
 	 * @throws NoSuchElementException if there is no such key
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public @View int ceilingKey(int key) {
+	public @View K ceilingKey(K key) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		if (isEmpty()) throw new NoSuchElementException();
-		Node<V> x = ceilingKey(root, key);
+		Node<K,V> x = ceilingKey(root, key);
 		if (x == null) throw new NoSuchElementException();
 		else           return x.key;  
 	}
 
 	// the smallest key in the subtree rooted at x greater than or equal to the given key
-	private static <V> Node<V> ceilingKey(Node<V> x, int key) {  
+	private static <K,V> Node<K,V> ceilingKey(Node<K,V> x, K key) {  
 		if (x == null) return null;
 		int cmp = compareTo(key, x.key);
 		if (cmp == 0) return x;
 		if (cmp > 0)  return ceilingKey(x.right, key);
-		Node<V> t = ceilingKey(x.left, key);
+		Node<K,V> t = ceilingKey(x.left, key);
 		if (t != null) return t; 
 		else           return x;
 	}
@@ -557,13 +577,13 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @return the key in the symbol table of rank {@code k}
 	 * @throws IllegalArgumentException unless {@code k} is between 0 and {@code size()-1}
 	 */
-	public @View int select(int k) {
+	public @View K select(int k) {
 		if (k < 0 || k >= size()) throw new IllegalArgumentException("argument to select() is invalid: " + k);
 		return select(root, k).key;
 	}
 
 	// the key of rank k in the subtree rooted at x
-	private static <V> Node<V> select(Node<V> x, int k) {
+	private static <K,V> Node<K,V> select(Node<K,V> x, int k) {
 		// assert x != null;
 		// assert k >= 0 && k < size(x);
 		int t = size(x.left); 
@@ -577,13 +597,15 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * 
 	 * @param key the key
 	 * @return the number of keys in the symbol table strictly less than {@code key}
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public @View int rank(int key) {
+	public @View int rank(K key) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		return rank(key, root);
 	} 
 
 	// number of keys less than key in the subtree rooted at x
-	private static <V> int rank(int key, Node<V> x) {
+	private static <K,V> int rank(K key, Node<K,V> x) {
 		if (x == null) return 0; 
 		int cmp = compareTo(key, x.key); 
 		if      (cmp < 0) return rank(key, x.left); 
@@ -598,13 +620,15 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 *
 	 * @param key the key whose value must be replaced
 	 * @param how the replacement function
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public void update(int key, UnaryOperator<V> how) {
+	public void update(K key, UnaryOperator<V> how) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		root = update(root, key, how);
 		root.color = BLACK;
 	}
 
-	private static <V> Node<V> update(Node<V> h, int key, UnaryOperator<V> how) { 
+	private static <K,V> Node<K,V> update(Node<K,V> h, K key, UnaryOperator<V> how) { 
 		if (h == null) return new Node<>(key, how.apply(null), RED, 1);
 
 		int cmp = compareTo(key, h.key);
@@ -628,13 +652,15 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param key the key whose value must be replaced
 	 * @param _default the default value
 	 * @param how the replacement function
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public void update(int key, V _default, UnaryOperator<V> how) {
+	public void update(K key, V _default, UnaryOperator<V> how) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		root = update(root, key, _default, how);
 		root.color = BLACK;
 	}
 
-	private static <V> Node<V> update(Node<V> h, int key, V _default, UnaryOperator<V> how) { 
+	private static <K,V> Node<K,V> update(Node<K,V> h, K key, V _default, UnaryOperator<V> how) { 
 		if (h == null) return new Node<>(key, how.apply(_default), RED, 1);
 
 		int cmp = compareTo(key, h.key);
@@ -661,13 +687,15 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param key the key whose value must be replaced
 	 * @param _default the supplier of the default value
 	 * @param how the replacement function
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public void update(int key, Supplier<V> _default, UnaryOperator<V> how) {
+	public void update(K key, Supplier<V> _default, UnaryOperator<V> how) {
+		if (key == null) throw new IllegalArgumentException("key is null");
 		root = update(root, key, _default, how);
 		root.color = BLACK;
 	}
 
-	private static <V> Node<V> update(Node<V> h, int key, Supplier<V> _default, UnaryOperator<V> how) { 
+	private static <K,V> Node<K,V> update(Node<K,V> h, K key, Supplier<V> _default, UnaryOperator<V> how) { 
 		if (h == null) return new Node<>(key, how.apply(_default.get()), RED, 1);
 
 		int cmp = compareTo(key, h.key);
@@ -694,12 +722,15 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param value the value
 	 * @return the previous value at the given key. Yields {@code null} if {@code key} was previously unmapped
 	 *         or was mapped to {@code null}
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public V putIfAbsent(int key, V value) {
+	public V putIfAbsent(K key, V value) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+
 		class PutIfAbsent {
 			private V result;
 
-			private Node<V> putIfAbsent(Node<V> h) {
+			private Node<K,V> putIfAbsent(Node<K,V> h) {
 				// not found: result remains null
 				if (h == null)
 					// not found
@@ -743,12 +774,15 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param supplier the supplier
 	 * @return the previous value at the given key, if it was already mapped to a non-{@code null} value.
 	 *         If the key was unmapped or was mapped to {@code null}, yields the new value
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public V computeIfAbsent(int key, Supplier<V> supplier) {
+	public V computeIfAbsent(K key, Supplier<V> supplier) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+
 		class ComputeIfAbsent {
 			private V result;
 
-			private Node<V> computeIfAbsent(Node<V> h) { 
+			private Node<K,V> computeIfAbsent(Node<K,V> h) { 
 				if (h == null)
 					// not found
 					return new Node<>(key, result = supplier.get(), RED, 1);
@@ -791,12 +825,15 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * @param supplier the supplier
 	 * @return the previous value at the given key, if it was already mapped to a non-{@code null} value.
 	 *         If the key was unmapped or was mapped to {@code null}, yields the new value
+	 * @throws IllegalArgumentException if {@code key} is {@code null}
 	 */
-	public V computeIfAbsent(int key, IntFunction<V> supplier) {
+	public V computeIfAbsent(K key, Function<K,V> supplier) {
+		if (key == null) throw new IllegalArgumentException("key is null");
+
 		class ComputeIfAbsent {
 			private V result;
 
-			private Node<V> computeIfAbsent(Node<V> h) { 
+			private Node<K,V> computeIfAbsent(Node<K,V> h) { 
 				if (h == null)
 					// not found
 					return new Node<>(key, result = supplier.apply(key), RED, 1);
@@ -833,18 +870,18 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	}
 
 	@Override
-	public Iterator<Entry<V>> iterator() {
-		return new StorageMapIterator<V>(root);
+	public Iterator<Entry<K,V>> iterator() {
+		return new StorageMapIterator<K,V>(root);
 	}
 
-	private static class StorageMapIterator<V> implements Iterator<Entry<V>> {
+	private static class StorageMapIterator<K,V> implements Iterator<Entry<K,V>> {
 		// the path under enumeration; it holds that the left children
 		// have already been enumerated
-		private List<Node<V>> stack = new ArrayList<>();
+		private List<Node<K,V>> stack = new ArrayList<>();
 
-		private StorageMapIterator(Node<V> root) {
+		private StorageMapIterator(Node<K,V> root) {
 			// initially, the stack contains the leftmost path of the tree
-			for (Node<V> cursor = root; cursor != null; cursor = cursor.left)
+			for (Node<K,V> cursor = root; cursor != null; cursor = cursor.left)
 				stack.add(cursor);
 		}
 
@@ -854,11 +891,11 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 		}
 
 		@Override
-		public Entry<V> next() {
-			Node<V> topmost = stack.remove(stack.size() - 1);
+		public Entry<K,V> next() {
+			Node<K,V> topmost = stack.remove(stack.size() - 1);
 
 			// we add the leftmost path of the right child of topmost
-			for (Node<V> cursor = topmost.right; cursor != null; cursor = cursor.left)
+			for (Node<K,V> cursor = topmost.right; cursor != null; cursor = cursor.left)
 				stack.add(cursor);
 
 			return topmost;
@@ -871,7 +908,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * 
 	 * @return the stream
 	 */
-	public Stream<Entry<V>> stream() {
+	public Stream<Entry<K,V>> stream() {
 		return StreamSupport.stream(spliterator(), false);
 	}
 
@@ -880,14 +917,14 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * 
 	 * @return the keys
 	 */
-	public List<Integer> keyList() {
-		List<Integer> keys = new ArrayList<>();
+	public List<K> keyList() {
+		List<K> keys = new ArrayList<>();
 		if (root != null)
 			keyList(root, keys);
 		return keys;
 	}
 
-	private static <V> void keyList(Node<V> x, List<Integer> keys) {
+	private static <K,V> void keyList(Node<K,V> x, List<K> keys) {
 		if (x.left != null)
 			keyList(x.left, keys);
 
@@ -901,7 +938,7 @@ public class StorageIntMap<V> extends Storage implements Iterable<StorageIntMap.
 	 * 
 	 * @return the stream
 	 */
-	public IntStream keys() {
-		return stream().mapToInt(entry -> entry.getKey());
+	public Stream<K> keys() {
+		return stream().map(Entry::getKey);
 	}
 }

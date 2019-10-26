@@ -1,4 +1,4 @@
-package io.takamaka.util;
+package io.takamaka.code.util;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 import io.takamaka.code.annotations.View;
-import io.takamaka.lang.Storage;
+import io.takamaka.code.lang.Storage;
 
 /**
  * A mutable array of bytes, that can be kept in storage. Unset elements default to 0.

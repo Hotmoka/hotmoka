@@ -1,15 +1,15 @@
 package takamaka.tests.ponzi;
 
-import static io.takamaka.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
 import io.takamaka.code.annotations.Entry;
 import io.takamaka.code.annotations.Payable;
-import io.takamaka.lang.Contract;
-import io.takamaka.lang.PayableContract;
-import io.takamaka.util.StorageList;
-import io.takamaka.util.StorageMap;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageMap;
 
 /**
  * A contract for a pyramid investment scheme:

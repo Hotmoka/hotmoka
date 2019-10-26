@@ -3,7 +3,7 @@ package takamaka.tests.errors.legalcall2;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import io.takamaka.lang.Storage;
+import io.takamaka.code.lang.Storage;
 
 public class C extends Storage {
 	private String s = "";
@@ -15,7 +15,7 @@ public class C extends Storage {
 		list.add("are");
 		list.add("you");
 		list.add("?");
-		
+
 		list.stream()
 			.map(String::length)
 			.forEachOrdered(this::process);

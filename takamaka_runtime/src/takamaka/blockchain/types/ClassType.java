@@ -32,49 +32,64 @@ public final class ClassType implements StorageType {
 	public final static ClassType BIG_INTEGER = new ClassType("java.math.BigInteger");
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.lang.ExternallyOwnedAccount}.
+	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
 	 */
-	public final static ClassType EOA = new ClassType("io.takamaka.lang.ExternallyOwnedAccount");
+	public final static ClassType EOA = new ClassType("io.takamaka.code.lang.ExternallyOwnedAccount");
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.lang.TestExternallyOwnedAccount}.
+	 * The frequently used class type for {@link io.takamaka.code.lang.TestExternallyOwnedAccount}.
 	 */
-	public final static ClassType TEOA = new ClassType("io.takamaka.lang.TestExternallyOwnedAccount");
+	public final static ClassType TEOA = new ClassType("io.takamaka.code.lang.TestExternallyOwnedAccount");
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.lang.Contract}.
+	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
 	 */
-	public final static ClassType CONTRACT = new ClassType("io.takamaka.lang.Contract");
+	public final static ClassType CONTRACT = new ClassType("io.takamaka.code.lang.Contract");
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.lang.PayableContract}.
+	 * The frequently used class type for {@link io.takamaka.code.lang.Storage}.
 	 */
-	public final static ClassType PAYABLE_CONTRACT = new ClassType("io.takamaka.lang.PayableContract");
+	public final static ClassType STORAGE = new ClassType("io.takamaka.code.lang.Storage");
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.util.Bytes32}.
+	 * The frequently used class type for {@link io.takamaka.code.lang.Takamaka}.
 	 */
-	public final static ClassType BYTES32 = new ClassType("io.takamaka.util.Bytes32");
+	public final static ClassType TAKAMAKA = new ClassType("io.takamaka.code.lang.Takamaka");
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.util.StorageList}.
+	 * The frequently used class type for {@link io.takamaka.code.lang.Event}.
 	 */
-	public final static ClassType STORAGE_LIST = new ClassType("io.takamaka.util.StorageList");
+	public final static ClassType EVENT = new ClassType("io.takamaka.code.lang.Event");
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.util.StorageMap}.
+	 * The frequently used class type for {@link io.takamaka.code.lang.PayableContract}.
 	 */
-	public final static ClassType STORAGE_MAP = new ClassType("io.takamaka.util.StorageMap");
+	public final static ClassType PAYABLE_CONTRACT = new ClassType("io.takamaka.code.lang.PayableContract");
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.lang.RequirementViolationException}.
+	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32}.
 	 */
-	public final static ClassType REQUIREMENT_VIOLATION_EXCEPTION = new ClassType("io.takamaka.lang.RequirementViolationException");
+	public final static ClassType BYTES32 = new ClassType("io.takamaka.code.util.Bytes32");
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.lang.InsufficientFundsError}.
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageList}.
 	 */
-	public final static ClassType INSUFFICIENT_FUNDS_ERROR = new ClassType("io.takamaka.lang.InsufficientFundsError");
+	public final static ClassType STORAGE_LIST = new ClassType("io.takamaka.code.util.StorageList");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
+	 */
+	public final static ClassType STORAGE_MAP = new ClassType("io.takamaka.code.util.StorageMap");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.RequirementViolationException}.
+	 */
+	public final static ClassType REQUIREMENT_VIOLATION_EXCEPTION = new ClassType("io.takamaka.code.lang.RequirementViolationException");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.InsufficientFundsError}.
+	 */
+	public final static ClassType INSUFFICIENT_FUNDS_ERROR = new ClassType("io.takamaka.code.lang.InsufficientFundsError");
 
 	/**
 	 * The name of the class type.

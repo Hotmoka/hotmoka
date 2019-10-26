@@ -8,9 +8,9 @@ import java.util.stream.Stream;
 
 import io.takamaka.code.annotations.Entry;
 import io.takamaka.code.annotations.Payable;
-import io.takamaka.lang.ExternallyOwnedAccount;
-import io.takamaka.lang.PayableContract;
-import io.takamaka.util.StorageList;
+import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.util.StorageList;
 
 /**
  * A test about lambda expressions that call @Entry methods.

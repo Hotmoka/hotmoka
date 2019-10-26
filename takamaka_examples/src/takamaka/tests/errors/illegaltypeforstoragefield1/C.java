@@ -1,6 +1,6 @@
 package takamaka.tests.errors.illegaltypeforstoragefield1;
 
-import io.takamaka.lang.Storage;
+import io.takamaka.code.lang.Storage;
 
 public class C extends Storage {
 	public final NonStorage s;

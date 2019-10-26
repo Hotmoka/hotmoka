@@ -1,4 +1,4 @@
-package io.takamaka.lang;
+package io.takamaka.code.lang;
 
 /**
  * An event is a storage object that remains in the blockchain at the

@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.Random;
 
 import io.takamaka.code.annotations.View;
-import io.takamaka.util.StorageArray;
+import io.takamaka.code.util.StorageArray;
 
 /**
  * This class defines methods that test the storage array implementation.

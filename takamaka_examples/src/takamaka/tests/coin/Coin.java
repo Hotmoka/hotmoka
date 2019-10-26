@@ -1,14 +1,14 @@
 package takamaka.tests.coin;
 
-import static io.takamaka.lang.Takamaka.event;
-import static io.takamaka.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.event;
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
 import io.takamaka.code.annotations.Entry;
-import io.takamaka.lang.Contract;
-import io.takamaka.lang.Event;
-import io.takamaka.util.StorageMap;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.util.StorageMap;
 
 public class Coin extends Contract {
 	private final Contract minter;

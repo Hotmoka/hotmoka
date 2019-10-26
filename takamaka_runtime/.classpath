@@ -10,6 +10,6 @@
 	<classpathentry kind="lib" path="lib/bcel-6.2.jar"/>
 	<classpathentry kind="lib" path="lib/stackmap.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka-annotations"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_annotations"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
