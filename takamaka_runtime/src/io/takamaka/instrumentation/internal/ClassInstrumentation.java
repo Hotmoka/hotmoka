@@ -82,7 +82,6 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.lang.Contract;
 import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;

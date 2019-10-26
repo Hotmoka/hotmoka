@@ -19,7 +19,6 @@
   <target name="compile" depends="init" description="compile the source">
     <javac srcdir="${src}" destdir="${build}" debug="true" debuglevel="lines,vars,source" includeantruntime="true">
     	<classpath>
-    	  <fileset dir="../takamaka_runtime/dist" includes="*.jar" />
           <fileset dir="../takamaka_distribution/dist" includes="*.jar" />
     	</classpath>
     </javac>

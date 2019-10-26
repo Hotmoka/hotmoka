@@ -79,7 +79,8 @@ class SimplePyramid extends TakamakaTest {
 	void beforeEach() throws Exception {
 		blockchain = new MemoryBlockchain(Paths.get("chain"));
 
-		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../takamaka_runtime/dist/takamaka_base.jar"))));
+		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest
+				(Files.readAllBytes(Paths.get("../takamaka_distribution/dist/io-takamaka-code-1.0.jar"))));
 		Classpath takamakaBase = new Classpath(takamaka_base, false);  // true/false irrelevant here
 
 		gamete = blockchain.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaBase, ALL_FUNDS));
@@ -113,7 +114,7 @@ class SimplePyramid extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(players[1], _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[2], _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(players[2], _20_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(players[0], _10_000, classpath, GET_BALANCE, players[0]));
 		assertTrue(balance0.value.compareTo(_20_000) > 0);

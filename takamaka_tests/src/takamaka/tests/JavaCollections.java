@@ -49,7 +49,7 @@ class JavaCollections extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../takamaka_runtime/dist/takamaka_base.jar"), ALL_FUNDS);
+		blockchain = new InitializedMemoryBlockchain(Paths.get("../takamaka_distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
 		TransactionReference collections = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _200_000, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/javacollections.jar")), blockchain.takamakaBase));

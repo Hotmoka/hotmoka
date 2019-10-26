@@ -86,7 +86,7 @@ class Basic extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../takamaka_runtime/dist/takamaka_base.jar"), ALL_FUNDS);
+		blockchain = new InitializedMemoryBlockchain(Paths.get("../takamaka_distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
 		master = blockchain.account(0);
 
 		TransactionReference basicdependency = blockchain.addJarStoreTransaction
