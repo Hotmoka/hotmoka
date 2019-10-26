@@ -1,8 +1,5 @@
 package takamaka.lang;
 
-
-import static takamaka.lang.Takamaka.require;
-
 import java.math.BigInteger;
 
 /**
@@ -61,8 +58,8 @@ public abstract class Contract extends Storage {
 	 * @param amount the amount of coins
 	 */
 	private void pay(Contract beneficiary, BigInteger amount) {
-		require(amount != null, "Payed amount cannot be null");
-		require(amount.signum() >= 0, "Payed amount cannot be negative");
+		Takamaka.require(amount != null, "Payed amount cannot be null");
+		Takamaka.require(amount.signum() >= 0, "Payed amount cannot be negative");
 		if (balance.compareTo(amount) < 0)
 			throw new InsufficientFundsError(amount);
 
@@ -77,7 +74,7 @@ public abstract class Contract extends Storage {
 	 * @param caller the caller of the entry
 	 */
 	protected final void entry(Contract caller) {
-		require(this != caller, "An @Entry can only be called from a distinct contract object");
+		Takamaka.require(this != caller, "An @Entry can only be called from a distinct contract object");
 		this.caller = caller;
 	}
 

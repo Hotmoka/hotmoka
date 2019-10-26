@@ -1,4 +1,4 @@
-package takamaka.lang;
+package takamaka.blockchain.runtime;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import io.takamaka.whitelisting.WhiteListed;
 import takamaka.blockchain.ClassTag;
 import takamaka.blockchain.DeserializationError;
 import takamaka.blockchain.FieldSignature;
@@ -40,7 +39,7 @@ import takamaka.blockchain.values.StorageReferenceInCurrentTransaction;
  * A storage class can only have fields of types allowed in blockchain.
  * Its updates are stored in blockchain at the end of the execution of a transaction.
  */
-public abstract class Storage {
+public abstract class AbstractStorage {
 
 	/**
 	 * The abstract pointer used to refer to this object in blockchain.
@@ -58,14 +57,13 @@ public abstract class Storage {
 	/**
 	 * Constructs an object that can be stored in blockchain.
 	 */
-	@WhiteListed
-	protected Storage() {
+	protected AbstractStorage() {
 		// when the object is first created, it is not yet in blockchain
 		this.inStorage = false;
 
 		// assigns a fresh unique identifier to the object, that will later
 		// used to refer to the object once serialized in blockchain
-		this.storageReference = new StorageReferenceInCurrentTransaction(Takamaka.generateNextProgressive());
+		this.storageReference = new StorageReferenceInCurrentTransaction(AbstractTakamaka.generateNextProgressive());
 	}
 
 	/**
@@ -75,8 +73,7 @@ public abstract class Storage {
 	 * @return -1 if this object is older than {@code other}; 1 if {@code other}
 	 *         is older than this object; 0 if they are the same object
 	 */
-	@WhiteListed
-	public int compareAge(Storage other) {
+	protected final int compareAge(AbstractStorage other) {
 		return storageReference.compareTo(other.storageReference);
 	}
 
@@ -93,7 +90,7 @@ public abstract class Storage {
 	public final void updates(Set<Update> result, Set<StorageReference> seen) {
 		if (seen.add(storageReference)) {
 			// the set of storage objects that we have to scan
-			List<Storage> workingSet = new ArrayList<>(16);
+			List<AbstractStorage> workingSet = new ArrayList<>(16);
 			// initially, there is only this object to scan
 			workingSet.add(this);
 
@@ -107,17 +104,12 @@ public abstract class Storage {
 		}
 	}
 
-	@Override @WhiteListed
-	public String toString() {
-		return "";
-	}
-
 	/**
 	 * Constructor used for deserialization from blockchain, in instrumented code.
 	 * 
 	 * @param storageReference the reference to deserialize
 	 */
-	protected Storage(StorageReferenceAlreadyInBlockchain storageReference) {
+	protected AbstractStorage(StorageReferenceAlreadyInBlockchain storageReference) {
 		// this object reflects something already in blockchain
 		this.inStorage = true;
 
@@ -134,26 +126,26 @@ public abstract class Storage {
 	 * @param workingSet the list of storage objects that still need to be processed. This can get enlarged by a call to this method,
 	 *                   in order to simulate recursive calls without risking a Java stack overflow
 	 */
-	protected void extractUpdates(Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet) {
+	protected void extractUpdates(Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet) {
 		if (!inStorage)
-			updates.add(new ClassTag(storageReference, getClass().getName(), Takamaka.getBlockchain().transactionThatInstalledJarFor(getClass())));
+			updates.add(new ClassTag(storageReference, getClass().getName(), AbstractTakamaka.getBlockchain().transactionThatInstalledJarFor(getClass())));
 
 		// subclasses will override, call this super-implementation and add potential updates to their instance fields
 	}
 
 	/**
 	 * Utility method that will be used in subclasses to implement redefinitions of
-	 * {@link takamaka.lang.Storage#extractUpdates(Set, Set, List)} to recur on the old value of fields of reference type.
+	 * {@link takamaka.lang.AbstractStorage#extractUpdates(Set, Set, List)} to recur on the old value of fields of reference type.
 	 * 
 	 * @param s the storage objects whose fields are considered
 	 * @param updates the set where updates are added
 	 * @param seen the set of storage references already scanned
 	 * @param workingSet the set of storage objects that still need to be processed
 	 */
-	protected final void recursiveExtract(Object s, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet) {
-		if (s instanceof Storage) {
-			if (seen.add(((Storage) s).storageReference))
-				workingSet.add((Storage) s);
+	protected final void recursiveExtract(Object s, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet) {
+		if (s instanceof AbstractStorage) {
+			if (seen.add(((AbstractStorage) s).storageReference))
+				workingSet.add((AbstractStorage) s);
 		}
 		else if (s instanceof String || s instanceof BigInteger || s instanceof Enum<?>) {} // these types are not recursively followed
 		else if (s != null)
@@ -171,7 +163,7 @@ public abstract class Storage {
 	 * @throws Exception if the value could not be found
 	 */
 	protected final Object deserializeLastLazyUpdateFor(String definingClass, String name, String fieldClassName) throws Exception {
-		return Takamaka.getBlockchain().deserializeLastLazyUpdateFor((StorageReferenceAlreadyInBlockchain) storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return AbstractTakamaka.getBlockchain().deserializeLastLazyUpdateFor((StorageReferenceAlreadyInBlockchain) storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -185,7 +177,7 @@ public abstract class Storage {
 	 * @throws Exception if the value could not be found
 	 */
 	protected final Object deserializeLastLazyUpdateForFinal(String definingClass, String name, String fieldClassName) throws Exception {
-		return Takamaka.getBlockchain().deserializeLastLazyUpdateForFinal((StorageReferenceAlreadyInBlockchain) storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return AbstractTakamaka.getBlockchain().deserializeLastLazyUpdateForFinal((StorageReferenceAlreadyInBlockchain) storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -201,16 +193,16 @@ public abstract class Storage {
 	 * @param s the value set to the field
 	 */
 	@SuppressWarnings("unchecked")
-	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<Storage> workingSet, String fieldClassName, Object s) {
+	protected final void addUpdateFor(String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet, String fieldClassName, Object s) {
 		// these values are not recursively followed
 		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
 
 		if (s == null)
 			//the field has been set to null
 			updates.add(new UpdateToNullLazy(storageReference, field));
-		else if (s instanceof Storage) {
+		else if (s instanceof AbstractStorage) {
 			// the field has been set to a storage object
-			Storage storage = (Storage) s;
+			AbstractStorage storage = (AbstractStorage) s;
 			updates.add(new UpdateOfStorage(storageReference, field, storage.storageReference));
 
 			// if the new value has not yet been considered, we put in the list of object still to be processed

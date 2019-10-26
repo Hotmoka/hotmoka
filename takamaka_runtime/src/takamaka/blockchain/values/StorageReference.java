@@ -5,8 +5,8 @@ import java.math.BigInteger;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.runtime.AbstractStorage;
 import takamaka.lang.Immutable;
-import takamaka.lang.Storage;
 
 /**
  * A reference to an object of class type that can be stored in the blockchain.
@@ -59,7 +59,7 @@ public abstract class StorageReference implements StorageValue {
 	}
 
 	@Override
-	public abstract Storage deserialize(AbstractBlockchain blockchain);
+	public abstract AbstractStorage deserialize(AbstractBlockchain blockchain);
 
 	/**
 	 * Yields the storage reference that corresponds to this, assuming that the

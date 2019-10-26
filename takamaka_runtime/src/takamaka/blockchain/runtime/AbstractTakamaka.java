@@ -1,4 +1,4 @@
-package takamaka.lang;
+package takamaka.blockchain.runtime;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -6,19 +6,20 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import io.takamaka.whitelisting.WhiteListed;
 import io.takamaka.whitelisting.WhiteListingProofObligation;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.GasCosts;
+import takamaka.lang.NonWhiteListedCallException;
+import takamaka.lang.OutOfGasError;
 
 /**
  * A class that acts as a global context for statements added
  * to the Takamaka language.
  */
-public abstract class Takamaka {
+public abstract class AbstractTakamaka {
 
 	/**
 	 * The blockchain used for the current transaction.
@@ -30,16 +31,14 @@ public abstract class Takamaka {
 	 */
 	private static BigInteger nextProgressive;
 
-	private Takamaka() {}
-
 	/**
 	 * Resets static data at the beginning of a transaction.
 	 * 
 	 * @param blockchain the blockchain used for the new transaction
 	 */
 	public static void init(AbstractBlockchain blockchain) {
-		Takamaka.blockchain = blockchain;
-		Takamaka.nextProgressive = BigInteger.ZERO;
+		AbstractTakamaka.blockchain = blockchain;
+		AbstractTakamaka.nextProgressive = BigInteger.ZERO;
 	}
 
 	/**
@@ -49,96 +48,8 @@ public abstract class Takamaka {
 	 * @param event the event
 	 */
 	@WhiteListed
-	public static void event(Event event) {
+	public static void event(AbstractEvent event) {
 		blockchain.event(event);
-	}
-
-	/**
-	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.lang.Takamaka#requireThat(boolean, String)}.
-	 * 
-	 * @param condition the condition that must hold
-	 * @param message the message used in the exception raised if the
-	 *                condition does not hold
-	 * @throws RequirementViolationException if the condition does not hold
-	 */
-	@WhiteListed
-	public static void require(boolean condition, String message) {
-		if (!condition)
-			throw new RequirementViolationException(message);
-	}
-
-	/**
-	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.lang.Takamaka#require(boolean, String)}.
-	 * 
-	 * @param condition the condition that must hold
-	 * @param message the message used in the exception raised if the
-	 *                condition does not hold
-	 * @throws RequirementViolationException if the condition does not hold
-	 */
-	@WhiteListed
-	public static void requireThat(boolean condition, String message) {
-		if (!condition)
-			throw new RequirementViolationException(message);
-	}
-
-	/**
-	 * Asserts that the given condition holds.
-	 * 
-	 * @param condition the condition that must hold
-	 * @param message the message used in the exception raised if the
-	 *                condition does not hold
-	 * @throws AssertionViolationException if the condition does not hold
-	 */
-	@WhiteListed
-	public static void assertThat(boolean condition, String message) {
-		if (!condition)
-			throw new AssertionViolationException(message);
-	}
-
-	/**
-	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.lang.Takamaka#requireThat(boolean, Supplier)}.
-	 * 
-	 * @param condition the condition that must hold
-	 * @param message the supplier of the message used in the exception raised if the
-	 *                condition does not hold
-	 * @throws RequirementViolationException if the condition does not hold
-	 */
-	@WhiteListed
-	public static void require(boolean condition, Supplier<String> message) {
-		if (!condition)
-			throw new RequirementViolationException(message.get());
-	}
-
-	/**
-	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.lang.Takamaka#require(boolean, Supplier)}.
-	 * 
-	 * @param condition the condition that must hold
-	 * @param message the supplier of the message used in the exception raised if the
-	 *                condition does not hold
-	 * @throws RequirementViolationException if the condition does not hold
-	 */
-	@WhiteListed
-	public static void requireThat(boolean condition, Supplier<String> message) {
-		if (!condition)
-			throw new RequirementViolationException(message.get());
-	}
-
-	/**
-	 * Asserts that the given condition holds.
-	 * 
-	 * @param condition the condition that must hold
-	 * @param message the supplier of the message used in the exception raised if the
-	 *                condition does not hold
-	 * @throws AssertionViolationException if the condition does not hold
-	 */
-	@WhiteListed
-	public static void assertThat(boolean condition, Supplier<String> message) {
-		if (!condition)
-			throw new AssertionViolationException(message.get());
 	}
 
 	/**
@@ -170,7 +81,7 @@ public abstract class Takamaka {
 	public static Optional<Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
 		if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class)) {
 			String checkName = lowerInitial(annotationType.getSimpleName());
-			Optional<Method> checkMethod = Stream.of(Takamaka.class.getDeclaredMethods())
+			Optional<Method> checkMethod = Stream.of(AbstractTakamaka.class.getDeclaredMethods())
 				.filter(method -> method.getName().equals(checkName)).findFirst();
 
 			if (!checkMethod.isPresent())
@@ -218,7 +129,7 @@ public abstract class Takamaka {
 	 * 
 	 * @return the blockchain
 	 */
-	static AbstractBlockchain getBlockchain() {
+	public static AbstractBlockchain getBlockchain() {
 		return blockchain;
 	}
 
@@ -229,7 +140,7 @@ public abstract class Takamaka {
 	 * 
 	 * @return the identifier
 	 */
-	static BigInteger generateNextProgressive() {
+	public static BigInteger generateNextProgressive() {
 		BigInteger result = nextProgressive;
 		nextProgressive = nextProgressive.add(BigInteger.ONE);
 		return result;

@@ -41,7 +41,6 @@ import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StringValue;
 import takamaka.lang.InsufficientFundsError;
-import takamaka.lang.RequirementViolationException;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 /**
@@ -151,7 +150,7 @@ class Basic extends TakamakaTest {
 				(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new VoidMethodSignature("takamaka.tests.basic.Sub", "m1"), sub));
 		}
 		catch (TransactionException e) {
-			if (e.getCause() instanceof RequirementViolationException && e.getCause().getMessage().equals("An @Entry can only be called from a distinct contract object"))
+			if (e.getCause().getClass().getName().equals("takamaka.lang.RequirementViolationException") && e.getCause().getMessage().equals("An @Entry can only be called from a distinct contract object"))
 				return;
 
 			fail("wrong exception");

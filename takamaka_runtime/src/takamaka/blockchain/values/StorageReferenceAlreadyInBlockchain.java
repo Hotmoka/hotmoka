@@ -6,8 +6,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.runtime.AbstractStorage;
 import takamaka.lang.Immutable;
-import takamaka.lang.Storage;
 
 /**
  * A reference to an object of class type that is already stored in the blockchain.
@@ -68,7 +68,7 @@ public final class StorageReferenceAlreadyInBlockchain extends StorageReference 
 	}
 
 	@Override
-	public Storage deserialize(AbstractBlockchain blockchain) {
+	public AbstractStorage deserialize(AbstractBlockchain blockchain) {
 		return blockchain.deserialize(this);
 	}
 

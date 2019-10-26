@@ -34,7 +34,7 @@ import takamaka.memory.InitializedMemoryBlockchain;
  */
 class ClassSwap extends TakamakaTest {
 
-	private static final BigInteger _1_000 = BigInteger.valueOf(1000);
+	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
 	private static final ConstructorSignature CONSTRUCTOR_C = new ConstructorSignature("C");
 
@@ -84,10 +84,10 @@ class ClassSwap extends TakamakaTest {
 	@Test @DisplayName("c13 new/get works in its classpath")
 	void testC13() throws TransactionException, CodeExecutionException {
 		StorageReference c13 = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _1_000, classpathC13, CONSTRUCTOR_C));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, classpathC13, CONSTRUCTOR_C));
 
 		IntValue get = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpathC13, GET, c13));
+			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpathC13, GET, c13));
 
 		assertSame(13, get.value);
 	}
@@ -95,10 +95,10 @@ class ClassSwap extends TakamakaTest {
 	@Test @DisplayName("c17 new/get works in its classpath")
 	void testC17() throws TransactionException, CodeExecutionException {
 		StorageReference c17 = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _1_000, classpathC17, CONSTRUCTOR_C));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, classpathC17, CONSTRUCTOR_C));
 
 		IntValue get = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpathC17, GET, c17));
+			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpathC17, GET, c17));
 
 		assertSame(17, get.value);
 	}
@@ -106,12 +106,12 @@ class ClassSwap extends TakamakaTest {
 	@Test @DisplayName("c13 new/get fails if classpath changed")
 	void testC13SwapC17() throws TransactionException, CodeExecutionException {
 		StorageReference c13 = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _1_000, classpathC13, CONSTRUCTOR_C));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, classpathC13, CONSTRUCTOR_C));
 
 		// the following call should fail since c13 was created from another jar
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _1_000, classpathC17, GET, c13))
+				(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpathC17, GET, c13))
 		);
 	}
 }

@@ -68,17 +68,17 @@ import takamaka.blockchain.response.TransactionResponse;
 import takamaka.blockchain.response.TransactionResponseWithInstrumentedJar;
 import takamaka.blockchain.response.TransactionResponseWithUpdates;
 import takamaka.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
+import takamaka.blockchain.runtime.AbstractEvent;
+import takamaka.blockchain.runtime.AbstractStorage;
+import takamaka.blockchain.runtime.AbstractTakamaka;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.blockchain.values.StorageValue;
-import takamaka.lang.Event;
 import takamaka.lang.InsufficientFundsError;
 import takamaka.lang.NonWhiteListedCallException;
 import takamaka.lang.OutOfGasError;
-import takamaka.lang.Storage;
-import takamaka.lang.Takamaka;
 import takamaka.lang.ThrowsExceptions;
 import takamaka.lang.View;
 
@@ -92,7 +92,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
 	 */
-	private final List<Storage> events = new ArrayList<>();
+	private final List<AbstractEvent> events = new ArrayList<>();
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -101,7 +101,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * a distinct class loader and each storage object keeps a reference to its class loader, as
 	 * always in Java.
 	 */
-	private final Map<StorageReferenceAlreadyInBlockchain, Storage> cache = new HashMap<>();
+	private final Map<StorageReferenceAlreadyInBlockchain, AbstractStorage> cache = new HashMap<>();
 
 	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
@@ -199,7 +199,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the transaction could not be initialized
 	 */
 	protected void initTransaction(BigInteger gas, TransactionReference previous) throws Exception {
-		Takamaka.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
+		AbstractTakamaka.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
 		events.clear();
 		cache.clear();
 		ClassType.clearCache();
@@ -411,7 +411,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param event the event
 	 * @throws IllegalArgumentException if the event is {@code null}
 	 */
-	public final void event(Event event) {
+	public final void event(AbstractEvent event) {
 		if (event == null)
 			throw new IllegalArgumentException("Events cannot be null");
 
@@ -481,7 +481,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-				Storage gamete = (Storage) classLoader.externallyOwnedAccount.newInstance();
+				AbstractStorage gamete = (AbstractStorage) classLoader.externallyOwnedAccount.newInstance();
 				// we set the balance field of the gamete
 				Field balanceField = classLoader.contractClass.getDeclaredField("balance");
 				balanceField.setAccessible(true); // since the field is private
@@ -506,7 +506,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			initTransaction(request.gas, previous);
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
-				Storage deserializedCaller = request.caller.deserialize(this);
+				AbstractStorage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 
 				// we sell all gas first: what remains will be paid back at the end;
@@ -587,7 +587,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			initTransaction(request.gas, previous);
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
-				Storage deserializedCaller = request.caller.deserialize(this);
+				AbstractStorage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
 				// we sell all gas first: what remains will be paid back at the end;
@@ -654,7 +654,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			initTransaction(request.gas, previous);
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
-				Storage deserializedCaller = request.caller.deserialize(this);
+				AbstractStorage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
 				// we sell all gas first: what remains will be paid back at the end;
@@ -737,7 +737,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			initTransaction(request.gas, previous);
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
-				Storage deserializedCaller = request.caller.deserialize(this);
+				AbstractStorage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
 				// we sell all gas first: what remains will be paid back at the end;
@@ -823,7 +823,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param object the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	public final Storage deserialize(StorageReferenceAlreadyInBlockchain object) {
+	public final AbstractStorage deserialize(StorageReferenceAlreadyInBlockchain object) {
 		return cache.computeIfAbsent(object, this::deserializeAnew);
 	}
 
@@ -1163,7 +1163,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param reference the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	private Storage deserializeAnew(StorageReferenceAlreadyInBlockchain reference) {
+	private AbstractStorage deserializeAnew(StorageReferenceAlreadyInBlockchain reference) {
 		try {
 			SortedSet<Update> updates;
 			TransactionReference transaction = reference.transaction;
@@ -1226,7 +1226,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			// hence we must force accessibility
 			constructor.setAccessible(true);
 
-			return (Storage) constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
+			return (AbstractStorage) constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
 		}
 		catch (DeserializationError e) {
 			throw e;
@@ -1257,7 +1257,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 	/**
 	 * Collects all eager fields of the given storage class, including those of its superclasses,
-	 * up to and excluding {@link takamaka.lang.Storage}.
+	 * up to and excluding {@link takamaka.blockchain.runtime.AbstractStorage}.
 	 * 
 	 * @param className the name of the storage class
 	 * @return the eager fields
@@ -1266,7 +1266,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		Set<Field> bag = new HashSet<>();
 
 		// fields added by instrumentation by Takamaka itself are not considered, since they are transient
-		for (Class<?> clazz = loadClass(className); clazz != Storage.class; clazz = clazz.getSuperclass())
+		for (Class<?> clazz = loadClass(className); clazz != AbstractStorage.class; clazz = clazz.getSuperclass())
 			Stream.of(clazz.getDeclaredFields())
 			.filter(field -> !Modifier.isTransient(field.getModifiers())
 					&& !Modifier.isStatic(field.getModifiers())
@@ -1291,7 +1291,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private BigInteger decreaseBalance(Storage eoa, BigInteger gas)
+	private BigInteger decreaseBalance(AbstractStorage eoa, BigInteger gas)
 			throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
@@ -1319,7 +1319,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private BigInteger increaseBalance(Storage eoa, BigInteger gas)
+	private BigInteger increaseBalance(AbstractStorage eoa, BigInteger gas)
 			throws ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
@@ -1340,7 +1340,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws ClassNotFoundException if the {@link takamaka.lang.ExternallyOwnedAccount} class cannot be found
 	 *                                in the class path of the transaction
 	 */
-	private void checkIsExternallyOwned(Storage object) throws ClassNotFoundException, IllegalTransactionRequestException {
+	private void checkIsExternallyOwned(AbstractStorage object) throws ClassNotFoundException, IllegalTransactionRequestException {
 		if (!classLoader.externallyOwnedAccount.isAssignableFrom(object.getClass()))
 			throw new IllegalTransactionRequestException("Only an externally owned contract can start a transaction");
 	}
@@ -1354,19 +1354,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param result the result; relevant only if {@code Storage}
 	 * @return the ordered updates
 	 */
-	private SortedSet<Update> collectUpdates(Object[] actuals, Storage caller, Storage receiver, Object result) {
-		List<Storage> potentiallyAffectedObjects = new ArrayList<>();
+	private SortedSet<Update> collectUpdates(Object[] actuals, AbstractStorage caller, AbstractStorage receiver, Object result) {
+		List<AbstractStorage> potentiallyAffectedObjects = new ArrayList<>();
 		if (caller != null)
 			potentiallyAffectedObjects.add(caller);
 		if (receiver != null)
 			potentiallyAffectedObjects.add(receiver);
-		if (result instanceof Storage)
-			potentiallyAffectedObjects.add((Storage) result);
+		if (result instanceof AbstractStorage)
+			potentiallyAffectedObjects.add((AbstractStorage) result);
 
 		if (actuals != null)
 			for (Object actual: actuals)
-				if (actual instanceof Storage)
-					potentiallyAffectedObjects.add((Storage) actual);
+				if (actual instanceof AbstractStorage)
+					potentiallyAffectedObjects.add((AbstractStorage) actual);
 
 		// events are accessible from outside, hence they count as side-effects
 		events.forEach(potentiallyAffectedObjects::add);
@@ -1401,7 +1401,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		/**
 		 * The deserialized caller.
 		 */
-		private final Storage deserializedCaller;
+		private final AbstractStorage deserializedCaller;
 
 		/**
 		 * The method or constructor that is being called.
@@ -1421,7 +1421,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		/**
 		 * The deserialized receiver of a method call. This is {@code null} for static methods and constructors.
 		 */
-		protected final Storage deserializedReceiver; // it might be null
+		protected final AbstractStorage deserializedReceiver; // it might be null
 
 		/**
 		 * The deserialized actual arguments of the call.
@@ -1437,7 +1437,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param receiver the receiver of the call, if any. This is {@code null} for constructors and static methods
 		 * @param actuals the actuals provided to the method or constructor
 		 */
-		private CodeExecutor(Storage deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
+		private CodeExecutor(AbstractStorage deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
 			this.deserializedCaller = deseralizedCaller;
 			this.methodOrConstructor = methodOrConstructor;
 			this.deserializedReceiver = receiver != null ? receiver.deserialize(AbstractBlockchain.this) : null;
@@ -1501,7 +1501,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param deserializedCaller the caller contract
 		 * @return true  if and only if that condition holds
 		 */
-		protected final boolean onlyAffectedBalanceOf(Storage deserializedCaller) {
+		protected final boolean onlyAffectedBalanceOf(AbstractStorage deserializedCaller) {
 			return updates().allMatch
 				(update -> update.object.equals(deserializedCaller.storageReference)
 				&& update instanceof UpdateOfField
@@ -1611,7 +1611,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		private void checkWhiteListingProofObligations(String methodName, Object value, Annotation[] annotations) {
 			Stream.of(annotations)
-				.map(Takamaka::getWhiteListingCheckFor)
+				.map(AbstractTakamaka::getWhiteListingCheckFor)
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.forEachOrdered(checkMethod -> {
@@ -1643,7 +1643,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param deseralizedCaller the deserialized caller
 		 * @param actuals the actuals provided to the constructor
 		 */
-		private ConstructorExecutor(ConstructorSignature constructor, Storage deserializedCaller, Stream<StorageValue> actuals) {
+		private ConstructorExecutor(ConstructorSignature constructor, AbstractStorage deserializedCaller, Stream<StorageValue> actuals) {
 			super(deserializedCaller, constructor, null, actuals);
 		}
 
@@ -1702,7 +1702,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
 
 				try {
-					result = (Storage) constructorJVM.newInstance(deserializedActuals);
+					result = (AbstractStorage) constructorJVM.newInstance(deserializedActuals);
 				}
 				catch (InvocationTargetException e) {
 					exception = unwrapInvocationException(e, constructorJVM);
@@ -1729,7 +1729,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param receiver the receiver of the method
 		 * @param actuals the actuals provided to the method
 		 */
-		private InstanceMethodExecutor(MethodSignature method, Storage deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
+		private InstanceMethodExecutor(MethodSignature method, AbstractStorage deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
 			super(deserializedCaller, method, receiver, actuals);
 		}
 
@@ -1791,7 +1791,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param deseralizedCaller the deserialized caller
 		 * @param actuals the actuals provided to the method
 		 */
-		private StaticMethodExecutor(MethodSignature method, Storage deserializedCaller, Stream<StorageValue> actuals) {
+		private StaticMethodExecutor(MethodSignature method, AbstractStorage deserializedCaller, Stream<StorageValue> actuals) {
 			super(deserializedCaller, method, null, actuals);
 		}
 

@@ -34,7 +34,6 @@ import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.LongValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StringValue;
-import takamaka.lang.RequirementViolationException;
 import takamaka.memory.MemoryBlockchain;
 
 /**
@@ -150,7 +149,7 @@ class Lambdas extends TakamakaTest {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 
-		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
+		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT),
 				lambdas))

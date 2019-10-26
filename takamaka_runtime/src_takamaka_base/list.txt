@@ -2,4 +2,9 @@ takamaka/lang/Contract**.class
 takamaka/lang/ExternallyOwnedAccount**.class
 takamaka/lang/TestExternallyOwnedAccount**.class
 takamaka/lang/PayableContract.class
+takamaka/lang/Storage.class
+takamaka/lang/Event.class
+takamaka/lang/Takamaka.class
+takamaka/lang/AssertionViolationException.class
+takamaka/lang/RequirementViolationException.class
 takamaka/util/**.class

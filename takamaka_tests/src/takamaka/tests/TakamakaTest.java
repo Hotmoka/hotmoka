@@ -29,6 +29,24 @@ public abstract class TakamakaTest {
 		fail("no exception: expected " + expected.getName());
 	}
 
+	protected static void throwsTransactionExceptionWithCause(String expected, TestBody what) {
+		try {
+			what.run();
+		}
+		catch (TransactionException e) {
+			Class<? extends Throwable> actual = e.getCause().getClass();
+			if (actual.getName().equals(expected))
+				return;
+
+			fail("wrong cause: expected " + expected + " but got " + actual.getName());
+		}
+		catch (Exception e) {
+			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
+		}
+
+		fail("no exception: expected " + expected);
+	}
+
 	protected static void throwsVerificationExceptionWithCause(Class<? extends Issue> expected, TestBody what) {
 		try {
 			what.run();

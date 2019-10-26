@@ -4,7 +4,7 @@ package takamaka.lang;
  * An exception thrown when a contract violates an assertion statement.
  */
 @SuppressWarnings("serial")
-public class AssertionViolationException extends IllegalStateException {
+public class AssertionViolationException extends RuntimeException {
 	public AssertionViolationException(String message) {
 		super(message);
 	}

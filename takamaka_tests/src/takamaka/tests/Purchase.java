@@ -28,7 +28,6 @@ import takamaka.blockchain.request.JarStoreTransactionRequest;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.lang.RequirementViolationException;
 import takamaka.memory.MemoryBlockchain;
 
 /**
@@ -95,7 +94,7 @@ class Purchase extends TakamakaTest {
 
 	@Test @DisplayName("new Purchase(21)")
 	void oddDeposit() throws TransactionException, CodeExecutionException {
-		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
+		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 				new IntValue(21)))
@@ -115,7 +114,7 @@ class Purchase extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
+		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(buyer, _10_000, classpath, new VoidMethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(18)))
 		);
@@ -137,7 +136,7 @@ class Purchase extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
+		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException"	, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(buyer, _10_000, classpath, new VoidMethodSignature(PURCHASE, "confirmReceived"), purchase))
 		);

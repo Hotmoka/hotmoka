@@ -5,8 +5,8 @@ import java.math.BigInteger;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.DeserializationError;
 import takamaka.blockchain.TransactionReference;
+import takamaka.blockchain.runtime.AbstractStorage;
 import takamaka.lang.Immutable;
-import takamaka.lang.Storage;
 
 /**
  * A reference to an object of class type that is not yet stored in the blockchain,
@@ -35,7 +35,7 @@ public final class StorageReferenceInCurrentTransaction extends StorageReference
 	}
 
 	@Override
-	public Storage deserialize(AbstractBlockchain blockchain) {
+	public AbstractStorage deserialize(AbstractBlockchain blockchain) {
 		// if the object is not yet in blockchain, it is not possible to deserialize it
 		throw new DeserializationError("This reference identifies an object not yet in blockchain");
 	}

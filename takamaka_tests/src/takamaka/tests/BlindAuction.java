@@ -37,7 +37,6 @@ import takamaka.blockchain.values.BooleanValue;
 import takamaka.blockchain.values.ByteValue;
 import takamaka.blockchain.values.IntValue;
 import takamaka.blockchain.values.StorageReference;
-import takamaka.lang.RequirementViolationException;
 import takamaka.memory.InitializedMemoryBlockchain;
 
 /**
@@ -141,7 +140,7 @@ class BlindAuction extends TakamakaTest {
 		StorageReference auction = blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(blockchain.account(0), _100_000, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME)));
 
-		throwsTransactionExceptionWithCause(RequirementViolationException.class, () ->
+		throwsTransactionExceptionWithCause("takamaka.lang.RequirementViolationException", () ->
 		{
 			Random random = new Random();
 			for (int i = 1; i <= NUM_BIDS; i++) {

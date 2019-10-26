@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.jar.JarOutputStream;
@@ -88,10 +89,11 @@ import io.takamaka.whitelisting.MustRedefineHashCodeOrToString;
 import io.takamaka.whitelisting.WhiteListingProofObligation;
 import it.univr.bcel.StackMapReplacer;
 import takamaka.blockchain.GasCosts;
+import takamaka.blockchain.runtime.AbstractEvent;
+import takamaka.blockchain.runtime.AbstractStorage;
+import takamaka.blockchain.runtime.AbstractTakamaka;
 import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import takamaka.lang.Contract;
-import takamaka.lang.Storage;
-import takamaka.lang.Takamaka;
 
 /**
  * An instrumenter of a single class file. For instance, it instruments storage
@@ -115,8 +117,11 @@ public class ClassInstrumentation {
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
 	private final static String CONTRACT_CLASS_NAME = "takamaka.lang.Contract";
-	private final static String TAKAMAKA_CLASS_NAME = Takamaka.class.getName();
-	private final static String STORAGE_CLASS_NAME = Storage.class.getName();
+	private final static String EVENT_CLASS_NAME = "takamaka.lang.Event";
+	private final static String TAKAMAKA_CLASS_NAME = "takamaka.lang.Takamaka";
+	private final static String STORAGE_CLASS_NAME = "takamaka.lang.Storage";
+	private final static String ABSTRACTTAKAMAKA_CLASS_NAME = AbstractTakamaka.class.getName();
+	private final static String ABSTRACTSTORAGE_CLASS_NAME = AbstractStorage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 	private final static short PUBLIC_SYNTHETIC_FINAL = PUBLIC_SYNTHETIC | Const.ACC_FINAL;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
@@ -131,6 +136,8 @@ public class ClassInstrumentation {
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName)
 			.thenComparing(field -> field.getType().toString());
 
+	private final static ObjectType STORAGE_OT = new ObjectType(STORAGE_CLASS_NAME);
+	private final static ObjectType EVENT_OT = new ObjectType(EVENT_CLASS_NAME);
 	private final static ObjectType CONTRACT_OT = new ObjectType(CONTRACT_CLASS_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static ObjectType ENUM_OT = new ObjectType(Enum.class.getName());
@@ -190,7 +197,7 @@ public class ClassInstrumentation {
 
 		/**
 		 * True if and only if the class being instrumented is a storage class, distinct
-		 * form {@link takamaka.lang.Storage} itself, that must not be instrumented.
+		 * form {@link takamaka.blockchain.runtime.AbstractStorage} itself, that must not be instrumented.
 		 */
 		private final boolean isStorage;
 
@@ -203,7 +210,7 @@ public class ClassInstrumentation {
 		 * The non-transient instance fields of primitive type or of special reference
 		 * types that are allowed in storage objects (such as {@link java.lang.String}
 		 * and {@link java.math.BigInteger}). They are defined in the class being
-		 * instrumented or in its superclasses up to {@link takamaka.lang.Storage}
+		 * instrumented or in its superclasses up to {@link takamaka.blockchain.runtime.AbstractStorage}
 		 * (excluded). This list is non-empty for storage classes only. The first set in
 		 * the list are the fields of the topmost class; the last are the fields of the
 		 * class being considered.
@@ -211,7 +218,7 @@ public class ClassInstrumentation {
 		private final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
 
 		/**
-		 * The non-transient instance fields of type {@link takamaka.lang.Storage} or
+		 * The non-transient instance fields of type {@link takamaka.blockchain.runtime.AbstractStorage} or
 		 * subclass, defined in the class being instrumented (superclasses are not
 		 * considered). This set is non-empty for storage classes only.
 		 */
@@ -250,7 +257,7 @@ public class ClassInstrumentation {
 			this.classLoader = clazz.classLoader;
 			this.cpg = clazz.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
-			this.isStorage = !className.equals(STORAGE_CLASS_NAME) && classLoader.isStorage(className);
+			this.isStorage = !STORAGE_CLASS_NAME.equals(className) && classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
 
 			// the fields of the class are relevant only for storage classes
@@ -277,13 +284,31 @@ public class ClassInstrumentation {
 		 * Performs class-level instrumentations.
 		 */
 		private void globalInstrumentation() {
+			replaceSuperclassOfThresholdClasses();
+
+			if (isStorage || STORAGE_CLASS_NAME.equals(className))
+				addConstructorForDeserializationFromBlockchain();
+
 			if (isStorage) {
 				// storage classes need the serialization machinery
 				addOldAndIfAlreadyLoadedFields();
-				addConstructorForDeserializationFromBlockchain();
 				addAccessorMethods();
 				addEnsureLoadedMethods();
 				addExtractUpdates();
+			}
+		}
+
+		/**
+		 * Some classes must extend blockchain classes, in order to inherit special abilities.
+		 */
+		private void replaceSuperclassOfThresholdClasses() {
+			switch (className) {
+			case EVENT_CLASS_NAME:
+				clazz.setSuperclassName(AbstractEvent.class.getName());
+				return;
+			case STORAGE_CLASS_NAME:
+				clazz.setSuperclassName(AbstractStorage.class.getName());
+				return;
 			}
 		}
 
@@ -562,6 +587,7 @@ public class ClassInstrumentation {
 		 */
 		private Method postProcess(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
+			instrumentMethodOfThresholdClasses(methodGen);
 			replaceFieldAccessesWithAccessors(methodGen);
 			addContractToCallsToEntries(methodGen);
 
@@ -581,6 +607,67 @@ public class ClassInstrumentation {
 			}
 
 			return methodGen.getMethod();
+		}
+
+		private void instrumentMethodOfThresholdClasses(MethodGen methodGen) {
+			Type[] args;
+
+			switch (className) {
+			case EVENT_CLASS_NAME:
+				if (Const.CONSTRUCTOR_NAME.equals(methodGen.getName()) && methodGen.getArgumentTypes().length == 0) {
+					InstructionList il = new InstructionList();
+					il.append(InstructionConst.ALOAD_0);
+					il.append(factory.createInvoke(AbstractEvent.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+					il.append(InstructionConst.RETURN);
+					methodGen.setInstructionList(il);
+				}
+
+				break;
+
+			case STORAGE_CLASS_NAME:
+				if ("compareAge".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
+					InstructionList il = new InstructionList();
+					il.append(InstructionConst.ALOAD_0);
+					il.append(InstructionConst.ALOAD_1);
+					il.append(factory.createInvoke(AbstractStorage.class.getName(), "compareAge", Type.INT, new Type[] { new ObjectType(ABSTRACTSTORAGE_CLASS_NAME)}, Const.INVOKESPECIAL));
+					il.append(InstructionConst.IRETURN);
+					methodGen.setInstructionList(il);
+				}
+				else if (Const.CONSTRUCTOR_NAME.equals(methodGen.getName()) && methodGen.getArgumentTypes().length == 0) {
+					InstructionList il = new InstructionList();
+					il.append(InstructionConst.ALOAD_0);
+					il.append(factory.createInvoke(AbstractStorage.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+					il.append(InstructionConst.RETURN);
+					methodGen.setInstructionList(il);
+				}
+
+				break;
+
+			case TAKAMAKA_CLASS_NAME:
+				if ("event".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 1 && EVENT_OT.equals(args[0])) {
+					InstructionList il = new InstructionList();
+					il.append(InstructionConst.ALOAD_0);
+					il.append(factory.createInvoke(AbstractTakamaka.class.getName(), "event", Type.VOID,
+							new Type[] { new ObjectType(AbstractEvent.class.getName()) }, Const.INVOKESTATIC));
+					il.append(InstructionConst.RETURN);
+					methodGen.setInstructionList(il);
+				}
+				else if ("withGas".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 2 && BIGINTEGER_OT.equals(args[0])
+						&& new ObjectType(Callable.class.getName()).equals(args[1])) {
+					InstructionList il = new InstructionList();
+					il.append(InstructionConst.ALOAD_0);
+					il.append(InstructionConst.ALOAD_1);
+					il.append(factory.createInvoke(AbstractTakamaka.class.getName(), "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
+					il.append(InstructionConst.ARETURN);
+					methodGen.setInstructionList(il);
+				}
+				else if ("now".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 0) {
+					InstructionList il = new InstructionList();
+					il.append(factory.createInvoke(AbstractTakamaka.class.getName(), "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
+					il.append(InstructionConst.LRETURN);
+					methodGen.setInstructionList(il);
+				}
+			}
 		}
 
 		private void addRuntimeChecksForWhiteListingProofObligations(MethodGen method) {
@@ -716,10 +803,10 @@ public class ClassInstrumentation {
 					Class<?> argClass = ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> classLoader.loadClass(((ObjectType) argType).getClassName()));
 
 					// we check if we can statically verify that the value redefines hashCode or toString
-					if (!Takamaka.redefinesHashCodeOrToString(argClass)) {
+					if (!AbstractTakamaka.redefinesHashCodeOrToString(argClass)) {
 						il.append(InstructionFactory.createDup(argType.getSize()));
 						il.append(factory.createConstant("string concatenation"));
-						il.append(createInvokeForWhiteListingCheck(Takamaka.getWhiteListingCheckFor(MustRedefineHashCodeOrToString.class).get()));
+						il.append(createInvokeForWhiteListingCheck(AbstractTakamaka.getWhiteListingCheckFor(MustRedefineHashCodeOrToString.class).get()));
 						atLeastOneCheck = true;
 					}
 				}
@@ -887,7 +974,7 @@ public class ClassInstrumentation {
 			int initialSize = il.getLength();
 
 			for (Annotation ann: annotations) {
-				Optional<java.lang.reflect.Method> checkMethod = Takamaka.getWhiteListingCheckFor(ann);
+				Optional<java.lang.reflect.Method> checkMethod = AbstractTakamaka.getWhiteListingCheckFor(ann);
 				if (checkMethod.isPresent())
 					// we check if the annotation could not be statically discharged
 					if (ih == null || key.charAt(annotationsCursor++) == '1') {
@@ -901,7 +988,7 @@ public class ClassInstrumentation {
 		}
 
 		private InvokeInstruction createInvokeForWhiteListingCheck(java.lang.reflect.Method checkMethod) {
-			return factory.createInvoke(TAKAMAKA_CLASS_NAME, checkMethod.getName(), Type.VOID,
+			return factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, checkMethod.getName(), Type.VOID,
 				new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC);
 		}
 
@@ -973,7 +1060,7 @@ public class ClassInstrumentation {
 			}
 			else if (bytecode instanceof NEWARRAY || bytecode instanceof ANEWARRAY) {
 				InstructionHandle newTarget = il.insert(ih, InstructionConst.DUP);
-				il.insert(ih, factory.createInvoke(TAKAMAKA_CLASS_NAME, "chargeForRAMForArrayOfLength", Type.VOID, ONE_INT_ARGS, Const.INVOKESTATIC));
+				il.insert(ih, factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, "chargeForRAMForArrayOfLength", Type.VOID, ONE_INT_ARGS, Const.INVOKESTATIC));
 				il.redirectBranches(ih, newTarget);
 				il.redirectExceptionHandlers(ceg, ih, newTarget);
 			}
@@ -1055,7 +1142,7 @@ public class ClassInstrumentation {
 				allocatorIl.insert(fallBack2, add);
 
 				// we charge the gas
-				allocatorIl.insert(fallBack2, factory.createInvoke(TAKAMAKA_CLASS_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
+				allocatorIl.insert(fallBack2, factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
 				allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
 				MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
@@ -1086,8 +1173,8 @@ public class ClassInstrumentation {
 			InstructionHandle newTarget;
 
 			// up to this value, there is a special compact method for charging gas
-			if (cost <= Takamaka.MAX_COMPACT)
-				newTarget = il.insert(dominator, factory.createInvoke(TAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
+			if (cost <= AbstractTakamaka.MAX_COMPACT)
+				newTarget = il.insert(dominator, factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
 			else {
 				newTarget = il.insert(dominator, createConstantPusher(cost));
 
@@ -1099,7 +1186,7 @@ public class ClassInstrumentation {
 		}
 
 		private InvokeInstruction chargeCall(long value, String name) {
-			return factory.createInvoke(TAKAMAKA_CLASS_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
+			return factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
 		}
 
 		private Instruction createConstantPusher(long value) {
@@ -1612,7 +1699,7 @@ public class ClassInstrumentation {
 			il.append(InstructionFactory.createLoad(LIST_OT, 3));
 			il.append(factory.createInvoke(clazz.getSuperclassName(), EXTRACT_UPDATES, Type.VOID,
 					EXTRACT_UPDATES_ARGS, Const.INVOKESPECIAL));
-			il.append(factory.createGetField(STORAGE_CLASS_NAME, IN_STORAGE_NAME, Type.BOOLEAN));
+			il.append(factory.createGetField(ABSTRACTSTORAGE_CLASS_NAME, IN_STORAGE_NAME, Type.BOOLEAN));
 			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
 
 			InstructionHandle end = il.append(InstructionConst.RETURN);
@@ -1666,7 +1753,7 @@ public class ClassInstrumentation {
 				il.insert(end, InstructionConst.ALOAD_1);
 				il.insert(end, InstructionConst.ALOAD_2);
 				il.insert(end, InstructionFactory.createLoad(LIST_OT, 3));
-				il.insert(end, factory.createInvoke(STORAGE_CLASS_NAME, RECURSIVE_EXTRACT, Type.VOID,
+				il.insert(end, factory.createInvoke(ABSTRACTSTORAGE_CLASS_NAME, RECURSIVE_EXTRACT, Type.VOID,
 						RECURSIVE_EXTRACT_ARGS, Const.INVOKESPECIAL));
 			}
 
@@ -1679,7 +1766,7 @@ public class ClassInstrumentation {
 			il.insert(recursiveExtract, factory.createConstant(field.getType().getName()));
 			il.insert(recursiveExtract, InstructionFactory.createThis());
 			il.insert(recursiveExtract, factory.createGetField(className, fieldName, type));
-			il.insert(recursiveExtract, factory.createInvoke(STORAGE_CLASS_NAME, ADD_UPDATE_FOR, Type.VOID,
+			il.insert(recursiveExtract, factory.createInvoke(ABSTRACTSTORAGE_CLASS_NAME, ADD_UPDATE_FOR, Type.VOID,
 					args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
@@ -1727,7 +1814,7 @@ public class ClassInstrumentation {
 				il.insert(end, factory.createConstant(fieldType.getName()));
 			il.insert(end, InstructionFactory.createThis());
 			il.insert(end, factory.createGetField(className, field.getName(), type));
-			il.insert(end, factory.createInvoke(STORAGE_CLASS_NAME, ADD_UPDATE_FOR, Type.VOID,
+			il.insert(end, factory.createInvoke(ABSTRACTSTORAGE_CLASS_NAME, ADD_UPDATE_FOR, Type.VOID,
 					args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
@@ -1876,7 +1963,7 @@ public class ClassInstrumentation {
 			InstructionList il = new InstructionList();
 			InstructionHandle _return = il.append(InstructionConst.RETURN);
 			il.insert(_return, InstructionFactory.createThis());
-			il.insert(_return, factory.createGetField(STORAGE_CLASS_NAME, IN_STORAGE_NAME, BasicType.BOOLEAN));
+			il.insert(_return, factory.createGetField(ABSTRACTSTORAGE_CLASS_NAME, IN_STORAGE_NAME, BasicType.BOOLEAN));
 			il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 			il.insert(_return, InstructionFactory.createThis());
 			String fieldName = field.getName();
@@ -1911,13 +1998,12 @@ public class ClassInstrumentation {
 		}
 
 		/**
-		 * Adds fields for the old value and the loading state of the fields of a
-		 * storage class.
+		 * Adds fields for the old value and the loading state of the fields of a storage class.
 		 */
 		private void addOldAndIfAlreadyLoadedFields() {
 			eagerNonTransientInstanceFields.getLast().forEach(this::addOldFieldFor);
 
-			for (Field field : lazyNonTransientInstanceFields) {
+			for (Field field: lazyNonTransientInstanceFields) {
 				addOldFieldFor(field);
 				addIfAlreadyLoadedFieldFor(field);
 			}
@@ -1952,14 +2038,15 @@ public class ClassInstrumentation {
 			// to the object being deserialized
 			args.add(new ObjectType(StorageReferenceAlreadyInBlockchain.class.getName()));
 
-			// then there are the fields of the class and superclasses, with superclasses
-			// first
-			eagerNonTransientInstanceFields.stream().flatMap(SortedSet::stream).map(Field::getType).map(Type::getType)
+			// then there are the fields of the class and superclasses, with superclasses first
+			if (!STORAGE_CLASS_NAME.equals(className))
+				eagerNonTransientInstanceFields.stream().flatMap(SortedSet::stream).map(Field::getType).map(Type::getType)
 					.forEachOrdered(args::add);
 
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
-			addInitializationOfEagerFields(il, nextLocal);
+			if (!STORAGE_CLASS_NAME.equals(className))
+				addInitializationOfEagerFields(il, nextLocal);
 			il.append(InstructionConst.RETURN);
 
 			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
@@ -1998,7 +2085,8 @@ public class ClassInstrumentation {
 			;
 
 			PushLoad pushLoad = new PushLoad();
-			eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
+			if (!STORAGE_CLASS_NAME.equals(className))
+				eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 					.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 
 			il.append(factory.createInvoke(clazz.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,

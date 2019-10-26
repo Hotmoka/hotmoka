@@ -17,7 +17,7 @@ import org.apache.bcel.generic.Type;
 import io.takamaka.instrumentation.internal.ThrowIncompleteClasspathError;
 import io.takamaka.whitelisting.ResolvingClassLoader;
 import io.takamaka.whitelisting.WhiteListingWizard;
-import takamaka.lang.Storage;
+import takamaka.blockchain.runtime.AbstractStorage;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.
@@ -53,7 +53,7 @@ public class TakamakaClassLoader implements ResolvingClassLoader {
 		try {
 			this.contractClass = loadClass("takamaka.lang.Contract");
 			this.externallyOwnedAccount = loadClass("takamaka.lang.ExternallyOwnedAccount");
-			this.storageClass = loadClass(Storage.class.getName());
+			this.storageClass = loadClass("takamaka.lang.Storage");
 		}
 		catch (ClassNotFoundException e) {
 			throw new IncompleteClasspathError(e);
@@ -64,7 +64,7 @@ public class TakamakaClassLoader implements ResolvingClassLoader {
 	 * Determines if a class is a storage class.
 	 * 
 	 * @param className the name of the class
-	 * @return true if and only if that class extends {@link takamaka.lang.Storage}
+	 * @return true if and only if that class extends {@link takamaka.blockchain.runtime.AbstractStorage}
 	 */
 	public final boolean isStorage(String className) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> storageClass.isAssignableFrom(loadClass(className)));
