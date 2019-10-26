@@ -11,8 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.takamaka.instrumentation.issues.InconsistentThrowsExceptionsError;
 import takamaka.blockchain.request.JarStoreTransactionRequest;
-import takamaka.instrumentation.issues.InconsistentThrowsExceptionsError;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 

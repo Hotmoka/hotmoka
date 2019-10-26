@@ -9,6 +9,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/bcel-6.2.jar"/>
 	<classpathentry kind="lib" path="lib/stackmap.jar"/>
-	<classpathentry kind="lib" path="/takamaka_language/dist/io-takamaka-whitelisting-1.0.jar"/>
+	<classpathentry kind="lib" path="/takamaka_distribution/dist/io-takamaka-whitelisting-1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
