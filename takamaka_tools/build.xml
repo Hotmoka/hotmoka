@@ -18,9 +18,9 @@
 
   <target name="compile" depends="init" description="compile the source">
     <javac srcdir="${src}" destdir="${build}">
-      <classpath>
-    	<fileset dir="lib" includes="*.jar" />
-      	<pathelement path="../takamaka_runtime/bin" />
+	  <classpath>
+      	<fileset dir="../takamaka_distribution/libs" includes="*.jar" />
+       	<fileset dir="../takamaka_distribution/dist" includes="*.jar" />
       </classpath>
     </javac>
   </target>

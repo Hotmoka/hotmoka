@@ -6,12 +6,17 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/takamaka_distribution/mods/bcel-6.2.jar">
+	<classpathentry kind="lib" path="/takamaka_distribution/dist/io-takamaka-code-whitelisting-1.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/takamaka_distribution/dist/io-takamaka-code-whitelisting-1.0.jar">
+	<classpathentry kind="lib" path="/takamaka_distribution/mods/it-univr-bcel-1.0.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/takamaka_distribution/mods/bcel-6.2.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>

@@ -6,7 +6,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="lib/commons-cli-1.4.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_runtime"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_instrumentation"/>
+	<classpathentry kind="lib" path="/takamaka_distribution/libs/commons-cli-1.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1,6 +1,6 @@
-<project name="takamaka_whitelisting" default="dist Java 8" basedir=".">
+<project name="takamaka_instrumentation" default="dist Java 8" basedir=".">
   <description>
-    Compiles the Takamaka white-lisiting module
+    Compiles the Takamaka instrumentation module
   </description>
 
   <property name="src" location="src"/>
@@ -19,6 +19,7 @@
 	<javac srcdir="${src}" destdir="${build}" source="9" target="9" includeantruntime="no">
 		<compilerarg value="-Xlint"/>
 		<modulepath path ="../takamaka_distribution/mods"/>
+		<modulepath path ="../takamaka_distribution/dist"/>
     </javac>
   </target>
 
@@ -26,18 +27,19 @@
 	<javac srcdir="${src}" destdir="${build}" source="8" target="8" includeantruntime="no" excludes="module-info.java">
 	    <classpath>
 		   <fileset dir="../takamaka_distribution/libs" includes="*.jar" />
+	       <fileset dir="../takamaka_distribution/dist" includes="*.jar" />
 	  	</classpath>
 	</javac>
   </target>
 
   <target name="dist" depends="compile" description="generate the distribution">
-    <jar jarfile="${dist}/io-takamaka-whitelisting-1.0.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/io-takamaka-code-instrumentation-1.0.jar" basedir="${build}"/>
   </target>
 
   <target name="dist Java 8" depends="compile Java 8" description="generate the distribution">
-	<jar jarfile="${dist}/io-takamaka-whitelisting-1.0.jar" basedir="${build}">
+	<jar jarfile="${dist}/io-takamaka-code-instrumentation-1.0.jar" basedir="${build}">
 		<manifest>
-			<attribute name="Automatic-Module-Name" value = "io.takamaka.whitelisting" />
+			<attribute name="Automatic-Module-Name" value = "io.takamaka.code.instrumentation" />
 		</manifest>
   	</jar>
   </target>

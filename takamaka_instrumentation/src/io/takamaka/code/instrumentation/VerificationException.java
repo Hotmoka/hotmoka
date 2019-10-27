@@ -4,7 +4,7 @@ import io.takamaka.code.instrumentation.issues.Error;
 
 public class VerificationException extends RuntimeException {
 	private static final long serialVersionUID = -1232455923178336022L;
-	private final io.takamaka.code.instrumentation.issues.Error error;
+	private final Error error;
 
 	public VerificationException() {
 		this.error = null;
@@ -21,7 +21,7 @@ public class VerificationException extends RuntimeException {
 	 * 
 	 * @return the error
 	 */
-	public io.takamaka.code.instrumentation.issues.Error getError() {
+	public Error getError() {
 		return error;
 	}
 }

@@ -82,18 +82,13 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.Dummy;
 import io.takamaka.code.instrumentation.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 import it.univr.bcel.StackMapReplacer;
-import takamaka.blockchain.GasCosts;
-import takamaka.blockchain.runtime.AbstractEvent;
-import takamaka.blockchain.runtime.AbstractStorage;
-import takamaka.blockchain.runtime.AbstractTakamaka;
-import takamaka.blockchain.types.ClassType;
-import takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain;
 
 /**
  * An instrumenter of a single class file. For instance, it instruments storage
@@ -116,8 +111,6 @@ public class ClassInstrumentation {
 	private final static String IN_STORAGE_NAME = "inStorage";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 	private final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
-	private final static String ABSTRACTTAKAMAKA_CLASS_NAME = AbstractTakamaka.class.getName();
-	private final static String ABSTRACTSTORAGE_CLASS_NAME = AbstractStorage.class.getName();
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 	private final static short PUBLIC_SYNTHETIC_FINAL = PUBLIC_SYNTHETIC | Const.ACC_FINAL;
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
@@ -132,9 +125,9 @@ public class ClassInstrumentation {
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName)
 			.thenComparing(field -> field.getType().toString());
 
-	private final static ObjectType STORAGE_OT = new ObjectType(ClassType.STORAGE.name);
-	private final static ObjectType EVENT_OT = new ObjectType(ClassType.EVENT.name);
-	private final static ObjectType CONTRACT_OT = new ObjectType(ClassType.CONTRACT.name);
+	private final static ObjectType STORAGE_OT = new ObjectType(Constants.STORAGE_NAME);
+	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
+	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static ObjectType ENUM_OT = new ObjectType(Enum.class.getName());
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
@@ -253,7 +246,7 @@ public class ClassInstrumentation {
 			this.classLoader = clazz.classLoader;
 			this.cpg = clazz.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
-			this.isStorage = !ClassType.STORAGE.name.equals(className) && classLoader.isStorage(className);
+			this.isStorage = !Constants.STORAGE_NAME.equals(className) && classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
 
 			// the fields of the class are relevant only for storage classes
@@ -282,7 +275,7 @@ public class ClassInstrumentation {
 		private void globalInstrumentation() {
 			replaceSuperclassOfThresholdClasses();
 
-			if (isStorage || ClassType.STORAGE.name.equals(className))
+			if (isStorage || Constants.STORAGE_NAME.equals(className))
 				addConstructorForDeserializationFromBlockchain();
 
 			if (isStorage) {
@@ -298,10 +291,10 @@ public class ClassInstrumentation {
 		 * Some classes must extend blockchain classes, in order to inherit special abilities.
 		 */
 		private void replaceSuperclassOfThresholdClasses() {
-			if (className.equals(ClassType.EVENT.name))
-				clazz.setSuperclassName(AbstractEvent.class.getName());
-			else if (className.equals(ClassType.STORAGE.name))
-				clazz.setSuperclassName(AbstractStorage.class.getName());
+			if (className.equals(Constants.EVENT_NAME))
+				clazz.setSuperclassName(Constants.ABSTRACT_EVENT_NAME);
+			else if (className.equals(Constants.STORAGE_NAME))
+				clazz.setSuperclassName(Constants.ABSTRACT_STORAGE_NAME);
 		}
 
 		/**
@@ -604,38 +597,38 @@ public class ClassInstrumentation {
 		private void instrumentMethodOfThresholdClasses(MethodGen methodGen) {
 			Type[] args;
 
-			if (className.equals(ClassType.EVENT.name)) {
+			if (className.equals(Constants.EVENT_NAME)) {
 				if (Const.CONSTRUCTOR_NAME.equals(methodGen.getName()) && methodGen.getArgumentTypes().length == 0) {
 					InstructionList il = new InstructionList();
 					il.append(InstructionConst.ALOAD_0);
-					il.append(factory.createInvoke(AbstractEvent.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+					il.append(factory.createInvoke(Constants.ABSTRACT_EVENT_NAME, Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 					il.append(InstructionConst.RETURN);
 					methodGen.setInstructionList(il);
 				}
 			}
-			else if (className.equals(ClassType.STORAGE.name)) {
+			else if (className.equals(Constants.STORAGE_NAME)) {
 				if ("compareAge".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 					InstructionList il = new InstructionList();
 					il.append(InstructionConst.ALOAD_0);
 					il.append(InstructionConst.ALOAD_1);
-					il.append(factory.createInvoke(AbstractStorage.class.getName(), "compareAge", Type.INT, new Type[] { new ObjectType(ABSTRACTSTORAGE_CLASS_NAME)}, Const.INVOKESPECIAL));
+					il.append(factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, "compareAge", Type.INT, new Type[] { new ObjectType(Constants.ABSTRACT_STORAGE_NAME)}, Const.INVOKESPECIAL));
 					il.append(InstructionConst.IRETURN);
 					methodGen.setInstructionList(il);
 				}
 				else if (Const.CONSTRUCTOR_NAME.equals(methodGen.getName()) && methodGen.getArgumentTypes().length == 0) {
 					InstructionList il = new InstructionList();
 					il.append(InstructionConst.ALOAD_0);
-					il.append(factory.createInvoke(AbstractStorage.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+					il.append(factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 					il.append(InstructionConst.RETURN);
 					methodGen.setInstructionList(il);
 				}
 			}
-			else if (className.equals(ClassType.TAKAMAKA.name)) {
+			else if (className.equals(Constants.TAKAMAKA_NAME)) {
 				if ("event".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 1 && EVENT_OT.equals(args[0])) {
 					InstructionList il = new InstructionList();
 					il.append(InstructionConst.ALOAD_0);
-					il.append(factory.createInvoke(AbstractTakamaka.class.getName(), "event", Type.VOID,
-							new Type[] { new ObjectType(AbstractEvent.class.getName()) }, Const.INVOKESTATIC));
+					il.append(factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "event", Type.VOID,
+							new Type[] { new ObjectType(Constants.ABSTRACT_EVENT_NAME) }, Const.INVOKESTATIC));
 					il.append(InstructionConst.RETURN);
 					methodGen.setInstructionList(il);
 				}
@@ -644,13 +637,13 @@ public class ClassInstrumentation {
 					InstructionList il = new InstructionList();
 					il.append(InstructionConst.ALOAD_0);
 					il.append(InstructionConst.ALOAD_1);
-					il.append(factory.createInvoke(AbstractTakamaka.class.getName(), "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
+					il.append(factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
 					il.append(InstructionConst.ARETURN);
 					methodGen.setInstructionList(il);
 				}
 				else if ("now".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 0) {
 					InstructionList il = new InstructionList();
-					il.append(factory.createInvoke(AbstractTakamaka.class.getName(), "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
+					il.append(factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
 					il.append(InstructionConst.LRETURN);
 					methodGen.setInstructionList(il);
 				}
@@ -737,7 +730,7 @@ public class ClassInstrumentation {
 				key = ins.getName() + " " + ins.getReferenceType(cpg) + "." + ins.getMethodName(cpg) + ins.getSignature(cpg);
 				// we add a mask that specifies the white-listing proof obligations that can be discharged, since
 				// we can use the same verifier only if two instructions need verification of the same proof obligations
-				Executable model = clazz.whiteListingModelOf((InvokeInstruction) ins);
+				Executable model = clazz.whiteListingModelOf(ins);
 				if (hasProofObligations(model)) {
 					int slots = ins.consumeStack(cpg);
 					String mask = "";
@@ -790,10 +783,10 @@ public class ClassInstrumentation {
 					Class<?> argClass = ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> classLoader.loadClass(((ObjectType) argType).getClassName()));
 
 					// we check if we can statically verify that the value redefines hashCode or toString
-					if (!AbstractTakamaka.redefinesHashCodeOrToString(argClass)) {
+					if (!redefinesHashCodeOrToString(argClass)) {
 						il.append(InstructionFactory.createDup(argType.getSize()));
 						il.append(factory.createConstant("string concatenation"));
-						il.append(createInvokeForWhiteListingCheck(AbstractTakamaka.getWhiteListingCheckFor(MustRedefineHashCodeOrToString.class).get()));
+						il.append(createInvokeForWhiteListingCheck(getWhiteListingCheckFor(MustRedefineHashCodeOrToString.class).get()));
 						atLeastOneCheck = true;
 					}
 				}
@@ -817,6 +810,13 @@ public class ClassInstrumentation {
 			clazz.addMethod(addedVerifier.getMethod());
 
 			return factory.createInvoke(className, verifierName, verifierReturnType, args, Const.INVOKESTATIC);
+		}
+
+		private boolean redefinesHashCodeOrToString(Class<?> clazz) {
+			return Stream.of(clazz.getMethods())
+				.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
+				.map(java.lang.reflect.Method::getName)
+				.anyMatch(name -> "hashCode".equals(name) || "toString".equals(name));
 		}
 
 		/**
@@ -961,7 +961,7 @@ public class ClassInstrumentation {
 			int initialSize = il.getLength();
 
 			for (Annotation ann: annotations) {
-				Optional<java.lang.reflect.Method> checkMethod = AbstractTakamaka.getWhiteListingCheckFor(ann);
+				Optional<java.lang.reflect.Method> checkMethod = getWhiteListingCheckFor(ann);
 				if (checkMethod.isPresent())
 					// we check if the annotation could not be statically discharged
 					if (ih == null || key.charAt(annotationsCursor++) == '1') {
@@ -974,13 +974,45 @@ public class ClassInstrumentation {
 			return il.getLength() > initialSize;
 		}
 
+		private Optional<java.lang.reflect.Method> getWhiteListingCheckFor(Annotation annotation) {
+			return getWhiteListingCheckFor(annotation.annotationType());
+		}
+
+		private Optional<java.lang.reflect.Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
+			if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class)) {
+				String checkName = lowerInitial(annotationType.getSimpleName());
+				Optional<java.lang.reflect.Method> checkMethod = Stream.of(getClass().getDeclaredMethods())
+					.filter(method -> method.getName().equals(checkName)).findFirst();
+
+				if (!checkMethod.isPresent())
+					throw new IllegalStateException("unexpected white-list annotation " + annotationType.getSimpleName());
+
+				return checkMethod;
+			}
+
+			return Optional.empty();
+		}
+
+		private String lowerInitial(String name) {
+			return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+		}
+
+		@SuppressWarnings("unused")
+		private void mustBeFalse(boolean value, String methodName) {}
+
+		@SuppressWarnings("unused")
+		private void mustRedefineHashCode(Object value, String methodName) {}
+
+		@SuppressWarnings("unused")
+		private void mustRedefineHashCodeOrToString(Object value, String methodName) {}
+
 		private InvokeInstruction createInvokeForWhiteListingCheck(java.lang.reflect.Method checkMethod) {
-			return factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, checkMethod.getName(), Type.VOID,
+			return factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, checkMethod.getName(), Type.VOID,
 				new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC);
 		}
 
 		private boolean canBeStaticallyDicharged(Class<? extends Annotation> annotationType, InstructionHandle ih, int slots) {
-			// ih contains an InvokeInstructoin distinct from INVOKEDYNAMIC
+			// ih contains an InvokeInstruction distinct from INVOKEDYNAMIC
 
 			List<Instruction> pushers = new ArrayList<>();
 
@@ -1047,7 +1079,7 @@ public class ClassInstrumentation {
 			}
 			else if (bytecode instanceof NEWARRAY || bytecode instanceof ANEWARRAY) {
 				InstructionHandle newTarget = il.insert(ih, InstructionConst.DUP);
-				il.insert(ih, factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, "chargeForRAMForArrayOfLength", Type.VOID, ONE_INT_ARGS, Const.INVOKESTATIC));
+				il.insert(ih, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "chargeForRAMForArrayOfLength", Type.VOID, ONE_INT_ARGS, Const.INVOKESTATIC));
 				il.redirectBranches(ih, newTarget);
 				il.redirectExceptionHandlers(ceg, ih, newTarget);
 			}
@@ -1129,7 +1161,7 @@ public class ClassInstrumentation {
 				allocatorIl.insert(fallBack2, add);
 
 				// we charge the gas
-				allocatorIl.insert(fallBack2, factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
+				allocatorIl.insert(fallBack2, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
 				allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
 				MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
@@ -1160,8 +1192,8 @@ public class ClassInstrumentation {
 			InstructionHandle newTarget;
 
 			// up to this value, there is a special compact method for charging gas
-			if (cost <= AbstractTakamaka.MAX_COMPACT)
-				newTarget = il.insert(dominator, factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
+			if (cost <= Constants.MAX_COMPACT_CHARGE)
+				newTarget = il.insert(dominator, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
 			else {
 				newTarget = il.insert(dominator, createConstantPusher(cost));
 
@@ -1173,7 +1205,7 @@ public class ClassInstrumentation {
 		}
 
 		private InvokeInstruction chargeCall(long value, String name) {
-			return factory.createInvoke(ABSTRACTTAKAMAKA_CLASS_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
+			return factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
 		}
 
 		private Instruction createConstantPusher(long value) {
@@ -1686,7 +1718,7 @@ public class ClassInstrumentation {
 			il.append(InstructionFactory.createLoad(LIST_OT, 3));
 			il.append(factory.createInvoke(clazz.getSuperclassName(), EXTRACT_UPDATES, Type.VOID,
 					EXTRACT_UPDATES_ARGS, Const.INVOKESPECIAL));
-			il.append(factory.createGetField(ABSTRACTSTORAGE_CLASS_NAME, IN_STORAGE_NAME, Type.BOOLEAN));
+			il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, IN_STORAGE_NAME, Type.BOOLEAN));
 			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
 
 			InstructionHandle end = il.append(InstructionConst.RETURN);
@@ -1740,7 +1772,7 @@ public class ClassInstrumentation {
 				il.insert(end, InstructionConst.ALOAD_1);
 				il.insert(end, InstructionConst.ALOAD_2);
 				il.insert(end, InstructionFactory.createLoad(LIST_OT, 3));
-				il.insert(end, factory.createInvoke(ABSTRACTSTORAGE_CLASS_NAME, RECURSIVE_EXTRACT, Type.VOID,
+				il.insert(end, factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, RECURSIVE_EXTRACT, Type.VOID,
 						RECURSIVE_EXTRACT_ARGS, Const.INVOKESPECIAL));
 			}
 
@@ -1753,7 +1785,7 @@ public class ClassInstrumentation {
 			il.insert(recursiveExtract, factory.createConstant(field.getType().getName()));
 			il.insert(recursiveExtract, InstructionFactory.createThis());
 			il.insert(recursiveExtract, factory.createGetField(className, fieldName, type));
-			il.insert(recursiveExtract, factory.createInvoke(ABSTRACTSTORAGE_CLASS_NAME, ADD_UPDATE_FOR, Type.VOID,
+			il.insert(recursiveExtract, factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, ADD_UPDATE_FOR, Type.VOID,
 					args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
@@ -1801,7 +1833,7 @@ public class ClassInstrumentation {
 				il.insert(end, factory.createConstant(fieldType.getName()));
 			il.insert(end, InstructionFactory.createThis());
 			il.insert(end, factory.createGetField(className, field.getName(), type));
-			il.insert(end, factory.createInvoke(ABSTRACTSTORAGE_CLASS_NAME, ADD_UPDATE_FOR, Type.VOID,
+			il.insert(end, factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, ADD_UPDATE_FOR, Type.VOID,
 					args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
@@ -1950,7 +1982,7 @@ public class ClassInstrumentation {
 			InstructionList il = new InstructionList();
 			InstructionHandle _return = il.append(InstructionConst.RETURN);
 			il.insert(_return, InstructionFactory.createThis());
-			il.insert(_return, factory.createGetField(ABSTRACTSTORAGE_CLASS_NAME, IN_STORAGE_NAME, BasicType.BOOLEAN));
+			il.insert(_return, factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, IN_STORAGE_NAME, BasicType.BOOLEAN));
 			il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 			il.insert(_return, InstructionFactory.createThis());
 			String fieldName = field.getName();
@@ -2023,16 +2055,16 @@ public class ClassInstrumentation {
 
 			// the parameters of the constructor start with a storage reference
 			// to the object being deserialized
-			args.add(new ObjectType(StorageReferenceAlreadyInBlockchain.class.getName()));
+			args.add(new ObjectType(Constants.SRAIB_NAME));
 
 			// then there are the fields of the class and superclasses, with superclasses first
-			if (!className.equals(ClassType.STORAGE.name))
+			if (!className.equals(Constants.STORAGE_NAME))
 				eagerNonTransientInstanceFields.stream().flatMap(SortedSet::stream).map(Field::getType).map(Type::getType)
 					.forEachOrdered(args::add);
 
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
-			if (!className.equals(ClassType.STORAGE.name))
+			if (!className.equals(Constants.STORAGE_NAME))
 				addInitializationOfEagerFields(il, nextLocal);
 			il.append(InstructionConst.RETURN);
 
@@ -2055,7 +2087,7 @@ public class ClassInstrumentation {
 			List<Type> argsForSuperclasses = new ArrayList<>();
 			il.append(InstructionFactory.createThis());
 			il.append(InstructionConst.ALOAD_1);
-			argsForSuperclasses.add(new ObjectType(StorageReferenceAlreadyInBlockchain.class.getName()));
+			argsForSuperclasses.add(new ObjectType(Constants.SRAIB_NAME));
 
 			// the fields of the superclasses are passed into a call to super(...)
 			class PushLoad implements Consumer<Type> {
@@ -2072,7 +2104,7 @@ public class ClassInstrumentation {
 			;
 
 			PushLoad pushLoad = new PushLoad();
-			if (!className.equals(ClassType.STORAGE.name))
+			if (!className.equals(Constants.STORAGE_NAME))
 				eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 					.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 

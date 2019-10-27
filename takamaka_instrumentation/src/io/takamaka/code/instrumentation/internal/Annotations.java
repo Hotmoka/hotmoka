@@ -11,14 +11,14 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.Dummy;
-import takamaka.blockchain.types.ClassType;
 
 /**
  * A utility to check the annotations of the methods in a given class.
  */
 public class Annotations {
-	private final static ObjectType CONTRACT_OT = new ObjectType(ClassType.CONTRACT.name);
+	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
 	/**
@@ -45,7 +45,7 @@ public class Annotations {
 	 * @return true if and only if that condition holds
 	 */
 	public final boolean isPayable(String className, String methodName, Type[] formals, Type returnType) {
-		return getAnnotation(className, methodName, formals, returnType, ClassType.PAYABLE.name).isPresent();
+		return getAnnotation(className, methodName, formals, returnType, Constants.PAYABLE_NAME).isPresent();
 	}
 
 	/**
@@ -58,7 +58,7 @@ public class Annotations {
 	 * @return true if and only if that condition holds
 	 */
 	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) {
-		return getAnnotation(className, methodName, formals, returnType, ClassType.THROWS_EXCEPTIONS.name).isPresent();
+		return getAnnotation(className, methodName, formals, returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent();
 	}
 
 	/**
@@ -73,7 +73,7 @@ public class Annotations {
 	 *         this return value will be {@code takamaka.lang.PayableContract.class}
 	 */
 	public final Optional<Class<?>> isEntry(String className, String methodName, Type[] formals, Type returnType) {
-		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, ClassType.ENTRY.name);
+		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.ENTRY_NAME);
 		if (annotation.isPresent()) {
 			Annotation entry = annotation.get();
 			// we call, by reflection, its value() method, to find the type of the calling contract

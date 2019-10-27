@@ -12,5 +12,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
 	<classpathentry kind="lib" path="/takamaka_memory/dist/takamaka_memory.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_runtime"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_instrumentation"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
