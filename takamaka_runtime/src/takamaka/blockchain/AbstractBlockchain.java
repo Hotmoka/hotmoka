@@ -39,10 +39,10 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.SyntheticRepository;
 
-import io.takamaka.instrumentation.Dummy;
-import io.takamaka.instrumentation.JarInstrumentation;
-import io.takamaka.instrumentation.TakamakaClassLoader;
-import io.takamaka.instrumentation.VerificationException;
+import io.takamaka.code.instrumentation.Dummy;
+import io.takamaka.code.instrumentation.JarInstrumentation;
+import io.takamaka.code.instrumentation.TakamakaClassLoader;
+import io.takamaka.code.instrumentation.VerificationException;
 import takamaka.blockchain.request.AbstractJarStoreTransactionRequest;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;

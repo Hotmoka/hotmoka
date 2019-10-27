@@ -7,10 +7,10 @@
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
-	<classpathentry kind="lib" path="/takamaka_runtime/dist/takamaka_runtime.jar"/>
 	<classpathentry kind="lib" path="/takamaka_runtime/lib/bcel-6.2.jar"/>
 	<classpathentry kind="lib" path="/takamaka_runtime/lib/stackmap.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
 	<classpathentry kind="lib" path="/takamaka_memory/dist/takamaka_memory.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_runtime"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
