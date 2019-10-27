@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.takamaka.code.annotations.Immutable;
+import io.takamaka.annotations.Immutable;
 import takamaka.blockchain.AbstractBlockchain;
 import takamaka.blockchain.GasCosts;
 
@@ -65,6 +65,26 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.lang.PayableContract}.
 	 */
 	public final static ClassType PAYABLE_CONTRACT = new ClassType("io.takamaka.code.lang.PayableContract");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.Entry}.
+	 */
+	public final static ClassType ENTRY = new ClassType("io.takamaka.code.lang.Entry");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.View}.
+	 */
+	public final static ClassType VIEW = new ClassType("io.takamaka.code.lang.View");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.Payable}.
+	 */
+	public final static ClassType PAYABLE = new ClassType("io.takamaka.code.lang.Payable");
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
+	 */
+	public final static ClassType THROWS_EXCEPTIONS = new ClassType("io.takamaka.code.lang.ThrowsExceptions");
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32}.

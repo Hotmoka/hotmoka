@@ -122,7 +122,7 @@ public interface Blockchain {
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
-	 * @throws CodeExecutionException if the constructor is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions} and its execution
+	 * @throws CodeExecutionException if the constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
@@ -155,7 +155,7 @@ public interface Blockchain {
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
-	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions} and its execution
+	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
@@ -188,7 +188,7 @@ public interface Blockchain {
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
-	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions} and its execution
+	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception (that exception is available as
 	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.

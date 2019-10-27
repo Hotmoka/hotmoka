@@ -5,8 +5,8 @@ import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.annotations.Entry;
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.Event;
 import io.takamaka.code.util.StorageMap;
 

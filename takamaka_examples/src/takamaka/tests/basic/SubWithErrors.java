@@ -2,8 +2,8 @@ package takamaka.tests.basic;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.annotations.Entry;
-import io.takamaka.code.annotations.Payable;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
 
 public class SubWithErrors extends Super {
 

@@ -4,8 +4,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 
-import io.takamaka.code.annotations.Immutable;
-import io.takamaka.code.annotations.View;
+import io.takamaka.code.lang.Immutable;
+import io.takamaka.code.lang.View;
 
 /**
  * An immutable array of 32 bytes, that can be kept in storage. Unset elements default to 0.

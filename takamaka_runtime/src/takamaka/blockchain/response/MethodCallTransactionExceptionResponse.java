@@ -4,14 +4,14 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.annotations.Immutable;
+import io.takamaka.annotations.Immutable;
 import takamaka.blockchain.GasCosts;
 import takamaka.blockchain.Update;
 import takamaka.blockchain.values.StorageReference;
 
 /**
  * A response for a successful transaction that calls a method in blockchain.
- * The method is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions}.
+ * The method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
  * It has been called without problems but it threw an instance of {@link java.lang.Exception}.
  */
 @Immutable

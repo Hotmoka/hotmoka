@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.annotations.Immutable;
+import io.takamaka.annotations.Immutable;
 import takamaka.blockchain.types.ClassType;
 import takamaka.blockchain.types.StorageType;
 

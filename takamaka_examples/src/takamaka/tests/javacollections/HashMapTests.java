@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.takamaka.code.annotations.View;
+import io.takamaka.code.lang.View;
 
 /**
  * This class defines methods that test the use of the Java HashMap class.

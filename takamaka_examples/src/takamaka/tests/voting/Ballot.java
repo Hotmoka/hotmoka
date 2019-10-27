@@ -1,12 +1,13 @@
 package takamaka.tests.voting;
+
 import static io.takamaka.code.lang.Takamaka.require;
 
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.takamaka.code.annotations.Entry;
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;

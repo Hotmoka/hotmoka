@@ -3,7 +3,7 @@ package takamaka.blockchain.request;
 import java.io.Serializable;
 import java.math.BigInteger;
 
-import io.takamaka.code.annotations.Immutable;
+import io.takamaka.annotations.Immutable;
 import takamaka.blockchain.UpdateOfBalance;
 
 @Immutable

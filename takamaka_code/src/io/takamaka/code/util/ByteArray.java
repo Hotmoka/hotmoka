@@ -2,7 +2,7 @@ package io.takamaka.code.util;
 
 import java.util.stream.IntStream;
 
-import io.takamaka.code.annotations.View;
+import io.takamaka.code.lang.View;
 
 /**
  * An array of byte values. Unset elements default to 0.

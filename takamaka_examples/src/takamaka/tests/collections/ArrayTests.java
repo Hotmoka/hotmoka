@@ -3,7 +3,7 @@ package takamaka.tests.collections;
 import java.math.BigInteger;
 import java.util.Random;
 
-import io.takamaka.code.annotations.View;
+import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageArray;
 
 /**

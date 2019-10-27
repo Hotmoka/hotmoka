@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.annotations.Immutable;
+import io.takamaka.annotations.Immutable;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.ConstructorSignature;
 import takamaka.blockchain.GasCosts;

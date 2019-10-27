@@ -39,8 +39,6 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.util.ClassPath;
 import org.apache.bcel.util.SyntheticRepository;
 
-import io.takamaka.code.annotations.ThrowsExceptions;
-import io.takamaka.code.annotations.View;
 import io.takamaka.instrumentation.Dummy;
 import io.takamaka.instrumentation.JarInstrumentation;
 import io.takamaka.instrumentation.TakamakaClassLoader;
@@ -1410,7 +1408,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected boolean isVoidMethod;
 
 		/**
-		 * True if the method has been called correctly and it is annotated as {@link io.takamaka.code.annotations.View}.
+		 * True if the method has been called correctly and it is annotated as {@link io.takamaka.code.lang.View}.
 		 */
 		protected boolean isViewMethod;
 
@@ -1520,7 +1518,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		/**
 		 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-		 * and {@link io.takamaka.code.annotations.Entry}. Entries are instrumented with the addition of
+		 * and {@link io.takamaka.code.lang.Entry}. Entries are instrumented with the addition of
 		 * trailing contract formal (the caller) and of a dummy type.
 		 * 
 		 * @return the array of classes, in the same order as the formals
@@ -1539,7 +1537,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		/**
 		 * Adds to the actual parameters the implicit actuals that are passed
-		 * to {@link io.takamaka.code.annotations.Entry} methods or constructors. They are the caller of
+		 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
 		 * the entry and {@code null} for the dummy argument.
 		 * 
 		 * @return the resulting actual parameters
@@ -1559,7 +1557,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		/**
-		 * Yields the same exception, if it is checked and the executable is annotated as {@link io.takamaka.code.annotations.ThrowsExceptions}.
+		 * Yields the same exception, if it is checked and the executable is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
 		 * Otherwise, yields its cause.
 		 * 
 		 * @param e the exception
@@ -1567,7 +1565,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @return the same exception, or its cause
 		 */
 		protected final Throwable unwrapInvocationException(InvocationTargetException e, Executable executable) {
-			if (isChecked(e.getCause()) && executable.isAnnotationPresent(ThrowsExceptions.class))
+			if (isChecked(e.getCause()) && hasAnnotation(executable, ClassType.THROWS_EXCEPTIONS.name))
 				return e;
 			else
 				return e.getCause();
@@ -1622,6 +1620,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw new IllegalStateException("could not check white-listing proof-obligations for " + methodName, e);
 					}
 				});
+		}
+
+		protected final boolean hasAnnotation(Executable executable, String annotationName) {
+			return Stream.of(executable.getAnnotations())
+				.anyMatch(annotation -> annotation.annotationType().getName().equals(annotationName));
 		}
 	}
 
@@ -1757,7 +1760,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
-				isViewMethod = methodJVM.isAnnotationPresent(View.class);
+				isViewMethod = hasAnnotation(methodJVM, ClassType.VIEW.name);
 
 				try {
 					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
@@ -1802,7 +1805,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
-				isViewMethod = methodJVM.isAnnotationPresent(View.class);
+				isViewMethod = hasAnnotation(methodJVM, ClassType.VIEW.name);
 
 				try {
 					result = methodJVM.invoke(null, deserializedActuals);

@@ -1,5 +1,6 @@
-package io.takamaka.code.annotations;
+package io.takamaka.code.lang;
 
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
 import static java.lang.annotation.ElementType.METHOD;
 
 import java.lang.annotation.Documented;
@@ -9,14 +10,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * States that an entry does not modify the state of any storage object
- * reachable before its execution, nor yields a new storage object.
- * Hence the entry can be executed off-chain, without generating
- * a transaction.
+ * An entry is payable if the caller transfers funds to the contract
+ * of the entry at call time.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value={ METHOD })
+@Target(value={ METHOD, CONSTRUCTOR })
 @Inherited
 @Documented
-public @interface View {
+public @interface Payable {
 }

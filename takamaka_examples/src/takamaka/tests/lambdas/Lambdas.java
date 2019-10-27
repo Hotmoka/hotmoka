@@ -6,9 +6,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.annotations.Entry;
-import io.takamaka.code.annotations.Payable;
+import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.util.StorageList;
 

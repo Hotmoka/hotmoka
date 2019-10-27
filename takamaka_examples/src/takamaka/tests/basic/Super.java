@@ -2,9 +2,9 @@ package takamaka.tests.basic;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.annotations.Entry;
-import io.takamaka.code.annotations.Payable;
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
 import takamaka.tests.basicdependency.InternationalTime;
 import takamaka.tests.basicdependency.Time;
 

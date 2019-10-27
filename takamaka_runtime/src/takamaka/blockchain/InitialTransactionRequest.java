@@ -1,6 +1,6 @@
 package takamaka.blockchain;
 
-import io.takamaka.code.annotations.Immutable;
+import io.takamaka.annotations.Immutable;
 import takamaka.blockchain.request.TransactionRequest;
 
 @Immutable

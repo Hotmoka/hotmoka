@@ -12,8 +12,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import io.takamaka.code.annotations.View;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 
 /**
  * An array of (possibly {@code null}) storage values, that can be kept in storage.

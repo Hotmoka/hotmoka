@@ -2,7 +2,7 @@ package takamaka.blockchain;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.annotations.Immutable;
+import io.takamaka.annotations.Immutable;
 import takamaka.blockchain.values.CharValue;
 import takamaka.blockchain.values.StorageReference;
 import takamaka.blockchain.values.StorageValue;

@@ -1,7 +1,7 @@
 package takamaka.tests.errors.illegalcalltoentry1;
 
-import io.takamaka.code.annotations.Entry;
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
 
 public class C extends Contract {
 

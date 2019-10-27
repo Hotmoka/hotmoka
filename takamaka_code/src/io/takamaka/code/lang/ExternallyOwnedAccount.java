@@ -2,9 +2,6 @@ package io.takamaka.code.lang;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.annotations.Entry;
-import io.takamaka.code.annotations.Payable;
-
 /**
  * A contract that can be used to pay for a transaction.
  */

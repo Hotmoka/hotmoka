@@ -5,7 +5,7 @@ import java.util.NoSuchElementException;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 
-import io.takamaka.code.annotations.View;
+import io.takamaka.code.lang.View;
 
 /**
  * A mutable array of 32 bytes, that can be kept in storage. Unset elements default to 0.

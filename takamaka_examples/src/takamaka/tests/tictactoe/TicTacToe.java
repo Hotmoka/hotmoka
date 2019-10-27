@@ -6,11 +6,11 @@ import static java.util.stream.IntStream.rangeClosed;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.annotations.Entry;
-import io.takamaka.code.annotations.Payable;
-import io.takamaka.code.annotations.View;
 import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageArray;
 
 /**

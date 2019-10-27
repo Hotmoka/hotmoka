@@ -2,10 +2,6 @@ package io.takamaka.code.lang;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.annotations.Entry;
-import io.takamaka.code.annotations.Payable;
-import io.takamaka.code.annotations.View;
-
 /**
  * A contract that can be used to pay for a transaction.
  * It is meant for tests, where it is useful to check for

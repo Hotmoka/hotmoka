@@ -2,7 +2,7 @@ package takamaka.blockchain.request;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.annotations.Immutable;
+import io.takamaka.annotations.Immutable;
 import takamaka.blockchain.Blockchain;
 import takamaka.blockchain.Classpath;
 import takamaka.blockchain.UpdateOfBalance;

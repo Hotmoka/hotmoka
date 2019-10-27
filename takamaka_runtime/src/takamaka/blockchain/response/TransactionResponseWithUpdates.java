@@ -2,7 +2,7 @@ package takamaka.blockchain.response;
 
 import java.util.stream.Stream;
 
-import io.takamaka.code.annotations.Immutable;
+import io.takamaka.annotations.Immutable;
 import takamaka.blockchain.Update;
 
 /**

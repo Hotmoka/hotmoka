@@ -1,4 +1,4 @@
-package io.takamaka.code.annotations;
+package io.takamaka.code.lang;
 
 import static java.lang.annotation.ElementType.CONSTRUCTOR;
 import static java.lang.annotation.ElementType.METHOD;
