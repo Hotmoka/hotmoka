@@ -30,7 +30,7 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClass.ClassVerification.
 			if (ins instanceof FieldInstruction) {
 				FieldInstruction fi = (FieldInstruction) ins;
 				if (!hasWhiteListingModel(fi))
-					issue(new IllegalAccessToNonWhiteListedFieldError(clazz, methodName, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
+					issue(new IllegalAccessToNonWhiteListedFieldError(inferSourceFile(), methodName, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
 			}
 			else if (ins instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) ins;
@@ -39,9 +39,9 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClass.ClassVerification.
 					if (target.isPresent()) {
 						Executable executable = target.get();
 						if (executable instanceof Constructor<?>)
-							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, methodName, lineOf(ih), executable.getDeclaringClass().getName()));
+							issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), methodName, lineOf(ih), executable.getDeclaringClass().getName()));
 						else
-							issue(new IllegalCallToNonWhiteListedMethodError(clazz, methodName, lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
+							issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
 					}
 					else {
 						// the call seems not resolvable
@@ -50,9 +50,9 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClass.ClassVerification.
 						String methodName = invoke.getMethodName(cpg);
 
 						if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
-							issue(new IllegalCallToNonWhiteListedConstructorError(clazz, methodName, lineOf(ih), receiverClassName));
+							issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), methodName, lineOf(ih), receiverClassName));
 						else
-							issue(new IllegalCallToNonWhiteListedMethodError(clazz, methodName, lineOf(ih), receiverClassName, methodName));
+							issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), receiverClassName, methodName));
 					}
 				}
 			}

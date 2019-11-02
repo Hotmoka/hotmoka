@@ -204,8 +204,8 @@ public class Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.classLoader.bcelToClass(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.classLoader.bcelToClass(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.bcelToClass.of(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
 						return clazz.resolver.resolveConstructorWithPossiblyExpandedArgs(className2, args);
@@ -219,8 +219,8 @@ public class Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.classLoader.bcelToClass(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.classLoader.bcelToClass(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.bcelToClass.of(Type.getReturnType(methodSignature2));
 	
 					return clazz.resolver.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}

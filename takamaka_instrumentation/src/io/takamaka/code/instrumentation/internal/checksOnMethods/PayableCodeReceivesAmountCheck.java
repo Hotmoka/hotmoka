@@ -17,7 +17,7 @@ public class PayableCodeReceivesAmountCheck extends VerifiedClass.ClassVerificat
 		verification.super();
 
 		if (clazz.annotations.isPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())
-			issue(new PayableWithoutAmountError(clazz, methodName));
+			issue(new PayableWithoutAmountError(inferSourceFile(), methodName));
 	}
 
 	private final static ObjectType BIG_INTEGER_OT = new ObjectType(BigInteger.class.getName());

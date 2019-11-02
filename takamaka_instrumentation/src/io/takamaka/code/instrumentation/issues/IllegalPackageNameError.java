@@ -1,10 +1,8 @@
 package io.takamaka.code.instrumentation.issues;
 
-import org.apache.bcel.generic.ClassGen;
-
 public class IllegalPackageNameError extends Error {
 
-	public IllegalPackageNameError(ClassGen clazz) {
-		super(clazz, "package name is not allowed");
+	public IllegalPackageNameError(String where) {
+		super(where, "package name is not allowed");
 	}
 }

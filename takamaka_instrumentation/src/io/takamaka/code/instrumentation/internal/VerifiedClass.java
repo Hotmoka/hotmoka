@@ -59,6 +59,12 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	public final TakamakaClassLoader classLoader;
 
 	/**
+	 * The utility that can be used to transform BCEL types into their corresponding
+	 * Java class tag, by using the class loader of this class.
+	 */
+	public final BcelToClass bcelToClass;
+
+	/**
 	 * The utility about the lambda bootstraps contained in this class.
 	 */
 	public final Bootstraps bootstraps;
@@ -92,6 +98,7 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 
 		this.methods = Stream.of(getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).collect(Collectors.toSet());
 		this.classLoader = classLoader;
+		this.bcelToClass = new BcelToClass(this);
 		this.annotations = new Annotations(this);
 		this.bootstraps = new Bootstraps(this);
 		this.resolver = new Resolver(this);
@@ -259,6 +266,27 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 			protected final Stream<InstructionHandle> instructionsOf(MethodGen method) {
 				InstructionList instructions = method.getInstructionList();
 				return instructions == null ? Stream.empty() : StreamSupport.stream(instructions.spliterator(), false);
+			}
+
+			/**
+			 * Infers the source file name of the class being checked.
+			 * If there is no debug information, the class name is returned.
+			 * 
+			 * @return the inferred source file name
+			 */
+			protected final String inferSourceFile() {
+				String sourceFile = getFileName();
+				String className = getClassName();
+			
+				if (sourceFile != null) {
+					int lastDot = className.lastIndexOf('.');
+					if (lastDot > 0)
+						return className.substring(0, lastDot).replace('.', '/') + '/' + sourceFile;
+					else
+						return sourceFile;
+				}
+			
+				return className;
 			}
 
 			/**

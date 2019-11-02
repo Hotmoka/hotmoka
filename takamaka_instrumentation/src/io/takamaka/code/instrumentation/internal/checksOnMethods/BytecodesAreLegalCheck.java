@@ -38,15 +38,15 @@ public class BytecodesAreLegalCheck extends VerifiedClass.ClassVerification.Meth
 			// static field updates are allowed inside the synthetic methods or static initializer,
 			// for instance in an enumeration
 			if (!method.isSynthetic() && !Const.STATIC_INITIALIZER_NAME.equals(methodName))
-				issue(new IllegalPutstaticInstructionError(clazz, methodName, lineOf(ih)));
+				issue(new IllegalPutstaticInstructionError(inferSourceFile(), methodName, lineOf(ih)));
 		}
 		else if (ins instanceof JsrInstruction)
-			issue(new IllegalJsrInstructionError(clazz, methodName, lineOf(ih)));
+			issue(new IllegalJsrInstructionError(inferSourceFile(), methodName, lineOf(ih)));
 		else if (ins instanceof RET)
-			issue(new IllegalRetInstructionError(clazz, methodName, lineOf(ih)));
+			issue(new IllegalRetInstructionError(inferSourceFile(), methodName, lineOf(ih)));
 		else if (!method.isStatic() && ins instanceof StoreInstruction && ((StoreInstruction) ins).getIndex() == 0)
-			issue(new IllegalUpdateOfLocal0Error(clazz, methodName, lineOf(ih)));					
+			issue(new IllegalUpdateOfLocal0Error(inferSourceFile(), methodName, lineOf(ih)));					
 		else if (ins instanceof MONITORENTER || ins instanceof MONITOREXIT)
-			issue(new IllegalSynchronizationError(clazz, methodName, lineOf(ih)));
+			issue(new IllegalSynchronizationError(inferSourceFile(), methodName, lineOf(ih)));
 	}
 }

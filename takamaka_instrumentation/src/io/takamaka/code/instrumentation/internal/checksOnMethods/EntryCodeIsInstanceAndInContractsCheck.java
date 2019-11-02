@@ -14,9 +14,9 @@ public class EntryCodeIsInstanceAndInContractsCheck extends VerifiedClass.ClassV
 
 		clazz.annotations.isEntry(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {
 			if (!classLoader.contractClass.isAssignableFrom(tag))
-				issue(new IllegalEntryArgumentError(clazz, methodName));
+				issue(new IllegalEntryArgumentError(inferSourceFile(), methodName));
 			if (method.isStatic() || !classLoader.isContract(className))
-				issue(new IllegalEntryMethodError(clazz, methodName));
+				issue(new IllegalEntryMethodError(inferSourceFile(), methodName));
 		});
 	}
 }

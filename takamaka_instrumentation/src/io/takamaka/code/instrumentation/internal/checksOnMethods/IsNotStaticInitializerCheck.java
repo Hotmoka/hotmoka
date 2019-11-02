@@ -29,16 +29,16 @@ public class IsNotStaticInitializerCheck extends VerifiedClass.ClassVerification
 						.filter(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
 							&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field)))
 						.findAny()
-						.ifPresent(field -> issue(new IllegalStaticInitializationError(clazz, methodName, lineOf(instructions().findFirst().get()))));
+						.ifPresent(field -> issue(new IllegalStaticInitializationError(inferSourceFile(), methodName, lineOf(instructions().findFirst().get()))));
 				});
 			}
 			else
-				issue(new IllegalStaticInitializationError(clazz, methodName, lineOf(instructions().findFirst().get())));
+				issue(new IllegalStaticInitializationError(inferSourceFile(), methodName, lineOf(instructions().findFirst().get())));
 	}
 
 	private boolean hasExplicitConstantValue(Field field) {
 		return Stream.of(clazz.getFields())
-			.filter(f -> f.isStatic() && f.getName().equals(field.getName()) && classLoader.bcelToClass(f.getType()) == field.getType())
+			.filter(f -> f.isStatic() && f.getName().equals(field.getName()) && clazz.bcelToClass.of(f.getType()) == field.getType())
 			.allMatch(f -> f.getConstantValue() != null);
 	}
 }

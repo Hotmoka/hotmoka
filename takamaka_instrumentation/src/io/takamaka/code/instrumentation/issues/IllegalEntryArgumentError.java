@@ -1,10 +1,8 @@
 package io.takamaka.code.instrumentation.issues;
 
-import org.apache.bcel.generic.ClassGen;
-
 public class IllegalEntryArgumentError extends Error {
 
-	public IllegalEntryArgumentError(ClassGen clazz, String methodName) {
-		super(clazz, methodName, -1, "@Entry argument is not a contract");
+	public IllegalEntryArgumentError(String where, String methodName) {
+		super(where, methodName, -1, "@Entry argument is not a contract");
 	}
 }

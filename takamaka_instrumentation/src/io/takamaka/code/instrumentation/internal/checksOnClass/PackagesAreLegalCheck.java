@@ -12,9 +12,9 @@ public class PackagesAreLegalCheck extends VerifiedClass.ClassVerification.Check
 		verification.super();
 
 		if (className.startsWith("java.") || className.startsWith("javax."))
-			issue(new IllegalPackageNameError(clazz));
+			issue(new IllegalPackageNameError(inferSourceFile()));
 
 		if (!duringInitialization && className.startsWith("takamaka.") && !className.startsWith("takamaka.tests"))
-			issue(new IllegalPackageNameError(clazz));
+			issue(new IllegalPackageNameError(inferSourceFile()));
 	}
 }

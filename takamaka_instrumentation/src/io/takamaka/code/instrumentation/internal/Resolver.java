@@ -38,7 +38,7 @@ public class Resolver {
 		ReferenceType holder = fi.getReferenceType(cpg);
 		if (holder instanceof ObjectType) {
 			String name = fi.getFieldName(cpg);
-			Class<?> type = clazz.classLoader.bcelToClass(fi.getFieldType(cpg));
+			Class<?> type = clazz.bcelToClass.of(fi.getFieldType(cpg));
 	
 			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
 				(() -> clazz.classLoader.resolveField(((ObjectType) holder).getClassName(), name, type));
@@ -58,12 +58,12 @@ public class Resolver {
 		ReferenceType receiver = invoke.getReferenceType(cpg);
 		// it is possible to call a method on an array: in that case, the callee is a method of java.lang.Object
 		String receiverClassName = receiver instanceof ObjectType ? ((ObjectType) receiver).getClassName() : "java.lang.Object";
-		Class<?>[] args = clazz.classLoader.bcelToClass(invoke.getArgumentTypes(cpg));
+		Class<?>[] args = clazz.bcelToClass.of(invoke.getArgumentTypes(cpg));
 
 		if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
 			return resolveConstructorWithPossiblyExpandedArgs(receiverClassName, args);
 		else {
-			Class<?> returnType = clazz.classLoader.bcelToClass(invoke.getReturnType(cpg));
+			Class<?> returnType = clazz.bcelToClass.of(invoke.getReturnType(cpg));
 
 			if (invoke instanceof INVOKEINTERFACE)
 				return resolveInterfaceMethodWithPossiblyExpandedArgs(receiverClassName, methodName, args, returnType);

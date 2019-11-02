@@ -12,6 +12,6 @@ public class IsNotSynchronizedCheck extends VerifiedClass.ClassVerification.Meth
 		verification.super();
 
 		if (method.isSynchronized())
-			issue(new IllegalSynchronizationError(clazz, methodName));
+			issue(new IllegalSynchronizationError(inferSourceFile(), methodName));
 	}
 }

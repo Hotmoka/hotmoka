@@ -4,8 +4,6 @@ import static java.util.Comparator.comparing;
 
 import java.util.Comparator;
 
-import org.apache.bcel.generic.ClassGen;
-
 /**
  * An issue generated during the verification of the class files of a Takamaka program.
  * Issues are first ordered by where they occur, then by message and finally by issue class name.
@@ -21,52 +19,37 @@ public abstract class Issue implements Comparable<Issue> {
 	/**
 	 * Creates an issue at the given class.
 	 * 
-	 * @param clazz the class where the issue occurs
+	 * @param where a string that lets the user identify the class where the issue occurs
 	 * @param message the message of the issue
 	 */
-	protected Issue(ClassGen clazz, String message) {
-		this.where = inferSourceFile(clazz);
+	protected Issue(String where, String message) {
+		this.where = where;
 		this.message = message;
 	}
 
 	/**
 	 * Creates an issue at the given program field.
 	 * 
-	 * @param clazz the class where the issue occurs
+	 * @param where a string that lets the user identify the class where the issue occurs
 	 * @param fieldName the name of the field where the issue occurs
 	 * @param message the message of the issue
 	 */
-	protected Issue(ClassGen clazz, String fieldName, String message) {
-		this.where = inferSourceFile(clazz) + " field " + fieldName;
+	protected Issue(String where, String fieldName, String message) {
+		this.where = where + " field " + fieldName;
 		this.message = message;
 	}
 
 	/**
 	 * Creates an issue at the given program line.
 	 * 
-	 * @param clazz the class where the issue occurs
+	 * @param where a string that lets the user identify the class where the issue occurs
 	 * @param methodName the name of the method where the issue occurs
 	 * @param line the line where the issue occurs. Use -1 if the issue is related to the method as a whole
 	 * @param message the message of the issue
 	 */
-	protected Issue(ClassGen clazz, String methodName, int line, String message) {
-		this.where = inferSourceFile(clazz) + (line >= 0 ? (":" + line) : (" method " + methodName));
+	protected Issue(String where, String methodName, int line, String message) {
+		this.where = where + (line >= 0 ? (":" + line) : (" method " + methodName));
 		this.message = message;
-	}
-
-	private static String inferSourceFile(ClassGen clazz) {
-		String sourceFile = clazz.getFileName();
-		String className = clazz.getClassName();
-	
-		if (sourceFile != null) {
-			int lastDot = className.lastIndexOf('.');
-			if (lastDot > 0)
-				return className.substring(0, lastDot).replace('.', '/') + '/' + sourceFile;
-			else
-				return sourceFile;
-		}
-	
-		return className;
 	}
 
 	@Override

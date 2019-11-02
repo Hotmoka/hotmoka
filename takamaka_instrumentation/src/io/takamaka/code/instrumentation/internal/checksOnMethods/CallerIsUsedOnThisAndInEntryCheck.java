@@ -28,10 +28,10 @@ public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClass.ClassVerifi
 			.filter(this::isCallToContractCaller)
 			.forEach(ih -> {
 				if (!isEntry)
-					issue(new CallerOutsideEntryError(clazz, methodName, lineOf(ih)));
+					issue(new CallerOutsideEntryError(inferSourceFile(), methodName, lineOf(ih)));
 
 				if (!previousIsLoad0(ih))
-					issue(new CallerNotOnThisError(clazz, methodName, lineOf(ih)));
+					issue(new CallerNotOnThisError(inferSourceFile(), methodName, lineOf(ih)));
 			});
 	}
 

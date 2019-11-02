@@ -21,7 +21,7 @@ public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClass
 			String exceptionName = catchType == null ? "java.lang.Throwable" : catchType.getClassName();
 
 			if (!specialCatchInsideEnumInitializer(exceptionName) && canCatchUncheckedExceptions(exceptionName))
-				issue(new UncheckedExceptionHandlerError(clazz, methodName, lineOf(exc.getHandlerPC()), exceptionName));
+				issue(new UncheckedExceptionHandlerError(inferSourceFile(), methodName, lineOf(exc.getHandlerPC()), exceptionName));
 		}
 	}
 

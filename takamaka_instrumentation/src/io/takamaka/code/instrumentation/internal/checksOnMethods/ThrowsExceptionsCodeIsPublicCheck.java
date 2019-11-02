@@ -13,7 +13,7 @@ public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClass.ClassVerifi
 
 		clazz.getMethodGens()
 			.filter(method -> !method.isPublic() && clazz.annotations.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
-			.map(method -> new ThrowsExceptionsOnNonPublicError(clazz, method.getName()))
+			.map(method -> new ThrowsExceptionsOnNonPublicError(inferSourceFile(), method.getName()))
 			.forEach(this::issue);
 	}
 }

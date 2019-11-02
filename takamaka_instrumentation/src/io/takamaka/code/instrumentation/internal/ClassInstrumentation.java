@@ -1630,7 +1630,7 @@ public class ClassInstrumentation {
 				String receiverClassName = receiverType.getClassName();
 				Class<?> fieldType;
 				return classLoader.isStorage(receiverClassName)
-						&& classLoader.isLazilyLoaded(fieldType = classLoader.bcelToClass(fi.getFieldType(cpg)))
+						&& classLoader.isLazilyLoaded(fieldType = clazz.bcelToClass.of(fi.getFieldType(cpg)))
 						&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
 			} else if (instruction instanceof PUTFIELD) {
 				FieldInstruction fi = (FieldInstruction) instruction;
@@ -1638,7 +1638,7 @@ public class ClassInstrumentation {
 				String receiverClassName = receiverType.getClassName();
 				Class<?> fieldType;
 				return classLoader.isStorage(receiverClassName)
-						&& classLoader.isLazilyLoaded(fieldType = classLoader.bcelToClass(fi.getFieldType(cpg)))
+						&& classLoader.isLazilyLoaded(fieldType = clazz.bcelToClass.of(fi.getFieldType(cpg)))
 						&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
 			} else
 				return false;

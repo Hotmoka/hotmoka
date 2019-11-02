@@ -31,10 +31,10 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends Verifie
 	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions) {
 		if (Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == classLoader.bcelToClass(methodReturnType)
-						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(methodArgs)))
+						&& m.getName().equals(methodName) && m.getReturnType() == this.clazz.bcelToClass.of(methodReturnType)
+						&& Arrays.equals(m.getParameterTypes(), this.clazz.bcelToClass.of(methodArgs)))
 				.anyMatch(m -> wasThrowsExceptions != this.clazz.annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
-			issue(new InconsistentThrowsExceptionsError(this.clazz, methodName, clazz.getName()));
+			issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)

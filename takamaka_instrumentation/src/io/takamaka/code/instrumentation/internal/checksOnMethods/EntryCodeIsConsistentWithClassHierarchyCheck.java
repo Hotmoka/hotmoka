@@ -33,10 +33,10 @@ public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClass.
 	private void isIdenticallyEntryInSupertypesOf(Class<?> clazz, Optional<Class<?>> contractTypeForEntry) {
 		if (Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == classLoader.bcelToClass(methodReturnType)
-						&& Arrays.equals(m.getParameterTypes(), classLoader.bcelToClass(methodArgs)))
+						&& m.getName().equals(methodName) && m.getReturnType() == this.clazz.bcelToClass.of(methodReturnType)
+						&& Arrays.equals(m.getParameterTypes(), this.clazz.bcelToClass.of(methodArgs)))
 				.anyMatch(m -> !compatibleEntries(contractTypeForEntry, this.clazz.annotations.isEntry(clazz.getName(), methodName, methodArgs, methodReturnType))))
-			issue(new InconsistentEntryError(this.clazz, methodName, clazz.getName()));
+			issue(new InconsistentEntryError(inferSourceFile(), methodName, clazz.getName()));
 
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass != null)

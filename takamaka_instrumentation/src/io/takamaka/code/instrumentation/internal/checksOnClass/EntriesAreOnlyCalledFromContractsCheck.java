@@ -45,7 +45,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClass.ClassV
 			.forEach(method ->
 				instructionsOf(method)
 					.filter(this::callsEntry)
-					.map(ih -> new IllegalCallToEntryError(clazz, method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
+					.map(ih -> new IllegalCallToEntryError(inferSourceFile(), method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
 					.forEach(this::issue)
 			);
 	}

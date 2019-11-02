@@ -136,7 +136,7 @@ public class Annotations {
 	}
 
 	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) {
-		Class<?>[] formalsClass = Stream.of(formals).map(clazz.classLoader::bcelToClass).toArray(Class[]::new);
+		Class<?>[] formalsClass = Stream.of(formals).map(clazz.bcelToClass::of).toArray(Class[]::new);
 
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() ->
 			Stream.of(clazz.classLoader.loadClass(className).getDeclaredConstructors())
@@ -147,8 +147,8 @@ public class Annotations {
 	}
 
 	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) {
-		Class<?> returnTypeClass = clazz.classLoader.bcelToClass(returnType);
-		Class<?>[] formalsClass = Stream.of(formals).map(clazz.classLoader::bcelToClass).toArray(Class[]::new);
+		Class<?> returnTypeClass = clazz.bcelToClass.of(returnType);
+		Class<?>[] formalsClass = Stream.of(formals).map(clazz.bcelToClass::of).toArray(Class[]::new);
 
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Class<?> clazz = this.clazz.classLoader.loadClass(className);

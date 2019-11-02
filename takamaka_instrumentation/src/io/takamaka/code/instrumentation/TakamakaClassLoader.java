@@ -9,11 +9,6 @@ import java.net.URL;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.apache.bcel.generic.ArrayType;
-import org.apache.bcel.generic.BasicType;
-import org.apache.bcel.generic.ObjectType;
-import org.apache.bcel.generic.Type;
-
 import io.takamaka.code.instrumentation.internal.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -99,56 +94,8 @@ public class TakamakaClassLoader implements ResolvingClassLoader {
 		return !isLazilyLoaded(type);
 	}
 
-	/**
-	 * Computes the Java token class for the given BCEL type.
-	 * 
-	 * @param type the BCEL type
-	 * @return the class token corresponding to {@code type}
-	 */
-	public final Class<?> bcelToClass(Type type) {
-		if (type == BasicType.BOOLEAN)
-			return boolean.class;
-		else if (type == BasicType.BYTE)
-			return byte.class;
-		else if (type == BasicType.CHAR)
-			return char.class;
-		else if (type == BasicType.DOUBLE)
-			return double.class;
-		else if (type == BasicType.FLOAT)
-			return float.class;
-		else if (type == BasicType.INT)
-			return int.class;
-		else if (type == BasicType.LONG)
-			return long.class;
-		else if (type == BasicType.SHORT)
-			return short.class;
-		else if (type == BasicType.VOID)
-			return void.class;
-		else if (type instanceof ObjectType)
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> loadClass(type.toString()));
-		else { // array
-			Class<?> elementsClass = bcelToClass(((ArrayType) type).getElementType());
-			// trick: we build an array of 0 elements just to access its class token
-			return java.lang.reflect.Array.newInstance(elementsClass, 0).getClass();
-		}
-	}
-
-	/**
-	 * Computes the Java token classes for the given BCEL types.
-	 * 
-	 * @param types the BCEL types
-	 * @return the class tokens corresponding to {@code types}
-	 */
-	public final Class<?>[] bcelToClass(Type[] types) {
-		Class<?>[] result = new Class<?>[types.length];
-		for (int pos = 0; pos < result.length; pos++)
-			result[pos] = bcelToClass(types[pos]);
-	
-		return result;
-	}
-
 	@Override
-	public Stream<URL> getOrigins() {
+	public final Stream<URL> getOrigins() {
 		return parent.getOrigins();
 	}
 

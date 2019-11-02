@@ -13,6 +13,6 @@ public class PayableCodeIsEntryCheck extends VerifiedClass.ClassVerification.Met
 
 		if (clazz.annotations.isPayable(className, methodName, methodArgs, methodReturnType)
 				&& !clazz.annotations.isEntry(className, methodName, methodArgs, methodReturnType).isPresent())
-			issue(new PayableWithoutEntryError(clazz, methodName));
+			issue(new PayableWithoutEntryError(inferSourceFile(), methodName));
 	}
 }

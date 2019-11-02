@@ -17,6 +17,6 @@ public class BootstrapsAreLegalCheck extends VerifiedClass.ClassVerification.Che
 			.map(bootstraps::getTargetOf)
 			.filter(target -> !target.isPresent())
 			.findAny()
-			.ifPresent(target -> issue(new IllegalBootstrapMethodError(clazz)));
+			.ifPresent(target -> issue(new IllegalBootstrapMethodError(inferSourceFile())));
 	}
 }
