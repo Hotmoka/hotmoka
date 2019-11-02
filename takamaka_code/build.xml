@@ -16,13 +16,13 @@
     <mkdir dir="${build}"/>
   </target>
 
-  <target name="compile" depends="init" description="compile">
+  <!--<target name="compile" depends="init" description="compile">
 	<javac srcdir="${src}" destdir="${build}" source="9" target="9" includeantruntime="no">
 		<compilerarg value="-Xlint"/>
 		<modulepath path ="../takamaka_distribution/mods"/>
 		<modulepath path ="../takamaka_distribution/dist"/>
     </javac>
-  </target>
+  </target>-->
 
   <target name="compile Java 8" depends="init" description="compile into Java 8 code">
 	<javac srcdir="${src}" destdir="${build}" source="8" target="8" includeantruntime="no" excludes="module-info.java">
@@ -34,9 +34,9 @@
 	</javac>
   </target>
 
-  <target name="dist" depends="compile" description="generate the distribution">
+  <!--<target name="dist" depends="compile" description="generate the distribution">
     <jar jarfile="${dist}/io-takamaka-code-${version}.jar" basedir="${build}"/>
-  </target>
+  </target>-->
 
   <target name="dist Java 8" depends="compile Java 8" description="generate the distribution">
 	<jar jarfile="${dist}/io-takamaka-code-${version}.jar" basedir="${build}">

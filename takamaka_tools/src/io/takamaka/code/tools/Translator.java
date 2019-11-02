@@ -1,8 +1,9 @@
-package takamaka.tools;
+package io.takamaka.code.tools;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -20,12 +21,12 @@ import io.takamaka.code.instrumentation.JarInstrumentation;
 import io.takamaka.code.instrumentation.TakamakaClassLoader;
 
 /**
- * A simple test to parse, check and instrument a jar. It performs the same tasks that
+ * A tool that parses, checks and instruments a jar. It performs the same tasks that
  * Takamaka performs when a jar is added to blockchain.
  * 
- * Use for instance like this:
+ * Use it for instance like this:
  * 
- * java Translator -app test_contracts_dependency.jar -lib takamaka_base.jar
+ * java io.takamaka.code.tools.Translator -app test_contracts_dependency.jar -lib takamaka_base.jar
  * 
  * The -lib are the dependencies that should already be in blockchain
  */
@@ -45,6 +46,9 @@ public class Translator {
 	    	for (String appJarName: appJarNames) {
 		    	Path origin = Paths.get(appJarName);
 		    	Path destination = Paths.get(destinationName);
+		    	Path parent = destination.getParent();
+		    	if (parent != null)
+		    		Files.createDirectories(parent);
 
 		    	List<URL> urls = new ArrayList<>();
 		    	urls.add(origin.toUri().toURL());
@@ -54,10 +58,9 @@ public class Translator {
 
 		    	TakamakaClassLoader classLoader = new TakamakaClassLoader(urls.toArray(new URL[urls.size()]));
 		    	JarInstrumentation instrumentation = new JarInstrumentation(origin, destination, classLoader, duringInitialization);
-		    	if (instrumentation.hasErrors()) {
-		    		System.err.println("Verification failed with the following issues, no instrumented jar was generated:");
-		    		instrumentation.issues().forEach(System.err::println);
-		    	}
+		    	instrumentation.issues().forEach(System.err::println);
+		    	if (instrumentation.hasErrors())
+		    		System.err.println("Verification failed because of errors, no instrumented jar was generated");
 		    }
 	    }
 	    catch (ParseException e) {

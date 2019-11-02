@@ -16,14 +16,17 @@
 
   <target name="dist" depends="init" description="generate the distribution">
   	<ant dir="../takamaka_whitelisting" target="dist" />
-  	<ant dir="../takamaka_code" target="dist" />
+  	<!-- The following is compiled with Java 8 since it will only be installed and run in blockchain -->
+  	<ant dir="../takamaka_code" target="dist Java 8" />
   	<ant dir="../takamaka_instrumentation" target="dist" />
+  	<ant dir="../takamaka_tools" target="dist" />
   </target>
 
   <target name="dist Java 8" depends="init" description="generate the distribution for Java 8">
   	<ant dir="../takamaka_whitelisting" target="dist Java 8" />
   	<ant dir="../takamaka_code" target="dist Java 8" />
 	<ant dir="../takamaka_instrumentation" target="dist Java 8" />
+  	<ant dir="../takamaka_tools" target="dist Java 8" />
   </target>
 
 </project>
