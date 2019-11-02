@@ -125,6 +125,7 @@ public class ClassInstrumentation {
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName)
 			.thenComparing(field -> field.getType().toString());
 
+	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.ABSTRACT_TAKAMAKA_NAME);
 	private final static ObjectType STORAGE_OT = new ObjectType(Constants.STORAGE_NAME);
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
@@ -1053,20 +1054,24 @@ public class ClassInstrumentation {
 			Instruction bytecode = ih.getInstruction();
 
 			if (bytecode instanceof InvokeInstruction) {
-				// we compute an estimation of the size of the activation frame for the callee
 				InvokeInstruction invoke = (InvokeInstruction) bytecode;
-				long size = invoke.getArgumentTypes(cpg).length;
-				if (invoke instanceof INVOKEVIRTUAL || invoke instanceof INVOKESPECIAL || invoke instanceof INVOKEINTERFACE)
-					size++;
+				ReferenceType receiver = invoke.getReferenceType(cpg);
+				// we do not count the calls due to instrumentation, such as those for gas metering themselves
+				if (!ABSTRACT_TAKAMAKA_OT.equals(receiver)) {
+					// we compute an estimation of the size of the activation frame for the callee
+					long size = invoke.getArgumentTypes(cpg).length;
+					if (invoke instanceof INVOKEVIRTUAL || invoke instanceof INVOKESPECIAL || invoke instanceof INVOKEINTERFACE)
+						size++;
 
-				// non risk of overflow, since there are at most 256 arguments in a method
-				size *= GasCosts.RAM_COST_PER_ACTIVATION_SLOT;
-				size += GasCosts.RAM_COST_PER_ACTIVATION_RECORD;
+					// non risk of overflow, since there are at most 256 arguments in a method
+					size *= GasCosts.RAM_COST_PER_ACTIVATION_SLOT;
+					size += GasCosts.RAM_COST_PER_ACTIVATION_RECORD;
 
-				InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
-				il.insert(ih, chargeCall(size, "chargeForRAM"));
-				il.redirectBranches(ih, newTarget);
-				il.redirectExceptionHandlers(ceg, ih, newTarget);
+					InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
+					il.insert(ih, chargeCall(size, "chargeForRAM"));
+					il.redirectBranches(ih, newTarget);
+					il.redirectExceptionHandlers(ceg, ih, newTarget);
+				}
 			}
 			else if (bytecode instanceof NEW) {
 				NEW _new = (NEW) bytecode;
