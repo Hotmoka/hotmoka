@@ -89,11 +89,6 @@ public class JarInstrumentation {
 		private final JarFile originalJar;
 
 		/**
-		 * The resulting, instrumented jar file.
-		 */
-		private JarOutputStream instrumentedJar;
-
-		/**
 		 * The class loader that can be used to resolve the classes of the program.
 		 */
 		private final TakamakaClassLoader classLoader;
@@ -134,9 +129,9 @@ public class JarInstrumentation {
 
 				if (!hasErrors())
 					// instrumentation and dump of the class files
-					try (JarOutputStream instrumentedJar = this.instrumentedJar = new JarOutputStream(new FileOutputStream(destination.toFile()))) {
+					try (JarOutputStream instrumentedJar = new JarOutputStream(new FileOutputStream(destination.toFile()))) {
 						// we cannot proceed in parallel since the BCEL library is not thread-safe
-						classes.stream().forEach(this::dumpInstrumentedClass);
+						classes.stream().forEach(clazz -> dumpInstrumentedClass(clazz, instrumentedJar));
 					}
 			}
 			catch (UncheckedIOException e) {
@@ -167,8 +162,9 @@ public class JarInstrumentation {
 		 * Instruments the given class from a jar file.
 		 * 
 		 * @param clazz the class
+		 * @param instrumentedJar the jar where the instrumented class must be dumped
 		 */
-		private void dumpInstrumentedClass(VerifiedClass clazz) {
+		private void dumpInstrumentedClass(VerifiedClass clazz, JarOutputStream instrumentedJar) {
 			try {
 				// add the same entry to the resulting jar
 				instrumentedJar.putNextEntry(new JarEntry(clazz.getClassName().replace('.', '/') + ".class"));
