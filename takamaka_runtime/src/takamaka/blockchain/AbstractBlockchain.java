@@ -35,10 +35,6 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.bcel.Repository;
-import org.apache.bcel.util.ClassPath;
-import org.apache.bcel.util.SyntheticRepository;
-
 import io.takamaka.code.instrumentation.Dummy;
 import io.takamaka.code.instrumentation.JarInstrumentation;
 import io.takamaka.code.instrumentation.TakamakaClassLoader;
@@ -438,9 +434,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			// we create a temporary file to hold the instrumented jar
 			Path instrumented = Files.createTempFile("instrumented", ".jar");
-			// we keep the BCEL repository to a minimum
-			String appendedClassPath = original.toString();
-			Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 				JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader, true);
 				if (instrumentation.hasErrors())
@@ -531,12 +524,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 					// we create a temporary file to hold the instrumented jar
 					Path instrumented = Files.createTempFile("instrumented", ".jar");
 
-					// we set the BCEL repository so that it matches the class path made up of the jar to
-					// instrument and its dependencies. This is important since class instrumentation will use
-					// the repository to infer least common supertypes during type inference, hence the
-					// whole hierarchy of classes must be available to BCEL through its repository
-					String appendedClassPath = classLoader.getOrigins().map(URL::getFile).collect(Collectors.joining(":", original.toString() + ":", ""));
-					Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 						JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader, false);
 						if (instrumentation.hasErrors())

@@ -7,7 +7,12 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.bcel.Repository;
+import org.apache.bcel.util.ClassPath;
+import org.apache.bcel.util.SyntheticRepository;
 
 import io.takamaka.code.instrumentation.internal.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
@@ -42,6 +47,13 @@ public class TakamakaClassLoader implements ResolvingClassLoader {
 	 * Builds a class loader with the given URLs.
 	 */
 	public TakamakaClassLoader(URL[] urls) {
+		// we set the BCEL repository so that it matches the class path made up of the jar to
+		// instrument and its dependencies. This is important since class instrumentation will use
+		// the repository to infer least common supertypes during type inference, hence the
+		// whole hierarchy of classes must be available to BCEL through its repository
+		String appendedClassPath = Stream.of(urls).map(URL::getFile).collect(Collectors.joining(":"));
+		Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
+
 		this.parent = ResolvingClassLoader.of(urls);
 
 		try {

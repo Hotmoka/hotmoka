@@ -6,8 +6,7 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_instrumentation"/>
-	<classpathentry kind="lib" path="/takamaka_distribution/libs/bcel-6.2.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
