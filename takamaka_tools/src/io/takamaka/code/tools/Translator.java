@@ -18,7 +18,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import io.takamaka.code.instrumentation.JarInstrumentation;
-import io.takamaka.code.instrumentation.TakamakaClassLoader;
+import io.takamaka.code.verification.TakamakaClassLoader;
 
 /**
  * A tool that parses, checks and instruments a jar. It performs the same tasks that

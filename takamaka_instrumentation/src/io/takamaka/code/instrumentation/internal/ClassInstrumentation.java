@@ -82,9 +82,12 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.Dummy;
-import io.takamaka.code.instrumentation.TakamakaClassLoader;
+import io.takamaka.code.verification.Bootstraps;
+import io.takamaka.code.verification.Constants;
+import io.takamaka.code.verification.TakamakaClassLoader;
+import io.takamaka.code.verification.VerifiedClass;
+import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
@@ -1637,7 +1640,8 @@ public class ClassInstrumentation {
 				return classLoader.isStorage(receiverClassName)
 						&& classLoader.isLazilyLoaded(fieldType = clazz.bcelToClass.of(fi.getFieldType(cpg)))
 						&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
-			} else if (instruction instanceof PUTFIELD) {
+			}
+			else if (instruction instanceof PUTFIELD) {
 				FieldInstruction fi = (FieldInstruction) instruction;
 				ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
 				String receiverClassName = receiverType.getClassName();
@@ -1645,7 +1649,8 @@ public class ClassInstrumentation {
 				return classLoader.isStorage(receiverClassName)
 						&& classLoader.isLazilyLoaded(fieldType = clazz.bcelToClass.of(fi.getFieldType(cpg)))
 						&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
-			} else
+			}
+			else
 				return false;
 		}
 

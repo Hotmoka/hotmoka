@@ -37,8 +37,8 @@ import java.util.stream.Stream;
 
 import io.takamaka.code.instrumentation.Dummy;
 import io.takamaka.code.instrumentation.JarInstrumentation;
-import io.takamaka.code.instrumentation.TakamakaClassLoader;
-import io.takamaka.code.instrumentation.VerificationException;
+import io.takamaka.code.verification.TakamakaClassLoader;
+import io.takamaka.code.verification.VerificationException;
 import takamaka.blockchain.request.AbstractJarStoreTransactionRequest;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;

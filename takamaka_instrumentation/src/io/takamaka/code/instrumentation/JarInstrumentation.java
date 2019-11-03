@@ -17,8 +17,10 @@ import java.util.stream.Stream;
 import org.apache.bcel.classfile.ClassParser;
 
 import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
-import io.takamaka.code.instrumentation.internal.VerifiedClass;
-import io.takamaka.code.instrumentation.issues.Issue;
+import io.takamaka.code.verification.TakamakaClassLoader;
+import io.takamaka.code.verification.VerificationException;
+import io.takamaka.code.verification.VerifiedClass;
+import io.takamaka.code.verification.issues.Issue;
 
 /**
  * An instrumenter of a jar file. It generates another jar file that
@@ -62,10 +64,10 @@ public class JarInstrumentation {
 	/**
 	 * Yields the first error (hence not a warning) that occurred during the verification of the origin jar.
 	 */
-	public Optional<io.takamaka.code.instrumentation.issues.Error> getFirstError() {
+	public Optional<io.takamaka.code.verification.issues.Error> getFirstError() {
 		return issues()
-			.filter(issue -> issue instanceof io.takamaka.code.instrumentation.issues.Error)
-			.map(issue -> (io.takamaka.code.instrumentation.issues.Error) issue)
+			.filter(issue -> issue instanceof io.takamaka.code.verification.issues.Error)
+			.map(issue -> (io.takamaka.code.verification.issues.Error) issue)
 			.findFirst();
 	}
 
