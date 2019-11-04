@@ -39,6 +39,7 @@ import io.takamaka.code.instrumentation.Dummy;
 import io.takamaka.code.instrumentation.JarInstrumentation;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerificationException;
+import io.takamaka.code.verification.VerifiedJar;
 import takamaka.blockchain.request.AbstractJarStoreTransactionRequest;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
@@ -435,9 +436,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 			// we create a temporary file to hold the instrumented jar
 			Path instrumented = Files.createTempFile("instrumented", ".jar");
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-				JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader, true);
-				if (instrumentation.hasErrors())
-					throw new VerificationException(instrumentation.getFirstError().get());
+				VerifiedJar verifiedJar = new VerifiedJar(original, jarClassLoader, true);
+				if (verifiedJar.hasErrors())
+					throw new VerificationException(verifiedJar.getFirstError().get());
+				new JarInstrumentation(verifiedJar, instrumented);
 			}
 
 			byte[] instrumentedBytes = Files.readAllBytes(instrumented);
@@ -525,9 +527,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 					Path instrumented = Files.createTempFile("instrumented", ".jar");
 
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-						JarInstrumentation instrumentation = new JarInstrumentation(original, instrumented, jarClassLoader, false);
-						if (instrumentation.hasErrors())
-							throw new VerificationException(instrumentation.getFirstError().get());
+						VerifiedJar verifiedJar = new VerifiedJar(original, jarClassLoader, false);
+						if (verifiedJar.hasErrors())
+							throw new VerificationException(verifiedJar.getFirstError().get());
+						new JarInstrumentation(verifiedJar, instrumented);
 					}
 
 					byte[] instrumentedBytes = Files.readAllBytes(instrumented);

@@ -19,6 +19,7 @@ import org.apache.commons.cli.ParseException;
 
 import io.takamaka.code.instrumentation.JarInstrumentation;
 import io.takamaka.code.verification.TakamakaClassLoader;
+import io.takamaka.code.verification.VerifiedJar;
 
 /**
  * A tool that parses, checks and instruments a jar. It performs the same tasks that
@@ -45,10 +46,6 @@ public class Translator {
 
 	    	for (String appJarName: appJarNames) {
 		    	Path origin = Paths.get(appJarName);
-		    	Path destination = Paths.get(destinationName);
-		    	Path parent = destination.getParent();
-		    	if (parent != null)
-		    		Files.createDirectories(parent);
 
 		    	List<URL> urls = new ArrayList<>();
 		    	urls.add(origin.toUri().toURL());
@@ -57,10 +54,18 @@ public class Translator {
 		    			urls.add(new File(lib).toURI().toURL());
 
 		    	TakamakaClassLoader classLoader = new TakamakaClassLoader(urls.toArray(new URL[urls.size()]));
-		    	JarInstrumentation instrumentation = new JarInstrumentation(origin, destination, classLoader, duringInitialization);
-		    	instrumentation.issues().forEach(System.err::println);
-		    	if (instrumentation.hasErrors())
+		    	VerifiedJar verifiedJar = new VerifiedJar(origin, classLoader, duringInitialization);
+		    	verifiedJar.issues().forEach(System.err::println);
+		    	if (verifiedJar.hasErrors())
 		    		System.err.println("Verification failed because of errors, no instrumented jar was generated");
+		    	else {
+		    		Path destination = Paths.get(destinationName);
+			    	Path parent = destination.getParent();
+			    	if (parent != null)
+			    		Files.createDirectories(parent);
+
+			    	new JarInstrumentation(verifiedJar, destination);
+		    	}
 		    }
 	    }
 	    catch (ParseException e) {
