@@ -20,7 +20,7 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClas
 		verification.super();
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
-			boolean wasPayable = clazz.annotations.isPayable(className, methodName, methodArgs, methodReturnType);
+			boolean wasPayable = annotations.isPayable(className, methodName, methodArgs, methodReturnType);
 	
 			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 				isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), wasPayable);
@@ -31,9 +31,9 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClas
 	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable) {
 		if (Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == this.clazz.bcelToClass.of(methodReturnType)
-						&& Arrays.equals(m.getParameterTypes(), this.clazz.bcelToClass.of(methodArgs)))
-				.anyMatch(m -> wasPayable != this.clazz.annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
+						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
+						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
+				.anyMatch(m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
 			issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();

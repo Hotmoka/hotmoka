@@ -22,7 +22,6 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.VerifiedClass;
 import io.takamaka.code.verification.issues.IllegalCallToEntryError;
 
@@ -54,7 +53,6 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClass.ClassV
 		Set<MethodGen> lambdasReachableFromStaticMethods = new HashSet<>();
 
 		// we initially compute the set of all lambdas
-		Bootstraps bootstraps = clazz.bootstraps;
 		Set<MethodGen> lambdas = bootstraps.getBootstraps()
 			.map(bootstraps::getLambdaFor)
 			.filter(Optional::isPresent)
@@ -84,8 +82,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClass.ClassV
 
 	private void addLambdasReachableFromStatic(MethodGen method, Set<MethodGen> lambdasReachableFromStaticMethods) {
 		InstructionList instructions = method.getInstructionList();
-		if (instructions != null) {
-			Bootstraps bootstraps = clazz.bootstraps;
+		if (instructions != null)
 			StreamSupport.stream(instructions.spliterator(), false)
 				.map(InstructionHandle::getInstruction)
 				.filter(instruction -> instruction instanceof INVOKEDYNAMIC)
@@ -95,7 +92,6 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClass.ClassV
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.forEach(lambdasReachableFromStaticMethods::add);
-		}
 	}
 
 	/**
@@ -107,15 +103,13 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClass.ClassV
 	private boolean callsEntry(InstructionHandle ih) {
 		Instruction instruction = ih.getInstruction();
 		
-		if (instruction instanceof INVOKEDYNAMIC) {
-			Bootstraps bootstraps = clazz.bootstraps;
+		if (instruction instanceof INVOKEDYNAMIC)
 			return bootstraps.lambdaIsEntry(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
-		}
 		else if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC)) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				clazz.annotations.isEntryPossiblyAlreadyInstrumented
+				annotations.isEntryPossiblyAlreadyInstrumented
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 		else
@@ -132,7 +126,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClass.ClassV
 		Instruction instruction = ih.getInstruction();
 
 		if (instruction instanceof INVOKEDYNAMIC) {
-			BootstrapMethod bootstrap = clazz.bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction);
+			BootstrapMethod bootstrap = bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction);
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());

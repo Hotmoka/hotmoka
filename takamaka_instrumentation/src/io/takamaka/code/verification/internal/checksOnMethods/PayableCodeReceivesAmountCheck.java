@@ -16,7 +16,7 @@ public class PayableCodeReceivesAmountCheck extends VerifiedClass.ClassVerificat
 	public PayableCodeReceivesAmountCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
 		verification.super();
 
-		if (clazz.annotations.isPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())
+		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())
 			issue(new PayableWithoutAmountError(inferSourceFile(), methodName));
 	}
 

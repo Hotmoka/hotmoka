@@ -43,6 +43,11 @@ public class Bootstraps {
 	private final VerifiedClass clazz;
 
 	/**
+	 * The constant pool of the class whose bootstraps are considered.
+	 */
+	private final ConstantPoolGen cpg;
+
+	/**
 	 * The bootstrap methods of the class.
 	 */
 	private final BootstrapMethod[] bootstrapMethods;
@@ -56,6 +61,7 @@ public class Bootstraps {
 
 	Bootstraps(VerifiedClass clazz) {
 		this.clazz = clazz;
+		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
 		collectBootstrapsLeadingToEntries();
 	}
@@ -68,8 +74,6 @@ public class Bootstraps {
 	 */
 	public boolean lambdaIsEntry(BootstrapMethod bootstrap) {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
-			ConstantPoolGen cpg = clazz.getConstantPool();
-
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			if (constant instanceof ConstantMethodHandle) {
 				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
@@ -82,7 +86,7 @@ public class Bootstraps {
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-					return clazz.annotations.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
+					return clazz.jar.annotations.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
 				}
 			}
 		};
@@ -116,7 +120,7 @@ public class Bootstraps {
 	 * @return the bootstrap method
 	 */
 	public BootstrapMethod getBootstrapFor(INVOKEDYNAMIC invokedynamic) {
-		ConstantInvokeDynamic cid = (ConstantInvokeDynamic) clazz.getConstantPool().getConstant(invokedynamic.getIndex());
+		ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
 		return bootstrapMethods[cid.getBootstrapMethodAttrIndex()];
 	}
 
@@ -128,8 +132,6 @@ public class Bootstraps {
 	 * @return the target called method or constructor
 	 */
 	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) {
-		ConstantPoolGen cpg = clazz.getConstantPool();
-
 		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
 		if (constant instanceof ConstantMethodHandle) {
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
@@ -158,7 +160,6 @@ public class Bootstraps {
 	 */
 	public Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap) {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
-			ConstantPoolGen cpg = clazz.getConstantPool();
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			if (constant instanceof ConstantMethodHandle) {
 				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
@@ -184,8 +185,6 @@ public class Bootstraps {
 	}
 
 	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) {
-		ConstantPoolGen cpg = clazz.getConstantPool();
-
 		if ("java.lang.invoke.LambdaMetafactory".equals(className) &&
 				"metafactory".equals(methodName) &&
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {
@@ -202,8 +201,8 @@ public class Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.bcelToClass.of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
 						return clazz.resolver.resolveConstructorWithPossiblyExpandedArgs(className2, args);
@@ -217,8 +216,8 @@ public class Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.bcelToClass.of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
 	
 					return clazz.resolver.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
@@ -292,10 +291,9 @@ public class Bootstraps {
 			return bootstrapMethodsLeadingToEntries.contains(getBootstrapFor((INVOKEDYNAMIC) instruction));
 		else if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC)) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
-			ConstantPoolGen cpg = clazz.getConstantPool();
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				clazz.annotations.isEntryPossiblyAlreadyInstrumented
+				clazz.jar.annotations.isEntryPossiblyAlreadyInstrumented
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 		else

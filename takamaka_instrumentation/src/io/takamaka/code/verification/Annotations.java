@@ -15,24 +15,24 @@ import io.takamaka.code.instrumentation.Dummy;
 import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
 
 /**
- * A utility to check the annotations of the methods in a given class.
+ * A utility to check the annotations of the methods in a given jar.
  */
 public class Annotations {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
 	/**
-	 * The class whose annotations are considered.
+	 * The jar whose annotations are considered.
 	 */
-	private final VerifiedClass clazz;
+	private final VerifiedJar jar;
 
 	/**
 	 * Builds the utility object.
 	 * 
-	 * @param clazz the class whose annotations are considered 
+	 * @param clazz the jar whose annotations are considered 
 	 */
-	Annotations(VerifiedClass clazz) {
-		this.clazz = clazz;
+	Annotations(VerifiedJar jar) {
+		this.jar = jar;
 	}
 
 	/**
@@ -87,7 +87,7 @@ public class Annotations {
 				return Optional.empty();
 			}
 
-			return Optional.of(contractClass != null && contractClass != Object.class ? contractClass : clazz.classLoader.contractClass);
+			return Optional.of(contractClass != null && contractClass != Object.class ? contractClass : jar.classLoader.contractClass);
 		}
 
 		return Optional.empty();
@@ -136,10 +136,10 @@ public class Annotations {
 	}
 
 	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) {
-		Class<?>[] formalsClass = Stream.of(formals).map(clazz.bcelToClass::of).toArray(Class[]::new);
+		Class<?>[] formalsClass = Stream.of(formals).map(jar.bcelToClass::of).toArray(Class[]::new);
 
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() ->
-			Stream.of(clazz.classLoader.loadClass(className).getDeclaredConstructors())
+			Stream.of(jar.classLoader.loadClass(className).getDeclaredConstructors())
 				.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), formalsClass))
 				.flatMap(constructor -> Stream.of(constructor.getAnnotations()))
 				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
@@ -147,11 +147,11 @@ public class Annotations {
 	}
 
 	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) {
-		Class<?> returnTypeClass = clazz.bcelToClass.of(returnType);
-		Class<?>[] formalsClass = Stream.of(formals).map(clazz.bcelToClass::of).toArray(Class[]::new);
+		Class<?> returnTypeClass = jar.bcelToClass.of(returnType);
+		Class<?>[] formalsClass = Stream.of(formals).map(jar.bcelToClass::of).toArray(Class[]::new);
 
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Class<?> clazz = this.clazz.classLoader.loadClass(className);
+			Class<?> clazz = jar.classLoader.loadClass(className);
 			Optional<Method> definition = Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
 				.findFirst();

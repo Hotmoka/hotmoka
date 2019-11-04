@@ -18,6 +18,22 @@ import io.takamaka.code.verification.issues.Issue;
 public class VerifiedJar {
 
 	/**
+	 * The class loader used to load this jar.
+	 */
+	public final TakamakaClassLoader classLoader;
+
+	/**
+	 * The utility that can be used to transform BCEL types into their corresponding
+	 * Java class tag, by using the class loader of this jar.
+	 */
+	public final BcelToClass bcelToClass = new BcelToClass(this);
+
+	/**
+	 * The utility that knows about the annotations of the methods in this jar.
+	 */
+	public final Annotations annotations = new Annotations(this);
+
+	/**
 	 * The class of the jar that passed verification.
 	 */
 	private final SortedSet<VerifiedClass> classes = new TreeSet<>();
@@ -40,7 +56,9 @@ public class VerifiedJar {
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 */
 	public VerifiedJar(Path origin, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
-		new Initializer(origin, classLoader, duringInitialization);
+		this.classLoader = classLoader;
+
+		new Initializer(origin, duringInitialization);
 	}
 
 	/**
@@ -91,11 +109,6 @@ public class VerifiedJar {
 		private final JarFile originalJar;
 
 		/**
-		 * The class loader that can be used to resolve the classes of the program.
-		 */
-		private final TakamakaClassLoader classLoader;
-
-		/**
 		 * True if and only if the code instrumentation occurs during.
 		 * blockchain initialization.
 		 */
@@ -106,12 +119,9 @@ public class VerifiedJar {
 		 * Performs the instrumentation of the given jar file into another jar file.
 		 * 
 		 * @param origin the jar file to instrument
-		 * @param classLoader the class loader that can be used to resolve the classes of the program,
-		 *                    including those of {@code origin}
 		 * @param duringInitialization true if and only if the instrumentation is performed during blockchain initialization
 		 */
-		private Initializer(Path origin, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
-			this.classLoader = classLoader;
+		private Initializer(Path origin, boolean duringInitialization) throws IOException {
 			this.duringInitialization = duringInitialization;
 
 			// parsing and verification of the class files
@@ -138,7 +148,7 @@ public class VerifiedJar {
 		private Optional<VerifiedClass> buildVerifiedClass(JarEntry entry) {
 			try (InputStream input = originalJar.getInputStream(entry)) {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClass(new ClassParser(input, entry.getName()).parse(), classLoader, issues::add, duringInitialization));
+				return Optional.of(new VerifiedClass(new ClassParser(input, entry.getName()).parse(), VerifiedJar.this, issues::add, duringInitialization));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

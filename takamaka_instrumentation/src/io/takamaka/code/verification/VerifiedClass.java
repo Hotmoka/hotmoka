@@ -53,15 +53,9 @@ import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass> {
 
 	/**
-	 * The class loader used to load this class and the other classes of the program it belongs to.
+	 * The jar this class belongs to.
 	 */
-	public final TakamakaClassLoader classLoader;
-
-	/**
-	 * The utility that can be used to transform BCEL types into their corresponding
-	 * Java class tag, by using the class loader of this class.
-	 */
-	public final BcelToClass bcelToClass;
+	public final VerifiedJar jar;
 
 	/**
 	 * The utility about the lambda bootstraps contained in this class.
@@ -74,11 +68,6 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	public final Resolver resolver;
 
 	/**
-	 * The utility that knows about the annotations in the methods of this class.
-	 */
-	public final Annotations annotations;
-
-	/**
 	 * A methods of this class, in editable version.
 	 */
 	private final Set<MethodGen> methods;
@@ -87,18 +76,16 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	 * Builds and verify a class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
-	 * @param classLoader the Takamaka class loader for the context of the class
+	 * @param jar the jar this class belongs to
 	 * @param issueHandler the handler that is notified of every verification error or warning
 	 * @param duringInitialization true if and only if the class is built during blockchain initialization
 	 * @throws VefificationException if the class could not be verified
 	 */
-	public VerifiedClass(JavaClass clazz, TakamakaClassLoader classLoader, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
+	public VerifiedClass(JavaClass clazz, VerifiedJar jar, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 		super(clazz);
 
 		this.methods = Stream.of(getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).collect(Collectors.toSet());
-		this.classLoader = classLoader;
-		this.bcelToClass = new BcelToClass(this);
-		this.annotations = new Annotations(this);
+		this.jar = jar;
 		this.bootstraps = new Bootstraps(this);
 		this.resolver = new Resolver(this);
 
@@ -120,7 +107,7 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
 	public Field whiteListingModelOf(FieldInstruction fi) {
-		return classLoader.getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
+		return jar.classLoader.getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
 	}
 
 	/**
@@ -159,10 +146,10 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
 		if (executable instanceof Constructor<?>)
 			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable)));
+				(() -> checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable)));
 		else
 			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable)));
+				(() -> checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable)));
 	}
 
 	/**
@@ -238,7 +225,10 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 
 		public abstract class Check {
 			protected final VerifiedClass clazz = VerifiedClass.this;
-			protected final TakamakaClassLoader classLoader = clazz.classLoader;
+			protected final TakamakaClassLoader classLoader = jar.classLoader;
+			protected final Bootstraps bootstraps = clazz.bootstraps;
+			protected final Annotations annotations = jar.annotations;
+			protected final BcelToClass bcelToClass = jar.bcelToClass;
 			protected final boolean duringInitialization = ClassVerification.this.duringInitialization;
 			protected final String className = getClassName();
 			protected final ConstantPoolGen cpg = getConstantPool();

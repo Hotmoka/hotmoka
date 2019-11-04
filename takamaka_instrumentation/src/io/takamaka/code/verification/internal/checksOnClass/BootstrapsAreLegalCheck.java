@@ -1,6 +1,5 @@
 package io.takamaka.code.verification.internal.checksOnClass;
 
-import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.VerifiedClass;
 import io.takamaka.code.verification.issues.IllegalBootstrapMethodError;
 
@@ -12,7 +11,6 @@ public class BootstrapsAreLegalCheck extends VerifiedClass.ClassVerification.Che
 	public BootstrapsAreLegalCheck(VerifiedClass.ClassVerification verification) {
 		verification.super();
 
-		Bootstraps bootstraps = clazz.bootstraps;
 		bootstraps.getBootstraps()
 			.map(bootstraps::getTargetOf)
 			.filter(target -> !target.isPresent())

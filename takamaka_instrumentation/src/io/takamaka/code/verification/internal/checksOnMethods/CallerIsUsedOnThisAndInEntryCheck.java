@@ -22,7 +22,7 @@ public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClass.ClassVerifi
 	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
 		verification.super();
 
-		boolean isEntry = clazz.annotations.isEntry(className, methodName, methodArgs, methodReturnType).isPresent();
+		boolean isEntry = annotations.isEntry(className, methodName, methodArgs, methodReturnType).isPresent();
 
 		instructions()
 			.filter(this::isCallToContractCaller)

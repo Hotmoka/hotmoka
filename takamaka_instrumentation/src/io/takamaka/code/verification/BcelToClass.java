@@ -16,17 +16,17 @@ import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
 public class BcelToClass {
 
 	/**
-	 * The class with whose class loader the transformation is performed.
+	 * The jar with whose class loader the transformation is performed.
 	 */
-	private final VerifiedClass clazz;
+	private final VerifiedJar jar;
 
 	/**
 	 * Builds the utility object.
 	 * 
-	 * @param clazz the class for whose class loader the transformation is performed
+	 * @param jar the jar for whose class loader the transformation is performed
 	 */
-	BcelToClass(VerifiedClass clazz) {
-		this.clazz = clazz;
+	BcelToClass(VerifiedJar jar) {
+		this.jar = jar;
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class BcelToClass {
 		else if (type == BasicType.VOID)
 			return void.class;
 		else if (type instanceof ObjectType)
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> clazz.classLoader.loadClass(type.toString()));
+			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> jar.classLoader.loadClass(type.toString()));
 		else { // array
 			Class<?> elementsClass = of(((ArrayType) type).getElementType());
 			// trick: we build an array of 0 elements just to access its class token

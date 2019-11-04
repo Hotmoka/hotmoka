@@ -20,7 +20,7 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends Verifie
 		verification.super();
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
-			boolean wasThrowsExceptions = clazz.annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);
+			boolean wasThrowsExceptions = annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);
 	
 			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 				isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), wasThrowsExceptions);
@@ -31,9 +31,9 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends Verifie
 	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions) {
 		if (Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == this.clazz.bcelToClass.of(methodReturnType)
-						&& Arrays.equals(m.getParameterTypes(), this.clazz.bcelToClass.of(methodArgs)))
-				.anyMatch(m -> wasThrowsExceptions != this.clazz.annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
+						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
+						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
+				.anyMatch(m -> wasThrowsExceptions != annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
 			issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();
