@@ -247,7 +247,7 @@ public class ClassInstrumentation {
 		private Initializer(VerifiedClass clazz) {
 			this.clazz = clazz;
 			this.className = clazz.getClassName();
-			this.classLoader = clazz.jar.classLoader;
+			this.classLoader = clazz.jar.getClassLoader();
 			this.cpg = clazz.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
 			this.isStorage = !Constants.STORAGE_NAME.equals(className) && classLoader.isStorage(className);
@@ -581,9 +581,9 @@ public class ClassInstrumentation {
 			addContractToCallsToEntries(methodGen);
 
 			Optional<Class<?>> callerContract;
-			if (isContract && (callerContract = clazz.jar.annotations.isEntry(className, method.getName(),
+			if (isContract && (callerContract = clazz.jar.getAnnotations().isEntry(className, method.getName(),
 					method.getArgumentTypes(), method.getReturnType())).isPresent())
-				instrumentEntry(methodGen, callerContract.get(), clazz.jar.annotations.isPayable(className, method.getName(),
+				instrumentEntry(methodGen, callerContract.get(), clazz.jar.getAnnotations().isPayable(className, method.getName(),
 						method.getArgumentTypes(), method.getReturnType()));
 
 			addGasUpdates(methodGen);
@@ -1394,7 +1394,7 @@ public class ClassInstrumentation {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
 				ReferenceType receiver = invoke.getReferenceType(cpg);
 				if (receiver instanceof ObjectType)
-					return clazz.jar.annotations.isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
+					return clazz.jar.getAnnotations().isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
 						invoke.getMethodName(cpg), invoke.getSignature(cpg));
 			}
 
@@ -1638,7 +1638,7 @@ public class ClassInstrumentation {
 				String receiverClassName = receiverType.getClassName();
 				Class<?> fieldType;
 				return classLoader.isStorage(receiverClassName)
-						&& classLoader.isLazilyLoaded(fieldType = clazz.jar.bcelToClass.of(fi.getFieldType(cpg)))
+						&& classLoader.isLazilyLoaded(fieldType = clazz.jar.getBcelToClass().of(fi.getFieldType(cpg)))
 						&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
 			}
 			else if (instruction instanceof PUTFIELD) {
@@ -1647,7 +1647,7 @@ public class ClassInstrumentation {
 				String receiverClassName = receiverType.getClassName();
 				Class<?> fieldType;
 				return classLoader.isStorage(receiverClassName)
-						&& classLoader.isLazilyLoaded(fieldType = clazz.jar.bcelToClass.of(fi.getFieldType(cpg)))
+						&& classLoader.isLazilyLoaded(fieldType = clazz.jar.getBcelToClass().of(fi.getFieldType(cpg)))
 						&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
 			}
 			else

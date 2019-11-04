@@ -3,7 +3,7 @@ package io.takamaka.code.verification;
 /**
  * A collector of constants used in the instrumented code.
  */
-public class Constants {
+public interface Constants {
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.

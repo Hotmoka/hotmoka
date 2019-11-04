@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.classfile.ClassParser;
 
+import io.takamaka.code.verification.internal.AnnotationsImpl;
 import io.takamaka.code.verification.issues.Issue;
 
 public class VerifiedJar {
@@ -20,18 +21,18 @@ public class VerifiedJar {
 	/**
 	 * The class loader used to load this jar.
 	 */
-	public final TakamakaClassLoader classLoader;
+	private final TakamakaClassLoader classLoader;
 
 	/**
-	 * The utility that can be used to transform BCEL types into their corresponding
+	 * The utility object that can be used to transform BCEL types into their corresponding
 	 * Java class tag, by using the class loader of this jar.
 	 */
-	public final BcelToClass bcelToClass = new BcelToClass(this);
+	private final BcelToClass bcelToClass = new BcelToClass(this);
 
 	/**
 	 * The utility that knows about the annotations of the methods in this jar.
 	 */
-	public final Annotations annotations = new Annotations(this);
+	private final Annotations annotations = new AnnotationsImpl(this);
 
 	/**
 	 * The class of the jar that passed verification.
@@ -96,6 +97,34 @@ public class VerifiedJar {
 	 */
 	public Stream<Issue> issues() {
 		return issues.stream();
+	}
+
+	/**
+	 * Yields the class loader used to load this jar.
+	 * 
+	 * @return the class loader
+	 */
+	public TakamakaClassLoader getClassLoader() {
+		return classLoader;
+	}
+
+	/**
+	 * Yields the utility object that can be used to check the annotations in the methods in this jar.
+	 * 
+	 * @return the utility object
+	 */
+	public Annotations getAnnotations() {
+		return annotations;
+	}
+
+	/**
+	 * Yields the utility object that can be used to transform BCEL types into their corresponding
+	 * Java class tag, by using the class loader of this jar.
+	 * 
+	 * @return the utility object
+	 */
+	public BcelToClass getBcelToClass() {
+		return bcelToClass;
 	}
 
 	/**

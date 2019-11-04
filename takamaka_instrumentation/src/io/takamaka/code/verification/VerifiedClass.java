@@ -24,6 +24,8 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.verification.internal.BootstrapsImpl;
+import io.takamaka.code.verification.internal.ResolverImpl;
 import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnClass.EntriesAreOnlyCalledFromContractsCheck;
@@ -58,7 +60,7 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	public final VerifiedJar jar;
 
 	/**
-	 * The utility about the lambda bootstraps contained in this class.
+	 * The utility object that knows about the lambda bootstraps contained in this class.
 	 */
 	public final Bootstraps bootstraps;
 
@@ -86,8 +88,8 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 
 		this.methods = Stream.of(getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).collect(Collectors.toSet());
 		this.jar = jar;
-		this.bootstraps = new Bootstraps(this);
-		this.resolver = new Resolver(this);
+		this.bootstraps = new BootstrapsImpl(this);
+		this.resolver = new ResolverImpl(this);
 
 		new ClassVerification(issueHandler, duringInitialization);
 	}
@@ -107,7 +109,7 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
 	public Field whiteListingModelOf(FieldInstruction fi) {
-		return jar.classLoader.getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
+		return jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
 	}
 
 	/**
@@ -146,10 +148,10 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
 		if (executable instanceof Constructor<?>)
 			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable)));
+				(() -> checkINVOKESPECIAL(invoke, jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable)));
 		else
 			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable)));
+				(() -> checkINVOKESPECIAL(invoke, jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Method) executable)));
 	}
 
 	/**
@@ -225,10 +227,10 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 
 		public abstract class Check {
 			protected final VerifiedClass clazz = VerifiedClass.this;
-			protected final TakamakaClassLoader classLoader = jar.classLoader;
+			protected final TakamakaClassLoader classLoader = jar.getClassLoader();
 			protected final Bootstraps bootstraps = clazz.bootstraps;
-			protected final Annotations annotations = jar.annotations;
-			protected final BcelToClass bcelToClass = jar.bcelToClass;
+			protected final Annotations annotations = jar.getAnnotations();
+			protected final BcelToClass bcelToClass = jar.getBcelToClass();
 			protected final boolean duringInitialization = ClassVerification.this.duringInitialization;
 			protected final String className = getClassName();
 			protected final ConstantPoolGen cpg = getConstantPool();

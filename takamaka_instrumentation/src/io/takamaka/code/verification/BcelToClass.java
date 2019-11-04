@@ -55,7 +55,7 @@ public class BcelToClass {
 		else if (type == BasicType.VOID)
 			return void.class;
 		else if (type instanceof ObjectType)
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> jar.classLoader.loadClass(type.toString()));
+			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> jar.getClassLoader().loadClass(type.toString()));
 		else { // array
 			Class<?> elementsClass = of(((ArrayType) type).getElementType());
 			// trick: we build an array of 0 elements just to access its class token
