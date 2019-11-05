@@ -1,90 +1,37 @@
 package io.takamaka.code.verification;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.math.BigInteger;
 import java.net.URL;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.apache.bcel.Repository;
-import org.apache.bcel.util.ClassPath;
-import org.apache.bcel.util.SyntheticRepository;
-
-import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.TakamakaClassLoaderImpl;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
-import io.takamaka.code.whitelisting.WhiteListingWizard;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.
  */
-public class TakamakaClassLoader implements ResolvingClassLoader {
-
-	/**
-	 * The decorated resolving class loader.
-	 */
-	private final ResolvingClassLoader parent;
-
-	/**
-	 * The class token of the contract class.
-	 */
-	public final Class<?> contractClass;
-
-	/**
-	 * The class token of the externally owned account class.
-	 */
-	public final Class<?> externallyOwnedAccount;
-
-	/**
-	 * The class token of the storage class.
-	 */
-	public final Class<?> storageClass;
+public interface TakamakaClassLoader extends ResolvingClassLoader {
 
 	/**
 	 * Builds a class loader with the given URLs.
 	 */
-	public TakamakaClassLoader(URL[] urls) {
-		// we set the BCEL repository so that it matches the class path made up of the jar to
-		// instrument and its dependencies. This is important since class instrumentation will use
-		// the repository to infer least common supertypes during type inference, hence the
-		// whole hierarchy of classes must be available to BCEL through its repository
-		String appendedClassPath = Stream.of(urls).map(URL::getFile).collect(Collectors.joining(":"));
-		Repository.setRepository(SyntheticRepository.getInstance(new ClassPath(appendedClassPath)));
-
-		this.parent = ResolvingClassLoader.of(urls);
-
-		try {
-			this.contractClass = loadClass(Constants.CONTRACT_NAME);
-			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
-			this.storageClass = loadClass(Constants.STORAGE_NAME);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+	static TakamakaClassLoader of(URL[] urls) {
+		return new TakamakaClassLoaderImpl(urls);
 	}
 
 	/**
-	 * Determines if a class is a storage class.
+	 * Determines if a class is an instance of the storage class.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that class extends {@link takamaka.blockchain.runtime.AbstractStorage}
 	 */
-	public final boolean isStorage(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> storageClass.isAssignableFrom(loadClass(className)));
-	}
+	boolean isStorage(String className);
 
 	/**
-	 * Checks if a class is a contract.
+	 * Checks if a class is an instance of the contract class.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds
 	 */
-	public final boolean isContract(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> contractClass.isAssignableFrom(loadClass(className)));
-	}
+	boolean isContract(String className);
 
 	/**
 	 * Determines if a field of a storage class, having the given field, is lazily loaded.
@@ -92,9 +39,7 @@ public class TakamakaClassLoader implements ResolvingClassLoader {
 	 * @param type the type
 	 * @return true if and only if that condition holds
 	 */
-	public final boolean isLazilyLoaded(Class<?> type) {
-		return !type.isPrimitive() && type != String.class && type != BigInteger.class && !type.isEnum();
-	}
+	boolean isLazilyLoaded(Class<?> type);
 
 	/**
 	 * Determines if a field of a storage class, having the given field, is eagerly loaded.
@@ -102,67 +47,26 @@ public class TakamakaClassLoader implements ResolvingClassLoader {
 	 * @param type the type
 	 * @return true if and only if that condition holds
 	 */
-	public final boolean isEagerlyLoaded(Class<?> type) {
-		return !isLazilyLoaded(type);
-	}
+	boolean isEagerlyLoaded(Class<?> type);
 
-	@Override
-	public final Stream<URL> getOrigins() {
-		return parent.getOrigins();
-	}
+	/**
+	 * Yields the class token of the contract class.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getContract();
 
-	@Override
-	public final WhiteListingWizard getWhiteListingWizard() {
-		return parent.getWhiteListingWizard();
-	}
+	/**
+	 * Yields the class token of the storage class.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getStorage();
 
-	@Override
-	public void close() throws IOException {
-		parent.close();
-	}
-
-	@Override
-	public final Class<?> loadClass(String className) throws ClassNotFoundException {
-		return parent.loadClass(className);
-	}
-
-	@Override
-	public final Optional<Field> resolveField(String className, String name, Class<?> type) throws ClassNotFoundException {
-		return parent.resolveField(className, name, type);
-	}
-
-	@Override
-	public final Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) {
-		return parent.resolveField(clazz, name, type);
-	}
-
-	@Override
-	public final Optional<Constructor<?>> resolveConstructor(String className, Class<?>[] args) throws ClassNotFoundException {
-		return parent.resolveConstructor(className, args);
-	}
-
-	@Override
-	public final Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) {
-		return parent.resolveConstructor(clazz, args);
-	}
-
-	@Override
-	public final Optional<java.lang.reflect.Method> resolveMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		return parent.resolveMethod(className, methodName, args, returnType);
-	}
-
-	@Override
-	public final Optional<java.lang.reflect.Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
-		return parent.resolveMethod(clazz, methodName, args, returnType);
-	}
-
-	@Override
-	public final Optional<Method> resolveInterfaceMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
-		return parent.resolveInterfaceMethod(className, methodName, args, returnType);
-	}
-
-	@Override
-	public final Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
-		return parent.resolveInterfaceMethod(clazz, methodName, args, returnType);
-	}
+	/**
+	 * Yields the class token of the externally owned account class.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getExternallyOwnedAccount();
 }

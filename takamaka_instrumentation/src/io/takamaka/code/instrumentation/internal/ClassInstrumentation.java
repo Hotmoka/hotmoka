@@ -1438,7 +1438,7 @@ public class ClassInstrumentation {
 
 			il.insert(start, InstructionFactory.createThis());
 			il.insert(start, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
-			if (callerContract != classLoader.contractClass)
+			if (callerContract != classLoader.getContract())
 				il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
 			if (isPayable) {
 				// a payable entry method can have a first argument of type int/long/BigInteger
@@ -1676,7 +1676,7 @@ public class ClassInstrumentation {
 
 					clazz = clazz.getSuperclass();
 				}
-				while (clazz != classLoader.storageClass && clazz != classLoader.contractClass);
+				while (clazz != classLoader.getStorage() && clazz != classLoader.getContract());
 
 				return false;
 			});
@@ -1706,7 +1706,7 @@ public class ClassInstrumentation {
 
 					clazz = clazz.getSuperclass();
 				}
-				while (clazz != classLoader.storageClass && clazz != classLoader.contractClass);
+				while (clazz != classLoader.getStorage() && clazz != classLoader.getContract());
 
 				return false;
 			});
@@ -2160,7 +2160,7 @@ public class ClassInstrumentation {
 		}
 
 		private void collectNonTransientInstanceFieldsOf(Class<?> clazz, boolean firstCall) {
-			if (clazz != classLoader.storageClass) {
+			if (clazz != classLoader.getStorage()) {
 				// we put at the beginning the fields of the superclasses
 				collectNonTransientInstanceFieldsOf(clazz.getSuperclass(), false);
 

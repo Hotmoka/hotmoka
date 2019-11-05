@@ -13,7 +13,7 @@ public class EntryCodeIsInstanceAndInContractsCheck extends VerifiedClass.ClassV
 		verification.super();
 
 		annotations.isEntry(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {
-			if (!classLoader.contractClass.isAssignableFrom(tag))
+			if (!classLoader.getContract().isAssignableFrom(tag))
 				issue(new IllegalEntryArgumentError(inferSourceFile(), methodName));
 			if (method.isStatic() || !classLoader.isContract(className))
 				issue(new IllegalEntryMethodError(inferSourceFile(), methodName));

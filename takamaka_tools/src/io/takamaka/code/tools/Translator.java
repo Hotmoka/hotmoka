@@ -53,8 +53,8 @@ public class Translator {
 		    		for (String lib: libJarNames)
 		    			urls.add(new File(lib).toURI().toURL());
 
-		    	TakamakaClassLoader classLoader = new TakamakaClassLoader(urls.toArray(new URL[urls.size()]));
-		    	VerifiedJar verifiedJar = new VerifiedJar(origin, classLoader, duringInitialization);
+		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(urls.toArray(new URL[urls.size()]));
+		    	VerifiedJar verifiedJar = VerifiedJar.of(origin, classLoader, duringInitialization);
 		    	verifiedJar.issues().forEach(System.err::println);
 		    	if (verifiedJar.hasErrors())
 		    		System.err.println("Verification failed because of errors, no instrumented jar was generated");

@@ -40,6 +40,7 @@ import io.takamaka.code.instrumentation.JarInstrumentation;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
+import io.takamaka.code.whitelisting.WhiteListingWizard;
 import takamaka.blockchain.request.AbstractJarStoreTransactionRequest;
 import takamaka.blockchain.request.ConstructorCallTransactionRequest;
 import takamaka.blockchain.request.GameteCreationTransactionRequest;
@@ -436,7 +437,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			// we create a temporary file to hold the instrumented jar
 			Path instrumented = Files.createTempFile("instrumented", ".jar");
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-				VerifiedJar verifiedJar = new VerifiedJar(original, jarClassLoader, true);
+				VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, true);
 				if (verifiedJar.hasErrors())
 					throw new VerificationException(verifiedJar.getFirstError().get());
 				new JarInstrumentation(verifiedJar, instrumented);
@@ -471,9 +472,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-				AbstractStorage gamete = (AbstractStorage) classLoader.externallyOwnedAccount.newInstance();
+				AbstractStorage gamete = (AbstractStorage) classLoader.getExternallyOwnedAccount().newInstance();
 				// we set the balance field of the gamete
-				Field balanceField = classLoader.contractClass.getDeclaredField("balance");
+				Field balanceField = classLoader.getContract().getDeclaredField("balance");
 				balanceField.setAccessible(true); // since the field is private
 				balanceField.set(gamete, request.initialAmount);
 
@@ -527,7 +528,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					Path instrumented = Files.createTempFile("instrumented", ".jar");
 
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-						VerifiedJar verifiedJar = new VerifiedJar(original, jarClassLoader, false);
+						VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, false);
 						if (verifiedJar.hasErrors())
 							throw new VerificationException(verifiedJar.getFirstError().get());
 						new JarInstrumentation(verifiedJar, instrumented);
@@ -1046,7 +1047,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * A class loader used to access the definition of the classes
 	 * of Takamaka methods or constructors executed during a transaction.
 	 */
-	private static class BlockchainClassLoader extends TakamakaClassLoader {
+	private static class BlockchainClassLoader implements TakamakaClassLoader {
+
+		/**
+		 * The parent of this class loader;
+		 */
+		private final TakamakaClassLoader parent;
 
 		/**
 		 * The temporary files that hold the class path for a transaction.
@@ -1060,7 +1066,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @throws Exception if an error occurs
 		 */
 		private BlockchainClassLoader(Classpath classpath, AbstractBlockchain blockchain) throws Exception {
-			super(collectURLs(Stream.of(classpath), blockchain, null));
+			this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), blockchain, null));
 
 			getOrigins().forEach(url -> {
 				try {
@@ -1079,7 +1085,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @throws Exception if an error occurs
 		 */
 		private BlockchainClassLoader(Path jar, Stream<Classpath> dependencies, AbstractBlockchain blockchain) throws Exception {
-			super(collectURLs(dependencies, blockchain, jar.toUri().toURL()));
+			this.parent = TakamakaClassLoader.of(collectURLs(dependencies, blockchain, jar.toUri().toURL()));
 
 			getOrigins().forEach(url -> {
 				try {
@@ -1138,7 +1144,97 @@ public abstract class AbstractBlockchain implements Blockchain {
 			for (Path classpathElement: classpathElements)
 				Files.delete(classpathElement);
 
-			super.close();
+			parent.close();
+		}
+
+		@Override
+		public final Class<?> loadClass(String className) throws ClassNotFoundException {
+			return parent.loadClass(className);
+		}
+
+		@Override
+		public Stream<URL> getOrigins() {
+			return parent.getOrigins();
+		}
+
+		@Override
+		public WhiteListingWizard getWhiteListingWizard() {
+			return parent.getWhiteListingWizard();
+		}
+
+		@Override
+		public Optional<Field> resolveField(String className, String name, Class<?> type) throws ClassNotFoundException {
+			return parent.resolveField(className, name, type);
+		}
+
+		@Override
+		public Optional<Field> resolveField(Class<?> clazz, String name, Class<?> type) {
+			return parent.resolveField(clazz, name, type);
+		}
+
+		@Override
+		public Optional<Constructor<?>> resolveConstructor(String className, Class<?>[] args) throws ClassNotFoundException {
+			return parent.resolveConstructor(className, args);
+		}
+
+		@Override
+		public Optional<Constructor<?>> resolveConstructor(Class<?> clazz, Class<?>[] args) {
+			return parent.resolveConstructor(clazz, args);
+		}
+
+		@Override
+		public Optional<Method> resolveMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+			return parent.resolveMethod(className, methodName, args, returnType);
+		}
+
+		@Override
+		public Optional<Method> resolveMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+			return parent.resolveMethod(clazz, methodName, args, returnType);
+		}
+
+		@Override
+		public Optional<Method> resolveInterfaceMethod(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+			return parent.resolveInterfaceMethod(className, methodName, args, returnType);
+		}
+
+		@Override
+		public Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
+			return parent.resolveInterfaceMethod(clazz, methodName, args, returnType);
+		}
+
+		@Override
+		public boolean isStorage(String className) {
+			return parent.isStorage(className);
+		}
+
+		@Override
+		public boolean isContract(String className) {
+			return parent.isContract(className);
+		}
+
+		@Override
+		public boolean isLazilyLoaded(Class<?> type) {
+			return parent.isLazilyLoaded(type);
+		}
+
+		@Override
+		public boolean isEagerlyLoaded(Class<?> type) {
+			return parent.isEagerlyLoaded(type);
+		}
+
+		@Override
+		public Class<?> getContract() {
+			return parent.getContract();
+		}
+
+		@Override
+		public Class<?> getStorage() {
+			return parent.getStorage();
+		}
+
+		@Override
+		public Class<?> getExternallyOwnedAccount() {
+			return parent.getExternallyOwnedAccount();
 		}
 	}
 
@@ -1280,7 +1376,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
 		BigInteger delta = GasCosts.toCoin(gas);
-		Field balanceField = classLoader.contractClass.getDeclaredField("balance");
+		Field balanceField = classLoader.getContract().getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
 		if (previousBalance.compareTo(delta) < 0)
@@ -1308,7 +1404,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
 		BigInteger delta = GasCosts.toCoin(gas);
-		Field balanceField = classLoader.contractClass.getDeclaredField("balance");
+		Field balanceField = classLoader.getContract().getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
 		BigInteger result = previousBalance.add(delta);
@@ -1325,7 +1421,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 *                                in the class path of the transaction
 	 */
 	private void checkIsExternallyOwned(AbstractStorage object) throws ClassNotFoundException, IllegalTransactionRequestException {
-		if (!classLoader.externallyOwnedAccount.isAssignableFrom(object.getClass()))
+		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(object.getClass()))
 			throw new IllegalTransactionRequestException("Only an externally owned contract can start a transaction");
 	}
 
@@ -1519,7 +1615,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
 				classes.add(type.toClass(AbstractBlockchain.this));
 
-			classes.add(classLoader.contractClass);
+			classes.add(classLoader.getContract());
 			classes.add(Dummy.class);
 
 			return classes.toArray(new Class<?>[classes.size()]);

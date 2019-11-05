@@ -144,7 +144,7 @@ public class ResolverImpl implements Resolver {
 	private Class<?>[] expandArgsForEntry(Class<?>[] args) throws ClassNotFoundException {
 		Class<?>[] expandedArgs = new Class<?>[args.length + 2];
 		System.arraycopy(args, 0, expandedArgs, 0, args.length);
-		expandedArgs[args.length] = clazz.jar.getClassLoader().contractClass;
+		expandedArgs[args.length] = clazz.jar.getClassLoader().getContract();
 		expandedArgs[args.length + 1] = Dummy.class;
 		return expandedArgs;
 	}

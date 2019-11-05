@@ -66,7 +66,7 @@ public interface ResolvingClassLoader extends AutoCloseable {
 	/**
 	 * Yields the field resolved from the given static description.
 	 * 
-	 * @param className the name of the class from the field look-up must start
+	 * @param clazz the class from the field look-up must start
 	 * @param name the name of the field
 	 * @param type the type of the field
 	 * @return the resolved field, if any
@@ -86,7 +86,7 @@ public interface ResolvingClassLoader extends AutoCloseable {
 	/**
 	 * Yields the constructor resolved from the given static description.
 	 * 
-	 * @param className the name of the class declaring the constructor
+	 * @param clazz the class declaring the constructor
 	 * @param args the arguments of the constructor
 	 * @return the resolved constructor, if any
 	 */

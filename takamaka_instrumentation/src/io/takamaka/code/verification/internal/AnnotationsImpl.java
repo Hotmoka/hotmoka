@@ -33,7 +33,7 @@ public class AnnotationsImpl implements Annotations {
 	 * 
 	 * @param clazz the jar whose annotations are considered 
 	 */
-	public AnnotationsImpl(VerifiedJar jar) {
+	AnnotationsImpl(VerifiedJar jar) {
 		this.jar = jar;
 	}
 
@@ -63,7 +63,7 @@ public class AnnotationsImpl implements Annotations {
 				return Optional.empty();
 			}
 
-			return Optional.of(contractClass != null && contractClass != Object.class ? contractClass : jar.getClassLoader().contractClass);
+			return Optional.of(contractClass != null && contractClass != Object.class ? contractClass : jar.getClassLoader().getContract());
 		}
 
 		return Optional.empty();
