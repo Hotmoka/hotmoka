@@ -5,15 +5,15 @@ import java.math.BigInteger;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.verification.VerifiedClass;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.PayableWithoutAmountError;
 
 /**
  * A checks that payable methods have an amount first argument.
  */
-public class PayableCodeReceivesAmountCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class PayableCodeReceivesAmountCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public PayableCodeReceivesAmountCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public PayableCodeReceivesAmountCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())

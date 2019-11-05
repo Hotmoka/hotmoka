@@ -159,7 +159,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private Optional<VerifiedClass> buildVerifiedClass(JarEntry entry) {
 			try (InputStream input = originalJar.getInputStream(entry)) {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClass(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, issues::add, duringInitialization));
+				return Optional.of(VerifiedClass.of(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, issues::add, duringInitialization));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

@@ -85,7 +85,7 @@ public class BootstrapsImpl implements Bootstraps {
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-					return clazz.jar.getAnnotations().isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
+					return clazz.getJar().getAnnotations().isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
 				}
 			}
 		};
@@ -174,15 +174,15 @@ public class BootstrapsImpl implements Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.jar.getBcelToClass().of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.jar.getBcelToClass().of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.getJar().getBcelToClass().of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.getJar().getBcelToClass().of(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
 						//TODO: remove cast
-						return ((ResolverImpl) clazz.resolver).resolveConstructorWithPossiblyExpandedArgs(className2, args);
+						return ((ResolverImpl) clazz.getResolver()).resolveConstructorWithPossiblyExpandedArgs(className2, args);
 					else
 						//TODO: remove cast
-						return ((ResolverImpl) clazz.resolver).resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+						return ((ResolverImpl) clazz.getResolver()).resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 				else if (constant2 instanceof ConstantInterfaceMethodref) {
 					ConstantInterfaceMethodref mr = (ConstantInterfaceMethodref) constant2;
@@ -191,11 +191,11 @@ public class BootstrapsImpl implements Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.jar.getBcelToClass().of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.jar.getBcelToClass().of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.getJar().getBcelToClass().of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.getJar().getBcelToClass().of(Type.getReturnType(methodSignature2));
 
 					//TODO: remove cast
-					return ((ResolverImpl) clazz.resolver).resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+					return ((ResolverImpl) clazz.getResolver()).resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 			}
 		}
@@ -269,7 +269,7 @@ public class BootstrapsImpl implements Bootstraps {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				clazz.jar.getAnnotations().isEntryPossiblyAlreadyInstrumented
+				clazz.getJar().getAnnotations().isEntryPossiblyAlreadyInstrumented
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 		else

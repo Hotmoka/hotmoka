@@ -17,6 +17,7 @@ import org.apache.bcel.util.SyntheticRepository;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.IncompleteClasspathError;
 import io.takamaka.code.verification.TakamakaClassLoader;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 

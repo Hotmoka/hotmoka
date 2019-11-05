@@ -22,15 +22,15 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import io.takamaka.code.verification.VerifiedClass;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalCallToEntryError;
 
 /**
  * A check that {@code @@Entry} methods or constructors are called only from instance methods of contracts.
  */
-public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClass.ClassVerification.Check {
+public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.ClassVerification.Check {
 
-	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClass.ClassVerification verification) {
+	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClassImpl.ClassVerification verification) {
 		verification.super();
 
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call entries

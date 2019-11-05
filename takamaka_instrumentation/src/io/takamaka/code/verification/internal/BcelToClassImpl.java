@@ -9,6 +9,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.verification.BcelToClass;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerifiedJar;
 
 /**

@@ -86,8 +86,8 @@ import io.takamaka.code.instrumentation.Dummy;
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerifiedClass;
-import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
@@ -229,7 +229,7 @@ public class ClassInstrumentation {
 		private final Set<BootstrapMethod> bootstrapMethodsThatWillRequireExtraThis = new HashSet<>();
 
 		/**
-		 * A map from a description of invoke instructions that lead into a white-listed method
+		 * A map from a description of invoke instructions that lead into a white-listed methodVerifiedClass
 		 * with proof obligations into the replacement instruction
 		 * that has been already computed for them. This is used to avoid recomputing
 		 * the replacement for invoke instructions that occur more times inside the same
@@ -247,7 +247,7 @@ public class ClassInstrumentation {
 		private Initializer(VerifiedClass clazz) {
 			this.clazz = clazz;
 			this.className = clazz.getClassName();
-			this.classLoader = clazz.jar.getClassLoader();
+			this.classLoader = clazz.getJar().getClassLoader();
 			this.cpg = clazz.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
 			this.isStorage = !Constants.STORAGE_NAME.equals(className) && classLoader.isStorage(className);
@@ -309,11 +309,11 @@ public class ClassInstrumentation {
 		 * That instruction will be later instrumented during local instrumentation.
 		 */
 		private void instrumentBootstrapsInvokingEntries() {
-			clazz.bootstraps.getBootstrapsLeadingToEntries().forEach(this::instrumentBootstrapCallingEntry);
+			clazz.getBootstraps().getBootstrapsLeadingToEntries().forEach(this::instrumentBootstrapCallingEntry);
 		}
 
 		private void instrumentBootstrapCallingEntry(BootstrapMethod bootstrap) {
-			if (clazz.bootstraps.lambdaIsEntry(bootstrap))
+			if (clazz.getBootstraps().lambdaIsEntry(bootstrap))
 				instrumentLambdaEntry(bootstrap);
 			else
 				instrumentLambdaCallingEntry(bootstrap);
@@ -529,7 +529,8 @@ public class ClassInstrumentation {
 
 			do {
 				newName = "§" + innerName + counter++;
-			} while (Stream.of(methods).map(Method::getName).anyMatch(newName::equals));
+			}
+			while (Stream.of(methods).map(Method::getName).anyMatch(newName::equals));
 
 			return newName;
 		}
@@ -581,9 +582,9 @@ public class ClassInstrumentation {
 			addContractToCallsToEntries(methodGen);
 
 			Optional<Class<?>> callerContract;
-			if (isContract && (callerContract = clazz.jar.getAnnotations().isEntry(className, method.getName(),
+			if (isContract && (callerContract = clazz.getJar().getAnnotations().isEntry(className, method.getName(),
 					method.getArgumentTypes(), method.getReturnType())).isPresent())
-				instrumentEntry(methodGen, callerContract.get(), clazz.jar.getAnnotations().isPayable(className, method.getName(),
+				instrumentEntry(methodGen, callerContract.get(), clazz.getJar().getAnnotations().isPayable(className, method.getName(),
 						method.getArgumentTypes(), method.getReturnType()));
 
 			addGasUpdates(methodGen);
@@ -684,7 +685,7 @@ public class ClassInstrumentation {
 		}
 
 		private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
-			BootstrapMethod bootstrap = clazz.bootstraps.getBootstrapFor(invokedynamic);
+			BootstrapMethod bootstrap = clazz.getBootstraps().getBootstrapFor(invokedynamic);
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
@@ -833,7 +834,7 @@ public class ClassInstrumentation {
 		 */
 		private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
 			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
-			Bootstraps classBootstraps = clazz.bootstraps;
+			Bootstraps classBootstraps = clazz.getBootstraps();
 			InstructionList il = new InstructionList();
 			List<Type> args = new ArrayList<>();
 			BootstrapMethod bootstrap = classBootstraps.getBootstrapFor(invokedynamic);
@@ -1389,12 +1390,12 @@ public class ClassInstrumentation {
 		private boolean isCallToEntry(Instruction instruction) {
 			if (instruction instanceof INVOKEDYNAMIC)
 				return bootstrapMethodsThatWillRequireExtraThis
-					.contains(clazz.bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
+					.contains(clazz.getBootstraps().getBootstrapFor((INVOKEDYNAMIC) instruction));
 			else if (instruction instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) instruction;
 				ReferenceType receiver = invoke.getReferenceType(cpg);
 				if (receiver instanceof ObjectType)
-					return clazz.jar.getAnnotations().isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
+					return clazz.getJar().getAnnotations().isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
 						invoke.getMethodName(cpg), invoke.getSignature(cpg));
 			}
 
@@ -1638,7 +1639,7 @@ public class ClassInstrumentation {
 				String receiverClassName = receiverType.getClassName();
 				Class<?> fieldType;
 				return classLoader.isStorage(receiverClassName)
-						&& classLoader.isLazilyLoaded(fieldType = clazz.jar.getBcelToClass().of(fi.getFieldType(cpg)))
+						&& classLoader.isLazilyLoaded(fieldType = clazz.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
 						&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
 			}
 			else if (instruction instanceof PUTFIELD) {
@@ -1647,7 +1648,7 @@ public class ClassInstrumentation {
 				String receiverClassName = receiverType.getClassName();
 				Class<?> fieldType;
 				return classLoader.isStorage(receiverClassName)
-						&& classLoader.isLazilyLoaded(fieldType = clazz.jar.getBcelToClass().of(fi.getFieldType(cpg)))
+						&& classLoader.isLazilyLoaded(fieldType = clazz.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
 						&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
 			}
 			else

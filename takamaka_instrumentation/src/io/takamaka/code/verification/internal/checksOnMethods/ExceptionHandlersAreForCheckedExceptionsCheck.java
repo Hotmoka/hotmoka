@@ -4,16 +4,16 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ObjectType;
 
-import io.takamaka.code.verification.VerifiedClass;
-import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.UncheckedExceptionHandlerError;
 
 /**
  * A check that the exception handlers of a method are only for checked exceptions.
  */
-public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		for (CodeExceptionGen exc: method.getExceptionHandlers()) {

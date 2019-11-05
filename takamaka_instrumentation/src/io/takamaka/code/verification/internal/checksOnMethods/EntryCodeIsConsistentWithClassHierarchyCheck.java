@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 
-import io.takamaka.code.verification.VerifiedClass;
-import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.InconsistentEntryError;
 
 /**
@@ -16,9 +16,9 @@ import io.takamaka.code.verification.issues.InconsistentEntryError;
  * {@code @@Entry} methods are only redefined by {@code @@Entry} methods. Moreover,
  * the kind of contract allowed in entries can only be enlarged in subclasses.
  */
-public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public EntryCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {

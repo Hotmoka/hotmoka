@@ -12,7 +12,7 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import io.takamaka.code.verification.VerifiedClass;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalAccessToNonWhiteListedFieldError;
 import io.takamaka.code.verification.issues.IllegalCallToNonWhiteListedConstructorError;
 import io.takamaka.code.verification.issues.IllegalCallToNonWhiteListedMethodError;
@@ -20,9 +20,9 @@ import io.takamaka.code.verification.issues.IllegalCallToNonWhiteListedMethodErr
 /**
  * A check that a method calls white-listed methods only and accesses white-listed fields only.
  */
-public class UsedCodeIsWhiteListedCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class UsedCodeIsWhiteListedCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		instructions().forEach(ih -> {
@@ -35,7 +35,7 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClass.ClassVerification.
 			else if (ins instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) ins;
 				if (!hasWhiteListingModel(invoke)) {
-					Optional<? extends Executable> target = clazz.resolver.resolvedExecutableFor(invoke);
+					Optional<? extends Executable> target = clazz.getResolver().resolvedExecutableFor(invoke);
 					if (target.isPresent()) {
 						Executable executable = target.get();
 						if (executable instanceof Constructor<?>)

@@ -9,7 +9,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
 import io.takamaka.code.verification.Constants;
-import io.takamaka.code.verification.VerifiedClass;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.CallerNotOnThisError;
 import io.takamaka.code.verification.issues.CallerOutsideEntryError;
 
@@ -17,9 +17,9 @@ import io.takamaka.code.verification.issues.CallerOutsideEntryError;
  * A check that {@code caller()} is only used with {@code this} as receiver
  * and inside an {@code @@Entry} method or constructor.
  */
-public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class CallerIsUsedOnThisAndInEntryCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public CallerIsUsedOnThisAndInEntryCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		boolean isEntry = annotations.isEntry(className, methodName, methodArgs, methodReturnType).isPresent();

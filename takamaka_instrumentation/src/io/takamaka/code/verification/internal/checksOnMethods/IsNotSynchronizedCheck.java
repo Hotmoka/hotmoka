@@ -1,14 +1,14 @@
 package io.takamaka.code.verification.internal.checksOnMethods;
 
-import io.takamaka.code.verification.VerifiedClass;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalSynchronizationError;
 
 /**
  * A check the method is not synchronized.
  */
-public class IsNotSynchronizedCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class IsNotSynchronizedCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public IsNotSynchronizedCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public IsNotSynchronizedCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		if (method.isSynchronized())

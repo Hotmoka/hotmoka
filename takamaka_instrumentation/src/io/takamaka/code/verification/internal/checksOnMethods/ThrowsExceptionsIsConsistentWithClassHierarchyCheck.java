@@ -6,17 +6,17 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 
-import io.takamaka.code.verification.VerifiedClass;
-import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.InconsistentThrowsExceptionsError;
 
 /**
  * A check that {@code @@ThrowsExceptions} methods only redefine {@code @@ThrowsExceptions} methods and that
  * {@code @@ThrowsExceptions} methods are only redefined by {@code @@ThrowsExceptions} methods.
  */
-public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {

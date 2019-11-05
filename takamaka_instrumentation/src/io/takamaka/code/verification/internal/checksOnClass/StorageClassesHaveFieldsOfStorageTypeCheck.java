@@ -5,16 +5,16 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.takamaka.code.verification.VerifiedClass;
-import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalTypeForStorageFieldError;
 
 /**
  * A checks that payable methods have an amount first argument.
  */
-public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClass.ClassVerification.Check {
+public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassImpl.ClassVerification.Check {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClass.ClassVerification verification) {
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.ClassVerification verification) {
 		verification.super();
 
 		if (classLoader.isStorage(className))

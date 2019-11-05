@@ -14,6 +14,7 @@ import org.apache.bcel.generic.Type;
 import io.takamaka.code.instrumentation.Dummy;
 import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.Constants;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerifiedJar;
 
 /**

@@ -1,102 +1,38 @@
 package io.takamaka.code.verification;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
+import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.LineNumberTable;
-import org.apache.bcel.generic.ClassGen;
+import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldInstruction;
-import org.apache.bcel.generic.INVOKESPECIAL;
-import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
-import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.verification.internal.BootstrapsImpl;
-import io.takamaka.code.verification.internal.ResolverImpl;
-import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
-import io.takamaka.code.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnClass.EntriesAreOnlyCalledFromContractsCheck;
-import io.takamaka.code.verification.internal.checksOnClass.PackagesAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInEntryCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsInstanceAndInContractsCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.IsNotNativeCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.IsNotStaticInitializerCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.IsNotSynchronizedCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsEntryCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeReceivesAmountCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsCodeIsPublicCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
-import io.takamaka.code.verification.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.Issue;
-import io.takamaka.code.whitelisting.MustRedefineHashCode;
-import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 
 /**
  * A class that passed the static Takamaka verification tests.
  */
-public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass> {
+public interface VerifiedClass extends Comparable<VerifiedClass> {
 
 	/**
-	 * The jar this class belongs to.
-	 */
-	public final VerifiedJar jar;
-
-	/**
-	 * The utility object that knows about the lambda bootstraps contained in this class.
-	 */
-	public final Bootstraps bootstraps;
-
-	/**
-	 * The utility that can be used to resolve targets of calls and field accesses in this class.
-	 */
-	public final Resolver resolver;
-
-	/**
-	 * A methods of this class, in editable version.
-	 */
-	private final Set<MethodGen> methods;
-
-	/**
-	 * Builds and verify a class from the given class file.
+	 * Builds and verifies a class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
 	 * @param jar the jar this class belongs to
 	 * @param issueHandler the handler that is notified of every verification error or warning
 	 * @param duringInitialization true if and only if the class is built during blockchain initialization
+	 * @return the new verified class
 	 * @throws VefificationException if the class could not be verified
 	 */
-	public VerifiedClass(JavaClass clazz, VerifiedJar jar, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
-		super(clazz);
-
-		this.methods = Stream.of(getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).collect(Collectors.toSet());
-		this.jar = jar;
-		this.bootstraps = new BootstrapsImpl(this);
-		this.resolver = new ResolverImpl(this);
-
-		new ClassVerification(issueHandler, duringInitialization);
-	}
-
-	@Override
-	public int compareTo(VerifiedClass other) {
-		return getClassName().compareTo(other.getClassName());
+	static VerifiedClass of(JavaClass clazz, VerifiedJar jar, Consumer<Issue> issueHandler, boolean duringInitialization) {
+		return new VerifiedClassImpl(clazz, jar, issueHandler, duringInitialization);
 	}
 
 	/**
@@ -108,9 +44,7 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	 * @return the model. This must exist, since the class is verified and all accesses have been proved
 	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
-	public Field whiteListingModelOf(FieldInstruction fi) {
-		return jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
-	}
+	Field whiteListingModelOf(FieldInstruction fi);
 
 	/**
 	 * Yields the white-listing model for the method called by the given instruction.
@@ -121,246 +55,119 @@ public class VerifiedClass extends ClassGen implements Comparable<VerifiedClass>
 	 * @return the model. This must exist, since the class is verified and all calls have been proved
 	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
-	public Executable whiteListingModelOf(InvokeInstruction invoke) {
-		return whiteListingModelOf(resolver.resolvedExecutableFor(invoke).get(), invoke).get();
-	}
+	Executable whiteListingModelOf(InvokeInstruction invoke);
 
 	/**
 	 * Yields the methods inside this class, in generator form.
 	 * 
 	 * @return the methods inside this class
 	 */
-	public Stream<MethodGen> getMethodGens() {
-		return methods.stream();
-	}
+	Stream<MethodGen> getMethodGens();
 
 	/**
-	 * Looks for a white-listing model of the given method or constructor. That is a constructor declaration
-	 * that justifies why the method or constructor is white-listed. It can be the method or constructor itself, if it
-	 * belongs to a class installed in blockchain, or otherwise a method or constructor of a white-listing
-	 * class, if it belongs to some Java run-time support class. If the instruction is a special call
-	 * to a method of a superclass, it checks that white-listing annotations on the receiver are not fooled.
+	 * Yields the jar this class belongs to.
 	 * 
-	 * @param executable the method or constructor whose model is looked for
-	 * @param invoke the call to the method or constructor
-	 * @return the model of its white-listing, if it exists
+	 * @return the jar
 	 */
-	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
-		if (executable instanceof Constructor<?>)
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable)));
-		else
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Method) executable)));
-	}
+	VerifiedJar getJar();
 
 	/**
-	 * If the given invoke instruction is an {@code invokespecial} and the given model
-	 * is annotated with {@link takamaka.lang.MustRedefineHashCode} or with
-	 * {@link takamaka.lang.MustRedefineHashCodeOrToString}, checks if the model
-	 * resolved target of the invoke is not in {@code java.lang.Object}. This check
-	 * is important in order to forbid calls such as super.hashCode() to the hashCode()
-	 * method of Object, that would be non-deterministic.
+	 * Yields the utility object that knows about the bootstraps of this class.
 	 * 
-	 * @param invoke the invoke instruction
-	 * @param model the white-listing model of the invoke
-	 * @return the optional containing the model, or the empty optional if the check fails
+	 * @return the utility object
 	 */
-	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Optional<? extends Executable> model) {
-		if (invoke instanceof INVOKESPECIAL &&
-			model.isPresent() &&
-			(model.get().isAnnotationPresent(MustRedefineHashCode.class) ||
-			 model.get().isAnnotationPresent(MustRedefineHashCodeOrToString.class)) &&
-			resolver.resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
-			return Optional.empty();
-		else
-			return model;
-	}
+	Bootstraps getBootstraps();
 
 	/**
-	 * The algorithms that perform the verification of the BCEL class.
+	 * Yields the resolver object for the fields and methods of this class.
+	 * 
+	 * @return the resolver object
 	 */
-	public class ClassVerification {
+	Resolver getResolver();
 
-		/**
-		 * The handler that must be notified of issues found in the class.
-		 */
-		private final Consumer<Issue> issueHandler;
+	/**
+	 * Yields the fully-qualified name of this class.
+	 * 
+	 * @return the fully-qualified name
+	 */
+	String getClassName();
 
-		/**
-		 * A map from each method to its line number table.
-		 */
-		private final Map<MethodGen, LineNumberTable> lines;
+	/**
+	 * Yields the constant pool of this class.
+	 * 
+	 * @return the constant pool
+	 */
+	ConstantPoolGen getConstantPool();
 
-		/**
-		 * True if and only if the code verification occurs during blockchain initialization.
-		 */
-		private final boolean duringInitialization;
+	/**
+	 * Yields the name of the superclass of this class, if any.
+	 * 
+	 * @return the name
+	 */
+	String getSuperclassName();
 
-		/**
-		 * True if and only if at least an error was issued during verification.
-		 */
-		private boolean hasErrors;
+	/**
+	 * Sets the name of the superclass of this class.
+	 * 
+	 * @param name the new name of the superclass of this clas
+	 */
+	void setSuperclassName(String name);
 
-		/**
-		 * Performs the static verification of this class.
-		 * 
-		 * @param issueHandler the handler to call when an issue is found
-		 * @param duringInitialization true if and only if verification is performed during blockchain initialization
-		 * @throws VerificationException if some verification error occurs
-		 */
-		private ClassVerification(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
-			this.issueHandler = issueHandler;
-			this.lines = methods.stream().collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(getConstantPool())));
-			this.duringInitialization = duringInitialization;
+	/**
+	 * Yields the attributes of this class.
+	 * 
+	 * @return the attributes of this class
+	 */
+	Attribute[] getAttributes();
 
-			new PackagesAreLegalCheck(this);
-			new BootstrapsAreLegalCheck(this);
-			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
-			new EntriesAreOnlyCalledFromContractsCheck(this);
+	/**
+	 * Adds the given field to this class.
+	 * 
+	 * @param field the field to add
+	 */
+	void addField(org.apache.bcel.classfile.Field field);
 
-			getMethodGens().forEach(MethodVerification::new);
+	/**
+	 * Adds the given method to this class.
+	 * 
+	 * @param method the method to add
+	 */
+	void addMethod(Method method);
 
-			if (hasErrors)
-				throw new VerificationException();
-		}
+	/**
+	 * Yields the methods in this class.
+	 * 
+	 * @return the methods
+	 */
+	Method[] getMethods();
 
-		public abstract class Check {
-			protected final VerifiedClass clazz = VerifiedClass.this;
-			protected final TakamakaClassLoader classLoader = jar.getClassLoader();
-			protected final Bootstraps bootstraps = clazz.bootstraps;
-			protected final Annotations annotations = jar.getAnnotations();
-			protected final BcelToClass bcelToClass = jar.getBcelToClass();
-			protected final boolean duringInitialization = ClassVerification.this.duringInitialization;
-			protected final String className = getClassName();
-			protected final ConstantPoolGen cpg = getConstantPool();
-		
-			protected final void issue(Issue issue) {
-				issueHandler.accept(issue);
-				hasErrors |= issue instanceof io.takamaka.code.verification.issues.Error;
-			}
+	/**
+	 * Yields the fields in this class.
+	 * 
+	 * @return the fields
+	 */
+	org.apache.bcel.classfile.Field[] getFields();
 
-			protected final boolean hasWhiteListingModel(FieldInstruction fi) {
-				Optional<Field> field = resolver.resolvedFieldFor(fi);
-				return field.isPresent() && classLoader.getWhiteListingWizard().whiteListingModelOf(field.get()).isPresent();
-			}
+	/**
+	 * Replaces a method of this class with another.
+	 * 
+	 * @param old the old method to replace
+	 * @param _new the new method to put at its place
+	 */
+	void replaceMethod(Method old, Method _new);
 
-			protected final boolean hasWhiteListingModel(InvokeInstruction invoke) {
-				Optional<? extends Executable> executable = resolver.resolvedExecutableFor(invoke);
-				return executable.isPresent() && whiteListingModelOf(executable.get(), invoke).isPresent();
-			}
+	/**
+	 * Replaces a field of this class with another.
+	 * 
+	 * @param old the old field to replace
+	 * @param _new the new field to put at its place
+	 */
+	void replaceField(org.apache.bcel.classfile.Field old, org.apache.bcel.classfile.Field _new);
 
-			protected final LineNumberTable getLinesFor(MethodGen method) {
-				return lines.get(method);
-			}
-
-			protected final Stream<InstructionHandle> instructionsOf(MethodGen method) {
-				InstructionList instructions = method.getInstructionList();
-				return instructions == null ? Stream.empty() : StreamSupport.stream(instructions.spliterator(), false);
-			}
-
-			/**
-			 * Infers the source file name of the class being checked.
-			 * If there is no debug information, the class name is returned.
-			 * 
-			 * @return the inferred source file name
-			 */
-			protected final String inferSourceFile() {
-				String sourceFile = getFileName();
-				String className = getClassName();
-			
-				if (sourceFile != null) {
-					int lastDot = className.lastIndexOf('.');
-					if (lastDot > 0)
-						return className.substring(0, lastDot).replace('.', '/') + '/' + sourceFile;
-					else
-						return sourceFile;
-				}
-			
-				return className;
-			}
-
-			/**
-			 * Yields the source line number from which the given instruction of the given method was compiled.
-			 * 
-			 * @param method the method
-			 * @param pc the program point of the instruction
-			 * @return the line number, or -1 if not available
-			 */
-			protected final int lineOf(MethodGen method, int pc) {
-				LineNumberTable lines = getLinesFor(method);
-				return lines != null ? lines.getSourceLine(pc) : -1;
-			}
-
-			/**
-			 * Yields the source line number from which the given instruction of the given method was compiled.
-			 * 
-			 * @param method the method
-			 * @param ih the instruction
-			 * @return the line number, or -1 if not available
-			 */
-			protected final int lineOf(MethodGen method, InstructionHandle ih) {
-				return lineOf(method, ih.getPosition());
-			}
-		}
-
-		public class MethodVerification {
-			private final MethodGen method;
-
-			private MethodVerification(MethodGen method) {
-				this.method = method;
-			
-				new PayableCodeReceivesAmountCheck(this);
-				new ThrowsExceptionsCodeIsPublicCheck(this);
-				new PayableCodeIsEntryCheck(this);
-				new EntryCodeIsInstanceAndInContractsCheck(this);
-				new EntryCodeIsConsistentWithClassHierarchyCheck(this);
-				new PayableCodeIsConsistentWithClassHierarchyCheck(this);
-				new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(this);
-				new IsNotStaticInitializerCheck(this);
-				new IsNotNativeCheck(this);
-				new BytecodesAreLegalCheck(this);
-				new IsNotSynchronizedCheck(this);
-				new CallerIsUsedOnThisAndInEntryCheck(this);
-				new ExceptionHandlersAreForCheckedExceptionsCheck(this);
-				new UsedCodeIsWhiteListedCheck(this);
-			}
-
-			public abstract class Check extends ClassVerification.Check {
-				protected final MethodGen method = MethodVerification.this.method;
-				protected final String methodName = method.getName();
-				protected final Type[] methodArgs = method.getArgumentTypes();
-				protected final Type methodReturnType = method.getReturnType();
-
-				/**
-				 * Yields the instructions of the method under verification.
-				 * 
-				 * @return the instructions
-				 */
-				protected final Stream<InstructionHandle> instructions() {
-					return instructionsOf(method);
-				}
-
-				/**
-				 * Yields the source line number from which the given instruction of the method under verification was compiled.
-				 * 
-				 * @param ih the instruction
-				 * @return the line number, or -1 if not available
-				 */
-				protected final int lineOf(InstructionHandle ih) {
-					return lineOf(method, ih);
-				}
-
-				/**
-				 * Yields the source line number for the instruction at the given program point of the method under verification.
-				 * 
-				 * @param pc the program point
-				 * @return the line number, or -1 if not available
-				 */
-				protected final int lineOf(int pc) {
-					return lineOf(method, pc);
-				}
-			}
-		}
-	}
+	/**
+	 * Yields a Java class generated from this object.
+	 * 
+	 * @return the Java class
+	 */
+	JavaClass getJavaClass();
 }

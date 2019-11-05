@@ -1,6 +1,4 @@
-package io.takamaka.code.verification.internal;
-
-import io.takamaka.code.verification.IncompleteClasspathError;
+package io.takamaka.code.verification;
 
 /**
  * Utilities for throwing an {@link io.takamaka.code.verification.IncompleteClasspathError}

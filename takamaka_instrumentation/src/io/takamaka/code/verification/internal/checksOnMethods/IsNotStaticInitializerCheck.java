@@ -6,16 +6,16 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 
-import io.takamaka.code.verification.VerifiedClass;
-import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalStaticInitializationError;
 
 /**
  * A check the method is not the static class initializer.
  */
-public class IsNotStaticInitializerCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class IsNotStaticInitializerCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public IsNotStaticInitializerCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public IsNotStaticInitializerCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		if (method.getInstructionList() != null && Const.STATIC_INITIALIZER_NAME.equals(methodName))

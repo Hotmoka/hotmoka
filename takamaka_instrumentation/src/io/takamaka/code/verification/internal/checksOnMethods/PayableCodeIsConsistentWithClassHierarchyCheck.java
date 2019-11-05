@@ -6,17 +6,17 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 
-import io.takamaka.code.verification.VerifiedClass;
-import io.takamaka.code.verification.internal.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.ThrowIncompleteClasspathError;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.InconsistentPayableError;
 
 /**
  * A check that {@code @@Payable} methods only redefine {@code @@Payable} methods and that
  * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
  */
-public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {

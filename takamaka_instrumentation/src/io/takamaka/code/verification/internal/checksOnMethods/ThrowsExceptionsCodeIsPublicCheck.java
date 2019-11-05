@@ -1,14 +1,14 @@
 package io.takamaka.code.verification.internal.checksOnMethods;
 
-import io.takamaka.code.verification.VerifiedClass;
+import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.ThrowsExceptionsOnNonPublicError;
 
 /**
  * A checks that {@code @@ThrowsExceptions} methods are public.
  */
-public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClass.ClassVerification.MethodVerification.Check {
+public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
 
-	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClass.ClassVerification.MethodVerification verification) {
+	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
 		clazz.getMethodGens()
