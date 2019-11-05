@@ -82,7 +82,7 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.Dummy;
+import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;

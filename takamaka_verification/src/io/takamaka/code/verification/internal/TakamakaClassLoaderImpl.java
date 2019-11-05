@@ -109,7 +109,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 		return parent.getOrigins();
 	}
 
-	@Override
 	public final WhiteListingWizard getWhiteListingWizard() {
 		return parent.getWhiteListingWizard();
 	}
