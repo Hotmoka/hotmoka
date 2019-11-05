@@ -10,7 +10,6 @@ import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.verification.BcelToClass;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
-import io.takamaka.code.verification.VerifiedJar;
 
 /**
  * A utility that transforms a BCEL type into its corresponding class tag.
@@ -20,14 +19,14 @@ public class BcelToClassImpl implements BcelToClass {
 	/**
 	 * The jar with whose class loader the transformation is performed.
 	 */
-	private final VerifiedJar jar;
+	private final VerifiedJarImpl jar;
 
 	/**
 	 * Builds the utility object.
 	 * 
 	 * @param jar the jar for whose class loader the transformation is performed
 	 */
-	BcelToClassImpl(VerifiedJar jar) {
+	BcelToClassImpl(VerifiedJarImpl jar) {
 		this.jar = jar;
 	}
 
@@ -52,7 +51,7 @@ public class BcelToClassImpl implements BcelToClass {
 		else if (type == BasicType.VOID)
 			return void.class;
 		else if (type instanceof ObjectType)
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> jar.getClassLoader().loadClass(type.toString()));
+			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> jar.classLoader.loadClass(type.toString()));
 		else { // array
 			Class<?> elementsClass = of(((ArrayType) type).getElementType());
 			// trick: we build an array of 0 elements just to access its class token

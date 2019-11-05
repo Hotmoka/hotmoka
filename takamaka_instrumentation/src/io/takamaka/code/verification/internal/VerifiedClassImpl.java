@@ -27,7 +27,6 @@ import org.apache.bcel.generic.Type;
 import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.BcelToClass;
 import io.takamaka.code.verification.Bootstraps;
-import io.takamaka.code.verification.Resolver;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerificationException;
@@ -63,17 +62,17 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 	/**
 	 * The jar this class belongs to.
 	 */
-	private final VerifiedJar jar;
+	public final VerifiedJarImpl jar;
 
 	/**
 	 * The utility object that knows about the lambda bootstraps contained in this class.
 	 */
-	private final Bootstraps bootstraps;
+	public final BootstrapsImpl bootstraps;
 
 	/**
 	 * The utility that can be used to resolve targets of calls and field accesses in this class.
 	 */
-	private final Resolver resolver;
+	public final ResolverImpl resolver;
 
 	/**
 	 * A methods of this class, in editable version.
@@ -89,7 +88,7 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 	 * @param duringInitialization true if and only if the class is built during blockchain initialization
 	 * @throws VefificationException if the class could not be verified
 	 */
-	public VerifiedClassImpl(JavaClass clazz, VerifiedJar jar, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
+	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 		super(clazz);
 
 		this.methods = Stream.of(getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).collect(Collectors.toSet());
@@ -105,66 +104,29 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 		return getClassName().compareTo(other.getClassName());
 	}
 
-	/**
-	 * Yields the white-listing model for the field accessed by the given instruction.
-	 * This means that that instruction accesses that field but that access is white-listed
-	 * only if the resulting model is verified.
-	 * 
-	 * @param fi the instruction that accesses the field
-	 * @return the model. This must exist, since the class is verified and all accesses have been proved
-	 *         to be white-listed (up to possible proof obligations contained in the model).
-	 */
+	@Override
 	public Field whiteListingModelOf(FieldInstruction fi) {
-		return jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
+		return jar.classLoader.getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
 	}
 
-	/**
-	 * Yields the white-listing model for the method called by the given instruction.
-	 * This means that that instruction calls that method but that call is white-listed
-	 * only if the resulting model is verified.
-	 * 
-	 * @param invoke the instruction that calls the method
-	 * @return the model. This must exist, since the class is verified and all calls have been proved
-	 *         to be white-listed (up to possible proof obligations contained in the model).
-	 */
+	@Override
 	public Executable whiteListingModelOf(InvokeInstruction invoke) {
 		return whiteListingModelOf(resolver.resolvedExecutableFor(invoke).get(), invoke).get();
 	}
 
-	/**
-	 * Yields the methods inside this class, in generator form.
-	 * 
-	 * @return the methods inside this class
-	 */
+	@Override
 	public Stream<MethodGen> getMethodGens() {
 		return methods.stream();
 	}
 
-	/**
-	 * Yields the jar this class belongs to.
-	 * 
-	 * @return the jar
-	 */
+	@Override
 	public VerifiedJar getJar() {
 		return jar;
 	}
 
-	/**
-	 * Yields the utility object that knows about the bootstraps of this class.
-	 * 
-	 * @return the utility object
-	 */
+	@Override
 	public Bootstraps getBootstraps() {
 		return bootstraps;
-	}
-
-	/**
-	 * Yields the resolver object for the fields and methods of this class.
-	 * 
-	 * @return the resolver object
-	 */
-	public Resolver getResolver() {
-		return resolver;
 	}
 
 	/**
@@ -181,10 +143,10 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 	private Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
 		if (executable instanceof Constructor<?>)
 			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable)));
+				(() -> checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable)));
 		else
 			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, jar.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Method) executable)));
+				(() -> checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable)));
 	}
 
 	/**
@@ -260,10 +222,10 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 
 		public abstract class Check {
 			protected final VerifiedClassImpl clazz = VerifiedClassImpl.this;
-			protected final TakamakaClassLoader classLoader = jar.getClassLoader();
+			protected final TakamakaClassLoader classLoader = jar.classLoader;
 			protected final Bootstraps bootstraps = clazz.bootstraps;
-			protected final Annotations annotations = jar.getAnnotations();
-			protected final BcelToClass bcelToClass = jar.getBcelToClass();
+			protected final Annotations annotations = jar.annotations;
+			protected final BcelToClass bcelToClass = jar.bcelToClass;
 			protected final boolean duringInitialization = ClassVerification.this.duringInitialization;
 			protected final String className = getClassName();
 			protected final ConstantPoolGen cpg = getConstantPool();

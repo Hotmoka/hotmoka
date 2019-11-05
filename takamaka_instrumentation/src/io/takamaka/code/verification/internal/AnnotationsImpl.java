@@ -15,7 +15,6 @@ import io.takamaka.code.instrumentation.Dummy;
 import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
-import io.takamaka.code.verification.VerifiedJar;
 
 /**
  * A utility to check the annotations of the methods in a given jar.
@@ -27,14 +26,14 @@ public class AnnotationsImpl implements Annotations {
 	/**
 	 * The jar whose annotations are considered.
 	 */
-	private final VerifiedJar jar;
+	private final VerifiedJarImpl jar;
 
 	/**
 	 * Builds the utility object.
 	 * 
 	 * @param clazz the jar whose annotations are considered 
 	 */
-	AnnotationsImpl(VerifiedJar jar) {
+	AnnotationsImpl(VerifiedJarImpl jar) {
 		this.jar = jar;
 	}
 
@@ -64,7 +63,7 @@ public class AnnotationsImpl implements Annotations {
 				return Optional.empty();
 			}
 
-			return Optional.of(contractClass != null && contractClass != Object.class ? contractClass : jar.getClassLoader().getContract());
+			return Optional.of(contractClass != null && contractClass != Object.class ? contractClass : jar.classLoader.getContract());
 		}
 
 		return Optional.empty();
@@ -106,10 +105,10 @@ public class AnnotationsImpl implements Annotations {
 	}
 
 	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) {
-		Class<?>[] formalsClass = Stream.of(formals).map(jar.getBcelToClass()::of).toArray(Class[]::new);
+		Class<?>[] formalsClass = Stream.of(formals).map(jar.bcelToClass::of).toArray(Class[]::new);
 
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() ->
-			Stream.of(jar.getClassLoader().loadClass(className).getDeclaredConstructors())
+			Stream.of(jar.classLoader.loadClass(className).getDeclaredConstructors())
 				.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), formalsClass))
 				.flatMap(constructor -> Stream.of(constructor.getAnnotations()))
 				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
@@ -117,11 +116,11 @@ public class AnnotationsImpl implements Annotations {
 	}
 
 	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) {
-		Class<?> returnTypeClass = jar.getBcelToClass().of(returnType);
-		Class<?>[] formalsClass = Stream.of(formals).map(jar.getBcelToClass()::of).toArray(Class[]::new);
+		Class<?> returnTypeClass = jar.bcelToClass.of(returnType);
+		Class<?>[] formalsClass = Stream.of(formals).map(jar.bcelToClass::of).toArray(Class[]::new);
 
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Class<?> clazz = jar.getClassLoader().loadClass(className);
+			Class<?> clazz = jar.classLoader.loadClass(className);
 			Optional<Method> definition = Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
 				.findFirst();

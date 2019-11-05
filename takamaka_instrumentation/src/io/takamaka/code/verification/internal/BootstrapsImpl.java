@@ -33,7 +33,6 @@ import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.IncompleteClasspathError;
-import io.takamaka.code.verification.VerifiedClass;
 
 /**
  * An object that provides utility methods about the lambda bootstraps
@@ -44,7 +43,7 @@ public class BootstrapsImpl implements Bootstraps {
 	/**
 	 * The class whose bootstraps are considered.
 	 */
-	private final VerifiedClass clazz;
+	private final VerifiedClassImpl clazz;
 
 	/**
 	 * The constant pool of the class whose bootstraps are considered.
@@ -63,7 +62,7 @@ public class BootstrapsImpl implements Bootstraps {
 
 	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
 
-	public BootstrapsImpl(VerifiedClass clazz) {
+	BootstrapsImpl(VerifiedClassImpl clazz) {
 		this.clazz = clazz;
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
@@ -85,7 +84,7 @@ public class BootstrapsImpl implements Bootstraps {
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-					return clazz.getJar().getAnnotations().isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
+					return clazz.jar.annotations.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
 				}
 			}
 		};
@@ -174,15 +173,13 @@ public class BootstrapsImpl implements Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.getJar().getBcelToClass().of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.getJar().getBcelToClass().of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
-						//TODO: remove cast
-						return ((ResolverImpl) clazz.getResolver()).resolveConstructorWithPossiblyExpandedArgs(className2, args);
+						return clazz.resolver.resolveConstructorWithPossiblyExpandedArgs(className2, args);
 					else
-						//TODO: remove cast
-						return ((ResolverImpl) clazz.getResolver()).resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+						return clazz.resolver.resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 				else if (constant2 instanceof ConstantInterfaceMethodref) {
 					ConstantInterfaceMethodref mr = (ConstantInterfaceMethodref) constant2;
@@ -191,11 +188,10 @@ public class BootstrapsImpl implements Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.getJar().getBcelToClass().of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.getJar().getBcelToClass().of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = clazz.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = clazz.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
 
-					//TODO: remove cast
-					return ((ResolverImpl) clazz.getResolver()).resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+					return clazz.resolver.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 			}
 		}
@@ -269,7 +265,7 @@ public class BootstrapsImpl implements Bootstraps {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				clazz.getJar().getAnnotations().isEntryPossiblyAlreadyInstrumented
+				clazz.jar.annotations.isEntryPossiblyAlreadyInstrumented
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 		else

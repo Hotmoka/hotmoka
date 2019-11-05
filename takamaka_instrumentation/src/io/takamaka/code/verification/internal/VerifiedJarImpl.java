@@ -36,12 +36,12 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * The utility object that can be used to transform BCEL types into their corresponding
 	 * Java class tag, by using the class loader of this jar.
 	 */
-	public final BcelToClass bcelToClass = new BcelToClassImpl(this);
+	public final BcelToClassImpl bcelToClass = new BcelToClassImpl(this);
 
 	/**
 	 * The utility that knows about the annotations of the methods in this jar.
 	 */
-	public final Annotations annotations = new AnnotationsImpl(this);
+	public final AnnotationsImpl annotations = new AnnotationsImpl(this);
 
 	/**
 	 * The class of the jar that passed verification.
@@ -159,7 +159,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private Optional<VerifiedClass> buildVerifiedClass(JarEntry entry) {
 			try (InputStream input = originalJar.getInputStream(entry)) {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(VerifiedClass.of(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, issues::add, duringInitialization));
+				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, issues::add, duringInitialization));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

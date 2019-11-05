@@ -2,7 +2,6 @@ package io.takamaka.code.verification;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.bcel.classfile.Attribute;
@@ -13,27 +12,10 @@ import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
-import io.takamaka.code.verification.internal.VerifiedClassImpl;
-import io.takamaka.code.verification.issues.Issue;
-
 /**
  * A class that passed the static Takamaka verification tests.
  */
 public interface VerifiedClass extends Comparable<VerifiedClass> {
-
-	/**
-	 * Builds and verifies a class from the given class file.
-	 * 
-	 * @param clazz the parsed class file
-	 * @param jar the jar this class belongs to
-	 * @param issueHandler the handler that is notified of every verification error or warning
-	 * @param duringInitialization true if and only if the class is built during blockchain initialization
-	 * @return the new verified class
-	 * @throws VefificationException if the class could not be verified
-	 */
-	static VerifiedClass of(JavaClass clazz, VerifiedJar jar, Consumer<Issue> issueHandler, boolean duringInitialization) {
-		return new VerifiedClassImpl(clazz, jar, issueHandler, duringInitialization);
-	}
 
 	/**
 	 * Yields the white-listing model for the field accessed by the given instruction.
@@ -77,13 +59,6 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	 * @return the utility object
 	 */
 	Bootstraps getBootstraps();
-
-	/**
-	 * Yields the resolver object for the fields and methods of this class.
-	 * 
-	 * @return the resolver object
-	 */
-	Resolver getResolver();
 
 	/**
 	 * Yields the fully-qualified name of this class.
