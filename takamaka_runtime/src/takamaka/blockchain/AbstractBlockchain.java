@@ -35,10 +35,10 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.instrumentation.JarInstrumentation;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.TakamakaClassLoader;
-import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedJar;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 import takamaka.blockchain.request.AbstractJarStoreTransactionRequest;
@@ -95,6 +95,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * always in Java.
 	 */
 	private final Map<StorageReferenceAlreadyInBlockchain, AbstractStorage> cache = new HashMap<>();
+
+	/**
+	 * The gas cost model of this blockchain.
+	 */
+	private final GasCostModel gasCostModel = getGasCostModel();
 
 	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
@@ -182,6 +187,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the response could not be found
 	 */
 	protected abstract TransactionResponse getResponseAt(TransactionReference transaction) throws Exception;
+
+	/**
+	 * Yields the gas cost model of this blockchain.
+	 * 
+	 * @return the standard gas cost model. Subclasses may redefine
+	 */
+	protected GasCostModel getGasCostModel() {
+		return GasCostModel.standard();
+	}
 
 	/**
 	 * Initializes the state at the beginning of the execution of a new transaction
@@ -438,9 +452,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			Path instrumented = Files.createTempFile("instrumented", ".jar");
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 				VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, true);
-				if (verifiedJar.hasErrors())
-					throw new VerificationException(verifiedJar.getFirstError().get());
-				new JarInstrumentation(verifiedJar, instrumented);
+				JarInstrumentation.of(verifiedJar, gasCostModel, instrumented);
 			}
 
 			byte[] instrumentedBytes = Files.readAllBytes(instrumented);
@@ -529,9 +541,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 						VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, false);
-						if (verifiedJar.hasErrors())
-							throw new VerificationException(verifiedJar.getFirstError().get());
-						new JarInstrumentation(verifiedJar, instrumented);
+						JarInstrumentation.of(verifiedJar, gasCostModel, instrumented);
 					}
 
 					byte[] instrumentedBytes = Files.readAllBytes(instrumented);
@@ -1071,7 +1081,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 			getOrigins().forEach(url -> {
 				try {
 					classpathElements.add(Paths.get(url.toURI()));
-				} catch (URISyntaxException e) {
+				}
+				catch (URISyntaxException e) {
 					throw new IllegalStateException("Unexpected illegal URL", e);
 				}
 			});
@@ -1090,7 +1101,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 			getOrigins().forEach(url -> {
 				try {
 					classpathElements.add(Paths.get(url.toURI()));
-				} catch (URISyntaxException e) {
+				}
+				catch (URISyntaxException e) {
 					throw new IllegalStateException("Unexpected illegal URL", e);
 				}
 			});

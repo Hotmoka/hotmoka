@@ -41,6 +41,9 @@ import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ANEWARRAY;
 import org.apache.bcel.generic.ATHROW;
+import org.apache.bcel.generic.AllocationInstruction;
+import org.apache.bcel.generic.ArithmeticInstruction;
+import org.apache.bcel.generic.ArrayInstruction;
 import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.CodeExceptionGen;
@@ -77,14 +80,16 @@ import org.apache.bcel.generic.RET;
 import org.apache.bcel.generic.RETURN;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.ReturnInstruction;
+import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.StackConsumer;
 import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.verification.Dummy;
+import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.Constants;
+import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerifiedClass;
@@ -151,13 +156,14 @@ public class ClassInstrumentation {
 	 * Performs the instrumentation of a single class file.
 	 * 
 	 * @param clazz the class to instrument
+	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @param instrumentedJar the jar where the instrumented class will be added
 	 * @throws ClassFormatException if some class file is not legal
 	 * @throws IOException if there is an error accessing the disk
 	 */
-	public ClassInstrumentation(VerifiedClass clazz, JarOutputStream instrumentedJar) throws ClassFormatException, IOException {
+	public ClassInstrumentation(VerifiedClass clazz, GasCostModel gasCostModel, JarOutputStream instrumentedJar) throws ClassFormatException, IOException {
 		// performs instrumentation on the class
-		new Initializer(clazz);
+		new Initializer(clazz, gasCostModel);
 
 		// dump the instrumented class on disk
 		clazz.getJavaClass().dump(instrumentedJar);
@@ -172,6 +178,11 @@ public class ClassInstrumentation {
 		 * The class that is being instrumented.
 		 */
 		private final VerifiedClass clazz;
+
+		/**
+		 * The gas cost model used for the instrumentation.
+		 */
+		private final GasCostModel gasCostModel;
 
 		/**
 		 * The name of the class being instrumented.
@@ -243,9 +254,11 @@ public class ClassInstrumentation {
 		 * Performs the instrumentation of a single class.
 		 * 
 		 * @param clazz the class to instrument
+		 * @param gasCostModel the gas cost model used for the instrumentation
 		 */
-		private Initializer(VerifiedClass clazz) {
+		private Initializer(VerifiedClass clazz, GasCostModel gasCostModel) {
 			this.clazz = clazz;
+			this.gasCostModel = gasCostModel;
 			this.className = clazz.getClassName();
 			this.classLoader = clazz.getJar().getClassLoader();
 			this.cpg = clazz.getConstantPool();
@@ -1068,8 +1081,8 @@ public class ClassInstrumentation {
 						size++;
 
 					// non risk of overflow, since there are at most 256 arguments in a method
-					size *= GasCosts.RAM_COST_PER_ACTIVATION_SLOT;
-					size += GasCosts.RAM_COST_PER_ACTIVATION_RECORD;
+					size *= gasCostModel.ramCostOfActivationSlot();
+					size += gasCostModel.ramCostOfActivationRecord();
 
 					InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
 					il.insert(ih, chargeCall(size, "chargeForRAM"));
@@ -1080,7 +1093,7 @@ public class ClassInstrumentation {
 			else if (bytecode instanceof NEW) {
 				NEW _new = (NEW) bytecode;
 				ObjectType createdClass = _new.getLoadClassType(cpg);
-				long size = numberOfInstanceFieldsOf(createdClass) * GasCosts.RAM_COST_PER_FIELD;
+				long size = numberOfInstanceFieldsOf(createdClass) * gasCostModel.ramCostOfField();
 				InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
 				il.insert(ih, chargeCall(size, "chargeForRAM"));
 				il.redirectBranches(ih, newTarget);
@@ -1147,7 +1160,7 @@ public class ClassInstrumentation {
 				allocatorIl.insert(fallBack2, InstructionConst.DUP);
 				allocatorIl.insert(fallBack2, factory.createGetStatic(bigInteger, "ONE", BIGINTEGER_OT));
 				allocatorIl.insert(fallBack2, add);
-				allocatorIl.insert(fallBack2, factory.createConstant((long) GasCosts.RAM_COST_PER_ARRAY));
+				allocatorIl.insert(fallBack2, factory.createConstant((long) gasCostModel.ramCostOfArray()));
 				allocatorIl.insert(fallBack2, valueOf);	
 				allocatorIl.insert(fallBack2, multiply);
 				allocatorIl.insert(fallBack2, InstructionConst.SWAP);
@@ -1162,7 +1175,7 @@ public class ClassInstrumentation {
 				allocatorIl.insert(fallBack2, multiply);
 
 				// we multiply the number of elements for the RAM cost of a single element
-				allocatorIl.insert(fallBack2, factory.createConstant((long) GasCosts.RAM_COST_PER_ARRAY_SLOT));
+				allocatorIl.insert(fallBack2, factory.createConstant((long) gasCostModel.ramCostOfArraySlot()));
 				allocatorIl.insert(fallBack2, valueOf);	
 				allocatorIl.insert(fallBack2, multiply);
 
@@ -1230,7 +1243,22 @@ public class ClassInstrumentation {
 
 			InstructionHandle cursor = dominator;
 			do {
-				cost += GasCosts.cpuCostOf(cursor.getInstruction());
+				Instruction instruction = cursor.getInstruction();
+				if (instruction instanceof ArithmeticInstruction)
+					cost += gasCostModel.cpuCostOfArithmeticInstruction();
+				else if (instruction instanceof ArrayInstruction)
+					cost += gasCostModel.cpuCostOfArrayAccessInstruction();
+				else if (instruction instanceof FieldInstruction)
+					cost += gasCostModel.cpuCostOfFieldAccessInstruction();
+				else if (instruction instanceof InvokeInstruction)
+					cost += gasCostModel.cpuCostOfInvokeInstruction();
+				else if (instruction instanceof AllocationInstruction)
+					cost += gasCostModel.cpuCostOfMemoryAllocationInstruction();
+				else if (instruction instanceof Select)
+					cost += gasCostModel.cpuCostOfSelectInstruction();
+				else
+					cost += gasCostModel.cpuCostOfInstruction();
+
 				cursor = cursor.getNext();
 			}
 			while (cursor != null && !dominators.contains(cursor));

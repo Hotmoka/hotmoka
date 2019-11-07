@@ -7,7 +7,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_instrumentation"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_verification"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
