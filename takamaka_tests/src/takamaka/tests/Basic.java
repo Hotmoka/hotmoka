@@ -40,7 +40,7 @@ import io.takamaka.code.blockchain.values.IntValue;
 import io.takamaka.code.blockchain.values.LongValue;
 import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.blockchain.values.StringValue;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**
  * A test for basic storage and contract Takamaka classes.

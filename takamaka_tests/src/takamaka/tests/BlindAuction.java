@@ -37,7 +37,7 @@ import io.takamaka.code.blockchain.values.BooleanValue;
 import io.takamaka.code.blockchain.values.ByteValue;
 import io.takamaka.code.blockchain.values.IntValue;
 import io.takamaka.code.blockchain.values.StorageReference;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**
  * A test for the blind auction contract.

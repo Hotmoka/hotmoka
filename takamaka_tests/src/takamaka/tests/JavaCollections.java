@@ -23,7 +23,7 @@ import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
 import io.takamaka.code.blockchain.request.StaticMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.StringValue;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**
  * A test for the Java HashMap class.

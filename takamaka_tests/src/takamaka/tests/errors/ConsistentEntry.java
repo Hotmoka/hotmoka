@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
 import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 class ConsistentEntry extends TakamakaTest {

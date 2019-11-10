@@ -32,7 +32,7 @@ import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.IntValue;
 import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.blockchain.values.StorageValue;
-import takamaka.memory.MemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the simple storage class.

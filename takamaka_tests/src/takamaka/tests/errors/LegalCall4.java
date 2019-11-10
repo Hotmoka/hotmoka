@@ -24,7 +24,7 @@ import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.blockchain.values.StringValue;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 class LegalCall4 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);

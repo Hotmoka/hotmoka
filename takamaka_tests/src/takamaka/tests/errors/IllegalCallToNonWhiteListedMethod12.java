@@ -17,7 +17,7 @@ import io.takamaka.code.blockchain.request.InstanceMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.types.BasicTypes;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.StorageReference;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 class IllegalCallToNonWhiteListedMethod12 extends TakamakaTest {

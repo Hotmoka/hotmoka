@@ -34,7 +34,7 @@ import io.takamaka.code.blockchain.values.IntValue;
 import io.takamaka.code.blockchain.values.LongValue;
 import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.blockchain.values.StringValue;
-import takamaka.memory.MemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for a class that uses lambda expressions referring to entries.

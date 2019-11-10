@@ -27,7 +27,7 @@ import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
 import io.takamaka.code.blockchain.types.BasicTypes;
 import io.takamaka.code.blockchain.values.IntValue;
 import io.takamaka.code.blockchain.values.StorageReference;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**
  * A test for the creation of classes with the same name but from different jars.

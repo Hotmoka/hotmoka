@@ -36,7 +36,7 @@ import io.takamaka.code.blockchain.values.NullValue;
 import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.blockchain.values.StorageValue;
 import io.takamaka.code.blockchain.values.StringValue;
-import takamaka.memory.MemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the storage map Takamaka class.

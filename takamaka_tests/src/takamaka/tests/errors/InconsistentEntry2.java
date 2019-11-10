@@ -12,8 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import io.takamaka.code.verification.issues.InconsistentEntryError;
-import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 class InconsistentEntry2 extends TakamakaTest {

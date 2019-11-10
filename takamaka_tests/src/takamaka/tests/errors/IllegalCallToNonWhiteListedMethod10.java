@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import io.takamaka.code.blockchain.ConstructorSignature;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 class IllegalCallToNonWhiteListedMethod10 extends TakamakaTest {

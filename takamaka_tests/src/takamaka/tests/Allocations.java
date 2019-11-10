@@ -19,7 +19,7 @@ import io.takamaka.code.blockchain.TransactionReference;
 import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
 import io.takamaka.code.blockchain.types.ClassType;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**
  * A test for the remote purchase contract.

@@ -16,9 +16,9 @@ import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
 import io.takamaka.code.blockchain.request.StaticMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.StorageReference;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import io.takamaka.code.whitelisting.MustRedefineHashCode;
 import io.takamaka.code.whitelisting.WhiteListed;
-import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 public class IllegalCallToNonWhiteListedMethod13 extends TakamakaTest {

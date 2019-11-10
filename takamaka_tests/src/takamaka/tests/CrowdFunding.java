@@ -35,7 +35,7 @@ import io.takamaka.code.blockchain.values.BigIntegerValue;
 import io.takamaka.code.blockchain.values.BooleanValue;
 import io.takamaka.code.blockchain.values.IntValue;
 import io.takamaka.code.blockchain.values.StorageReference;
-import takamaka.memory.MemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the crowd funding contract.

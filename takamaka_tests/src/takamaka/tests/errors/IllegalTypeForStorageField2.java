@@ -22,7 +22,7 @@ import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.EnumValue;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 class IllegalTypeForStorageField2 extends TakamakaTest {

@@ -11,7 +11,7 @@ import io.takamaka.code.blockchain.NonVoidMethodSignature;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.request.StaticMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.types.BasicTypes;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 class IllegalCallToNonWhiteListedMethod11 extends TakamakaTest {
