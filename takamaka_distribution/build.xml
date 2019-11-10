@@ -20,6 +20,7 @@
   	<ant dir="../takamaka_code" target="dist Java 8" />
   	<ant dir="../takamaka_verification" target="dist" />
   	<ant dir="../takamaka_instrumentation" target="dist" />
+  	<ant dir="../takamaka_blockchain" target="dist" />
   	<ant dir="../takamaka_tools" target="dist" />
   </target>
 
@@ -28,6 +29,7 @@
   	<ant dir="../takamaka_code" target="dist Java 8" />
   	<ant dir="../takamaka_verification" target="dist Java 8" />
 	<ant dir="../takamaka_instrumentation" target="dist Java 8" />
+  	<ant dir="../takamaka_blockchain" target="dist Java 8" />
   	<ant dir="../takamaka_tools" target="dist Java 8" />
   </target>
 

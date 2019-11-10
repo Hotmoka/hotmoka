@@ -3,11 +3,11 @@
  */
 package takamaka.tests;
 
+import static io.takamaka.code.blockchain.types.BasicTypes.BOOLEAN;
+import static io.takamaka.code.blockchain.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static takamaka.blockchain.types.BasicTypes.BOOLEAN;
-import static takamaka.blockchain.types.BasicTypes.INT;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -17,24 +17,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import takamaka.blockchain.Blockchain;
-import takamaka.blockchain.Classpath;
-import takamaka.blockchain.CodeExecutionException;
-import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.NonVoidMethodSignature;
-import takamaka.blockchain.TransactionException;
-import takamaka.blockchain.TransactionReference;
-import takamaka.blockchain.VoidMethodSignature;
-import takamaka.blockchain.request.ConstructorCallTransactionRequest;
-import takamaka.blockchain.request.GameteCreationTransactionRequest;
-import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
-import takamaka.blockchain.request.JarStoreInitialTransactionRequest;
-import takamaka.blockchain.request.JarStoreTransactionRequest;
-import takamaka.blockchain.types.ClassType;
-import takamaka.blockchain.values.BigIntegerValue;
-import takamaka.blockchain.values.BooleanValue;
-import takamaka.blockchain.values.IntValue;
-import takamaka.blockchain.values.StorageReference;
+import io.takamaka.code.blockchain.Blockchain;
+import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.blockchain.ConstructorSignature;
+import io.takamaka.code.blockchain.NonVoidMethodSignature;
+import io.takamaka.code.blockchain.TransactionException;
+import io.takamaka.code.blockchain.TransactionReference;
+import io.takamaka.code.blockchain.VoidMethodSignature;
+import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
+import io.takamaka.code.blockchain.request.GameteCreationTransactionRequest;
+import io.takamaka.code.blockchain.request.InstanceMethodCallTransactionRequest;
+import io.takamaka.code.blockchain.request.JarStoreInitialTransactionRequest;
+import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
+import io.takamaka.code.blockchain.types.ClassType;
+import io.takamaka.code.blockchain.values.BigIntegerValue;
+import io.takamaka.code.blockchain.values.BooleanValue;
+import io.takamaka.code.blockchain.values.IntValue;
+import io.takamaka.code.blockchain.values.StorageReference;
 import takamaka.memory.MemoryBlockchain;
 
 /**

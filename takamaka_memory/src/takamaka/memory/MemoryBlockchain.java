@@ -14,10 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 
-import takamaka.blockchain.AbstractBlockchain;
-import takamaka.blockchain.TransactionReference;
-import takamaka.blockchain.request.TransactionRequest;
-import takamaka.blockchain.response.TransactionResponse;
+import io.takamaka.code.blockchain.AbstractBlockchain;
+import io.takamaka.code.blockchain.TransactionReference;
+import io.takamaka.code.blockchain.request.TransactionRequest;
+import io.takamaka.code.blockchain.response.TransactionResponse;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory

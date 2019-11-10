@@ -2,9 +2,9 @@ package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import io.takamaka.code.blockchain.TransactionException;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.issues.Issue;
-import takamaka.blockchain.TransactionException;
 
 public abstract class TakamakaTest {
 	public interface TestBody {

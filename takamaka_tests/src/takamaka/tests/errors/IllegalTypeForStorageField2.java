@@ -12,16 +12,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import takamaka.blockchain.Classpath;
-import takamaka.blockchain.CodeExecutionException;
-import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.DeserializationError;
-import takamaka.blockchain.TransactionException;
-import takamaka.blockchain.TransactionReference;
-import takamaka.blockchain.request.ConstructorCallTransactionRequest;
-import takamaka.blockchain.request.JarStoreTransactionRequest;
-import takamaka.blockchain.types.ClassType;
-import takamaka.blockchain.values.EnumValue;
+import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.blockchain.ConstructorSignature;
+import io.takamaka.code.blockchain.DeserializationError;
+import io.takamaka.code.blockchain.TransactionException;
+import io.takamaka.code.blockchain.TransactionReference;
+import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
+import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
+import io.takamaka.code.blockchain.types.ClassType;
+import io.takamaka.code.blockchain.values.EnumValue;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 

@@ -7,17 +7,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.blockchain.ConstructorSignature;
+import io.takamaka.code.blockchain.NonWhiteListedCallException;
+import io.takamaka.code.blockchain.TransactionException;
+import io.takamaka.code.blockchain.VoidMethodSignature;
+import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
+import io.takamaka.code.blockchain.request.StaticMethodCallTransactionRequest;
+import io.takamaka.code.blockchain.types.ClassType;
+import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.whitelisting.MustRedefineHashCode;
 import io.takamaka.code.whitelisting.WhiteListed;
-import takamaka.blockchain.CodeExecutionException;
-import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.NonWhiteListedCallException;
-import takamaka.blockchain.TransactionException;
-import takamaka.blockchain.VoidMethodSignature;
-import takamaka.blockchain.request.ConstructorCallTransactionRequest;
-import takamaka.blockchain.request.StaticMethodCallTransactionRequest;
-import takamaka.blockchain.types.ClassType;
-import takamaka.blockchain.values.StorageReference;
 import takamaka.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 

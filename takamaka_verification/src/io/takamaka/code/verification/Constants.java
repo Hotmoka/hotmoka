@@ -51,24 +51,24 @@ public interface Constants {
 	public final static String THROWS_EXCEPTIONS_NAME = "io.takamaka.code.lang.ThrowsExceptions";
 
 	/**
-	 * The name of the class type for {@link takamaka.blockchain.runtime.AbstractEvent}.
+	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractEvent}.
 	 */
-	public final static String ABSTRACT_EVENT_NAME = "takamaka.blockchain.runtime.AbstractEvent";
+	public final static String ABSTRACT_EVENT_NAME = "io.takamaka.code.blockchain.runtime.AbstractEvent";
 
 	/**
-	 * The name of the class type for {@link takamaka.blockchain.runtime.AbstractStorage}.
+	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractStorage}.
 	 */
-	public final static String ABSTRACT_STORAGE_NAME = "takamaka.blockchain.runtime.AbstractStorage";
+	public final static String ABSTRACT_STORAGE_NAME = "io.takamaka.code.blockchain.runtime.AbstractStorage";
 
 	/**
-	 * The name of the class type for {@link takamaka.blockchain.runtime.AbstractTakamaka}.
+	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractTakamaka}.
 	 */
-	public final static String ABSTRACT_TAKAMAKA_NAME = "takamaka.blockchain.runtime.AbstractTakamaka";
+	public final static String ABSTRACT_TAKAMAKA_NAME = "io.takamaka.code.blockchain.runtime.AbstractTakamaka";
 
 	/**
-	 * The name of the class type for {@link takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain}.
+	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageReferenceAlreadyInBlockchain}.
 	 */
-	public final static String SRAIB_NAME = "takamaka.blockchain.values.StorageReferenceAlreadyInBlockchain";
+	public final static String SRAIB_NAME = "io.takamaka.code.blockchain.values.StorageReferenceAlreadyInBlockchain";
 
 	/**
 	 * The maximal gas cost for which there is an optimized charge method.

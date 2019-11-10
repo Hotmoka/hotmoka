@@ -2,8 +2,8 @@ package takamaka.memory;
 
 import java.math.BigInteger;
 
-import takamaka.blockchain.GasCosts;
-import takamaka.blockchain.TransactionReference;
+import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.TransactionReference;
 
 /**
  * In the disk memory representation of a blockchain, a transaction can be

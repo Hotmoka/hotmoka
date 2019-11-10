@@ -1,6 +1,6 @@
 package takamaka.memory;
 
-import takamaka.blockchain.BlockHeader;
+import io.takamaka.code.blockchain.BlockHeader;
 
 public class MemoryBlockHeader extends BlockHeader {
 
