@@ -158,8 +158,8 @@ public class ClassInstrumentation {
 	 * @param clazz the class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @param instrumentedJar the jar where the instrumented class will be added
-	 * @throws ClassFormatException if some class file is not legal
-	 * @throws IOException if there is an error accessing the disk
+	 * @throws ClassFormatException if the class file is not legal
+	 * @throws IOException if there is an error dumping the instrumented class into disk
 	 */
 	public ClassInstrumentation(VerifiedClass clazz, GasCostModel gasCostModel, JarOutputStream instrumentedJar) throws ClassFormatException, IOException {
 		// performs instrumentation on the class
@@ -214,7 +214,7 @@ public class ClassInstrumentation {
 		 * The non-transient instance fields of primitive type or of special reference
 		 * types that are allowed in storage objects (such as {@link java.lang.String}
 		 * and {@link java.math.BigInteger}). They are defined in the class being
-		 * instrumented or in its superclasses up to {@link takamaka.blockchain.runtime.AbstractStorage}
+		 * instrumented or in its superclasses up to {@link io.takamaka.code.blockchain.runtime.AbstractStorage}
 		 * (excluded). This list is non-empty for storage classes only. The first set in
 		 * the list are the fields of the topmost class; the last are the fields of the
 		 * class being considered.
@@ -222,7 +222,7 @@ public class ClassInstrumentation {
 		private final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
 
 		/**
-		 * The non-transient instance fields of type {@link takamaka.blockchain.runtime.AbstractStorage} or
+		 * The non-transient instance fields of type {@link io.takamaka.code.blockchain.runtime.AbstractStorage} or
 		 * subclass, defined in the class being instrumented (superclasses are not
 		 * considered). This set is non-empty for storage classes only.
 		 */
