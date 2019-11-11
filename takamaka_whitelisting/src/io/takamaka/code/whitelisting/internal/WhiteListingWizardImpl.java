@@ -14,7 +14,7 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
  * A sealed implementation of a white-listing wizard.
  */
 class WhiteListingWizardImpl implements WhiteListingWizard {
-	private final static String WHITE_LISTED_ROOT = WhiteListingWizard.class.getPackage().getName() + ".database";
+	private final static String WHITE_LISTED_ROOT = WhiteListingWizardImpl.class.getPackage().getName() + ".database";
 
 	/**
 	 * The class loader used to load the classes whose code is checked for white-listing.
