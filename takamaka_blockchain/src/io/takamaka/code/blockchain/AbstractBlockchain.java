@@ -300,7 +300,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	/**
-	 * Yields the transaction reference that installed the jar from which
+	 * Yields the transaction reference that installed the jar
 	 * where the given class is defined.
 	 * 
 	 * @param clazz the class

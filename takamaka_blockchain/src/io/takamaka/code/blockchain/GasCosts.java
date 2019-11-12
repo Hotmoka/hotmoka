@@ -19,12 +19,6 @@ public class GasCosts {
 	public static final BigInteger STORAGE_COST_PER_SLOT = BigInteger.valueOf(10L);
 
 	/**
-	 * The RAM cost of a single field of an object allocated in memory. This does not consider the
-	 * objects reachable from the field, if any.
-	 */
-	public static final int RAM_COST_PER_FIELD = 4;
-
-	/**
 	 * The RAM cost of a single element of an array.
 	 */
 	public static final int RAM_COST_PER_ARRAY_SLOT = 4;
@@ -33,16 +27,6 @@ public class GasCosts {
 	 * The RAM cost of an array, without considering its elements.
 	 */
 	public static final int RAM_COST_PER_ARRAY = 8;
-
-	/**
-	 * The RAM cost of an activation record, without considering the variables therein.
-	 */
-	public static final long RAM_COST_PER_ACTIVATION_RECORD = 16;
-
-	/**
-	 * The RAM cost of a single variable inside an activation record.
-	 */
-	public static final long RAM_COST_PER_ACTIVATION_SLOT = 4;
 
 	/**
 	 * Provides the cost of a given amount of gas.
