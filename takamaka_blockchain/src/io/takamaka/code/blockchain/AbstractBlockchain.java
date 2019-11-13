@@ -143,32 +143,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 	// Any implementation of a blockchain must implement the following and leave the rest unchanged
 	
 	/**
-	 * Yields the reference to the transaction on top of the blockchain.
-	 * If there are more chains, this refers to the transaction in the longest chain.
-	 * 
-	 * @return the reference to the topmost transaction, if any. Yields {@code null} if
-	 *         the blockchain is empty
-	 */
-	protected abstract TransactionReference getTopmostTransactionReference();
-
-	/**
 	 * Yields a transaction reference whose {@code toString()} is the given string.
 	 * 
 	 * @param toString the result of {@code toString()} on the desired transaction reference
 	 * @return the transaction reference
 	 */
 	protected abstract TransactionReference getTransactionReferenceFor(String toString);
-
-	/**
-	 * Expands the blockchain with a new topmost transaction. If there are more chains, this
-	 * method expands the longest chain.
-	 * 
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
-	 * @return the reference to the transaction that has been added
-	 * @throws Exception if the expansion cannot be completed
-	 */
-	protected abstract TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception;
 
 	/**
 	 * Yields the request that generated the given transaction.
@@ -187,6 +167,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the response could not be found
 	 */
 	protected abstract TransactionResponse getResponseAt(TransactionReference transaction) throws Exception;
+
+	/**
+	 * Yields the UTC time when the currently executing transaction is being run.
+	 * This might be for instance the time of creation of the block where the transaction
+	 * occurs, but the detail is left to the implementation. In any case, this
+	 * time must be the same for a given transaction, if it gets executed more times.
+	 * 
+	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+	 */
+	public abstract long getNow();
 
 	/**
 	 * Yields the gas cost model of this blockchain.
@@ -218,6 +208,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		oldGas.clear();
 		this.previous = previous;
 	}
+
+	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 
 	/**
 	 * A comparator that puts updates in the order required for the parameter
@@ -262,18 +254,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 				return update1.compareTo(update2);
 		}
 	};
-	
-	/**
-	 * Yields the UTC time when the currently executing transaction is being run.
-	 * This might be for instance the time of creation of the block where the transaction
-	 * occurs, but the detail is left to the implementation. In any case, this
-	 * time must be the same for a given transaction, if it gets executed more times.
-	 * 
-	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
-	 */
-	public abstract long getNow();
-
-	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 
 	/**
 	 * Yields the request that generated the given transaction.
@@ -463,13 +443,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			return expandBlockchainWith(request, runJarStoreInitialTransaction(request, getTopmostTransactionReference()));
-		});
-	}
-
-	@Override
 	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			// we do not count gas for this creation
@@ -492,14 +465,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), gamete.storageReference);
 			}
-		});
-	}
-
-	@Override
-	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			return runGameteCreationTransaction(request, getTopmostTransactionReference()).gamete
-				.contextualizeAt(expandBlockchainWith(request, runGameteCreationTransaction(request, getTopmostTransactionReference())));
 		});
 	}
 
@@ -565,19 +530,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			JarStoreTransactionResponse response = runJarStoreTransaction(request, getTopmostTransactionReference());
-			TransactionReference transaction = expandBlockchainWith(request, response);
-
-			if (response instanceof JarStoreTransactionFailedResponse)
-				throw ((JarStoreTransactionFailedResponse) response).cause;
-			else
-				return transaction;
-		});
-	}
-
-	@Override
 	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, previous);
@@ -626,21 +578,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 					return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 				}
 			}
-		});
-	}
-
-	@Override
-	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> {
-			ConstructorCallTransactionResponse response = runConstructorCallTransaction(request, getTopmostTransactionReference());
-			TransactionReference transaction = expandBlockchainWith(request, response);
-
-			if (response instanceof ConstructorCallTransactionFailedResponse)
-				throw ((ConstructorCallTransactionFailedResponse) response).cause;
-			else if (response instanceof ConstructorCallTransactionExceptionResponse)
-				throw new CodeExecutionException("Constructor threw exception", ((ConstructorCallTransactionExceptionResponse) response).exception);
-			else
-				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject.contextualizeAt(transaction);
 		});
 	}
 
@@ -708,26 +645,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = runInstanceMethodCallTransaction(request, getTopmostTransactionReference());
-			TransactionReference transaction = expandBlockchainWith(request, response);
-
-			if (response instanceof MethodCallTransactionFailedResponse)
-				throw ((MethodCallTransactionFailedResponse) response).cause;
-			else if (response instanceof MethodCallTransactionExceptionResponse)
-				throw new CodeExecutionException("Method threw exception", ((MethodCallTransactionExceptionResponse) response).exception);
-			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
-				return null;
-			else {
-				StorageValue result = ((MethodCallTransactionSuccessfulResponse) response).result;
-				return result instanceof StorageReference ?
-					((StorageReference) result).contextualizeAt(transaction) : result;
-			}
-		});
-	}
-
-	@Override
 	public final MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference previous) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, previous);
@@ -786,26 +703,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 					BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
 					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 				}
-			}
-		});
-	}
-
-	@Override
-	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = runStaticMethodCallTransaction(request, getTopmostTransactionReference());
-			TransactionReference transaction = expandBlockchainWith(request, response);
-
-			if (response instanceof MethodCallTransactionFailedResponse)
-				throw ((MethodCallTransactionFailedResponse) response).cause;
-			else if (response instanceof MethodCallTransactionExceptionResponse)
-				throw new CodeExecutionException("Method threw exception", ((MethodCallTransactionExceptionResponse) response).exception);
-			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
-				return null;
-			else {
-				StorageValue result = ((MethodCallTransactionSuccessfulResponse) response).result;
-				return result instanceof StorageReference ?
-					((StorageReference) result).contextualizeAt(transaction) : result;
 			}
 		});
 	}
@@ -1026,27 +923,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
 		try {
 			return what.call();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
-	}
-
-	/**
-	 * Calls the given callable. If if throws a {@link io.takamaka.code.blockchain.CodeExecutionException}, if throws it back
-	 * unchanged. Otherwise, it wraps the exception into into a {@link io.takamaka.code.blockchain.TransactionException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws CodeExecutionException the unwrapped exception
-	 * @throws TransactionException the wrapped exception
-	 */
-	private static <T> T wrapWithCodeInCaseOfException(Callable<T> what) throws TransactionException, CodeExecutionException {
-		try {
-			return what.call();
-		}
-		catch (CodeExecutionException e) {
-			throw e;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");

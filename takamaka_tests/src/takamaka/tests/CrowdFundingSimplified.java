@@ -17,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.blockchain.Blockchain;
+import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
 import io.takamaka.code.blockchain.Classpath;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.ConstructorSignature;
@@ -57,7 +57,7 @@ class CrowdFundingSimplified extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private Blockchain blockchain;
+	private AbstractSequentialBlockchain blockchain;
 
 	/**
 	 * The first object, that holds all funds initially.

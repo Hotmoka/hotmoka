@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
+import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
 import io.takamaka.code.blockchain.TransactionReference;
 import io.takamaka.code.blockchain.request.TransactionRequest;
 import io.takamaka.code.blockchain.response.TransactionResponse;
@@ -24,7 +24,7 @@ import io.takamaka.code.blockchain.response.TransactionResponse;
  * on disk memory. It is only meant for experimentation and testing. It is not
  * really a blockchain, since there is no peer-to-peer network, nor mining.
  */
-public class MemoryBlockchain extends AbstractBlockchain {
+public class MemoryBlockchain extends AbstractSequentialBlockchain {
 
 	/**
 	 * The name used for the file containing the serialized header of a block.
