@@ -3,6 +3,7 @@ package io.takamaka.code.blockchain;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
@@ -44,6 +45,12 @@ import io.takamaka.code.blockchain.values.StorageValue;
  */
 public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 
+	/**
+	 * The transaction reference after which the current transaction is being executed.
+	 * This is {@code null} for the first transaction.
+	 */
+	private SequentialTransactionReference previous;
+
 	// ABSTRACT TEMPLATE METHODS
 	// Any implementation of a blockchain must implement the following and leave the rest unchanged
 	
@@ -76,6 +83,11 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	protected abstract TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception;
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
+
+	protected void initTransaction(BigInteger gas, TransactionReference previous, TransactionReference current) throws Exception {
+		super.initTransaction(gas, previous, current);
+		this.previous = (SequentialTransactionReference) previous;
+	}
 
 	@Override
 	protected Stream<Update> getLastUpdatesToEagerFieldsOf(StorageReference reference) throws Exception {
@@ -113,7 +125,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	protected UpdateOfField getLastUpdateToLazyNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
 		// goes back from the previous transaction;
 		// there is no reason to look before the transaction that created the object
-		for (TransactionReference cursor = previous; !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
+		for (SequentialTransactionReference cursor = previous; !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
 			UpdateOfField update = getLastUpdateFor(object, field, cursor);
 			if (update != null)
 				return update;
@@ -302,7 +314,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 		// there is no reason to look before the transaction that created the object;
 		// moreover, there is no reason to look beyond the total number of fields
 		// whose update was expected to be found
-		for (TransactionReference cursor = previous; updates.size() <= eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
+		for (SequentialTransactionReference cursor = previous; updates.size() <= eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
 			// adds the eager updates from the cursor, if any and if they are the latest
 			addEagerUpdatesFor(object, cursor, updates);
 

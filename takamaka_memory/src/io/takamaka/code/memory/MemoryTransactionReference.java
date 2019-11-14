@@ -3,6 +3,7 @@ package io.takamaka.code.memory;
 import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.SequentialTransactionReference;
 import io.takamaka.code.blockchain.TransactionReference;
 
 /**
@@ -10,7 +11,7 @@ import io.takamaka.code.blockchain.TransactionReference;
  * uniquely identified by a pair block/transaction inside the block. A progressive
  * identifier would also be fine.
  */
-final class MemoryTransactionReference extends TransactionReference {
+final class MemoryTransactionReference extends SequentialTransactionReference {
 
 	private static final long serialVersionUID = 5911713300386882185L;
 

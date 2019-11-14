@@ -132,15 +132,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	protected BlockchainClassLoader classLoader;
 
 	/**
-	 * The transaction reference after which the current transaction is being executed.
-	 * This is {@code null} for the first transaction.
-	 */
-	protected TransactionReference previous;
-
-	/**
 	 * The reference to the transaction where this must be executed.
 	 */
-	protected TransactionReference current;
+	private TransactionReference current;
 
 	// ABSTRACT TEMPLATE METHODS
 	// Any implementation of a blockchain must implement the following and leave the rest unchanged
@@ -247,7 +241,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		this.gasConsumedForRAM = BigInteger.ZERO;
 		this.gasConsumedForStorage = BigInteger.ZERO;
 		oldGas.clear();
-		this.previous = previous;
 		this.current = current;
 	}
 
