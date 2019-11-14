@@ -66,7 +66,6 @@ import io.takamaka.code.blockchain.runtime.AbstractTakamaka;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.types.StorageType;
 import io.takamaka.code.blockchain.values.StorageReference;
-import io.takamaka.code.blockchain.values.StorageReferenceAlreadyInBlockchain;
 import io.takamaka.code.blockchain.values.StorageValue;
 import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.instrumentation.JarInstrumentation;
@@ -94,7 +93,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * a distinct class loader and each storage object keeps a reference to its class loader, as
 	 * always in Java.
 	 */
-	private final Map<StorageReferenceAlreadyInBlockchain, AbstractStorage> cache = new HashMap<>();
+	private final Map<StorageReference, AbstractStorage> cache = new HashMap<>();
 
 	/**
 	 * The gas cost model of this blockchain.
@@ -138,6 +137,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * This is {@code null} for the first transaction.
 	 */
 	protected TransactionReference previous;
+
+	/**
+	 * The reference to the transaction where this must be executed.
+	 */
+	protected TransactionReference current;
 
 	// ABSTRACT TEMPLATE METHODS
 	// Any implementation of a blockchain must implement the following and leave the rest unchanged
@@ -193,9 +197,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param gas the amount of gas available for the transaction
 	 * @param previous the transaction reference after which the transaction is being executed.
 	 *                 If this is the first transaction, then {@code previous} will be {@code null}
+	 * @param current the reference to the transaction where this must be executed
 	 * @throws Exception if the transaction could not be initialized
 	 */
-	protected void initTransaction(BigInteger gas, TransactionReference previous) throws Exception {
+	protected void initTransaction(BigInteger gas, TransactionReference previous, TransactionReference current) throws Exception {
 		AbstractTakamaka.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
 		events.clear();
 		cache.clear();
@@ -207,6 +212,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 		this.gasConsumedForStorage = BigInteger.ZERO;
 		oldGas.clear();
 		this.previous = previous;
+		this.current = current;
+	}
+
+	/**
+	 * Yields the reference to the transaction being executed.
+	 * 
+	 * @return the reference
+	 */
+	public final TransactionReference getCurrentTransaction() {
+		return current;
 	}
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
@@ -406,10 +421,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference previous) throws TransactionException {
+	public final JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			// we do not count gas for this transaction
-			initTransaction(BigInteger.valueOf(-1L), previous);
+			initTransaction(BigInteger.valueOf(-1L), previous, current);
 
 			if (previous == null) {
 				// this is the first transaction of this blockchain
@@ -443,10 +458,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference previous) throws TransactionException {
+	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			// we do not count gas for this creation
-			initTransaction(BigInteger.valueOf(-1L), previous);
+			initTransaction(BigInteger.valueOf(-1L), previous, current);
 
 			TransactionRequest previousRequest = getRequestAt(previous);
 			if (!(previousRequest instanceof InitialTransactionRequest))
@@ -469,9 +484,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference previous) throws TransactionException {
+	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, previous);
+			initTransaction(request.gas, previous, current);
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				AbstractStorage deserializedCaller = request.caller.deserialize(this);
@@ -530,9 +545,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference previous) throws TransactionException {
+	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, previous);
+			initTransaction(request.gas, previous, current);
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				AbstractStorage deserializedCaller = request.caller.deserialize(this);
@@ -582,9 +597,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference previous) throws TransactionException {
+	public final MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, previous);
+			initTransaction(request.gas, previous, current);
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				AbstractStorage deserializedCaller = request.caller.deserialize(this);
@@ -645,9 +660,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference previous) throws TransactionException {
+	public final MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, previous);
+			initTransaction(request.gas, previous, current);
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				AbstractStorage deserializedCaller = request.caller.deserialize(this);
@@ -716,7 +731,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param object the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	public final AbstractStorage deserialize(StorageReferenceAlreadyInBlockchain object) {
+	public final AbstractStorage deserialize(StorageReference object) {
 		return cache.computeIfAbsent(object, this::deserializeAnew);
 	}
 
@@ -727,7 +742,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the name of the class
 	 * @throws DeserializationError if the class of the object cannot be found
 	 */
-	public final String getClassNameOf(StorageReferenceAlreadyInBlockchain object) {
+	public final String getClassNameOf(StorageReference object) {
 		try {
 			TransactionResponse response = getResponseAt(object.transaction);
 			if (response instanceof TransactionResponseWithUpdates) {
@@ -763,7 +778,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the value of the field
 	 * @throws Exception if the look up fails
 	 */
-	public final Object deserializeLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain reference, FieldSignature field) throws Exception {
+	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
 		return getLastLazyUpdateFor(reference, field).getValue().deserialize(this);
 	}
 
@@ -777,7 +792,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the value of the field
 	 * @throws Exception if the look up fails
 	 */
-	public final Object deserializeLastLazyUpdateForFinal(StorageReferenceAlreadyInBlockchain reference, FieldSignature field) throws Exception {
+	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
 		return getLastLazyUpdateForFinal(reference, field).getValue().deserialize(this);
 	}
 
@@ -801,7 +816,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param eagerFields the number of eager fields whose latest update needs to be found
 	 * @throws Exception if the operation fails
 	 */
-	private void collectEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, Set<Update> updates, int eagerFields) throws Exception {
+	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields) throws Exception {
 		// goes back from the transaction that precedes that being executed;
 		// there is no reason to look before the transaction that created the object;
 		// moreover, there is no reason to look beyond the total number of fields
@@ -820,11 +835,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param updates the set where they must be added
 	 * @throws IOException if there is an error while accessing the disk
 	 */
-	private void addEagerUpdatesFor(StorageReferenceAlreadyInBlockchain object, TransactionReference transaction, Set<Update> updates) throws Exception {
+	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) throws Exception {
 		TransactionResponse response = getResponseAtAndCharge(transaction);
 		if (response instanceof TransactionResponseWithUpdates)
 			((TransactionResponseWithUpdates) response).getUpdates()
-				.map(update -> update.contextualizeAt(transaction))
 				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
 				.forEach(updates::add);
 	}
@@ -852,7 +866,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	private UpdateOfField getLastLazyUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception {
+	private UpdateOfField getLastLazyUpdateFor(StorageReference object, FieldSignature field) throws Exception {
 		// goes back from the previous transaction;
 		// there is no reason to look before the transaction that created the object
 		for (TransactionReference cursor = previous; !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
@@ -874,12 +888,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any. If the field of {@code reference} was not modified during
 	 *         the {@code transaction}, this method returns {@code null}
 	 */
-	private UpdateOfField getLastUpdateFor(StorageReferenceAlreadyInBlockchain object, FieldSignature field, TransactionReference transaction) throws Exception {
+	private UpdateOfField getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
 		TransactionResponse response = getResponseAtAndCharge(transaction);
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField)
-				.map(update -> update.contextualizeAt(transaction))
 				.map(update -> (UpdateOfField) update)
 				.filter(update -> update.object.equals(object) && update.getField().equals(field))
 				.findAny()
@@ -899,7 +912,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	private UpdateOfField getLastLazyUpdateForFinal(StorageReferenceAlreadyInBlockchain object, FieldSignature field) throws Exception {
+	private UpdateOfField getLastLazyUpdateForFinal(StorageReference object, FieldSignature field) throws Exception {
 		// goes directly to the transaction that created the object
 		UpdateOfField update = getLastUpdateFor(object, field, object.transaction);
 		if (update != null)
@@ -1132,7 +1145,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param reference the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	private AbstractStorage deserializeAnew(StorageReferenceAlreadyInBlockchain reference) {
+	private AbstractStorage deserializeAnew(StorageReference reference) {
 		try {
 			SortedSet<Update> updates;
 			TransactionReference transaction = reference.transaction;
@@ -1140,7 +1153,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 			TransactionResponse response = getResponseAtAndCharge(transaction);
 			if (response instanceof TransactionResponseWithUpdates) {
 				updates = ((TransactionResponseWithUpdates) response).getUpdates()
-					.map(update -> update.contextualizeAt(transaction))
 					.filter(update -> update.object.equals(reference) && update.isEager())
 					.collect(Collectors.toCollection(() -> new TreeSet<>(updateComparator)));
 			}
@@ -1166,7 +1178,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					it.remove();
 
 			// the updates set contains the updates to eager final fields now:
-			// we must still collect the latest updates to the non-final fields
+			// we must still collect the latest updates to the eager non-final fields
 			collectEagerUpdatesFor(reference, updates, eagerFields.size());
 
 			String className = classTag.get().className;
@@ -1174,7 +1186,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			List<Object> actuals = new ArrayList<>();
 			// the constructor for deserialization has a first parameter
 			// that receives the storage reference of the object
-			formals.add(StorageReferenceAlreadyInBlockchain.class);
+			formals.add(StorageReference.class);
 			actuals.add(reference);
 	
 			for (Update update: updates) {

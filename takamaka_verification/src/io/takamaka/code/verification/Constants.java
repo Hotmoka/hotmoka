@@ -66,9 +66,9 @@ public interface Constants {
 	public final static String ABSTRACT_TAKAMAKA_NAME = "io.takamaka.code.blockchain.runtime.AbstractTakamaka";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageReferenceAlreadyInBlockchain}.
+	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageReference}.
 	 */
-	public final static String SRAIB_NAME = "io.takamaka.code.blockchain.values.StorageReferenceAlreadyInBlockchain";
+	public final static String STORAGE_REFERENCE_NAME = "io.takamaka.code.blockchain.values.StorageReference";
 
 	/**
 	 * The maximal gas cost for which there is an optimized charge method.

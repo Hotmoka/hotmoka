@@ -13,6 +13,7 @@ import io.takamaka.code.blockchain.response.ConstructorCallTransactionExceptionR
 import io.takamaka.code.blockchain.response.ConstructorCallTransactionFailedResponse;
 import io.takamaka.code.blockchain.response.ConstructorCallTransactionResponse;
 import io.takamaka.code.blockchain.response.ConstructorCallTransactionSuccessfulResponse;
+import io.takamaka.code.blockchain.response.GameteCreationTransactionResponse;
 import io.takamaka.code.blockchain.response.JarStoreTransactionFailedResponse;
 import io.takamaka.code.blockchain.response.JarStoreTransactionResponse;
 import io.takamaka.code.blockchain.response.MethodCallTransactionExceptionResponse;
@@ -45,6 +46,14 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	protected abstract TransactionReference getTopmostTransactionReference();
 
 	/**
+	 * Yields the reference to the transaction that follows the topmost one.
+	 * If there are more chains, this refers to the transaction in the longest chain.
+	 * 
+	 * @return the reference to the next transaction
+	 */
+	protected abstract TransactionReference getNextTransaction();
+
+	/**
 	 * Expands the blockchain with a new topmost transaction. If there are more chains, this
 	 * method expands the longest chain.
 	 * 
@@ -70,7 +79,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			return expandBlockchainWith(request, runJarStoreInitialTransaction(request, getTopmostTransactionReference()));
+			return expandBlockchainWith(request, runJarStoreInitialTransaction(request, getTopmostTransactionReference(), getNextTransaction()));
 		});
 	}
 
@@ -86,8 +95,9 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			return runGameteCreationTransaction(request, getTopmostTransactionReference()).gamete
-				.contextualizeAt(expandBlockchainWith(request, runGameteCreationTransaction(request, getTopmostTransactionReference())));
+			GameteCreationTransactionResponse response = runGameteCreationTransaction(request, getTopmostTransactionReference(), getNextTransaction());
+			expandBlockchainWith(request, response);
+			return response.gamete;
 		});
 	}
 
@@ -103,7 +113,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			JarStoreTransactionResponse response = runJarStoreTransaction(request, getTopmostTransactionReference());
+			JarStoreTransactionResponse response = runJarStoreTransaction(request, getTopmostTransactionReference(), getNextTransaction());
 			TransactionReference transaction = expandBlockchainWith(request, response);
 
 			if (response instanceof JarStoreTransactionFailedResponse)
@@ -132,15 +142,15 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			ConstructorCallTransactionResponse response = runConstructorCallTransaction(request, getTopmostTransactionReference());
-			TransactionReference transaction = expandBlockchainWith(request, response);
+			ConstructorCallTransactionResponse response = runConstructorCallTransaction(request, getTopmostTransactionReference(), getNextTransaction());
+			expandBlockchainWith(request, response);
 
 			if (response instanceof ConstructorCallTransactionFailedResponse)
 				throw ((ConstructorCallTransactionFailedResponse) response).cause;
 			else if (response instanceof ConstructorCallTransactionExceptionResponse)
 				throw new CodeExecutionException("Constructor threw exception", ((ConstructorCallTransactionExceptionResponse) response).exception);
 			else
-				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject.contextualizeAt(transaction);
+				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject;
 		});
 	}
 
@@ -164,8 +174,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = runInstanceMethodCallTransaction(request, getTopmostTransactionReference());
-			TransactionReference transaction = expandBlockchainWith(request, response);
+			MethodCallTransactionResponse response = runInstanceMethodCallTransaction(request, getTopmostTransactionReference(), getNextTransaction());
+			expandBlockchainWith(request, response);
 
 			if (response instanceof MethodCallTransactionFailedResponse)
 				throw ((MethodCallTransactionFailedResponse) response).cause;
@@ -173,11 +183,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 				throw new CodeExecutionException("Method threw exception", ((MethodCallTransactionExceptionResponse) response).exception);
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
-			else {
-				StorageValue result = ((MethodCallTransactionSuccessfulResponse) response).result;
-				return result instanceof StorageReference ?
-					((StorageReference) result).contextualizeAt(transaction) : result;
-			}
+			else
+				return ((MethodCallTransactionSuccessfulResponse) response).result;
 		});
 	}
 
@@ -201,8 +208,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = runStaticMethodCallTransaction(request, getTopmostTransactionReference());
-			TransactionReference transaction = expandBlockchainWith(request, response);
+			MethodCallTransactionResponse response = runStaticMethodCallTransaction(request, getTopmostTransactionReference(), getNextTransaction());
+			expandBlockchainWith(request, response);
 
 			if (response instanceof MethodCallTransactionFailedResponse)
 				throw ((MethodCallTransactionFailedResponse) response).cause;
@@ -210,11 +217,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 				throw new CodeExecutionException("Method threw exception", ((MethodCallTransactionExceptionResponse) response).exception);
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
-			else {
-				StorageValue result = ((MethodCallTransactionSuccessfulResponse) response).result;
-				return result instanceof StorageReference ?
-					((StorageReference) result).contextualizeAt(transaction) : result;
-			}
+			else
+				return ((MethodCallTransactionSuccessfulResponse) response).result;
 		});
 	}
 

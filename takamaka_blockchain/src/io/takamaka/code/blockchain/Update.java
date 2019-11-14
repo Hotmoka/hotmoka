@@ -50,15 +50,6 @@ public abstract class Update implements Serializable, Comparable<Update> {
 	}
 
 	/**
-	 * Yields an update derived from this, by assuming that the current transaction
-	 * is the given one.
-	 * 
-	 * @param where the transaction
-	 * @return the resulting update
-	 */
-	public abstract Update contextualizeAt(TransactionReference where);
-
-	/**
 	 * Determines if the information expressed by this update is set immediately
 	 * when a storage object is deserialized from blockchain. Otherwise, the
 	 * information will only be set on-demand.

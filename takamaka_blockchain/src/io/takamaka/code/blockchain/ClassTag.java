@@ -70,16 +70,6 @@ public final class ClassTag extends Update {
 	}
 
 	@Override
-	public ClassTag contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new ClassTag(objectContextualized, className, jar);
-		else
-			return this;
-	}
-
-	@Override
 	public BigInteger size() {
 		return super.size().add(GasCosts.storageCostOf(className)).add(jar.size());
 	}

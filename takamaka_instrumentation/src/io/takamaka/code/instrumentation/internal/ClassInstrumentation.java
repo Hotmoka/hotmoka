@@ -2094,7 +2094,7 @@ public class ClassInstrumentation {
 
 			// the parameters of the constructor start with a storage reference
 			// to the object being deserialized
-			args.add(new ObjectType(Constants.SRAIB_NAME));
+			args.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
 
 			// then there are the fields of the class and superclasses, with superclasses first
 			if (!className.equals(Constants.STORAGE_NAME))
@@ -2126,7 +2126,7 @@ public class ClassInstrumentation {
 			List<Type> argsForSuperclasses = new ArrayList<>();
 			il.append(InstructionFactory.createThis());
 			il.append(InstructionConst.ALOAD_1);
-			argsForSuperclasses.add(new ObjectType(Constants.SRAIB_NAME));
+			argsForSuperclasses.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
 
 			// the fields of the superclasses are passed into a call to super(...)
 			class PushLoad implements Consumer<Type> {

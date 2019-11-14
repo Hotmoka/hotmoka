@@ -74,16 +74,6 @@ public final class UpdateOfEnumLazy extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public UpdateOfEnumLazy contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new UpdateOfEnumLazy(objectContextualized, field, enumClassName, name);
-		else
-			return this;
-	}
-
-	@Override
 	public boolean isEager() {
 		return false;
 	}

@@ -39,14 +39,4 @@ public final class UpdateToNullEager extends AbstractUpdateOfField {
 	public boolean isEager() {
 		return true;
 	}
-
-	@Override
-	public UpdateToNullEager contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new UpdateToNullEager(objectContextualized, field);
-		else
-			return this;
-	}
 }
