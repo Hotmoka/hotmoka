@@ -10,13 +10,10 @@ import io.takamaka.code.blockchain.annotations.Immutable;
  * progressive number to a block/transaction pair to a database reference.
  * Each specific implementation of {@link io.takamaka.code.blockchain.Blockchain}
  * provides its implementation of this class.
- * They must be comparable and ordered according to their occurrence in the blockchain
- * (older transactions come before newer ones).
+ * They must be comparable. The order of comparison is not relevant.
  */
 @Immutable
-public abstract class TransactionReference implements Serializable, Comparable<TransactionReference> {
-
-	private static final long serialVersionUID = -9161931007616256670L;
+public interface TransactionReference extends Serializable, Comparable<TransactionReference> {
 
 	/**
 	 * Determines if this transaction reference precedes the other one in the blockchain.
@@ -24,18 +21,7 @@ public abstract class TransactionReference implements Serializable, Comparable<T
 	 * @param other the other blockchain reference
 	 * @return true if and only if that condition holds
 	 */
-	public final boolean isOlderThan(TransactionReference other) {
-		return compareTo(other) < 0;
-	}
-
-	@Override
-	public abstract boolean equals(Object other);
-
-	@Override
-	public abstract int hashCode();
-
-	@Override
-	public abstract String toString();
+	boolean isOlderThan(TransactionReference other);
 
 	/**
 	 * Yields a measure of this update, to be used to assess its gas cost
@@ -43,5 +29,9 @@ public abstract class TransactionReference implements Serializable, Comparable<T
 	 * 
 	 * @return the size of this update. This must be positive
 	 */
-	public abstract BigInteger size();
+	BigInteger size();
+
+	boolean equals(Object other);
+	int hashCode();
+	String toString();
 }
