@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -130,7 +129,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	private BlockchainClassLoader classLoader;
+	protected BlockchainClassLoader classLoader;
 
 	/**
 	 * The transaction reference after which the current transaction is being executed.
@@ -171,6 +170,43 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the response could not be found
 	 */
 	protected abstract TransactionResponse getResponseAt(TransactionReference transaction) throws Exception;
+
+	/**
+	 * Yields the most recent updates to the eager fields for the given storage reference.
+	 * 
+	 * @param reference the storage reference
+	 * @return the updates. These must include the class tag update for the reference
+	 * @throws Exception if the updates cannot be found
+	 */
+	protected abstract Stream<Update> getLastUpdatesToEagerFieldsOf(StorageReference reference) throws Exception;
+
+	/**
+	 * Yields the most recent update for the given non-{@code final} field,
+	 * of lazy type, of the object at given storage reference.
+	 * Conceptually, this amounts to scanning backwards the blockchain, from its tip,
+	 * looking for the latest update.
+	 * 
+	 * @param object the storage reference
+	 * @param field the field whose update is being looked for
+	 * @return the update, if any
+	 * @throws Exception if the update could not be found
+	 */
+	protected abstract UpdateOfField getLastUpdateToLazyNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception;
+
+	/**
+	 * Yields the most recent update for the given {@code final} field,
+	 * of lazy type, of the object at given storage reference.
+	 * Conceptually, this amounts to accessing the storage reference when the object was
+	 * created and reading the value of the field there. Its implementation can be identical to
+	 * that of {@link #getLastUpdateToLazyNonFinalFieldOf(StorageReference, FieldSignature)},
+	 * or exploit the fact that the field is {@code final}, for an optimized look-up.
+	 * 
+	 * @param object the storage reference
+	 * @param field the field whose update is being looked for
+	 * @return the update, if any
+	 * @throws Exception if the update could not be found
+	 */
+	protected abstract UpdateOfField getLastUpdateToLazyFinalFieldOf(StorageReference object, FieldSignature field) throws Exception;
 
 	/**
 	 * Yields the UTC time when the currently executing transaction is being run.
@@ -289,7 +325,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the response
 	 * @throws Exception if the response could not be found
 	 */
-	private TransactionResponse getResponseAtAndCharge(TransactionReference transaction) throws Exception {
+	protected final TransactionResponse getResponseAtAndCharge(TransactionReference transaction) throws Exception {
 		chargeForCPU(GasCosts.cpuCostForGettingResponseAt(transaction));
 		return getResponseAt(transaction);
 	}
@@ -779,7 +815,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the look up fails
 	 */
 	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		return getLastLazyUpdateFor(reference, field).getValue().deserialize(this);
+		return getLastUpdateToLazyNonFinalFieldOf(reference, field).getValue().deserialize(this);
 	}
 
 	/**
@@ -793,7 +829,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the look up fails
 	 */
 	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-		return getLastLazyUpdateForFinal(reference, field).getValue().deserialize(this);
+		return getLastUpdateToLazyFinalFieldOf(reference, field).getValue().deserialize(this);
 	}
 
 	/**
@@ -805,120 +841,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	public final Class<?> loadClass(String name) throws ClassNotFoundException {
 		return classLoader.loadClass(name);
-	}
-
-	/**
-	 * Puts in the given set all the latest updates for the fields of eager type of the
-	 * object at the given storage reference.
-	 * 
-	 * @param object the storage reference
-	 * @param updates the set where the latest updates must be added
-	 * @param eagerFields the number of eager fields whose latest update needs to be found
-	 * @throws Exception if the operation fails
-	 */
-	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields) throws Exception {
-		// goes back from the transaction that precedes that being executed;
-		// there is no reason to look before the transaction that created the object;
-		// moreover, there is no reason to look beyond the total number of fields
-		// whose update was expected to be found
-		for (TransactionReference cursor = previous; updates.size() < eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
-			// adds the eager updates from the cursor, if any and if they are the latest
-			addEagerUpdatesFor(object, cursor, updates);
-	}
-
-	/**
-	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param transaction the transaction
-	 * @param updates the set where they must be added
-	 * @throws IOException if there is an error while accessing the disk
-	 */
-	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) throws Exception {
-		TransactionResponse response = getResponseAtAndCharge(transaction);
-		if (response instanceof TransactionResponseWithUpdates)
-			((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
-				.forEach(updates::add);
-	}
-
-	/**
-	 * Determines if the given set of updates contains an update for the
-	 * same object and field as the given update.
-	 * 
-	 * @param update the given update
-	 * @param updates the set
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
-		return updates.stream().anyMatch(update::isForSamePropertyAs);
-	}
-
-	/**
-	 * Yields the most recent update for the given non-{@code final} field,
-	 * of lazy type, of the object at given storage reference.
-	 * Conceptually, this amounts to scanning backwards the blockchain, from its tip,
-	 * looking for the latest update.
-	 * 
-	 * @param object the storage reference
-	 * @param field the field whose update is being looked for
-	 * @return the update, if any
-	 * @throws Exception if the update could not be found
-	 */
-	private UpdateOfField getLastLazyUpdateFor(StorageReference object, FieldSignature field) throws Exception {
-		// goes back from the previous transaction;
-		// there is no reason to look before the transaction that created the object
-		for (TransactionReference cursor = previous; !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
-			UpdateOfField update = getLastUpdateFor(object, field, cursor);
-			if (update != null)
-				return update;
-		}
-	
-		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
-	}
-
-	/**
-	 * Yields the update to the given field of the object at the given reference,
-	 * generated during a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param field the field of the object
-	 * @param transaction the block where the update is being looked for
-	 * @return the update, if any. If the field of {@code reference} was not modified during
-	 *         the {@code transaction}, this method returns {@code null}
-	 */
-	private UpdateOfField getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
-		TransactionResponse response = getResponseAtAndCharge(transaction);
-		if (response instanceof TransactionResponseWithUpdates)
-			return ((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof UpdateOfField)
-				.map(update -> (UpdateOfField) update)
-				.filter(update -> update.object.equals(object) && update.getField().equals(field))
-				.findAny()
-				.orElse(null);
-	
-		return null;
-	}
-
-	/**
-	 * Yields the most recent update for the given {@code final} field,
-	 * of lazy type, of the object at given storage reference.
-	 * Conceptually, this amounts to accessing the storage reference when the object was
-	 * created and reading the value of the field there.
-	 * 
-	 * @param object the storage reference
-	 * @param field the field whose update is being looked for
-	 * @return the update, if any
-	 * @throws Exception if the update could not be found
-	 */
-	private UpdateOfField getLastLazyUpdateForFinal(StorageReference object, FieldSignature field) throws Exception {
-		// goes directly to the transaction that created the object
-		UpdateOfField update = getLastUpdateFor(object, field, object.transaction);
-		if (update != null)
-			return update;
-	
-		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
 	}
 
 	private static void checkMinimalGas(TransactionRequest request, UpdateOfBalance balanceUpdateInCaseOfFailure) throws IllegalTransactionRequestException {
@@ -946,7 +868,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * A class loader used to access the definition of the classes
 	 * of Takamaka methods or constructors executed during a transaction.
 	 */
-	private static class BlockchainClassLoader implements TakamakaClassLoader {
+	static class BlockchainClassLoader implements TakamakaClassLoader {
 
 		/**
 		 * The parent of this class loader;
@@ -1147,59 +1069,52 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	private AbstractStorage deserializeAnew(StorageReference reference) {
 		try {
-			SortedSet<Update> updates;
-			TransactionReference transaction = reference.transaction;
+			return createStorageObject(reference, getLastUpdatesToEagerFieldsOf(reference));
+		}
+		catch (DeserializationError e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new DeserializationError(e);
+		}
+	}
 
-			TransactionResponse response = getResponseAtAndCharge(transaction);
-			if (response instanceof TransactionResponseWithUpdates) {
-				updates = ((TransactionResponseWithUpdates) response).getUpdates()
-					.filter(update -> update.object.equals(reference) && update.isEager())
-					.collect(Collectors.toCollection(() -> new TreeSet<>(updateComparator)));
-			}
-			else
-				throw new DeserializationError("Storage reference " + reference + " does not contain updates");
-
-			Optional<ClassTag> classTag = updates.stream()
-					.filter(update -> update instanceof ClassTag)
-					.map(update -> (ClassTag) update)
-					.findAny();
-	
-			if (!classTag.isPresent())
-				throw new DeserializationError("No class tag found for " + reference);
-
-			// we drop the class tag
-			updates.remove(classTag.get());
-
-			// we drop updates to non-final fields
-			Set<Field> eagerFields = collectEagerFieldsOf(classTag.get().className);
-			Iterator<Update> it = updates.iterator();
-			while (it.hasNext())
-				if (!updatesFinalField(it.next(), eagerFields))
-					it.remove();
-
-			// the updates set contains the updates to eager final fields now:
-			// we must still collect the latest updates to the eager non-final fields
-			collectEagerUpdatesFor(reference, updates, eagerFields.size());
-
-			String className = classTag.get().className;
+	/**
+	 * Creates a storage object in RAM.
+	 * 
+	 * @param reference the blockchain reference of the object
+	 * @param updates the eager updates of the object, including its class tag
+	 * @return the object
+	 * @throws DeserializationError if the object could not be created
+	 */
+	private AbstractStorage createStorageObject(StorageReference reference, Stream<Update> updates) {
+		try {
+			ClassTag classTag = null;
 			List<Class<?>> formals = new ArrayList<>();
 			List<Object> actuals = new ArrayList<>();
 			// the constructor for deserialization has a first parameter
 			// that receives the storage reference of the object
 			formals.add(StorageReference.class);
 			actuals.add(reference);
+
+			// we process the updates in the same order they have in the deserialization constructor
+			for (Update update: updates.collect(Collectors.toCollection(() -> new TreeSet<>(updateComparator))))
+				if (update instanceof ClassTag)
+					classTag = (ClassTag) update;
+				else {
+					UpdateOfField updateOfField = (UpdateOfField) update;
+					formals.add(updateOfField.getField().type.toClass(this));
+					actuals.add(updateOfField.getValue().deserialize(this));
+				}
 	
-			for (Update update: updates) {
-				UpdateOfField updateOF = (UpdateOfField) update;
-				formals.add(updateOF.getField().type.toClass(this));
-				actuals.add(updateOF.getValue().deserialize(this));
-			}
-	
-			Class<?> clazz = classLoader.loadClass(className);
+			if (classTag == null)
+				throw new DeserializationError("No class tag found for " + reference);
+
+			Class<?> clazz = classLoader.loadClass(classTag.className);
 			TransactionReference actual = transactionThatInstalledJarFor(clazz);
-			TransactionReference expected = classTag.get().jar;
+			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
-				throw new DeserializationError("Class " + className + " was instantiated from jar at " + expected + " not from jar at " + actual);
+				throw new DeserializationError("Class " + classTag.className + " was instantiated from jar at " + expected + " not from jar at " + actual);
 
 			Constructor<?> constructor = clazz.getConstructor(formals.toArray(new Class<?>[formals.size()]));
 
@@ -1215,46 +1130,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 		catch (Exception e) {
 			throw new DeserializationError(e);
 		}
-	}
-
-	/**
-	 * Determines if the given update affects a {@code final} eager field contained in the given set.
-	 * 
-	 * @param update the update
-	 * @param eagerFields the set of all possible eager fields
-	 * @return true if and only if that condition holds
-	 */
-	private boolean updatesFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
-		if (update instanceof AbstractUpdateOfField) {
-			FieldSignature sig = ((AbstractUpdateOfField) update).field;
-			Class<?> type = sig.type.toClass(this);
-			String name = sig.name;
-			return eagerFields.stream()
-				.anyMatch(field -> Modifier.isFinal(field.getModifiers()) && field.getType() == type && field.getName().equals(name));
-		}
-
-		return false;
-	}
-
-	/**
-	 * Collects all eager fields of the given storage class, including those of its superclasses,
-	 * up to and excluding {@link io.takamaka.code.blockchain.runtime.AbstractStorage}.
-	 * 
-	 * @param className the name of the storage class
-	 * @return the eager fields
-	 */
-	private Set<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException {
-		Set<Field> bag = new HashSet<>();
-
-		// fields added by instrumentation by Takamaka itself are not considered, since they are transient
-		for (Class<?> clazz = loadClass(className); clazz != AbstractStorage.class; clazz = clazz.getSuperclass())
-			Stream.of(clazz.getDeclaredFields())
-			.filter(field -> !Modifier.isTransient(field.getModifiers())
-					&& !Modifier.isStatic(field.getModifiers())
-					&& classLoader.isEagerlyLoaded(field.getType()))
-			.forEach(bag::add);
-
-		return bag;
 	}
 
 	/**

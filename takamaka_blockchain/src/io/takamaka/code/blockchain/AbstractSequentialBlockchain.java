@@ -1,6 +1,15 @@
 package io.takamaka.code.blockchain;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
 import io.takamaka.code.blockchain.request.GameteCreationTransactionRequest;
@@ -21,7 +30,9 @@ import io.takamaka.code.blockchain.response.MethodCallTransactionFailedResponse;
 import io.takamaka.code.blockchain.response.MethodCallTransactionResponse;
 import io.takamaka.code.blockchain.response.MethodCallTransactionSuccessfulResponse;
 import io.takamaka.code.blockchain.response.TransactionResponse;
+import io.takamaka.code.blockchain.response.TransactionResponseWithUpdates;
 import io.takamaka.code.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
+import io.takamaka.code.blockchain.runtime.AbstractStorage;
 import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.blockchain.values.StorageValue;
 
@@ -65,6 +76,61 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	protected abstract TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception;
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
+
+	@Override
+	protected Stream<Update> getLastUpdatesToEagerFieldsOf(StorageReference reference) throws Exception {
+		TransactionReference transaction = reference.transaction;
+	
+		TransactionResponse response = getResponseAtAndCharge(transaction);
+		if (!(response instanceof TransactionResponseWithUpdates))
+			throw new DeserializationError("Storage reference " + reference + " does not contain updates");
+	
+		Set<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update.object.equals(reference) && update.isEager())
+				.collect(Collectors.toSet());
+	
+		Optional<ClassTag> classTag = updates.stream()
+				.filter(update -> update instanceof ClassTag)
+				.map(update -> (ClassTag) update)
+				.findAny();
+	
+		if (!classTag.isPresent())
+			throw new DeserializationError("No class tag found for " + reference);
+	
+		// we drop updates to non-final fields
+		Set<Field> eagerFields = collectEagerFieldsOf(classTag.get().className);
+		Iterator<Update> it = updates.iterator();
+		while (it.hasNext())
+			if (updatesNonFinalField(it.next(), eagerFields))
+				it.remove();
+	
+		// the updates set contains the updates to eager final fields now:
+		// we must still collect the latest updates to the eager non-final fields
+		return collectEagerUpdatesFor(reference, updates, eagerFields.size());
+	}
+
+	@Override
+	protected UpdateOfField getLastUpdateToLazyNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
+		// goes back from the previous transaction;
+		// there is no reason to look before the transaction that created the object
+		for (TransactionReference cursor = previous; !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
+			UpdateOfField update = getLastUpdateFor(object, field, cursor);
+			if (update != null)
+				return update;
+		}
+	
+		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
+	}
+
+	@Override
+	protected UpdateOfField getLastUpdateToLazyFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
+		// goes directly to the transaction that created the object
+		UpdateOfField update = getLastUpdateFor(object, field, object.transaction);
+		if (update != null)
+			return update;
+	
+		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
+	}
 
 	/**
 	 * Expands this blockchain with a transaction that
@@ -220,6 +286,119 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 			else
 				return ((MethodCallTransactionSuccessfulResponse) response).result;
 		});
+	}
+
+	/**
+	 * Puts in the given set all the latest updates for the fields of eager type of the
+	 * object at the given storage reference.
+	 * 
+	 * @param object the storage reference
+	 * @param updates the set where the latest updates must be added
+	 * @param eagerFields the number of eager fields whose latest update needs to be found
+	 * @throws Exception if the operation fails
+	 */
+	private Stream<Update> collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields) throws Exception {
+		// goes back from the transaction that precedes that being executed;
+		// there is no reason to look before the transaction that created the object;
+		// moreover, there is no reason to look beyond the total number of fields
+		// whose update was expected to be found
+		for (TransactionReference cursor = previous; updates.size() <= eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
+			// adds the eager updates from the cursor, if any and if they are the latest
+			addEagerUpdatesFor(object, cursor, updates);
+
+		return updates.stream();
+	}
+
+	/**
+	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param transaction the transaction
+	 * @param updates the set where they must be added
+	 * @throws IOException if there is an error while accessing the disk
+	 */
+	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) throws Exception {
+		TransactionResponse response = getResponseAtAndCharge(transaction);
+		if (response instanceof TransactionResponseWithUpdates)
+			((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
+				.forEach(updates::add);
+	}
+
+	/**
+	 * Determines if the given set of updates contains an update for the
+	 * same object and field as the given update.
+	 * 
+	 * @param update the given update
+	 * @param updates the set
+	 * @return true if and only if that condition holds
+	 */
+	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
+		return updates.stream().anyMatch(update::isForSamePropertyAs);
+	}
+
+	/**
+	 * Yields the update to the given field of the object at the given reference,
+	 * generated during a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param transaction the block where the update is being looked for
+	 * @return the update, if any. If the field of {@code reference} was not modified during
+	 *         the {@code transaction}, this method returns {@code null}
+	 */
+	private UpdateOfField getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
+		TransactionResponse response = getResponseAtAndCharge(transaction);
+		if (response instanceof TransactionResponseWithUpdates)
+			return ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfField)
+				.map(update -> (UpdateOfField) update)
+				.filter(update -> update.object.equals(object) && update.getField().equals(field))
+				.findAny()
+				.orElse(null);
+	
+		return null;
+	}
+
+	/**
+	 * Determines if the given update affects a non-{@code final} eager field contained in the given set.
+	 * 
+	 * @param update the update
+	 * @param eagerFields the set of all possible eager fields
+	 * @return true if and only if that condition holds
+	 */
+	private boolean updatesNonFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
+		if (update instanceof UpdateOfField) {
+			FieldSignature sig = ((UpdateOfField) update).getField();
+			Class<?> type = sig.type.toClass(this);
+			String name = sig.name;
+			return eagerFields.stream()
+				.anyMatch(field -> !Modifier.isFinal(field.getModifiers()) && field.getType() == type && field.getName().equals(name));
+		}
+
+		return false;
+	}
+
+	/**
+	 * Collects all eager fields of the given storage class, including those of its superclasses,
+	 * up to and excluding {@link io.takamaka.code.blockchain.runtime.AbstractStorage}.
+	 * 
+	 * @param className the name of the storage class
+	 * @return the eager fields
+	 */
+	private Set<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException {
+		Set<Field> bag = new HashSet<>();
+
+		// fields added by instrumentation by Takamaka itself are not considered, since they are transient
+		for (Class<?> clazz = loadClass(className); clazz != AbstractStorage.class; clazz = clazz.getSuperclass())
+			Stream.of(clazz.getDeclaredFields())
+			.filter(field -> !Modifier.isTransient(field.getModifiers())
+					&& !Modifier.isStatic(field.getModifiers())
+					&& classLoader.isEagerlyLoaded(field.getType()))
+			.forEach(bag::add);
+
+		return bag;
 	}
 
 	/**
