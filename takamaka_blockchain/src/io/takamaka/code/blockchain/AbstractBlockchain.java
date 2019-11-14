@@ -501,7 +501,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-				AbstractStorage gamete = (AbstractStorage) classLoader.getExternallyOwnedAccount().newInstance();
+				AbstractStorage gamete = (AbstractStorage) classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 				// we set the balance field of the gamete
 				Field balanceField = classLoader.getContract().getDeclaredField("balance");
 				balanceField.setAccessible(true); // since the field is private
@@ -517,7 +517,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, previous, current);
 
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
+				this.classLoader = classLoader;
 				AbstractStorage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 
@@ -578,7 +579,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, previous, current);
 
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
+				this.classLoader = classLoader;
 				AbstractStorage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
@@ -630,7 +632,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, previous, current);
 
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
+				this.classLoader = classLoader;
 				AbstractStorage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
@@ -693,7 +696,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, previous, current);
 
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
+				this.classLoader = classLoader;
 				AbstractStorage deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
