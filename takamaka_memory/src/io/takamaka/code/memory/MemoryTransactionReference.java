@@ -50,7 +50,7 @@ final class MemoryTransactionReference extends SequentialTransactionReference {
 	}
 
 	@Override
-	public int compareTo(TransactionReference other) {
+	public boolean isOlderThan(TransactionReference other) {
 		// this transaction reference is created by the memory blockchain only,
 		// that generates only this kind of transaction references. Hence
 		// this cast must succeed
@@ -58,9 +58,9 @@ final class MemoryTransactionReference extends SequentialTransactionReference {
 
 		int diff = blockNumber.compareTo(otherAsTR.blockNumber);
 		if (diff != 0)
-			return diff;
+			return diff < 0;
 		else
-			return Short.compare(transactionNumber, otherAsTR.transactionNumber);
+			return transactionNumber < otherAsTR.transactionNumber;
 	}
 
 	@Override
