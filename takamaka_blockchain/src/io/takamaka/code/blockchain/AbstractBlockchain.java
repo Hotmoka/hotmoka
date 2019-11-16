@@ -230,7 +230,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param current the reference to the transaction where this must be executed
 	 * @throws Exception if the transaction could not be initialized
 	 */
-	protected void initTransaction(BigInteger gas, TransactionReference previous, TransactionReference current) throws Exception {
+	protected void initTransaction(BigInteger gas, TransactionReference current) throws Exception {
 		AbstractTakamaka.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
 		events.clear();
 		cache.clear();
@@ -450,23 +450,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
+	public final JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			// we do not count gas for this transaction
-			initTransaction(BigInteger.valueOf(-1L), previous, current);
+			initTransaction(BigInteger.valueOf(-1L), current);
 
-			if (previous == null) {
-				// this is the first transaction of this blockchain
-				if (request.getNumberOfDependencies() > 0)
-					throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
-			}
-			else {
-				TransactionRequest previousRequest = getRequestAt(previous);
-				if (!(previousRequest instanceof InitialTransactionRequest))
-					throw new IllegalTransactionRequestException("This blockchain is already initialized");
-				else if (request.getDependencies().map(dependency -> dependency.transaction).anyMatch(previous::isOlderThan))
-					throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
-			}
+			if (!request.getDependencies().map(dependency -> dependency.transaction).allMatch(transaction -> transaction.isOlderThan(current)))
+				throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
 
 			// we transform the array of bytes into a real jar file
 			Path original = Files.createTempFile("original", ".jar");
@@ -487,14 +477,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
+	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			// we do not count gas for this creation
-			initTransaction(BigInteger.valueOf(-1L), previous, current);
-
-			TransactionRequest previousRequest = getRequestAt(previous);
-			if (!(previousRequest instanceof InitialTransactionRequest))
-				throw new IllegalTransactionRequestException("This blockchain is already initialized");
+			initTransaction(BigInteger.valueOf(-1L), current);
 
 			if (request.initialAmount.signum() < 0)
 				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
@@ -513,9 +499,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
+	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, previous, current);
+			initTransaction(request.gas, current);
 
 			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
@@ -528,7 +514,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
 				checkMinimalGas(request, balanceUpdateInCaseOfFailure);
 
-				if (request.getDependencies().map(dependency -> dependency.transaction).anyMatch(previous::isOlderThan))
+				if (!request.getDependencies().map(dependency -> dependency.transaction).allMatch(transaction -> transaction.isOlderThan(current)))
 					throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
 
 				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
@@ -575,9 +561,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
+	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, previous, current);
+			initTransaction(request.gas, current);
 
 			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
@@ -628,9 +614,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
+	public final MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, previous, current);
+			initTransaction(request.gas, current);
 
 			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
@@ -692,9 +678,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
-	public final MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException {
+	public final MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, previous, current);
+			initTransaction(request.gas, current);
 
 			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;

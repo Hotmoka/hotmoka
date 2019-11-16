@@ -26,13 +26,11 @@ public interface Blockchain {
 	 * The blockchain does not get modified.
 	 * 
 	 * @param request the transaction request
-	 * @param previous the reference to the transaction after which this must be executed. This might be {@code null}
-	 *                 if this is the first transaction in a blockchain
 	 * @param current the reference to the transaction where this must be executed
 	 * @return the response resulting from the execution of the request
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
-	public JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException;
+	public JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference current) throws TransactionException;
 
 	/**
 	 * Runs a transaction that creates a gamete, that is, an externally owned contract with the given initial amount of coins.
@@ -42,12 +40,11 @@ public interface Blockchain {
 	 * The blockchain does not get modified.
 	 * 
 	 * @param request the transaction request
-	 * @param previous the reference to the transaction after which this must be executed
 	 * @param current the reference to the transaction where this must be executed
 	 * @return the response resulting from the execution of the request
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
-	public abstract GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException;
+	public abstract GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference current) throws TransactionException;
 
 	/**
 	 * Runs a transaction that installs a jar in this blockchain. The goal is to install, in blockchain, a jar, with its dependencies.
@@ -55,12 +52,11 @@ public interface Blockchain {
 	 * the corresponding response. The blockchain does not get modified.
 	 * 
 	 * @param request the transaction request
-	 * @param previous the transaction reference after which the request must be executed
 	 * @param current the reference to the transaction where this must be executed
 	 * @return the response resulting from the execution of the request
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
-	public JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException;
+	public JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference current) throws TransactionException;
 
 	/**
 	 * Runs a transaction that calls a constructor of a class installed in blockchain.
@@ -69,12 +65,11 @@ public interface Blockchain {
 	 * the corresponding response. The blockchain does not get modified.
 	 * 
 	 * @param request the transaction request
-	 * @param previous the transaction reference after which the request must be executed
 	 * @param current the reference to the transaction where this must be executed
 	 * @return the response resulting from the execution of the request
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
-	public ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException;
+	public ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference current) throws TransactionException;
 
 	/**
 	 * Runs a transaction that calls an instance method of an object in blockchain.
@@ -83,12 +78,11 @@ public interface Blockchain {
 	 * the corresponding response. The blockchain does not get modified.
 	 * 
 	 * @param request the transaction request
-	 * @param previous the transaction reference after which the request must be executed
 	 * @param current the reference to the transaction where this must be executed
 	 * @return the response resulting from the execution of the request
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
-	public MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException;
+	public MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference current) throws TransactionException;
 
 	/**
 	 * Runs a transaction that calls a static method of a class in blockchain.
@@ -97,10 +91,9 @@ public interface Blockchain {
 	 * the corresponding response. The blockchain does not get modified.
 	 * 
 	 * @param request the transaction request
-	 * @param previous the transaction reference after which the request must be executed
 	 * @param current the reference to the transaction where this must be executed
 	 * @return the response resulting from the execution of the request
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
-	public MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference previous, TransactionReference current) throws TransactionException;
+	public MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference current) throws TransactionException;
 }

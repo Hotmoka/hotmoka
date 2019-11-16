@@ -102,12 +102,13 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 	}
 
 	@Override
-	protected void initTransaction(BigInteger gas, TransactionReference previous, TransactionReference current) throws Exception {
-		super.initTransaction(gas, previous, current);
+	protected void initTransaction(BigInteger gas, TransactionReference current) throws Exception {
+		super.initTransaction(gas, current);
 
 		// we access the block header where the transaction would occur
+		MemoryTransactionReference previous = getTopmostTransactionReference();
 		if (previous != null) {
-			MemoryTransactionReference next = ((MemoryTransactionReference) previous).getNext();
+			MemoryTransactionReference next = previous.getNext();
 			Path headerPath = getPathInBlockFor(next.blockNumber, HEADER_NAME);
 			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(headerPath)))) {
 				MemoryBlockHeader header = (MemoryBlockHeader) in.readObject();

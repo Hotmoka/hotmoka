@@ -3,7 +3,6 @@ package io.takamaka.code.blockchain;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
@@ -45,12 +44,6 @@ import io.takamaka.code.blockchain.values.StorageValue;
  */
 public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 
-	/**
-	 * The transaction reference after which the current transaction is being executed.
-	 * This is {@code null} for the first transaction.
-	 */
-	private SequentialTransactionReference previous;
-
 	// ABSTRACT TEMPLATE METHODS
 	// Any implementation of a blockchain must implement the following and leave the rest unchanged
 	
@@ -61,7 +54,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @return the reference to the topmost transaction, if any. Yields {@code null} if
 	 *         the blockchain is empty
 	 */
-	protected abstract TransactionReference getTopmostTransactionReference();
+	protected abstract SequentialTransactionReference getTopmostTransactionReference();
 
 	/**
 	 * Yields the reference to the transaction that follows the topmost one.
@@ -69,7 +62,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * 
 	 * @return the reference to the next transaction
 	 */
-	protected abstract TransactionReference getNextTransaction();
+	protected abstract SequentialTransactionReference getNextTransaction();
 
 	/**
 	 * Expands the blockchain with a new topmost transaction. If there are more chains, this
@@ -83,11 +76,6 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	protected abstract TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception;
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
-
-	protected void initTransaction(BigInteger gas, TransactionReference previous, TransactionReference current) throws Exception {
-		super.initTransaction(gas, previous, current);
-		this.previous = (SequentialTransactionReference) previous;
-	}
 
 	@Override
 	protected Stream<Update> getLastUpdatesToEagerFieldsOf(StorageReference reference) throws Exception {
@@ -125,10 +113,10 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	protected UpdateOfField getLastUpdateToLazyNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
 		// goes back from the previous transaction;
 		// there is no reason to look before the transaction that created the object
-		for (SequentialTransactionReference cursor = previous; !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
-			UpdateOfField update = getLastUpdateFor(object, field, cursor);
-			if (update != null)
-				return update;
+		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
+			Optional<UpdateOfField> update = getLastUpdateFor(object, field, cursor);
+			if (update.isPresent())
+				return update.get();
 		}
 	
 		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
@@ -137,11 +125,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	@Override
 	protected UpdateOfField getLastUpdateToLazyFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
 		// goes directly to the transaction that created the object
-		UpdateOfField update = getLastUpdateFor(object, field, object.transaction);
-		if (update != null)
-			return update;
-	
-		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
+		return getLastUpdateFor(object, field, object.transaction).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
 
 	/**
@@ -157,7 +141,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			return expandBlockchainWith(request, runJarStoreInitialTransaction(request, getTopmostTransactionReference(), getNextTransaction()));
+			requireBlockchainNotYetInitialized();
+			return expandBlockchainWith(request, runJarStoreInitialTransaction(request, getNextTransaction()));
 		});
 	}
 
@@ -173,7 +158,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			GameteCreationTransactionResponse response = runGameteCreationTransaction(request, getTopmostTransactionReference(), getNextTransaction());
+			requireBlockchainNotYetInitialized();
+			GameteCreationTransactionResponse response = runGameteCreationTransaction(request, getNextTransaction());
 			expandBlockchainWith(request, response);
 			return response.gamete;
 		});
@@ -191,7 +177,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			JarStoreTransactionResponse response = runJarStoreTransaction(request, getTopmostTransactionReference(), getNextTransaction());
+			JarStoreTransactionResponse response = runJarStoreTransaction(request, getNextTransaction());
 			TransactionReference transaction = expandBlockchainWith(request, response);
 
 			if (response instanceof JarStoreTransactionFailedResponse)
@@ -220,7 +206,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			ConstructorCallTransactionResponse response = runConstructorCallTransaction(request, getTopmostTransactionReference(), getNextTransaction());
+			ConstructorCallTransactionResponse response = runConstructorCallTransaction(request, getNextTransaction());
 			expandBlockchainWith(request, response);
 
 			if (response instanceof ConstructorCallTransactionFailedResponse)
@@ -252,7 +238,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = runInstanceMethodCallTransaction(request, getTopmostTransactionReference(), getNextTransaction());
+			MethodCallTransactionResponse response = runInstanceMethodCallTransaction(request, getNextTransaction());
 			expandBlockchainWith(request, response);
 
 			if (response instanceof MethodCallTransactionFailedResponse)
@@ -286,7 +272,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = runStaticMethodCallTransaction(request, getTopmostTransactionReference(), getNextTransaction());
+			MethodCallTransactionResponse response = runStaticMethodCallTransaction(request, getNextTransaction());
 			expandBlockchainWith(request, response);
 
 			if (response instanceof MethodCallTransactionFailedResponse)
@@ -298,6 +284,15 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 			else
 				return ((MethodCallTransactionSuccessfulResponse) response).result;
 		});
+	}
+
+	private void requireBlockchainNotYetInitialized() throws Exception {
+		SequentialTransactionReference previous = getTopmostTransactionReference();
+		if (previous != null) {
+			TransactionRequest previousRequest = getRequestAt(previous);
+			if (!(previousRequest instanceof InitialTransactionRequest))
+				throw new IllegalTransactionRequestException("This blockchain is already initialized");
+		}
 	}
 
 	/**
@@ -314,7 +309,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 		// there is no reason to look before the transaction that created the object;
 		// moreover, there is no reason to look beyond the total number of fields
 		// whose update was expected to be found
-		for (SequentialTransactionReference cursor = previous; updates.size() <= eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
+		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); updates.size() <= eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
 			// adds the eager updates from the cursor, if any and if they are the latest
 			addEagerUpdatesFor(object, cursor, updates);
 
@@ -358,19 +353,18 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @param field the field of the object
 	 * @param transaction the block where the update is being looked for
 	 * @return the update, if any. If the field of {@code reference} was not modified during
-	 *         the {@code transaction}, this method returns {@code null}
+	 *         the {@code transaction}, this method returns an empty optional
 	 */
-	private UpdateOfField getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
+	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
 		TransactionResponse response = getResponseAtAndCharge(transaction);
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
 				.filter(update -> update.object.equals(object) && update.getField().equals(field))
-				.findAny()
-				.orElse(null);
+				.findAny();
 	
-		return null;
+		return Optional.empty();
 	}
 
 	/**
