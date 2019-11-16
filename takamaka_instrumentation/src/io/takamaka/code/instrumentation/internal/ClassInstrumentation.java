@@ -380,7 +380,7 @@ public class ClassInstrumentation {
 					}
 				}
 
-			StackMapReplacer.replace(_new);
+			StackMapReplacer.of(_new);
 			clazz.replaceMethod(old, _new.getMethod());
 		}
 
@@ -606,7 +606,7 @@ public class ClassInstrumentation {
 			methodGen.setMaxStack();
 			if (!methodGen.isAbstract()) {
 				methodGen.getInstructionList().setPositions();
-				StackMapReplacer.replace(methodGen);
+				StackMapReplacer.of(methodGen);
 			}
 
 			return methodGen.getMethod();
@@ -1191,7 +1191,7 @@ public class ClassInstrumentation {
 				allocatorIl.setPositions();
 				allocator.setMaxLocals();
 				allocator.setMaxStack();
-				StackMapReplacer.replace(allocator);
+				StackMapReplacer.of(allocator);
 				clazz.addMethod(allocator.getMethod());
 
 				// the original multianewarray gets replaced with a call to the allocation method
@@ -1772,7 +1772,7 @@ public class ClassInstrumentation {
 			il.setPositions();
 			extractUpdates.setMaxLocals();
 			extractUpdates.setMaxStack();
-			StackMapReplacer.replace(extractUpdates);
+			StackMapReplacer.of(extractUpdates);
 			clazz.addMethod(extractUpdates.getMethod());
 		}
 
@@ -2051,7 +2051,7 @@ public class ClassInstrumentation {
 					ENSURE_LOADED_PREFIX + fieldName, className, il, cpg);
 			ensureLoaded.setMaxLocals();
 			ensureLoaded.setMaxStack();
-			StackMapReplacer.replace(ensureLoaded);
+			StackMapReplacer.of(ensureLoaded);
 			clazz.addMethod(ensureLoaded.getMethod());
 		}
 

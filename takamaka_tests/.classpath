@@ -17,6 +17,6 @@
 	<classpathentry kind="lib" path="/takamaka_distribution/dist/io-takamaka-code-verification-1.0.jar"/>
 	<classpathentry kind="lib" path="/takamaka_distribution/dist/io-takamaka-code-whitelisting-1.0.jar"/>
 	<classpathentry kind="lib" path="/takamaka_distribution/libs/bcel-6.2.jar"/>
-	<classpathentry kind="lib" path="/takamaka_distribution/libs/it-univr-bcel-1.0-Java8.jar"/>
+	<classpathentry kind="lib" path="/takamaka_distribution/libs/it-univr-bcel-1.1-Java8.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
