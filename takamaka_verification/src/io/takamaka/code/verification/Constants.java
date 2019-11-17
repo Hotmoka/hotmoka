@@ -74,4 +74,10 @@ public interface Constants {
 	 * The maximal gas cost for which there is an optimized charge method.
 	 */
 	public final static int MAX_COMPACT_CHARGE = 20;
+
+	/**
+	 * The character that is put at the beginning of synthetic methods used for instrumentation
+	 * of Takamaka code.
+	 */
+	public final static char INSTRUMENTATION_PREFIX = '§';
 }

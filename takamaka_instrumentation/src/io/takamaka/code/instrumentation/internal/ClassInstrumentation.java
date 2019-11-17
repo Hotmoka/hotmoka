@@ -1,6 +1,5 @@
 package io.takamaka.code.instrumentation.internal;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
@@ -21,7 +20,6 @@ import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -29,7 +27,6 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
-import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
@@ -44,12 +41,10 @@ import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.AllocationInstruction;
 import org.apache.bcel.generic.ArithmeticInstruction;
 import org.apache.bcel.generic.ArrayInstruction;
-import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.ExceptionThrower;
-import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.GETFIELD;
 import org.apache.bcel.generic.GotoInstruction;
@@ -87,6 +82,12 @@ import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.GasCostModel;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromBlockchain;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddExtractUpdates;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.SwapSuperclassOfSpecialClasses;
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.Dummy;
@@ -103,54 +104,45 @@ import it.univr.bcel.StackMapReplacer;
  * classes, by adding the serialization support, and contracts, to deal with entries.
  */
 public class ClassInstrumentation {
-	private final static String OLD_PREFIX = "§old_";
-	private final static String IF_ALREADY_LOADED_PREFIX = "§ifAlreadyLoaded_";
-	private final static String ENSURE_LOADED_PREFIX = "§ensureLoaded_";
-	private final static String GETTER_PREFIX = "§get_";
-	private final static String SETTER_PREFIX = "§set_";
-	private final static String EXTRA_LAMBDA_NAME = "lambda";
-	private final static String EXTRA_VERIFIER_NAME = "verifier";
-	private final static String EXTRA_ALLOCATOR_NAME = "multianewarray";
-	private final static String EXTRACT_UPDATES = "extractUpdates";
-	private final static String RECURSIVE_EXTRACT = "recursiveExtract";
-	private final static String ADD_UPDATE_FOR = "addUpdateFor";
+	public final static String OLD_PREFIX = Constants.INSTRUMENTATION_PREFIX + "old_";
+	public final static String IF_ALREADY_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ifAlreadyLoaded_";
+	public final static String ENSURE_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ensureLoaded_";
+	public final static String GETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "get_";
+	public final static String SETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "set_";
+	private final static String EXTRA_LAMBDA_NAME = Constants.INSTRUMENTATION_PREFIX + "lambda";
+	private final static String EXTRA_VERIFIER_NAME = Constants.INSTRUMENTATION_PREFIX + "verifier";
+	private final static String EXTRA_ALLOCATOR_NAME = Constants.INSTRUMENTATION_PREFIX + "multianewarray";
+	public final static String EXTRACT_UPDATES = "extractUpdates";
+	public final static String RECURSIVE_EXTRACT = "recursiveExtract";
+	public final static String ADD_UPDATE_FOR = "addUpdateFor";
 	private final static String PAYABLE_ENTRY = "payableEntry";
 	private final static String ENTRY = "entry";
-	private final static String IN_STORAGE_NAME = "inStorage";
-	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
-	private final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
-	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
-	private final static short PUBLIC_SYNTHETIC_FINAL = PUBLIC_SYNTHETIC | Const.ACC_FINAL;
-	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
-	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
+	public final static String IN_STORAGE_NAME = "inStorage";
+	public final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
+	public final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
+	public final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
+	public final static short PUBLIC_SYNTHETIC_FINAL = PUBLIC_SYNTHETIC | Const.ACC_FINAL;
+	public final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
+	public final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
-	private final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_TRANSIENT;
+	public final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_TRANSIENT;
 
 	/**
-	 * The order used for generating the parameters of the instrumented
-	 * constructors.
+	 * The order used for generating the parameters of the instrumented constructors.
 	 */
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName)
-			.thenComparing(field -> field.getType().toString());
+		.thenComparing(field -> field.getType().toString());
 
 	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.ABSTRACT_TAKAMAKA_NAME);
 	private final static ObjectType STORAGE_OT = new ObjectType(Constants.STORAGE_NAME);
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
-	private final static ObjectType ENUM_OT = new ObjectType(Enum.class.getName());
-	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
-	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
-	private final static Type[] THREE_STRINGS_ARGS = { Type.STRING, Type.STRING, Type.STRING };
-	private final static Type[] EXTRACT_UPDATES_ARGS = { SET_OT, SET_OT, LIST_OT };
-	private final static Type[] ADD_UPDATES_FOR_ARGS = { Type.STRING, Type.STRING, SET_OT };
-	private final static Type[] RECURSIVE_EXTRACT_ARGS = { Type.OBJECT, SET_OT, SET_OT, LIST_OT };
 	private final static Type[] ENTRY_ARGS = { CONTRACT_OT };
 	private final static Type[] ONE_INT_ARGS = { Type.INT };
 	private final static Type[] ONE_LONG_ARGS = { Type.LONG };
 	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };
-	private final static Type[] TWO_OBJECTS_ARGS = { Type.OBJECT, Type.OBJECT };
 
 	/**
 	 * Performs the instrumentation of a single class file.
@@ -158,26 +150,20 @@ public class ClassInstrumentation {
 	 * @param clazz the class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @param instrumentedJar the jar where the instrumented class will be added
-	 * @throws ClassFormatException if the class file is not legal
-	 * @throws IOException if there is an error dumping the instrumented class into disk
 	 */
-	public ClassInstrumentation(VerifiedClass clazz, GasCostModel gasCostModel, JarOutputStream instrumentedJar) throws ClassFormatException, IOException {
-		// performs instrumentation on the class
-		new Initializer(clazz, gasCostModel);
-
-		// dump the instrumented class on disk
-		clazz.getJavaClass().dump(instrumentedJar);
+	ClassInstrumentation(VerifiedClass clazz, GasCostModel gasCostModel) {
+		new Instrumenter(clazz, gasCostModel);
 	}
 
 	/**
 	 * Local scope for the instrumentation of a single class.
 	 */
-	private class Initializer {
+	public class Instrumenter {
 
 		/**
 		 * The class that is being instrumented.
 		 */
-		private final VerifiedClass clazz;
+		public final VerifiedClass clazz;
 
 		/**
 		 * The gas cost model used for the instrumentation.
@@ -187,21 +173,21 @@ public class ClassInstrumentation {
 		/**
 		 * The name of the class being instrumented.
 		 */
-		private final String className;
+		public final String className;
 
 		/**
 		 * The constant pool of the class being instrumented.
 		 */
-		private final ConstantPoolGen cpg;
+		public final ConstantPoolGen cpg;
 
 		/**
 		 * The object that can be used to build complex instructions.
 		 */
-		private final InstructionFactory factory;
+		public final InstructionFactory factory;
 
 		/**
 		 * True if and only if the class being instrumented is a storage class, distinct
-		 * form {@link takamaka.blockchain.runtime.AbstractStorage} itself, that must not be instrumented.
+		 * form {@link io.takamaka.code.lang.Storage} itself, that must not be instrumented.
 		 */
 		private final boolean isStorage;
 
@@ -214,19 +200,19 @@ public class ClassInstrumentation {
 		 * The non-transient instance fields of primitive type or of special reference
 		 * types that are allowed in storage objects (such as {@link java.lang.String}
 		 * and {@link java.math.BigInteger}). They are defined in the class being
-		 * instrumented or in its superclasses up to {@link io.takamaka.code.blockchain.runtime.AbstractStorage}
+		 * instrumented or in its superclasses up to {@link io.takamaka.code.lang.Storage}
 		 * (excluded). This list is non-empty for storage classes only. The first set in
 		 * the list are the fields of the topmost class; the last are the fields of the
 		 * class being considered.
 		 */
-		private final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
+		public final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
 
 		/**
-		 * The non-transient instance fields of type {@link io.takamaka.code.blockchain.runtime.AbstractStorage} or
-		 * subclass, defined in the class being instrumented (superclasses are not
+		 * The non-transient instance fields of reference type,
+		 * defined in the class being instrumented (superclasses are not
 		 * considered). This set is non-empty for storage classes only.
 		 */
-		private final SortedSet<Field> lazyNonTransientInstanceFields = new TreeSet<>(fieldOrder);
+		public final SortedSet<Field> lazyNonTransientInstanceFields = new TreeSet<>(fieldOrder);
 
 		/**
 		 * The class loader that loaded the class under instrumentation and those of the program it belongs to.
@@ -240,7 +226,7 @@ public class ClassInstrumentation {
 		private final Set<BootstrapMethod> bootstrapMethodsThatWillRequireExtraThis = new HashSet<>();
 
 		/**
-		 * A map from a description of invoke instructions that lead into a white-listed methodVerifiedClass
+		 * A map from a description of invoke instructions that lead into a white-listed method
 		 * with proof obligations into the replacement instruction
 		 * that has been already computed for them. This is used to avoid recomputing
 		 * the replacement for invoke instructions that occur more times inside the same
@@ -256,7 +242,7 @@ public class ClassInstrumentation {
 		 * @param clazz the class to instrument
 		 * @param gasCostModel the gas cost model used for the instrumentation
 		 */
-		private Initializer(VerifiedClass clazz, GasCostModel gasCostModel) {
+		private Instrumenter(VerifiedClass clazz, GasCostModel gasCostModel) {
 			this.clazz = clazz;
 			this.gasCostModel = gasCostModel;
 			this.className = clazz.getClassName();
@@ -267,51 +253,31 @@ public class ClassInstrumentation {
 			this.isContract = classLoader.isContract(className);
 
 			// the fields of the class are relevant only for storage classes
-			if (isStorage)
+			if (isStorage || Constants.STORAGE_NAME.equals(className))
 				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 					collectNonTransientInstanceFieldsOf(classLoader.loadClass(className), true);
 				});
 
-			instrumentClass();
-		}
-
-		/**
-		 * performs the instrumentation.
-		 */
-		private void instrumentClass() {
-			// local instrumentations are those that apply at method level
-			localInstrumentation();
-
-			// global instrumentations are those that apply at class level
-			globalInstrumentation();
+			methodLevelInstrumentations();
+			classLevelInstrumentations();
 		}
 
 		/**
 		 * Performs class-level instrumentations.
 		 */
-		private void globalInstrumentation() {
-			replaceSuperclassOfThresholdClasses();
+		private void classLevelInstrumentations() {
+			new SwapSuperclassOfSpecialClasses(this);
 
 			if (isStorage || Constants.STORAGE_NAME.equals(className))
-				addConstructorForDeserializationFromBlockchain();
+				new AddConstructorForDeserializationFromBlockchain(this);
 
 			if (isStorage) {
 				// storage classes need the serialization machinery
-				addOldAndIfAlreadyLoadedFields();
-				addAccessorMethods();
-				addEnsureLoadedMethods();
-				addExtractUpdates();
+				new AddOldAndIfAlreadyLoadedFields(this);
+				new AddAccessorMethods(this);
+				new AddEnsureLoadedMethods(this);
+				new AddExtractUpdates(this);
 			}
-		}
-
-		/**
-		 * Some classes must extend blockchain classes, in order to inherit special abilities.
-		 */
-		private void replaceSuperclassOfThresholdClasses() {
-			if (className.equals(Constants.EVENT_NAME))
-				clazz.setSuperclassName(Constants.ABSTRACT_EVENT_NAME);
-			else if (className.equals(Constants.STORAGE_NAME))
-				clazz.setSuperclassName(Constants.ABSTRACT_STORAGE_NAME);
 		}
 
 		/**
@@ -446,10 +412,7 @@ public class ClassInstrumentation {
 
 			MethodGen addedLambda = new MethodGen(PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName,
 					className, il, cpg);
-			il.setPositions();
-			addedLambda.setMaxLocals();
-			addedLambda.setMaxStack();
-			clazz.addMethod(addedLambda.getMethod());
+			addMethod(addedLambda, false);
 			bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
 		}
 
@@ -527,7 +490,8 @@ public class ClassInstrumentation {
 			int counter = 0;
 			do {
 				index = cpg.addInteger(counter++);
-			} while (cpg.getSize() == size);
+			}
+			while (cpg.getSize() == size);
 
 			// and then replace the integer constant with the method handle constant
 			cpg.setConstant(index, cid);
@@ -539,9 +503,10 @@ public class ClassInstrumentation {
 			int counter = 0;
 			String newName;
 			Method[] methods = clazz.getMethods();
+			innerName = Constants.INSTRUMENTATION_PREFIX + innerName;
 
 			do {
-				newName = "§" + innerName + counter++;
+				newName = innerName + counter++;
 			}
 			while (Stream.of(methods).map(Method::getName).anyMatch(newName::equals));
 
@@ -551,7 +516,7 @@ public class ClassInstrumentation {
 		/**
 		 * Performs method-level instrumentations.
 		 */
-		private void localInstrumentation() {
+		private void methodLevelInstrumentations() {
 			applyToAllMethods(this::preProcess);
 			instrumentBootstrapsInvokingEntries();
 			applyToAllMethods(this::postProcess);
@@ -821,11 +786,7 @@ public class ClassInstrumentation {
 			il.append(InstructionFactory.createReturn(verifierReturnType));
 
 			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args, null, verifierName, className, il, cpg);
-
-			il.setPositions();
-			addedVerifier.setMaxLocals();
-			addedVerifier.setMaxStack();
-			clazz.addMethod(addedVerifier.getMethod());
+			addMethod(addedVerifier, false);
 
 			return factory.createInvoke(className, verifierName, verifierReturnType, args, Const.INVOKESTATIC);
 		}
@@ -886,11 +847,7 @@ public class ClassInstrumentation {
 			il.append(InstructionFactory.createReturn(verifierReturnType));
 
 			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
-
-			il.setPositions();
-			addedVerifier.setMaxLocals();
-			addedVerifier.setMaxStack();
-			clazz.addMethod(addedVerifier.getMethod());
+			addMethod(addedVerifier, false);
 
 			// replace inside the bootstrap method
 			bootstrapArgs[1] = addMethodHandleToConstantPool(new ConstantMethodHandle(Const.REF_invokeStatic, cpg
@@ -966,11 +923,7 @@ public class ClassInstrumentation {
 			Type[] argsAsArray = args.toArray(new Type[args.size()]);
 			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null,
 					verifierName, className, il, cpg);
-
-			il.setPositions();
-			addedVerifier.setMaxLocals();
-			addedVerifier.setMaxStack();
-			clazz.addMethod(addedVerifier.getMethod());
+			addMethod(addedVerifier, false);
 
 			return factory.createInvoke(className, verifierName, verifierReturnType, argsAsArray, Const.INVOKESTATIC);
 		}
@@ -1187,12 +1140,7 @@ public class ClassInstrumentation {
 				allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
 				MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
-
-				allocatorIl.setPositions();
-				allocator.setMaxLocals();
-				allocator.setMaxStack();
-				StackMapReplacer.of(allocator);
-				clazz.addMethod(allocator.getMethod());
+				addMethod(allocator, true);
 
 				// the original multianewarray gets replaced with a call to the allocation method
 				ih.setInstruction(factory.createInvoke(className, allocatorName, createdType, args, Const.INVOKESTATIC));
@@ -1683,6 +1631,11 @@ public class ClassInstrumentation {
 				return false;
 		}
 
+		private boolean isStaticOrTransient(Field field) {
+			int modifiers = field.getModifiers();
+			return Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers);
+		}
+
 		/**
 		 * Determines if an instance field of a storage class is transient.
 		 * 
@@ -1741,451 +1694,14 @@ public class ClassInstrumentation {
 			});
 		}
 
-		/**
-		 * Adds, to a storage class, the method that extract all updates to an instance
-		 * of a class, since the beginning of a transaction.
-		 */
-		private void addExtractUpdates() {
-			if (eagerNonTransientInstanceFields.getLast().isEmpty() && lazyNonTransientInstanceFields.isEmpty())
-				return;
-
-			InstructionList il = new InstructionList();
-			il.append(InstructionFactory.createThis());
-			il.append(InstructionConst.DUP);
-			il.append(InstructionConst.ALOAD_1);
-			il.append(InstructionConst.ALOAD_2);
-			il.append(InstructionFactory.createLoad(LIST_OT, 3));
-			il.append(factory.createInvoke(clazz.getSuperclassName(), EXTRACT_UPDATES, Type.VOID,
-					EXTRACT_UPDATES_ARGS, Const.INVOKESPECIAL));
-			il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, IN_STORAGE_NAME, Type.BOOLEAN));
-			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
-
-			InstructionHandle end = il.append(InstructionConst.RETURN);
-
-			for (Field field : eagerNonTransientInstanceFields.getLast())
-				end = addUpdateExtractionForEagerField(field, il, end);
-
-			for (Field field : lazyNonTransientInstanceFields)
-				end = addUpdateExtractionForLazyField(field, il, end);
-
-			MethodGen extractUpdates = new MethodGen(PROTECTED_SYNTHETIC, Type.VOID, EXTRACT_UPDATES_ARGS, null, EXTRACT_UPDATES, className, il, cpg);
-			il.setPositions();
-			extractUpdates.setMaxLocals();
-			extractUpdates.setMaxStack();
-			StackMapReplacer.of(extractUpdates);
-			clazz.addMethod(extractUpdates.getMethod());
-		}
-
-		/**
-		 * Adds the code that check if a given lazy field has been updated since the
-		 * beginning of a transaction and, in such a case, adds the corresponding
-		 * update.
-		 * 
-		 * @param field the field
-		 * @param il    the instruction list where the code must be added
-		 * @param end   the instruction before which the extra code must be added
-		 * @return the beginning of the added code
-		 */
-		private InstructionHandle addUpdateExtractionForLazyField(Field field, InstructionList il,
-				InstructionHandle end) {
-			Type type = Type.getType(field.getType());
-
-			List<Type> args = new ArrayList<>();
-			for (Type arg : ADD_UPDATES_FOR_ARGS)
-				args.add(arg);
-			args.add(SET_OT);
-			args.add(LIST_OT);
-			args.add(ObjectType.STRING);
-			args.add(ObjectType.OBJECT);
-
-			InstructionHandle recursiveExtract;
-			// we deal with special cases where the call to a recursive extract is useless:
-			// this is just an optimization
-			String fieldName = field.getName();
-			if (field.getType() == String.class || field.getType() == BigInteger.class)
-				recursiveExtract = end;
-			else {
-				recursiveExtract = il.insert(end, InstructionFactory.createThis());
-				il.insert(end, InstructionConst.DUP);
-				il.insert(end, factory.createGetField(className, OLD_PREFIX + fieldName, type));
-				il.insert(end, InstructionConst.ALOAD_1);
-				il.insert(end, InstructionConst.ALOAD_2);
-				il.insert(end, InstructionFactory.createLoad(LIST_OT, 3));
-				il.insert(end, factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, RECURSIVE_EXTRACT, Type.VOID,
-						RECURSIVE_EXTRACT_ARGS, Const.INVOKESPECIAL));
-			}
-
-			InstructionHandle addUpdatesFor = il.insert(recursiveExtract, InstructionFactory.createThis());
-			il.insert(recursiveExtract, factory.createConstant(className));
-			il.insert(recursiveExtract, factory.createConstant(fieldName));
-			il.insert(recursiveExtract, InstructionConst.ALOAD_1);
-			il.insert(recursiveExtract, InstructionConst.ALOAD_2);
-			il.insert(recursiveExtract, InstructionFactory.createLoad(LIST_OT, 3));
-			il.insert(recursiveExtract, factory.createConstant(field.getType().getName()));
-			il.insert(recursiveExtract, InstructionFactory.createThis());
-			il.insert(recursiveExtract, factory.createGetField(className, fieldName, type));
-			il.insert(recursiveExtract, factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, ADD_UPDATE_FOR, Type.VOID,
-					args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
-
-			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
-			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
-			il.insert(addUpdatesFor, InstructionFactory.createThis());
-			il.insert(addUpdatesFor, factory.createGetField(className, fieldName, type));
-			il.insert(addUpdatesFor, InstructionFactory.createThis());
-			il.insert(addUpdatesFor, factory.createGetField(className, OLD_PREFIX + fieldName, type));
-
-			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract));
-
-			return start;
-		}
-
-		/**
-		 * Adds the code that check if a given eager field has been updated since the
-		 * beginning of a transaction and, in such a case, adds the corresponding
-		 * update.
-		 * 
-		 * @param field the field
-		 * @param il    the instruction list where the code must be added
-		 * @param end   the instruction before which the extra code must be added
-		 * @return the beginning of the added code
-		 */
-		private InstructionHandle addUpdateExtractionForEagerField(Field field, InstructionList il,
-				InstructionHandle end) {
-			Class<?> fieldType = field.getType();
-			Type type = Type.getType(fieldType);
-			boolean isEnum = fieldType.isEnum();
-
-			List<Type> args = new ArrayList<>();
-			for (Type arg : ADD_UPDATES_FOR_ARGS)
-				args.add(arg);
-			if (isEnum) {
-				args.add(ObjectType.STRING);
-				args.add(ENUM_OT);
-			} else
-				args.add(type);
-
-			InstructionHandle addUpdatesFor = il.insert(end, InstructionFactory.createThis());
-			il.insert(end, factory.createConstant(className));
-			il.insert(end, factory.createConstant(field.getName()));
-			il.insert(end, InstructionConst.ALOAD_1);
-			if (isEnum)
-				il.insert(end, factory.createConstant(fieldType.getName()));
-			il.insert(end, InstructionFactory.createThis());
-			il.insert(end, factory.createGetField(className, field.getName(), type));
-			il.insert(end, factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, ADD_UPDATE_FOR, Type.VOID,
-					args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
-
-			InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
-			il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
-			il.insert(addUpdatesFor, InstructionFactory.createThis());
-			il.insert(addUpdatesFor, factory.createGetField(className, field.getName(), type));
-			il.insert(addUpdatesFor, InstructionFactory.createThis());
-			il.insert(addUpdatesFor, factory.createGetField(className, OLD_PREFIX + field.getName(), type));
-
-			if (fieldType == double.class) {
-				il.insert(addUpdatesFor, InstructionConst.DCMPL);
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
-			} else if (fieldType == float.class) {
-				il.insert(addUpdatesFor, InstructionConst.FCMPL);
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
-			} else if (fieldType == long.class) {
-				il.insert(addUpdatesFor, InstructionConst.LCMP);
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, end));
-			} else if (fieldType == String.class || fieldType == BigInteger.class) {
-				// comparing strings or BigInteger with their previous value is done by checking
-				// if they
-				// are equals rather than ==. This is just an optimization, to avoid storing an
-				// equivalent value
-				// as an update. It is relevant for the balance fields of contracts, that might
-				// reach 0 at the
-				// end of a transaction, as it was at the beginning, but has fluctuated during
-				// the
-				// transaction: it is useless to add an update for it
-				il.insert(addUpdatesFor, factory.createInvoke("java.util.Objects", "equals", Type.BOOLEAN,
-						TWO_OBJECTS_ARGS, Const.INVOKESTATIC));
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFNE, end));
-			} else if (!fieldType.isPrimitive())
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, end));
-			else
-				// this covers int, short, byte, char, boolean
-				il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ICMPEQ, end));
-
-			return start;
-		}
-
-		/**
-		 * Adds accessor methods for the fields of the class being instrumented.
-		 */
-		private void addAccessorMethods() {
-			lazyNonTransientInstanceFields.forEach(this::addAccessorMethodsFor);
-		}
-
-		/**
-		 * Adds accessor methods for the given field.
-		 * 
-		 * @param field the field
-		 */
-		private void addAccessorMethodsFor(Field field) {
-			addGetterFor(field);
-
-			if (!Modifier.isFinal(field.getModifiers()))
-				addSetterFor(field);
-		}
-
-		/**
-		 * Adds a setter method for the given field.
-		 * 
-		 * @param field the field
-		 */
-		private void addSetterFor(Field field) {
-			Type type = Type.getType(field.getType());
-			InstructionList il = new InstructionList();
-			il.append(InstructionFactory.createThis());
-			il.append(InstructionConst.DUP);
-			il.append(factory.createInvoke(className, ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID,
-					Type.NO_ARGS, Const.INVOKESPECIAL));
-			il.append(InstructionConst.ALOAD_1);
-			il.append(factory.createPutField(className, field.getName(), type));
-			il.append(InstructionConst.RETURN);
-
-			MethodGen setter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null,
-					setterNameFor(className, field.getName()), className, il, cpg);
-			setter.setMaxLocals();
-			setter.setMaxStack();
-			clazz.addMethod(setter.getMethod());
-		}
-
-		/**
-		 * Adds a getter method for the given field.
-		 * 
-		 * @param field the field
-		 */
-		private void addGetterFor(Field field) {
-			Type type = Type.getType(field.getType());
-			InstructionList il = new InstructionList();
-			il.append(InstructionFactory.createThis());
-			il.append(InstructionConst.DUP);
-			il.append(factory.createInvoke(className, ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID,
-					Type.NO_ARGS, Const.INVOKESPECIAL));
-			il.append(factory.createGetField(className, field.getName(), type));
-			il.append(InstructionFactory.createReturn(type));
-
-			MethodGen getter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null,
-					getterNameFor(className, field.getName()), className, il, cpg);
-			getter.setMaxLocals();
-			getter.setMaxStack();
-			clazz.addMethod(getter.getMethod());
-		}
-
-		private String getterNameFor(String className, String fieldName) {
-			// we use the class name as well, in order to disambiguate fields with the same
-			// name
-			// in sub and superclass
+		public String getterNameFor(String className, String fieldName) {
+			// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
 			return GETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
 		}
 
-		private String setterNameFor(String className, String fieldName) {
-			// we use the class name as well, in order to disambiguate fields with the same
-			// name
-			// in sub and superclass
+		public String setterNameFor(String className, String fieldName) {
+			// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
 			return SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
-		}
-
-		/**
-		 * Adds the ensure loaded methods for the lazy fields of the class being
-		 * instrumented.
-		 */
-		private void addEnsureLoadedMethods() {
-			lazyNonTransientInstanceFields.forEach(this::addEnsureLoadedMethodFor);
-		}
-
-		/**
-		 * Adds the ensure loaded method for the given lazy field.
-		 */
-		private void addEnsureLoadedMethodFor(Field field) {
-			boolean fieldIsFinal = Modifier.isFinal(field.getModifiers());
-
-			// final fields cannot remain as such, since the ensureMethod will update them
-			// and it is not a constructor. Java < 9 will not check this constraint but
-			// newer versions of Java would reject the code without this change
-			if (fieldIsFinal) {
-				org.apache.bcel.classfile.Field oldField = Stream.of(clazz.getFields()).filter(
-						f -> f.getName().equals(field.getName()) && f.getType().equals(Type.getType(field.getType())))
-						.findFirst().get();
-				FieldGen newField = new FieldGen(oldField, cpg);
-				newField.setAccessFlags(oldField.getAccessFlags() ^ Const.ACC_FINAL);
-				clazz.replaceField(oldField, newField.getField());
-			}
-
-			Type type = Type.getType(field.getType());
-			InstructionList il = new InstructionList();
-			InstructionHandle _return = il.append(InstructionConst.RETURN);
-			il.insert(_return, InstructionFactory.createThis());
-			il.insert(_return, factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, IN_STORAGE_NAME, BasicType.BOOLEAN));
-			il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
-			il.insert(_return, InstructionFactory.createThis());
-			String fieldName = field.getName();
-			il.insert(_return,
-					factory.createGetField(className, IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
-			il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFNE, _return));
-			il.insert(_return, InstructionFactory.createThis());
-			il.insert(_return, InstructionConst.DUP);
-			il.insert(_return, InstructionConst.DUP);
-			il.insert(_return, InstructionConst.ICONST_1);
-			il.insert(_return,
-					factory.createPutField(className, IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
-			il.insert(_return, factory.createConstant(className));
-			il.insert(_return, factory.createConstant(fieldName));
-			il.insert(_return, factory.createConstant(field.getType().getName()));
-			il.insert(_return,
-					factory.createInvoke(className,
-							fieldIsFinal ? DESERIALIZE_LAST_UPDATE_FOR_FINAL : DESERIALIZE_LAST_UPDATE_FOR,
-							ObjectType.OBJECT, THREE_STRINGS_ARGS, Const.INVOKEVIRTUAL));
-			il.insert(_return, factory.createCast(ObjectType.OBJECT, type));
-			il.insert(_return, InstructionConst.DUP2);
-			il.insert(_return, factory.createPutField(className, fieldName, type));
-			il.insert(_return, factory.createPutField(className, OLD_PREFIX + fieldName, type));
-			il.setPositions();
-
-			MethodGen ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null,
-					ENSURE_LOADED_PREFIX + fieldName, className, il, cpg);
-			ensureLoaded.setMaxLocals();
-			ensureLoaded.setMaxStack();
-			StackMapReplacer.of(ensureLoaded);
-			clazz.addMethod(ensureLoaded.getMethod());
-		}
-
-		/**
-		 * Adds fields for the old value and the loading state of the fields of a storage class.
-		 */
-		private void addOldAndIfAlreadyLoadedFields() {
-			eagerNonTransientInstanceFields.getLast().forEach(this::addOldFieldFor);
-
-			for (Field field: lazyNonTransientInstanceFields) {
-				addOldFieldFor(field);
-				addIfAlreadyLoadedFieldFor(field);
-			}
-		}
-
-		/**
-		 * Adds the field for the loading state of the fields of a storage class.
-		 */
-		private void addIfAlreadyLoadedFieldFor(Field field) {
-			clazz.addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN,
-					IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
-		}
-
-		/**
-		 * Adds the field for the old value of the fields of a storage class.
-		 */
-		private void addOldFieldFor(Field field) {
-			clazz.addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()),
-					OLD_PREFIX + field.getName(), cpg).getField());
-		}
-
-		/**
-		 * Adds a constructor that deserializes an object of storage type. This
-		 * constructor receives the values of the eager fields, ordered by putting first
-		 * the fields of the superclasses, then those of the same class being
-		 * constructed, ordered by name and then by {@code toString()} of their type.
-		 */
-		private void addConstructorForDeserializationFromBlockchain() {
-			List<Type> args = new ArrayList<>();
-
-			// the parameters of the constructor start with a storage reference
-			// to the object being deserialized
-			args.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
-
-			// then there are the fields of the class and superclasses, with superclasses first
-			if (!className.equals(Constants.STORAGE_NAME))
-				eagerNonTransientInstanceFields.stream().flatMap(SortedSet::stream).map(Field::getType).map(Type::getType)
-					.forEachOrdered(args::add);
-
-			InstructionList il = new InstructionList();
-			int nextLocal = addCallToSuper(il);
-			if (!className.equals(Constants.STORAGE_NAME))
-				addInitializationOfEagerFields(il, nextLocal);
-			il.append(InstructionConst.RETURN);
-
-			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
-					Const.CONSTRUCTOR_NAME, className, il, cpg);
-			constructor.setMaxLocals();
-			constructor.setMaxStack();
-			clazz.addMethod(constructor.getMethod());
-		}
-
-		/**
-		 * Adds a call from the deserialization constructor of a storage class to the
-		 * deserialization constructor of the superclass.
-		 * 
-		 * @param il the instructions where the call must be added
-		 * @return the number of local variables used to accomodate the arguments passed
-		 *         to the constructor of the superclass
-		 */
-		private int addCallToSuper(InstructionList il) {
-			List<Type> argsForSuperclasses = new ArrayList<>();
-			il.append(InstructionFactory.createThis());
-			il.append(InstructionConst.ALOAD_1);
-			argsForSuperclasses.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
-
-			// the fields of the superclasses are passed into a call to super(...)
-			class PushLoad implements Consumer<Type> {
-				// the first two slots are used for this and the storage reference
-				private int local = 2;
-
-				@Override
-				public void accept(Type type) {
-					argsForSuperclasses.add(type);
-					il.append(InstructionFactory.createLoad(type, local));
-					local += type.getSize();
-				}
-			}
-			;
-
-			PushLoad pushLoad = new PushLoad();
-			if (!className.equals(Constants.STORAGE_NAME))
-				eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
-					.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
-
-			il.append(factory.createInvoke(clazz.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
-					argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
-
-			return pushLoad.local;
-		}
-
-		/**
-		 * Adds code that initializes the eager fields of the storage class being
-		 * instrumented.
-		 * 
-		 * @param il        the instructions where the code must be added
-		 * @param nextLocal the local variables where the parameters start, that must be
-		 *                  stored in the fields
-		 */
-		private void addInitializationOfEagerFields(InstructionList il, int nextLocal) {
-			Consumer<Field> putField = new Consumer<Field>() {
-				private int local = nextLocal;
-
-				@Override
-				public void accept(Field field) {
-					Type type = Type.getType(field.getType());
-					int size = type.getSize();
-					il.append(InstructionFactory.createThis());
-					il.append(InstructionFactory.createLoad(type, local));
-
-					// we reduce the size of the code for the frequent case of one slot values
-					if (size == 1)
-						il.append(InstructionConst.DUP2);
-					il.append(factory.createPutField(className, field.getName(), type));
-					if (size != 1) {
-						il.append(InstructionFactory.createThis());
-						il.append(InstructionFactory.createLoad(type, local));
-					}
-					il.append(factory.createPutField(className, OLD_PREFIX + field.getName(), type));
-					local += size;
-				}
-			};
-
-			eagerNonTransientInstanceFields.getLast().forEach(putField);
 		}
 
 		private void collectNonTransientInstanceFieldsOf(Class<?> clazz, boolean firstCall) {
@@ -2193,47 +1709,28 @@ public class ClassInstrumentation {
 				// we put at the beginning the fields of the superclasses
 				collectNonTransientInstanceFieldsOf(clazz.getSuperclass(), false);
 
+				Field[] fields = clazz.getDeclaredFields();
+
 				// then the eager fields of className, in order
-				eagerNonTransientInstanceFields.add(Stream.of(clazz.getDeclaredFields())
-						.filter(field -> !Modifier.isStatic(field.getModifiers())
-								&& !Modifier.isTransient(field.getModifiers())
-								&& classLoader.isEagerlyLoaded(field.getType()))
-						.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
+				eagerNonTransientInstanceFields.add(Stream.of(fields)
+					.filter(field -> !isStaticOrTransient(field) && classLoader.isEagerlyLoaded(field.getType()))
+					.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
 
 				// we collect lazy fields as well, but only for the class being instrumented
 				if (firstCall)
-					Stream.of(clazz.getDeclaredFields())
-							.filter(field -> !Modifier.isStatic(field.getModifiers())
-									&& !Modifier.isTransient(field.getModifiers())
-									&& classLoader.isLazilyLoaded(field.getType()))
-							.forEach(lazyNonTransientInstanceFields::add);
+					Stream.of(fields)
+						.filter(field -> !isStaticOrTransient(field) && classLoader.isLazilyLoaded(field.getType()))
+						.forEach(lazyNonTransientInstanceFields::add);
 			}
 		}
-	}
 
-	private static class HeightAtBytecode {
-		private final InstructionHandle ih;
-		private final int stackHeightBeforeBytecode;
-
-		private HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
-			this.ih = ih;
-			this.stackHeightBeforeBytecode = stackHeightBeforeBytecode;
-		}
-
-		@Override
-		public String toString() {
-			return ih + " with " + stackHeightBeforeBytecode + " stack elements";
-		}
-
-		@Override
-		public boolean equals(Object other) {
-			return other instanceof HeightAtBytecode && ((HeightAtBytecode) other).ih == ih
-					&& ((HeightAtBytecode) other).stackHeightBeforeBytecode == stackHeightBeforeBytecode;
-		}
-
-		@Override
-		public int hashCode() {
-			return ih.getPosition() ^ stackHeightBeforeBytecode;
+		public void addMethod(MethodGen method, boolean needsStackMap) {
+			method.getInstructionList().setPositions();
+			method.setMaxLocals();
+			method.setMaxStack();
+			if (needsStackMap)
+				StackMapReplacer.of(method);
+			clazz.addMethod(method.getMethod());
 		}
 	}
 }
