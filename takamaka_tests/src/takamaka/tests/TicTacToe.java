@@ -37,7 +37,7 @@ import io.takamaka.code.memory.InitializedMemoryBlockchain;
  */
 class TicTacToe extends TakamakaTest {
 
-	private static final ClassType TIC_TAC_TOE = new ClassType("takamaka.tests.tictactoe.TicTacToe");
+	private static final ClassType TIC_TAC_TOE = new ClassType("io.takamaka.tests.tictactoe.TicTacToe");
 
 	private static final ConstructorSignature CONSTRUCTOR_TIC_TAC_TOE = new ConstructorSignature(TIC_TAC_TOE);
 

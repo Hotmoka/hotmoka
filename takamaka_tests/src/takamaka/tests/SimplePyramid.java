@@ -43,7 +43,7 @@ class SimplePyramid extends TakamakaTest {
 
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(BigInteger.valueOf(10_000L));
 
-	private static final ClassType SIMPLE_PYRAMID = new ClassType("takamaka.tests.ponzi.SimplePyramid");
+	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.takamaka.tests.ponzi.SimplePyramid");
 
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
 

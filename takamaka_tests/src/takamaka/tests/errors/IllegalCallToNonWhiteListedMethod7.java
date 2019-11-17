@@ -44,7 +44,7 @@ class IllegalCallToNonWhiteListedMethod7 extends TakamakaTest {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 				(blockchain.account(0), _20_000, new Classpath(jar, true),
-				new NonVoidMethodSignature(new ClassType("takamaka.tests.errors.illegalcalltononwhitelistedmethod7.C"), "foo", ClassType.STRING)))
+				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.illegalcalltononwhitelistedmethod7.C"), "foo", ClassType.STRING)))
 		);
 	}
 }

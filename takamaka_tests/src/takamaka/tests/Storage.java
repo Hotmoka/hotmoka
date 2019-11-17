@@ -41,9 +41,9 @@ class Storage extends TakamakaTest {
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
-	private static final ClassType SIMPLE_STORAGE = new ClassType("takamaka.tests.storage.SimpleStorage");
+	private static final ClassType SIMPLE_STORAGE = new ClassType("io.takamaka.tests.storage.SimpleStorage");
 
-	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_STORAGE = new ConstructorSignature("takamaka.tests.storage.SimpleStorage");
+	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_STORAGE = new ConstructorSignature("io.takamaka.tests.storage.SimpleStorage");
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 

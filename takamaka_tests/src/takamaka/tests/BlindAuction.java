@@ -61,7 +61,7 @@ class BlindAuction extends TakamakaTest {
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
-	private static final ClassType BLIND_AUCTION = new ClassType("takamaka.tests.auction.BlindAuction");
+	private static final ClassType BLIND_AUCTION = new ClassType("io.takamaka.tests.auction.BlindAuction");
 
 	private static final ConstructorSignature CONSTRUCTOR_BLIND_AUCTION = new ConstructorSignature(BLIND_AUCTION, INT, INT);
 
@@ -74,7 +74,7 @@ class BlindAuction extends TakamakaTest {
 
 	private static final ConstructorSignature CONSTRUCTOR_STORAGE_LIST = new ConstructorSignature(ClassType.STORAGE_LIST);
 
-	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("takamaka.tests.auction.BlindAuction$RevealedBid"),
+	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("io.takamaka.tests.auction.BlindAuction$RevealedBid"),
 			ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32);
 
 	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);

@@ -33,8 +33,8 @@ import io.takamaka.code.memory.InitializedMemoryBlockchain;
  */
 class AbstractFail extends TakamakaTest {
 
-	private static final ClassType ABSTRACT_FAIL = new ClassType("takamaka.tests.abstractfail.AbstractFail");
-	private static final ClassType ABSTRACT_FAIL_IMPL = new ClassType("takamaka.tests.abstractfail.AbstractFailImpl");
+	private static final ClassType ABSTRACT_FAIL = new ClassType("io.takamaka.tests.abstractfail.AbstractFail");
+	private static final ClassType ABSTRACT_FAIL_IMPL = new ClassType("io.takamaka.tests.abstractfail.AbstractFailImpl");
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
@@ -91,6 +91,6 @@ class AbstractFail extends TakamakaTest {
 			new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL),
 			abstractfail));
 
-		assertEquals("takamaka.tests.abstractfail.AbstractFailImpl", result.getClassName(blockchain));
+		assertEquals("io.takamaka.tests.abstractfail.AbstractFailImpl", result.getClassName(blockchain));
 	}
 }
