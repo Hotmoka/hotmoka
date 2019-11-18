@@ -49,7 +49,7 @@ public class AddConstructorForDeserializationFromBlockchain extends ClassInstrum
 		il.append(InstructionConst.RETURN);
 
 		MethodGen constructor = new MethodGen(ClassInstrumentation.PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
-				Const.CONSTRUCTOR_NAME, builder.className, il, builder.cpg);
+				Const.CONSTRUCTOR_NAME, className, il, cpg);
 		builder.addMethod(constructor, false);
 	}
 

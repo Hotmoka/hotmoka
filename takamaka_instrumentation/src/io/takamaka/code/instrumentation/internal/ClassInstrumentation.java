@@ -1,8 +1,5 @@
 package io.takamaka.code.instrumentation.internal;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
@@ -27,14 +24,8 @@ import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
-import org.apache.bcel.classfile.Constant;
-import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
-import org.apache.bcel.classfile.ConstantMethodType;
-import org.apache.bcel.classfile.ConstantMethodref;
-import org.apache.bcel.classfile.ConstantNameAndType;
-import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ANEWARRAY;
 import org.apache.bcel.generic.ATHROW;
@@ -48,12 +39,9 @@ import org.apache.bcel.generic.ExceptionThrower;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.GETFIELD;
 import org.apache.bcel.generic.GotoInstruction;
-import org.apache.bcel.generic.ICONST;
-import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
 import org.apache.bcel.generic.INVOKEINTERFACE;
 import org.apache.bcel.generic.INVOKESPECIAL;
-import org.apache.bcel.generic.INVOKESTATIC;
 import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
@@ -64,7 +52,6 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InstructionTargeter;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
-import org.apache.bcel.generic.LocalVariableInstruction;
 import org.apache.bcel.generic.MULTIANEWARRAY;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NEW;
@@ -87,16 +74,14 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddCons
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddExtractUpdates;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.SwapSuperclassOfSpecialClasses;
-import io.takamaka.code.verification.Bootstraps;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddRuntimeChecksForWhiteListingProofObligations;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerifiedClass;
-import io.takamaka.code.whitelisting.MustBeFalse;
-import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
-import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 import it.univr.bcel.StackMapReplacer;
 
 /**
@@ -109,8 +94,7 @@ public class ClassInstrumentation {
 	public final static String ENSURE_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ensureLoaded_";
 	public final static String GETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "get_";
 	public final static String SETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "set_";
-	private final static String EXTRA_LAMBDA_NAME = Constants.INSTRUMENTATION_PREFIX + "lambda";
-	private final static String EXTRA_VERIFIER_NAME = Constants.INSTRUMENTATION_PREFIX + "verifier";
+	public final static String EXTRA_VERIFIER_NAME = Constants.INSTRUMENTATION_PREFIX + "verifier";
 	private final static String EXTRA_ALLOCATOR_NAME = Constants.INSTRUMENTATION_PREFIX + "multianewarray";
 	public final static String EXTRACT_UPDATES = "extractUpdates";
 	public final static String RECURSIVE_EXTRACT = "recursiveExtract";
@@ -124,7 +108,7 @@ public class ClassInstrumentation {
 	public final static short PUBLIC_SYNTHETIC_FINAL = PUBLIC_SYNTHETIC | Const.ACC_FINAL;
 	public final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
 	public final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
-	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
+	public final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 	public final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_TRANSIENT;
 
 	/**
@@ -163,7 +147,7 @@ public class ClassInstrumentation {
 		/**
 		 * The class that is being instrumented.
 		 */
-		public final VerifiedClass clazz;
+		private final VerifiedClass clazz;
 
 		/**
 		 * The gas cost model used for the instrumentation.
@@ -173,17 +157,17 @@ public class ClassInstrumentation {
 		/**
 		 * The name of the class being instrumented.
 		 */
-		public final String className;
+		private final String className;
 
 		/**
 		 * The constant pool of the class being instrumented.
 		 */
-		public final ConstantPoolGen cpg;
+		private final ConstantPoolGen cpg;
 
 		/**
 		 * The object that can be used to build complex instructions.
 		 */
-		public final InstructionFactory factory;
+		private final InstructionFactory factory;
 
 		/**
 		 * True if and only if the class being instrumented is a storage class, distinct
@@ -205,14 +189,14 @@ public class ClassInstrumentation {
 		 * the list are the fields of the topmost class; the last are the fields of the
 		 * class being considered.
 		 */
-		public final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
+		private final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
 
 		/**
 		 * The non-transient instance fields of reference type,
 		 * defined in the class being instrumented (superclasses are not
 		 * considered). This set is non-empty for storage classes only.
 		 */
-		public final SortedSet<Field> lazyNonTransientInstanceFields = new TreeSet<>(fieldOrder);
+		private final SortedSet<Field> lazyNonTransientInstanceFields = new TreeSet<>(fieldOrder);
 
 		/**
 		 * The class loader that loaded the class under instrumentation and those of the program it belongs to.
@@ -317,6 +301,28 @@ public class ClassInstrumentation {
 			 */
 			protected final SortedSet<Field> lazyNonTransientInstanceFields = Builder.this.lazyNonTransientInstanceFields;
 
+			/**
+			 * The bootstrap methods that have been instrumented since they must receive an
+			 * extra parameter, since they call an entry and need the calling contract for that.
+			 */
+			protected final Set<BootstrapMethod> bootstrapMethodsThatWillRequireExtraThis = Builder.this.bootstrapMethodsThatWillRequireExtraThis;
+
+			/**
+			 * The class loader that loaded the class under instrumentation and those of the program it belongs to.
+			 */
+			protected final TakamakaClassLoader classLoader = Builder.this.classLoader;
+
+			/**
+			 * A map from a description of invoke instructions that lead into a white-listed method
+			 * with proof obligations into the replacement instruction
+			 * that has been already computed for them. This is used to avoid recomputing
+			 * the replacement for invoke instructions that occur more times inside the same
+			 * class. This is not just an optimization, since, for invokedynamic, their bootstrap
+			 * might be modified, hence the repeated construction of their checking method
+			 * would lead into exception.
+			 */
+			protected final Map<String, InvokeInstruction> whiteListingCache = Builder.this.whiteListingCache;
+
 			protected final void addMethod(MethodGen method, boolean needsStackMap) {
 				method.getInstructionList().setPositions();
 				method.setMaxLocals();
@@ -334,6 +340,132 @@ public class ClassInstrumentation {
 			protected final String setterNameFor(String className, String fieldName) {
 				// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
 				return SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
+			}
+
+			protected final short invokeCorrespondingToBootstrapInvocationType(int invokeKind) {
+				switch (invokeKind) {
+				case Const.REF_invokeVirtual:
+					return Const.INVOKEVIRTUAL;
+				case Const.REF_invokeSpecial:
+				case Const.REF_newInvokeSpecial:
+					return Const.INVOKESPECIAL;
+				case Const.REF_invokeInterface:
+					return Const.INVOKEINTERFACE;
+				case Const.REF_invokeStatic:
+					return Const.INVOKESTATIC;
+				default:
+					throw new IllegalStateException("Unexpected lambda invocation kind " + invokeKind);
+				}
+			}
+
+			/**
+			 * BCEL does not (yet?) provide a method to add a method handle constant into a
+			 * constant pool. Hence we have to rely to a trick: first we add a new integer
+			 * constant to the constant pool; then we replace it with the method handle
+			 * constant. Ugly, but it currently seems to be the only way.
+			 * 
+			 * @param mh the constant to add
+			 * @return the index at which the constant has been added
+			 */
+			protected final int addMethodHandleToConstantPool(ConstantMethodHandle mh) {
+				// first we check if an equal constant method handle was already in the constant pool
+				int size = cpg.getSize(), index;
+				for (index = 0; index < size; index++)
+					if (cpg.getConstant(index) instanceof ConstantMethodHandle) {
+						ConstantMethodHandle c = (ConstantMethodHandle) cpg.getConstant(index);
+						if (c.getReferenceIndex() == mh.getReferenceIndex() && c.getReferenceKind() == mh.getReferenceKind())
+							return index; // found
+					}
+
+				// otherwise, we first add an integer that was not already there
+				int counter = 0;
+				do {
+					index = cpg.addInteger(counter++);
+				}
+				while (cpg.getSize() == size);
+
+				// and then replace the integer constant with the method handle constant
+				cpg.setConstant(index, mh);
+
+				return index;
+			}
+
+			protected final String getNewNameForPrivateMethod(String innerName) {
+				int counter = 0;
+				String newName;
+				Method[] methods = clazz.getMethods();
+				innerName = Constants.INSTRUMENTATION_PREFIX + innerName;
+
+				do {
+					newName = innerName + counter++;
+				}
+				while (Stream.of(methods).map(Method::getName).anyMatch(newName::equals));
+
+				return newName;
+			}
+
+			/**
+			 * Finds the closest instructions whose stack height, at their beginning, is
+			 * equal to the height of the stack at {@code ih} minus {@code slots}.
+			 * 
+			 * @param ih the start instruction of the look up
+			 * @param slots the difference in stack height
+			 */
+			protected final void forEachPusher(InstructionHandle ih, int slots, Consumer<InstructionHandle> what, Runnable ifCannotFollow) {
+				Set<HeightAtBytecode> seen = new HashSet<>();
+				List<HeightAtBytecode> workingSet = new ArrayList<>();
+				HeightAtBytecode start = new HeightAtBytecode(ih, slots);
+				workingSet.add(start);
+				seen.add(start);
+
+				do {
+					HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
+					InstructionHandle currentIh = current.ih;
+					if (current.stackHeightBeforeBytecode <= 0)
+						what.accept(currentIh);
+					else {
+						InstructionHandle previous = currentIh.getPrev();
+						if (previous != null) {
+							Instruction previousIns = previous.getInstruction();
+							if (!(previousIns instanceof ReturnInstruction) && !(previousIns instanceof ATHROW)
+									&& !(previousIns instanceof GotoInstruction)) {
+								// we proceed with previous
+								int stackHeightBefore = current.stackHeightBeforeBytecode;
+								stackHeightBefore -= previousIns.produceStack(cpg);
+								stackHeightBefore += previousIns.consumeStack(cpg);
+
+								HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
+								if (seen.add(added))
+									workingSet.add(added);
+							}
+						}
+
+						// we proceed with the instructions that jump at currentIh
+						InstructionTargeter[] targeters = currentIh.getTargeters();
+						if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
+							ifCannotFollow.run();
+
+						Stream.of(targeters).filter(targeter -> targeter instanceof BranchInstruction)
+								.map(targeter -> (BranchInstruction) targeter).forEach(branch -> {
+									int stackHeightBefore = current.stackHeightBeforeBytecode;
+									stackHeightBefore -= branch.produceStack(cpg);
+									stackHeightBefore += branch.consumeStack(cpg);
+
+									HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
+									if (seen.add(added))
+										workingSet.add(added);
+								});
+					}
+				}
+				while (!workingSet.isEmpty());
+			}
+		}
+
+		public abstract class MethodLevelInstrumentation extends ClassLevelInstrumentation {
+			protected final MethodGen method;
+
+			protected MethodLevelInstrumentation(MethodGen method) {
+				this.method = method;
 			}
 		}
 
@@ -356,191 +488,6 @@ public class ClassInstrumentation {
 		}
 
 		/**
-		 * Instruments bootstrap methods that invoke an entry as their target code. They
-		 * are the result of compiling method references to entries. Since entries
-		 * receive extra parameters, we transform those bootstrap methods by calling
-		 * brand new target code, that calls the entry with a normal invoke instruction.
-		 * That instruction will be later instrumented during local instrumentation.
-		 */
-		private void instrumentBootstrapsInvokingEntries() {
-			clazz.getBootstraps().getBootstrapsLeadingToEntries().forEach(this::instrumentBootstrapCallingEntry);
-		}
-
-		private void instrumentBootstrapCallingEntry(BootstrapMethod bootstrap) {
-			if (clazz.getBootstraps().lambdaIsEntry(bootstrap))
-				instrumentLambdaEntry(bootstrap);
-			else
-				instrumentLambdaCallingEntry(bootstrap);
-		}
-
-		private void instrumentLambdaCallingEntry(BootstrapMethod bootstrap) {
-			int[] args = bootstrap.getBootstrapArguments();
-			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
-			int invokeKind = mh.getReferenceKind();
-
-			if (invokeKind == Const.REF_invokeStatic) {
-				// we instrument bootstrap methods that call a static lambda that calls an entry:
-				// the problem is that the instrumentation of the entry will need local 0 (this)
-				// to pass the calling contract, consequently it must be made into an instance method
-
-				ConstantMethodref mr = (ConstantMethodref) cpg.getConstant(mh.getReferenceIndex());
-				ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-				String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-				String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-				Optional<Method> old = Stream.of(clazz.getMethods())
-						.filter(method -> method.getName().equals(methodName)
-								&& method.getSignature().equals(methodSignature) && method.isPrivate())
-						.findAny();
-				old.ifPresent(method -> {
-					// we can modify the method handle since the lambda is becoming an instance
-					// method and all calls must be made through invokespecial
-					mh.setReferenceKind(Const.REF_invokeSpecial);
-					makeFromStaticToInstance(method);
-					bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
-				});
-			}
-		}
-
-		private void makeFromStaticToInstance(Method old) {
-			MethodGen _new = new MethodGen(old, className, cpg);
-			_new.isStatic(false);
-			if (!_new.isAbstract())
-				// we increase the indexes of the local variables used in the method
-				for (InstructionHandle ih : _new.getInstructionList()) {
-					Instruction ins = ih.getInstruction();
-					if (ins instanceof LocalVariableInstruction) {
-						int index = ((LocalVariableInstruction) ins).getIndex();
-						if (ins instanceof IINC)
-							ih.setInstruction(new IINC(index + 1, ((IINC) ins).getIncrement()));
-						else if (ins instanceof LoadInstruction)
-							ih.setInstruction(
-									InstructionFactory.createLoad(((LoadInstruction) ins).getType(cpg), index + 1));
-						else if (ins instanceof StoreInstruction)
-							ih.setInstruction(
-									InstructionFactory.createStore(((LoadInstruction) ins).getType(cpg), index + 1));
-					}
-				}
-
-			StackMapReplacer.of(_new);
-			clazz.replaceMethod(old, _new.getMethod());
-		}
-
-		private void instrumentLambdaEntry(BootstrapMethod bootstrap) {
-			int[] args = bootstrap.getBootstrapArguments();
-			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
-			int invokeKind = mh.getReferenceKind();
-			ConstantMethodref mr = (ConstantMethodref) cpg.getConstant(mh.getReferenceIndex());
-			int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-			String entryClassName = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-			String entryName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-			String entrySignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-			Type[] entryArgs = Type.getArgumentTypes(entrySignature);
-			Type entryReturnType = Type.getReturnType(entrySignature);
-			String implementedInterfaceMethosSignature = ((ConstantUtf8) cpg
-					.getConstant(((ConstantMethodType) cpg.getConstant(args[2])).getDescriptorIndex())).getBytes();
-			Type lambdaReturnType = Type.getReturnType(implementedInterfaceMethosSignature);
-
-			// we replace the target code: it was an invokeX C.entry(pars):r and we
-			// transform it
-			// into invokespecial className.lambda(C, pars):r where the name "lambda" is
-			// not used in className. The extra parameter className is not added for
-			// constructor references, since they create the new object themselves
-			String lambdaName = getNewNameForPrivateMethod(EXTRA_LAMBDA_NAME);
-
-			Type[] lambdaArgs;
-			if (invokeKind == Const.REF_newInvokeSpecial)
-				lambdaArgs = entryArgs;
-			else {
-				lambdaArgs = new Type[entryArgs.length + 1];
-				System.arraycopy(entryArgs, 0, lambdaArgs, 1, entryArgs.length);
-				lambdaArgs[0] = new ObjectType(entryClassName);
-			}
-
-			String lambdaSignature = Type.getMethodSignature(lambdaReturnType, lambdaArgs);
-
-			// replace inside the bootstrap method
-			args[1] = addMethodHandleToConstantPool(new ConstantMethodHandle(Const.REF_invokeSpecial,
-					cpg.addMethodref(className, lambdaName, lambdaSignature)));
-
-			// we create the target code: it is a new private synthetic instance method
-			// inside className,
-			// called lambdaName and with signature lambdaSignature; its code loads all its
-			// explicit parameters
-			// on the stack then calls the entry and returns its value (if any)
-			InstructionList il = new InstructionList();
-			if (invokeKind == Const.REF_newInvokeSpecial) {
-				il.append(factory.createNew(entryClassName));
-				if (lambdaReturnType != Type.VOID)
-					il.append(InstructionConst.DUP);
-			}
-
-			int local = 1;
-			for (Type arg : lambdaArgs) {
-				il.append(InstructionFactory.createLoad(arg, local));
-				local += arg.getSize();
-			}
-
-			il.append(factory.createInvoke(entryClassName, entryName, entryReturnType, entryArgs,
-					invokeCorrespondingToBootstrapInvocationType(invokeKind)));
-			il.append(InstructionFactory.createReturn(lambdaReturnType));
-
-			MethodGen addedLambda = new MethodGen(PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName,
-					className, il, cpg);
-			addMethod(addedLambda, false);
-			bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
-		}
-
-		private short invokeCorrespondingToBootstrapInvocationType(int invokeKind) {
-			switch (invokeKind) {
-			case Const.REF_invokeVirtual:
-				return Const.INVOKEVIRTUAL;
-			case Const.REF_invokeSpecial:
-			case Const.REF_newInvokeSpecial:
-				return Const.INVOKESPECIAL;
-			case Const.REF_invokeInterface:
-				return Const.INVOKEINTERFACE;
-			case Const.REF_invokeStatic:
-				return Const.INVOKESTATIC;
-			default:
-				throw new IllegalStateException("Unexpected lambda invocation kind " + invokeKind);
-			}
-		}
-
-		/**
-		 * BCEL does not (yet?) provide a method to add a method handle constant into a
-		 * constant pool. Hence we have to rely to a trick: first we add a new integer
-		 * constant to the constant pool; then we replace it with the method handle
-		 * constant. Ugly, but it currently seem to be the only way.
-		 * 
-		 * @param mh the constant to add
-		 * @return the index at which the constant has been added
-		 */
-		private int addMethodHandleToConstantPool(ConstantMethodHandle mh) {
-			// first we check if an equal constant method handle was already in the constant
-			// pool
-			int size = cpg.getSize(), index;
-			for (index = 0; index < size; index++)
-				if (cpg.getConstant(index) instanceof ConstantMethodHandle) {
-					ConstantMethodHandle c = (ConstantMethodHandle) cpg.getConstant(index);
-					if (c.getReferenceIndex() == mh.getReferenceIndex()
-							&& c.getReferenceKind() == mh.getReferenceKind())
-						return index; // found
-				}
-
-			// otherwise, we first add an integer that was not already there
-			int counter = 0;
-			do {
-				index = cpg.addInteger(counter++);
-			} while (cpg.getSize() == size);
-
-			// and then replace the integer constant with the method handle constant
-			cpg.setConstant(index, mh);
-
-			return index;
-		}
-
-		/**
 		 * BCEL does not (yet?) provide a method to add an invokedynamic constant into a
 		 * constant pool. Hence we have to rely to a trick: first we add a new integer
 		 * constant to the constant pool; then we replace it with the invokedynamic
@@ -550,8 +497,7 @@ public class ClassInstrumentation {
 		 * @return the index at which the constant has been added
 		 */
 		private int addInvokeDynamicToConstantPool(ConstantInvokeDynamic cid) {
-			// first we check if an equal constant method handle was already in the constant
-			// pool
+			// first we check if an equal constant method handle was already in the constant pool
 			int size = cpg.getSize(), index;
 			for (index = 0; index < size; index++)
 				if (cpg.getConstant(index) instanceof ConstantInvokeDynamic) {
@@ -593,13 +539,12 @@ public class ClassInstrumentation {
 		 */
 		private void methodLevelInstrumentations() {
 			applyToAllMethods(this::preProcess);
-			instrumentBootstrapsInvokingEntries();
+			new DesugarBootstrapsInvokingEntries(this);
 			applyToAllMethods(this::postProcess);
 		}
 
 		private void applyToAllMethods(Function<Method, Method> what) {
 			Method[] methods = clazz.getMethods();
-
 			List<Method> processedMethods = Stream.of(methods).map(what).collect(Collectors.toList());
 
 			// replacing old with new methods
@@ -617,7 +562,7 @@ public class ClassInstrumentation {
 		 */
 		private Method preProcess(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
-			addRuntimeChecksForWhiteListingProofObligations(methodGen);
+			new AddRuntimeChecksForWhiteListingProofObligations(this, methodGen);
 			return methodGen.getMethod();
 		}
 
@@ -706,378 +651,6 @@ public class ClassInstrumentation {
 					methodGen.setInstructionList(il);
 				}
 			}
-		}
-
-		private void addRuntimeChecksForWhiteListingProofObligations(MethodGen method) {
-			if (!method.isAbstract())
-				for (InstructionHandle ih: method.getInstructionList()) {
-					Instruction ins = ih.getInstruction();
-					if (ins instanceof FieldInstruction) {
-						FieldInstruction fi = (FieldInstruction) ins;
-						Field model = clazz.whiteListingModelOf(fi);
-						if (hasProofObligations(model))
-							// proof obligations are currently not implemented nor used on fields
-							throw new IllegalStateException("unexpected white-listing proof obligation for field " + fi.getReferenceType(cpg) + "." + fi.getFieldName(cpg));
-					}
-					else if (ins instanceof InvokeInstruction) {
-						// we share the same checker for equivalent invoke instructions
-						String key = keyFor(ih);
-						InvokeInstruction replacement = whiteListingCache.get(key);
-						if (replacement != null)
-							ih.setInstruction(replacement);
-						else {
-							Executable model = clazz.whiteListingModelOf((InvokeInstruction) ins);
-							if (hasProofObligations(model)) {
-								replacement = addWhiteListVerificationMethod(ih, (InvokeInstruction) ins, model, key);
-								whiteListingCache.put(key, replacement);
-								ih.setInstruction(replacement);
-							}
-						}
-					}
-				}
-		}
-
-		private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
-			BootstrapMethod bootstrap = clazz.getBootstraps().getBootstrapFor(invokedynamic);
-			Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
-			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
-			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
-			ConstantMethodref mr = (ConstantMethodref) constant2;
-			int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
-			String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
-			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
-			String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
-			String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-
-			// this meta-factory is used by Java compilers for optimized concatenation into string
-			return "java.lang.invoke.StringConcatFactory".equals(className)
-					&& "makeConcatWithConstants".equals(methodName)
-					&& "(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;"
-							.equals(methodSignature);
-		}
-
-		/**
-		 * Adds a static method to the class under instrumentation, that checks that the
-		 * white-listing proof obligations in the model hold at run time.
-		 * 
-		 * @param ins the call instruction whose parameters must be verified
-		 * @param model the model that contains the proof obligations in order, for the
-		 *              call, to be white-listed
-		 * @param key the key used to identify equivalent invoke instructions. It is used to check which
-		 *            proof obligations need to be checked at run time
-		 * @return the invoke instruction that must be used, instead of {@code ins}, to
-		 *         call the freshly added method
-		 */
-		private InvokeInstruction addWhiteListVerificationMethod(InstructionHandle ih, InvokeInstruction ins, Executable model, String key) {
-			if (ins instanceof INVOKEDYNAMIC)
-				if (isCallToConcatenationMetaFactory((INVOKEDYNAMIC) ins))
-					return addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation((INVOKEDYNAMIC) ins);
-				else
-					return addWhiteListVerificationMethod((INVOKEDYNAMIC) ins, model);
-			else
-				return addWhiteListVerificationMethodForNonINVOKEDYNAMIC(ih, ins, model, key);
-		}
-
-		private String keyFor(InstructionHandle ih) {
-			InvokeInstruction ins = (InvokeInstruction) ih.getInstruction();
-
-			String key;
-			if (ins instanceof INVOKEDYNAMIC)
-				key = ins.getName() + " #" + ((ConstantInvokeDynamic) cpg.getConstant(((INVOKEDYNAMIC) ins).getIndex())).getBootstrapMethodAttrIndex();
-			else {
-				key = ins.getName() + " " + ins.getReferenceType(cpg) + "." + ins.getMethodName(cpg) + ins.getSignature(cpg);
-				// we add a mask that specifies the white-listing proof obligations that can be discharged, since
-				// we can use the same verifier only if two instructions need verification of the same proof obligations
-				Executable model = clazz.whiteListingModelOf(ins);
-				if (hasProofObligations(model)) {
-					int slots = ins.consumeStack(cpg);
-					String mask = "";
-
-					if (!(ins instanceof INVOKESTATIC)) {
-						int slotsCopy = slots;
-						mask += Stream.of(model.getAnnotations())
-								.map(Annotation::annotationType)
-								.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
-								.map(annotationType -> canBeStaticallyDicharged(annotationType, ih, slotsCopy) ? "0" : "1")
-								.collect(Collectors.joining());
-						slots--;
-					}
-
-					Annotation[][] anns = model.getParameterAnnotations();
-					int par = 0;
-					for (Type argType: ins.getArgumentTypes(cpg)) {
-						int slotsCopy = slots;
-						mask += Stream.of(anns[par])
-								.flatMap(Stream::of)
-								.map(Annotation::annotationType)
-								.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
-								.map(annotationType -> canBeStaticallyDicharged(annotationType, ih, slotsCopy) ? "0" : "1")
-								.collect(Collectors.joining());
-						par++;
-						slots -= argType.getSize();
-					}
-
-					key = mask + ": " + key;
-				}
-			}
-
-			return key;
-		}
-
-		private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) {
-			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
-			InstructionList il = new InstructionList();
-			String signature = invokedynamic.getSignature(cpg);
-			Type verifierReturnType = Type.getReturnType(signature);
-			Type[] args = Type.getArgumentTypes(signature);
-
-			int index = 0;
-			boolean atLeastOneCheck = false;
-
-			for (Type argType: args) {
-				il.append(InstructionFactory.createLoad(argType, index));
-				index += argType.getSize();
-				if (argType instanceof ObjectType) {
-					Class<?> argClass = ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> classLoader.loadClass(((ObjectType) argType).getClassName()));
-
-					// we check if we can statically verify that the value redefines hashCode or toString
-					if (!redefinesHashCodeOrToString(argClass)) {
-						il.append(InstructionFactory.createDup(argType.getSize()));
-						il.append(factory.createConstant("string concatenation"));
-						il.append(createInvokeForWhiteListingCheck(getWhiteListingCheckFor(MustRedefineHashCodeOrToString.class).get()));
-						atLeastOneCheck = true;
-					}
-				}
-			}
-
-			// if all proof obligations can be discharged statically, we do not generate
-			// any verification method and yield the same invoke instruction. Note that this
-			// optimization depends on the static types of the arguments of the call only,
-			// hence it can be safely cached
-			if (!atLeastOneCheck)
-				return invokedynamic;
-
-			il.append(invokedynamic);
-			il.append(InstructionFactory.createReturn(verifierReturnType));
-
-			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args, null, verifierName, className, il, cpg);
-			addMethod(addedVerifier, false);
-
-			return factory.createInvoke(className, verifierName, verifierReturnType, args, Const.INVOKESTATIC);
-		}
-
-		private boolean redefinesHashCodeOrToString(Class<?> clazz) {
-			return Stream.of(clazz.getMethods())
-				.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
-				.map(java.lang.reflect.Method::getName)
-				.anyMatch(name -> "hashCode".equals(name) || "toString".equals(name));
-		}
-
-		/**
-		 * Adds a static method to the class under instrumentation, that checks that the
-		 * white-listing proof obligations in the model hold at run time.
-		 * 
-		 * @param invokedynamic the call instruction whose parameters must be verified
-		 * @param model         the model that contains the proof obligations in order,
-		 *                      for the call, to be white-listed
-		 */
-		private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
-			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
-			Bootstraps classBootstraps = clazz.getBootstraps();
-			InstructionList il = new InstructionList();
-			List<Type> args = new ArrayList<>();
-			BootstrapMethod bootstrap = classBootstraps.getBootstrapFor(invokedynamic);
-			int[] bootstrapArgs = bootstrap.getBootstrapArguments();
-			ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(bootstrapArgs[1]);
-			int invokeKind = mh.getReferenceKind();
-			Executable target = classBootstraps.getTargetOf(bootstrap).get();
-			Class<?> receiverClass = target.getDeclaringClass();
-			if (receiverClass.isArray())
-				receiverClass = Object.class;
-			Type receiver = Type.getType(receiverClass);
-			Type verifierReturnType = target instanceof Constructor<?> ? Type.VOID : Type.getType(((java.lang.reflect.Method) target).getReturnType());
-			int index = 0;
-
-			if (!Modifier.isStatic(target.getModifiers())) {
-				il.append(InstructionFactory.createLoad(receiver, index));
-				index += receiver.getSize();
-				addWhiteListingChecksFor(null, model.getAnnotations(), receiver, il, target.getName(), null, -1);
-			}
-
-			int par = 0;
-			Annotation[][] anns = model.getParameterAnnotations();
-
-			for (Class<?> arg : target.getParameterTypes()) {
-				Type argType = Type.getType(arg);
-				args.add(argType);
-				il.append(InstructionFactory.createLoad(argType, index));
-				index += argType.getSize();
-				addWhiteListingChecksFor(null, anns[par], argType, il, target.getName(), null, -1);
-				par++;
-			}
-
-			Type[] argsAsArray = args.toArray(new Type[args.size()]);
-			il.append(factory.createInvoke(receiverClass.getName(), target.getName(), verifierReturnType, argsAsArray,
-					invokeCorrespondingToBootstrapInvocationType(invokeKind)));
-			il.append(InstructionFactory.createReturn(verifierReturnType));
-
-			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
-			addMethod(addedVerifier, false);
-
-			// replace inside the bootstrap method
-			bootstrapArgs[1] = addMethodHandleToConstantPool(new ConstantMethodHandle(Const.REF_invokeStatic, cpg
-				.addMethodref(className, verifierName, Type.getMethodSignature(verifierReturnType, argsAsArray))));
-
-			// we return the same invoke instruction, but its bootstrap method has been modified
-			return invokedynamic;
-		}
-
-		/**
-		 * Adds a static method to the class under instrumentation, that checks that the
-		 * white-listing proof obligations in the model hold at run time.
-		 * 
-		 * @param invoke the call instruction whose parameters must be verified
-		 * @param key the key used to identify equivalent invoke instructions. It is used to check which
-		 *            proof obligations need to be checked at run time
-		 * @param model the model that contains the proof obligations in order, for the
-		 *              call, to be white-listed
-		 */
-		private InvokeInstruction addWhiteListVerificationMethodForNonINVOKEDYNAMIC(InstructionHandle ih, InvokeInstruction invoke, Executable model, String key) {
-			String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
-			Type verifierReturnType = invoke.getReturnType(cpg);
-			String methodName = invoke.getMethodName(cpg);
-			InstructionList il = new InstructionList();
-			List<Type> args = new ArrayList<>();
-			int index = 0;
-			boolean atLeastOne = false;
-			int annotationsCursor = 0;
-
-			if (!(invoke instanceof INVOKESTATIC)) {
-				ReferenceType receiver;
-
-				if (invoke instanceof INVOKESPECIAL && !Const.CONSTRUCTOR_NAME.equals(methodName)) {
-					// call to a private instance method or to an instance method through super.m():
-					// we provide a more precise type for the receiver, that is needed for JVM verification
-					receiver = new ObjectType(className);
-					args.add(receiver);
-				}
-				else {
-					receiver = invoke.getReferenceType(cpg);
-					if (receiver instanceof ObjectType)
-						args.add(receiver);
-					else
-						args.add(ObjectType.OBJECT);
-				}
-
-				il.append(InstructionFactory.createLoad(receiver, index));
-				Annotation[] anns = model.getAnnotations();
-				atLeastOne |= addWhiteListingChecksFor(ih, anns, receiver, il, methodName, key, annotationsCursor);
-				index++;
-				annotationsCursor += anns.length;
-			}
-
-			int par = 0;
-			Annotation[][] anns = model.getParameterAnnotations();
-
-			for (Type argType: invoke.getArgumentTypes(cpg)) {
-				args.add(argType);
-				il.append(InstructionFactory.createLoad(argType, index));
-				atLeastOne |= addWhiteListingChecksFor(ih, anns[par], argType, il, methodName, key, annotationsCursor);
-				index += argType.getSize();
-				annotationsCursor += anns[par].length;
-				par++;
-			}
-
-			if (!atLeastOne)
-				// all proof obligations can be discharged statically: we do not generate the checker
-				return invoke;
-
-			il.append(invoke);
-			il.append(InstructionFactory.createReturn(verifierReturnType));
-
-			Type[] argsAsArray = args.toArray(new Type[args.size()]);
-			MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null,
-					verifierName, className, il, cpg);
-			addMethod(addedVerifier, false);
-
-			return factory.createInvoke(className, verifierName, verifierReturnType, argsAsArray, Const.INVOKESTATIC);
-		}
-
-		private boolean addWhiteListingChecksFor(InstructionHandle ih, Annotation[] annotations, Type argType, InstructionList il, String methodName, String key, int annotationsCursor) {
-			int initialSize = il.getLength();
-
-			for (Annotation ann: annotations) {
-				Optional<java.lang.reflect.Method> checkMethod = getWhiteListingCheckFor(ann);
-				if (checkMethod.isPresent())
-					// we check if the annotation could not be statically discharged
-					if (ih == null || key.charAt(annotationsCursor++) == '1') {
-						il.append(InstructionFactory.createDup(argType.getSize()));
-						il.append(factory.createConstant(methodName));
-						il.append(createInvokeForWhiteListingCheck(checkMethod.get()));
-					}
-			}
-
-			return il.getLength() > initialSize;
-		}
-
-		private Optional<java.lang.reflect.Method> getWhiteListingCheckFor(Annotation annotation) {
-			return getWhiteListingCheckFor(annotation.annotationType());
-		}
-
-		private Optional<java.lang.reflect.Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
-			if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class)) {
-				String checkName = lowerInitial(annotationType.getSimpleName());
-				Optional<java.lang.reflect.Method> checkMethod = Stream.of(getClass().getDeclaredMethods())
-					.filter(method -> method.getName().equals(checkName)).findFirst();
-
-				if (!checkMethod.isPresent())
-					throw new IllegalStateException("unexpected white-list annotation " + annotationType.getSimpleName());
-
-				return checkMethod;
-			}
-
-			return Optional.empty();
-		}
-
-		private String lowerInitial(String name) {
-			return Character.toLowerCase(name.charAt(0)) + name.substring(1);
-		}
-
-		@SuppressWarnings("unused")
-		private void mustBeFalse(boolean value, String methodName) {}
-
-		@SuppressWarnings("unused")
-		private void mustRedefineHashCode(Object value, String methodName) {}
-
-		@SuppressWarnings("unused")
-		private void mustRedefineHashCodeOrToString(Object value, String methodName) {}
-
-		private InvokeInstruction createInvokeForWhiteListingCheck(java.lang.reflect.Method checkMethod) {
-			return factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, checkMethod.getName(), Type.VOID,
-				new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC);
-		}
-
-		private boolean canBeStaticallyDicharged(Class<? extends Annotation> annotationType, InstructionHandle ih, int slots) {
-			// ih contains an InvokeInstruction distinct from INVOKEDYNAMIC
-
-			List<Instruction> pushers = new ArrayList<>();
-
-			if (annotationType == MustBeFalse.class) {
-				forEachPusher(ih, slots, where -> pushers.add(where.getInstruction()), () -> pushers.add(null));
-				return pushers.stream().allMatch(ins -> ins != null && ins instanceof ICONST && ((ICONST) ins).getValue().equals(0));
-			}
-
-			return false;
-		}
-
-		private boolean hasProofObligations(Field field) {
-			return Stream.of(field.getAnnotations()).map(Annotation::annotationType).anyMatch(annotation -> annotation.isAnnotationPresent(WhiteListingProofObligation.class));
-		}
-
-		private boolean hasProofObligations(Executable method) {
-			return Stream.of(method.getAnnotations()).map(Annotation::annotationType).anyMatch(annotation -> annotation.isAnnotationPresent(WhiteListingProofObligation.class))
-					||
-				Stream.of(method.getParameterAnnotations()).flatMap(Stream::of).map(Annotation::annotationType).anyMatch(annotation -> annotation.isAnnotationPresent(WhiteListingProofObligation.class));
 		}
 
 		/**
@@ -1380,11 +953,10 @@ public class ClassInstrumentation {
 		 * Finds the closest instructions whose stack height, at their beginning, is
 		 * equal to the height of the stack at {@code ih} minus {@code slots}.
 		 * 
-		 * @param ih    the start instruction of the look up
+		 * @param ih the start instruction of the look up
 		 * @param slots the difference in stack height
 		 */
-		private void forEachPusher(InstructionHandle ih, int slots, Consumer<InstructionHandle> what,
-				Runnable ifCannotFollow) {
+		private void forEachPusher(InstructionHandle ih, int slots, Consumer<InstructionHandle> what, Runnable ifCannotFollow) {
 			Set<HeightAtBytecode> seen = new HashSet<>();
 			List<HeightAtBytecode> workingSet = new ArrayList<>();
 			HeightAtBytecode start = new HeightAtBytecode(ih, slots);
@@ -1514,12 +1086,10 @@ public class ClassInstrumentation {
 		 * where that contractor of the superclass is called: after which, we can add
 		 * the call that sets caller and balance.
 		 * 
-		 * @param il            the list of instructions of the entry
-		 * @param method        the entry
-		 * @param slotForCaller the local where the caller contract is passed to the
-		 *                      entry
-		 * @return the instruction before which the code that sets caller and balance
-		 *         can be placed
+		 * @param il the list of instructions of the entry
+		 * @param method the entry
+		 * @param slotForCaller the local where the caller contract is passed to the entry
+		 * @return the instruction before which the code that sets caller and balance can be placed
 		 */
 		private InstructionHandle determineWhereToSetCallerAndBalance(InstructionList il, MethodGen method, int slotForCaller) {
 			InstructionHandle start = il.getStart();
@@ -1562,50 +1132,49 @@ public class ClassInstrumentation {
 							stackHeightAfterBytecode -= ((StackConsumer) bytecode).consumeStack(cpg);
 
 						if (stackHeightAfterBytecode == 0) {
-							// found a consumer of the aload_0: is it really a call to a constructor of the
-							// superclass?
+							// found a consumer of the aload_0: is it really a call to a constructor of the superclass?
 							if (bytecode instanceof INVOKESPECIAL
 									&& ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(clazz.getSuperclassName())
 									&& ((INVOKESPECIAL) bytecode).getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
 								callsToConstructorsOfSuperclass.add(current.ih);
 							else
-								throw new IllegalStateException("Unexpected consumer of local 0 " + bytecode
-										+ " before initialization of " + className);
-						} else if (bytecode instanceof GotoInstruction) {
+								throw new IllegalStateException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
+						}
+						else if (bytecode instanceof GotoInstruction) {
 							HeightAtBytecode added = new HeightAtBytecode(((GotoInstruction) bytecode).getTarget(),
 									stackHeightAfterBytecode);
 							if (seen.add(added))
 								workingSet.add(added);
-						} else if (bytecode instanceof IfInstruction) {
-							HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(),
-									stackHeightAfterBytecode);
+						}
+						else if (bytecode instanceof IfInstruction) {
+							HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
 							if (seen.add(added))
 								workingSet.add(added);
-							added = new HeightAtBytecode(((IfInstruction) bytecode).getTarget(),
-									stackHeightAfterBytecode);
+							added = new HeightAtBytecode(((IfInstruction) bytecode).getTarget(), stackHeightAfterBytecode);
 							if (seen.add(added))
 								workingSet.add(added);
-						} else if (bytecode instanceof BranchInstruction || bytecode instanceof ATHROW
+						}
+						else if (bytecode instanceof BranchInstruction || bytecode instanceof ATHROW
 								|| bytecode instanceof RETURN || bytecode instanceof RET)
-							throw new IllegalStateException(
-									"Unexpected instruction " + bytecode + " before initialization of " + className);
+							throw new IllegalStateException("Unexpected instruction " + bytecode + " before initialization of " + className);
 						else {
 							HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(),
 									stackHeightAfterBytecode);
 							if (seen.add(added))
 								workingSet.add(added);
 						}
-					} while (!workingSet.isEmpty());
+					}
+					while (!workingSet.isEmpty());
 
 					if (callsToConstructorsOfSuperclass.size() == 1)
 						return callsToConstructorsOfSuperclass.iterator().next().getNext();
 					else
-						throw new IllegalStateException(
-								"Cannot identify single call to constructor of superclass inside a constructor ot "
-										+ className);
-				} else
+						throw new IllegalStateException("Cannot identify single call to constructor of superclass inside a constructor ot " + className);
+				}
+				else
 					throw new IllegalStateException("Constructor of " + className + " does not start with aload 0");
-			} else
+			}
+			else
 				return start;
 		}
 
@@ -1666,12 +1235,10 @@ public class ClassInstrumentation {
 
 			if (fieldInstruction instanceof GETFIELD)
 				return factory.createInvoke(referencedClass.getClassName(),
-						getterNameFor(referencedClass.getClassName(), fieldName), fieldType, Type.NO_ARGS,
-						Const.INVOKEVIRTUAL);
+					getterNameFor(referencedClass.getClassName(), fieldName), fieldType, Type.NO_ARGS, Const.INVOKEVIRTUAL);
 			else // PUTFIELD
 				return factory.createInvoke(referencedClass.getClassName(),
-						setterNameFor(referencedClass.getClassName(), fieldName), Type.VOID, new Type[] { fieldType },
-						Const.INVOKEVIRTUAL);
+					setterNameFor(referencedClass.getClassName(), fieldName), Type.VOID, new Type[] { fieldType }, Const.INVOKEVIRTUAL);
 		}
 
 		/**
