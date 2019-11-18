@@ -22,8 +22,7 @@ import io.takamaka.code.verification.Constants;
  * An instrumentation that adds, to a storage class, the method that extract all updates to an instance
  * of a class, since the beginning of a transaction.
  */
-public class AddExtractUpdates {
-
+public class AddExtractUpdates extends ClassInstrumentation.Builder.ClassLevelInstrumentation {
 	private final static ObjectType LIST_OT = new ObjectType(List.class.getName());
 	private final static ObjectType ENUM_OT = new ObjectType(Enum.class.getName());
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
@@ -32,30 +31,32 @@ public class AddExtractUpdates {
 	private final static Type[] RECURSIVE_EXTRACT_ARGS = { Type.OBJECT, SET_OT, SET_OT, LIST_OT };
 	private final static Type[] TWO_OBJECTS_ARGS = { Type.OBJECT, Type.OBJECT };
 
-	public AddExtractUpdates(ClassInstrumentation.Instrumenter instrumenter) {
-		if (!instrumenter.eagerNonTransientInstanceFields.getLast().isEmpty() || !instrumenter.lazyNonTransientInstanceFields.isEmpty()) {
+	public AddExtractUpdates(ClassInstrumentation.Builder builder) {
+		builder.super();
+
+		if (!eagerNonTransientInstanceFields.getLast().isEmpty() || !lazyNonTransientInstanceFields.isEmpty()) {
 			InstructionList il = new InstructionList();
 			il.append(InstructionFactory.createThis());
 			il.append(InstructionConst.DUP);
 			il.append(InstructionConst.ALOAD_1);
 			il.append(InstructionConst.ALOAD_2);
 			il.append(InstructionFactory.createLoad(LIST_OT, 3));
-			il.append(instrumenter.factory.createInvoke(instrumenter.clazz.getSuperclassName(), ClassInstrumentation.EXTRACT_UPDATES, Type.VOID,
+			il.append(factory.createInvoke(clazz.getSuperclassName(), ClassInstrumentation.EXTRACT_UPDATES, Type.VOID,
 					EXTRACT_UPDATES_ARGS, Const.INVOKESPECIAL));
-			il.append(instrumenter.factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, ClassInstrumentation.IN_STORAGE_NAME, Type.BOOLEAN));
+			il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, ClassInstrumentation.IN_STORAGE_NAME, Type.BOOLEAN));
 			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
 
 			InstructionHandle end = il.append(InstructionConst.RETURN);
 
-			for (Field field: instrumenter.eagerNonTransientInstanceFields.getLast())
-				end = addUpdateExtractionForEagerField(field, il, end, instrumenter);
+			for (Field field: eagerNonTransientInstanceFields.getLast())
+				end = addUpdateExtractionForEagerField(field, il, end);
 
-			for (Field field: instrumenter.lazyNonTransientInstanceFields)
-				end = addUpdateExtractionForLazyField(field, il, end, instrumenter);
+			for (Field field: lazyNonTransientInstanceFields)
+				end = addUpdateExtractionForLazyField(field, il, end);
 
 			MethodGen extractUpdates = new MethodGen(ClassInstrumentation.PROTECTED_SYNTHETIC, Type.VOID, EXTRACT_UPDATES_ARGS, null,
-				ClassInstrumentation.EXTRACT_UPDATES, instrumenter.className, il, instrumenter.cpg);
-			instrumenter.addMethod(extractUpdates, true);
+				ClassInstrumentation.EXTRACT_UPDATES, className, il, cpg);
+			addMethod(extractUpdates, true);
 		}
 	}
 
@@ -64,13 +65,12 @@ public class AddExtractUpdates {
 	 * beginning of a transaction and, in such a case, adds the corresponding update.
 	 * 
 	 * @param field the field
-	 * @param il    the instruction list where the code must be added
-	 * @param end   the instruction before which the extra code must be added
+	 * @param il the instruction list where the code must be added
+	 * @param end the instruction before which the extra code must be added
 	 * @return the beginning of the added code
 	 */
-	private InstructionHandle addUpdateExtractionForLazyField(Field field, InstructionList il, InstructionHandle end, ClassInstrumentation.Instrumenter instrumenter) {
+	private InstructionHandle addUpdateExtractionForLazyField(Field field, InstructionList il, InstructionHandle end) {
 		Type type = Type.getType(field.getType());
-		InstructionFactory factory = instrumenter.factory;
 
 		List<Type> args = new ArrayList<>();
 		for (Type arg: ADD_UPDATES_FOR_ARGS)
@@ -89,7 +89,7 @@ public class AddExtractUpdates {
 		else {
 			recursiveExtract = il.insert(end, InstructionFactory.createThis());
 			il.insert(end, InstructionConst.DUP);
-			il.insert(end, factory.createGetField(instrumenter.className, ClassInstrumentation.OLD_PREFIX + fieldName, type));
+			il.insert(end, factory.createGetField(className, ClassInstrumentation.OLD_PREFIX + fieldName, type));
 			il.insert(end, InstructionConst.ALOAD_1);
 			il.insert(end, InstructionConst.ALOAD_2);
 			il.insert(end, InstructionFactory.createLoad(LIST_OT, 3));
@@ -98,23 +98,23 @@ public class AddExtractUpdates {
 		}
 
 		InstructionHandle addUpdatesFor = il.insert(recursiveExtract, InstructionFactory.createThis());
-		il.insert(recursiveExtract, factory.createConstant(instrumenter.className));
+		il.insert(recursiveExtract, factory.createConstant(className));
 		il.insert(recursiveExtract, factory.createConstant(fieldName));
 		il.insert(recursiveExtract, InstructionConst.ALOAD_1);
 		il.insert(recursiveExtract, InstructionConst.ALOAD_2);
 		il.insert(recursiveExtract, InstructionFactory.createLoad(LIST_OT, 3));
 		il.insert(recursiveExtract, factory.createConstant(field.getType().getName()));
 		il.insert(recursiveExtract, InstructionFactory.createThis());
-		il.insert(recursiveExtract, factory.createGetField(instrumenter.className, fieldName, type));
+		il.insert(recursiveExtract, factory.createGetField(className, fieldName, type));
 		il.insert(recursiveExtract, factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, ClassInstrumentation.ADD_UPDATE_FOR, Type.VOID,
 				args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 		InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
 		il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
 		il.insert(addUpdatesFor, InstructionFactory.createThis());
-		il.insert(addUpdatesFor, factory.createGetField(instrumenter.className, fieldName, type));
+		il.insert(addUpdatesFor, factory.createGetField(className, fieldName, type));
 		il.insert(addUpdatesFor, InstructionFactory.createThis());
-		il.insert(addUpdatesFor, factory.createGetField(instrumenter.className, ClassInstrumentation.OLD_PREFIX + fieldName, type));
+		il.insert(addUpdatesFor, factory.createGetField(className, ClassInstrumentation.OLD_PREFIX + fieldName, type));
 
 		il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract));
 
@@ -123,16 +123,14 @@ public class AddExtractUpdates {
 
 	/**
 	 * Adds the code that check if a given eager field has been updated since the
-	 * beginning of a transaction and, in such a case, adds the corresponding
-	 * update.
+	 * beginning of a transaction and, in such a case, adds the corresponding update.
 	 * 
 	 * @param field the field
-	 * @param il    the instruction list where the code must be added
-	 * @param end   the instruction before which the extra code must be added
+	 * @param il the instruction list where the code must be added
+	 * @param end the instruction before which the extra code must be added
 	 * @return the beginning of the added code
 	 */
-	private InstructionHandle addUpdateExtractionForEagerField(Field field, InstructionList il, InstructionHandle end, ClassInstrumentation.Instrumenter instrumenter) {
-		InstructionFactory factory = instrumenter.factory;
+	private InstructionHandle addUpdateExtractionForEagerField(Field field, InstructionList il, InstructionHandle end) {
 		Class<?> fieldType = field.getType();
 		Type type = Type.getType(fieldType);
 		boolean isEnum = fieldType.isEnum();
@@ -148,22 +146,22 @@ public class AddExtractUpdates {
 			args.add(type);
 
 		InstructionHandle addUpdatesFor = il.insert(end, InstructionFactory.createThis());
-		il.insert(end, factory.createConstant(instrumenter.className));
+		il.insert(end, factory.createConstant(className));
 		il.insert(end, factory.createConstant(field.getName()));
 		il.insert(end, InstructionConst.ALOAD_1);
 		if (isEnum)
 			il.insert(end, factory.createConstant(fieldType.getName()));
 		il.insert(end, InstructionFactory.createThis());
-		il.insert(end, factory.createGetField(instrumenter.className, field.getName(), type));
+		il.insert(end, factory.createGetField(className, field.getName(), type));
 		il.insert(end, factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, ClassInstrumentation.ADD_UPDATE_FOR, Type.VOID,
 				args.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 		InstructionHandle start = il.insert(addUpdatesFor, InstructionFactory.createLoad(Type.BOOLEAN, 4));
 		il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IFEQ, addUpdatesFor));
 		il.insert(addUpdatesFor, InstructionFactory.createThis());
-		il.insert(addUpdatesFor, factory.createGetField(instrumenter.className, field.getName(), type));
+		il.insert(addUpdatesFor, factory.createGetField(className, field.getName(), type));
 		il.insert(addUpdatesFor, InstructionFactory.createThis());
-		il.insert(addUpdatesFor, factory.createGetField(instrumenter.className, ClassInstrumentation.OLD_PREFIX + field.getName(), type));
+		il.insert(addUpdatesFor, factory.createGetField(className, ClassInstrumentation.OLD_PREFIX + field.getName(), type));
 
 		if (fieldType == double.class) {
 			il.insert(addUpdatesFor, InstructionConst.DCMPL);

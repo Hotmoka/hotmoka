@@ -16,10 +16,11 @@ import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
 /**
  * An instrumentation that adds accessor methods for the fields of the class being instrumented.
  */
-public class AddAccessorMethods {
+public class AddAccessorMethods extends ClassInstrumentation.Builder.ClassLevelInstrumentation {
 
-	public AddAccessorMethods(ClassInstrumentation.Instrumenter instrumenter) {
-		instrumenter.lazyNonTransientInstanceFields.forEach(field -> addAccessorMethodsFor(field, instrumenter));
+	public AddAccessorMethods(ClassInstrumentation.Builder builder) {
+		builder.super();
+		lazyNonTransientInstanceFields.forEach(this::addAccessorMethodsFor);
 	}
 
 	/**
@@ -27,11 +28,11 @@ public class AddAccessorMethods {
 	 * 
 	 * @param field the field
 	 */
-	private void addAccessorMethodsFor(Field field, ClassInstrumentation.Instrumenter instrumenter) {
-		addGetterFor(field, instrumenter);
+	private void addAccessorMethodsFor(Field field) {
+		addGetterFor(field);
 
 		if (!Modifier.isFinal(field.getModifiers()))
-			addSetterFor(field, instrumenter);
+			addSetterFor(field);
 	}
 
 	/**
@@ -39,20 +40,19 @@ public class AddAccessorMethods {
 	 * 
 	 * @param field the field
 	 */
-	private void addSetterFor(Field field, ClassInstrumentation.Instrumenter instrumenter) {
+	private void addSetterFor(Field field) {
 		Type type = Type.getType(field.getType());
 		InstructionList il = new InstructionList();
 		il.append(InstructionFactory.createThis());
 		il.append(InstructionConst.DUP);
-		il.append(instrumenter.factory.createInvoke(instrumenter.className, ClassInstrumentation.ENSURE_LOADED_PREFIX + field.getName(),
-			BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+		il.append(factory.createInvoke(className, ClassInstrumentation.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 		il.append(InstructionConst.ALOAD_1);
-		il.append(instrumenter.factory.createPutField(instrumenter.className, field.getName(), type));
+		il.append(factory.createPutField(className, field.getName(), type));
 		il.append(InstructionConst.RETURN);
 
 		MethodGen setter = new MethodGen(ClassInstrumentation.PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null,
-			instrumenter.setterNameFor(instrumenter.className, field.getName()), instrumenter.className, il, instrumenter.cpg);
-		instrumenter.addMethod(setter, false);
+			setterNameFor(className, field.getName()), className, il, cpg);
+		addMethod(setter, false);
 	}
 
 	/**
@@ -60,18 +60,17 @@ public class AddAccessorMethods {
 	 * 
 	 * @param field the field
 	 */
-	private void addGetterFor(Field field, ClassInstrumentation.Instrumenter instrumenter) {
+	private void addGetterFor(Field field) {
 		Type type = Type.getType(field.getType());
 		InstructionList il = new InstructionList();
 		il.append(InstructionFactory.createThis());
 		il.append(InstructionConst.DUP);
-		il.append(instrumenter.factory.createInvoke(instrumenter.className, ClassInstrumentation.ENSURE_LOADED_PREFIX + field.getName(),
-			BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
-		il.append(instrumenter.factory.createGetField(instrumenter.className, field.getName(), type));
+		il.append(factory.createInvoke(className, ClassInstrumentation.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+		il.append(factory.createGetField(className, field.getName(), type));
 		il.append(InstructionFactory.createReturn(type));
 
 		MethodGen getter = new MethodGen(ClassInstrumentation.PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null,
-			instrumenter.getterNameFor(instrumenter.className, field.getName()), instrumenter.className, il, instrumenter.cpg);
-		instrumenter.addMethod(getter, false);
+			getterNameFor(className, field.getName()), className, il, cpg);
+		addMethod(getter, false);
 	}
 }

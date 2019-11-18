@@ -21,30 +21,32 @@ import io.takamaka.code.verification.Constants;
 /**
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.
  */
-public class AddEnsureLoadedMethods {
+public class AddEnsureLoadedMethods extends ClassInstrumentation.Builder.ClassLevelInstrumentation {
 	private final static Type[] THREE_STRINGS_ARGS = { Type.STRING, Type.STRING, Type.STRING };
 
-	public AddEnsureLoadedMethods(ClassInstrumentation.Instrumenter instrumenter) {
-		instrumenter.lazyNonTransientInstanceFields.forEach(field -> addEnsureLoadedMethodFor(field, instrumenter));
+	public AddEnsureLoadedMethods(ClassInstrumentation.Builder builder) {
+		builder.super();
+		lazyNonTransientInstanceFields.forEach(this::addEnsureLoadedMethodFor);
 	}
 
 	/**
 	 * Adds the ensure loaded method for the given lazy field.
+	 * 
+	 * @param field the field
 	 */
-	private void addEnsureLoadedMethodFor(Field field, ClassInstrumentation.Instrumenter instrumenter) {
-		InstructionFactory factory = instrumenter.factory;
+	private void addEnsureLoadedMethodFor(Field field) {
 		boolean fieldIsFinal = Modifier.isFinal(field.getModifiers());
 
 		// final fields cannot remain as such, since the ensureMethod will update them
 		// and it is not a constructor. Java < 9 will not check this constraint but
 		// newer versions of Java would reject the code without this change
 		if (fieldIsFinal) {
-			org.apache.bcel.classfile.Field oldField = Stream.of(instrumenter.clazz.getFields())
+			org.apache.bcel.classfile.Field oldField = Stream.of(clazz.getFields())
 				.filter(f -> f.getName().equals(field.getName()) && f.getType().equals(Type.getType(field.getType())))
 				.findFirst().get();
-			FieldGen newField = new FieldGen(oldField, instrumenter.cpg);
+			FieldGen newField = new FieldGen(oldField, cpg);
 			newField.setAccessFlags(oldField.getAccessFlags() ^ Const.ACC_FINAL);
-			instrumenter.clazz.replaceField(oldField, newField.getField());
+			clazz.replaceField(oldField, newField.getField());
 		}
 
 		Type type = Type.getType(field.getType());
@@ -55,26 +57,26 @@ public class AddEnsureLoadedMethods {
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 		il.insert(_return, InstructionFactory.createThis());
 		String fieldName = field.getName();
-		il.insert(_return, factory.createGetField(instrumenter.className, ClassInstrumentation.IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
+		il.insert(_return, factory.createGetField(className, ClassInstrumentation.IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFNE, _return));
 		il.insert(_return, InstructionFactory.createThis());
 		il.insert(_return, InstructionConst.DUP);
 		il.insert(_return, InstructionConst.DUP);
 		il.insert(_return, InstructionConst.ICONST_1);
-		il.insert(_return, factory.createPutField(instrumenter.className, ClassInstrumentation.IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
-		il.insert(_return, factory.createConstant(instrumenter.className));
+		il.insert(_return, factory.createPutField(className, ClassInstrumentation.IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
+		il.insert(_return, factory.createConstant(className));
 		il.insert(_return, factory.createConstant(fieldName));
 		il.insert(_return, factory.createConstant(field.getType().getName()));
-		il.insert(_return, factory.createInvoke(instrumenter.className,
+		il.insert(_return, factory.createInvoke(className,
 			fieldIsFinal ? ClassInstrumentation.DESERIALIZE_LAST_UPDATE_FOR_FINAL : ClassInstrumentation.DESERIALIZE_LAST_UPDATE_FOR,
 			ObjectType.OBJECT, THREE_STRINGS_ARGS, Const.INVOKEVIRTUAL));
 		il.insert(_return, factory.createCast(ObjectType.OBJECT, type));
 		il.insert(_return, InstructionConst.DUP2);
-		il.insert(_return, factory.createPutField(instrumenter.className, fieldName, type));
-		il.insert(_return, factory.createPutField(instrumenter.className, ClassInstrumentation.OLD_PREFIX + fieldName, type));
+		il.insert(_return, factory.createPutField(className, fieldName, type));
+		il.insert(_return, factory.createPutField(className, ClassInstrumentation.OLD_PREFIX + fieldName, type));
 
 		MethodGen ensureLoaded = new MethodGen(ClassInstrumentation.PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null,
-			ClassInstrumentation.ENSURE_LOADED_PREFIX + fieldName, instrumenter.className, il, instrumenter.cpg);
-		instrumenter.addMethod(ensureLoaded, true);
+			ClassInstrumentation.ENSURE_LOADED_PREFIX + fieldName, className, il, cpg);
+		addMethod(ensureLoaded, true);
 	}
 }

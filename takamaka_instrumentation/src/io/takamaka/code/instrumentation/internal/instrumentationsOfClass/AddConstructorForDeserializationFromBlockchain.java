@@ -16,7 +16,6 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
-import io.takamaka.code.instrumentation.internal.ClassInstrumentation.Instrumenter;
 import io.takamaka.code.verification.Constants;
 
 /**
@@ -25,30 +24,33 @@ import io.takamaka.code.verification.Constants;
  * the fields of the superclasses, then those of the same class being
  * constructed, ordered by name and then by {@code toString()} of their type.
  */
-public class AddConstructorForDeserializationFromBlockchain {
+public class AddConstructorForDeserializationFromBlockchain extends ClassInstrumentation.Builder.ClassLevelInstrumentation {
 
-	public AddConstructorForDeserializationFromBlockchain(ClassInstrumentation.Instrumenter instrumenter) {
+	public AddConstructorForDeserializationFromBlockchain(ClassInstrumentation.Builder builder) {
+		builder.super();
 		List<Type> args = new ArrayList<>();
 
-		// the parameters of the constructor start with a storage reference
-		// to the object being deserialized
+		// the parameters of the constructor start with a storage reference to the object being deserialized
 		args.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
 
 		// then there are the fields of the class and superclasses, with superclasses first
-		if (!instrumenter.className.equals(Constants.STORAGE_NAME))
-			instrumenter.eagerNonTransientInstanceFields.stream().flatMap(SortedSet::stream).map(Field::getType).map(Type::getType)
+		if (!className.equals(Constants.STORAGE_NAME))
+			eagerNonTransientInstanceFields.stream()
+				.flatMap(SortedSet::stream)
+				.map(Field::getType)
+				.map(Type::getType)
 				.forEachOrdered(args::add);
 
 		InstructionList il = new InstructionList();
-		int nextLocal = addCallToSuper(il, instrumenter);
-		if (!instrumenter.className.equals(Constants.STORAGE_NAME))
-			addInitializationOfEagerFields(il, nextLocal, instrumenter);
+		int nextLocal = addCallToSuper(il);
+		if (!className.equals(Constants.STORAGE_NAME))
+			addInitializationOfEagerFields(il, nextLocal);
 
 		il.append(InstructionConst.RETURN);
 
 		MethodGen constructor = new MethodGen(ClassInstrumentation.PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
-				Const.CONSTRUCTOR_NAME, instrumenter.className, il, instrumenter.cpg);
-		instrumenter.addMethod(constructor, false);
+				Const.CONSTRUCTOR_NAME, builder.className, il, builder.cpg);
+		builder.addMethod(constructor, false);
 	}
 
 	/**
@@ -56,11 +58,9 @@ public class AddConstructorForDeserializationFromBlockchain {
 	 * deserialization constructor of the superclass.
 	 * 
 	 * @param il the instructions where the call must be added
-	 * @param instrumenter 
-	 * @return the number of local variables used to accomodate the arguments passed
-	 *         to the constructor of the superclass
+	 * @return the number of local variables used to accomodate the arguments passed to the constructor of the superclass
 	 */
-	private int addCallToSuper(InstructionList il, Instrumenter instrumenter) {
+	private int addCallToSuper(InstructionList il) {
 		List<Type> argsForSuperclasses = new ArrayList<>();
 		il.append(InstructionFactory.createThis());
 		il.append(InstructionConst.ALOAD_1);
@@ -77,29 +77,26 @@ public class AddConstructorForDeserializationFromBlockchain {
 				il.append(InstructionFactory.createLoad(type, local));
 				local += type.getSize();
 			}
-		}
-		;
+		};
 
 		PushLoad pushLoad = new PushLoad();
-		if (!instrumenter.className.equals(Constants.STORAGE_NAME))
-			instrumenter.eagerNonTransientInstanceFields.stream().limit(instrumenter.eagerNonTransientInstanceFields.size() - 1)
+		if (!className.equals(Constants.STORAGE_NAME))
+			eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 				.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 
-		il.append(instrumenter.factory.createInvoke(instrumenter.clazz.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
-				argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
+		il.append(factory.createInvoke(clazz.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
+			argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 		return pushLoad.local;
 	}
 
 	/**
-	 * Adds code that initializes the eager fields of the storage class being
-	 * instrumented.
+	 * Adds code that initializes the eager fields of the storage class being instrumented.
 	 * 
-	 * @param il        the instructions where the code must be added
-	 * @param nextLocal the local variables where the parameters start, that must be
-	 *                  stored in the fields
+	 * @param il the instructions where the code must be added
+	 * @param nextLocal the local variables where the parameters start, that must be stored in the fields
 	 */
-	private void addInitializationOfEagerFields(InstructionList il, int nextLocal, Instrumenter instrumenter) {
+	private void addInitializationOfEagerFields(InstructionList il, int nextLocal) {
 		Consumer<Field> putField = new Consumer<Field>() {
 			private int local = nextLocal;
 
@@ -113,16 +110,16 @@ public class AddConstructorForDeserializationFromBlockchain {
 				// we reduce the size of the code for the frequent case of one slot values
 				if (size == 1)
 					il.append(InstructionConst.DUP2);
-				il.append(instrumenter.factory.createPutField(instrumenter.className, field.getName(), type));
+				il.append(factory.createPutField(className, field.getName(), type));
 				if (size != 1) {
 					il.append(InstructionFactory.createThis());
 					il.append(InstructionFactory.createLoad(type, local));
 				}
-				il.append(instrumenter.factory.createPutField(instrumenter.className, ClassInstrumentation.OLD_PREFIX + field.getName(), type));
+				il.append(factory.createPutField(className, ClassInstrumentation.OLD_PREFIX + field.getName(), type));
 				local += size;
 			}
 		};
 
-		instrumenter.eagerNonTransientInstanceFields.getLast().forEach(putField);
+		eagerNonTransientInstanceFields.getLast().forEach(putField);
 	}
 }

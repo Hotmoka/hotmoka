@@ -152,13 +152,13 @@ public class ClassInstrumentation {
 	 * @param instrumentedJar the jar where the instrumented class will be added
 	 */
 	ClassInstrumentation(VerifiedClass clazz, GasCostModel gasCostModel) {
-		new Instrumenter(clazz, gasCostModel);
+		new Builder(clazz, gasCostModel);
 	}
 
 	/**
 	 * Local scope for the instrumentation of a single class.
 	 */
-	public class Instrumenter {
+	public class Builder {
 
 		/**
 		 * The class that is being instrumented.
@@ -242,7 +242,7 @@ public class ClassInstrumentation {
 		 * @param clazz the class to instrument
 		 * @param gasCostModel the gas cost model used for the instrumentation
 		 */
-		private Instrumenter(VerifiedClass clazz, GasCostModel gasCostModel) {
+		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) {
 			this.clazz = clazz;
 			this.gasCostModel = gasCostModel;
 			this.className = clazz.getClassName();
@@ -260,6 +260,81 @@ public class ClassInstrumentation {
 
 			methodLevelInstrumentations();
 			classLevelInstrumentations();
+		}
+
+		public abstract class ClassLevelInstrumentation {
+			/**
+			 * The class that is being instrumented.
+			 */
+			protected final VerifiedClass clazz = Builder.this.clazz;
+
+			/**
+			 * The gas cost model used for the instrumentation.
+			 */
+			protected final GasCostModel gasCostModel = Builder.this.gasCostModel;
+
+			/**
+			 * The name of the class being instrumented.
+			 */
+			protected final String className = Builder.this.className;
+
+			/**
+			 * The constant pool of the class being instrumented.
+			 */
+			protected final ConstantPoolGen cpg = Builder.this.cpg;
+
+			/**
+			 * The object that can be used to build complex instructions.
+			 */
+			protected final InstructionFactory factory = Builder.this.factory;
+
+			/**
+			 * True if and only if the class being instrumented is a storage class, distinct
+			 * form {@link io.takamaka.code.lang.Storage} itself, that must not be instrumented.
+			 */
+			protected final boolean isStorage = Builder.this.isStorage;
+
+			/**
+			 * True if and only if the class being instrumented is a contract class.
+			 */
+			protected final boolean isContract = Builder.this.isContract;
+
+			/**
+			 * The non-transient instance fields of primitive type or of special reference
+			 * types that are allowed in storage objects (such as {@link java.lang.String}
+			 * and {@link java.math.BigInteger}). They are defined in the class being
+			 * instrumented or in its superclasses up to {@link io.takamaka.code.lang.Storage}
+			 * (excluded). This list is non-empty for storage classes only. The first set in
+			 * the list are the fields of the topmost class; the last are the fields of the
+			 * class being considered.
+			 */
+			protected final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = Builder.this.eagerNonTransientInstanceFields;
+
+			/**
+			 * The non-transient instance fields of reference type,
+			 * defined in the class being instrumented (superclasses are not
+			 * considered). This set is non-empty for storage classes only.
+			 */
+			protected final SortedSet<Field> lazyNonTransientInstanceFields = Builder.this.lazyNonTransientInstanceFields;
+
+			protected final void addMethod(MethodGen method, boolean needsStackMap) {
+				method.getInstructionList().setPositions();
+				method.setMaxLocals();
+				method.setMaxStack();
+				if (needsStackMap)
+					StackMapReplacer.of(method);
+				clazz.addMethod(method.getMethod());
+			}
+
+			protected final String getterNameFor(String className, String fieldName) {
+				// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
+				return GETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
+			}
+
+			protected final String setterNameFor(String className, String fieldName) {
+				// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
+				return SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
+			}
 		}
 
 		/**
