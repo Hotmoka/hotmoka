@@ -43,6 +43,9 @@ import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
+/**
+ * Adds instructions that check that white-listing proof obligations hold at run time.
+ */
 public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstrumentation.Builder.MethodLevelInstrumentation {
 
 	public AddRuntimeChecksForWhiteListingProofObligations(ClassInstrumentation.Builder builder, MethodGen method) {

@@ -2,7 +2,6 @@ package io.takamaka.code.instrumentation.internal;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -10,63 +9,30 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
-import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.Method;
-import org.apache.bcel.generic.ANEWARRAY;
 import org.apache.bcel.generic.ATHROW;
-import org.apache.bcel.generic.AllocationInstruction;
-import org.apache.bcel.generic.ArithmeticInstruction;
-import org.apache.bcel.generic.ArrayInstruction;
 import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.bcel.generic.ExceptionThrower;
-import org.apache.bcel.generic.FieldInstruction;
-import org.apache.bcel.generic.GETFIELD;
 import org.apache.bcel.generic.GotoInstruction;
-import org.apache.bcel.generic.INVOKEDYNAMIC;
-import org.apache.bcel.generic.INVOKEINTERFACE;
-import org.apache.bcel.generic.INVOKESPECIAL;
-import org.apache.bcel.generic.INVOKEVIRTUAL;
-import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
-import org.apache.bcel.generic.InstructionConst;
 import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InstructionTargeter;
 import org.apache.bcel.generic.InvokeInstruction;
-import org.apache.bcel.generic.LoadInstruction;
-import org.apache.bcel.generic.MULTIANEWARRAY;
 import org.apache.bcel.generic.MethodGen;
-import org.apache.bcel.generic.NEW;
-import org.apache.bcel.generic.NEWARRAY;
-import org.apache.bcel.generic.ObjectType;
-import org.apache.bcel.generic.PUTFIELD;
-import org.apache.bcel.generic.RET;
-import org.apache.bcel.generic.RETURN;
-import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.ReturnInstruction;
-import org.apache.bcel.generic.Select;
-import org.apache.bcel.generic.StackConsumer;
-import org.apache.bcel.generic.StackProducer;
-import org.apache.bcel.generic.StoreInstruction;
-import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
@@ -76,9 +42,13 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddExtr
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.SwapSuperclassOfSpecialClasses;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddContractToCallsToEntries;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddGasUpdates;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddRuntimeChecksForWhiteListingProofObligations;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
+import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfEntries;
 import io.takamaka.code.verification.Constants;
-import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerifiedClass;
@@ -95,12 +65,9 @@ public class ClassInstrumentation {
 	public final static String GETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "get_";
 	public final static String SETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "set_";
 	public final static String EXTRA_VERIFIER_NAME = Constants.INSTRUMENTATION_PREFIX + "verifier";
-	private final static String EXTRA_ALLOCATOR_NAME = Constants.INSTRUMENTATION_PREFIX + "multianewarray";
 	public final static String EXTRACT_UPDATES = "extractUpdates";
 	public final static String RECURSIVE_EXTRACT = "recursiveExtract";
 	public final static String ADD_UPDATE_FOR = "addUpdateFor";
-	private final static String PAYABLE_ENTRY = "payableEntry";
-	private final static String ENTRY = "entry";
 	public final static String IN_STORAGE_NAME = "inStorage";
 	public final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 	public final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
@@ -116,17 +83,6 @@ public class ClassInstrumentation {
 	 */
 	private final static Comparator<Field> fieldOrder = Comparator.comparing(Field::getName)
 		.thenComparing(field -> field.getType().toString());
-
-	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.ABSTRACT_TAKAMAKA_NAME);
-	private final static ObjectType STORAGE_OT = new ObjectType(Constants.STORAGE_NAME);
-	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
-	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
-	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
-	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
-	private final static Type[] ENTRY_ARGS = { CONTRACT_OT };
-	private final static Type[] ONE_INT_ARGS = { Type.INT };
-	private final static Type[] ONE_LONG_ARGS = { Type.LONG };
-	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };
 
 	/**
 	 * Performs the instrumentation of a single class file.
@@ -488,53 +444,6 @@ public class ClassInstrumentation {
 		}
 
 		/**
-		 * BCEL does not (yet?) provide a method to add an invokedynamic constant into a
-		 * constant pool. Hence we have to rely to a trick: first we add a new integer
-		 * constant to the constant pool; then we replace it with the invokedynamic
-		 * constant. Ugly, but it currently seem to be the only way.
-		 * 
-		 * @param cid the constant to add
-		 * @return the index at which the constant has been added
-		 */
-		private int addInvokeDynamicToConstantPool(ConstantInvokeDynamic cid) {
-			// first we check if an equal constant method handle was already in the constant pool
-			int size = cpg.getSize(), index;
-			for (index = 0; index < size; index++)
-				if (cpg.getConstant(index) instanceof ConstantInvokeDynamic) {
-					ConstantInvokeDynamic c = (ConstantInvokeDynamic) cpg.getConstant(index);
-					if (c.getBootstrapMethodAttrIndex() == cid.getBootstrapMethodAttrIndex()
-							&& c.getNameAndTypeIndex() == cid.getNameAndTypeIndex())
-						return index; // found
-				}
-
-			// otherwise, we first add an integer that was not already there
-			int counter = 0;
-			do {
-				index = cpg.addInteger(counter++);
-			}
-			while (cpg.getSize() == size);
-
-			// and then replace the integer constant with the method handle constant
-			cpg.setConstant(index, cid);
-
-			return index;
-		}
-
-		private String getNewNameForPrivateMethod(String innerName) {
-			int counter = 0;
-			String newName;
-			Method[] methods = clazz.getMethods();
-			innerName = Constants.INSTRUMENTATION_PREFIX + innerName;
-
-			do {
-				newName = innerName + counter++;
-			}
-			while (Stream.of(methods).map(Method::getName).anyMatch(newName::equals));
-
-			return newName;
-		}
-
-		/**
 		 * Performs method-level instrumentations.
 		 */
 		private void methodLevelInstrumentations() {
@@ -575,17 +484,11 @@ public class ClassInstrumentation {
 		 */
 		private Method postProcess(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
-			instrumentMethodOfThresholdClasses(methodGen);
-			replaceFieldAccessesWithAccessors(methodGen);
-			addContractToCallsToEntries(methodGen);
-
-			Optional<Class<?>> callerContract;
-			if (isContract && (callerContract = clazz.getJar().getAnnotations().isEntry(className, method.getName(),
-					method.getArgumentTypes(), method.getReturnType())).isPresent())
-				instrumentEntry(methodGen, callerContract.get(), clazz.getJar().getAnnotations().isPayable(className, method.getName(),
-						method.getArgumentTypes(), method.getReturnType()));
-
-			addGasUpdates(methodGen);
+			new InstrumentMethodsOfSupportClasses(this, methodGen);
+			new ReplaceFieldAccessesWithAccessors(this, methodGen);
+			new AddContractToCallsToEntries(this, methodGen);
+			new SetCallerAndBalanceAtTheBeginningOfEntries(this, methodGen);
+			new AddGasUpdates(this, methodGen);
 
 			methodGen.setMaxLocals();
 			methodGen.setMaxStack();
@@ -597,753 +500,9 @@ public class ClassInstrumentation {
 			return methodGen.getMethod();
 		}
 
-		private void instrumentMethodOfThresholdClasses(MethodGen methodGen) {
-			Type[] args;
-
-			if (className.equals(Constants.EVENT_NAME)) {
-				if (Const.CONSTRUCTOR_NAME.equals(methodGen.getName()) && methodGen.getArgumentTypes().length == 0) {
-					InstructionList il = new InstructionList();
-					il.append(InstructionConst.ALOAD_0);
-					il.append(factory.createInvoke(Constants.ABSTRACT_EVENT_NAME, Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
-					il.append(InstructionConst.RETURN);
-					methodGen.setInstructionList(il);
-				}
-			}
-			else if (className.equals(Constants.STORAGE_NAME)) {
-				if ("compareAge".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
-					InstructionList il = new InstructionList();
-					il.append(InstructionConst.ALOAD_0);
-					il.append(InstructionConst.ALOAD_1);
-					il.append(factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, "compareAge", Type.INT, new Type[] { new ObjectType(Constants.ABSTRACT_STORAGE_NAME)}, Const.INVOKESPECIAL));
-					il.append(InstructionConst.IRETURN);
-					methodGen.setInstructionList(il);
-				}
-				else if (Const.CONSTRUCTOR_NAME.equals(methodGen.getName()) && methodGen.getArgumentTypes().length == 0) {
-					InstructionList il = new InstructionList();
-					il.append(InstructionConst.ALOAD_0);
-					il.append(factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
-					il.append(InstructionConst.RETURN);
-					methodGen.setInstructionList(il);
-				}
-			}
-			else if (className.equals(Constants.TAKAMAKA_NAME)) {
-				if ("event".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 1 && EVENT_OT.equals(args[0])) {
-					InstructionList il = new InstructionList();
-					il.append(InstructionConst.ALOAD_0);
-					il.append(factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "event", Type.VOID,
-							new Type[] { new ObjectType(Constants.ABSTRACT_EVENT_NAME) }, Const.INVOKESTATIC));
-					il.append(InstructionConst.RETURN);
-					methodGen.setInstructionList(il);
-				}
-				else if ("withGas".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 2 && BIGINTEGER_OT.equals(args[0])
-						&& new ObjectType(Callable.class.getName()).equals(args[1])) {
-					InstructionList il = new InstructionList();
-					il.append(InstructionConst.ALOAD_0);
-					il.append(InstructionConst.ALOAD_1);
-					il.append(factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
-					il.append(InstructionConst.ARETURN);
-					methodGen.setInstructionList(il);
-				}
-				else if ("now".equals(methodGen.getName()) && (args = methodGen.getArgumentTypes()).length == 0) {
-					InstructionList il = new InstructionList();
-					il.append(factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
-					il.append(InstructionConst.LRETURN);
-					methodGen.setInstructionList(il);
-				}
-			}
-		}
-
-		/**
-		 * Adds a gas decrease at the beginning of each basic block of code.
-		 * 
-		 * @param method the method that gets instrumented
-		 */
-		private void addGasUpdates(MethodGen method) {
-			if (!method.isAbstract()) {
-				SortedSet<InstructionHandle> dominators = computeDominators(method);
-				InstructionList il = method.getInstructionList();
-				CodeExceptionGen[] ceg = method.getExceptionHandlers();
-				dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
-				StreamSupport.stream(il.spliterator(), false).forEachOrdered(ih -> addRamGasUpdate(ih, il, ceg));			
-			}
-		}
-
-		private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) {
-			Instruction bytecode = ih.getInstruction();
-
-			if (bytecode instanceof InvokeInstruction) {
-				InvokeInstruction invoke = (InvokeInstruction) bytecode;
-				ReferenceType receiver = invoke.getReferenceType(cpg);
-				// we do not count the calls due to instrumentation, such as those for gas metering themselves
-				if (!ABSTRACT_TAKAMAKA_OT.equals(receiver)) {
-					// we compute an estimation of the size of the activation frame for the callee
-					long size = invoke.getArgumentTypes(cpg).length;
-					if (invoke instanceof INVOKEVIRTUAL || invoke instanceof INVOKESPECIAL || invoke instanceof INVOKEINTERFACE)
-						size++;
-
-					// non risk of overflow, since there are at most 256 arguments in a method
-					size *= gasCostModel.ramCostOfActivationSlot();
-					size += gasCostModel.ramCostOfActivationRecord();
-
-					InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
-					il.insert(ih, chargeCall(size, "chargeForRAM"));
-					il.redirectBranches(ih, newTarget);
-					il.redirectExceptionHandlers(ceg, ih, newTarget);
-				}
-			}
-			else if (bytecode instanceof NEW) {
-				NEW _new = (NEW) bytecode;
-				ObjectType createdClass = _new.getLoadClassType(cpg);
-				long size = numberOfInstanceFieldsOf(createdClass) * gasCostModel.ramCostOfField();
-				InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
-				il.insert(ih, chargeCall(size, "chargeForRAM"));
-				il.redirectBranches(ih, newTarget);
-				il.redirectExceptionHandlers(ceg, ih, newTarget);
-			}
-			else if (bytecode instanceof NEWARRAY || bytecode instanceof ANEWARRAY) {
-				InstructionHandle newTarget = il.insert(ih, InstructionConst.DUP);
-				il.insert(ih, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "chargeForRAMForArrayOfLength", Type.VOID, ONE_INT_ARGS, Const.INVOKESTATIC));
-				il.redirectBranches(ih, newTarget);
-				il.redirectExceptionHandlers(ceg, ih, newTarget);
-			}
-			else if (bytecode instanceof MULTIANEWARRAY) {
-				MULTIANEWARRAY multianewarray = (MULTIANEWARRAY) bytecode;
-				Type createdType = multianewarray.getType(cpg);
-				// this bytecode might only create some dimensions of the created array type 
-				int createdDimensions = multianewarray.getDimensions();
-				//TODO exception if createdDimensions <= 0 ?
-				Type[] args = IntStream.range(0, createdDimensions)
-					.mapToObj(dim -> Type.INT)
-					.toArray(Type[]::new);
-				String allocatorName = getNewNameForPrivateMethod(EXTRA_ALLOCATOR_NAME);
-				InstructionList allocatorIl = new InstructionList();
-				IntStream.range(0, createdDimensions)
-					.mapToObj(dim -> InstructionFactory.createLoad(Type.INT, dim))
-					.forEach(allocatorIl::append);
-
-				// the allocation is moved into the allocator method
-				allocatorIl.append(multianewarray);
-				allocatorIl.append(InstructionConst.ARETURN);
-
-				// this is where to jump to create the array
-				InstructionHandle creation = allocatorIl.getStart();
-
-				// where to jump if the last dimension is negative: of course this will lead to a run-time exception
-				// since dimensions of multianewarray must be non-negative
-				InstructionHandle fallBack = allocatorIl.insert(InstructionConst.POP2);
-
-				// where to jump if a dimension is negative: of course this will lead to a run-time exception
-				// since dimensions of multianewarray must be non-negative
-				allocatorIl.insert(InstructionFactory.createBranchInstruction(Const.GOTO, creation));
-				allocatorIl.insert(InstructionConst.POP2);
-				InstructionHandle fallBack2 = allocatorIl.insert(InstructionConst.POP);
-
-				String bigInteger = BigInteger.class.getName();
-				InvokeInstruction valueOf = factory.createInvoke(bigInteger, "valueOf", BIGINTEGER_OT, ONE_LONG_ARGS, Const.INVOKESTATIC);
-				InvokeInstruction multiply = factory.createInvoke(bigInteger, "multiply", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
-				InvokeInstruction add = factory.createInvoke(bigInteger, "add", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
-
-				// we start from 1
-				allocatorIl.insert(fallBack2, factory.createGetStatic(bigInteger, "ONE", BIGINTEGER_OT));
-
-				// we multiply all dimensions but one, computing over BigInteger, to infer the number of arrays that get created
-				IntStream.range(0, createdDimensions - 1).forEach(dimension -> {
-					allocatorIl.insert(fallBack2, InstructionFactory.createLoad(Type.INT, dimension));
-					allocatorIl.insert(fallBack2, InstructionConst.DUP);
-					allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.IFLT, fallBack));
-					allocatorIl.insert(fallBack2, InstructionConst.I2L);
-					allocatorIl.insert(fallBack2, valueOf);
-					allocatorIl.insert(fallBack2, multiply);
-				});
-
-				// the number of arrays is duplicated and left below the stack, adding a unit for the main array
-				// and multiplying for the cost of a single array
-				allocatorIl.insert(fallBack2, InstructionConst.DUP);
-				allocatorIl.insert(fallBack2, factory.createGetStatic(bigInteger, "ONE", BIGINTEGER_OT));
-				allocatorIl.insert(fallBack2, add);
-				allocatorIl.insert(fallBack2, factory.createConstant((long) gasCostModel.ramCostOfArray()));
-				allocatorIl.insert(fallBack2, valueOf);	
-				allocatorIl.insert(fallBack2, multiply);
-				allocatorIl.insert(fallBack2, InstructionConst.SWAP);
-
-				// the last dimension is computed apart, since it contributes to the elements only,
-				// but not to the number of created arrays
-				allocatorIl.insert(fallBack2, InstructionFactory.createLoad(Type.INT, createdDimensions - 1));
-				allocatorIl.insert(fallBack2, InstructionConst.DUP);
-				allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.IFLT, fallBack2));
-				allocatorIl.insert(fallBack2, InstructionConst.I2L);
-				allocatorIl.insert(fallBack2, valueOf);
-				allocatorIl.insert(fallBack2, multiply);
-
-				// we multiply the number of elements for the RAM cost of a single element
-				allocatorIl.insert(fallBack2, factory.createConstant((long) gasCostModel.ramCostOfArraySlot()));
-				allocatorIl.insert(fallBack2, valueOf);	
-				allocatorIl.insert(fallBack2, multiply);
-
-				// we add the cost of the arrays
-				allocatorIl.insert(fallBack2, add);
-
-				// we charge the gas
-				allocatorIl.insert(fallBack2, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
-				allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
-
-				MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
-				addMethod(allocator, true);
-
-				// the original multianewarray gets replaced with a call to the allocation method
-				ih.setInstruction(factory.createInvoke(className, allocatorName, createdType, args, Const.INVOKESTATIC));
-			}
-		}
-
-		private long numberOfInstanceFieldsOf(ObjectType type) {
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-				long size = 0L;
-				for (Class<?> clazz = classLoader.loadClass(type.getClassName()); clazz != Object.class; clazz = clazz.getSuperclass())
-					size += Stream.of(clazz.getDeclaredFields()).filter(field -> !Modifier.isStatic(field.getModifiers())).count();
-
-				return size;
-			});
-		}
-
-		private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators) {
-			long cost = cpuCostOf(dominator, dominators);
-			InstructionHandle newTarget;
-
-			// up to this value, there is a special compact method for charging gas
-			if (cost <= Constants.MAX_COMPACT_CHARGE)
-				newTarget = il.insert(dominator, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
-			else {
-				newTarget = il.insert(dominator, createConstantPusher(cost));
-
-				il.insert(dominator, chargeCall(cost, "charge"));
-			}
-
-			il.redirectBranches(dominator, newTarget);
-			il.redirectExceptionHandlers(ceg, dominator, newTarget);
-		}
-
-		private InvokeInstruction chargeCall(long value, String name) {
-			return factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
-		}
-
-		private Instruction createConstantPusher(long value) {
-			// we determine if we can use an integer or we need a long (highly unlikely...)
-			if (value < Integer.MAX_VALUE)
-				return factory.createConstant((int) value);
-			else
-				return factory.createConstant(value);
-		}
-
-		private long cpuCostOf(InstructionHandle dominator, SortedSet<InstructionHandle> dominators) {
-			long cost = 0L;
-
-			InstructionHandle cursor = dominator;
-			do {
-				Instruction instruction = cursor.getInstruction();
-				if (instruction instanceof ArithmeticInstruction)
-					cost += gasCostModel.cpuCostOfArithmeticInstruction();
-				else if (instruction instanceof ArrayInstruction)
-					cost += gasCostModel.cpuCostOfArrayAccessInstruction();
-				else if (instruction instanceof FieldInstruction)
-					cost += gasCostModel.cpuCostOfFieldAccessInstruction();
-				else if (instruction instanceof InvokeInstruction)
-					cost += gasCostModel.cpuCostOfInvokeInstruction();
-				else if (instruction instanceof AllocationInstruction)
-					cost += gasCostModel.cpuCostOfMemoryAllocationInstruction();
-				else if (instruction instanceof Select)
-					cost += gasCostModel.cpuCostOfSelectInstruction();
-				else
-					cost += gasCostModel.cpuCostOfInstruction();
-
-				cursor = cursor.getNext();
-			}
-			while (cursor != null && !dominators.contains(cursor));
-
-			return cost;
-		}
-
-		/**
-		 * Computes the set of dominators of the given method or constructor, that is,
-		 * the instructions where basic blocks start.
-		 * 
-		 * @param method the method whose dominators must be computed
-		 * @return the set of dominators, ordered in increasing position
-		 */
-		private SortedSet<InstructionHandle> computeDominators(MethodGen method) {
-			return StreamSupport.stream(method.getInstructionList().spliterator(), false).filter(this::isDominator)
-					.collect(Collectors.toCollection(() -> new TreeSet<InstructionHandle>(
-							Comparator.comparing(InstructionHandle::getPosition))));
-		}
-
-		private boolean isDominator(InstructionHandle ih) {
-			InstructionHandle prev = ih.getPrev();
-			// the first instruction is a dominator
-			return prev == null || prev.getInstruction() instanceof BranchInstruction
-					|| prev.getInstruction() instanceof ExceptionThrower || Stream.of(ih.getTargeters()).anyMatch(
-							targeter -> targeter instanceof BranchInstruction || targeter instanceof CodeExceptionGen);
-		}
-
-		/**
-		 * Passes the trailing implicit parameters to calls to entries. They are the
-		 * contract where the entry is called and {@code null} (for the dummy argument).
-		 * 
-		 * @param method the method
-		 */
-		private void addContractToCallsToEntries(MethodGen method) {
-			if (!method.isAbstract()) {
-				InstructionList il = method.getInstructionList();
-				List<InstructionHandle> callsToEntries = StreamSupport.stream(il.spliterator(), false)
-						.filter(ih -> isCallToEntry(ih.getInstruction())).collect(Collectors.toList());
-
-				for (InstructionHandle ih : callsToEntries)
-					passContractToCallToEntry(il, ih, method.getName());
-			}
-		}
-
-		/**
-		 * Passes the trailing implicit parameters to the given call to an entry. They
-		 * are the contract where the entry is called and {@code null} (for the dummy
-		 * argument).
-		 * 
-		 * @param il     the instructions of the method being instrumented
-		 * @param ih     the call to the entry
-		 * @param callee the name of the method where the calls are being looked for
-		 */
-		private void passContractToCallToEntry(InstructionList il, InstructionHandle ih, String callee) {
-			InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
-			if (invoke instanceof INVOKEDYNAMIC) {
-				INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) invoke;
-				String methodName = invoke.getMethodName(cpg);
-				ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
-
-				// this is an invokedynamic that calls an entry: we must capture the calling contract
-				Type[] args = invoke.getArgumentTypes(cpg);
-				Type[] expandedArgs = new Type[args.length + 1];
-				System.arraycopy(args, 0, expandedArgs, 1, args.length);
-				expandedArgs[0] = new ObjectType(className);
-				ConstantInvokeDynamic expandedCid = new ConstantInvokeDynamic(cid.getBootstrapMethodAttrIndex(), cpg
-						.addNameAndType(methodName, Type.getMethodSignature(invoke.getReturnType(cpg), expandedArgs)));
-				int index = addInvokeDynamicToConstantPool(expandedCid);
-				INVOKEDYNAMIC copied = (INVOKEDYNAMIC) invokedynamic.copy();
-				copied.setIndex(index);
-				ih.setInstruction(copied);
-
-				int slots = Stream.of(args).mapToInt(Type::getSize).sum();
-				forEachPusher(ih, slots, where -> {
-					il.append(where, where.getInstruction());
-					where.setInstruction(InstructionConst.ALOAD_0);
-				}, () -> {
-					throw new IllegalStateException("Cannot find stack pushers for calls inside " + callee);
-				});
-			} else {
-				Type[] args = invoke.getArgumentTypes(cpg);
-				Type[] expandedArgs = new Type[args.length + 2];
-				System.arraycopy(args, 0, expandedArgs, 0, args.length);
-				expandedArgs[args.length] = CONTRACT_OT;
-				expandedArgs[args.length + 1] = DUMMY_OT;
-
-				ih.setInstruction(InstructionConst.ALOAD_0); // the call must be inside a contract "this"
-				il.append(ih, factory.createInvoke(invoke.getClassName(cpg), invoke.getMethodName(cpg),
-						invoke.getReturnType(cpg), expandedArgs, invoke.getOpcode()));
-				il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
-			}
-		}
-
-		/**
-		 * Finds the closest instructions whose stack height, at their beginning, is
-		 * equal to the height of the stack at {@code ih} minus {@code slots}.
-		 * 
-		 * @param ih the start instruction of the look up
-		 * @param slots the difference in stack height
-		 */
-		private void forEachPusher(InstructionHandle ih, int slots, Consumer<InstructionHandle> what, Runnable ifCannotFollow) {
-			Set<HeightAtBytecode> seen = new HashSet<>();
-			List<HeightAtBytecode> workingSet = new ArrayList<>();
-			HeightAtBytecode start = new HeightAtBytecode(ih, slots);
-			workingSet.add(start);
-			seen.add(start);
-
-			do {
-				HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
-				InstructionHandle currentIh = current.ih;
-				if (current.stackHeightBeforeBytecode <= 0)
-					what.accept(currentIh);
-				else {
-					InstructionHandle previous = currentIh.getPrev();
-					if (previous != null) {
-						Instruction previousIns = previous.getInstruction();
-						if (!(previousIns instanceof ReturnInstruction) && !(previousIns instanceof ATHROW)
-								&& !(previousIns instanceof GotoInstruction)) {
-							// we proceed with previous
-							int stackHeightBefore = current.stackHeightBeforeBytecode;
-							stackHeightBefore -= previousIns.produceStack(cpg);
-							stackHeightBefore += previousIns.consumeStack(cpg);
-
-							HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
-							if (seen.add(added))
-								workingSet.add(added);
-						}
-					}
-
-					// we proceed with the instructions that jump at currentIh
-					InstructionTargeter[] targeters = currentIh.getTargeters();
-					if (Stream.of(targeters).anyMatch(targeter -> targeter instanceof CodeExceptionGen))
-						ifCannotFollow.run();
-
-					Stream.of(targeters).filter(targeter -> targeter instanceof BranchInstruction)
-							.map(targeter -> (BranchInstruction) targeter).forEach(branch -> {
-								int stackHeightBefore = current.stackHeightBeforeBytecode;
-								stackHeightBefore -= branch.produceStack(cpg);
-								stackHeightBefore += branch.consumeStack(cpg);
-
-								HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
-								if (seen.add(added))
-									workingSet.add(added);
-							});
-				}
-			} while (!workingSet.isEmpty());
-		}
-
-		/**
-		 * Determines if the given instruction calls an entry.
-		 * 
-		 * @param instruction the instruction
-		 * @return true if and only if that condition holds
-		 */
-		private boolean isCallToEntry(Instruction instruction) {
-			if (instruction instanceof INVOKEDYNAMIC)
-				return bootstrapMethodsThatWillRequireExtraThis
-					.contains(clazz.getBootstraps().getBootstrapFor((INVOKEDYNAMIC) instruction));
-			else if (instruction instanceof InvokeInstruction) {
-				InvokeInstruction invoke = (InvokeInstruction) instruction;
-				ReferenceType receiver = invoke.getReferenceType(cpg);
-				if (receiver instanceof ObjectType)
-					return clazz.getJar().getAnnotations().isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
-						invoke.getMethodName(cpg), invoke.getSignature(cpg));
-			}
-
-			return false;
-		}
-
-		/**
-		 * Instruments an entry, by setting the caller and transferring funds for
-		 * payable entries.
-		 * 
-		 * @param method         the entry
-		 * @param callerContract the class of the caller contract
-		 * @param isPayable      true if and only if the entry is payable
-		 */
-		private void instrumentEntry(MethodGen method, Class<?> callerContract, boolean isPayable) {
-			// slotForCaller is the local variable used for the extra "caller" parameter;
-			// there is no need to shift the local variables one slot up, since the use
-			// of caller is limited to the prolog of the synthetic code
-			int slotForCaller = addExtraParameters(method);
-			if (!method.isAbstract())
-				setCallerAndBalance(method, callerContract, slotForCaller, isPayable);
-		}
-
-		/**
-		 * Instruments an entry by calling the contract method that sets caller and
-		 * balance.
-		 * 
-		 * @param method         the entry
-		 * @param callerContract the class of the caller contract
-		 * @param slotForCaller  the local variable for the caller implicit argument
-		 * @param isPayable      true if and only if the entry is payable
-		 */
-		private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) {
-			InstructionList il = method.getInstructionList();
-
-			// the call to the method that sets caller and balance cannot be put at the
-			// beginning of the method, always: for constructors, Java bytecode requires
-			// that their code starts with a call to a constructor of the superclass
-			InstructionHandle where = determineWhereToSetCallerAndBalance(il, method, slotForCaller);
-			InstructionHandle start = il.getStart();
-
-			il.insert(start, InstructionFactory.createThis());
-			il.insert(start, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
-			if (callerContract != classLoader.getContract())
-				il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
-			if (isPayable) {
-				// a payable entry method can have a first argument of type int/long/BigInteger
-				Type amountType = method.getArgumentType(0);
-				il.insert(start, InstructionFactory.createLoad(amountType, 1));
-				Type[] paybleEntryArgs = new Type[] { CONTRACT_OT, amountType };
-				il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, paybleEntryArgs,
-						Const.INVOKESPECIAL));
-			}
-			else
-				il.insert(where, factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
-		}
-
-		/**
-		 * Entries call {@link io.takamaka.code.lang.Contract#entry(Contract)} or
-		 * {@link io.takamaka.code.lang.Contract#payableEntry(Contract,BigInteger)} at their
-		 * beginning, to set the caller and the balance of the called entry. In general,
-		 * such call can be placed at the very beginning of the code. The only problem
-		 * is related to constructors, that require their code to start with a call to a
-		 * constructor of their superclass. In that case, this method finds the place
-		 * where that contractor of the superclass is called: after which, we can add
-		 * the call that sets caller and balance.
-		 * 
-		 * @param il the list of instructions of the entry
-		 * @param method the entry
-		 * @param slotForCaller the local where the caller contract is passed to the entry
-		 * @return the instruction before which the code that sets caller and balance can be placed
-		 */
-		private InstructionHandle determineWhereToSetCallerAndBalance(InstructionList il, MethodGen method, int slotForCaller) {
-			InstructionHandle start = il.getStart();
-
-			if (method.getName().equals(Const.CONSTRUCTOR_NAME)) {
-				// we have to identify the call to the constructor of the superclass:
-				// the code of a constructor normally starts with an aload_0 whose value is consumed
-				// by a call to a constructor of the superclass. In the middle, slotForCaller is not expected
-				// to be modified. Note that this is the normal situation, as results from a normal
-				// Java compiler. In principle, the Java bytecode might instead do very weird things,
-				// including calling two constructors of the superclass at different places. In all such cases
-				// this method fails and rejects the code: such non-standard code is not supported by Takamaka
-				Instruction startInstruction = start.getInstruction();
-				if (startInstruction.getOpcode() == Const.ALOAD_0 || (startInstruction.getOpcode() == Const.ALOAD
-						&& ((LoadInstruction) startInstruction).getIndex() == 0)) {
-					Set<InstructionHandle> callsToConstructorsOfSuperclass = new HashSet<>();
-
-					HeightAtBytecode seed = new HeightAtBytecode(start.getNext(), 1);
-					Set<HeightAtBytecode> seen = new HashSet<>();
-					seen.add(seed);
-					List<HeightAtBytecode> workingSet = new ArrayList<>();
-					workingSet.add(seed);
-
-					do {
-						HeightAtBytecode current = workingSet.remove(workingSet.size() - 1);
-						int stackHeightAfterBytecode = current.stackHeightBeforeBytecode;
-						Instruction bytecode = current.ih.getInstruction();
-
-						if (bytecode instanceof StoreInstruction) {
-							int modifiedLocal = ((StoreInstruction) bytecode).getIndex();
-							int size = ((StoreInstruction) bytecode).getType(cpg).getSize();
-							if (modifiedLocal == slotForCaller || (size == 2 && modifiedLocal == slotForCaller - 1))
-								throw new IllegalStateException("Unexpected modification of local " + slotForCaller
-										+ " before initialization of " + className);
-						}
-
-						if (bytecode instanceof StackProducer)
-							stackHeightAfterBytecode += ((StackProducer) bytecode).produceStack(cpg);
-						if (bytecode instanceof StackConsumer)
-							stackHeightAfterBytecode -= ((StackConsumer) bytecode).consumeStack(cpg);
-
-						if (stackHeightAfterBytecode == 0) {
-							// found a consumer of the aload_0: is it really a call to a constructor of the superclass?
-							if (bytecode instanceof INVOKESPECIAL
-									&& ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(clazz.getSuperclassName())
-									&& ((INVOKESPECIAL) bytecode).getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
-								callsToConstructorsOfSuperclass.add(current.ih);
-							else
-								throw new IllegalStateException("Unexpected consumer of local 0 " + bytecode + " before initialization of " + className);
-						}
-						else if (bytecode instanceof GotoInstruction) {
-							HeightAtBytecode added = new HeightAtBytecode(((GotoInstruction) bytecode).getTarget(),
-									stackHeightAfterBytecode);
-							if (seen.add(added))
-								workingSet.add(added);
-						}
-						else if (bytecode instanceof IfInstruction) {
-							HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(), stackHeightAfterBytecode);
-							if (seen.add(added))
-								workingSet.add(added);
-							added = new HeightAtBytecode(((IfInstruction) bytecode).getTarget(), stackHeightAfterBytecode);
-							if (seen.add(added))
-								workingSet.add(added);
-						}
-						else if (bytecode instanceof BranchInstruction || bytecode instanceof ATHROW
-								|| bytecode instanceof RETURN || bytecode instanceof RET)
-							throw new IllegalStateException("Unexpected instruction " + bytecode + " before initialization of " + className);
-						else {
-							HeightAtBytecode added = new HeightAtBytecode(current.ih.getNext(),
-									stackHeightAfterBytecode);
-							if (seen.add(added))
-								workingSet.add(added);
-						}
-					}
-					while (!workingSet.isEmpty());
-
-					if (callsToConstructorsOfSuperclass.size() == 1)
-						return callsToConstructorsOfSuperclass.iterator().next().getNext();
-					else
-						throw new IllegalStateException("Cannot identify single call to constructor of superclass inside a constructor ot " + className);
-				}
-				else
-					throw new IllegalStateException("Constructor of " + className + " does not start with aload 0");
-			}
-			else
-				return start;
-		}
-
-		/**
-		 * Adds an extra caller parameter to the given entry.
-		 * 
-		 * @param method the entry
-		 * @return the local variable used for the extra parameter
-		 */
-		private int addExtraParameters(MethodGen method) {
-			List<Type> args = new ArrayList<>();
-			int slotsForParameters = 0;
-			for (Type arg : method.getArgumentTypes()) {
-				args.add(arg);
-				slotsForParameters += arg.getSize();
-			}
-			args.add(CONTRACT_OT);
-			args.add(DUMMY_OT); // to avoid name clashes after the addition
-			method.setArgumentTypes(args.toArray(Type.NO_ARGS));
-
-			String[] names = method.getArgumentNames();
-			if (names != null) {
-				List<String> namesAsList = new ArrayList<>();
-				for (String name : names)
-					namesAsList.add(name);
-				namesAsList.add("caller");
-				namesAsList.add("unused");
-				method.setArgumentNames(namesAsList.toArray(new String[namesAsList.size()]));
-			}
-
-			return slotsForParameters + 1;
-		}
-
-		/**
-		 * Replaces accesses to fields of storage classes with calls to accessor
-		 * methods.
-		 * 
-		 * @param method the method where the replacement occurs
-		 */
-		private void replaceFieldAccessesWithAccessors(MethodGen method) {
-			if (!method.isAbstract()) {
-				InstructionList il = method.getInstructionList();
-				StreamSupport.stream(il.spliterator(), false).filter(this::isAccessToLazilyLoadedFieldInStorageClass)
-						.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
-			}
-		}
-
-		/**
-		 * Yields the accessor call corresponding to the access to the given field.
-		 * 
-		 * @param fieldInstruction the field access instruction
-		 * @return the corresponding accessor call instruction
-		 */
-		private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) {
-			ObjectType referencedClass = (ObjectType) fieldInstruction.getReferenceType(cpg);
-			Type fieldType = fieldInstruction.getFieldType(cpg);
-			String fieldName = fieldInstruction.getFieldName(cpg);
-
-			if (fieldInstruction instanceof GETFIELD)
-				return factory.createInvoke(referencedClass.getClassName(),
-					getterNameFor(referencedClass.getClassName(), fieldName), fieldType, Type.NO_ARGS, Const.INVOKEVIRTUAL);
-			else // PUTFIELD
-				return factory.createInvoke(referencedClass.getClassName(),
-					setterNameFor(referencedClass.getClassName(), fieldName), Type.VOID, new Type[] { fieldType }, Const.INVOKEVIRTUAL);
-		}
-
-		/**
-		 * Determines if the given instruction is an access to a field of a storage
-		 * class that is lazily loaded.
-		 * 
-		 * @param ih the instruction
-		 * @return true if and only if that condition holds
-		 */
-		private boolean isAccessToLazilyLoadedFieldInStorageClass(InstructionHandle ih) {
-			Instruction instruction = ih.getInstruction();
-
-			if (instruction instanceof GETFIELD) {
-				FieldInstruction fi = (FieldInstruction) instruction;
-				ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
-				String receiverClassName = receiverType.getClassName();
-				Class<?> fieldType;
-				return classLoader.isStorage(receiverClassName)
-						&& classLoader.isLazilyLoaded(fieldType = clazz.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
-						&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
-			}
-			else if (instruction instanceof PUTFIELD) {
-				FieldInstruction fi = (FieldInstruction) instruction;
-				ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
-				String receiverClassName = receiverType.getClassName();
-				Class<?> fieldType;
-				return classLoader.isStorage(receiverClassName)
-						&& classLoader.isLazilyLoaded(fieldType = clazz.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
-						&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
-			}
-			else
-				return false;
-		}
-
 		private boolean isStaticOrTransient(Field field) {
 			int modifiers = field.getModifiers();
 			return Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers);
-		}
-
-		/**
-		 * Determines if an instance field of a storage class is transient.
-		 * 
-		 * @param className the class from which the field must be looked-up. This is guaranteed to be a storage class
-		 * @param fieldName the name of the field
-		 * @param fieldType the type of the field
-		 * @return true if and only if that condition holds
-		 */
-		private boolean isTransient(String className, String fieldName, Class<?> fieldType) {
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-				Class<?> clazz = classLoader.loadClass(className);
-				
-				do {
-					Optional<Field> match = Stream.of(clazz.getDeclaredFields())
-						.filter(field -> field.getName().equals(fieldName) && fieldType == field.getType())
-						.findFirst();
-
-					if (match.isPresent())
-						return Modifier.isTransient(match.get().getModifiers());
-
-					clazz = clazz.getSuperclass();
-				}
-				while (clazz != classLoader.getStorage() && clazz != classLoader.getContract());
-
-				return false;
-			});
-		}
-
-		/**
-		 * Determines if an instance field of a storage class is transient or final.
-		 * 
-		 * @param className the class from which the field must be looked-up. This is guaranteed to be a storage class
-		 * @param fieldName the name of the field
-		 * @param fieldType the type of the field
-		 * @return true if and only if that condition holds
-		 */
-		private boolean isTransientOrFinal(String className, String fieldName, Class<?> fieldType) {
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-				Class<?> clazz = classLoader.loadClass(className);
-				
-				do {
-					Optional<Field> match = Stream.of(clazz.getDeclaredFields())
-						.filter(field -> field.getName().equals(fieldName) && fieldType == field.getType())
-						.findFirst();
-
-					if (match.isPresent()) {
-						int modifiers = match.get().getModifiers();
-						return Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers);
-					}
-
-					clazz = clazz.getSuperclass();
-				}
-				while (clazz != classLoader.getStorage() && clazz != classLoader.getContract());
-
-				return false;
-			});
-		}
-
-		public String getterNameFor(String className, String fieldName) {
-			// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
-			return GETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
-		}
-
-		public String setterNameFor(String className, String fieldName) {
-			// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
-			return SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
 		}
 
 		private void collectNonTransientInstanceFieldsOf(Class<?> clazz, boolean firstCall) {
@@ -1364,15 +523,6 @@ public class ClassInstrumentation {
 						.filter(field -> !isStaticOrTransient(field) && classLoader.isLazilyLoaded(field.getType()))
 						.forEach(lazyNonTransientInstanceFields::add);
 			}
-		}
-
-		public void addMethod(MethodGen method, boolean needsStackMap) {
-			method.getInstructionList().setPositions();
-			method.setMaxLocals();
-			method.setMaxStack();
-			if (needsStackMap)
-				StackMapReplacer.of(method);
-			clazz.addMethod(method.getMethod());
 		}
 	}
 }

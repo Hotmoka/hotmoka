@@ -2,11 +2,11 @@ package io.takamaka.code.instrumentation.internal;
 
 import org.apache.bcel.generic.InstructionHandle;
 
-class HeightAtBytecode {
-	final InstructionHandle ih;
-	final int stackHeightBeforeBytecode;
+public class HeightAtBytecode {
+	public final InstructionHandle ih;
+	public final int stackHeightBeforeBytecode;
 
-	HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
+	public HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
 		this.ih = ih;
 		this.stackHeightBeforeBytecode = stackHeightBeforeBytecode;
 	}
