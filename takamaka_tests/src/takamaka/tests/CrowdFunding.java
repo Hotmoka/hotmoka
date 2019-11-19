@@ -44,9 +44,9 @@ class CrowdFunding extends TakamakaTest {
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
-	private static final ClassType CROWD_FUNDING = new ClassType("takamaka.tests.crowdfunding.CrowdFunding");
+	private static final ClassType CROWD_FUNDING = new ClassType("io.takamaka.tests.crowdfunding.CrowdFunding");
 
-	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING = new ConstructorSignature("takamaka.tests.crowdfunding.CrowdFunding");
+	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING = new ConstructorSignature("io.takamaka.tests.crowdfunding.CrowdFunding");
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 

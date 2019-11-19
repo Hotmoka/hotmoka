@@ -43,9 +43,9 @@ class Lambdas extends TakamakaTest {
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
-	private static final ClassType LAMBDAS = new ClassType("takamaka.tests.lambdas.Lambdas");
+	private static final ClassType LAMBDAS = new ClassType("io.takamaka.tests.lambdas.Lambdas");
 
-	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("takamaka.tests.lambdas.Lambdas", ClassType.BIG_INTEGER);
+	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.takamaka.tests.lambdas.Lambdas", ClassType.BIG_INTEGER);
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 

@@ -62,16 +62,6 @@ public final class UpdateOfString extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public UpdateOfString contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new UpdateOfString(objectContextualized, field, value);
-		else
-			return this;
-	}
-
-	@Override
 	public boolean isEager() {
 		// a lazy String could be stored into a lazy Object or Serializable or Comparable or CharSequence field
 		return field.type.equals(ClassType.STRING);

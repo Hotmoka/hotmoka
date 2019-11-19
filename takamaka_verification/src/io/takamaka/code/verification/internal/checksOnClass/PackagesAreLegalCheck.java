@@ -14,7 +14,9 @@ public class PackagesAreLegalCheck extends VerifiedClassImpl.ClassVerification.C
 		if (className.startsWith("java.") || className.startsWith("javax."))
 			issue(new IllegalPackageNameError(inferSourceFile()));
 
-		if (!duringInitialization && className.startsWith("takamaka.") && !className.startsWith("takamaka.tests"))
+		// io.takamaka.code.* is allowed during blockchain initialization, in order to
+		// allow the installation of the run-time Takamaka classes such as Contract
+		if (!duringInitialization && className.startsWith("io.takamaka.code."))
 			issue(new IllegalPackageNameError(inferSourceFile()));
 	}
 }

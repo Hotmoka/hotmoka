@@ -97,13 +97,18 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 		return now;
 	}
 
+	protected MemoryTransactionReference getNextTransaction() {
+		return topmost == null ? new MemoryTransactionReference(BigInteger.ZERO, (short) 0) : topmost.getNext();
+	}
+
 	@Override
-	protected void initTransaction(BigInteger gas, TransactionReference previous) throws Exception {
-		super.initTransaction(gas, previous);
+	protected void initTransaction(BigInteger gas, TransactionReference current) throws Exception {
+		super.initTransaction(gas, current);
 
 		// we access the block header where the transaction would occur
+		MemoryTransactionReference previous = getTopmostTransactionReference();
 		if (previous != null) {
-			MemoryTransactionReference next = ((MemoryTransactionReference) previous).getNext();
+			MemoryTransactionReference next = previous.getNext();
 			Path headerPath = getPathInBlockFor(next.blockNumber, HEADER_NAME);
 			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(headerPath)))) {
 				MemoryBlockHeader header = (MemoryBlockHeader) in.readObject();
@@ -127,7 +132,7 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 
 	@Override
 	protected TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception {
-		MemoryTransactionReference next = topmost == null ? new MemoryTransactionReference(BigInteger.ZERO, (short) 0) : topmost.getNext();
+		MemoryTransactionReference next = getNextTransaction();
 		Path requestPath = getPathFor(next, REQUEST_NAME);
 		ensureDeleted(requestPath.getParent());
 		Files.createDirectories(requestPath.getParent());

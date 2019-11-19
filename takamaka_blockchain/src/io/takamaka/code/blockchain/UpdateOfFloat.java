@@ -60,16 +60,6 @@ public final class UpdateOfFloat extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public UpdateOfFloat contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new UpdateOfFloat(objectContextualized, field, value);
-		else
-			return this;
-	}
-
-	@Override
 	public BigInteger size() {
 		return super.size().add(GasCosts.STORAGE_COST_PER_SLOT);
 	}

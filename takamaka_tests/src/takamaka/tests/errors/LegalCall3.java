@@ -45,7 +45,7 @@ class LegalCall3 {
 
 		BooleanValue result = (BooleanValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 				(blockchain.account(0), _20_000, new Classpath(jar, true),
-				new NonVoidMethodSignature(new ClassType("takamaka.tests.errors.legalcall3.C"), "test", BasicTypes.BOOLEAN)));
+				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall3.C"), "test", BasicTypes.BOOLEAN)));
 
 		assertFalse(result.value);
 	}

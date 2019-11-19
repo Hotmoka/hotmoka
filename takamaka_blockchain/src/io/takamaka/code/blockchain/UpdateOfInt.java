@@ -60,16 +60,6 @@ public final class UpdateOfInt extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public UpdateOfInt contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new UpdateOfInt(objectContextualized, field, value);
-		else
-			return this;
-	}
-
-	@Override
 	public BigInteger size() {
 		return super.size().add(GasCosts.STORAGE_COST_PER_SLOT);
 	}

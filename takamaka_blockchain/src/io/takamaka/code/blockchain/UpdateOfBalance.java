@@ -53,16 +53,6 @@ public final class UpdateOfBalance extends UpdateOfField {
 	}
 
 	@Override
-	public UpdateOfBalance contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new UpdateOfBalance(objectContextualized, balance);
-		else
-			return this;
-	}
-
-	@Override
 	public StorageValue getValue() {
 		return new BigIntegerValue(balance);
 	}

@@ -17,7 +17,7 @@
   </target>
 
   <!--<target name="compile" depends="init" description="compile">
-	<javac srcdir="${src}" destdir="${build}" source="9" target="9" includeantruntime="no">
+	<javac srcdir="${src}" destdir="${build}" source="9" target="9" includeantruntime="true" debug="true" debuglevel="lines,vars,source" >
 		<compilerarg value="-Xlint"/>
 		<modulepath path ="../takamaka_distribution/mods"/>
 		<modulepath path ="../takamaka_distribution/dist"/>
@@ -25,7 +25,8 @@
   </target>-->
 
   <target name="compile Java 8" depends="init" description="compile into Java 8 code">
-	<javac srcdir="${src}" destdir="${build}" source="8" target="8" includeantruntime="no" excludes="module-info.java">
+	<javac srcdir="${src}" destdir="${build}" source="8" target="8" includeantruntime="true" excludes="module-info.java"
+		debug="true" debuglevel="lines,vars,source" >
 		<compilerarg value="-Xlint"/>
 	    <classpath>
 		   <fileset dir="../takamaka_distribution/libs" includes="*.jar" />

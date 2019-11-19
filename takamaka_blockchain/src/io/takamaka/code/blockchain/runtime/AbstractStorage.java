@@ -31,8 +31,6 @@ import io.takamaka.code.blockchain.UpdateToNullLazy;
 import io.takamaka.code.blockchain.types.BasicTypes;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.StorageReference;
-import io.takamaka.code.blockchain.values.StorageReferenceAlreadyInBlockchain;
-import io.takamaka.code.blockchain.values.StorageReferenceInCurrentTransaction;
 
 /**
  * The superclass of classes whose objects can be kept in blockchain.
@@ -63,7 +61,8 @@ public abstract class AbstractStorage {
 
 		// assigns a fresh unique identifier to the object, that will later
 		// used to refer to the object once serialized in blockchain
-		this.storageReference = new StorageReferenceInCurrentTransaction(AbstractTakamaka.generateNextProgressive());
+		this.storageReference =
+			StorageReference.mk(AbstractTakamaka.getBlockchain().getCurrentTransaction(), AbstractTakamaka.generateNextProgressive());
 	}
 
 	/**
@@ -109,7 +108,7 @@ public abstract class AbstractStorage {
 	 * 
 	 * @param storageReference the reference to deserialize
 	 */
-	protected AbstractStorage(StorageReferenceAlreadyInBlockchain storageReference) {
+	protected AbstractStorage(StorageReference storageReference) {
 		// this object reflects something already in blockchain
 		this.inStorage = true;
 
@@ -163,7 +162,7 @@ public abstract class AbstractStorage {
 	 * @throws Exception if the value could not be found
 	 */
 	protected final Object deserializeLastLazyUpdateFor(String definingClass, String name, String fieldClassName) throws Exception {
-		return AbstractTakamaka.getBlockchain().deserializeLastLazyUpdateFor((StorageReferenceAlreadyInBlockchain) storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return AbstractTakamaka.getBlockchain().deserializeLastLazyUpdateFor(storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -177,7 +176,7 @@ public abstract class AbstractStorage {
 	 * @throws Exception if the value could not be found
 	 */
 	protected final Object deserializeLastLazyUpdateForFinal(String definingClass, String name, String fieldClassName) throws Exception {
-		return AbstractTakamaka.getBlockchain().deserializeLastLazyUpdateForFinal((StorageReferenceAlreadyInBlockchain) storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return AbstractTakamaka.getBlockchain().deserializeLastLazyUpdateForFinal(storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**

@@ -29,7 +29,7 @@ import io.takamaka.code.memory.InitializedMemoryBlockchain;
 class LegalCall2 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
-	private static final ClassType C = new ClassType("takamaka.tests.errors.legalcall2.C");
+	private static final ClassType C = new ClassType("io.takamaka.tests.errors.legalcall2.C");
 
 	/**
 	 * The blockchain under test. This is recreated before each test.

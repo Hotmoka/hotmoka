@@ -1,6 +1,8 @@
 package io.takamaka.code.blockchain.values;
 
 import java.math.BigInteger;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.GasCosts;
@@ -14,9 +16,14 @@ import io.takamaka.code.blockchain.runtime.AbstractStorage;
  * same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public abstract class StorageReference implements StorageValue {
+public class StorageReference implements StorageValue {
 
 	private static final long serialVersionUID = 5215119613321482697L;
+
+	/**
+	 * The transaction that created the object.
+	 */
+	public final TransactionReference transaction;
 
 	/**
 	 * The progressive number of the object among those that have been created
@@ -27,21 +34,32 @@ public abstract class StorageReference implements StorageValue {
 	/**
 	 * Builds a storage reference.
 	 * 
+	 * @param transaction the transaction that created the object
 	 * @param progressive the progressive number of the object among those that have been created
 	 *                    during the same transaction
 	 */
-	public StorageReference(BigInteger progressive) {
+	private StorageReference(TransactionReference transaction, BigInteger progressive) {
 		this.progressive = progressive;
+		this.transaction = transaction;
+	}
+
+	private final static ConcurrentMap<StorageReference, StorageReference> cache = new ConcurrentHashMap<>();
+
+	public static StorageReference mk(TransactionReference transaction, BigInteger progressive) {
+		StorageReference ref = new StorageReference(transaction, progressive);
+		return cache.computeIfAbsent(ref, __ -> ref);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof StorageReference && ((StorageReference) other).progressive.equals(progressive);
+		return other instanceof StorageReference &&
+			((StorageReference) other).transaction.equals(transaction) &&
+			((StorageReference) other).progressive.equals(progressive);
 	}
 
 	@Override
 	public int hashCode() {
-		return progressive.hashCode();
+		return progressive.hashCode() ^ transaction.hashCode();
 	}
 
 	@Override
@@ -50,25 +68,22 @@ public abstract class StorageReference implements StorageValue {
 		if (diff != 0)
 			return diff;
 
+		diff = transaction.compareTo(((StorageReference) other).transaction);
+		if (diff != 0)
+			return diff;
+
 		return progressive.compareTo(((StorageReference) other).progressive);
 	}
 
 	@Override
-	public String toString() {
-		return "#" + progressive.toString(16);
+	public AbstractStorage deserialize(AbstractBlockchain blockchain) {
+		return blockchain.deserialize(this);
 	}
 
 	@Override
-	public abstract AbstractStorage deserialize(AbstractBlockchain blockchain);
-
-	/**
-	 * Yields the storage reference that corresponds to this, assuming that the
-	 * current transaction is the given one.
-	 * 
-	 * @param where the current transaction
-	 * @return the resulting storage reference
-	 */
-	public abstract StorageReferenceAlreadyInBlockchain contextualizeAt(TransactionReference where);
+	public String toString() {
+		return transaction + "#" + progressive.toString(16);
+	}
 
 	/**
 	 * Yields the name of the class of the object referenced by this reference.
@@ -76,10 +91,12 @@ public abstract class StorageReference implements StorageValue {
 	 * @param blockchain the blockchain for which the deserialization is performed
 	 * @return the name
 	 */
-	public abstract String getClassName(AbstractBlockchain blockchain);
+	public String getClassName(AbstractBlockchain blockchain) {
+		return blockchain.getClassNameOf(this);
+	}
 
 	@Override
 	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.storageCostOf(progressive));
+		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.storageCostOf(progressive)).add(transaction.size());
 	}
 }

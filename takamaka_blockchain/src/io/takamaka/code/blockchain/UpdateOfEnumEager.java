@@ -74,16 +74,6 @@ public final class UpdateOfEnumEager extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public UpdateOfEnumEager contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new UpdateOfEnumEager(objectContextualized, field, enumClassName, name);
-		else
-			return this;
-	}
-
-	@Override
 	public boolean isEager() {
 		return true;
 	}

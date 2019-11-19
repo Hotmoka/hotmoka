@@ -42,13 +42,13 @@ import io.takamaka.code.memory.MemoryBlockchain;
  */
 class CrowdFundingSimplified extends TakamakaTest {
 
-	private static final ClassType CAMPAIGN = new ClassType("takamaka.tests.crowdfunding.CrowdFundingSimplified$Campaign");
+	private static final ClassType CAMPAIGN = new ClassType("io.takamaka.tests.crowdfunding.CrowdFundingSimplified$Campaign");
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 
-	private static final ClassType CROWD_FUNDING_SIMPLIFIED = new ClassType("takamaka.tests.crowdfunding.CrowdFundingSimplified");
+	private static final ClassType CROWD_FUNDING_SIMPLIFIED = new ClassType("io.takamaka.tests.crowdfunding.CrowdFundingSimplified");
 
-	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED = new ConstructorSignature("takamaka.tests.crowdfunding.CrowdFundingSimplified");
+	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED = new ConstructorSignature("io.takamaka.tests.crowdfunding.CrowdFundingSimplified");
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 

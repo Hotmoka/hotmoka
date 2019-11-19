@@ -19,9 +19,5 @@ import java.lang.annotation.Target;
 @Inherited
 @Documented
 public @interface Entry {
-	// the following definition would be better, but cannot be used since
-	// the Contract class will be replaced, at run time, with its instrumented
-	// version and we would run into an illegal annotation default
-	//Class<? extends Contract> value() default Contract.class;
-	Class<?> value() default Object.class;
+	Class<? extends Contract> value() default Contract.class;
 }

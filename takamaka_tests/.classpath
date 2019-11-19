@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_blockchain"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_memory"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_verification"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-9">
 		<attributes>
 			<attribute name="module" value="true"/>
@@ -17,6 +13,10 @@
 	<classpathentry kind="lib" path="/takamaka_distribution/dist/io-takamaka-code-verification-1.0.jar"/>
 	<classpathentry kind="lib" path="/takamaka_distribution/dist/io-takamaka-code-whitelisting-1.0.jar"/>
 	<classpathentry kind="lib" path="/takamaka_distribution/libs/bcel-6.2.jar"/>
-	<classpathentry kind="lib" path="/takamaka_distribution/libs/it-univr-bcel-1.0-Java8.jar"/>
+	<classpathentry kind="lib" path="/takamaka_distribution/libs/it-univr-bcel-1.1-Java8.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_blockchain"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_memory"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_verification"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

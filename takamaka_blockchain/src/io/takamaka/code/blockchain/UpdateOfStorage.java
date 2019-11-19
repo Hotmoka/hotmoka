@@ -65,17 +65,6 @@ public final class UpdateOfStorage extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public UpdateOfStorage contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-		StorageReference valueContextualized = value.contextualizeAt(where);
-
-		if (object != objectContextualized || value != valueContextualized)
-			return new UpdateOfStorage(objectContextualized, field, valueContextualized);
-		else
-			return this;
-	}
-
-	@Override
 	public BigInteger size() {
 		return super.size().add(value.size());
 	}

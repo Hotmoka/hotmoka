@@ -60,16 +60,6 @@ public final class UpdateOfBoolean extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public UpdateOfBoolean contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new UpdateOfBoolean(objectContextualized, field, value);
-		else
-			return this;
-	}
-
-	@Override
 	public BigInteger size() {
 		return super.size().add(GasCosts.STORAGE_COST_PER_SLOT);
 	}

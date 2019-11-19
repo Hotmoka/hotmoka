@@ -63,7 +63,7 @@ public class AnnotationsImpl implements Annotations {
 				return Optional.empty();
 			}
 
-			return Optional.of(contractClass != null && contractClass != Object.class ? contractClass : jar.classLoader.getContract());
+			return Optional.of(contractClass != null ? contractClass : jar.classLoader.getContract());
 		}
 
 		return Optional.empty();

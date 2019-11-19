@@ -43,11 +43,11 @@ import io.takamaka.code.memory.MemoryBlockchain;
  */
 class Collections extends TakamakaTest {
 
-	private static final ClassType MAP_TESTS = new ClassType("takamaka.tests.collections.MapTests");
-	private static final ClassType INT_MAP_TESTS = new ClassType("takamaka.tests.collections.IntMapTests");
-	private static final ClassType ARRAY_TESTS = new ClassType("takamaka.tests.collections.ArrayTests");
-	private static final ClassType MAP_HOLDER = new ClassType("takamaka.tests.collections.MapHolder");
-	private static final ClassType STATE = new ClassType("takamaka.tests.collections.MapHolder$State");
+	private static final ClassType MAP_TESTS = new ClassType("io.takamaka.tests.collections.MapTests");
+	private static final ClassType INT_MAP_TESTS = new ClassType("io.takamaka.tests.collections.IntMapTests");
+	private static final ClassType ARRAY_TESTS = new ClassType("io.takamaka.tests.collections.ArrayTests");
+	private static final ClassType MAP_HOLDER = new ClassType("io.takamaka.tests.collections.MapHolder");
+	private static final ClassType STATE = new ClassType("io.takamaka.tests.collections.MapHolder$State");
 	private static final ClassType COMPARABLE = new ClassType("java.lang.Comparable");
 
 	private static final BigInteger _5_000_000 = BigInteger.valueOf(5_000_000);

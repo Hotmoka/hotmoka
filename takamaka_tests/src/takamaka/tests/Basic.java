@@ -49,19 +49,19 @@ class Basic extends TakamakaTest {
 
 	private static final BigInteger _5_000 = BigInteger.valueOf(5000);
 
-	private static final ConstructorSignature CONSTRUCTOR_ALIAS = new ConstructorSignature(new ClassType("takamaka.tests.basicdependency.Alias"));
+	private static final ConstructorSignature CONSTRUCTOR_ALIAS = new ConstructorSignature(new ClassType("io.takamaka.tests.basicdependency.Alias"));
 
 	private static final MethodSignature PAYABLE_CONTRACT_RECEIVE = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", INT);
 
-	private static final MethodSignature SUB_MS = new VoidMethodSignature("takamaka.tests.basic.Sub", "ms");
+	private static final MethodSignature SUB_MS = new VoidMethodSignature("io.takamaka.tests.basic.Sub", "ms");
 
-	private static final MethodSignature SUB_M5 = new VoidMethodSignature("takamaka.tests.basic.Sub", "m5");
+	private static final MethodSignature SUB_M5 = new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m5");
 
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = new ConstructorSignature("takamaka.tests.basicdependency.Wrapper", new ClassType("takamaka.tests.basicdependency.Time"));
+	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = new ConstructorSignature("io.takamaka.tests.basicdependency.Wrapper", new ClassType("io.takamaka.tests.basicdependency.Time"));
 
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = new ConstructorSignature("takamaka.tests.basicdependency.Wrapper", new ClassType("takamaka.tests.basicdependency.Time"), ClassType.STRING, ClassType.BIG_INTEGER, BasicTypes.LONG);
+	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = new ConstructorSignature("io.takamaka.tests.basicdependency.Wrapper", new ClassType("io.takamaka.tests.basicdependency.Time"), ClassType.STRING, ClassType.BIG_INTEGER, BasicTypes.LONG);
 
-	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("takamaka.tests.basicdependency.InternationalTime", INT, INT, INT);
+	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.takamaka.tests.basicdependency.InternationalTime", INT, INT, INT);
 
 	private static final MethodSignature TO_STRING = new NonVoidMethodSignature(ClassType.OBJECT, "toString", ClassType.STRING);
 
@@ -136,17 +136,17 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub(1973)")
 	void callPayableConstructor() throws TransactionException, CodeExecutionException {
 		blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
+			(master, _20_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 	}
 
 	@Test @DisplayName("new Sub().m1() throws TransactionException since RequirementViolationException")
 	void callEntryFromSameContract() throws CodeExecutionException, TransactionException {
 		StorageReference sub = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _5_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub")));
+			(master, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub")));
 
 		try {
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new VoidMethodSignature("takamaka.tests.basic.Sub", "m1"), sub));
+				(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m1"), sub));
 		}
 		catch (TransactionException e) {
 			if (e.getCause().getClass().getName().equals(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name) && e.getCause().getMessage().equals("An @Entry can only be called from a distinct contract object"))
@@ -161,7 +161,7 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub().ms() throws TransactionException since NoSuchMethodException")
 	void callStaticAsInstance() throws CodeExecutionException, TransactionException {
 		StorageReference sub = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _5_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub")));
+			(master, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub")));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, SUB_MS, sub))
@@ -187,7 +187,7 @@ class Basic extends TakamakaTest {
 
 		throwsTransactionExceptionWithCause(IllegalTransactionRequestException.class, () ->
 			blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)))
+				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)))
 		);
 	}
 
@@ -200,7 +200,7 @@ class Basic extends TakamakaTest {
 
 		throwsTransactionExceptionWithCause(ClassType.INSUFFICIENT_FUNDS_ERROR.name, () ->
 			blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)))
+				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)))
 		);
 	}
 
@@ -211,7 +211,7 @@ class Basic extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
 		blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
@@ -224,9 +224,9 @@ class Basic extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(master, _20_000, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40)));
 		StorageReference sub = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new VoidMethodSignature("takamaka.tests.basic.Sub", "print", new ClassType("takamaka.tests.basicdependency.Time")), sub, internationalTime));
+			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "print", new ClassType("io.takamaka.tests.basicdependency.Time")), sub, internationalTime));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")
@@ -236,9 +236,9 @@ class Basic extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
 		StorageReference sub = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 		assertEquals(new StringValue("Sub.m4 receives 13 coins from an externally owned account with public balance"), blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("takamaka.tests.basic.Sub", "m4", ClassType.STRING, INT), sub, new IntValue(13))));
+			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4", ClassType.STRING, INT), sub, new IntValue(13))));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
@@ -248,9 +248,9 @@ class Basic extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
 		StorageReference sub = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 		assertEquals(new StringValue("Sub.m4_1 receives 13 coins from an externally owned account with public balance"), blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("takamaka.tests.basic.Sub", "m4_1", ClassType.STRING, LONG), sub, new LongValue(13L))));
+			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4_1", ClassType.STRING, LONG), sub, new LongValue(13L))));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
@@ -260,15 +260,15 @@ class Basic extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
 		StorageReference sub = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("takamaka.tests.basic.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 		assertEquals(new StringValue("Sub.m4_2 receives 13 coins from an externally owned account with public balance"), blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("takamaka.tests.basic.Sub", "m4_2", ClassType.STRING, ClassType.BIG_INTEGER),
+			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4_2", ClassType.STRING, ClassType.BIG_INTEGER),
 			sub, new BigIntegerValue(BigInteger.valueOf(13L)))));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a2 = new Alias(); a1.test(a1, a2)=false")
 	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("takamaka.tests.basicdependency.Alias");
+		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(master, _5_000, classpath, CONSTRUCTOR_ALIAS));
 		StorageReference a2 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(master, _5_000, classpath, CONSTRUCTOR_ALIAS));
 		assertEquals(new BooleanValue(false), blockchain.addInstanceMethodCallTransaction
@@ -277,7 +277,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("a1 = new Alias(); a1.test(a1, a1)=true")
 	void aliasBetweenStorage2() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("takamaka.tests.basicdependency.Alias");
+		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(master, _5_000, classpath, CONSTRUCTOR_ALIAS));
 		assertEquals(new BooleanValue(true), blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(master, _5_000, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, alias, alias), a1, a1, a1)));
@@ -285,7 +285,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; s2 = \"hello\"; a1.test(s1, s2)=false")
 	void aliasBetweenString() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("takamaka.tests.basicdependency.Alias");
+		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(master, _5_000, classpath, CONSTRUCTOR_ALIAS));
 		StringValue s1 = new StringValue("hello");
 		StringValue s2 = new StringValue("hello");
@@ -295,7 +295,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; a1.test(s1, s1)=false")
 	void aliasBetweenString2() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("takamaka.tests.basicdependency.Alias");
+		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(master, _5_000, classpath, CONSTRUCTOR_ALIAS));
 		StringValue s1 = new StringValue("hello");
 		assertEquals(new BooleanValue(false), blockchain.addInstanceMethodCallTransaction
@@ -304,7 +304,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); bi2 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
 	void aliasBetweenBigInteger1() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("takamaka.tests.basicdependency.Alias");
+		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(master, _5_000, classpath, CONSTRUCTOR_ALIAS));
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		BigIntegerValue bi2 = new BigIntegerValue(BigInteger.valueOf(13L));
@@ -315,7 +315,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
 	void aliasBetweenBigInteger2() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("takamaka.tests.basicdependency.Alias");
+		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(master, _5_000, classpath, CONSTRUCTOR_ALIAS));
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		assertEquals(new BooleanValue(false), blockchain.addInstanceMethodCallTransaction
@@ -325,7 +325,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Simple(13).foo1() throws TransactionException since SideEffectsInViewMethodException")
 	void viewMethodViolation1() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("takamaka.tests.basic.Simple");
+		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
 		StorageReference s = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(simple, INT), new IntValue(13)));
 
@@ -337,7 +337,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Simple(13).foo2() throws TransactionException since SideEffectsInViewMethodException")
 	void viewMethodViolation2() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("takamaka.tests.basic.Simple");
+		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
 		StorageReference s = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(simple, INT), new IntValue(13)));
 
@@ -349,7 +349,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Simple(13).foo3() == 13")
 	void viewMethodOk1() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("takamaka.tests.basic.Simple");
+		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
 		StorageReference s = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(simple, INT), new IntValue(13)));
 
@@ -360,7 +360,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Simple(13).foo4() == 13")
 	void viewMethodOk2() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("takamaka.tests.basic.Simple");
+		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
 		StorageReference s = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(simple, BasicTypes.INT), new IntValue(13)));
 
@@ -371,7 +371,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Simple(13).foo5() == 13")
 	void viewMethodOk3() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("takamaka.tests.basic.Simple");
+		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
 		assertEquals(new IntValue(14),
 			blockchain.addStaticMethodCallTransaction
 			(new StaticMethodCallTransactionRequest(master, _5_000, classpath, new NonVoidMethodSignature(simple, "foo5", INT))));
@@ -379,7 +379,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new WithList().toString().equals(\"[hello,how,are,you]\")")
 	void listCreation() throws CodeExecutionException, TransactionException {
-		ClassType withList = new ClassType("takamaka.tests.basic.WithList");
+		ClassType withList = new ClassType("io.takamaka.tests.basic.WithList");
 		StorageReference wl = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _20_000, classpath, new ConstructorSignature(withList)));
 		assertEquals(new StringValue("[hello,how,are,you]"),
@@ -390,7 +390,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new WithList().illegal() throws TransactionException since DeserializationError")
 	void deserializationError() throws CodeExecutionException, TransactionException {
-		ClassType withList = new ClassType("takamaka.tests.basic.WithList");
+		ClassType withList = new ClassType("io.takamaka.tests.basic.WithList");
 		StorageReference wl = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _20_000, classpath, new ConstructorSignature(withList)));
 		
@@ -403,7 +403,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new EntryFilter().foo1() called by an ExternallyOwnedAccount")
 	void entryFilterOk1() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("takamaka.tests.basic.EntryFilter");
+		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
 		StorageReference ef = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(entryFilter)));
 		blockchain.addInstanceMethodCallTransaction
@@ -412,7 +412,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new EntryFilter().foo2() called by an ExternallyOwnedAccount")
 	void entryFilterOk2() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("takamaka.tests.basic.EntryFilter");
+		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
 		StorageReference ef = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(entryFilter)));
 		blockchain.addInstanceMethodCallTransaction
@@ -421,7 +421,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new EntryFilter().foo3() called by an ExternallyOwnedAccount")
 	void entryFilterOk3() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("takamaka.tests.basic.EntryFilter");
+		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
 		StorageReference ef = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(entryFilter)));
 		blockchain.addInstanceMethodCallTransaction
@@ -430,7 +430,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new EntryFilter().foo4() called by an ExternallyOwnedAccount throws TransactionException since ClassCastException")
 	void entryFilterFails() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("takamaka.tests.basic.EntryFilter");
+		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
 		StorageReference ef = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(entryFilter)));
 
@@ -442,7 +442,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new EntryFilter().foo5() throws CodeExecutionException since MyCheckedException")
 	void entryFilterFailsWithThrowsExceptions() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("takamaka.tests.basic.EntryFilter");
+		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
 		StorageReference ef = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(entryFilter)));
 
@@ -451,7 +451,7 @@ class Basic extends TakamakaTest {
 				(new InstanceMethodCallTransactionRequest(master, _5_000, classpath, new VoidMethodSignature(entryFilter, "foo5"), ef));
 		}
 		catch (CodeExecutionException e) {
-			if (e.getCause().getClass().getName().equals("takamaka.tests.basic.MyCheckedException"))
+			if (e.getCause().getClass().getName().equals("io.takamaka.tests.basic.MyCheckedException"))
 				return;
 
 			fail("wrong exception");
@@ -462,7 +462,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new EntryFilter().foo6() fails")
 	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("takamaka.tests.basic.EntryFilter");
+		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
 		StorageReference ef = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(master, _5_000, classpath, new ConstructorSignature(entryFilter)));
 

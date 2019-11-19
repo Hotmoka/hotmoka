@@ -3,6 +3,7 @@ package io.takamaka.code.memory;
 import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.SequentialTransactionReference;
 import io.takamaka.code.blockchain.TransactionReference;
 
 /**
@@ -10,7 +11,7 @@ import io.takamaka.code.blockchain.TransactionReference;
  * uniquely identified by a pair block/transaction inside the block. A progressive
  * identifier would also be fine.
  */
-final class MemoryTransactionReference extends TransactionReference {
+final class MemoryTransactionReference extends SequentialTransactionReference {
 
 	private static final long serialVersionUID = 5911713300386882185L;
 
@@ -49,7 +50,7 @@ final class MemoryTransactionReference extends TransactionReference {
 	}
 
 	@Override
-	public int compareTo(TransactionReference other) {
+	public boolean isOlderThan(TransactionReference other) {
 		// this transaction reference is created by the memory blockchain only,
 		// that generates only this kind of transaction references. Hence
 		// this cast must succeed
@@ -57,9 +58,9 @@ final class MemoryTransactionReference extends TransactionReference {
 
 		int diff = blockNumber.compareTo(otherAsTR.blockNumber);
 		if (diff != 0)
-			return diff;
+			return diff < 0;
 		else
-			return Short.compare(transactionNumber, otherAsTR.transactionNumber);
+			return transactionNumber < otherAsTR.transactionNumber;
 	}
 
 	@Override

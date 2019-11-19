@@ -37,9 +37,9 @@ class Purchase extends TakamakaTest {
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10000);
 
-	private static final ClassType PURCHASE = new ClassType("takamaka.tests.remotepurchase.Purchase");
+	private static final ClassType PURCHASE = new ClassType("io.takamaka.tests.remotepurchase.Purchase");
 
-	private static final ConstructorSignature CONSTRUCTOR_PURCHASE = new ConstructorSignature("takamaka.tests.remotepurchase.Purchase", INT);
+	private static final ConstructorSignature CONSTRUCTOR_PURCHASE = new ConstructorSignature("io.takamaka.tests.remotepurchase.Purchase", INT);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 

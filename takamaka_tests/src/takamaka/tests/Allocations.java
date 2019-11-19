@@ -26,7 +26,7 @@ import io.takamaka.code.memory.InitializedMemoryBlockchain;
  */
 class Allocations extends TakamakaTest {
 
-	private static final ClassType ALLOCATIONS = new ClassType("takamaka.tests.allocations.Allocations");
+	private static final ClassType ALLOCATIONS = new ClassType("io.takamaka.tests.allocations.Allocations");
 
 	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);
 

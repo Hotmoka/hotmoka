@@ -62,16 +62,6 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public UpdateOfBigInteger contextualizeAt(TransactionReference where) {
-		StorageReference objectContextualized = object.contextualizeAt(where);
-
-		if (object != objectContextualized)
-			return new UpdateOfBigInteger(objectContextualized, field, value);
-		else
-			return this;
-	}
-
-	@Override
 	public boolean isEager() {
 		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
 		return field.type.equals(ClassType.BIG_INTEGER);
