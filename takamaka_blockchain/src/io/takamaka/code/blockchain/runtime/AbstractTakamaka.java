@@ -42,8 +42,7 @@ public abstract class AbstractTakamaka {
 	}
 
 	/**
-	 * Takes note of the given event. This method can only be called during
-	 * a transaction.
+	 * Takes note of the given event. This method can only be called during a transaction.
 	 * 
 	 * @param event the event
 	 */

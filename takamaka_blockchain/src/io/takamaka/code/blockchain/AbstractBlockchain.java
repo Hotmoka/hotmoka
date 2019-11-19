@@ -129,7 +129,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	protected BlockchainClassLoader classLoader;
+	private TakamakaClassLoader classLoader;
 
 	/**
 	 * The reference to the transaction where this must be executed.
@@ -324,6 +324,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	/**
+	 * Determines if a field of a storage class, having the given field, is eagerly loaded.
+	 * 
+	 * @param type the type
+	 * @return true if and only if that condition holds
+	 */
+	protected boolean isEagerlyLoaded(Class<?> type) {
+		return classLoader.isEagerlyLoaded(type);
+	}
+
+	/**
 	 * Yields the transaction reference that installed the jar
 	 * where the given class is defined.
 	 * 
@@ -485,7 +495,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			if (request.initialAmount.signum() < 0)
 				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
-			try (BlockchainClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (TakamakaClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 				AbstractStorage gamete = (AbstractStorage) classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 				// we set the balance field of the gamete

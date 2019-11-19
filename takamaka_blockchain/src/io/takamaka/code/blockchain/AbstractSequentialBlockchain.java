@@ -401,7 +401,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 			Stream.of(clazz.getDeclaredFields())
 			.filter(field -> !Modifier.isTransient(field.getModifiers())
 					&& !Modifier.isStatic(field.getModifiers())
-					&& classLoader.isEagerlyLoaded(field.getType()))
+					&& isEagerlyLoaded(field.getType()))
 			.forEach(bag::add);
 
 		return bag;

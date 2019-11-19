@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
+import io.takamaka.code.blockchain.SequentialTransactionReference;
 import io.takamaka.code.blockchain.TransactionReference;
 import io.takamaka.code.blockchain.request.TransactionRequest;
 import io.takamaka.code.blockchain.response.TransactionResponse;
@@ -97,7 +98,8 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 		return now;
 	}
 
-	protected MemoryTransactionReference getNextTransaction() {
+	@Override
+	protected SequentialTransactionReference getNextTransaction() {
 		return topmost == null ? new MemoryTransactionReference(BigInteger.ZERO, (short) 0) : topmost.getNext();
 	}
 
@@ -106,7 +108,7 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 		super.initTransaction(gas, current);
 
 		// we access the block header where the transaction would occur
-		MemoryTransactionReference previous = getTopmostTransactionReference();
+		MemoryTransactionReference previous = topmost;
 		if (previous != null) {
 			MemoryTransactionReference next = previous.getNext();
 			Path headerPath = getPathInBlockFor(next.blockNumber, HEADER_NAME);
@@ -121,7 +123,7 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 	}
 
 	@Override
-	protected MemoryTransactionReference getTopmostTransactionReference() {
+	protected SequentialTransactionReference getTopmostTransactionReference() {
 		return topmost;
 	}
 
@@ -132,7 +134,7 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 
 	@Override
 	protected TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception {
-		MemoryTransactionReference next = getNextTransaction();
+		MemoryTransactionReference next = (MemoryTransactionReference) getNextTransaction();
 		Path requestPath = getPathFor(next, REQUEST_NAME);
 		ensureDeleted(requestPath.getParent());
 		Files.createDirectories(requestPath.getParent());
