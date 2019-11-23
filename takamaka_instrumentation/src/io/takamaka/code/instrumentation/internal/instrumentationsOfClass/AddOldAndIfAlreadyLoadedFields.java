@@ -6,14 +6,14 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
+import io.takamaka.code.instrumentation.internal.InstrumentedClass;
 
 /**
  * An instrumentation that adds fields for the old value and the loading state of the fields of a storage class.
  */
-public class AddOldAndIfAlreadyLoadedFields extends ClassInstrumentation.Builder.ClassLevelInstrumentation {
+public class AddOldAndIfAlreadyLoadedFields extends InstrumentedClass.Builder.ClassLevelInstrumentation {
 
-	public AddOldAndIfAlreadyLoadedFields(ClassInstrumentation.Builder builder) {
+	public AddOldAndIfAlreadyLoadedFields(InstrumentedClass.Builder builder) {
 		builder.super();
 
 		if (isStorage) {
@@ -29,8 +29,8 @@ public class AddOldAndIfAlreadyLoadedFields extends ClassInstrumentation.Builder
 	 * @param field the field of the storage class
 	 */
 	private void addOldFieldFor(Field field) {
-		clazz.addField(new FieldGen(ClassInstrumentation.PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()),
-			ClassInstrumentation.OLD_PREFIX + field.getName(), cpg).getField());
+		instrumentedClass.addField(new FieldGen(InstrumentedClass.PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()),
+			InstrumentedClass.OLD_PREFIX + field.getName(), cpg).getField());
 	}
 
 	/**
@@ -39,7 +39,7 @@ public class AddOldAndIfAlreadyLoadedFields extends ClassInstrumentation.Builder
 	 * @param field the field of the storage class
 	 */
 	private void addIfAlreadyLoadedFieldFor(Field field) {
-		clazz.addField(new FieldGen(ClassInstrumentation.PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN,
-			ClassInstrumentation.IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
+		instrumentedClass.addField(new FieldGen(InstrumentedClass.PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN,
+			InstrumentedClass.IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
 	}
 }

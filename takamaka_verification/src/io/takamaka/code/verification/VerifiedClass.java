@@ -4,8 +4,8 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.util.stream.Stream;
 
-import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
+import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.InvokeInstruction;
@@ -74,27 +74,6 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	String getSuperclassName();
 
 	/**
-	 * Sets the name of the superclass of this class.
-	 * 
-	 * @param name the new name of the superclass of this clas
-	 */
-	void setSuperclassName(String name);
-
-	/**
-	 * Adds the given field to this class.
-	 * 
-	 * @param field the field to add
-	 */
-	void addField(org.apache.bcel.classfile.Field field);
-
-	/**
-	 * Adds the given method to this class.
-	 * 
-	 * @param method the method to add
-	 */
-	void addMethod(Method method);
-
-	/**
 	 * Yields the methods in this class.
 	 * 
 	 * @return the methods
@@ -116,25 +95,9 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	Stream<MethodGen> getAllMethods();
 
 	/**
-	 * Replaces a method of this class with another.
+	 * Yields the Java class generator from this object.
 	 * 
-	 * @param old the old method to replace
-	 * @param _new the new method to put at its place
+	 * @return the Java class generator
 	 */
-	void replaceMethod(Method old, Method _new);
-
-	/**
-	 * Replaces a field of this class with another.
-	 * 
-	 * @param old the old field to replace
-	 * @param _new the new field to put at its place
-	 */
-	void replaceField(org.apache.bcel.classfile.Field old, org.apache.bcel.classfile.Field _new);
-
-	/**
-	 * Yields a Java class generated from this object.
-	 * 
-	 * @return the Java class
-	 */
-	JavaClass getJavaClass();
+	ClassGen getClassGen();
 }

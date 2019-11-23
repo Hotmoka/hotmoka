@@ -27,7 +27,7 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
+import io.takamaka.code.instrumentation.internal.InstrumentedClass;
 import io.takamaka.code.instrumentation.internal.HeightAtBytecode;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.Dummy;
@@ -36,20 +36,20 @@ import io.takamaka.code.verification.Dummy;
  * Sets the caller at the beginning of entries and updates the balance
  * at the beginning of payable entries.
  */
-public class SetCallerAndBalanceAtTheBeginningOfEntries extends ClassInstrumentation.Builder.MethodLevelInstrumentation {
+public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClass.Builder.MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 	private final static String PAYABLE_ENTRY = "payableEntry";
 	private final static String ENTRY = "entry";
 	private final static Type[] ENTRY_ARGS = { CONTRACT_OT };
 
-	public SetCallerAndBalanceAtTheBeginningOfEntries(ClassInstrumentation.Builder builder, MethodGen method) {
+	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClass.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		Optional<Class<?>> callerContract;
-		if (isContract && (callerContract = clazz.getJar().getAnnotations().isEntry(className, method.getName(),
+		if (isContract && (callerContract = verifiedClass.getJar().getAnnotations().isEntry(className, method.getName(),
 				method.getArgumentTypes(), method.getReturnType())).isPresent())
-			instrumentEntry(method, callerContract.get(), clazz.getJar().getAnnotations().isPayable(className, method.getName(),
+			instrumentEntry(method, callerContract.get(), verifiedClass.getJar().getAnnotations().isPayable(className, method.getName(),
 				method.getArgumentTypes(), method.getReturnType()));
 	}
 
@@ -160,7 +160,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends ClassInstrumenta
 					if (stackHeightAfterBytecode == 0) {
 						// found a consumer of the aload_0: is it really a call to a constructor of the superclass?
 						if (bytecode instanceof INVOKESPECIAL
-								&& ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(clazz.getSuperclassName())
+								&& ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(verifiedClass.getSuperclassName())
 								&& ((INVOKESPECIAL) bytecode).getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
 							callsToConstructorsOfSuperclass.add(current.ih);
 						else

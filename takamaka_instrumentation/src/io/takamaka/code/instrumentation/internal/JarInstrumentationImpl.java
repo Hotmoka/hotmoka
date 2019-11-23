@@ -54,11 +54,8 @@ public class JarInstrumentationImpl implements JarInstrumentation {
 			// add the same entry to the resulting jar
 			instrumentedJar.putNextEntry(new JarEntry(clazz.getClassName().replace('.', '/') + ".class"));
 	
-			// instrument the class
-			new ClassInstrumentation(clazz, gasCostModel);
-			
-			// dump the instrumented class on disk
-			clazz.getJavaClass().dump(instrumentedJar);
+			// instrument the class and dumps it into the jar file
+			new InstrumentedClass(clazz, gasCostModel).dump(instrumentedJar);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LineNumberTable;
 import org.apache.bcel.generic.ClassGen;
@@ -57,7 +58,17 @@ import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 /**
  * A class that passed the static Takamaka verification tests.
  */
-public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
+public class VerifiedClassImpl implements VerifiedClass {
+
+	/**
+	 * The class generator used to generate this object.
+	 */
+	private final ClassGen clazz;
+
+	/**
+	 * A methods of this class, in editable version.
+	 */
+	private final Set<MethodGen> methods;
 
 	/**
 	 * The jar this class belongs to.
@@ -75,11 +86,6 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 	public final ResolverImpl resolver;
 
 	/**
-	 * A methods of this class, in editable version.
-	 */
-	private final Set<MethodGen> methods;
-
-	/**
 	 * Builds and verifies a class from the given class file.
 	 * 
 	 * @param clazz the parsed class file
@@ -89,8 +95,7 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 	 * @throws VefificationException if the class could not be verified
 	 */
 	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
-		super(clazz);
-
+		this.clazz = new ClassGen(clazz);
 		this.methods = Stream.of(getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).collect(Collectors.toSet());
 		this.jar = jar;
 		this.bootstraps = new BootstrapsImpl(this);
@@ -121,7 +126,7 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 
 	@Override
 	public Stream<org.apache.bcel.classfile.Field> getAllFields() {
-		return Stream.of(super.getFields());
+		return Stream.of(clazz.getFields());
 	}
 
 	@Override
@@ -266,7 +271,7 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 			 * @return the inferred source file name
 			 */
 			protected final String inferSourceFile() {
-				String sourceFile = getFileName();
+				String sourceFile = VerifiedClassImpl.this.clazz.getFileName();
 				String className = getClassName();
 			
 				if (sourceFile != null) {
@@ -362,5 +367,52 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 				}
 			}
 		}
+	}
+
+	@Override
+	public ClassGen getClassGen() {
+		return clazz;
+	}
+
+	@Override
+	public String getClassName() {
+		return clazz.getClassName();
+	}
+
+	@Override
+	public ConstantPoolGen getConstantPool() {
+		return clazz.getConstantPool();
+	}
+
+	@Override
+	public String getSuperclassName() {
+		return clazz.getSuperclassName();
+	}
+
+	@Override
+	public org.apache.bcel.classfile.Method[] getMethods() {
+		return clazz.getMethods();
+	}
+
+	public Attribute[] getAttributes() {
+		return clazz.getAttributes();
+	}
+
+	/**
+	 * Determines if this class is an enumeration.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	public boolean isEnum() {
+		return clazz.isEnum();
+	}
+
+	/**
+	 * Determines if this class is synthetic.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	public boolean isSynthetic() {
+		return clazz.isSynthetic();
 	}
 }

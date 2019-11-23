@@ -11,14 +11,14 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
+import io.takamaka.code.instrumentation.internal.InstrumentedClass;
 
 /**
  * An instrumentation that adds accessor methods for the fields of the class being instrumented.
  */
-public class AddAccessorMethods extends ClassInstrumentation.Builder.ClassLevelInstrumentation {
+public class AddAccessorMethods extends InstrumentedClass.Builder.ClassLevelInstrumentation {
 
-	public AddAccessorMethods(ClassInstrumentation.Builder builder) {
+	public AddAccessorMethods(InstrumentedClass.Builder builder) {
 		builder.super();
 
 		if (isStorage)
@@ -47,12 +47,12 @@ public class AddAccessorMethods extends ClassInstrumentation.Builder.ClassLevelI
 		InstructionList il = new InstructionList();
 		il.append(InstructionFactory.createThis());
 		il.append(InstructionConst.DUP);
-		il.append(factory.createInvoke(className, ClassInstrumentation.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+		il.append(factory.createInvoke(className, InstrumentedClass.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 		il.append(InstructionConst.ALOAD_1);
 		il.append(factory.createPutField(className, field.getName(), type));
 		il.append(InstructionConst.RETURN);
 
-		MethodGen setter = new MethodGen(ClassInstrumentation.PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null,
+		MethodGen setter = new MethodGen(InstrumentedClass.PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null,
 			setterNameFor(className, field.getName()), className, il, cpg);
 		addMethod(setter, false);
 	}
@@ -67,11 +67,11 @@ public class AddAccessorMethods extends ClassInstrumentation.Builder.ClassLevelI
 		InstructionList il = new InstructionList();
 		il.append(InstructionFactory.createThis());
 		il.append(InstructionConst.DUP);
-		il.append(factory.createInvoke(className, ClassInstrumentation.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+		il.append(factory.createInvoke(className, InstrumentedClass.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 		il.append(factory.createGetField(className, field.getName(), type));
 		il.append(InstructionFactory.createReturn(type));
 
-		MethodGen getter = new MethodGen(ClassInstrumentation.PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null,
+		MethodGen getter = new MethodGen(InstrumentedClass.PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null,
 			getterNameFor(className, field.getName()), className, il, cpg);
 		addMethod(getter, false);
 	}

@@ -35,7 +35,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
+import io.takamaka.code.instrumentation.internal.InstrumentedClass;
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
@@ -46,9 +46,9 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 /**
  * Adds instructions that check that white-listing proof obligations hold at run time.
  */
-public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstrumentation.Builder.MethodLevelInstrumentation {
+public class AddRuntimeChecksForWhiteListingProofObligations extends InstrumentedClass.Builder.MethodLevelInstrumentation {
 
-	public AddRuntimeChecksForWhiteListingProofObligations(ClassInstrumentation.Builder builder, MethodGen method) {
+	public AddRuntimeChecksForWhiteListingProofObligations(InstrumentedClass.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (!method.isAbstract())
@@ -56,7 +56,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 				Instruction ins = ih.getInstruction();
 				if (ins instanceof FieldInstruction) {
 					FieldInstruction fi = (FieldInstruction) ins;
-					Field model = clazz.whiteListingModelOf(fi);
+					Field model = verifiedClass.whiteListingModelOf(fi);
 					if (hasProofObligations(model))
 						// proof obligations are currently not implemented nor used on fields
 						throw new IllegalStateException("unexpected white-listing proof obligation for field " + fi.getReferenceType(cpg) + "." + fi.getFieldName(cpg));
@@ -68,7 +68,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 					if (replacement != null)
 						ih.setInstruction(replacement);
 					else {
-						Executable model = clazz.whiteListingModelOf((InvokeInstruction) ins);
+						Executable model = verifiedClass.whiteListingModelOf((InvokeInstruction) ins);
 						if (hasProofObligations(model)) {
 							replacement = addWhiteListVerificationMethod(ih, (InvokeInstruction) ins, model, key);
 							whiteListingCache.put(key, replacement);
@@ -111,7 +111,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 			key = ins.getName() + " " + ins.getReferenceType(cpg) + "." + ins.getMethodName(cpg) + ins.getSignature(cpg);
 			// we add a mask that specifies the white-listing proof obligations that can be discharged, since
 			// we can use the same verifier only if two instructions need verification of the same proof obligations
-			Executable model = clazz.whiteListingModelOf(ins);
+			Executable model = verifiedClass.whiteListingModelOf(ins);
 			if (hasProofObligations(model)) {
 				int slots = ins.consumeStack(cpg);
 				String mask = "";
@@ -148,7 +148,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 	}
 
 	private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) {
-		String verifierName = getNewNameForPrivateMethod(ClassInstrumentation.EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(InstrumentedClass.EXTRA_VERIFIER_NAME);
 		InstructionList il = new InstructionList();
 		String signature = invokedynamic.getSignature(cpg);
 		Type verifierReturnType = Type.getReturnType(signature);
@@ -183,7 +183,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 		il.append(invokedynamic);
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
-		MethodGen addedVerifier = new MethodGen(ClassInstrumentation.PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args, null, verifierName, className, il, cpg);
+		MethodGen addedVerifier = new MethodGen(InstrumentedClass.PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);
 
 		return factory.createInvoke(className, verifierName, verifierReturnType, args, Const.INVOKESTATIC);
@@ -205,8 +205,8 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 	 *                      for the call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
-		String verifierName = getNewNameForPrivateMethod(ClassInstrumentation.EXTRA_VERIFIER_NAME);
-		Bootstraps classBootstraps = clazz.getBootstraps();
+		String verifierName = getNewNameForPrivateMethod(InstrumentedClass.EXTRA_VERIFIER_NAME);
+		Bootstraps classBootstraps = verifiedClass.getBootstraps();
 		InstructionList il = new InstructionList();
 		List<Type> args = new ArrayList<>();
 		BootstrapMethod bootstrap = classBootstraps.getBootstrapFor(invokedynamic);
@@ -244,7 +244,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 				invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
-		MethodGen addedVerifier = new MethodGen(ClassInstrumentation.PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
+		MethodGen addedVerifier = new MethodGen(InstrumentedClass.PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);
 
 		// replace inside the bootstrap method
@@ -278,7 +278,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 	}
 
 	private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
-		BootstrapMethod bootstrap = clazz.getBootstraps().getBootstrapFor(invokedynamic);
+		BootstrapMethod bootstrap = verifiedClass.getBootstraps().getBootstrapFor(invokedynamic);
 		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
 		ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 		Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
@@ -306,7 +306,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 	 *              call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethodForNonINVOKEDYNAMIC(InstructionHandle ih, InvokeInstruction invoke, Executable model, String key) {
-		String verifierName = getNewNameForPrivateMethod(ClassInstrumentation.EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(InstrumentedClass.EXTRA_VERIFIER_NAME);
 		Type verifierReturnType = invoke.getReturnType(cpg);
 		String methodName = invoke.getMethodName(cpg);
 		InstructionList il = new InstructionList();
@@ -359,7 +359,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends ClassInstru
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
 		Type[] argsAsArray = args.toArray(new Type[args.size()]);
-		MethodGen addedVerifier = new MethodGen(ClassInstrumentation.PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
+		MethodGen addedVerifier = new MethodGen(InstrumentedClass.PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);
 
 		return factory.createInvoke(className, verifierName, verifierReturnType, argsAsArray, Const.INVOKESTATIC);

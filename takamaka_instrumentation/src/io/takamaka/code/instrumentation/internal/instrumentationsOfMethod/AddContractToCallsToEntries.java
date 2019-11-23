@@ -17,7 +17,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
+import io.takamaka.code.instrumentation.internal.InstrumentedClass;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.Dummy;
 
@@ -25,11 +25,11 @@ import io.takamaka.code.verification.Dummy;
  * Passes the trailing implicit parameters to calls to entries. They are the
  * contract where the entry is called and {@code null} (for the dummy argument).
  */
-public class AddContractToCallsToEntries extends ClassInstrumentation.Builder.MethodLevelInstrumentation {
+public class AddContractToCallsToEntries extends InstrumentedClass.Builder.MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
-	public AddContractToCallsToEntries(ClassInstrumentation.Builder builder, MethodGen method) {
+	public AddContractToCallsToEntries(InstrumentedClass.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
@@ -100,12 +100,12 @@ public class AddContractToCallsToEntries extends ClassInstrumentation.Builder.Me
 	private boolean isCallToEntry(Instruction instruction) {
 		if (instruction instanceof INVOKEDYNAMIC)
 			return bootstrapMethodsThatWillRequireExtraThis
-				.contains(clazz.getBootstraps().getBootstrapFor((INVOKEDYNAMIC) instruction));
+				.contains(verifiedClass.getBootstraps().getBootstrapFor((INVOKEDYNAMIC) instruction));
 		else if (instruction instanceof InvokeInstruction) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			if (receiver instanceof ObjectType)
-				return clazz.getJar().getAnnotations().isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
+				return verifiedClass.getJar().getAnnotations().isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
 					invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 

@@ -1,5 +1,7 @@
 package io.takamaka.code.instrumentation.internal;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BranchInstruction;
+import org.apache.bcel.generic.ClassGen;
 import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.GotoInstruction;
@@ -58,7 +61,7 @@ import it.univr.bcel.StackMapReplacer;
  * An instrumenter of a single class file. For instance, it instruments storage
  * classes, by adding the serialization support, and contracts, to deal with entries.
  */
-public class ClassInstrumentation {
+public class InstrumentedClass {
 	public final static String OLD_PREFIX = Constants.INSTRUMENTATION_PREFIX + "old_";
 	public final static String IF_ALREADY_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ifAlreadyLoaded_";
 	public final static String ENSURE_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ensureLoaded_";
@@ -85,14 +88,77 @@ public class ClassInstrumentation {
 		.thenComparing(field -> field.getType().toString());
 
 	/**
+	 * The class generator where instrumentations occur.
+	 */
+	private final ClassGen classGen;
+
+	/**
 	 * Performs the instrumentation of a single class file.
 	 * 
 	 * @param clazz the class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @param instrumentedJar the jar where the instrumented class will be added
 	 */
-	ClassInstrumentation(VerifiedClass clazz, GasCostModel gasCostModel) {
+	InstrumentedClass(VerifiedClass clazz, GasCostModel gasCostModel) {
+		this.classGen = clazz.getClassGen();
 		new Builder(clazz, gasCostModel);
+	}
+
+	/**
+	 * Sets the name of the superclass of this class.
+	 * 
+	 * @param name the new name of the superclass of this clas
+	 */
+	public void setSuperclassName(String name) {
+		classGen.setSuperclassName(name);
+	}
+
+	/**
+	 * Adds the given field to this class.
+	 * 
+	 * @param field the field to add
+	 */
+	public void addField(org.apache.bcel.classfile.Field field) {
+		classGen.addField(field);
+	}
+
+	/**
+	 * Adds the given method to this class.
+	 * 
+	 * @param method the method to add
+	 */
+	public void addMethod(Method method) {
+		classGen.addMethod(method);
+	}
+
+	/**
+	 * Replaces a method of this class with another.
+	 * 
+	 * @param old the old method to replace
+	 * @param _new the new method to put at its place
+	 */
+	public void replaceMethod(Method old, Method _new) {
+		classGen.replaceMethod(old, _new);
+	}
+
+	/**
+	 * Replaces a field of this class with another.
+	 * 
+	 * @param old the old field to replace
+	 * @param _new the new field to put at its place
+	 */
+	public void replaceField(org.apache.bcel.classfile.Field old, org.apache.bcel.classfile.Field _new) {
+		classGen.replaceField(old, _new);
+	}
+
+	/**
+	 * Dumps this instrumented class into an output stream.
+	 * 
+	 * @param where the output stream
+	 * @throws IOException if a disk error occurred
+	 */
+	public void dump(OutputStream where) throws IOException {
+		classGen.getJavaClass().dump(where);
 	}
 
 	/**
@@ -103,7 +169,7 @@ public class ClassInstrumentation {
 		/**
 		 * The class that is being instrumented.
 		 */
-		private final VerifiedClass clazz;
+		private final VerifiedClass verifiedClass;
 
 		/**
 		 * The gas cost model used for the instrumentation.
@@ -182,7 +248,7 @@ public class ClassInstrumentation {
 		 * @param gasCostModel the gas cost model used for the instrumentation
 		 */
 		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) {
-			this.clazz = clazz;
+			this.verifiedClass = clazz;
 			this.gasCostModel = gasCostModel;
 			this.className = clazz.getClassName();
 			this.classLoader = clazz.getJar().getClassLoader();
@@ -202,10 +268,16 @@ public class ClassInstrumentation {
 		}
 
 		public abstract class ClassLevelInstrumentation {
+
 			/**
-			 * The class that is being instrumented.
+			 * The verified class for which instrumentation is performed.
 			 */
-			protected final VerifiedClass clazz = Builder.this.clazz;
+			protected final VerifiedClass verifiedClass = Builder.this.verifiedClass;
+
+			/**
+			 * The class being instrumented.
+			 */
+			protected final InstrumentedClass instrumentedClass = InstrumentedClass.this;
 
 			/**
 			 * The gas cost model used for the instrumentation.
@@ -283,7 +355,7 @@ public class ClassInstrumentation {
 				method.setMaxStack();
 				if (needsStackMap)
 					StackMapReplacer.of(method);
-				clazz.addMethod(method.getMethod());
+				instrumentedClass.addMethod(method.getMethod());
 			}
 
 			protected final String getterNameFor(String className, String fieldName) {
@@ -347,7 +419,7 @@ public class ClassInstrumentation {
 			protected final String getNewNameForPrivateMethod(String innerName) {
 				int counter = 0;
 				String newName;
-				Method[] methods = clazz.getMethods();
+				Method[] methods = verifiedClass.getMethods();
 				innerName = Constants.INSTRUMENTATION_PREFIX + innerName;
 
 				do {
@@ -445,13 +517,13 @@ public class ClassInstrumentation {
 		}
 
 		private void applyToAllMethods(Function<Method, Method> what) {
-			Method[] methods = clazz.getMethods();
+			Method[] methods = InstrumentedClass.this.classGen.getMethods();
 			List<Method> processedMethods = Stream.of(methods).map(what).collect(Collectors.toList());
 
 			// replacing old with new methods
 			int pos = 0;
 			for (Method processed: processedMethods)
-				clazz.replaceMethod(methods[pos++], processed);
+				InstrumentedClass.this.classGen.replaceMethod(methods[pos++], processed);
 		}
 
 		/**

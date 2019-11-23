@@ -17,15 +17,15 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
+import io.takamaka.code.instrumentation.internal.InstrumentedClass;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
 /**
  * Replaces accesses to fields of storage classes with calls to accessor methods.
  */
-public class ReplaceFieldAccessesWithAccessors extends ClassInstrumentation.Builder.MethodLevelInstrumentation {
+public class ReplaceFieldAccessesWithAccessors extends InstrumentedClass.Builder.MethodLevelInstrumentation {
 
-	public ReplaceFieldAccessesWithAccessors(ClassInstrumentation.Builder builder, MethodGen method) {
+	public ReplaceFieldAccessesWithAccessors(InstrumentedClass.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
@@ -51,7 +51,7 @@ public class ReplaceFieldAccessesWithAccessors extends ClassInstrumentation.Buil
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
 			return classLoader.isStorage(receiverClassName)
-					&& classLoader.isLazilyLoaded(fieldType = clazz.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
+					&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
 					&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
 		}
 		else if (instruction instanceof PUTFIELD) {
@@ -60,7 +60,7 @@ public class ReplaceFieldAccessesWithAccessors extends ClassInstrumentation.Buil
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
 			return classLoader.isStorage(receiverClassName)
-					&& classLoader.isLazilyLoaded(fieldType = clazz.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
+					&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
 					&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
 		}
 		else

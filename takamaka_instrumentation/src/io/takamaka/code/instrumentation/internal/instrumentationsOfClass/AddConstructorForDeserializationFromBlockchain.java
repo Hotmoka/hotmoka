@@ -15,7 +15,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.ClassInstrumentation;
+import io.takamaka.code.instrumentation.internal.InstrumentedClass;
 import io.takamaka.code.verification.Constants;
 
 /**
@@ -24,9 +24,9 @@ import io.takamaka.code.verification.Constants;
  * the fields of the superclasses, then those of the same class being
  * constructed, ordered by name and then by {@code toString()} of their type.
  */
-public class AddConstructorForDeserializationFromBlockchain extends ClassInstrumentation.Builder.ClassLevelInstrumentation {
+public class AddConstructorForDeserializationFromBlockchain extends InstrumentedClass.Builder.ClassLevelInstrumentation {
 
-	public AddConstructorForDeserializationFromBlockchain(ClassInstrumentation.Builder builder) {
+	public AddConstructorForDeserializationFromBlockchain(InstrumentedClass.Builder builder) {
 		builder.super();
 
 		if (isStorage) {
@@ -50,7 +50,7 @@ public class AddConstructorForDeserializationFromBlockchain extends ClassInstrum
 
 			il.append(InstructionConst.RETURN);
 
-			MethodGen constructor = new MethodGen(ClassInstrumentation.PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
+			MethodGen constructor = new MethodGen(InstrumentedClass.PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
 					Const.CONSTRUCTOR_NAME, className, il, cpg);
 			addMethod(constructor, false);
 		}
@@ -87,7 +87,7 @@ public class AddConstructorForDeserializationFromBlockchain extends ClassInstrum
 			eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 				.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 
-		il.append(factory.createInvoke(clazz.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
+		il.append(factory.createInvoke(verifiedClass.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
 			argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 		return pushLoad.local;
@@ -118,7 +118,7 @@ public class AddConstructorForDeserializationFromBlockchain extends ClassInstrum
 					il.append(InstructionFactory.createThis());
 					il.append(InstructionFactory.createLoad(type, local));
 				}
-				il.append(factory.createPutField(className, ClassInstrumentation.OLD_PREFIX + field.getName(), type));
+				il.append(factory.createPutField(className, InstrumentedClass.OLD_PREFIX + field.getName(), type));
 				local += size;
 			}
 		};
