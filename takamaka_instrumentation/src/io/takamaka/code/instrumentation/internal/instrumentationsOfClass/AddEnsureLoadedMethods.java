@@ -2,7 +2,6 @@ package io.takamaka.code.instrumentation.internal.instrumentationsOfClass;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.BasicType;
@@ -43,7 +42,7 @@ public class AddEnsureLoadedMethods extends ClassInstrumentation.Builder.ClassLe
 		// and it is not a constructor. Java < 9 will not check this constraint but
 		// newer versions of Java would reject the code without this change
 		if (fieldIsFinal) {
-			org.apache.bcel.classfile.Field oldField = Stream.of(clazz.getFields())
+			org.apache.bcel.classfile.Field oldField = clazz.getAllFields()
 				.filter(f -> f.getName().equals(field.getName()) && f.getType().equals(Type.getType(field.getType())))
 				.findFirst().get();
 			FieldGen newField = new FieldGen(oldField, cpg);

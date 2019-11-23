@@ -39,7 +39,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Cl
 		if (isContract)
 			computeLambdasUnreachableFromStaticMethods(lambdasUnreachableFromStaticMethods);
 
-		clazz.getMethodGens()
+		clazz.getAllMethods()
 			.filter(method -> !isContract || (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
 			.forEach(method ->
 				instructionsOf(method)
@@ -61,7 +61,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Cl
 
 		// then we consider all lambdas that might be called, directly, from a static method
 		// that is not a lambda: they must be considered as reachable from a static method
-		clazz.getMethodGens()
+		clazz.getAllMethods()
 			.filter(MethodGen::isStatic)
 			.filter(method -> !lambdas.contains(method))
 			.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));

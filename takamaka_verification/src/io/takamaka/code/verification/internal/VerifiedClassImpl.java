@@ -115,8 +115,13 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 	}
 
 	@Override
-	public Stream<MethodGen> getMethodGens() {
+	public Stream<MethodGen> getAllMethods() {
 		return methods.stream();
+	}
+
+	@Override
+	public Stream<org.apache.bcel.classfile.Field> getAllFields() {
+		return Stream.of(super.getFields());
 	}
 
 	@Override
@@ -214,7 +219,7 @@ public class VerifiedClassImpl extends ClassGen implements VerifiedClass {
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
 			new EntriesAreOnlyCalledFromContractsCheck(this);
 
-			getMethodGens().forEach(MethodVerification::new);
+			getAllMethods().forEach(MethodVerification::new);
 
 			if (hasErrors)
 				throw new VerificationException();

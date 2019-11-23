@@ -37,7 +37,7 @@ public class IsNotStaticInitializerCheck extends VerifiedClassImpl.ClassVerifica
 	}
 
 	private boolean hasExplicitConstantValue(Field field) {
-		return Stream.of(clazz.getFields())
+		return clazz.getAllFields()
 			.filter(f -> f.isStatic() && f.getName().equals(field.getName()) && bcelToClass.of(f.getType()) == field.getType())
 			.allMatch(f -> f.getConstantValue() != null);
 	}

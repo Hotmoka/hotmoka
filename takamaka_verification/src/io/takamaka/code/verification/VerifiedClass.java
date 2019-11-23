@@ -4,7 +4,6 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.util.stream.Stream;
 
-import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ConstantPoolGen;
@@ -38,13 +37,6 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	 *         to be white-listed (up to possible proof obligations contained in the model).
 	 */
 	Executable whiteListingModelOf(InvokeInstruction invoke);
-
-	/**
-	 * Yields the methods inside this class, in generator form.
-	 * 
-	 * @return the methods inside this class
-	 */
-	Stream<MethodGen> getMethodGens();
 
 	/**
 	 * Yields the jar this class belongs to.
@@ -89,13 +81,6 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	void setSuperclassName(String name);
 
 	/**
-	 * Yields the attributes of this class.
-	 * 
-	 * @return the attributes of this class
-	 */
-	Attribute[] getAttributes();
-
-	/**
 	 * Adds the given field to this class.
 	 * 
 	 * @param field the field to add
@@ -121,7 +106,14 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	 * 
 	 * @return the fields
 	 */
-	org.apache.bcel.classfile.Field[] getFields();
+	Stream<org.apache.bcel.classfile.Field> getAllFields();
+
+	/**
+	 * Yields the methods inside this class, in generator form.
+	 * 
+	 * @return the methods inside this class
+	 */
+	Stream<MethodGen> getAllMethods();
 
 	/**
 	 * Replaces a method of this class with another.

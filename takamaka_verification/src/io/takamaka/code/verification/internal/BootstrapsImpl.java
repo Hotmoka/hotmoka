@@ -146,7 +146,7 @@ public class BootstrapsImpl implements Bootstraps {
 	
 					// a lambda bridge can only be present in the same class that calls it
 					if (className.equals(clazz.getClassName()))
-						return clazz.getMethodGens()
+						return clazz.getAllMethods()
 							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
 							.findFirst();
 				}

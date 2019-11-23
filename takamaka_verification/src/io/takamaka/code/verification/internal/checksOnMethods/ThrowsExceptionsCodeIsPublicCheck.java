@@ -11,7 +11,7 @@ public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassImpl.ClassVe
 	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
 		verification.super();
 
-		clazz.getMethodGens()
+		clazz.getAllMethods()
 			.filter(method -> !method.isPublic() && annotations.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
 			.map(method -> new ThrowsExceptionsOnNonPublicError(inferSourceFile(), method.getName()))
 			.forEach(this::issue);
