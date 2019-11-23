@@ -34,7 +34,7 @@ public class AddExtractUpdates extends ClassInstrumentation.Builder.ClassLevelIn
 	public AddExtractUpdates(ClassInstrumentation.Builder builder) {
 		builder.super();
 
-		if (!eagerNonTransientInstanceFields.getLast().isEmpty() || !lazyNonTransientInstanceFields.isEmpty()) {
+		if (isStorage && (!eagerNonTransientInstanceFields.getLast().isEmpty() || !lazyNonTransientInstanceFields.isEmpty())) {
 			InstructionList il = new InstructionList();
 			il.append(InstructionFactory.createThis());
 			il.append(InstructionConst.DUP);

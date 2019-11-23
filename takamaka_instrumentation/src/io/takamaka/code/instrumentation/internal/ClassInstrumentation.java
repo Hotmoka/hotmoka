@@ -126,8 +126,7 @@ public class ClassInstrumentation {
 		private final InstructionFactory factory;
 
 		/**
-		 * True if and only if the class being instrumented is a storage class, distinct
-		 * form {@link io.takamaka.code.lang.Storage} itself, that must not be instrumented.
+		 * True if and only if the class being instrumented is a storage class.
 		 */
 		private final boolean isStorage;
 
@@ -140,10 +139,10 @@ public class ClassInstrumentation {
 		 * The non-transient instance fields of primitive type or of special reference
 		 * types that are allowed in storage objects (such as {@link java.lang.String}
 		 * and {@link java.math.BigInteger}). They are defined in the class being
-		 * instrumented or in its superclasses up to {@link io.takamaka.code.lang.Storage}
-		 * (excluded). This list is non-empty for storage classes only. The first set in
-		 * the list are the fields of the topmost class; the last are the fields of the
-		 * class being considered.
+		 * instrumented or in its superclasses up to {@link io.takamaka.code.lang.Storage}.
+		 * This list is non-empty for storage classes only. The first set in
+		 * the list are the fields of {@link io.takamaka.code.lang.Storage};
+		 * the last are the fields of the class being instrumented.
 		 */
 		private final LinkedList<SortedSet<Field>> eagerNonTransientInstanceFields = new LinkedList<>();
 
@@ -189,11 +188,11 @@ public class ClassInstrumentation {
 			this.classLoader = clazz.getJar().getClassLoader();
 			this.cpg = clazz.getConstantPool();
 			this.factory = new InstructionFactory(cpg);
-			this.isStorage = !Constants.STORAGE_NAME.equals(className) && classLoader.isStorage(className);
+			this.isStorage = classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
 
 			// the fields of the class are relevant only for storage classes
-			if (isStorage || Constants.STORAGE_NAME.equals(className))
+			if (isStorage)
 				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 					collectNonTransientInstanceFieldsOf(classLoader.loadClass(className), true);
 				});
@@ -229,8 +228,7 @@ public class ClassInstrumentation {
 			protected final InstructionFactory factory = Builder.this.factory;
 
 			/**
-			 * True if and only if the class being instrumented is a storage class, distinct
-			 * form {@link io.takamaka.code.lang.Storage} itself, that must not be instrumented.
+			 * True if and only if the class being instrumented is a storage class.
 			 */
 			protected final boolean isStorage = Builder.this.isStorage;
 
@@ -430,17 +428,11 @@ public class ClassInstrumentation {
 		 */
 		private void classLevelInstrumentations() {
 			new SwapSuperclassOfSpecialClasses(this);
-
-			if (isStorage || Constants.STORAGE_NAME.equals(className))
-				new AddConstructorForDeserializationFromBlockchain(this);
-
-			if (isStorage) {
-				// storage classes need the serialization machinery
-				new AddOldAndIfAlreadyLoadedFields(this);
-				new AddAccessorMethods(this);
-				new AddEnsureLoadedMethods(this);
-				new AddExtractUpdates(this);
-			}
+			new AddConstructorForDeserializationFromBlockchain(this);
+			new AddOldAndIfAlreadyLoadedFields(this);
+			new AddAccessorMethods(this);
+			new AddEnsureLoadedMethods(this);
+			new AddExtractUpdates(this);
 		}
 
 		/**
@@ -506,23 +498,22 @@ public class ClassInstrumentation {
 		}
 
 		private void collectNonTransientInstanceFieldsOf(Class<?> clazz, boolean firstCall) {
-			if (clazz != classLoader.getStorage()) {
+			if (clazz != classLoader.getStorage())
 				// we put at the beginning the fields of the superclasses
 				collectNonTransientInstanceFieldsOf(clazz.getSuperclass(), false);
 
-				Field[] fields = clazz.getDeclaredFields();
+			Field[] fields = clazz.getDeclaredFields();
 
-				// then the eager fields of className, in order
-				eagerNonTransientInstanceFields.add(Stream.of(fields)
-					.filter(field -> !isStaticOrTransient(field) && classLoader.isEagerlyLoaded(field.getType()))
-					.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
+			// then the eager fields of className, in order
+			eagerNonTransientInstanceFields.add(Stream.of(fields)
+				.filter(field -> !isStaticOrTransient(field) && classLoader.isEagerlyLoaded(field.getType()))
+				.collect(Collectors.toCollection(() -> new TreeSet<>(fieldOrder))));
 
-				// we collect lazy fields as well, but only for the class being instrumented
-				if (firstCall)
-					Stream.of(fields)
-						.filter(field -> !isStaticOrTransient(field) && classLoader.isLazilyLoaded(field.getType()))
-						.forEach(lazyNonTransientInstanceFields::add);
-			}
+			// we collect lazy fields as well, but only for the class being instrumented
+			if (firstCall)
+				Stream.of(fields)
+					.filter(field -> !isStaticOrTransient(field) && classLoader.isLazilyLoaded(field.getType()))
+					.forEach(lazyNonTransientInstanceFields::add);
 		}
 	}
 }

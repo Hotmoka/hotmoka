@@ -26,7 +26,9 @@ public class AddEnsureLoadedMethods extends ClassInstrumentation.Builder.ClassLe
 
 	public AddEnsureLoadedMethods(ClassInstrumentation.Builder builder) {
 		builder.super();
-		lazyNonTransientInstanceFields.forEach(this::addEnsureLoadedMethodFor);
+
+		if (isStorage)
+			lazyNonTransientInstanceFields.forEach(this::addEnsureLoadedMethodFor);
 	}
 
 	/**

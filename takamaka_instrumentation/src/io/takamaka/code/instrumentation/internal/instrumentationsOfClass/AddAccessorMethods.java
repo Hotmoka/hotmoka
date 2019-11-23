@@ -20,7 +20,9 @@ public class AddAccessorMethods extends ClassInstrumentation.Builder.ClassLevelI
 
 	public AddAccessorMethods(ClassInstrumentation.Builder builder) {
 		builder.super();
-		lazyNonTransientInstanceFields.forEach(this::addAccessorMethodsFor);
+
+		if (isStorage)
+			lazyNonTransientInstanceFields.forEach(this::addAccessorMethodsFor);
 	}
 
 	/**

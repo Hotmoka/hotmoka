@@ -15,9 +15,12 @@ public class AddOldAndIfAlreadyLoadedFields extends ClassInstrumentation.Builder
 
 	public AddOldAndIfAlreadyLoadedFields(ClassInstrumentation.Builder builder) {
 		builder.super();
-		eagerNonTransientInstanceFields.getLast().forEach(this::addOldFieldFor);
-		lazyNonTransientInstanceFields.forEach(this::addOldFieldFor);
-		lazyNonTransientInstanceFields.forEach(this::addIfAlreadyLoadedFieldFor);
+
+		if (isStorage) {
+			eagerNonTransientInstanceFields.getLast().forEach(this::addOldFieldFor);
+			lazyNonTransientInstanceFields.forEach(this::addOldFieldFor);
+			lazyNonTransientInstanceFields.forEach(this::addIfAlreadyLoadedFieldFor);
+		}
 	}
 
 	/**

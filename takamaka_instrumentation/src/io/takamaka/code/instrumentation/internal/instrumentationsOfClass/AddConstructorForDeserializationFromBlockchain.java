@@ -28,29 +28,32 @@ public class AddConstructorForDeserializationFromBlockchain extends ClassInstrum
 
 	public AddConstructorForDeserializationFromBlockchain(ClassInstrumentation.Builder builder) {
 		builder.super();
-		List<Type> args = new ArrayList<>();
 
-		// the parameters of the constructor start with a storage reference to the object being deserialized
-		args.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
+		if (isStorage) {
+			List<Type> args = new ArrayList<>();
 
-		// then there are the fields of the class and superclasses, with superclasses first
-		if (!className.equals(Constants.STORAGE_NAME))
-			eagerNonTransientInstanceFields.stream()
+			// the parameters of the constructor start with a storage reference to the object being deserialized
+			args.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
+
+			// then there are the fields of the class and superclasses, with superclasses first
+			if (!className.equals(Constants.STORAGE_NAME))
+				eagerNonTransientInstanceFields.stream()
 				.flatMap(SortedSet::stream)
 				.map(Field::getType)
 				.map(Type::getType)
 				.forEachOrdered(args::add);
 
-		InstructionList il = new InstructionList();
-		int nextLocal = addCallToSuper(il);
-		if (!className.equals(Constants.STORAGE_NAME))
-			addInitializationOfEagerFields(il, nextLocal);
+			InstructionList il = new InstructionList();
+			int nextLocal = addCallToSuper(il);
+			if (!className.equals(Constants.STORAGE_NAME))
+				addInitializationOfEagerFields(il, nextLocal);
 
-		il.append(InstructionConst.RETURN);
+			il.append(InstructionConst.RETURN);
 
-		MethodGen constructor = new MethodGen(ClassInstrumentation.PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
-			Const.CONSTRUCTOR_NAME, className, il, cpg);
-		addMethod(constructor, false);
+			MethodGen constructor = new MethodGen(ClassInstrumentation.PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
+					Const.CONSTRUCTOR_NAME, className, il, cpg);
+			addMethod(constructor, false);
+		}
 	}
 
 	/**
