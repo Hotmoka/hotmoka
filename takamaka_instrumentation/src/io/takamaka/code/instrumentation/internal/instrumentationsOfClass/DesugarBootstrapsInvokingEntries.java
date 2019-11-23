@@ -1,7 +1,6 @@
 package io.takamaka.code.instrumentation.internal.instrumentationsOfClass;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
@@ -64,10 +63,10 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClass.Builder.
 			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 			String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 			String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-			Optional<Method> old = Stream.of(verifiedClass.getMethods())
-					.filter(method -> method.getName().equals(methodName)
-							&& method.getSignature().equals(methodSignature) && method.isPrivate())
-					.findAny();
+			Optional<Method> old = getMethods()
+				.filter(method -> method.getName().equals(methodName)
+						&& method.getSignature().equals(methodSignature) && method.isPrivate())
+				.findFirst();
 			old.ifPresent(method -> {
 				// we can modify the method handle since the lambda is becoming an instance
 				// method and all calls must be made through invokespecial
@@ -159,6 +158,6 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClass.Builder.
 			}
 
 		StackMapReplacer.of(_new);
-		instrumentedClass.replaceMethod(old, _new.getMethod());
+		replaceMethod(old, _new.getMethod());
 	}
 }

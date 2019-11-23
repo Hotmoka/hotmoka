@@ -2,14 +2,10 @@ package io.takamaka.code.verification;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
-import java.util.stream.Stream;
 
-import org.apache.bcel.classfile.Method;
-import org.apache.bcel.generic.ClassGen;
-import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.InvokeInstruction;
-import org.apache.bcel.generic.MethodGen;
 
 /**
  * A class that passed the static Takamaka verification tests.
@@ -60,44 +56,9 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	String getClassName();
 
 	/**
-	 * Yields the constant pool of this class.
+	 * Builds a Java class from this object.
 	 * 
-	 * @return the constant pool
+	 * @return the Java class
 	 */
-	ConstantPoolGen getConstantPool();
-
-	/**
-	 * Yields the name of the superclass of this class, if any.
-	 * 
-	 * @return the name
-	 */
-	String getSuperclassName();
-
-	/**
-	 * Yields the methods in this class.
-	 * 
-	 * @return the methods
-	 */
-	Method[] getMethods();
-
-	/**
-	 * Yields the fields in this class.
-	 * 
-	 * @return the fields
-	 */
-	Stream<org.apache.bcel.classfile.Field> getAllFields();
-
-	/**
-	 * Yields the methods inside this class, in generator form.
-	 * 
-	 * @return the methods inside this class
-	 */
-	Stream<MethodGen> getAllMethods();
-
-	/**
-	 * Yields the Java class generator from this object.
-	 * 
-	 * @return the Java class generator
-	 */
-	ClassGen getClassGen();
+	JavaClass toJavaClass();
 }

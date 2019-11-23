@@ -6,7 +6,6 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
-import org.apache.bcel.generic.MethodGen;
 
 /**
  * An object that provides utility methods about the lambda bootstraps
@@ -53,13 +52,4 @@ public interface Bootstraps {
 	 * @return the target called method or constructor
 	 */
 	Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap);
-
-	/**
-	 * Yields the lambda bridge method called by the given bootstrap.
-	 * It must belong to the same class that we are processing.
-	 * 
-	 * @param bootstrap the bootstrap
-	 * @return the lambda bridge method
-	 */
-	Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap);
 }

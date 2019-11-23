@@ -87,7 +87,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 			eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 				.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 
-		il.append(factory.createInvoke(verifiedClass.getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
+		il.append(factory.createInvoke(getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
 			argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));
 
 		return pushLoad.local;

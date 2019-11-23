@@ -42,12 +42,12 @@ public class AddEnsureLoadedMethods extends InstrumentedClass.Builder.ClassLevel
 		// and it is not a constructor. Java < 9 will not check this constraint but
 		// newer versions of Java would reject the code without this change
 		if (fieldIsFinal) {
-			org.apache.bcel.classfile.Field oldField = verifiedClass.getAllFields()
+			org.apache.bcel.classfile.Field oldField = getFields()
 				.filter(f -> f.getName().equals(field.getName()) && f.getType().equals(Type.getType(field.getType())))
 				.findFirst().get();
 			FieldGen newField = new FieldGen(oldField, cpg);
 			newField.setAccessFlags(oldField.getAccessFlags() ^ Const.ACC_FINAL);
-			instrumentedClass.replaceField(oldField, newField.getField());
+			replaceField(oldField, newField.getField());
 		}
 
 		Type type = Type.getType(field.getType());

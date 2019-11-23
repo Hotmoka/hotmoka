@@ -160,7 +160,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 					if (stackHeightAfterBytecode == 0) {
 						// found a consumer of the aload_0: is it really a call to a constructor of the superclass?
 						if (bytecode instanceof INVOKESPECIAL
-								&& ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(verifiedClass.getSuperclassName())
+								&& ((INVOKESPECIAL) bytecode).getClassName(cpg).equals(getSuperclassName())
 								&& ((INVOKESPECIAL) bytecode).getMethodName(cpg).equals(Const.CONSTRUCTOR_NAME))
 							callsToConstructorsOfSuperclass.add(current.ih);
 						else

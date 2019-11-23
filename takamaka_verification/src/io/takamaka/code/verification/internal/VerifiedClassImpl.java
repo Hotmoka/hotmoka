@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,9 +65,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 	private final ClassGen clazz;
 
 	/**
-	 * A methods of this class, in editable version.
+	 * The methods of this class, in editable version.
 	 */
-	private final Set<MethodGen> methods;
+	private final MethodGen[] methods;
 
 	/**
 	 * The jar this class belongs to.
@@ -96,12 +95,17 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 */
 	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 		this.clazz = new ClassGen(clazz);
-		this.methods = Stream.of(getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).collect(Collectors.toSet());
+		this.methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).toArray(MethodGen[]::new);
 		this.jar = jar;
 		this.bootstraps = new BootstrapsImpl(this);
 		this.resolver = new ResolverImpl(this);
 
 		new ClassVerification(issueHandler, duringInitialization);
+	}
+
+	@Override
+	public String getClassName() {
+		return clazz.getClassName();
 	}
 
 	@Override
@@ -120,16 +124,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 	}
 
 	@Override
-	public Stream<MethodGen> getAllMethods() {
-		return methods.stream();
-	}
-
-	@Override
-	public Stream<org.apache.bcel.classfile.Field> getAllFields() {
-		return Stream.of(clazz.getFields());
-	}
-
-	@Override
 	public VerifiedJar getJar() {
 		return jar;
 	}
@@ -137,6 +131,33 @@ public class VerifiedClassImpl implements VerifiedClass {
 	@Override
 	public Bootstraps getBootstraps() {
 		return bootstraps;
+	}
+
+	@Override
+	public JavaClass toJavaClass() {
+		return clazz.getJavaClass();
+	}
+
+	/**
+	 * Yields the methods inside this class, in generator form.
+	 * 
+	 * @return the methods inside this class
+	 */
+	Stream<MethodGen> getMethodGens() {
+		return Stream.of(methods);
+	}
+
+	/**
+	 * Yields the constant pool of this class.
+	 * 
+	 * @return the constant pool
+	 */
+	ConstantPoolGen getConstantPool() {
+		return clazz.getConstantPool();
+	}
+
+	Attribute[] getAttributes() {
+		return clazz.getAttributes();
 	}
 
 	/**
@@ -216,7 +237,8 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 */
 		private ClassVerification(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 			this.issueHandler = issueHandler;
-			this.lines = methods.stream().collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(getConstantPool())));
+			ConstantPoolGen cpg = getConstantPool();
+			this.lines = getMethodGens().collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(cpg)));
 			this.duringInitialization = duringInitialization;
 
 			new PackagesAreLegalCheck(this);
@@ -224,16 +246,16 @@ public class VerifiedClassImpl implements VerifiedClass {
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
 			new EntriesAreOnlyCalledFromContractsCheck(this);
 
-			getAllMethods().forEach(MethodVerification::new);
+			getMethodGens().forEachOrdered(MethodVerification::new);
 
 			if (hasErrors)
 				throw new VerificationException();
 		}
 
 		public abstract class Check {
-			protected final VerifiedClassImpl clazz = VerifiedClassImpl.this;
 			protected final TakamakaClassLoader classLoader = jar.classLoader;
-			protected final Bootstraps bootstraps = clazz.bootstraps;
+			protected final BootstrapsImpl bootstraps = VerifiedClassImpl.this.bootstraps;
+			protected final ResolverImpl resolver = VerifiedClassImpl.this.resolver;
 			protected final Annotations annotations = jar.annotations;
 			protected final BcelToClass bcelToClass = jar.bcelToClass;
 			protected final boolean duringInitialization = ClassVerification.this.duringInitialization;
@@ -307,6 +329,42 @@ public class VerifiedClassImpl implements VerifiedClass {
 			protected final int lineOf(MethodGen method, InstructionHandle ih) {
 				return lineOf(method, ih.getPosition());
 			}
+
+			/**
+			 * Yields the fields in this class.
+			 * 
+			 * @return the fields
+			 */
+			protected final Stream<org.apache.bcel.classfile.Field> getFields() {
+				return Stream.of(clazz.getFields());
+			}
+
+			/**
+			 * Determines if this class is an enumeration.
+			 * 
+			 * @return true if and only if that condition holds
+			 */
+			protected final boolean isEnum() {
+				return clazz.isEnum();
+			}
+
+			/**
+			 * Determines if this class is synthetic.
+			 * 
+			 * @return true if and only if that condition holds
+			 */
+			protected final boolean isSynthetic() {
+				return clazz.isSynthetic();
+			}
+
+			/**
+			 * Yields the methods inside this class, in generator form.
+			 * 
+			 * @return the methods inside this class
+			 */
+			protected final Stream<MethodGen> getMethodGens() {
+				return Stream.of(methods);
+			}
 		}
 
 		public class MethodVerification {
@@ -367,52 +425,5 @@ public class VerifiedClassImpl implements VerifiedClass {
 				}
 			}
 		}
-	}
-
-	@Override
-	public ClassGen getClassGen() {
-		return clazz;
-	}
-
-	@Override
-	public String getClassName() {
-		return clazz.getClassName();
-	}
-
-	@Override
-	public ConstantPoolGen getConstantPool() {
-		return clazz.getConstantPool();
-	}
-
-	@Override
-	public String getSuperclassName() {
-		return clazz.getSuperclassName();
-	}
-
-	@Override
-	public org.apache.bcel.classfile.Method[] getMethods() {
-		return clazz.getMethods();
-	}
-
-	public Attribute[] getAttributes() {
-		return clazz.getAttributes();
-	}
-
-	/**
-	 * Determines if this class is an enumeration.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	public boolean isEnum() {
-		return clazz.isEnum();
-	}
-
-	/**
-	 * Determines if this class is synthetic.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	public boolean isSynthetic() {
-		return clazz.isSynthetic();
 	}
 }

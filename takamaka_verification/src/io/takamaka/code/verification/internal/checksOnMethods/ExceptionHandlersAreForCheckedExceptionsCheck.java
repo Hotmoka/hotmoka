@@ -34,8 +34,8 @@ public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClass
 	 *         static initializer of an enumeration
 	 */
 	private boolean specialCatchInsideEnumInitializer(String exceptionName) {
-		return ((clazz.isEnum() && method.isSynthetic())
-			|| (Const.STATIC_INITIALIZER_NAME.equals(methodName) && clazz.isSynthetic()))
+		return ((isEnum() && method.isSynthetic())
+			|| (Const.STATIC_INITIALIZER_NAME.equals(methodName) && isSynthetic()))
 			&& exceptionName.equals("java.lang.NoSuchFieldError");
 	}
 

@@ -31,7 +31,7 @@ public class AnnotationsImpl implements Annotations {
 	/**
 	 * Builds the utility object.
 	 * 
-	 * @param clazz the jar whose annotations are considered 
+	 * @param verifiedClass the jar whose annotations are considered 
 	 */
 	AnnotationsImpl(VerifiedJarImpl jar) {
 		this.jar = jar;

@@ -19,7 +19,7 @@ public class IsNotStaticInitializerCheck extends VerifiedClassImpl.ClassVerifica
 		verification.super();
 
 		if (method.getInstructionList() != null && Const.STATIC_INITIALIZER_NAME.equals(methodName))
-			if (clazz.isEnum() || clazz.isSynthetic()) {
+			if (isEnum() || isSynthetic()) {
 				// checks that the static fields of enum's or synthetic classes with a static initializer
 				// are either synthetic or enum elements or final static fields with
 				// an explicit constant initializer. This check is necessary since we cannot forbid static initializers
@@ -37,7 +37,7 @@ public class IsNotStaticInitializerCheck extends VerifiedClassImpl.ClassVerifica
 	}
 
 	private boolean hasExplicitConstantValue(Field field) {
-		return clazz.getAllFields()
+		return getFields()
 			.filter(f -> f.isStatic() && f.getName().equals(field.getName()) && bcelToClass.of(f.getType()) == field.getType())
 			.allMatch(f -> f.getConstantValue() != null);
 	}

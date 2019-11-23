@@ -13,8 +13,8 @@ public class SwapSuperclassOfSpecialClasses extends InstrumentedClass.Builder.Cl
 		builder.super();
 
 		if (className.equals(Constants.EVENT_NAME))
-			instrumentedClass.setSuperclassName(Constants.ABSTRACT_EVENT_NAME);
+			setSuperclassName(Constants.ABSTRACT_EVENT_NAME);
 		else if (className.equals(Constants.STORAGE_NAME))
-			instrumentedClass.setSuperclassName(Constants.ABSTRACT_STORAGE_NAME);
+			setSuperclassName(Constants.ABSTRACT_STORAGE_NAME);
 	}
 }

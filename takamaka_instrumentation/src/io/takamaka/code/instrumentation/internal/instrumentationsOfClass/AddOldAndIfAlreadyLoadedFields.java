@@ -29,7 +29,7 @@ public class AddOldAndIfAlreadyLoadedFields extends InstrumentedClass.Builder.Cl
 	 * @param field the field of the storage class
 	 */
 	private void addOldFieldFor(Field field) {
-		instrumentedClass.addField(new FieldGen(InstrumentedClass.PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()),
+		addField(new FieldGen(InstrumentedClass.PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()),
 			InstrumentedClass.OLD_PREFIX + field.getName(), cpg).getField());
 	}
 
@@ -39,7 +39,7 @@ public class AddOldAndIfAlreadyLoadedFields extends InstrumentedClass.Builder.Cl
 	 * @param field the field of the storage class
 	 */
 	private void addIfAlreadyLoadedFieldFor(Field field) {
-		instrumentedClass.addField(new FieldGen(InstrumentedClass.PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN,
+		addField(new FieldGen(InstrumentedClass.PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN,
 			InstrumentedClass.IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
 	}
 }

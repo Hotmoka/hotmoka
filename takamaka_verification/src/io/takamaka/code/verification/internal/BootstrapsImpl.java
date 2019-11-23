@@ -43,7 +43,7 @@ public class BootstrapsImpl implements Bootstraps {
 	/**
 	 * The class whose bootstraps are considered.
 	 */
-	private final VerifiedClassImpl clazz;
+	private final VerifiedClassImpl verifiedClass;
 
 	/**
 	 * The constant pool of the class whose bootstraps are considered.
@@ -63,7 +63,7 @@ public class BootstrapsImpl implements Bootstraps {
 	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
 
 	BootstrapsImpl(VerifiedClassImpl clazz) {
-		this.clazz = clazz;
+		this.verifiedClass = clazz;
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
 		collectBootstrapsLeadingToEntries();
@@ -84,7 +84,7 @@ public class BootstrapsImpl implements Bootstraps {
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-					return clazz.jar.annotations.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
+					return verifiedClass.jar.annotations.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
 				}
 			}
 		};
@@ -129,7 +129,13 @@ public class BootstrapsImpl implements Bootstraps {
 		return Optional.empty();
 	}
 
-	@Override
+	/**
+	 * Yields the lambda bridge method called by the given bootstrap.
+	 * It must belong to the same class that we are processing.
+	 * 
+	 * @param bootstrap the bootstrap
+	 * @return the lambda bridge method
+	 */
 	public Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap) {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
@@ -145,8 +151,8 @@ public class BootstrapsImpl implements Bootstraps {
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 	
 					// a lambda bridge can only be present in the same class that calls it
-					if (className.equals(clazz.getClassName()))
-						return clazz.getAllMethods()
+					if (className.equals(verifiedClass.getClassName()))
+						return verifiedClass.getMethodGens()
 							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
 							.findFirst();
 				}
@@ -173,13 +179,13 @@ public class BootstrapsImpl implements Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = verifiedClass.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = verifiedClass.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
 	
 					if (Const.CONSTRUCTOR_NAME.equals(methodName2))
-						return clazz.resolver.resolveConstructorWithPossiblyExpandedArgs(className2, args);
+						return verifiedClass.resolver.resolveConstructorWithPossiblyExpandedArgs(className2, args);
 					else
-						return clazz.resolver.resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+						return verifiedClass.resolver.resolveMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 				else if (constant2 instanceof ConstantInterfaceMethodref) {
 					ConstantInterfaceMethodref mr = (ConstantInterfaceMethodref) constant2;
@@ -188,10 +194,10 @@ public class BootstrapsImpl implements Bootstraps {
 					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 					String methodName2 = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature2 = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-					Class<?>[] args = clazz.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
-					Class<?> returnType = clazz.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
+					Class<?>[] args = verifiedClass.jar.bcelToClass.of(Type.getArgumentTypes(methodSignature2));
+					Class<?> returnType = verifiedClass.jar.bcelToClass.of(Type.getReturnType(methodSignature2));
 
-					return clazz.resolver.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
+					return verifiedClass.resolver.resolveInterfaceMethodWithPossiblyExpandedArgs(className2, methodName2, args, returnType);
 				}
 			}
 		}
@@ -214,7 +220,7 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	private BootstrapMethod[] computeBootstraps() {
-		Optional<BootstrapMethods> bootstraps = Stream.of(clazz.getAttributes())
+		Optional<BootstrapMethods> bootstraps = Stream.of(verifiedClass.getAttributes())
 			.filter(attribute -> attribute instanceof BootstrapMethods)
 			.map(attribute -> (BootstrapMethods) attribute)
 			.findFirst();
@@ -265,7 +271,7 @@ public class BootstrapsImpl implements Bootstraps {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				clazz.jar.annotations.isEntryPossiblyAlreadyInstrumented
+				verifiedClass.jar.annotations.isEntryPossiblyAlreadyInstrumented
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 		else

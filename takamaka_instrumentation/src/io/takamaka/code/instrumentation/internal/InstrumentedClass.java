@@ -100,55 +100,8 @@ public class InstrumentedClass {
 	 * @param instrumentedJar the jar where the instrumented class will be added
 	 */
 	InstrumentedClass(VerifiedClass clazz, GasCostModel gasCostModel) {
-		this.classGen = clazz.getClassGen();
+		this.classGen = new ClassGen(clazz.toJavaClass());
 		new Builder(clazz, gasCostModel);
-	}
-
-	/**
-	 * Sets the name of the superclass of this class.
-	 * 
-	 * @param name the new name of the superclass of this clas
-	 */
-	public void setSuperclassName(String name) {
-		classGen.setSuperclassName(name);
-	}
-
-	/**
-	 * Adds the given field to this class.
-	 * 
-	 * @param field the field to add
-	 */
-	public void addField(org.apache.bcel.classfile.Field field) {
-		classGen.addField(field);
-	}
-
-	/**
-	 * Adds the given method to this class.
-	 * 
-	 * @param method the method to add
-	 */
-	public void addMethod(Method method) {
-		classGen.addMethod(method);
-	}
-
-	/**
-	 * Replaces a method of this class with another.
-	 * 
-	 * @param old the old method to replace
-	 * @param _new the new method to put at its place
-	 */
-	public void replaceMethod(Method old, Method _new) {
-		classGen.replaceMethod(old, _new);
-	}
-
-	/**
-	 * Replaces a field of this class with another.
-	 * 
-	 * @param old the old field to replace
-	 * @param _new the new field to put at its place
-	 */
-	public void replaceField(org.apache.bcel.classfile.Field old, org.apache.bcel.classfile.Field _new) {
-		classGen.replaceField(old, _new);
 	}
 
 	/**
@@ -170,6 +123,11 @@ public class InstrumentedClass {
 		 * The class that is being instrumented.
 		 */
 		private final VerifiedClass verifiedClass;
+
+		/**
+		 * The methods of the instrumented class, in editable version.
+		 */
+		private final Set<MethodGen> methods;
 
 		/**
 		 * The gas cost model used for the instrumentation.
@@ -250,9 +208,10 @@ public class InstrumentedClass {
 		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) {
 			this.verifiedClass = clazz;
 			this.gasCostModel = gasCostModel;
-			this.className = clazz.getClassName();
+			this.className = classGen.getClassName();
 			this.classLoader = clazz.getJar().getClassLoader();
-			this.cpg = clazz.getConstantPool();
+			this.cpg = classGen.getConstantPool();
+			this.methods = Stream.of(classGen.getMethods()).map(method -> new MethodGen(method, className, cpg)).collect(Collectors.toSet());
 			this.factory = new InstructionFactory(cpg);
 			this.isStorage = classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
@@ -273,11 +232,6 @@ public class InstrumentedClass {
 			 * The verified class for which instrumentation is performed.
 			 */
 			protected final VerifiedClass verifiedClass = Builder.this.verifiedClass;
-
-			/**
-			 * The class being instrumented.
-			 */
-			protected final InstrumentedClass instrumentedClass = InstrumentedClass.this;
 
 			/**
 			 * The gas cost model used for the instrumentation.
@@ -355,7 +309,7 @@ public class InstrumentedClass {
 				method.setMaxStack();
 				if (needsStackMap)
 					StackMapReplacer.of(method);
-				instrumentedClass.addMethod(method.getMethod());
+				classGen.addMethod(method.getMethod());
 			}
 
 			protected final String getterNameFor(String className, String fieldName) {
@@ -416,16 +370,33 @@ public class InstrumentedClass {
 				return index;
 			}
 
+			/**
+			 * Yields the methods in this class.
+			 * 
+			 * @return the methods
+			 */
+			protected final Stream<Method> getMethods() {
+				return Stream.of(classGen.getMethods());
+			}
+
+			/**
+			 * Yields the fields in this class.
+			 * 
+			 * @return the fields
+			 */
+			protected final Stream<org.apache.bcel.classfile.Field> getFields() {
+				return Stream.of(classGen.getFields());
+			}
+
 			protected final String getNewNameForPrivateMethod(String innerName) {
 				int counter = 0;
 				String newName;
-				Method[] methods = verifiedClass.getMethods();
 				innerName = Constants.INSTRUMENTATION_PREFIX + innerName;
 
 				do {
 					newName = innerName + counter++;
 				}
-				while (Stream.of(methods).map(Method::getName).anyMatch(newName::equals));
+				while (getMethods().map(Method::getName).anyMatch(newName::equals));
 
 				return newName;
 			}
@@ -484,6 +455,53 @@ public class InstrumentedClass {
 					}
 				}
 				while (!workingSet.isEmpty());
+			}
+
+			/**
+			 * Sets the name of the superclass of this class.
+			 * 
+			 * @param name the new name of the superclass of this clas
+			 */
+			protected final void setSuperclassName(String name) {
+				classGen.setSuperclassName(name);
+			}
+
+			/**
+			 * Adds the given field to this class.
+			 * 
+			 * @param field the field to add
+			 */
+			protected final void addField(org.apache.bcel.classfile.Field field) {
+				classGen.addField(field);
+			}
+
+			/**
+			 * Replaces a method of this class with another.
+			 * 
+			 * @param old the old method to replace
+			 * @param _new the new method to put at its place
+			 */
+			protected final void replaceMethod(Method old, Method _new) {
+				classGen.replaceMethod(old, _new);
+			}
+
+			/**
+			 * Replaces a field of this class with another.
+			 * 
+			 * @param old the old field to replace
+			 * @param _new the new field to put at its place
+			 */
+			protected final void replaceField(org.apache.bcel.classfile.Field old, org.apache.bcel.classfile.Field _new) {
+				classGen.replaceField(old, _new);
+			}
+
+			/**
+			 * Yields the name of the superclass of this class, if any.
+			 * 
+			 * @return the name
+			 */
+			protected final String getSuperclassName() {
+				return classGen.getSuperclassName();
 			}
 		}
 

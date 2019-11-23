@@ -35,7 +35,7 @@ public class UsedCodeIsWhiteListedCheck extends VerifiedClassImpl.ClassVerificat
 			else if (ins instanceof InvokeInstruction) {
 				InvokeInstruction invoke = (InvokeInstruction) ins;
 				if (!hasWhiteListingModel(invoke)) {
-					Optional<? extends Executable> target = clazz.resolver.resolvedExecutableFor(invoke);
+					Optional<? extends Executable> target = resolver.resolvedExecutableFor(invoke);
 					if (target.isPresent()) {
 						Executable executable = target.get();
 						if (executable instanceof Constructor<?>)
