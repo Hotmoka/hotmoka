@@ -298,7 +298,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			 * @return the inferred source file name
 			 */
 			protected final String inferSourceFile() {
-				String sourceFile = VerifiedClassImpl.this.clazz.getFileName();
+				String sourceFile = clazz.getFileName();
 				String className = getClassName();
 			
 				if (sourceFile != null) {

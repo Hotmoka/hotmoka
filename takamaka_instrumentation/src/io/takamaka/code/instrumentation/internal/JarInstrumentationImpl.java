@@ -8,6 +8,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
 import io.takamaka.code.instrumentation.GasCostModel;
+import io.takamaka.code.instrumentation.InstrumentedClass;
 import io.takamaka.code.instrumentation.JarInstrumentation;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.VerifiedClass;
@@ -45,17 +46,17 @@ public class JarInstrumentationImpl implements JarInstrumentation {
 	/**
 	 * Instruments the given class from a jar file.
 	 * 
-	 * @param clazz the class
+	 * @param verifiedClass the class
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @param instrumentedJar the jar where the instrumented class must be dumped
 	 */
-	private void dumpInstrumentedClass(VerifiedClass clazz, GasCostModel gasCostModel, JarOutputStream instrumentedJar) {
+	private void dumpInstrumentedClass(VerifiedClass verifiedClass, GasCostModel gasCostModel, JarOutputStream instrumentedJar) {
 		try {
 			// add the same entry to the resulting jar
-			instrumentedJar.putNextEntry(new JarEntry(clazz.getClassName().replace('.', '/') + ".class"));
+			instrumentedJar.putNextEntry(new JarEntry(verifiedClass.getClassName().replace('.', '/') + ".class"));
 	
 			// instrument the class and dumps it into the jar file
-			new InstrumentedClass(clazz, gasCostModel).dump(instrumentedJar);
+			InstrumentedClass.of(verifiedClass, gasCostModel).toJavaClass().dump(instrumentedJar);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

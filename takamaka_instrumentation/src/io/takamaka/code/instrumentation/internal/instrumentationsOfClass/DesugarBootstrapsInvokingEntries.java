@@ -24,7 +24,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClass;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Constants;
 import it.univr.bcel.StackMapReplacer;
 
@@ -34,10 +34,10 @@ import it.univr.bcel.StackMapReplacer;
  * receive extra parameters, we transform those bootstrap methods by calling
  * brand new target code, that calls the entry with a normal invoke instruction.
  */
-public class DesugarBootstrapsInvokingEntries extends InstrumentedClass.Builder.ClassLevelInstrumentation {
+public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
 	private final static String EXTRA_LAMBDA_NAME = Constants.INSTRUMENTATION_PREFIX + "lambda";
 
-	public DesugarBootstrapsInvokingEntries(InstrumentedClass.Builder builder) {
+	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) {
 		builder.super();
 		verifiedClass.getBootstraps().getBootstrapsLeadingToEntries().forEach(this::desugarBootstrapCallingEntry);
 	}
@@ -134,7 +134,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClass.Builder.
 			invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 		il.append(InstructionFactory.createReturn(lambdaReturnType));
 
-		MethodGen addedLambda = new MethodGen(InstrumentedClass.PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
+		MethodGen addedLambda = new MethodGen(InstrumentedClassImpl.PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
 		addMethod(addedLambda, false);
 		bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
 	}

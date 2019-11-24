@@ -17,7 +17,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClass;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.Dummy;
 
@@ -25,11 +25,11 @@ import io.takamaka.code.verification.Dummy;
  * Passes the trailing implicit parameters to calls to entries. They are the
  * contract where the entry is called and {@code null} (for the dummy argument).
  */
-public class AddContractToCallsToEntries extends InstrumentedClass.Builder.MethodLevelInstrumentation {
+public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
-	public AddContractToCallsToEntries(InstrumentedClass.Builder builder, MethodGen method) {
+	public AddContractToCallsToEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (!method.isAbstract()) {

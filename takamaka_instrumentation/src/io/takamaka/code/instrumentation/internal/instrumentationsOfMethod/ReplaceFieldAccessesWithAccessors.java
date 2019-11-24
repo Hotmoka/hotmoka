@@ -17,15 +17,15 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClass;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
 /**
  * Replaces accesses to fields of storage classes with calls to accessor methods.
  */
-public class ReplaceFieldAccessesWithAccessors extends InstrumentedClass.Builder.MethodLevelInstrumentation {
+public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 
-	public ReplaceFieldAccessesWithAccessors(InstrumentedClass.Builder builder, MethodGen method) {
+	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (!method.isAbstract()) {

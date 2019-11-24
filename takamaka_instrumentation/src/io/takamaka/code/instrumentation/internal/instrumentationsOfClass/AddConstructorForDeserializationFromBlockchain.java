@@ -15,7 +15,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClass;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Constants;
 
 /**
@@ -24,9 +24,9 @@ import io.takamaka.code.verification.Constants;
  * the fields of the superclasses, then those of the same class being
  * constructed, ordered by name and then by {@code toString()} of their type.
  */
-public class AddConstructorForDeserializationFromBlockchain extends InstrumentedClass.Builder.ClassLevelInstrumentation {
+public class AddConstructorForDeserializationFromBlockchain extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
 
-	public AddConstructorForDeserializationFromBlockchain(InstrumentedClass.Builder builder) {
+	public AddConstructorForDeserializationFromBlockchain(InstrumentedClassImpl.Builder builder) {
 		builder.super();
 
 		if (isStorage) {
@@ -50,7 +50,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 
 			il.append(InstructionConst.RETURN);
 
-			MethodGen constructor = new MethodGen(InstrumentedClass.PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
+			MethodGen constructor = new MethodGen(InstrumentedClassImpl.PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
 					Const.CONSTRUCTOR_NAME, className, il, cpg);
 			addMethod(constructor, false);
 		}
@@ -118,7 +118,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 					il.append(InstructionFactory.createThis());
 					il.append(InstructionFactory.createLoad(type, local));
 				}
-				il.append(factory.createPutField(className, InstrumentedClass.OLD_PREFIX + field.getName(), type));
+				il.append(factory.createPutField(className, InstrumentedClassImpl.OLD_PREFIX + field.getName(), type));
 				local += size;
 			}
 		};

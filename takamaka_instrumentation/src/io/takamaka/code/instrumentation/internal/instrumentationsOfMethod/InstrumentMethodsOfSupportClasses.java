@@ -10,18 +10,18 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClass;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Constants;
 
 /**
  * Edits the code of the methods in some support classes of Takamaka.
  */
-public class InstrumentMethodsOfSupportClasses extends InstrumentedClass.Builder.MethodLevelInstrumentation {
+public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static ObjectType STORAGE_OT = new ObjectType(Constants.STORAGE_NAME);
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 
-	public InstrumentMethodsOfSupportClasses(InstrumentedClass.Builder builder, MethodGen method) {
+	public InstrumentMethodsOfSupportClasses(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		Type[] args;

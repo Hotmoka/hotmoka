@@ -1,7 +1,5 @@
 package io.takamaka.code.instrumentation.internal;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -22,6 +20,7 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.ConstantMethodHandle;
+import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.ATHROW;
 import org.apache.bcel.generic.BranchInstruction;
@@ -38,6 +37,7 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ReturnInstruction;
 
 import io.takamaka.code.instrumentation.GasCostModel;
+import io.takamaka.code.instrumentation.InstrumentedClass;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromBlockchain;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
@@ -61,7 +61,7 @@ import it.univr.bcel.StackMapReplacer;
  * An instrumenter of a single class file. For instance, it instruments storage
  * classes, by adding the serialization support, and contracts, to deal with entries.
  */
-public class InstrumentedClass {
+public class InstrumentedClassImpl implements InstrumentedClass {
 	public final static String OLD_PREFIX = Constants.INSTRUMENTATION_PREFIX + "old_";
 	public final static String IF_ALREADY_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ifAlreadyLoaded_";
 	public final static String ENSURE_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ensureLoaded_";
@@ -88,9 +88,9 @@ public class InstrumentedClass {
 		.thenComparing(field -> field.getType().toString());
 
 	/**
-	 * The class generator where instrumentations occur.
+	 * The Java class of this instrumented class.
 	 */
-	private final ClassGen classGen;
+	private final JavaClass javaClass;
 
 	/**
 	 * Performs the instrumentation of a single class file.
@@ -99,19 +99,18 @@ public class InstrumentedClass {
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @param instrumentedJar the jar where the instrumented class will be added
 	 */
-	InstrumentedClass(VerifiedClass clazz, GasCostModel gasCostModel) {
-		this.classGen = new ClassGen(clazz.toJavaClass());
-		new Builder(clazz, gasCostModel);
+	public InstrumentedClassImpl(VerifiedClass clazz, GasCostModel gasCostModel) {
+		this.javaClass = new Builder(clazz, gasCostModel).classGen.getJavaClass();
 	}
 
-	/**
-	 * Dumps this instrumented class into an output stream.
-	 * 
-	 * @param where the output stream
-	 * @throws IOException if a disk error occurred
-	 */
-	public void dump(OutputStream where) throws IOException {
-		classGen.getJavaClass().dump(where);
+	@Override
+	public String getClassName() {
+		return javaClass.getClassName();
+	}
+
+	@Override
+	public JavaClass toJavaClass() {
+		return javaClass;
 	}
 
 	/**
@@ -123,6 +122,11 @@ public class InstrumentedClass {
 		 * The class that is being instrumented.
 		 */
 		private final VerifiedClass verifiedClass;
+
+		/**
+		 * The class generator of the verified class.
+		 */
+		private final ClassGen classGen;
 
 		/**
 		 * The methods of the instrumented class, in editable version.
@@ -207,6 +211,7 @@ public class InstrumentedClass {
 		 */
 		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) {
 			this.verifiedClass = clazz;
+			this.classGen = new ClassGen(clazz.toJavaClass());
 			this.gasCostModel = gasCostModel;
 			this.className = classGen.getClassName();
 			this.classLoader = clazz.getJar().getClassLoader();
@@ -535,13 +540,13 @@ public class InstrumentedClass {
 		}
 
 		private void applyToAllMethods(Function<Method, Method> what) {
-			Method[] methods = InstrumentedClass.this.classGen.getMethods();
+			Method[] methods = classGen.getMethods();
 			List<Method> processedMethods = Stream.of(methods).map(what).collect(Collectors.toList());
 
 			// replacing old with new methods
 			int pos = 0;
 			for (Method processed: processedMethods)
-				InstrumentedClass.this.classGen.replaceMethod(methods[pos++], processed);
+				classGen.replaceMethod(methods[pos++], processed);
 		}
 
 		/**

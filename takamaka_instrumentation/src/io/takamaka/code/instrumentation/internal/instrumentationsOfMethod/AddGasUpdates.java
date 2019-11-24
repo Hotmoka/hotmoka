@@ -37,7 +37,7 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClass;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
@@ -45,7 +45,7 @@ import io.takamaka.code.verification.ThrowIncompleteClasspathError;
  * Adds a gas decrease at the beginning of each basic block of code or
  * before instructions that allocate memory.
  */
-public class AddGasUpdates extends InstrumentedClass.Builder.MethodLevelInstrumentation {
+public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static String EXTRA_ALLOCATOR_NAME = Constants.INSTRUMENTATION_PREFIX + "multianewarray";
 	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.ABSTRACT_TAKAMAKA_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
@@ -53,7 +53,7 @@ public class AddGasUpdates extends InstrumentedClass.Builder.MethodLevelInstrume
 	private final static Type[] ONE_INT_ARGS = { Type.INT };
 	private final static Type[] ONE_LONG_ARGS = { Type.LONG };
 
-	public AddGasUpdates(InstrumentedClass.Builder builder, MethodGen method) {
+	public AddGasUpdates(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
@@ -205,7 +205,7 @@ public class AddGasUpdates extends InstrumentedClass.Builder.MethodLevelInstrume
 			allocatorIl.insert(fallBack2, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
 			allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
-			MethodGen allocator = new MethodGen(InstrumentedClass.PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
+			MethodGen allocator = new MethodGen(InstrumentedClassImpl.PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
 			addMethod(allocator, true);
 
 			// the original multianewarray gets replaced with a call to the allocation method

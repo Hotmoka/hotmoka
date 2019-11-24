@@ -27,7 +27,7 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClass;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.instrumentation.internal.HeightAtBytecode;
 import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.Dummy;
@@ -36,14 +36,14 @@ import io.takamaka.code.verification.Dummy;
  * Sets the caller at the beginning of entries and updates the balance
  * at the beginning of payable entries.
  */
-public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClass.Builder.MethodLevelInstrumentation {
+public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 	private final static String PAYABLE_ENTRY = "payableEntry";
 	private final static String ENTRY = "entry";
 	private final static Type[] ENTRY_ARGS = { CONTRACT_OT };
 
-	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClass.Builder builder, MethodGen method) {
+	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
 		Optional<Class<?>> callerContract;
