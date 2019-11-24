@@ -62,11 +62,11 @@ public class BootstrapsImpl implements Bootstraps {
 
 	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
 
-	BootstrapsImpl(VerifiedClassImpl clazz) {
+	BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) {
 		this.verifiedClass = clazz;
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
-		collectBootstrapsLeadingToEntries();
+		collectBootstrapsLeadingToEntries(methods);
 	}
 
 	@Override
@@ -134,9 +134,10 @@ public class BootstrapsImpl implements Bootstraps {
 	 * It must belong to the same class that we are processing.
 	 * 
 	 * @param bootstrap the bootstrap
+	 * @param methods the methods of the class under verification
 	 * @return the lambda bridge method
 	 */
-	public Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap) {
+	private Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap, MethodGen[] methods) {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			if (constant instanceof ConstantMethodHandle) {
@@ -152,7 +153,7 @@ public class BootstrapsImpl implements Bootstraps {
 	
 					// a lambda bridge can only be present in the same class that calls it
 					if (className.equals(verifiedClass.getClassName()))
-						return verifiedClass.getMethodGens()
+						return Stream.of(methods)
 							.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
 							.findFirst();
 				}
@@ -228,12 +229,12 @@ public class BootstrapsImpl implements Bootstraps {
 		return bootstraps.isPresent() ? bootstraps.get().getBootstrapMethods() : NO_BOOTSTRAPS;
 	}
 
-	private void collectBootstrapsLeadingToEntries() {
+	private void collectBootstrapsLeadingToEntries(MethodGen[] methods) {
 		int initialSize;
 		do {
 			initialSize = bootstrapMethodsLeadingToEntries.size();
 			getBootstraps()
-				.filter(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap))
+				.filter(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods))
 				.forEach(bootstrapMethodsLeadingToEntries::add);
 		}
 		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
@@ -242,11 +243,12 @@ public class BootstrapsImpl implements Bootstraps {
 	/**
 	 * Determines if the given lambda method calls an {@code @@Entry}, possibly indirectly.
 	 * 
-	 * @param lambda the lambda method
+	 * @param bootstrap the lambda method
+	 * @param methods the methods of the class under verification
 	 * @return true if that condition holds
 	 */
-	private boolean lambdaCallsEntry(BootstrapMethod bootstrap) {
-		Optional<MethodGen> lambda = getLambdaFor(bootstrap);
+	private boolean lambdaCallsEntry(BootstrapMethod bootstrap, MethodGen[] methods) {
+		Optional<MethodGen> lambda = getLambdaFor(bootstrap, methods);
 		if (lambda.isPresent()) {
 			InstructionList instructions = lambda.get().getInstructionList();
 			if (instructions != null)

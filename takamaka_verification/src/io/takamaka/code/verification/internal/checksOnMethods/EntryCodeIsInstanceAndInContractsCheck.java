@@ -7,9 +7,9 @@ import io.takamaka.code.verification.issues.IllegalEntryMethodError;
 /**
  * A check that {@code @@Entry} is applied only to instance methods or constructors of contracts.
  */
-public class EntryCodeIsInstanceAndInContractsCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
+public class EntryCodeIsInstanceAndInContractsCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 
-	public EntryCodeIsInstanceAndInContractsCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
+	public EntryCodeIsInstanceAndInContractsCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
 		annotations.isEntry(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {

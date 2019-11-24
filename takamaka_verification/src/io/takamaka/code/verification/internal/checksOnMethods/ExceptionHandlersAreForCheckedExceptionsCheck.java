@@ -11,9 +11,9 @@ import io.takamaka.code.verification.issues.UncheckedExceptionHandlerError;
 /**
  * A check that the exception handlers of a method are only for checked exceptions.
  */
-public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
+public class ExceptionHandlersAreForCheckedExceptionsCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 
-	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
+	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
 		for (CodeExceptionGen exc: method.getExceptionHandlers()) {

@@ -6,9 +6,9 @@ import io.takamaka.code.verification.issues.IllegalPackageNameError;
 /**
  * A check that class packages in Takamaka code are allowed.
  */
-public class PackagesAreLegalCheck extends VerifiedClassImpl.ClassVerification.Check {
+public class PackagesAreLegalCheck extends VerifiedClassImpl.Builder.Check {
 
-	public PackagesAreLegalCheck(VerifiedClassImpl.ClassVerification verification) {
+	public PackagesAreLegalCheck(VerifiedClassImpl.Builder verification) {
 		verification.super();
 
 		if (className.startsWith("java.") || className.startsWith("javax."))

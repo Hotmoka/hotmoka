@@ -14,9 +14,9 @@ import io.takamaka.code.verification.issues.InconsistentPayableError;
  * A check that {@code @@Payable} methods only redefine {@code @@Payable} methods and that
  * {@code @@Payable} methods are only redefined by {@code @@Payable} methods.
  */
-public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
+public class PayableCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 
-	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {

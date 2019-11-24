@@ -28,9 +28,9 @@ import io.takamaka.code.verification.issues.IllegalCallToEntryError;
 /**
  * A check that {@code @@Entry} methods or constructors are called only from instance methods of contracts.
  */
-public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.ClassVerification.Check {
+public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Builder.Check {
 
-	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClassImpl.ClassVerification verification) {
+	public EntriesAreOnlyCalledFromContractsCheck(VerifiedClassImpl.Builder verification) {
 		verification.super();
 
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call entries
@@ -54,7 +54,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Cl
 
 		// we initially compute the set of all lambdas
 		Set<MethodGen> lambdas = bootstraps.getBootstraps()
-			.map(bootstraps::getLambdaFor)
+			.map(this::getLambdaFor)
 			.filter(Optional::isPresent)
 			.map(Optional::get)
 			.collect(Collectors.toSet());
@@ -88,7 +88,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Cl
 				.filter(instruction -> instruction instanceof INVOKEDYNAMIC)
 				.map(instruction -> (INVOKEDYNAMIC) instruction)
 				.map(bootstraps::getBootstrapFor)
-				.map(bootstraps::getLambdaFor)
+				.map(this::getLambdaFor)
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.forEach(lambdasReachableFromStaticMethods::add);

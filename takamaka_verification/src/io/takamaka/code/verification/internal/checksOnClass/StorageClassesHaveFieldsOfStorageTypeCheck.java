@@ -12,9 +12,9 @@ import io.takamaka.code.verification.issues.IllegalTypeForStorageFieldError;
 /**
  * A checks that payable methods have an amount first argument.
  */
-public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassImpl.ClassVerification.Check {
+public class StorageClassesHaveFieldsOfStorageTypeCheck extends VerifiedClassImpl.Builder.Check {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.ClassVerification verification) {
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Builder verification) {
 		verification.super();
 
 		if (classLoader.isStorage(className))

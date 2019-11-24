@@ -6,9 +6,9 @@ import io.takamaka.code.verification.issues.IllegalBootstrapMethodError;
 /**
  * A check that lambda bootstraps are only among those allowed by Takamaka.
  */
-public class BootstrapsAreLegalCheck extends VerifiedClassImpl.ClassVerification.Check {
+public class BootstrapsAreLegalCheck extends VerifiedClassImpl.Builder.Check {
 
-	public BootstrapsAreLegalCheck(VerifiedClassImpl.ClassVerification verification) {
+	public BootstrapsAreLegalCheck(VerifiedClassImpl.Builder verification) {
 		verification.super();
 
 		bootstraps.getBootstraps()

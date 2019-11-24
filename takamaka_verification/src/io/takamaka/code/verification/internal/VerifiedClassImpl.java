@@ -12,6 +12,13 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.bcel.classfile.Attribute;
+import org.apache.bcel.classfile.BootstrapMethod;
+import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantClass;
+import org.apache.bcel.classfile.ConstantMethodHandle;
+import org.apache.bcel.classfile.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LineNumberTable;
 import org.apache.bcel.generic.ClassGen;
@@ -65,11 +72,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 	private final ClassGen clazz;
 
 	/**
-	 * The methods of this class, in editable version.
-	 */
-	private final MethodGen[] methods;
-
-	/**
 	 * The jar this class belongs to.
 	 */
 	public final VerifiedJarImpl jar;
@@ -95,12 +97,13 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 */
 	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
 		this.clazz = new ClassGen(clazz);
-		this.methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, getClassName(), getConstantPool())).toArray(MethodGen[]::new);
 		this.jar = jar;
-		this.bootstraps = new BootstrapsImpl(this);
+		ConstantPoolGen cpg = getConstantPool();
+		MethodGen[] methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, getClassName(), cpg)).toArray(MethodGen[]::new);
+		this.bootstraps = new BootstrapsImpl(this, methods);
 		this.resolver = new ResolverImpl(this);
 
-		new ClassVerification(issueHandler, duringInitialization);
+		new Builder(issueHandler, methods, duringInitialization);
 	}
 
 	@Override
@@ -139,15 +142,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 	}
 
 	/**
-	 * Yields the methods inside this class, in generator form.
-	 * 
-	 * @return the methods inside this class
-	 */
-	Stream<MethodGen> getMethodGens() {
-		return Stream.of(methods);
-	}
-
-	/**
 	 * Yields the constant pool of this class.
 	 * 
 	 * @return the constant pool
@@ -156,6 +150,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 		return clazz.getConstantPool();
 	}
 
+	/**
+	 * Yields the attributes of this class.
+	 * 
+	 * @return the attributes
+	 */
 	Attribute[] getAttributes() {
 		return clazz.getAttributes();
 	}
@@ -206,7 +205,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	/**
 	 * The algorithms that perform the verification of the BCEL class.
 	 */
-	public class ClassVerification {
+	public class Builder {
 
 		/**
 		 * The handler that must be notified of issues found in the class.
@@ -224,6 +223,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 		private final boolean duringInitialization;
 
 		/**
+		 * The methods of the class under verification.
+		 */
+		private final MethodGen[] methods;
+
+		/**
 		 * True if and only if at least an error was issued during verification.
 		 */
 		private boolean hasErrors;
@@ -235,10 +239,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * @param duringInitialization true if and only if verification is performed during blockchain initialization
 		 * @throws VerificationException if some verification error occurs
 		 */
-		private ClassVerification(Consumer<Issue> issueHandler, boolean duringInitialization) throws VerificationException {
+		private Builder(Consumer<Issue> issueHandler, MethodGen[] methods, boolean duringInitialization) throws VerificationException {
 			this.issueHandler = issueHandler;
 			ConstantPoolGen cpg = getConstantPool();
-			this.lines = getMethodGens().collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(cpg)));
+			this.methods = methods;
+			this.lines = Stream.of(methods).collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(cpg)));
 			this.duringInitialization = duringInitialization;
 
 			new PackagesAreLegalCheck(this);
@@ -246,7 +251,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
 			new EntriesAreOnlyCalledFromContractsCheck(this);
 
-			getMethodGens().forEachOrdered(MethodVerification::new);
+			Stream.of(methods).forEachOrdered(MethodVerification::new);
 
 			if (hasErrors)
 				throw new VerificationException();
@@ -258,7 +263,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			protected final ResolverImpl resolver = VerifiedClassImpl.this.resolver;
 			protected final Annotations annotations = jar.annotations;
 			protected final BcelToClass bcelToClass = jar.bcelToClass;
-			protected final boolean duringInitialization = ClassVerification.this.duringInitialization;
+			protected final boolean duringInitialization = Builder.this.duringInitialization;
 			protected final String className = getClassName();
 			protected final ConstantPoolGen cpg = getConstantPool();
 		
@@ -358,6 +363,40 @@ public class VerifiedClassImpl implements VerifiedClass {
 			}
 
 			/**
+			 * Yields the lambda bridge method called by the given bootstrap.
+			 * It must belong to the same class that we are processing.
+			 * 
+			 * @param bootstrap the bootstrap
+			 * @return the lambda bridge method
+			 */
+			protected final Optional<MethodGen> getLambdaFor(BootstrapMethod bootstrap) {
+				ConstantPoolGen cpg = getConstantPool();
+				if (bootstrap.getNumBootstrapArguments() == 3) {
+					Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+					if (constant instanceof ConstantMethodHandle) {
+						ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+						Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+						if (constant2 instanceof ConstantMethodref) {
+							ConstantMethodref mr = (ConstantMethodref) constant2;
+							int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+							String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+							ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+							String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+							String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+			
+							// a lambda bridge can only be present in the same class that calls it
+							if (className.equals(getClassName()))
+								return getMethodGens()
+									.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
+									.findFirst();
+						}
+					}
+				}
+			
+				return Optional.empty();
+			}
+
+			/**
 			 * Yields the methods inside this class, in generator form.
 			 * 
 			 * @return the methods inside this class
@@ -389,7 +428,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 				new UsedCodeIsWhiteListedCheck(this);
 			}
 
-			public abstract class Check extends ClassVerification.Check {
+			public abstract class Check extends Builder.Check {
 				protected final MethodGen method = MethodVerification.this.method;
 				protected final String methodName = method.getName();
 				protected final Type[] methodArgs = method.getArgumentTypes();

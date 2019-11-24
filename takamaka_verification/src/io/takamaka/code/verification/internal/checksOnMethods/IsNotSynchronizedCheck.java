@@ -6,9 +6,9 @@ import io.takamaka.code.verification.issues.IllegalSynchronizationError;
 /**
  * A check the method is not synchronized.
  */
-public class IsNotSynchronizedCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
+public class IsNotSynchronizedCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 
-	public IsNotSynchronizedCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
+	public IsNotSynchronizedCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
 		if (method.isSynchronized())

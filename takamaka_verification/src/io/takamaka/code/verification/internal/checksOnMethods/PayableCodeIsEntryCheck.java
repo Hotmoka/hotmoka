@@ -6,9 +6,9 @@ import io.takamaka.code.verification.issues.PayableWithoutEntryError;
 /**
  * A check that {@code @@Entry} is applied only to instance methods or constructors of contracts.
  */
-public class PayableCodeIsEntryCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
+public class PayableCodeIsEntryCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 
-	public PayableCodeIsEntryCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
+	public PayableCodeIsEntryCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
 		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType)

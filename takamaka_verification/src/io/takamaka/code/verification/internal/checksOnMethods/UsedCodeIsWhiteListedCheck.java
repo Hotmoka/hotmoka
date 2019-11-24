@@ -20,9 +20,9 @@ import io.takamaka.code.verification.issues.IllegalCallToNonWhiteListedMethodErr
 /**
  * A check that a method calls white-listed methods only and accesses white-listed fields only.
  */
-public class UsedCodeIsWhiteListedCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
+public class UsedCodeIsWhiteListedCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
+	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
 		instructions().forEach(ih -> {

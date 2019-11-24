@@ -6,9 +6,9 @@ import io.takamaka.code.verification.issues.ThrowsExceptionsOnNonPublicError;
 /**
  * A checks that {@code @@ThrowsExceptions} methods are public.
  */
-public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassImpl.ClassVerification.MethodVerification.Check {
+public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 
-	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.ClassVerification.MethodVerification verification) {
+	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
 		getMethodGens()
