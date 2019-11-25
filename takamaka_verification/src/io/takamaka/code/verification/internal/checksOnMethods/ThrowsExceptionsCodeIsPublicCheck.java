@@ -11,7 +11,7 @@ public class ThrowsExceptionsCodeIsPublicCheck extends VerifiedClassImpl.Builder
 	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
-		getMethodGens()
+		getMethods()
 			.filter(method -> !method.isPublic() && annotations.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
 			.map(method -> new ThrowsExceptionsOnNonPublicError(inferSourceFile(), method.getName()))
 			.forEachOrdered(this::issue);

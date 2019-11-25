@@ -39,7 +39,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Bu
 		if (isContract)
 			computeLambdasUnreachableFromStaticMethods(lambdasUnreachableFromStaticMethods);
 
-		getMethodGens()
+		getMethods()
 			.filter(method -> !isContract || (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
 			.forEachOrdered(method ->
 				instructionsOf(method)
@@ -61,7 +61,7 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Bu
 
 		// then we consider all lambdas that might be called, directly, from a static method
 		// that is not a lambda: they must be considered as reachable from a static method
-		getMethodGens()
+		getMethods()
 			.filter(MethodGen::isStatic)
 			.filter(method -> !lambdas.contains(method))
 			.forEach(method -> addLambdasReachableFromStatic(method, lambdasReachableFromStaticMethods));

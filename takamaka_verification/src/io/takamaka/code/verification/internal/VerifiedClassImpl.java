@@ -41,6 +41,7 @@ import io.takamaka.code.verification.VerifiedClass;
 import io.takamaka.code.verification.VerifiedJar;
 import io.takamaka.code.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnClass.EntriesAreOnlyCalledFromContractsCheck;
+import io.takamaka.code.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
 import io.takamaka.code.verification.internal.checksOnClass.PackagesAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
@@ -247,6 +248,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			this.duringInitialization = duringInitialization;
 
 			new PackagesAreLegalCheck(this);
+			new NamesDontStartWithForbiddenPrefix(this);
 			new BootstrapsAreLegalCheck(this);
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
 			new EntriesAreOnlyCalledFromContractsCheck(this);
@@ -336,15 +338,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 			}
 
 			/**
-			 * Yields the fields in this class.
-			 * 
-			 * @return the fields
-			 */
-			protected final Stream<org.apache.bcel.classfile.Field> getFields() {
-				return Stream.of(clazz.getFields());
-			}
-
-			/**
 			 * Determines if this class is an enumeration.
 			 * 
 			 * @return true if and only if that condition holds
@@ -386,7 +379,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			
 							// a lambda bridge can only be present in the same class that calls it
 							if (className.equals(getClassName()))
-								return getMethodGens()
+								return getMethods()
 									.filter(method -> method.getName().equals(methodName) && method.getSignature().equals(methodSignature))
 									.findFirst();
 						}
@@ -397,11 +390,20 @@ public class VerifiedClassImpl implements VerifiedClass {
 			}
 
 			/**
-			 * Yields the methods inside this class, in generator form.
+			 * Yields the fields in this class.
 			 * 
-			 * @return the methods inside this class
+			 * @return the fields
 			 */
-			protected final Stream<MethodGen> getMethodGens() {
+			protected final Stream<org.apache.bcel.classfile.Field> getFields() {
+				return Stream.of(clazz.getFields());
+			}
+
+			/**
+			 * Yields the methods inside the class being verified.
+			 * 
+			 * @return the methods
+			 */
+			protected final Stream<MethodGen> getMethods() {
 				return Stream.of(methods);
 			}
 		}

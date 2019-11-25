@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.GasCosts;
 import io.takamaka.code.blockchain.annotations.Immutable;
+import io.takamaka.code.verification.Constants;
 
 /**
  * A class type that can be used for stored objects in blockchain.
@@ -19,72 +20,72 @@ public final class ClassType implements StorageType {
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
 	 */
-	public final static ClassType OBJECT = new ClassType("java.lang.Object");
+	public final static ClassType OBJECT = new ClassType(Object.class.getName());
 
 	/**
 	 * The frequently used class type for {@link java.lang.String}.
 	 */
-	public final static ClassType STRING = new ClassType("java.lang.String");
+	public final static ClassType STRING = new ClassType(String.class.getName());
 
 	/**
 	 * The frequently used class type for {@link java.math.BigInteger}.
 	 */
-	public final static ClassType BIG_INTEGER = new ClassType("java.math.BigInteger");
+	public final static ClassType BIG_INTEGER = new ClassType(BigInteger.class.getName());
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
 	 */
-	public final static ClassType EOA = new ClassType("io.takamaka.code.lang.ExternallyOwnedAccount");
+	public final static ClassType EOA = new ClassType(Constants.EOA_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.TestExternallyOwnedAccount}.
 	 */
-	public final static ClassType TEOA = new ClassType("io.takamaka.code.lang.TestExternallyOwnedAccount");
+	public final static ClassType TEOA = new ClassType(Constants.TEOA_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
 	 */
-	public final static ClassType CONTRACT = new ClassType("io.takamaka.code.lang.Contract");
+	public final static ClassType CONTRACT = new ClassType(Constants.CONTRACT_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Storage}.
 	 */
-	public final static ClassType STORAGE = new ClassType("io.takamaka.code.lang.Storage");
+	public final static ClassType STORAGE = new ClassType(Constants.STORAGE_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Takamaka}.
 	 */
-	public final static ClassType TAKAMAKA = new ClassType("io.takamaka.code.lang.Takamaka");
+	public final static ClassType TAKAMAKA = new ClassType(io.takamaka.code.instrumentation.Constants.TAKAMAKA_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Event}.
 	 */
-	public final static ClassType EVENT = new ClassType("io.takamaka.code.lang.Event");
+	public final static ClassType EVENT = new ClassType(io.takamaka.code.instrumentation.Constants.EVENT_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.PayableContract}.
 	 */
-	public final static ClassType PAYABLE_CONTRACT = new ClassType("io.takamaka.code.lang.PayableContract");
+	public final static ClassType PAYABLE_CONTRACT = new ClassType(Constants.PAYABLE_CONTRACT_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Entry}.
 	 */
-	public final static ClassType ENTRY = new ClassType("io.takamaka.code.lang.Entry");
+	public final static ClassType ENTRY = new ClassType(Constants.ENTRY_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.View}.
 	 */
-	public final static ClassType VIEW = new ClassType("io.takamaka.code.lang.View");
+	public final static ClassType VIEW = new ClassType(io.takamaka.code.instrumentation.Constants.VIEW_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Payable}.
 	 */
-	public final static ClassType PAYABLE = new ClassType("io.takamaka.code.lang.Payable");
+	public final static ClassType PAYABLE = new ClassType(Constants.PAYABLE_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
 	 */
-	public final static ClassType THROWS_EXCEPTIONS = new ClassType("io.takamaka.code.lang.ThrowsExceptions");
+	public final static ClassType THROWS_EXCEPTIONS = new ClassType(Constants.THROWS_EXCEPTIONS_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32}.

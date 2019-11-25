@@ -1,7 +1,7 @@
 package io.takamaka.code.instrumentation.internal.instrumentationsOfClass;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.instrumentation.Constants;
 
 /**
  * An instrumentation that sets the superclass of some classes, in order to inherit special abilities
@@ -14,7 +14,7 @@ public class SwapSuperclassOfSpecialClasses extends InstrumentedClassImpl.Builde
 
 		if (className.equals(Constants.EVENT_NAME))
 			setSuperclassName(Constants.ABSTRACT_EVENT_NAME);
-		else if (className.equals(Constants.STORAGE_NAME))
+		else if (className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME))
 			setSuperclassName(Constants.ABSTRACT_STORAGE_NAME);
 	}
 }

@@ -24,6 +24,7 @@ import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.takamaka.code.verification.Constants;
 import it.univr.bcel.StackMapReplacer;
 
 /**
@@ -33,7 +34,7 @@ import it.univr.bcel.StackMapReplacer;
  * brand new target code, that calls the entry with a normal invoke instruction.
  */
 public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
-	private final static String EXTRA_LAMBDA_NAME = "lambda";
+	private final static String EXTRA_LAMBDA_NAME = Constants.FORBIDDEN_PREFIX + "lambda";
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
 	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) {

@@ -15,7 +15,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.instrumentation.Constants;
 
 /**
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.

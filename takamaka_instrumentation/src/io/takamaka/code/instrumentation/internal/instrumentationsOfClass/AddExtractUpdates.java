@@ -16,7 +16,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.instrumentation.Constants;
 
 /**
  * An instrumentation that adds, to a storage class, the method that extract all updates to an instance

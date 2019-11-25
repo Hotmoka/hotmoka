@@ -1,7 +1,7 @@
 package io.takamaka.code.verification;
 
 /**
- * A collector of constants used in the instrumented code.
+ * A collector of constants useful during code verification.
  */
 public interface Constants {
 
@@ -11,29 +11,24 @@ public interface Constants {
 	public final static String EOA_NAME = "io.takamaka.code.lang.ExternallyOwnedAccount";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.TestExternallyOwnedAccount}.
+	 */
+	public final static String TEOA_NAME = "io.takamaka.code.lang.TestExternallyOwnedAccount";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Contract}.
 	 */
 	public final static String CONTRACT_NAME = "io.takamaka.code.lang.Contract";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.PayableContract}.
+	 */
+	public final static String PAYABLE_CONTRACT_NAME = "io.takamaka.code.lang.PayableContract";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Storage}.
 	 */
 	public final static String STORAGE_NAME = "io.takamaka.code.lang.Storage";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.Takamaka}.
-	 */
-	public final static String TAKAMAKA_NAME = "io.takamaka.code.lang.Takamaka";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.Event}.
-	 */
-	public final static String EVENT_NAME = "io.takamaka.code.lang.Event";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.View}.
-	 */
-	public final static String VIEW_NAME = "io.takamaka.code.lang.View";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
@@ -51,33 +46,10 @@ public interface Constants {
 	public final static String THROWS_EXCEPTIONS_NAME = "io.takamaka.code.lang.ThrowsExceptions";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractEvent}.
+	 * This character is forbidden in the name of fields and methods of Takamaka code,
+	 * since it will be used for instrumentation. Java compilers do not allow one to
+	 * use this character in the name of fields or methods, but it is still possible if
+	 * Java bytecode is produced in other ways. Hence it is necessary to check that it is not used.
 	 */
-	public final static String ABSTRACT_EVENT_NAME = "io.takamaka.code.blockchain.runtime.AbstractEvent";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractStorage}.
-	 */
-	public final static String ABSTRACT_STORAGE_NAME = "io.takamaka.code.blockchain.runtime.AbstractStorage";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractTakamaka}.
-	 */
-	public final static String ABSTRACT_TAKAMAKA_NAME = "io.takamaka.code.blockchain.runtime.AbstractTakamaka";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageReference}.
-	 */
-	public final static String STORAGE_REFERENCE_NAME = "io.takamaka.code.blockchain.values.StorageReference";
-
-	/**
-	 * The maximal gas cost for which there is an optimized charge method.
-	 */
-	public final static int MAX_COMPACT_CHARGE = 20;
-
-	/**
-	 * The character that is put at the beginning of synthetic methods used for instrumentation
-	 * of Takamaka code.
-	 */
-	public final static char INSTRUMENTATION_PREFIX = '§';
+	public final static char FORBIDDEN_PREFIX = '§';
 }

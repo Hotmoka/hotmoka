@@ -16,7 +16,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.instrumentation.Constants;
 
 /**
  * An instrumentation that adds a constructor that deserializes an object of storage type. This
@@ -37,7 +37,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 			args.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
 
 			// then there are the fields of the class and superclasses, with superclasses first
-			if (!className.equals(Constants.STORAGE_NAME))
+			if (!className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME))
 				eagerNonTransientInstanceFields.stream()
 				.flatMap(SortedSet::stream)
 				.map(Field::getType)
@@ -46,7 +46,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
-			if (!className.equals(Constants.STORAGE_NAME))
+			if (!className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME))
 				addInitializationOfEagerFields(il, nextLocal);
 
 			il.append(InstructionConst.RETURN);
@@ -84,7 +84,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 		};
 
 		PushLoad pushLoad = new PushLoad();
-		if (!className.equals(Constants.STORAGE_NAME))
+		if (!className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME))
 			eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 				.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 

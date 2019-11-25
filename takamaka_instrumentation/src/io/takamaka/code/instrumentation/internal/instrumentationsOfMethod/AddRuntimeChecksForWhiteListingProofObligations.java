@@ -35,9 +35,9 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Bootstraps;
-import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
@@ -47,7 +47,7 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * Adds instructions that check that white-listing proof obligations hold at run time.
  */
 public class AddRuntimeChecksForWhiteListingProofObligations extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static String EXTRA_VERIFIER_NAME = "verifier";
+	private final static String EXTRA_VERIFIER_NAME = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "verifier";
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 
 	public AddRuntimeChecksForWhiteListingProofObligations(InstrumentedClassImpl.Builder builder, MethodGen method) {

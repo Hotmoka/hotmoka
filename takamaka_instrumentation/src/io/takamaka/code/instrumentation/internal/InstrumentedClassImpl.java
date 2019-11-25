@@ -61,12 +61,12 @@ import it.univr.bcel.StackMapReplacer;
  * classes, by adding the serialization support, and contracts, to deal with entries.
  */
 public class InstrumentedClassImpl implements InstrumentedClass {
-	public final static String OLD_PREFIX = Constants.INSTRUMENTATION_PREFIX + "old_";
-	public final static String IF_ALREADY_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ifAlreadyLoaded_";
-	public final static String ENSURE_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ensureLoaded_";
+	public final static String OLD_PREFIX = Constants.FORBIDDEN_PREFIX + "old_";
+	public final static String IF_ALREADY_LOADED_PREFIX = Constants.FORBIDDEN_PREFIX + "ifAlreadyLoaded_";
+	public final static String ENSURE_LOADED_PREFIX = Constants.FORBIDDEN_PREFIX + "ensureLoaded_";
 	public final static String IN_STORAGE_NAME = "inStorage";
-	private final static String GETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "get_";
-	private final static String SETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "set_";
+	private final static String GETTER_PREFIX = Constants.FORBIDDEN_PREFIX + "get_";
+	private final static String SETTER_PREFIX = Constants.FORBIDDEN_PREFIX + "set_";
 
 	/**
 	 * The order used for generating the parameters of the instrumented constructors.
@@ -401,13 +401,20 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				return Stream.of(classGen.getFields());
 			}
 
-			protected final String getNewNameForPrivateMethod(String innerName) {
+			/**
+			 * Yields the name for a method that starts with the given prefix, followed
+			 * by a numerical index. It guarantees that the name is not yet used for
+			 * existing methods.
+			 *
+			 * @param prefix the prefix
+			 * @return the name
+			 */
+			protected final String getNewNameForPrivateMethod(String prefix) {
 				int counter = 0;
 				String newName;
-				innerName = Constants.INSTRUMENTATION_PREFIX + innerName;
 
 				do {
-					newName = innerName + counter++;
+					newName = prefix + counter++;
 				}
 				while (getMethods().map(MethodGen::getName).anyMatch(newName::equals));
 

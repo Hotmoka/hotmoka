@@ -11,13 +11,13 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.instrumentation.Constants;
 
 /**
  * Edits the code of the methods in some support classes of Takamaka.
  */
 public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType STORAGE_OT = new ObjectType(Constants.STORAGE_NAME);
+	private final static ObjectType STORAGE_OT = new ObjectType(io.takamaka.code.verification.Constants.STORAGE_NAME);
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 
@@ -35,7 +35,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				method.setInstructionList(il);
 			}
 		}
-		else if (className.equals(Constants.STORAGE_NAME)) {
+		else if (className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)) {
 			if ("compareAge".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);

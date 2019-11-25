@@ -38,7 +38,7 @@ import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
 /**
@@ -46,7 +46,7 @@ import io.takamaka.code.verification.ThrowIncompleteClasspathError;
  * before instructions that allocate memory.
  */
 public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static String EXTRA_ALLOCATOR_NAME = "multianewarray";
+	private final static String EXTRA_ALLOCATOR_NAME = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "multianewarray";
 	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.ABSTRACT_TAKAMAKA_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };
@@ -61,7 +61,10 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			SortedSet<InstructionHandle> dominators = computeDominators(method);
 			InstructionList il = method.getInstructionList();
 			CodeExceptionGen[] ceg = method.getExceptionHandlers();
-			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
+
+			Class<?> abstractTakamaka = ThrowIncompleteClasspathError.insteadOfClassNotFoundException
+				(() -> classLoader.loadClass(Constants.ABSTRACT_TAKAMAKA_NAME));
+			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators, abstractTakamaka));
 			StreamSupport.stream(il.spliterator(), false).forEachOrdered(ih -> addRamGasUpdate(ih, il, ceg));			
 		}
 	}
@@ -224,16 +227,18 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 		});
 	}
 
-	private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators) {
+	private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators, Class<?> abstractTakamaka) {
 		long cost = cpuCostOf(dominator, dominators);
 		InstructionHandle newTarget;
+		String chargeName = "charge" + cost;
 
-		// up to this value, there is a special compact method for charging gas
-		if (cost <= Constants.MAX_COMPACT_CHARGE)
-			newTarget = il.insert(dominator, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
-		else {
+		// we check if there is an optimized charge method for the cost
+		try {
+			abstractTakamaka.getMethod(chargeName);
+			newTarget = il.insert(dominator, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, chargeName, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
+		}
+		catch (NoSuchMethodException | SecurityException e) {
 			newTarget = il.insert(dominator, createConstantPusher(cost));
-
 			il.insert(dominator, chargeCall(cost, "charge"));
 		}
 
