@@ -46,12 +46,13 @@ import io.takamaka.code.verification.ThrowIncompleteClasspathError;
  * before instructions that allocate memory.
  */
 public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static String EXTRA_ALLOCATOR_NAME = Constants.INSTRUMENTATION_PREFIX + "multianewarray";
+	private final static String EXTRA_ALLOCATOR_NAME = "multianewarray";
 	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.ABSTRACT_TAKAMAKA_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };
 	private final static Type[] ONE_INT_ARGS = { Type.INT };
 	private final static Type[] ONE_LONG_ARGS = { Type.LONG };
+	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 
 	public AddGasUpdates(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
@@ -205,7 +206,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			allocatorIl.insert(fallBack2, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
 			allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
-			MethodGen allocator = new MethodGen(InstrumentedClassImpl.PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
+			MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
 			addMethod(allocator, true);
 
 			// the original multianewarray gets replaced with a call to the allocation method

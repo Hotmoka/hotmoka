@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -66,21 +65,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 	public final static String OLD_PREFIX = Constants.INSTRUMENTATION_PREFIX + "old_";
 	public final static String IF_ALREADY_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ifAlreadyLoaded_";
 	public final static String ENSURE_LOADED_PREFIX = Constants.INSTRUMENTATION_PREFIX + "ensureLoaded_";
-	public final static String GETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "get_";
-	public final static String SETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "set_";
-	public final static String EXTRA_VERIFIER_NAME = Constants.INSTRUMENTATION_PREFIX + "verifier";
-	public final static String EXTRACT_UPDATES = "extractUpdates";
-	public final static String RECURSIVE_EXTRACT = "recursiveExtract";
-	public final static String ADD_UPDATE_FOR = "addUpdateFor";
 	public final static String IN_STORAGE_NAME = "inStorage";
-	public final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
-	public final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
-	public final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
-	public final static short PUBLIC_SYNTHETIC_FINAL = PUBLIC_SYNTHETIC | Const.ACC_FINAL;
-	public final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
-	public final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
-	public final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
-	public final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_TRANSIENT;
+	private final static String GETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "get_";
+	private final static String SETTER_PREFIX = Constants.INSTRUMENTATION_PREFIX + "set_";
 
 	/**
 	 * The order used for generating the parameters of the instrumented constructors.

@@ -25,6 +25,7 @@ import io.takamaka.code.verification.Constants;
  * constructed, ordered by name and then by {@code toString()} of their type.
  */
 public class AddConstructorForDeserializationFromBlockchain extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
+	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 
 	public AddConstructorForDeserializationFromBlockchain(InstrumentedClassImpl.Builder builder) {
 		builder.super();
@@ -50,7 +51,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 
 			il.append(InstructionConst.RETURN);
 
-			MethodGen constructor = new MethodGen(InstrumentedClassImpl.PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
+			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
 					Const.CONSTRUCTOR_NAME, className, il, cpg);
 			addMethod(constructor, false);
 		}

@@ -47,6 +47,8 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * Adds instructions that check that white-listing proof obligations hold at run time.
  */
 public class AddRuntimeChecksForWhiteListingProofObligations extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
+	private final static String EXTRA_VERIFIER_NAME = "verifier";
+	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 
 	public AddRuntimeChecksForWhiteListingProofObligations(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
@@ -148,7 +150,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	}
 
 	private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) {
-		String verifierName = getNewNameForPrivateMethod(InstrumentedClassImpl.EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
 		InstructionList il = new InstructionList();
 		String signature = invokedynamic.getSignature(cpg);
 		Type verifierReturnType = Type.getReturnType(signature);
@@ -183,7 +185,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		il.append(invokedynamic);
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
-		MethodGen addedVerifier = new MethodGen(InstrumentedClassImpl.PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args, null, verifierName, className, il, cpg);
+		MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, args, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);
 
 		return factory.createInvoke(className, verifierName, verifierReturnType, args, Const.INVOKESTATIC);
@@ -205,7 +207,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	 *                      for the call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
-		String verifierName = getNewNameForPrivateMethod(InstrumentedClassImpl.EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
 		Bootstraps classBootstraps = verifiedClass.getBootstraps();
 		InstructionList il = new InstructionList();
 		List<Type> args = new ArrayList<>();
@@ -244,7 +246,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 				invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
-		MethodGen addedVerifier = new MethodGen(InstrumentedClassImpl.PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
+		MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);
 
 		// replace inside the bootstrap method
@@ -306,7 +308,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	 *              call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethodForNonINVOKEDYNAMIC(InstructionHandle ih, InvokeInstruction invoke, Executable model, String key) {
-		String verifierName = getNewNameForPrivateMethod(InstrumentedClassImpl.EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
 		Type verifierReturnType = invoke.getReturnType(cpg);
 		String methodName = invoke.getMethodName(cpg);
 		InstructionList il = new InstructionList();
@@ -359,7 +361,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		il.append(InstructionFactory.createReturn(verifierReturnType));
 
 		Type[] argsAsArray = args.toArray(new Type[args.size()]);
-		MethodGen addedVerifier = new MethodGen(InstrumentedClassImpl.PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
+		MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);
 
 		return factory.createInvoke(className, verifierName, verifierReturnType, argsAsArray, Const.INVOKESTATIC);

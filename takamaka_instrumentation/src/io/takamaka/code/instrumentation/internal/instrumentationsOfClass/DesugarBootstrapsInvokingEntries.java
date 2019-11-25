@@ -24,7 +24,6 @@ import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.Constants;
 import it.univr.bcel.StackMapReplacer;
 
 /**
@@ -34,7 +33,8 @@ import it.univr.bcel.StackMapReplacer;
  * brand new target code, that calls the entry with a normal invoke instruction.
  */
 public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
-	private final static String EXTRA_LAMBDA_NAME = Constants.INSTRUMENTATION_PREFIX + "lambda";
+	private final static String EXTRA_LAMBDA_NAME = "lambda";
+	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
 	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) {
 		builder.super();
@@ -133,7 +133,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 			invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 		il.append(InstructionFactory.createReturn(lambdaReturnType));
 
-		MethodGen addedLambda = new MethodGen(InstrumentedClassImpl.PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
+		MethodGen addedLambda = new MethodGen(PRIVATE_SYNTHETIC, lambdaReturnType, lambdaArgs, null, lambdaName, className, il, cpg);
 		addMethod(addedLambda, false);
 		bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
 	}

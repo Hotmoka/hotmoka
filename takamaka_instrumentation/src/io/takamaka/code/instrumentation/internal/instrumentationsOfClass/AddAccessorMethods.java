@@ -17,6 +17,7 @@ import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
  * An instrumentation that adds accessor methods for the fields of the class being instrumented.
  */
 public class AddAccessorMethods extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
+	private final static short PUBLIC_SYNTHETIC_FINAL = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC | Const.ACC_FINAL;
 
 	public AddAccessorMethods(InstrumentedClassImpl.Builder builder) {
 		builder.super();
@@ -52,7 +53,7 @@ public class AddAccessorMethods extends InstrumentedClassImpl.Builder.ClassLevel
 		il.append(factory.createPutField(className, field.getName(), type));
 		il.append(InstructionConst.RETURN);
 
-		MethodGen setter = new MethodGen(InstrumentedClassImpl.PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null,
+		MethodGen setter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, BasicType.VOID, new Type[] { type }, null,
 			setterNameFor(className, field.getName()), className, il, cpg);
 		addMethod(setter, false);
 	}
@@ -71,7 +72,7 @@ public class AddAccessorMethods extends InstrumentedClassImpl.Builder.ClassLevel
 		il.append(factory.createGetField(className, field.getName(), type));
 		il.append(InstructionFactory.createReturn(type));
 
-		MethodGen getter = new MethodGen(InstrumentedClassImpl.PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null,
+		MethodGen getter = new MethodGen(PUBLIC_SYNTHETIC_FINAL, type, Type.NO_ARGS, null,
 			getterNameFor(className, field.getName()), className, il, cpg);
 		addMethod(getter, false);
 	}
