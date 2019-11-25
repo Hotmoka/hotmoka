@@ -7,6 +7,7 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 
 /**
@@ -31,7 +32,7 @@ public class AddOldAndIfAlreadyLoadedFields extends InstrumentedClassImpl.Builde
 	 * @param field the field of the storage class
 	 */
 	private void addOldFieldFor(Field field) {
-		addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()), InstrumentedClassImpl.OLD_PREFIX + field.getName(), cpg).getField());
+		addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()), Constants.OLD_PREFIX + field.getName(), cpg).getField());
 	}
 
 	/**
@@ -40,6 +41,6 @@ public class AddOldAndIfAlreadyLoadedFields extends InstrumentedClassImpl.Builde
 	 * @param field the field of the storage class
 	 */
 	private void addIfAlreadyLoadedFieldFor(Field field) {
-		addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN, InstrumentedClassImpl.IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
+		addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, BasicType.BOOLEAN, Constants.IF_ALREADY_LOADED_PREFIX + field.getName(), cpg).getField());
 	}
 }

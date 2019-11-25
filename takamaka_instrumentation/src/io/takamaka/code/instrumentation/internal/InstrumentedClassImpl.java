@@ -35,6 +35,7 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ReturnInstruction;
 
+import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentedClass;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
@@ -50,7 +51,6 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddRun
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfEntries;
-import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerifiedClass;
@@ -61,12 +61,6 @@ import it.univr.bcel.StackMapReplacer;
  * classes, by adding the serialization support, and contracts, to deal with entries.
  */
 public class InstrumentedClassImpl implements InstrumentedClass {
-	public final static String OLD_PREFIX = Constants.FORBIDDEN_PREFIX + "old_";
-	public final static String IF_ALREADY_LOADED_PREFIX = Constants.FORBIDDEN_PREFIX + "ifAlreadyLoaded_";
-	public final static String ENSURE_LOADED_PREFIX = Constants.FORBIDDEN_PREFIX + "ensureLoaded_";
-	public final static String IN_STORAGE_NAME = "inStorage";
-	private final static String GETTER_PREFIX = Constants.FORBIDDEN_PREFIX + "get_";
-	private final static String SETTER_PREFIX = Constants.FORBIDDEN_PREFIX + "set_";
 
 	/**
 	 * The order used for generating the parameters of the instrumented constructors.
@@ -327,12 +321,12 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 
 			protected final String getterNameFor(String className, String fieldName) {
 				// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
-				return GETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
+				return Constants.GETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
 			}
 
 			protected final String setterNameFor(String className, String fieldName) {
 				// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
-				return SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
+				return Constants.SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
 			}
 
 			protected final short invokeCorrespondingToBootstrapInvocationType(int invokeKind) {

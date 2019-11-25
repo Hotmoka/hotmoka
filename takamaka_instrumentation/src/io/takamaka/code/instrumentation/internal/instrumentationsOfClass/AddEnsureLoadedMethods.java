@@ -21,8 +21,6 @@ import io.takamaka.code.instrumentation.Constants;
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.
  */
 public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
-	private final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
-	private final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
 	private final static Type[] THREE_STRINGS_ARGS = { Type.STRING, Type.STRING, Type.STRING };
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
@@ -57,30 +55,30 @@ public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassL
 		InstructionList il = new InstructionList();
 		InstructionHandle _return = il.append(InstructionConst.RETURN);
 		il.insert(_return, InstructionFactory.createThis());
-		il.insert(_return, factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, InstrumentedClassImpl.IN_STORAGE_NAME, BasicType.BOOLEAN));
+		il.insert(_return, factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, Constants.IN_STORAGE_NAME, BasicType.BOOLEAN));
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 		il.insert(_return, InstructionFactory.createThis());
 		String fieldName = field.getName();
-		il.insert(_return, factory.createGetField(className, InstrumentedClassImpl.IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
+		il.insert(_return, factory.createGetField(className, Constants.IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFNE, _return));
 		il.insert(_return, InstructionFactory.createThis());
 		il.insert(_return, InstructionConst.DUP);
 		il.insert(_return, InstructionConst.DUP);
 		il.insert(_return, InstructionConst.ICONST_1);
-		il.insert(_return, factory.createPutField(className, InstrumentedClassImpl.IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
+		il.insert(_return, factory.createPutField(className, Constants.IF_ALREADY_LOADED_PREFIX + fieldName, BasicType.BOOLEAN));
 		il.insert(_return, factory.createConstant(className));
 		il.insert(_return, factory.createConstant(fieldName));
 		il.insert(_return, factory.createConstant(field.getType().getName()));
 		il.insert(_return, factory.createInvoke(className,
-			fieldIsFinal ? DESERIALIZE_LAST_UPDATE_FOR_FINAL : DESERIALIZE_LAST_UPDATE_FOR,
+			fieldIsFinal ? Constants.DESERIALIZE_LAST_UPDATE_FOR_FINAL : Constants.DESERIALIZE_LAST_UPDATE_FOR,
 			ObjectType.OBJECT, THREE_STRINGS_ARGS, Const.INVOKEVIRTUAL));
 		il.insert(_return, factory.createCast(ObjectType.OBJECT, type));
 		il.insert(_return, InstructionConst.DUP2);
 		il.insert(_return, factory.createPutField(className, fieldName, type));
-		il.insert(_return, factory.createPutField(className, InstrumentedClassImpl.OLD_PREFIX + fieldName, type));
+		il.insert(_return, factory.createPutField(className, Constants.OLD_PREFIX + fieldName, type));
 
 		MethodGen ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null,
-			InstrumentedClassImpl.ENSURE_LOADED_PREFIX + fieldName, className, il, cpg);
+				Constants.ENSURE_LOADED_PREFIX + fieldName, className, il, cpg);
 		addMethod(ensureLoaded, true);
 	}
 }

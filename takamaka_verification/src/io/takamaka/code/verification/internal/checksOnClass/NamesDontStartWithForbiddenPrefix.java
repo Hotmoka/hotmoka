@@ -10,7 +10,7 @@ import io.takamaka.code.verification.issues.IllegalMethodNameError;
 
 /**
  * A check that field and method names do not start with the
- * forbidden prefix that will later be used for synthetic instrumented members.
+ * forbidden prefix that will later be used for synthetic instrumented members
  */
 public class NamesDontStartWithForbiddenPrefix extends VerifiedClassImpl.Builder.Check {
 

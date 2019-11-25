@@ -47,7 +47,6 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * Adds instructions that check that white-listing proof obligations hold at run time.
  */
 public class AddRuntimeChecksForWhiteListingProofObligations extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static String EXTRA_VERIFIER_NAME = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "verifier";
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 
 	public AddRuntimeChecksForWhiteListingProofObligations(InstrumentedClassImpl.Builder builder, MethodGen method) {
@@ -150,7 +149,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	}
 
 	private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) {
-		String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER_NAME);
 		InstructionList il = new InstructionList();
 		String signature = invokedynamic.getSignature(cpg);
 		Type verifierReturnType = Type.getReturnType(signature);
@@ -207,7 +206,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	 *                      for the call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
-		String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER_NAME);
 		Bootstraps classBootstraps = verifiedClass.getBootstraps();
 		InstructionList il = new InstructionList();
 		List<Type> args = new ArrayList<>();
@@ -308,7 +307,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	 *              call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethodForNonINVOKEDYNAMIC(InstructionHandle ih, InvokeInstruction invoke, Executable model, String key) {
-		String verifierName = getNewNameForPrivateMethod(EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER_NAME);
 		Type verifierReturnType = invoke.getReturnType(cpg);
 		String methodName = invoke.getMethodName(cpg);
 		InstructionList il = new InstructionList();

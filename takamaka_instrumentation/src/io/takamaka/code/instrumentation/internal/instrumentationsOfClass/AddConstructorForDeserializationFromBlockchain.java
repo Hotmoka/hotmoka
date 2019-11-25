@@ -119,7 +119,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 					il.append(InstructionFactory.createThis());
 					il.append(InstructionFactory.createLoad(type, local));
 				}
-				il.append(factory.createPutField(className, InstrumentedClassImpl.OLD_PREFIX + field.getName(), type));
+				il.append(factory.createPutField(className, Constants.OLD_PREFIX + field.getName(), type));
 				local += size;
 			}
 		};

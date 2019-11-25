@@ -47,7 +47,7 @@ public class AddExtractUpdates extends InstrumentedClassImpl.Builder.ClassLevelI
 			il.append(InstructionFactory.createLoad(LIST_OT, 3));
 			il.append(factory.createInvoke(getSuperclassName(), EXTRACT_UPDATES, Type.VOID,
 					EXTRACT_UPDATES_ARGS, Const.INVOKESPECIAL));
-			il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, InstrumentedClassImpl.IN_STORAGE_NAME, Type.BOOLEAN));
+			il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, Constants.IN_STORAGE_NAME, Type.BOOLEAN));
 			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
 
 			InstructionHandle end = il.append(InstructionConst.RETURN);
@@ -92,7 +92,7 @@ public class AddExtractUpdates extends InstrumentedClassImpl.Builder.ClassLevelI
 		else {
 			recursiveExtract = il.insert(end, InstructionFactory.createThis());
 			il.insert(end, InstructionConst.DUP);
-			il.insert(end, factory.createGetField(className, InstrumentedClassImpl.OLD_PREFIX + fieldName, type));
+			il.insert(end, factory.createGetField(className, Constants.OLD_PREFIX + fieldName, type));
 			il.insert(end, InstructionConst.ALOAD_1);
 			il.insert(end, InstructionConst.ALOAD_2);
 			il.insert(end, InstructionFactory.createLoad(LIST_OT, 3));
@@ -117,7 +117,7 @@ public class AddExtractUpdates extends InstrumentedClassImpl.Builder.ClassLevelI
 		il.insert(addUpdatesFor, InstructionFactory.createThis());
 		il.insert(addUpdatesFor, factory.createGetField(className, fieldName, type));
 		il.insert(addUpdatesFor, InstructionFactory.createThis());
-		il.insert(addUpdatesFor, factory.createGetField(className, InstrumentedClassImpl.OLD_PREFIX + fieldName, type));
+		il.insert(addUpdatesFor, factory.createGetField(className, Constants.OLD_PREFIX + fieldName, type));
 
 		il.insert(addUpdatesFor, InstructionFactory.createBranchInstruction(Const.IF_ACMPEQ, recursiveExtract));
 
@@ -163,7 +163,7 @@ public class AddExtractUpdates extends InstrumentedClassImpl.Builder.ClassLevelI
 		il.insert(addUpdatesFor, InstructionFactory.createThis());
 		il.insert(addUpdatesFor, factory.createGetField(className, field.getName(), type));
 		il.insert(addUpdatesFor, InstructionFactory.createThis());
-		il.insert(addUpdatesFor, factory.createGetField(className, InstrumentedClassImpl.OLD_PREFIX + field.getName(), type));
+		il.insert(addUpdatesFor, factory.createGetField(className, Constants.OLD_PREFIX + field.getName(), type));
 
 		if (fieldType == double.class) {
 			il.insert(addUpdatesFor, InstructionConst.DCMPL);

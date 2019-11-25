@@ -65,6 +65,8 @@ public abstract class AbstractStorage {
 			StorageReference.mk(AbstractTakamaka.getBlockchain().getCurrentTransaction(), AbstractTakamaka.generateNextProgressive());
 	}
 
+	//TODO: these methods might conflict with methods in subclasses
+
 	/**
 	 * Implements a chronological order on storage objects.
 	 * 

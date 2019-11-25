@@ -46,7 +46,6 @@ import io.takamaka.code.verification.ThrowIncompleteClasspathError;
  * before instructions that allocate memory.
  */
 public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static String EXTRA_ALLOCATOR_NAME = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "multianewarray";
 	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.ABSTRACT_TAKAMAKA_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };
@@ -137,7 +136,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			Type[] args = IntStream.range(0, createdDimensions)
 				.mapToObj(dim -> Type.INT)
 				.toArray(Type[]::new);
-			String allocatorName = getNewNameForPrivateMethod(EXTRA_ALLOCATOR_NAME);
+			String allocatorName = getNewNameForPrivateMethod(Constants.EXTRA_ALLOCATOR_NAME);
 			InstructionList allocatorIl = new InstructionList();
 			IntStream.range(0, createdDimensions)
 				.mapToObj(dim -> InstructionFactory.createLoad(Type.INT, dim))

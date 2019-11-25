@@ -27,9 +27,9 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.internal.HeightAtBytecode;
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Dummy;
 
 /**
@@ -37,10 +37,8 @@ import io.takamaka.code.verification.Dummy;
  * at the beginning of payable entries.
  */
 public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
+	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.verification.Constants.CONTRACT_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
-	private final static String PAYABLE_ENTRY = "payableEntry";
-	private final static String ENTRY = "entry";
 	private final static Type[] ENTRY_ARGS = { CONTRACT_OT };
 
 	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
@@ -95,11 +93,11 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			Type amountType = method.getArgumentType(0);
 			il.insert(start, InstructionFactory.createLoad(amountType, 1));
 			Type[] paybleEntryArgs = new Type[] { CONTRACT_OT, amountType };
-			il.insert(where, factory.createInvoke(className, PAYABLE_ENTRY, Type.VOID, paybleEntryArgs,
+			il.insert(where, factory.createInvoke(className, Constants.PAYABLE_ENTRY, Type.VOID, paybleEntryArgs,
 					Const.INVOKESPECIAL));
 		}
 		else
-			il.insert(where, factory.createInvoke(className, ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
+			il.insert(where, factory.createInvoke(className, Constants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
 	}
 
 	/**
