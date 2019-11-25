@@ -140,7 +140,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 
 	private void makeFromStaticToInstance(MethodGen method) {
 		method.isStatic(false);
-		if (!method.isAbstract())
+		if (!method.isAbstract()) {
 			// we increase the indexes of the local variables used in the method
 			for (InstructionHandle ih: method.getInstructionList()) {
 				Instruction ins = ih.getInstruction();
@@ -155,7 +155,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 				}
 			}
 
-		StackMapReplacer.of(method);
-		replaceMethod(method.getMethod(), method);
+			StackMapReplacer.of(method);
+		}
 	}
 }

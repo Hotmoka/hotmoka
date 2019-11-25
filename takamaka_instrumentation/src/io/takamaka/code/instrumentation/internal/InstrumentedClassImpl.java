@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -119,17 +118,12 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		/**
 		 * The methods of the instrumented class, in editable version.
 		 */
-		private final Map<Method, MethodGen> methods;
+		private final List<MethodGen> methods;
 
 		/**
 		 * The gas cost model used for the instrumentation.
 		 */
 		private final GasCostModel gasCostModel;
-
-		/**
-		 * The name of the class being instrumented.
-		 */
-		private final String className;
 
 		/**
 		 * The constant pool of the class being instrumented.
@@ -201,27 +195,48 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			this.verifiedClass = clazz;
 			this.classGen = new ClassGen(clazz.toJavaClass());
 			this.gasCostModel = gasCostModel;
-			this.className = classGen.getClassName();
 			this.classLoader = clazz.getJar().getClassLoader();
 			this.cpg = classGen.getConstantPool();
+			String className = classGen.getClassName();
 			this.methods = Stream.of(classGen.getMethods())
-				.collect(Collectors.toMap(method -> method, method -> new MethodGen(method, className, cpg)));
+				.map(method -> new MethodGen(method, className, cpg))
+				.collect(Collectors.toList());
 			this.factory = new InstructionFactory(cpg);
 			this.isStorage = classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
 
-			// the fields of the class are relevant only for storage classes
-			if (isStorage)
-				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-					collectNonTransientInstanceFieldsOf(classLoader.loadClass(className), true);
-				});
-
+			partitionFieldsOfStorageClasses();
 			methodLevelInstrumentations();
 			classLevelInstrumentations();
+			replaceMethods();
+		}
 
-			// we replace the original methods with the instrumented methods
-			//for (Entry<Method, MethodGen> entry: methods.entrySet())
-				//classGen.replaceMethod(entry.getKey(), entry.getValue().getMethod());
+		/**
+		 * Partitions the fields of a storage class into eager and lazy.
+		 * If the class is not storage, it does not do anything.
+		 */
+		private void partitionFieldsOfStorageClasses() {
+			if (isStorage)
+				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
+					collectNonTransientInstanceFieldsOf(classLoader.loadClass(classGen.getClassName()), true);
+				});
+		}
+
+		/**
+		 * Replaces the methods of the class under instrumentation,
+		 * putting the instrumented ones instead of the original ones.
+		 */
+		private void replaceMethods() {
+			classGen.setMethods(new Method[0]);
+			for (MethodGen method: methods) {
+				method.setMaxLocals();
+				method.setMaxStack();
+				if (!method.isAbstract()) {
+					method.getInstructionList().setPositions();
+					StackMapReplacer.of(method);
+				}
+				classGen.addMethod(method.getMethod());
+			}
 		}
 
 		public abstract class ClassLevelInstrumentation {
@@ -239,7 +254,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			/**
 			 * The name of the class being instrumented.
 			 */
-			protected final String className = Builder.this.className;
+			protected final String className = classGen.getClassName();
 
 			/**
 			 * The constant pool of the class being instrumented.
@@ -307,9 +322,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				methodGen.setMaxStack();
 				if (needsStackMap)
 					StackMapReplacer.of(methodGen);
-				Method method = methodGen.getMethod();
-				classGen.addMethod(method);
-				methods.put(method, methodGen);
+				methods.add(methodGen);
 			}
 
 			protected final String getterNameFor(String className, String fieldName) {
@@ -376,7 +389,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * @return the methods
 			 */
 			protected final Stream<MethodGen> getMethods() {
-				return methods.values().stream();
+				return methods.stream();
 			}
 
 			/**
@@ -443,15 +456,15 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 							ifCannotFollow.run();
 
 						Stream.of(targeters).filter(targeter -> targeter instanceof BranchInstruction)
-								.map(targeter -> (BranchInstruction) targeter).forEach(branch -> {
-									int stackHeightBefore = current.stackHeightBeforeBytecode;
-									stackHeightBefore -= branch.produceStack(cpg);
-									stackHeightBefore += branch.consumeStack(cpg);
+							.map(targeter -> (BranchInstruction) targeter).forEach(branch -> {
+								int stackHeightBefore = current.stackHeightBeforeBytecode;
+								stackHeightBefore -= branch.produceStack(cpg);
+								stackHeightBefore += branch.consumeStack(cpg);
 
-									HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
-									if (seen.add(added))
-										workingSet.add(added);
-								});
+								HeightAtBytecode added = new HeightAtBytecode(previous, stackHeightBefore);
+								if (seen.add(added))
+									workingSet.add(added);
+							});
 					}
 				}
 				while (!workingSet.isEmpty());
@@ -473,16 +486,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 */
 			protected final void addField(org.apache.bcel.classfile.Field field) {
 				classGen.addField(field);
-			}
-
-			/**
-			 * Replaces a method of this class with another.
-			 * 
-			 * @param old the old method to replace
-			 * @param _new the new method to put at its place
-			 */
-			protected final void replaceMethod(Method old, MethodGen _new) {
-				Builder.this.replaceMethod(old, _new);
 			}
 
 			/**
@@ -529,33 +532,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * Performs method-level instrumentations.
 		 */
 		private void methodLevelInstrumentations() {
-			applyToAllMethods(this::preProcess);
+			new ArrayList<>(methods).forEach(this::preProcess);
 			new DesugarBootstrapsInvokingEntries(this);
-			applyToAllMethods(this::postProcess);
-		}
-
-		private void applyToAllMethods(Function<Method, MethodGen> what) {
-			Set<Method> allMethods = methods.keySet();
-			Method[] methods = allMethods.toArray(new Method[allMethods.size()]);
-			List<MethodGen> processedMethods = Stream.of(methods).map(what).collect(Collectors.toList());
-
-			// replacing old with new methods
-			int pos = 0;
-			for (MethodGen processed: processedMethods)
-				replaceMethod(methods[pos++], processed);
-		}
-
-		/**
-		 * Replaces a method of this class with another.
-		 * 
-		 * @param old the old method to replace
-		 * @param _new the new method to put at its place
-		 */
-		private final void replaceMethod(Method old, MethodGen _new) {
-			Method method = _new.getMethod();
-			classGen.replaceMethod(old, method);
-			methods.remove(old);
-			methods.put(method, _new);
+			new ArrayList<>(methods).forEach(this::postProcess);
 		}
 
 		/**
@@ -563,12 +542,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * performed before instrumentation of the bootstraps.
 		 * 
 		 * @param method the method to instrument
-		 * @return the result of the instrumentation
 		 */
-		private MethodGen preProcess(Method method) {
-			MethodGen methodGen = methods.get(method);
-			new AddRuntimeChecksForWhiteListingProofObligations(this, methodGen);
-			return methodGen;
+		private void preProcess(MethodGen method) {
+			new AddRuntimeChecksForWhiteListingProofObligations(this, method);
 		}
 
 		/**
@@ -576,24 +552,13 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * performed after instrumentation of the bootstraps.
 		 * 
 		 * @param method the method to instrument
-		 * @return the result of the instrumentation
 		 */
-		private MethodGen postProcess(Method method) {
-			MethodGen methodGen = new MethodGen(method, className, cpg);
-			new InstrumentMethodsOfSupportClasses(this, methodGen);
-			new ReplaceFieldAccessesWithAccessors(this, methodGen);
-			new AddContractToCallsToEntries(this, methodGen);
-			new SetCallerAndBalanceAtTheBeginningOfEntries(this, methodGen);
-			new AddGasUpdates(this, methodGen);
-
-			methodGen.setMaxLocals();
-			methodGen.setMaxStack();
-			if (!methodGen.isAbstract()) {
-				methodGen.getInstructionList().setPositions();
-				StackMapReplacer.of(methodGen);
-			}
-
-			return methodGen;
+		private void postProcess(MethodGen method) {
+			new InstrumentMethodsOfSupportClasses(this, method);
+			new ReplaceFieldAccessesWithAccessors(this, method);
+			new AddContractToCallsToEntries(this, method);
+			new SetCallerAndBalanceAtTheBeginningOfEntries(this, method);
+			new AddGasUpdates(this, method);
 		}
 
 		private boolean isStaticOrTransient(Field field) {
