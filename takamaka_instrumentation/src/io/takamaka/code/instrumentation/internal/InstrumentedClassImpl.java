@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -131,7 +132,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		/**
 		 * The methods of the instrumented class, in editable version.
 		 */
-		private final Set<MethodGen> methods;
+		private final Map<Method, MethodGen> methods;
 
 		/**
 		 * The gas cost model used for the instrumentation.
@@ -216,7 +217,8 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			this.className = classGen.getClassName();
 			this.classLoader = clazz.getJar().getClassLoader();
 			this.cpg = classGen.getConstantPool();
-			this.methods = Stream.of(classGen.getMethods()).map(method -> new MethodGen(method, className, cpg)).collect(Collectors.toSet());
+			this.methods = Stream.of(classGen.getMethods())
+				.collect(Collectors.toMap(method -> method, method -> new MethodGen(method, className, cpg)));
 			this.factory = new InstructionFactory(cpg);
 			this.isStorage = classLoader.isStorage(className);
 			this.isContract = classLoader.isContract(className);
@@ -229,6 +231,10 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 
 			methodLevelInstrumentations();
 			classLevelInstrumentations();
+
+			// we replace the original methods with the instrumented methods
+			//for (Entry<Method, MethodGen> entry: methods.entrySet())
+				//classGen.replaceMethod(entry.getKey(), entry.getValue().getMethod());
 		}
 
 		public abstract class ClassLevelInstrumentation {
@@ -308,13 +314,15 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 */
 			protected final Map<String, InvokeInstruction> whiteListingCache = Builder.this.whiteListingCache;
 
-			protected final void addMethod(MethodGen method, boolean needsStackMap) {
-				method.getInstructionList().setPositions();
-				method.setMaxLocals();
-				method.setMaxStack();
+			protected final void addMethod(MethodGen methodGen, boolean needsStackMap) {
+				methodGen.getInstructionList().setPositions();
+				methodGen.setMaxLocals();
+				methodGen.setMaxStack();
 				if (needsStackMap)
-					StackMapReplacer.of(method);
-				classGen.addMethod(method.getMethod());
+					StackMapReplacer.of(methodGen);
+				Method method = methodGen.getMethod();
+				classGen.addMethod(method);
+				methods.put(method, methodGen);
 			}
 
 			protected final String getterNameFor(String className, String fieldName) {
@@ -380,8 +388,8 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * 
 			 * @return the methods
 			 */
-			protected final Stream<Method> getMethods() {
-				return Stream.of(classGen.getMethods());
+			protected final Stream<MethodGen> getMethods() {
+				return methods.values().stream();
 			}
 
 			/**
@@ -401,7 +409,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				do {
 					newName = innerName + counter++;
 				}
-				while (getMethods().map(Method::getName).anyMatch(newName::equals));
+				while (getMethods().map(MethodGen::getName).anyMatch(newName::equals));
 
 				return newName;
 			}
@@ -486,8 +494,8 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * @param old the old method to replace
 			 * @param _new the new method to put at its place
 			 */
-			protected final void replaceMethod(Method old, Method _new) {
-				classGen.replaceMethod(old, _new);
+			protected final void replaceMethod(Method old, MethodGen _new) {
+				Builder.this.replaceMethod(old, _new);
 			}
 
 			/**
@@ -539,14 +547,28 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			applyToAllMethods(this::postProcess);
 		}
 
-		private void applyToAllMethods(Function<Method, Method> what) {
-			Method[] methods = classGen.getMethods();
-			List<Method> processedMethods = Stream.of(methods).map(what).collect(Collectors.toList());
+		private void applyToAllMethods(Function<Method, MethodGen> what) {
+			Set<Method> allMethods = methods.keySet();
+			Method[] methods = allMethods.toArray(new Method[allMethods.size()]);
+			List<MethodGen> processedMethods = Stream.of(methods).map(what).collect(Collectors.toList());
 
 			// replacing old with new methods
 			int pos = 0;
-			for (Method processed: processedMethods)
-				classGen.replaceMethod(methods[pos++], processed);
+			for (MethodGen processed: processedMethods)
+				replaceMethod(methods[pos++], processed);
+		}
+
+		/**
+		 * Replaces a method of this class with another.
+		 * 
+		 * @param old the old method to replace
+		 * @param _new the new method to put at its place
+		 */
+		private final void replaceMethod(Method old, MethodGen _new) {
+			Method method = _new.getMethod();
+			classGen.replaceMethod(old, method);
+			methods.remove(old);
+			methods.put(method, _new);
 		}
 
 		/**
@@ -556,10 +578,10 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * @param method the method to instrument
 		 * @return the result of the instrumentation
 		 */
-		private Method preProcess(Method method) {
-			MethodGen methodGen = new MethodGen(method, className, cpg);
+		private MethodGen preProcess(Method method) {
+			MethodGen methodGen = methods.get(method);
 			new AddRuntimeChecksForWhiteListingProofObligations(this, methodGen);
-			return methodGen.getMethod();
+			return methodGen;
 		}
 
 		/**
@@ -569,7 +591,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * @param method the method to instrument
 		 * @return the result of the instrumentation
 		 */
-		private Method postProcess(Method method) {
+		private MethodGen postProcess(Method method) {
 			MethodGen methodGen = new MethodGen(method, className, cpg);
 			new InstrumentMethodsOfSupportClasses(this, methodGen);
 			new ReplaceFieldAccessesWithAccessors(this, methodGen);
@@ -584,7 +606,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 				StackMapReplacer.of(methodGen);
 			}
 
-			return methodGen.getMethod();
+			return methodGen;
 		}
 
 		private boolean isStaticOrTransient(Field field) {

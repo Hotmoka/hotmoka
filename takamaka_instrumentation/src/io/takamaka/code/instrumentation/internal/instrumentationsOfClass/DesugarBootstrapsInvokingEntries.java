@@ -10,7 +10,6 @@ import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
-import org.apache.bcel.classfile.Method;
 import org.apache.bcel.generic.IINC;
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionConst;
@@ -63,7 +62,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 			ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
 			String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 			String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
-			Optional<Method> old = getMethods()
+			Optional<MethodGen> old = getMethods()
 				.filter(method -> method.getName().equals(methodName)
 						&& method.getSignature().equals(methodSignature) && method.isPrivate())
 				.findFirst();
@@ -139,12 +138,11 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 		bootstrapMethodsThatWillRequireExtraThis.add(bootstrap);
 	}
 
-	private void makeFromStaticToInstance(Method old) {
-		MethodGen _new = new MethodGen(old, className, cpg);
-		_new.isStatic(false);
-		if (!_new.isAbstract())
+	private void makeFromStaticToInstance(MethodGen method) {
+		method.isStatic(false);
+		if (!method.isAbstract())
 			// we increase the indexes of the local variables used in the method
-			for (InstructionHandle ih : _new.getInstructionList()) {
+			for (InstructionHandle ih: method.getInstructionList()) {
 				Instruction ins = ih.getInstruction();
 				if (ins instanceof LocalVariableInstruction) {
 					int index = ((LocalVariableInstruction) ins).getIndex();
@@ -157,7 +155,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 				}
 			}
 
-		StackMapReplacer.of(_new);
-		replaceMethod(old, _new.getMethod());
+		StackMapReplacer.of(method);
+		replaceMethod(method.getMethod(), method);
 	}
 }
