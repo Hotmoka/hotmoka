@@ -115,12 +115,14 @@ public abstract class Takamaka {
 	 * @throws Exception if the code runs into this exception
 	 */
 	public static <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		// code provided by instrumentation
+		// code provided by instrumentation as
+		// return Runtime.withGas(amount, what);
 		return null;
 	}
 
 	public static long now() {
-		// code provided by instrumentation
+		// code provided by instrumentation as
+		// return Runtime.now();
 		return 0L;
 	}
 }

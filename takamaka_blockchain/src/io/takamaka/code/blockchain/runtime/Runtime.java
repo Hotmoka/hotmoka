@@ -1,10 +1,8 @@
 package io.takamaka.code.blockchain.runtime;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
@@ -13,13 +11,14 @@ import io.takamaka.code.blockchain.GasCosts;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.OutOfGasError;
 import io.takamaka.code.whitelisting.WhiteListed;
-import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
 /**
- * A class that acts as a global context for statements added
- * to the Takamaka language.
+ * A class that contains utility methods called by instrumented
+ * Takamaka code stored in blockchain. This class is not installed in
+ * blockchain, hence it is not visible to Takamaka programmers
+ * and needn't obey to Takamaka code constraints.
  */
-public abstract class AbstractTakamaka {
+public abstract class Runtime {
 
 	/**
 	 * The blockchain used for the current transaction.
@@ -37,8 +36,8 @@ public abstract class AbstractTakamaka {
 	 * @param blockchain the blockchain used for the new transaction
 	 */
 	public static void init(AbstractBlockchain blockchain) {
-		AbstractTakamaka.blockchain = blockchain;
-		AbstractTakamaka.nextProgressive = BigInteger.ZERO;
+		Runtime.blockchain = blockchain;
+		Runtime.nextProgressive = BigInteger.ZERO;
 	}
 
 	/**
@@ -63,44 +62,40 @@ public abstract class AbstractTakamaka {
 	 * @throws OutOfGasError if there is not enough gas
 	 * @throws Exception if the code runs into this exception
 	 */
-	@WhiteListed
 	public static <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
 		return blockchain.withGas(amount, what);
 	}
 
-	@WhiteListed
+	/**
+	 * Yields the current time of the transaction.
+	 * 
+	 * @return the time
+	 */
 	public static long now() {
 		return blockchain.getNow();
 	}
 
-	public static Optional<Method> getWhiteListingCheckFor(Annotation annotation) {
-		return getWhiteListingCheckFor(annotation.annotationType());
-	}
-
-	public static Optional<Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
-		if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class)) {
-			String checkName = lowerInitial(annotationType.getSimpleName());
-			Optional<Method> checkMethod = Stream.of(AbstractTakamaka.class.getDeclaredMethods())
-				.filter(method -> method.getName().equals(checkName)).findFirst();
-
-			if (!checkMethod.isPresent())
-				throw new IllegalStateException("unexpected white-list annotation " + annotationType.getSimpleName());
-
-			return checkMethod;
-		}
-
-		return Optional.empty();
-	}
-
-	private static String lowerInitial(String name) {
-		return Character.toLowerCase(name.charAt(0)) + name.substring(1);
-	}
-
+	/**
+	 * Called during verification and by instrumented code to check
+	 * the {@link io.takamaka.code.whitelisting.MustBeFalse} annotation. 
+	 * Its name must be the uncapitalized simple name of the annotation.
+	 * 
+	 * @param value the value
+	 * @param methodName the name of the method
+	 */
 	public static void mustBeFalse(boolean value, String methodName) {
 		if (value)
 			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must be false");
 	}
 
+	/**
+	 * Called during verification and by instrumented code to check
+	 * the {@link io.takamaka.code.whitelisting.MustRedefineHashCode} annotation. 
+	 * Its name must be the uncapitalized simple name of the annotation.
+	 * 
+	 * @param value the value
+	 * @param methodName the name of the method
+	 */
 	public static void mustRedefineHashCode(Object value, String methodName) {
 		if (value != null)
 			if (Stream.of(value.getClass().getMethods())
@@ -110,12 +105,20 @@ public abstract class AbstractTakamaka {
 				throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must redefine Object.hashCode()");
 	}
 
+	/**
+	 * Called during verification and by instrumented code to check
+	 * the {@link io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString} annotation. 
+	 * Its name must be the uncapitalized simple name of the annotation.
+	 * 
+	 * @param value the value
+	 * @param methodName the name of the method
+	 */
 	public static void mustRedefineHashCodeOrToString(Object value, String methodName) {
 		if (value != null && !redefinesHashCodeOrToString(value.getClass()))
 			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must redefine Object.hashCode() or Object.toString()");
 	}
 
-	public static boolean redefinesHashCodeOrToString(Class<?> clazz) {
+	private static boolean redefinesHashCodeOrToString(Class<?> clazz) {
 		return Stream.of(clazz.getMethods())
 			.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
 			.map(Method::getName)
@@ -147,7 +150,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges the given amount of gas for RAM usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
@@ -157,7 +159,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges the given amount of gas for RAM usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
@@ -167,7 +168,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges the given amount of gas for RAM usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
@@ -190,7 +190,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges the given amount of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 * 
 	 * @param cpu the amount of gas to consume
 	 */
@@ -200,7 +199,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges the given amount of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 * 
 	 * @param cpu the amount of gas to consume
 	 */
@@ -210,7 +208,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges one unit of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge1() {
 		blockchain.chargeForCPU(BigInteger.ONE);
@@ -218,7 +215,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges two units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge2() {
 		blockchain.chargeForCPU(BigInteger.valueOf(2L));
@@ -226,7 +222,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges three units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge3() {
 		blockchain.chargeForCPU(BigInteger.valueOf(3L));
@@ -234,7 +229,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges four units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge4() {
 		blockchain.chargeForCPU(BigInteger.valueOf(4L));
@@ -242,7 +236,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges five units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge5() {
 		blockchain.chargeForCPU(BigInteger.valueOf(5L));
@@ -250,7 +243,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges six units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge6() {
 		blockchain.chargeForCPU(BigInteger.valueOf(6L));
@@ -258,7 +250,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges seven units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge7() {
 		blockchain.chargeForCPU(BigInteger.valueOf(7L));
@@ -266,7 +257,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges eight units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge8() {
 		blockchain.chargeForCPU(BigInteger.valueOf(8L));
@@ -274,7 +264,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges nine units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge9() {
 		blockchain.chargeForCPU(BigInteger.valueOf(9L));
@@ -282,7 +271,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges ten units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge10() {
 		blockchain.chargeForCPU(BigInteger.valueOf(10L));
@@ -290,7 +278,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges eleven units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge11() {
 		blockchain.chargeForCPU(BigInteger.valueOf(11L));
@@ -298,7 +285,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges twelve units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge12() {
 		blockchain.chargeForCPU(BigInteger.valueOf(12L));
@@ -306,7 +292,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges 13 units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge13() {
 		blockchain.chargeForCPU(BigInteger.valueOf(13L));
@@ -314,7 +299,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges 14 units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge14() {
 		blockchain.chargeForCPU(BigInteger.valueOf(14L));
@@ -322,7 +306,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges 15 units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge15() {
 		blockchain.chargeForCPU(BigInteger.valueOf(15L));
@@ -330,7 +313,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges 16 units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge16() {
 		blockchain.chargeForCPU(BigInteger.valueOf(16L));
@@ -338,7 +320,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges 17 units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge17() {
 		blockchain.chargeForCPU(BigInteger.valueOf(17L));
@@ -346,7 +327,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges 18 units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge18() {
 		blockchain.chargeForCPU(BigInteger.valueOf(18L));
@@ -354,7 +334,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges 19 units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge19() {
 		blockchain.chargeForCPU(BigInteger.valueOf(19L));
@@ -362,7 +341,6 @@ public abstract class AbstractTakamaka {
 
 	/**
 	 * Charges 20 units of gas for CPU usage for the current blockchain.
-	 * This method is used by the instrumented bytecode.
 	 */
 	public static void charge20() {
 		blockchain.chargeForCPU(BigInteger.valueOf(20L));

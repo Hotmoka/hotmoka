@@ -61,7 +61,7 @@ import io.takamaka.code.blockchain.response.TransactionResponseWithUpdates;
 import io.takamaka.code.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
 import io.takamaka.code.blockchain.runtime.AbstractEvent;
 import io.takamaka.code.blockchain.runtime.AbstractStorage;
-import io.takamaka.code.blockchain.runtime.AbstractTakamaka;
+import io.takamaka.code.blockchain.runtime.Runtime;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.types.StorageType;
 import io.takamaka.code.blockchain.values.StorageReference;
@@ -71,6 +71,7 @@ import io.takamaka.code.instrumentation.JarInstrumentation;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
+import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 
 /**
@@ -231,7 +232,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the transaction could not be initialized
 	 */
 	protected void initTransaction(BigInteger gas, TransactionReference current) throws Exception {
-		AbstractTakamaka.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
+		Runtime.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
 		events.clear();
 		cache.clear();
 		ClassType.clearCache();
@@ -1221,9 +1222,35 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		Set<StorageReference> seen = new HashSet<>();
 		SortedSet<Update> updates = new TreeSet<>();
-		potentiallyAffectedObjects.forEach(storage -> storage.updates(updates, seen));
+		potentiallyAffectedObjects.forEach(storage -> updates(storage, updates, seen));
 
 		return updates;
+	}
+
+	/**
+	 * Collects the updates to the given object and to the objects that are reachable from it.
+	 * This is used at the end of a transaction, to collect and then store the updates
+	 * resulting from the transaction.
+	 * 
+	 * @param object the storage object from where the updates lookup starts
+	 * @param result the set where the updates will be added
+	 * @param seen a set of storage references that have already been scanned
+	 */
+	private void updates(AbstractStorage object, Set<Update> result, Set<StorageReference> seen) {
+		if (seen.add(object.storageReference)) {
+			// the set of storage objects that we have to scan
+			List<AbstractStorage> workingSet = new ArrayList<>(16);
+			// initially, there is only this object to scan
+			workingSet.add(object);
+
+			do {
+				// removes the next storage object to scan for updates and continues
+				// recursively with the objects that can be reached from it, until
+				// no new object can be reached
+				workingSet.remove(workingSet.size() - 1).extractUpdates(result, seen, workingSet);
+			}
+			while (!workingSet.isEmpty());
+		}
 	}
 
 	/**
@@ -1459,7 +1486,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		private void checkWhiteListingProofObligations(String methodName, Object value, Annotation[] annotations) {
 			Stream.of(annotations)
-				.map(AbstractTakamaka::getWhiteListingCheckFor)
+				.map(Annotation::annotationType)
+				.map(this::getWhiteListingCheckFor)
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.forEachOrdered(checkMethod -> {
@@ -1474,6 +1502,25 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw new IllegalStateException("could not check white-listing proof-obligations for " + methodName, e);
 					}
 				});
+		}
+
+		private Optional<Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
+			if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class)) {
+				String checkName = lowerInitial(annotationType.getSimpleName());
+				Optional<Method> checkMethod = Stream.of(Runtime.class.getDeclaredMethods())
+					.filter(method -> method.getName().equals(checkName)).findFirst();
+		
+				if (!checkMethod.isPresent())
+					throw new IllegalStateException("unexpected white-list annotation " + annotationType.getSimpleName());
+		
+				return checkMethod;
+			}
+		
+			return Optional.empty();
+		}
+
+		private String lowerInitial(String name) {
+			return Character.toLowerCase(name.charAt(0)) + name.substring(1);
 		}
 
 		protected final boolean hasAnnotation(Executable executable, String annotationName) {

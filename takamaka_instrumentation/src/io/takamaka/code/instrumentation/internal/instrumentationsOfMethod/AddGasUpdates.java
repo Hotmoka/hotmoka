@@ -46,7 +46,7 @@ import io.takamaka.code.verification.ThrowIncompleteClasspathError;
  * before instructions that allocate memory.
  */
 public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.ABSTRACT_TAKAMAKA_NAME);
+	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.RUNTIME_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };
 	private final static Type[] ONE_INT_ARGS = { Type.INT };
@@ -61,9 +61,9 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			InstructionList il = method.getInstructionList();
 			CodeExceptionGen[] ceg = method.getExceptionHandlers();
 
-			Class<?> abstractTakamaka = ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> classLoader.loadClass(Constants.ABSTRACT_TAKAMAKA_NAME));
-			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators, abstractTakamaka));
+			Class<?> runtime = ThrowIncompleteClasspathError.insteadOfClassNotFoundException
+				(() -> classLoader.loadClass(Constants.RUNTIME_NAME));
+			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators, runtime));
 			StreamSupport.stream(il.spliterator(), false).forEachOrdered(ih -> addRamGasUpdate(ih, il, ceg));			
 		}
 	}
@@ -123,7 +123,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 		}
 		else if (bytecode instanceof NEWARRAY || bytecode instanceof ANEWARRAY) {
 			InstructionHandle newTarget = il.insert(ih, InstructionConst.DUP);
-			il.insert(ih, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "chargeForRAMForArrayOfLength", Type.VOID, ONE_INT_ARGS, Const.INVOKESTATIC));
+			il.insert(ih, factory.createInvoke(Constants.RUNTIME_NAME, "chargeForRAMForArrayOfLength", Type.VOID, ONE_INT_ARGS, Const.INVOKESTATIC));
 			il.redirectBranches(ih, newTarget);
 			il.redirectExceptionHandlers(ceg, ih, newTarget);
 		}
@@ -205,7 +205,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			allocatorIl.insert(fallBack2, add);
 
 			// we charge the gas
-			allocatorIl.insert(fallBack2, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
+			allocatorIl.insert(fallBack2, factory.createInvoke(Constants.RUNTIME_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
 			allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
 			MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
@@ -226,15 +226,15 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 		});
 	}
 
-	private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators, Class<?> abstractTakamaka) {
+	private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators, Class<?> runtime) {
 		long cost = cpuCostOf(dominator, dominators);
 		InstructionHandle newTarget;
 		String chargeName = "charge" + cost;
 
-		// we check if there is an optimized charge method for the cost
 		try {
-			abstractTakamaka.getMethod(chargeName);
-			newTarget = il.insert(dominator, factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, chargeName, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
+			// we check if there is an optimized charge method for the cost
+			runtime.getMethod(chargeName);
+			newTarget = il.insert(dominator, factory.createInvoke(Constants.RUNTIME_NAME, chargeName, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
 		}
 		catch (NoSuchMethodException | SecurityException e) {
 			newTarget = il.insert(dominator, createConstantPusher(cost));
@@ -246,7 +246,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 	}
 
 	private InvokeInstruction chargeCall(long value, String name) {
-		return factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
+		return factory.createInvoke(Constants.RUNTIME_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
 	}
 
 	private Instruction createConstantPusher(long value) {

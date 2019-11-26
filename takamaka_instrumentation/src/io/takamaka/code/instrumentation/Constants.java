@@ -31,9 +31,9 @@ public interface Constants {
 	public final static String ABSTRACT_STORAGE_NAME = "io.takamaka.code.blockchain.runtime.AbstractStorage";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractTakamaka}.
+	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.Runtime}.
 	 */
-	public final static String ABSTRACT_TAKAMAKA_NAME = "io.takamaka.code.blockchain.runtime.AbstractTakamaka";
+	public final static String RUNTIME_NAME = "io.takamaka.code.blockchain.runtime.Runtime";
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageReference}.

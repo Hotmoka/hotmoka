@@ -31,6 +31,16 @@ public interface Constants {
 	public final static String STORAGE_NAME = "io.takamaka.code.lang.Storage";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageReference}.
+	 */
+	public final static String STORAGE_REFERENCE_NAME = "io.takamaka.code.blockchain.values.StorageReference";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageValue}.
+	 */
+	public final static String STORAGE_VALUE_NAME = "io.takamaka.code.blockchain.values.StorageValue";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
 	 */
 	public final static String PAYABLE_NAME = "io.takamaka.code.lang.Payable";

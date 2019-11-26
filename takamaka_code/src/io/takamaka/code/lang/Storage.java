@@ -25,6 +25,9 @@ public abstract class Storage {
 	 *         is older than this object; 0 if they are the same object
 	 */
 	public int compareAge(Storage other) {
-		return 0; // code will be provided by instrumentation
+		// the following actual code will be provided by instrumentation:
+		//   storageReference.compareTo(other.storageReference)
+		// which works since this class is made subclass of AbstractStorage by instrumentation
+		return 0;
 	}
 }

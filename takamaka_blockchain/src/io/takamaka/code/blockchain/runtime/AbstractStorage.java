@@ -3,7 +3,6 @@ package io.takamaka.code.blockchain.runtime;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -33,9 +32,11 @@ import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.StorageReference;
 
 /**
- * The superclass of classes whose objects can be kept in blockchain.
- * A storage class can only have fields of types allowed in blockchain.
- * Its updates are stored in blockchain at the end of the execution of a transaction.
+ * The class will be set as superclass of {@code io.takamaka.code.lang.Storage}
+ * by instrumentation. This way, the methods and fields in this class do not
+ * appear in IDE as suggestions inside storage classes. Moreover, this class is
+ * not installed in blockchain, hence its code does not obey to the constraints on
+ * Takamaka code.
  */
 public abstract class AbstractStorage {
 
@@ -61,49 +62,12 @@ public abstract class AbstractStorage {
 
 		// assigns a fresh unique identifier to the object, that will later
 		// used to refer to the object once serialized in blockchain
-		this.storageReference =
-			StorageReference.mk(AbstractTakamaka.getBlockchain().getCurrentTransaction(), AbstractTakamaka.generateNextProgressive());
+		this.storageReference = StorageReference.mk(Runtime.getBlockchain().getCurrentTransaction(), Runtime.generateNextProgressive());
 	}
 
 	//TODO: these methods might conflict with methods in subclasses
 
-	/**
-	 * Implements a chronological order on storage objects.
-	 * 
-	 * @param other the other object that must be compared to this
-	 * @return -1 if this object is older than {@code other}; 1 if {@code other}
-	 *         is older than this object; 0 if they are the same object
-	 */
-	protected final int compareAge(AbstractStorage other) {
-		return storageReference.compareTo(other.storageReference);
-	}
-
 	// ALL SUBSEQUENT METHODS ARE USED IN INSTRUMENTED CODE
-
-	/**
-	 * Collects the updates to this object and to the objects that are reachable from it.
-	 * This is used at the end of a transaction, to collect and then store the updates
-	 * resulting from the transaction.
-	 * 
-	 * @param result the set where the updates will be added
-	 * @param seen a set of storage references that have already been scanned
-	 */
-	public final void updates(Set<Update> result, Set<StorageReference> seen) {
-		if (seen.add(storageReference)) {
-			// the set of storage objects that we have to scan
-			List<AbstractStorage> workingSet = new ArrayList<>(16);
-			// initially, there is only this object to scan
-			workingSet.add(this);
-
-			do {
-				// removes the next storage object to scan for updates and continues
-				// recursively with the objects that can be reached from it, until
-				// no new object can be reached
-				workingSet.remove(workingSet.size() - 1).extractUpdates(result, seen, workingSet);
-			}
-			while (!workingSet.isEmpty());
-		}
-	}
 
 	/**
 	 * Constructor used for deserialization from blockchain, in instrumented code.
@@ -127,9 +91,9 @@ public abstract class AbstractStorage {
 	 * @param workingSet the list of storage objects that still need to be processed. This can get enlarged by a call to this method,
 	 *                   in order to simulate recursive calls without risking a Java stack overflow
 	 */
-	protected void extractUpdates(Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet) {
+	public void extractUpdates(Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet) {
 		if (!inStorage)
-			updates.add(new ClassTag(storageReference, getClass().getName(), AbstractTakamaka.getBlockchain().transactionThatInstalledJarFor(getClass())));
+			updates.add(new ClassTag(storageReference, getClass().getName(), Runtime.getBlockchain().transactionThatInstalledJarFor(getClass())));
 
 		// subclasses will override, call this super-implementation and add potential updates to their instance fields
 	}
@@ -164,7 +128,7 @@ public abstract class AbstractStorage {
 	 * @throws Exception if the value could not be found
 	 */
 	protected final Object deserializeLastLazyUpdateFor(String definingClass, String name, String fieldClassName) throws Exception {
-		return AbstractTakamaka.getBlockchain().deserializeLastLazyUpdateFor(storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return Runtime.getBlockchain().deserializeLastLazyUpdateFor(storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -178,7 +142,7 @@ public abstract class AbstractStorage {
 	 * @throws Exception if the value could not be found
 	 */
 	protected final Object deserializeLastLazyUpdateForFinal(String definingClass, String name, String fieldClassName) throws Exception {
-		return AbstractTakamaka.getBlockchain().deserializeLastLazyUpdateForFinal(storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return Runtime.getBlockchain().deserializeLastLazyUpdateForFinal(storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**

@@ -407,7 +407,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	}
 
 	private InvokeInstruction createInvokeForWhiteListingCheck(java.lang.reflect.Method checkMethod) {
-		return factory.createInvoke(Constants.ABSTRACT_TAKAMAKA_NAME, checkMethod.getName(), Type.VOID,
+		return factory.createInvoke(Constants.RUNTIME_NAME, checkMethod.getName(), Type.VOID,
 			new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC);
 	}
 
