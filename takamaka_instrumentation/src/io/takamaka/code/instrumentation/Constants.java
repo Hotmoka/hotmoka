@@ -79,17 +79,27 @@ public interface Constants {
 	public final static String SETTER_PREFIX = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "set_";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.AbstractStorage}
+	 * The name of the method in class {@link io.takamaka.code.blockchain.runtime.Runtime}
+	 * used to recursively extract updates from fields of reference type.
+	 */
+	public final static String RECURSIVE_EXTRACT = "recursiveExtract";
+
+	/**
+	 * The name of the methods of {@code io.takamaka.code.blockchain.runtime.Runtime}
+	 * used to add updates for a given field at the end of a transaction.
+	 */
+	public final static String ADD_UPDATE_FOR = "addUpdateFor";
+
+	/**
+	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
 	 * used to retrieve the last update for a non-final lazy field.
 	 */
-	//TODO: forbidden prefix
 	public final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.AbstractStorage}
+	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
 	 * used to retrieve the last update for a final lazy field.
 	 */
-	//TODO: forbidden prefix
 	public final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
 
 	/**

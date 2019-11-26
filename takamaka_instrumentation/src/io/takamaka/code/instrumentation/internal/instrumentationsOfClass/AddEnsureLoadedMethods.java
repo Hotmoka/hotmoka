@@ -21,7 +21,7 @@ import io.takamaka.code.instrumentation.Constants;
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.
  */
 public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
-	private final static Type[] THREE_STRINGS_ARGS = { Type.STRING, Type.STRING, Type.STRING };
+	private final static Type[] DESERIALIZE_LAST_UPDATE_ARGS = { new ObjectType(Constants.ABSTRACT_STORAGE_NAME), Type.STRING, Type.STRING, Type.STRING };
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
 	public AddEnsureLoadedMethods(InstrumentedClassImpl.Builder builder) {
@@ -69,9 +69,9 @@ public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassL
 		il.insert(_return, factory.createConstant(className));
 		il.insert(_return, factory.createConstant(fieldName));
 		il.insert(_return, factory.createConstant(field.getType().getName()));
-		il.insert(_return, factory.createInvoke(className,
+		il.insert(_return, factory.createInvoke(Constants.RUNTIME_NAME,
 			fieldIsFinal ? Constants.DESERIALIZE_LAST_UPDATE_FOR_FINAL : Constants.DESERIALIZE_LAST_UPDATE_FOR,
-			ObjectType.OBJECT, THREE_STRINGS_ARGS, Const.INVOKEVIRTUAL));
+			ObjectType.OBJECT, DESERIALIZE_LAST_UPDATE_ARGS, Const.INVOKESTATIC));
 		il.insert(_return, factory.createCast(ObjectType.OBJECT, type));
 		il.insert(_return, InstructionConst.DUP2);
 		il.insert(_return, factory.createPutField(className, fieldName, type));

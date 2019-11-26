@@ -1,10 +1,13 @@
 package io.takamaka.tests.errors.illegalmethodname1;
 
-import java.util.List;
-import java.util.Set;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
 
-import io.takamaka.code.lang.Storage;
-
-public class A extends Storage {
-	public void extractUpdates(Set<String> s1, Set<String> s2, List<String> l) {};
+public class A extends Contract {
+	public @Entry boolean foo() {
+		Contract caller1 = caller();
+		entry(new A()); // sets the caller programmatically!!!!
+		Contract caller2 = caller();
+		return caller1 == caller2; // callers will be different
+	}
 }

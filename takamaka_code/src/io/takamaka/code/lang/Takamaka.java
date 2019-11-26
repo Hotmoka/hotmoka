@@ -12,21 +12,11 @@ public abstract class Takamaka {
 	private Takamaka() {}
 
 	/**
-	 * Takes note of the given event.
-	 * 
-	 * @param event the event
-	 */
-	public static void event(Event event) {
-		// code provided by instrumentation
-	}
-
-	/**
 	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.blockchain.runtime.AbstractTakamaka#requireThat(boolean, String)}.
+	 * This is a synonym of {@link io.takamaka.code.lang.Takamaka#requireThat(boolean, String)}.
 	 * 
 	 * @param condition the condition that must hold
-	 * @param message the message used in the exception raised if the
-	 *                condition does not hold
+	 * @param message the message used in the exception raised if the condition does not hold
 	 * @throws RequirementViolationException if the condition does not hold
 	 */
 	public static void require(boolean condition, String message) {
@@ -36,11 +26,10 @@ public abstract class Takamaka {
 
 	/**
 	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.blockchain.runtime.AbstractTakamaka#require(boolean, String)}.
+	 * This is a synonym of {@link io.takamaka.code.lang.Takamaka#require(boolean, String)}.
 	 * 
 	 * @param condition the condition that must hold
-	 * @param message the message used in the exception raised if the
-	 *                condition does not hold
+	 * @param message the message used in the exception raised if the condition does not hold
 	 * @throws RequirementViolationException if the condition does not hold
 	 */
 	public static void requireThat(boolean condition, String message) {
@@ -52,8 +41,7 @@ public abstract class Takamaka {
 	 * Asserts that the given condition holds.
 	 * 
 	 * @param condition the condition that must hold
-	 * @param message the message used in the exception raised if the
-	 *                condition does not hold
+	 * @param message the message used in the exception raised if the condition does not hold
 	 * @throws AssertionViolationException if the condition does not hold
 	 */
 	public static void assertThat(boolean condition, String message) {
@@ -63,11 +51,10 @@ public abstract class Takamaka {
 
 	/**
 	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.blockchain.runtime.AbstractTakamaka#requireThat(boolean, Supplier)}.
+	 * This is a synonym of {@link io.takamaka.code.lang.Takamaka#requireThat(boolean, Supplier)}.
 	 * 
 	 * @param condition the condition that must hold
-	 * @param message the supplier of the message used in the exception raised if the
-	 *                condition does not hold
+	 * @param message the supplier of the message used in the exception raised if the condition does not hold
 	 * @throws RequirementViolationException if the condition does not hold
 	 */
 	public static void require(boolean condition, Supplier<String> message) {
@@ -77,11 +64,10 @@ public abstract class Takamaka {
 
 	/**
 	 * Requires that the given condition holds.
-	 * This is a synonym of {@link takamaka.blockchain.runtime.AbstractTakamaka#require(boolean, Supplier)}.
+	 * This is a synonym of {@link io.takamaka.code.lang.Takamaka#require(boolean, Supplier)}.
 	 * 
 	 * @param condition the condition that must hold
-	 * @param message the supplier of the message used in the exception raised if the
-	 *                condition does not hold
+	 * @param message the supplier of the message used in the exception raised if the condition does not hold
 	 * @throws RequirementViolationException if the condition does not hold
 	 */
 	public static void requireThat(boolean condition, Supplier<String> message) {
@@ -93,8 +79,7 @@ public abstract class Takamaka {
 	 * Asserts that the given condition holds.
 	 * 
 	 * @param condition the condition that must hold
-	 * @param message the supplier of the message used in the exception raised if the
-	 *                condition does not hold
+	 * @param message the supplier of the message used in the exception raised if the condition does not hold
 	 * @throws AssertionViolationException if the condition does not hold
 	 */
 	public static void assertThat(boolean condition, Supplier<String> message) {
@@ -118,6 +103,16 @@ public abstract class Takamaka {
 		// code provided by instrumentation as
 		// return Runtime.withGas(amount, what);
 		return null;
+	}
+
+	/**
+	 * Takes note of the given event.
+	 * 
+	 * @param event the event
+	 */
+	public static void event(Event event) {
+		// code provided by instrumentation as
+		// Runtime.event(event);
 	}
 
 	public static long now() {
