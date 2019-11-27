@@ -12,9 +12,7 @@ public class SwapSuperclassOfSpecialClasses extends InstrumentedClassImpl.Builde
 	public SwapSuperclassOfSpecialClasses(InstrumentedClassImpl.Builder builder) {
 		builder.super();
 
-		if (className.equals(Constants.EVENT_NAME))
-			setSuperclassName(Constants.ABSTRACT_EVENT_NAME);
-		else if (className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME))
+		if (className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME))
 			setSuperclassName(Constants.ABSTRACT_STORAGE_NAME);
 	}
 }

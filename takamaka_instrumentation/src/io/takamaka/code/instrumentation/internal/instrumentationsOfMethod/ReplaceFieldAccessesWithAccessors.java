@@ -17,6 +17,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
@@ -50,7 +51,9 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
-			return classLoader.isStorage(receiverClassName)
+			// we do not consider field accesses added by instrumentation
+			return !receiverClassName.equals(Constants.ABSTRACT_STORAGE_NAME)
+					&& classLoader.isStorage(receiverClassName)
 					&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
 					&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
 		}
@@ -59,7 +62,9 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
-			return classLoader.isStorage(receiverClassName)
+			// we do not consider field accesses added by instrumentation
+			return !receiverClassName.equals(Constants.ABSTRACT_STORAGE_NAME)
+					&& classLoader.isStorage(receiverClassName)
 					&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
 					&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
 		}

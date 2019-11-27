@@ -28,16 +28,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 
 		Type[] args;
 
-		if (className.equals(Constants.EVENT_NAME)) {
-			if (Const.CONSTRUCTOR_NAME.equals(method.getName()) && method.getArgumentTypes().length == 0) {
-				InstructionList il = new InstructionList();
-				il.append(InstructionConst.ALOAD_0);
-				il.append(factory.createInvoke(Constants.ABSTRACT_EVENT_NAME, Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
-				il.append(InstructionConst.RETURN);
-				method.setInstructionList(il);
-			}
-		}
-		else if (className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)) {
+		if (className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)) {
 			if ("compareByStorageReference".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
@@ -61,7 +52,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "event", Type.VOID,
-						new Type[] { new ObjectType(Constants.ABSTRACT_EVENT_NAME) }, Const.INVOKESTATIC));
+						new Type[] { new ObjectType(Constants.ABSTRACT_STORAGE_NAME) }, Const.INVOKESTATIC));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}

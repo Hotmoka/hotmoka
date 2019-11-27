@@ -23,11 +23,6 @@ public interface Constants {
 	public final static String VIEW_NAME = "io.takamaka.code.lang.View";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractEvent}.
-	 */
-	public final static String ABSTRACT_EVENT_NAME = "io.takamaka.code.blockchain.runtime.AbstractEvent";
-
-	/**
 	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractStorage}.
 	 */
 	public final static String ABSTRACT_STORAGE_NAME = "io.takamaka.code.blockchain.runtime.AbstractStorage";
@@ -131,4 +126,10 @@ public interface Constants {
 	 * that sets the caller at the beginning of an entry.
 	 */
 	public final static String ENTRY = "entry";
+
+	/**
+	 * The number of optimized methods for gas charge in the
+	 * {@code io.takamaka.code.blockchain.runtime.Runtime} class.
+	 */
+	public static final long MAX_OPTIMIZED_CHARGE = 20;
 }

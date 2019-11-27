@@ -425,7 +425,7 @@ public abstract class Runtime {
 	 *
 	 * @param event the event
 	 */
-	public static void event(AbstractEvent event) {
+	public static void event(AbstractStorage event) {
 		blockchain.event(event);
 	}
 

@@ -46,7 +46,7 @@ import io.takamaka.code.verification.ThrowIncompleteClasspathError;
  * before instructions that allocate memory.
  */
 public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType ABSTRACT_TAKAMAKA_OT = new ObjectType(Constants.RUNTIME_NAME);
+	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };
 	private final static Type[] ONE_INT_ARGS = { Type.INT };
@@ -61,9 +61,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			InstructionList il = method.getInstructionList();
 			CodeExceptionGen[] ceg = method.getExceptionHandlers();
 
-			Class<?> runtime = ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> classLoader.loadClass(Constants.RUNTIME_NAME));
-			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators, runtime));
+			dominators.stream().forEachOrdered(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
 			StreamSupport.stream(il.spliterator(), false).forEachOrdered(ih -> addRamGasUpdate(ih, il, ceg));			
 		}
 	}
@@ -96,7 +94,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			InvokeInstruction invoke = (InvokeInstruction) bytecode;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			// we do not count the calls due to instrumentation, such as those for gas metering themselves
-			if (!ABSTRACT_TAKAMAKA_OT.equals(receiver)) {
+			if (!RUNTIME_OT.equals(receiver)) {
 				// we compute an estimation of the size of the activation frame for the callee
 				long size = invoke.getArgumentTypes(cpg).length;
 				if (invoke instanceof INVOKEVIRTUAL || invoke instanceof INVOKESPECIAL || invoke instanceof INVOKEINTERFACE)
@@ -226,17 +224,14 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 		});
 	}
 
-	private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators, Class<?> runtime) {
+	private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators) {
 		long cost = cpuCostOf(dominator, dominators);
 		InstructionHandle newTarget;
-		String chargeName = "charge" + cost;
 
-		try {
-			// we check if there is an optimized charge method for the cost
-			runtime.getMethod(chargeName);
-			newTarget = il.insert(dominator, factory.createInvoke(Constants.RUNTIME_NAME, chargeName, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
-		}
-		catch (NoSuchMethodException | SecurityException e) {
+		// we check if there is an optimized charge method for the cost
+		if (cost <= Constants.MAX_OPTIMIZED_CHARGE)
+			newTarget = il.insert(dominator, factory.createInvoke(Constants.RUNTIME_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
+		else {
 			newTarget = il.insert(dominator, createConstantPusher(cost));
 			il.insert(dominator, chargeCall(cost, "charge"));
 		}

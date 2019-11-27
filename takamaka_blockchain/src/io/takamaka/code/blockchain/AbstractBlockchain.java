@@ -59,7 +59,6 @@ import io.takamaka.code.blockchain.response.TransactionResponse;
 import io.takamaka.code.blockchain.response.TransactionResponseWithInstrumentedJar;
 import io.takamaka.code.blockchain.response.TransactionResponseWithUpdates;
 import io.takamaka.code.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.runtime.AbstractEvent;
 import io.takamaka.code.blockchain.runtime.AbstractStorage;
 import io.takamaka.code.blockchain.runtime.Runtime;
 import io.takamaka.code.blockchain.types.ClassType;
@@ -84,7 +83,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
 	 */
-	private final List<AbstractEvent> events = new ArrayList<>();
+	private final List<AbstractStorage> events = new ArrayList<>();
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -453,7 +452,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param event the event
 	 * @throws IllegalArgumentException if the event is {@code null}
 	 */
-	public final void event(AbstractEvent event) {
+	public final void event(AbstractStorage event) {
 		if (event == null)
 			throw new IllegalArgumentException("Events cannot be null");
 
