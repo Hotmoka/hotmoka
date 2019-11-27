@@ -44,9 +44,6 @@ import io.takamaka.code.blockchain.values.StorageValue;
  */
 public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 
-	// ABSTRACT TEMPLATE METHODS
-	// Any implementation of a blockchain must implement the following and leave the rest unchanged
-	
 	/**
 	 * Yields the reference to the transaction on top of the blockchain.
 	 * If there are more chains, this refers to the transaction in the longest chain.

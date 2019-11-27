@@ -466,9 +466,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 			// we do not count gas for this transaction
 			initTransaction(BigInteger.valueOf(-1L), current);
 
-			if (!request.getDependencies().map(dependency -> dependency.transaction).allMatch(transaction -> transaction.isOlderThan(current)))
-				throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
-
 			// we transform the array of bytes into a real jar file
 			Path original = Files.createTempFile("original", ".jar");
 			Files.write(original, request.getJar());
@@ -524,9 +521,6 @@ public abstract class AbstractBlockchain implements Blockchain {
 				BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
 				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
 				checkMinimalGas(request, balanceUpdateInCaseOfFailure);
-
-				if (!request.getDependencies().map(dependency -> dependency.transaction).allMatch(transaction -> transaction.isOlderThan(current)))
-					throw new IllegalTransactionRequestException("A jar file can only depend on jars installed by older transactions");
 
 				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
 				// after this line, the transaction will be added to the blockchain, possibly as a failed one

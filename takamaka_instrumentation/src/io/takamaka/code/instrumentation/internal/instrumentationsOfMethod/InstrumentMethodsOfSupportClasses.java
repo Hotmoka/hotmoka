@@ -38,7 +38,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 			}
 		}
 		else if (className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)) {
-			if ("compareAge".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
+			if ("compareByStorageReference".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, "storageReference", STORAGE_REFERENCE_OT));

@@ -171,7 +171,7 @@ public class StorageMap<K,V> extends Storage implements Iterable<StorageMap.Entr
 		if (key1 instanceof Comparable<?>)
 			return ((Comparable<K>) key1).compareTo(key2);
 		else
-			return ((Storage) key1).compareAge((Storage) key2);
+			return ((Storage) key1).compareByStorageReference((Storage) key2);
 	}
 
 	/**

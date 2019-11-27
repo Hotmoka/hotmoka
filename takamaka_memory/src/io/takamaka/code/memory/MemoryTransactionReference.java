@@ -11,7 +11,7 @@ import io.takamaka.code.blockchain.TransactionReference;
  * uniquely identified by a pair block/transaction inside the block. A progressive
  * identifier would also be fine.
  */
-final class MemoryTransactionReference extends SequentialTransactionReference {
+final class MemoryTransactionReference implements SequentialTransactionReference {
 
 	private static final long serialVersionUID = 5911713300386882185L;
 
@@ -51,16 +51,7 @@ final class MemoryTransactionReference extends SequentialTransactionReference {
 
 	@Override
 	public boolean isOlderThan(TransactionReference other) {
-		// this transaction reference is created by the memory blockchain only,
-		// that generates only this kind of transaction references. Hence
-		// this cast must succeed
-		MemoryTransactionReference otherAsTR = (MemoryTransactionReference) other;
-
-		int diff = blockNumber.compareTo(otherAsTR.blockNumber);
-		if (diff != 0)
-			return diff < 0;
-		else
-			return transactionNumber < otherAsTR.transactionNumber;
+		return compareTo(other) < 0;
 	}
 
 	@Override
@@ -115,5 +106,18 @@ final class MemoryTransactionReference extends SequentialTransactionReference {
 	@Override
 	public BigInteger size() {
 		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT).add(GasCosts.storageCostOf(blockNumber));
+	}
+
+	@Override
+	public int compareTo(TransactionReference other) {
+		// this transaction reference is created by the memory blockchain only, that
+		// generates only this kind of transaction references. Hence this cast must succeed
+		MemoryTransactionReference otherAsTR = (MemoryTransactionReference) other;
+
+		int diff = blockNumber.compareTo(otherAsTR.blockNumber);
+		if (diff != 0)
+			return diff;
+		else
+			return transactionNumber - otherAsTR.transactionNumber;
 	}
 }

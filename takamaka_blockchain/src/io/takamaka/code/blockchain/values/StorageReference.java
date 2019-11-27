@@ -16,7 +16,7 @@ import io.takamaka.code.blockchain.runtime.AbstractStorage;
  * same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public class StorageReference implements StorageValue {
+public final class StorageReference implements StorageValue {
 
 	private static final long serialVersionUID = 5215119613321482697L;
 

@@ -18,13 +18,14 @@ public abstract class Storage {
 	}
 
 	/**
-	 * Implements a chronological order on storage objects.
+	 * Implements an order on storage object that delegates to the
+	 * {@code compareTo()} on the storage references of the compared objects.
+	 * This method is guaranteed to implement a total order relation.
 	 * 
 	 * @param other the other object that must be compared to this
-	 * @return -1 if this object is older than {@code other}; 1 if {@code other}
-	 *         is older than this object; 0 if they are the same object
+	 * @return the result of comparison the storage references of the two objects
 	 */
-	public int compareAge(Storage other) {
+	public final int compareByStorageReference(Storage other) {
 		// the following actual code will be provided by instrumentation:
 		//   storageReference.compareTo(other.storageReference)
 		// which works since this class is made subclass of AbstractStorage by instrumentation

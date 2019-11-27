@@ -8,7 +8,7 @@ import io.takamaka.code.blockchain.Update;
 import io.takamaka.code.blockchain.values.StorageReference;
 
 /**
- * The class will be set as superclass of {@code io.takamaka.code.lang.Storage}
+ * This class will be set as superclass of {@code io.takamaka.code.lang.Storage}
  * by instrumentation. This way, the methods and fields in this class do not
  * appear in IDE as suggestions inside storage classes. Moreover, this class
  * can be used in this module without importing the runtime of Takamaka.
@@ -23,7 +23,7 @@ public abstract class AbstractStorage {
 	/**
 	 * True if the object reflects an object serialized in blockchain.
 	 * False otherwise. The latter case occurs if the object has been
-	 * created with the {@code new} statement but has not yet been
+	 * created during the current transaction but has not been yet
 	 * serialized into blockchain.
 	 */
 	protected final boolean inStorage;
@@ -36,11 +36,9 @@ public abstract class AbstractStorage {
 		this.inStorage = false;
 
 		// assigns a fresh unique identifier to the object, that will later
-		// used to refer to the object once serialized in blockchain
+		// be used to refer to the object once serialized in blockchain
 		this.storageReference = StorageReference.mk(Runtime.getBlockchain().getCurrentTransaction(), Runtime.generateNextProgressive());
 	}
-
-	// SUBSEQUENT METHODS ARE USED IN INSTRUMENTED CODE
 
 	/**
 	 * Constructor used for deserialization from blockchain, in instrumented code.
