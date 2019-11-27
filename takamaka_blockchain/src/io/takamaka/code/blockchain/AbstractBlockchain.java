@@ -130,7 +130,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	private TakamakaClassLoader classLoader;
+	private BlockchainClassLoader classLoader;
 
 	/**
 	 * The reference to the transaction where this must be executed.
@@ -837,6 +837,42 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return classLoader.loadClass(name);
 	}
 
+	/**
+	 * Yields method {@link io.takamaka.code.lang.Contract#entry(io.takamaka.code.lang.Contract)}.
+	 * 
+	 * @return the method
+	 */
+	public final Method getEntry() {
+		return classLoader.entry;
+	}
+
+	/**
+	 * Yields method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, int)}.
+	 * 
+	 * @return the method
+	 */
+	public final Method getPayableEntryInt() {
+		return classLoader.payableEntryInt;
+	}
+
+	/**
+	 * Yields method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, long)}.
+	 * 
+	 * @return the method
+	 */
+	public final Method getPayableEntryLong() {
+		return classLoader.payableEntryLong;
+	}
+
+	/**
+	 * Yields method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, java.math.BigInteger)}.
+	 * 
+	 * @return the method
+	 */
+	public final Method getPayableEntryBigInteger() {
+		return classLoader.payableEntryBigInteger;
+	}
+
 	private static void checkMinimalGas(TransactionRequest request, UpdateOfBalance balanceUpdateInCaseOfFailure) throws IllegalTransactionRequestException {
 		if (!request.hasMinimalGas(balanceUpdateInCaseOfFailure))
 			throw new IllegalTransactionRequestException("Not enough gas to start the transaction");
@@ -875,6 +911,26 @@ public abstract class AbstractBlockchain implements Blockchain {
 		private final List<Path> classpathElements = new ArrayList<>();
 
 		/**
+		 * Method {@link io.takamaka.code.lang.Contract#entry(io.takamaka.code.lang.Contract)}.
+		 */
+		private final Method entry;
+
+		/**
+		 * Method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, int)}.
+		 */
+		private final Method payableEntryInt;
+
+		/**
+		 * Method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, long)}.
+		 */
+		private final Method payableEntryLong;
+
+		/**
+		 * Method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, BigInteger)}.
+		 */
+		private final Method payableEntryBigInteger;
+
+		/**
 		 * Builds the class loader for the given class path and its dependencies.
 		 * 
 		 * @param classpath the class path
@@ -891,6 +947,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 					throw new IllegalStateException("Unexpected illegal URL", e);
 				}
 			});
+
+			this.entry = getContract().getDeclaredMethod("entry", getContract());
+			this.entry.setAccessible(true); // it was private
+			this.payableEntryInt = getContract().getDeclaredMethod("payableEntry", getContract(), int.class);
+			this.payableEntryInt.setAccessible(true); // it was private
+			this.payableEntryLong = getContract().getDeclaredMethod("payableEntry", getContract(), long.class);
+			this.payableEntryLong.setAccessible(true); // it was private
+			this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
+			this.payableEntryBigInteger.setAccessible(true); // it was private
 		}
 
 		/**
@@ -911,6 +976,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 					throw new IllegalStateException("Unexpected illegal URL", e);
 				}
 			});
+
+			this.entry = getContract().getDeclaredMethod("entry", getContract());
+			this.entry.setAccessible(true); // it was private
+			this.payableEntryInt = getContract().getDeclaredMethod("payableEntry", getContract(), int.class);
+			this.payableEntryInt.setAccessible(true); // it was private
+			this.payableEntryLong = getContract().getDeclaredMethod("payableEntry", getContract(), long.class);
+			this.payableEntryLong.setAccessible(true); // it was private
+			this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
+			this.payableEntryBigInteger.setAccessible(true); // it was private
 		}
 
 		private static URL[] collectURLs(Stream<Classpath> classpaths, AbstractBlockchain blockchain, URL start) throws Exception {

@@ -1,6 +1,7 @@
 package io.takamaka.code.blockchain.runtime;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
@@ -326,6 +327,97 @@ public abstract class Runtime {
 			updates.add(new UpdateToNullEager(object.storageReference, field));
 		else
 			updates.add(new UpdateOfEnumEager(object.storageReference, field, element.getClass().getName(), element.name()));
+	}
+
+	/**
+	 * Called at the beginning of the instrumentation of an entry method or constructor
+	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Contract.entry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 */
+	public static void entry(Object callee, Object caller) throws Throwable {
+		// we call the private method of contract
+		try {
+			getBlockchain().getEntry().invoke(callee, caller);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.entry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.entry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	/**
+	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
+	 */
+	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
+		// we call the private method of contract
+		try {
+			getBlockchain().getPayableEntryBigInteger().invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.payableEntry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	/**
+	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 */
+	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
+		// we call the private method of contract
+		try {
+			getBlockchain().getPayableEntryInt().invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.payableEntry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	/**
+	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 */
+	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
+		// we call the private method of contract
+		try {
+			getBlockchain().getPayableEntryLong().invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.payableEntry() itself: we forward it
+			throw e.getCause();
+		}
 	}
 
 	/**

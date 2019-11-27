@@ -38,8 +38,9 @@ import io.takamaka.code.verification.Dummy;
  */
 public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.verification.Constants.CONTRACT_NAME);
+	private final static ObjectType OBJECT_OT = new ObjectType(Object.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
-	private final static Type[] ENTRY_ARGS = { CONTRACT_OT };
+	private final static Type[] ENTRY_ARGS = { OBJECT_OT, OBJECT_OT };
 
 	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
@@ -92,12 +93,11 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			// a payable entry method can have a first argument of type int/long/BigInteger
 			Type amountType = method.getArgumentType(0);
 			il.insert(start, InstructionFactory.createLoad(amountType, 1));
-			Type[] paybleEntryArgs = new Type[] { CONTRACT_OT, amountType };
-			il.insert(where, factory.createInvoke(className, Constants.PAYABLE_ENTRY, Type.VOID, paybleEntryArgs,
-					Const.INVOKESPECIAL));
+			Type[] paybleEntryArgs = new Type[] { OBJECT_OT, OBJECT_OT, amountType };
+			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME, Constants.PAYABLE_ENTRY, Type.VOID, paybleEntryArgs, Const.INVOKESTATIC));
 		}
 		else
-			il.insert(where, factory.createInvoke(className, Constants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESPECIAL));
+			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME, Constants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESTATIC));
 	}
 
 	/**

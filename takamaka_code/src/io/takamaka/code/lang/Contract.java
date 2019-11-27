@@ -69,11 +69,12 @@ public abstract class Contract extends Storage {
 
 	/**
 	 * Called at the beginning of the instrumentation of an entry method or constructor.
-	 * It sets the caller of the entry.
+	 * It sets the caller of the entry. It is private, so that programmers cannot call
+	 * it directly. Instead, instrumented code will call it by reflection.
 	 * 
 	 * @param caller the caller of the entry
 	 */
-	protected final void entry(Contract caller) {
+	private void entry(Contract caller) {
 		Takamaka.require(this != caller, "An @Entry can only be called from a distinct contract object");
 		this.caller = caller;
 	}
@@ -81,11 +82,13 @@ public abstract class Contract extends Storage {
 	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
 	 * It sets the caller of the entry and transfers the amount of coins to the entry.
+	 * It is private, so that programmers cannot call
+	 * it directly. Instead, instrumented code will call it by reflection.
 	 * 
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
 	 */
-	protected final void payableEntry(Contract caller, BigInteger amount) {
+	private void payableEntry(Contract caller, BigInteger amount) {
 		entry(caller);
 		caller.pay(this, amount);
 	}
@@ -93,22 +96,28 @@ public abstract class Contract extends Storage {
 	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
 	 * It sets the caller of the entry and transfers the amount of coins to the entry.
-	 * 
+	 * It is private, so that programmers cannot call
+	 * it directly. Instead, instrumented code will call it by reflection.
+	 *
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
 	 */
-	protected final void payableEntry(Contract caller, int amount) {
+	@SuppressWarnings("unused")
+	private void payableEntry(Contract caller, int amount) {
 		payableEntry(caller, BigInteger.valueOf(amount));
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
 	 * It sets the caller of the entry and transfers the amount of coins to the entry.
+	 * It is private, so that programmers cannot call
+	 * it directly. Instead, instrumented code will call it by reflection.
 	 * 
 	 * @param caller the caller of the entry
 	 * @param amount the amount of coins
 	 */
-	protected final void payableEntry(Contract caller, long amount) {
+	@SuppressWarnings("unused")
+	private void payableEntry(Contract caller, long amount) {
 		payableEntry(caller, BigInteger.valueOf(amount));
 	}
 }

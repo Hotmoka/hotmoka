@@ -35,9 +35,9 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
 			List<InstructionHandle> callsToEntries = StreamSupport.stream(il.spliterator(), false)
-					.filter(ih -> isCallToEntry(ih.getInstruction())).collect(Collectors.toList());
+				.filter(ih -> isCallToEntry(ih.getInstruction())).collect(Collectors.toList());
 
-			for (InstructionHandle ih : callsToEntries)
+			for (InstructionHandle ih: callsToEntries)
 				passContractToCallToEntry(il, ih, method.getName());
 		}
 	}
@@ -63,7 +63,7 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 			System.arraycopy(args, 0, expandedArgs, 1, args.length);
 			expandedArgs[0] = new ObjectType(className);
 			ConstantInvokeDynamic expandedCid = new ConstantInvokeDynamic(cid.getBootstrapMethodAttrIndex(), cpg
-					.addNameAndType(methodName, Type.getMethodSignature(invoke.getReturnType(cpg), expandedArgs)));
+				.addNameAndType(methodName, Type.getMethodSignature(invoke.getReturnType(cpg), expandedArgs)));
 			int index = addInvokeDynamicToConstantPool(expandedCid);
 			INVOKEDYNAMIC copied = (INVOKEDYNAMIC) invokedynamic.copy();
 			copied.setIndex(index);

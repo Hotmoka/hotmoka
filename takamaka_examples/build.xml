@@ -96,7 +96,6 @@
 	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod7.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalcalltononwhitelistedmethod7/**"/>
 	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod8.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalcalltononwhitelistedmethod8/**"/>
   	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod9.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalcalltononwhitelistedmethod9/**"/>
-  	<jar jarfile="${dist}/illegalmethodname1.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalmethodname1/**"/>
   	<jar jarfile="${dist}/legalcall1.jar" basedir="${build}" includes="io/takamaka/tests/errors/legalcall1/**"/>
   	<jar jarfile="${dist}/legalcall2.jar" basedir="${build}" includes="io/takamaka/tests/errors/legalcall2/**"/>
   	<jar jarfile="${dist}/legalcall3.jar" basedir="${build}" includes="io/takamaka/tests/errors/legalcall3/**"/>
