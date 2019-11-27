@@ -55,7 +55,7 @@ public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassL
 		InstructionList il = new InstructionList();
 		InstructionHandle _return = il.append(InstructionConst.RETURN);
 		il.insert(_return, InstructionFactory.createThis());
-		il.insert(_return, factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, Constants.IN_STORAGE_NAME, BasicType.BOOLEAN));
+		il.insert(_return, factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, Constants.IN_STORAGE, BasicType.BOOLEAN));
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 		il.insert(_return, InstructionFactory.createThis());
 		String fieldName = field.getName();

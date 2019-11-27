@@ -136,7 +136,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			Type[] args = IntStream.range(0, createdDimensions)
 				.mapToObj(dim -> Type.INT)
 				.toArray(Type[]::new);
-			String allocatorName = getNewNameForPrivateMethod(Constants.EXTRA_ALLOCATOR_NAME);
+			String allocatorName = getNewNameForPrivateMethod(Constants.EXTRA_ALLOCATOR);
 			InstructionList allocatorIl = new InstructionList();
 			IntStream.range(0, createdDimensions)
 				.mapToObj(dim -> InstructionFactory.createLoad(Type.INT, dim))

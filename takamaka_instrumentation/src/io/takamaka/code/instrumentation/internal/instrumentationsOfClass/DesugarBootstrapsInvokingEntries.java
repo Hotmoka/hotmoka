@@ -96,7 +96,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 		// into invokespecial className.lambda(C, pars):r where the name "lambda" is
 		// not used in className. The extra parameter className is not added for
 		// constructor references, since they create the new object themselves
-		String lambdaName = getNewNameForPrivateMethod(Constants.EXTRA_LAMBDA_NAME);
+		String lambdaName = getNewNameForPrivateMethod(Constants.EXTRA_LAMBDA);
 
 		Type[] lambdaArgs;
 		if (invokeKind == Const.REF_newInvokeSpecial)

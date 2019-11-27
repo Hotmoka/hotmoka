@@ -149,7 +149,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	}
 
 	private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) {
-		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER);
 		InstructionList il = new InstructionList();
 		String signature = invokedynamic.getSignature(cpg);
 		Type verifierReturnType = Type.getReturnType(signature);
@@ -206,7 +206,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	 *                      for the call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
-		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER);
 		Bootstraps classBootstraps = verifiedClass.getBootstraps();
 		InstructionList il = new InstructionList();
 		List<Type> args = new ArrayList<>();
@@ -307,7 +307,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	 *              call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethodForNonINVOKEDYNAMIC(InstructionHandle ih, InvokeInstruction invoke, Executable model, String key) {
-		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER_NAME);
+		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER);
 		Type verifierReturnType = invoke.getReturnType(cpg);
 		String methodName = invoke.getMethodName(cpg);
 		InstructionList il = new InstructionList();

@@ -44,7 +44,7 @@ public class AddExtractUpdates extends InstrumentedClassImpl.Builder.ClassLevelI
 			il.append(InstructionConst.ALOAD_2);
 			il.append(InstructionFactory.createLoad(LIST_OT, 3));
 			il.append(factory.createInvoke(getSuperclassName(), EXTRACT_UPDATES, Type.VOID, EXTRACT_UPDATES_ARGS, Const.INVOKESPECIAL));
-			il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, Constants.IN_STORAGE_NAME, Type.BOOLEAN));
+			il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, Constants.IN_STORAGE, Type.BOOLEAN));
 			il.append(InstructionFactory.createStore(Type.BOOLEAN, 4));
 
 			InstructionHandle end = il.append(InstructionConst.RETURN);

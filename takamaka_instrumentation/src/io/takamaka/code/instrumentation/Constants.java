@@ -1,5 +1,7 @@
 package io.takamaka.code.instrumentation;
 
+import static io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX;
+
 /**
  * A collector of constants useful during code instrumentation.
  */
@@ -44,19 +46,31 @@ public interface Constants {
 	 * The prefix of the name of the field used in instrumented storage classes
 	 * to take note of the old value of the fields.
 	 */
-	public final static String OLD_PREFIX = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "old_";
+	public final static String OLD_PREFIX = FORBIDDEN_PREFIX + "old_";
 
 	/**
 	 * The prefix of the name of the field used in instrumented storage classes
 	 * to determine if a lazy field has been assigned.
 	 */	
-	public final static String IF_ALREADY_LOADED_PREFIX = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "ifAlreadyLoaded_";
+	public final static String IF_ALREADY_LOADED_PREFIX = FORBIDDEN_PREFIX + "ifAlreadyLoaded_";
 
 	/**
 	 * The prefix of the name of the method used in instrumented storage classes
 	 * to ensure that a lazy field has been loaded.
 	 */
-	public final static String ENSURE_LOADED_PREFIX = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "ensureLoaded_";
+	public final static String ENSURE_LOADED_PREFIX = FORBIDDEN_PREFIX + "ensureLoaded_";
+
+	/**
+	 * The prefix of the name of the method used in instrumented storage classes
+	 * to read a lazy field.
+	 */
+	public final static String GETTER_PREFIX = FORBIDDEN_PREFIX + "get_";
+
+	/**
+	 * The prefix of the name of the method used in instrumented storage classes
+	 * to set a lazy field.
+	 */
+	public final static String SETTER_PREFIX = FORBIDDEN_PREFIX + "set_";
 
 	/**
 	 * The prefix of the name of the field used in instrumented storage classes
@@ -64,19 +78,7 @@ public interface Constants {
 	 * This does not need the forbidden character at its beginning, since
 	 * it is a normal field of class {@code io.takamaka.code.blockchain.runtime.AbstractStorage}.
 	 */
-	public final static String IN_STORAGE_NAME = "inStorage";
-
-	/**
-	 * The prefix of the name of the method used in instrumented storage classes
-	 * to read a lazy field.
-	 */
-	public final static String GETTER_PREFIX = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "get_";
-
-	/**
-	 * The prefix of the name of the method used in instrumented storage classes
-	 * to set a lazy field.
-	 */
-	public final static String SETTER_PREFIX = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "set_";
+	public final static String IN_STORAGE = "inStorage";
 
 	/**
 	 * The name of the method in class {@link io.takamaka.code.blockchain.runtime.Runtime}
@@ -105,29 +107,28 @@ public interface Constants {
 	/**
 	 * The prefix of the name of extra lambdas added during instrumentation.
 	 */
-	public final static String EXTRA_LAMBDA_NAME = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "lambda";
+	public final static String EXTRA_LAMBDA = FORBIDDEN_PREFIX + "lambda";
 
 	/**
 	 * The prefix of the name of extra methods used to simulate multidimensional
 	 * array creations and keep track of the gas consumed for RAM consumption.
 	 */
-	public final static String EXTRA_ALLOCATOR_NAME = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "multianewarray";
+	public final static String EXTRA_ALLOCATOR = FORBIDDEN_PREFIX + "multianewarray";
 
 	/**
 	 * The prefix of the name of extra methods used to check white-listing annotations at run time.
 	 */
-	public final static String EXTRA_VERIFIER_NAME = io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX + "verifier";
+	public final static String EXTRA_VERIFIER = FORBIDDEN_PREFIX + "verifier";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.lang.Contract} that sets the caller and transfers
-	 * money at the beginning of a payable entry.
+	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
+	 * that sets the caller and transfers money at the beginning of a payable entry.
 	 */
-	//TODO forbidden prefix
 	public final static String PAYABLE_ENTRY = "payableEntry";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.lang.Contract} that sets caller
-	 * at the beginning of a payable entry.
+	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
+	 * that sets the caller at the beginning of an entry.
 	 */
 	public final static String ENTRY = "entry";
 }
