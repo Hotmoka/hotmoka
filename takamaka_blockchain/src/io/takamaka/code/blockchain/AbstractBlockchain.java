@@ -22,12 +22,10 @@ import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
@@ -1297,36 +1295,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		// events are accessible from outside, hence they count as side-effects
 		events.forEach(potentiallyAffectedObjects::add);
 
-		Set<StorageReference> seen = new HashSet<>();
-		SortedSet<Update> updates = new TreeSet<>();
-		potentiallyAffectedObjects.forEach(storage -> updates(storage, updates, seen));
-
-		return updates;
-	}
-
-	/**
-	 * Collects the updates to the given object and to the objects that are reachable from it.
-	 * This is used at the end of a transaction, to collect and then store the updates
-	 * resulting from the transaction.
-	 * 
-	 * @param object the storage object from where the updates lookup starts
-	 * @param result the set where the updates will be added
-	 * @param seen a set of storage references that have already been scanned
-	 */
-	private void updates(AbstractStorage object, Set<Update> result, Set<StorageReference> seen) {
-		if (seen.add(object.storageReference)) {
-			// the set of storage objects that we have to scan
-			List<AbstractStorage> workingSet = new ArrayList<>(16);
-			// initially, there is only this object to scan
-			workingSet.add(object);
-
-			do {
-				// removes the next storage object to scan for updates and continues recursively
-				// with the objects that can be reached from it, until no new object can be reached
-				new ExtractedUpdates(this, workingSet.remove(workingSet.size() - 1), result, seen, workingSet);
-			}
-			while (!workingSet.isEmpty());
-		}
+		return new ExtractedUpdates(this, potentiallyAffectedObjects.stream()).getUpdates();
 	}
 
 	/**
