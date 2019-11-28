@@ -28,7 +28,7 @@ public class AddExtractUpdates extends InstrumentedClassImpl.Builder.ClassLevelI
 	private final static ObjectType ENUM_OT = new ObjectType(Enum.class.getName());
 	private final static ObjectType SET_OT = new ObjectType(Set.class.getName());
 	private final static Type[] EXTRACT_UPDATES_ARGS = { SET_OT, SET_OT, LIST_OT };
-	private final static Type[] ADD_UPDATES_FOR_ARGS = { new ObjectType(Constants.ABSTRACT_STORAGE_NAME), Type.STRING, Type.STRING, SET_OT };
+	private final static List<Type> ADD_UPDATES_FOR_ARGS = List.of(new ObjectType(Constants.ABSTRACT_STORAGE_NAME), Type.STRING, Type.STRING, SET_OT);
 	private final static Type[] RECURSIVE_EXTRACT_ARGS = { Type.OBJECT, SET_OT, SET_OT, LIST_OT };
 	private final static Type[] TWO_OBJECTS_ARGS = { Type.OBJECT, Type.OBJECT };
 	private final static short PROTECTED_SYNTHETIC = Const.ACC_PROTECTED | Const.ACC_SYNTHETIC;
@@ -71,31 +71,20 @@ public class AddExtractUpdates extends InstrumentedClassImpl.Builder.ClassLevelI
 	 */
 	private InstructionHandle addUpdateExtractionForLazyField(Field field, InstructionList il, InstructionHandle end) {
 		Type type = Type.getType(field.getType());
+		String fieldName = field.getName();
 
-		List<Type> args = new ArrayList<>();
-		for (Type arg: ADD_UPDATES_FOR_ARGS)
-			args.add(arg);
+		List<Type> args = new ArrayList<>(ADD_UPDATES_FOR_ARGS);
 		args.add(SET_OT);
 		args.add(LIST_OT);
 		args.add(ObjectType.STRING);
 		args.add(ObjectType.OBJECT);
 
-		InstructionHandle recursiveExtract;
-		// we deal with special cases where the call to a recursive extract is useless:
-		// this is just an optimization
-		String fieldName = field.getName();
-		if (field.getType() == String.class || field.getType() == BigInteger.class)
-			recursiveExtract = end;
-		else {
-			recursiveExtract = il.insert(end, InstructionFactory.createThis());
-			//il.insert(end, InstructionConst.DUP);
-			il.insert(end, factory.createGetField(className, Constants.OLD_PREFIX + fieldName, type));
-			il.insert(end, InstructionConst.ALOAD_1);
-			il.insert(end, InstructionConst.ALOAD_2);
-			il.insert(end, InstructionFactory.createLoad(LIST_OT, 3));
-			il.insert(end, factory.createInvoke(Constants.RUNTIME_NAME, Constants.RECURSIVE_EXTRACT, Type.VOID,
-				RECURSIVE_EXTRACT_ARGS, Const.INVOKESTATIC));
-		}
+		InstructionHandle recursiveExtract = il.insert(end, InstructionFactory.createThis());
+		il.insert(end, factory.createGetField(className, Constants.OLD_PREFIX + fieldName, type));
+		il.insert(end, InstructionConst.ALOAD_1);
+		il.insert(end, InstructionConst.ALOAD_2);
+		il.insert(end, InstructionFactory.createLoad(LIST_OT, 3));
+		il.insert(end, factory.createInvoke(Constants.RUNTIME_NAME, Constants.RECURSIVE_EXTRACT, Type.VOID, RECURSIVE_EXTRACT_ARGS, Const.INVOKESTATIC));
 
 		InstructionHandle addUpdatesFor = il.insert(recursiveExtract, InstructionFactory.createThis());
 		il.insert(recursiveExtract, factory.createConstant(className));
@@ -134,9 +123,7 @@ public class AddExtractUpdates extends InstrumentedClassImpl.Builder.ClassLevelI
 		Type type = Type.getType(fieldType);
 		boolean isEnum = fieldType.isEnum();
 
-		List<Type> args = new ArrayList<>();
-		for (Type arg: ADD_UPDATES_FOR_ARGS)
-			args.add(arg);
+		List<Type> args = new ArrayList<>(ADD_UPDATES_FOR_ARGS);
 		if (isEnum) {
 			args.add(ObjectType.STRING);
 			args.add(ENUM_OT);

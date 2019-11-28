@@ -80,8 +80,7 @@ public abstract class Runtime {
 			if (seen.add(((AbstractStorage) s).storageReference))
 				workingSet.add((AbstractStorage) s);
 		}
-		else if (s instanceof String || s instanceof BigInteger || s instanceof Enum<?>) {} // these types are not recursively followed
-		else if (s != null)
+		else if (s != null && blockchain.isLazilyLoaded(s.getClass())) // eager types are not recursively followed
 			throw new DeserializationError("a field of a storage object cannot hold a " + s.getClass().getName());
 	}
 
@@ -116,7 +115,7 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Takes note that a field of reference type has changed its value and consequently adds it to the set of updates.
+	 * Takes note that a field of lazy type has changed its value and consequently adds it to the set of updates.
 	 * 
 	 * @param object the container of the field
 	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object of one of its superclasses
@@ -127,9 +126,7 @@ public abstract class Runtime {
 	 * @param fieldClassName the name of the type of the field
 	 * @param s the value set to the field
 	 */
-	@SuppressWarnings("unchecked")
 	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet, String fieldClassName, Object s) {
-		// these values are not recursively followed
 		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
 
 		if (s == null)
@@ -151,7 +148,7 @@ public abstract class Runtime {
 		else if (s instanceof BigInteger)
 			updates.add(new UpdateOfBigInteger(object.storageReference, field, (BigInteger) s));
 		else if (s instanceof Enum<?>) {
-			if (hasInstanceFields((Class<? extends Enum<?>>) s.getClass()))
+			if (hasInstanceFields(s.getClass()))
 				throw new DeserializationError("field " + field + " of a storage object cannot hold an enumeration of class " + s.getClass().getName() + ": it has instance non-transient fields");
 
 			updates.add(new UpdateOfEnumLazy(object.storageReference, field, s.getClass().getName(), ((Enum<?>) s).name()));
@@ -166,7 +163,7 @@ public abstract class Runtime {
 	 * @param clazz the class
 	 * @return true only if that condition holds
 	 */
-	private static boolean hasInstanceFields(Class<? extends Enum<?>> clazz) {
+	private static boolean hasInstanceFields(Class<?> clazz) {
 		return Stream.of(clazz.getDeclaredFields())
 			.map(Field::getModifiers)
 			.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));

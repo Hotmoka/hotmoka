@@ -329,8 +329,18 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param type the type
 	 * @return true if and only if that condition holds
 	 */
-	protected boolean isEagerlyLoaded(Class<?> type) {
+	public boolean isEagerlyLoaded(Class<?> type) {
 		return classLoader.isEagerlyLoaded(type);
+	}
+
+	/**
+	 * Determines if a field of a storage class, having the given field, is lazily loaded.
+	 * 
+	 * @param type the type
+	 * @return true if and only if that condition holds
+	 */
+	public boolean isLazilyLoaded(Class<?> type) {
+		return classLoader.isLazilyLoaded(type);
 	}
 
 	/**
