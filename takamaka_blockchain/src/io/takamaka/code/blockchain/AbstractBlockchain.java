@@ -1299,7 +1299,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 		Set<StorageReference> seen = new HashSet<>();
 		SortedSet<Update> updates = new TreeSet<>();
-		potentiallyAffectedObjects.forEach(storage -> updates(storage, updates, seen));
+		potentiallyAffectedObjects.forEach(storage -> updates2(storage, updates, seen));
 
 		return updates;
 	}
@@ -1325,6 +1325,22 @@ public abstract class AbstractBlockchain implements Blockchain {
 				// recursively with the objects that can be reached from it, until
 				// no new object can be reached
 				workingSet.remove(workingSet.size() - 1).extractUpdates(result, seen, workingSet);
+			}
+			while (!workingSet.isEmpty());
+		}
+	}
+
+	private void updates2(AbstractStorage object, Set<Update> result, Set<StorageReference> seen) {
+		if (seen.add(object.storageReference)) {
+			// the set of storage objects that we have to scan
+			List<AbstractStorage> workingSet = new ArrayList<>(16);
+			// initially, there is only this object to scan
+			workingSet.add(object);
+
+			do {
+				// removes the next storage object to scan for updates and continues recursively
+				// with the objects that can be reached from it, until no new object can be reached
+				AbstractStorage.extractUpdates2(workingSet.remove(workingSet.size() - 1), result, seen, workingSet);
 			}
 			while (!workingSet.isEmpty());
 		}

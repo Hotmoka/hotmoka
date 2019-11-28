@@ -156,6 +156,37 @@ public abstract class Runtime {
 		else
 			throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
 	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet, String fieldClassName, Object s) {
+		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
+
+		if (s == null)
+			//the field has been set to null
+			updates.add(new UpdateToNullLazy(storageReference, field));
+		else if (s instanceof AbstractStorage) {
+			// the field has been set to a storage object
+			AbstractStorage storage = (AbstractStorage) s;
+			StorageReference storageReference2 = storage.storageReference;
+			updates.add(new UpdateOfStorage(storageReference, field, storageReference2));
+
+			// if the new value has not yet been considered, we put in the list of object still to be processed
+			if (seen.add(storageReference2))
+				workingSet.add(storage);
+		}
+		// the following cases occur if the declared type of the field is Object but it is updated
+		// to an object whose type is allowed in storage
+		else if (s instanceof String)
+			updates.add(new UpdateOfString(storageReference, field, (String) s));
+		else if (s instanceof BigInteger)
+			updates.add(new UpdateOfBigInteger(storageReference, field, (BigInteger) s));
+		else if (s instanceof Enum<?>) {
+			if (hasInstanceFields(s.getClass()))
+				throw new DeserializationError("field " + field + " of a storage object cannot hold an enumeration of class " + s.getClass().getName() + ": it has instance non-transient fields");
+
+			updates.add(new UpdateOfEnumLazy(storageReference, field, s.getClass().getName(), ((Enum<?>) s).name()));
+		}
+		else
+			throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
+	}
 
 	/**
 	 * Determines if the given enumeration type has at least an instance, non-transient field.
@@ -181,6 +212,9 @@ public abstract class Runtime {
 	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
 		updates.add(new UpdateOfBoolean(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), s));
 	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
+		updates.add(new UpdateOfBoolean(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), s));
+	}
 
 	/**
 	 * Takes note that a field of {@code byte} type has changed its value and consequently adds it to the set of updates.
@@ -193,6 +227,9 @@ public abstract class Runtime {
 	 */
 	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, byte s) {
 		updates.add(new UpdateOfByte(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BYTE), s));
+	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, byte s) {
+		updates.add(new UpdateOfByte(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BYTE), s));
 	}
 
 	/**
@@ -207,6 +244,9 @@ public abstract class Runtime {
 	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, char s) {
 		updates.add(new UpdateOfChar(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.CHAR), s));
 	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, char s) {
+		updates.add(new UpdateOfChar(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.CHAR), s));
+	}
 
 	/**
 	 * Takes note that a field of {@code double} type has changed its value and consequently adds it to the set of updates.
@@ -219,6 +259,9 @@ public abstract class Runtime {
 	 */
 	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, double s) {
 		updates.add(new UpdateOfDouble(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), s));
+	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, double s) {
+		updates.add(new UpdateOfDouble(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), s));
 	}
 
 	/**
@@ -233,6 +276,9 @@ public abstract class Runtime {
 	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, float s) {
 		updates.add(new UpdateOfFloat(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.FLOAT), s));
 	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, float s) {
+		updates.add(new UpdateOfFloat(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.FLOAT), s));
+	}
 
 	/**
 	 * Takes note that a field of {@code int} type has changed its value and consequently adds it to the set of updates.
@@ -245,6 +291,9 @@ public abstract class Runtime {
 	 */
 	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, int s) {
 		updates.add(new UpdateOfInt(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.INT), s));
+	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, int s) {
+		updates.add(new UpdateOfInt(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.INT), s));
 	}
 
 	/**
@@ -259,6 +308,9 @@ public abstract class Runtime {
 	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, long s) {
 		updates.add(new UpdateOfLong(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.LONG), s));
 	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, long s) {
+		updates.add(new UpdateOfLong(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.LONG), s));
+	}
 
 	/**
 	 * Takes note that a field of {@code short} type has changed its value and consequently adds it to the set of updates.
@@ -271,6 +323,9 @@ public abstract class Runtime {
 	 */
 	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
 		updates.add(new UpdateOfShort(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.SHORT), s));
+	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
+		updates.add(new UpdateOfShort(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.SHORT), s));
 	}
 
 	/**
@@ -287,6 +342,12 @@ public abstract class Runtime {
 			updates.add(new UpdateToNullEager(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
 		else
 			updates.add(new UpdateOfString(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING), s));
+	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, String s) {
+		if (s == null)
+			updates.add(new UpdateToNullEager(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
+		else
+			updates.add(new UpdateOfString(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING), s));
 	}
 
 	/**
@@ -307,6 +368,15 @@ public abstract class Runtime {
 		else
 			updates.add(new UpdateOfBigInteger(object.storageReference, field, bi));
 	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, BigInteger bi) {
+		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
+		if (bi == null)
+			updates.add(new UpdateToNullEager(storageReference, field));
+		else if (field.equals(FieldSignature.BALANCE_FIELD))
+			updates.add(new UpdateOfBalance(storageReference, bi));
+		else
+			updates.add(new UpdateOfBigInteger(storageReference, field, bi));
+	}
 
 	/**
 	 * Takes note that a field of {@code enum} type has changed its value and consequently adds it to the set of updates.
@@ -324,6 +394,13 @@ public abstract class Runtime {
 			updates.add(new UpdateToNullEager(object.storageReference, field));
 		else
 			updates.add(new UpdateOfEnumEager(object.storageReference, field, element.getClass().getName(), element.name()));
+	}
+	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, String fieldClassName, Enum<?> element) {
+		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
+		if (element == null)
+			updates.add(new UpdateToNullEager(storageReference, field));
+		else
+			updates.add(new UpdateOfEnumEager(storageReference, field, element.getClass().getName(), element.name()));
 	}
 
 	/**

@@ -1,11 +1,16 @@
 package io.takamaka.code.blockchain.runtime;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import io.takamaka.code.blockchain.ClassTag;
 import io.takamaka.code.blockchain.Update;
 import io.takamaka.code.blockchain.values.StorageReference;
+import io.takamaka.code.instrumentation.Constants;
 
 /**
  * This class will be set as superclass of {@code io.takamaka.code.lang.Storage}
@@ -68,5 +73,88 @@ public abstract class AbstractStorage {
 			updates.add(new ClassTag(storageReference, getClass().getName(), Runtime.getBlockchain().transactionThatInstalledJarFor(getClass())));
 
 		// subclasses will override, call this super-implementation and add potential updates to their instance fields
+	}
+
+	public static void extractUpdates2(AbstractStorage object, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet) {
+		Class<?> clazz = object.getClass();
+		StorageReference storageReference = object.storageReference;
+		boolean inStorage = object.inStorage;
+
+		if (!inStorage)
+			updates.add(new ClassTag(storageReference, clazz.getName(), Runtime.getBlockchain().transactionThatInstalledJarFor(clazz)));
+
+		while (clazz != AbstractStorage.class) {
+			addUpdatesForFieldsDefinedInClass(clazz, object, storageReference, inStorage, updates, seen, workingSet);
+			clazz = clazz.getSuperclass();
+		}
+	}
+
+	private static void addUpdatesForFieldsDefinedInClass(Class<?> clazz, AbstractStorage object, StorageReference storageReference, boolean inStorage, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet) {
+		for (Field field: clazz.getDeclaredFields())
+			if (!isStaticOrTransient(field)) {
+				field.setAccessible(true); // it might be private
+				Object currentValue, oldValue;
+
+				try {
+					currentValue = field.get(object);
+				}
+				catch (IllegalArgumentException | IllegalAccessException e) {
+					throw new IllegalStateException("cannot access field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
+				}
+
+				String oldName = Constants.OLD_PREFIX + field.getName();
+				try {
+					Field oldField = field.getDeclaringClass().getDeclaredField(oldName);
+					oldField.setAccessible(true); // it is always private
+					oldValue = oldField.get(object);
+				}
+				catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+					throw new IllegalStateException("cannot access old value for field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
+				}
+
+				if (!inStorage || !Objects.equals(oldValue, currentValue))
+					addUpdateFor(field, storageReference, updates, seen, workingSet, currentValue);
+
+				if (inStorage && Runtime.getBlockchain().isLazilyLoaded(field.getType()))
+					Runtime.recursiveExtract(oldValue, updates, seen, workingSet);
+			}
+	}
+
+	private static void addUpdateFor(Field field, StorageReference storageReference, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet, Object currentValue) {
+		Class<?> fieldType = field.getType();
+		String fieldDefiningClass = field.getDeclaringClass().getName();
+		String fieldName = field.getName();
+
+		if (fieldType == char.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (char) currentValue);
+		else if (fieldType == boolean.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (boolean) currentValue);
+		else if (fieldType == byte.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (byte) currentValue);
+		else if (fieldType == short.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (short) currentValue);
+		else if (fieldType == int.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (int) currentValue);
+		else if (fieldType == long.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (long) currentValue);
+		else if (fieldType == float.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (float) currentValue);
+		else if (fieldType == double.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (double) currentValue);
+		else if (fieldType == BigInteger.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (BigInteger) currentValue);
+		else if (fieldType == String.class)
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, (String) currentValue);
+		else if (fieldType.isEnum())
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, fieldType.getName(), (Enum<?>) currentValue);
+		else if (Runtime.getBlockchain().isLazilyLoaded(fieldType))
+			Runtime.addUpdateFor(storageReference, fieldDefiningClass, fieldName, updates, seen, workingSet, fieldType.getName(), currentValue);
+		else
+			throw new IllegalStateException("unexpected field in storage object: " + fieldDefiningClass + '.' + fieldName);
+	}
+
+	private static boolean isStaticOrTransient(Field field) {
+		int modifiers = field.getModifiers();
+		return Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers);
 	}
 }
