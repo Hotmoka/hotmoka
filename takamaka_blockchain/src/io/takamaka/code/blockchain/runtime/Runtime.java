@@ -1,39 +1,17 @@
 package io.takamaka.code.blockchain.runtime;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.DeserializationError;
 import io.takamaka.code.blockchain.FieldSignature;
 import io.takamaka.code.blockchain.GasCosts;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.OutOfGasError;
-import io.takamaka.code.blockchain.Update;
-import io.takamaka.code.blockchain.UpdateOfBalance;
-import io.takamaka.code.blockchain.UpdateOfBigInteger;
-import io.takamaka.code.blockchain.UpdateOfBoolean;
-import io.takamaka.code.blockchain.UpdateOfByte;
-import io.takamaka.code.blockchain.UpdateOfChar;
-import io.takamaka.code.blockchain.UpdateOfDouble;
-import io.takamaka.code.blockchain.UpdateOfEnumEager;
-import io.takamaka.code.blockchain.UpdateOfEnumLazy;
-import io.takamaka.code.blockchain.UpdateOfFloat;
-import io.takamaka.code.blockchain.UpdateOfInt;
-import io.takamaka.code.blockchain.UpdateOfLong;
-import io.takamaka.code.blockchain.UpdateOfShort;
-import io.takamaka.code.blockchain.UpdateOfStorage;
-import io.takamaka.code.blockchain.UpdateOfString;
-import io.takamaka.code.blockchain.UpdateToNullEager;
-import io.takamaka.code.blockchain.UpdateToNullLazy;
-import io.takamaka.code.blockchain.types.BasicTypes;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.StorageReference;
 
@@ -63,25 +41,6 @@ public abstract class Runtime {
 	public static void init(AbstractBlockchain blockchain) {
 		Runtime.blockchain = blockchain;
 		Runtime.nextProgressive = BigInteger.ZERO;
-	}
-
-	/**
-	 * Utility method called in the instrumentation of storage classes to implement redefinitions of
-	 * {@link io.takamaka.code.blockchain.runtime.AbstractStorage#extractUpdates(Set, Set, List)}
-	 * to recur on the old value of fields of reference type.
-	 * 
-	 * @param s the storage objects whose fields are considered
-	 * @param updates the set where updates are added
-	 * @param seen the set of storage references already scanned
-	 * @param workingSet the set of storage objects that still need to be processed
-	 */
-	public static void recursiveExtract(Object s, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet) {
-		if (s instanceof AbstractStorage) {
-			if (seen.add(((AbstractStorage) s).storageReference))
-				workingSet.add((AbstractStorage) s);
-		}
-		else if (s != null && blockchain.isLazilyLoaded(s.getClass())) // eager types are not recursively followed
-			throw new DeserializationError("a field of a storage object cannot hold a " + s.getClass().getName());
 	}
 
 	/**
@@ -115,295 +74,6 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Takes note that a field of lazy type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object of one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param seen the set of storage references already processed
-	 * @param workingSet the set of storage objects that still need to be processed
-	 * @param fieldClassName the name of the type of the field
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet, String fieldClassName, Object s) {
-		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
-
-		if (s == null)
-			//the field has been set to null
-			updates.add(new UpdateToNullLazy(object.storageReference, field));
-		else if (s instanceof AbstractStorage) {
-			// the field has been set to a storage object
-			AbstractStorage storage = (AbstractStorage) s;
-			updates.add(new UpdateOfStorage(object.storageReference, field, storage.storageReference));
-
-			// if the new value has not yet been considered, we put in the list of object still to be processed
-			if (seen.add(storage.storageReference))
-				workingSet.add(storage);
-		}
-		// the following cases occur if the declared type of the field is Object but it is updated
-		// to an object whose type is allowed in storage
-		else if (s instanceof String)
-			updates.add(new UpdateOfString(object.storageReference, field, (String) s));
-		else if (s instanceof BigInteger)
-			updates.add(new UpdateOfBigInteger(object.storageReference, field, (BigInteger) s));
-		else if (s instanceof Enum<?>) {
-			if (hasInstanceFields(s.getClass()))
-				throw new DeserializationError("field " + field + " of a storage object cannot hold an enumeration of class " + s.getClass().getName() + ": it has instance non-transient fields");
-
-			updates.add(new UpdateOfEnumLazy(object.storageReference, field, s.getClass().getName(), ((Enum<?>) s).name()));
-		}
-		else
-			throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, Set<StorageReference> seen, List<AbstractStorage> workingSet, String fieldClassName, Object s) {
-		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
-
-		if (s == null)
-			//the field has been set to null
-			updates.add(new UpdateToNullLazy(storageReference, field));
-		else if (s instanceof AbstractStorage) {
-			// the field has been set to a storage object
-			AbstractStorage storage = (AbstractStorage) s;
-			StorageReference storageReference2 = storage.storageReference;
-			updates.add(new UpdateOfStorage(storageReference, field, storageReference2));
-
-			// if the new value has not yet been considered, we put in the list of object still to be processed
-			if (seen.add(storageReference2))
-				workingSet.add(storage);
-		}
-		// the following cases occur if the declared type of the field is Object but it is updated
-		// to an object whose type is allowed in storage
-		else if (s instanceof String)
-			updates.add(new UpdateOfString(storageReference, field, (String) s));
-		else if (s instanceof BigInteger)
-			updates.add(new UpdateOfBigInteger(storageReference, field, (BigInteger) s));
-		else if (s instanceof Enum<?>) {
-			if (hasInstanceFields(s.getClass()))
-				throw new DeserializationError("field " + field + " of a storage object cannot hold an enumeration of class " + s.getClass().getName() + ": it has instance non-transient fields");
-
-			updates.add(new UpdateOfEnumLazy(storageReference, field, s.getClass().getName(), ((Enum<?>) s).name()));
-		}
-		else
-			throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
-	}
-
-	/**
-	 * Determines if the given enumeration type has at least an instance, non-transient field.
-	 * 
-	 * @param clazz the class
-	 * @return true only if that condition holds
-	 */
-	private static boolean hasInstanceFields(Class<?> clazz) {
-		return Stream.of(clazz.getDeclaredFields())
-			.map(Field::getModifiers)
-			.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));
-	}
-
-	/**
-	 * Takes note that a field of {@code boolean} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
-		updates.add(new UpdateOfBoolean(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), s));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, boolean s) {
-		updates.add(new UpdateOfBoolean(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), s));
-	}
-
-	/**
-	 * Takes note that a field of {@code byte} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, byte s) {
-		updates.add(new UpdateOfByte(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BYTE), s));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, byte s) {
-		updates.add(new UpdateOfByte(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BYTE), s));
-	}
-
-	/**
-	 * Takes note that a field of {@code char} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, char s) {
-		updates.add(new UpdateOfChar(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.CHAR), s));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, char s) {
-		updates.add(new UpdateOfChar(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.CHAR), s));
-	}
-
-	/**
-	 * Takes note that a field of {@code double} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, double s) {
-		updates.add(new UpdateOfDouble(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), s));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, double s) {
-		updates.add(new UpdateOfDouble(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), s));
-	}
-
-	/**
-	 * Takes note that a field of {@code float} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, float s) {
-		updates.add(new UpdateOfFloat(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.FLOAT), s));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, float s) {
-		updates.add(new UpdateOfFloat(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.FLOAT), s));
-	}
-
-	/**
-	 * Takes note that a field of {@code int} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, int s) {
-		updates.add(new UpdateOfInt(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.INT), s));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, int s) {
-		updates.add(new UpdateOfInt(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.INT), s));
-	}
-
-	/**
-	 * Takes note that a field of {@code long} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, long s) {
-		updates.add(new UpdateOfLong(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.LONG), s));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, long s) {
-		updates.add(new UpdateOfLong(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.LONG), s));
-	}
-
-	/**
-	 * Takes note that a field of {@code short} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
-		updates.add(new UpdateOfShort(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.SHORT), s));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, short s) {
-		updates.add(new UpdateOfShort(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.SHORT), s));
-	}
-
-	/**
-	 * Takes note that a field of {@link java.lang.String} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param s the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, String s) {
-		if (s == null)
-			updates.add(new UpdateToNullEager(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
-		else
-			updates.add(new UpdateOfString(object.storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING), s));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, String s) {
-		if (s == null)
-			updates.add(new UpdateToNullEager(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
-		else
-			updates.add(new UpdateOfString(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING), s));
-	}
-
-	/**
-	 * Takes note that a field of {@link java.math.BigInteger} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param bi the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, BigInteger bi) {
-		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
-		if (bi == null)
-			updates.add(new UpdateToNullEager(object.storageReference, field));
-		else if (field.equals(FieldSignature.BALANCE_FIELD))
-			updates.add(new UpdateOfBalance(object.storageReference, bi));
-		else
-			updates.add(new UpdateOfBigInteger(object.storageReference, field, bi));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, BigInteger bi) {
-		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
-		if (bi == null)
-			updates.add(new UpdateToNullEager(storageReference, field));
-		else if (field.equals(FieldSignature.BALANCE_FIELD))
-			updates.add(new UpdateOfBalance(storageReference, bi));
-		else
-			updates.add(new UpdateOfBigInteger(storageReference, field, bi));
-	}
-
-	/**
-	 * Takes note that a field of {@code enum} type has changed its value and consequently adds it to the set of updates.
-	 * 
-	 * @param object the container of the field
-	 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
-	 * @param fieldName the name of the field
-	 * @param updates the set where the update will be added
-	 * @param fieldClassName the name of the type of the field
-	 * @param element the value set to the field
-	 */
-	public static void addUpdateFor(AbstractStorage object, String fieldDefiningClass, String fieldName, Set<Update> updates, String fieldClassName, Enum<?> element) {
-		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
-		if (element == null)
-			updates.add(new UpdateToNullEager(object.storageReference, field));
-		else
-			updates.add(new UpdateOfEnumEager(object.storageReference, field, element.getClass().getName(), element.name()));
-	}
-	public static void addUpdateFor(StorageReference storageReference, String fieldDefiningClass, String fieldName, Set<Update> updates, String fieldClassName, Enum<?> element) {
-		FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
-		if (element == null)
-			updates.add(new UpdateToNullEager(storageReference, field));
-		else
-			updates.add(new UpdateOfEnumEager(storageReference, field, element.getClass().getName(), element.name()));
-	}
-
-	/**
 	 * Called at the beginning of the instrumentation of an entry method or constructor
 	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Contract.entry()}.
 	 * 
@@ -414,7 +84,7 @@ public abstract class Runtime {
 	public static void entry(Object callee, Object caller) throws Throwable {
 		// we call the private method of contract
 		try {
-			getBlockchain().getEntry().invoke(callee, caller);
+			blockchain.getEntry().invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.entry()", e);
@@ -437,7 +107,7 @@ public abstract class Runtime {
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			getBlockchain().getPayableEntryBigInteger().invoke(callee, caller, amount);
+			blockchain.getPayableEntryBigInteger().invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
@@ -460,7 +130,7 @@ public abstract class Runtime {
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			getBlockchain().getPayableEntryInt().invoke(callee, caller, amount);
+			blockchain.getPayableEntryInt().invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
@@ -483,7 +153,7 @@ public abstract class Runtime {
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			getBlockchain().getPayableEntryLong().invoke(callee, caller, amount);
+			blockchain.getPayableEntryLong().invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
@@ -595,10 +265,19 @@ public abstract class Runtime {
 	 * 
 	 * @return the identifier
 	 */
-	public static BigInteger generateNextProgressive() {
+	private static BigInteger generateNextProgressive() {
 		BigInteger result = nextProgressive;
 		nextProgressive = nextProgressive.add(BigInteger.ONE);
 		return result;
+	}
+
+	/**
+	 * Yields the next storage reference for the current transaction.
+	 * 
+	 * @return the next storage reference
+	 */
+	public static StorageReference getNextStorageReference() {
+		return StorageReference.mk(blockchain.getCurrentTransaction(), generateNextProgressive());
 	}
 
 	/**

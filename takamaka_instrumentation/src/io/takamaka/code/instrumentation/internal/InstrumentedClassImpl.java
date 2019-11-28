@@ -41,7 +41,6 @@ import io.takamaka.code.instrumentation.InstrumentedClass;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromBlockchain;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddExtractUpdates;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.SwapSuperclassOfSpecialClasses;
@@ -526,7 +525,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			new AddOldAndIfAlreadyLoadedFields(this);
 			new AddAccessorMethods(this);
 			new AddEnsureLoadedMethods(this);
-			new AddExtractUpdates(this);
 		}
 
 		/**
