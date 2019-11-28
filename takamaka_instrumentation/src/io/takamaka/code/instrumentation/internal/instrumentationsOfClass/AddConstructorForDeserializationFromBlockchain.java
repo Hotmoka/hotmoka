@@ -37,8 +37,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 			args.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
 
 			// then there are the fields of the class and superclasses, with superclasses first
-			if (!className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME))
-				eagerNonTransientInstanceFields.stream()
+			eagerNonTransientInstanceFields.stream()
 				.flatMap(SortedSet::stream)
 				.map(Field::getType)
 				.map(Type::getType)
@@ -46,13 +45,10 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
-			if (!className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME))
-				addInitializationOfEagerFields(il, nextLocal);
-
+			addInitializationOfEagerFields(il, nextLocal);
 			il.append(InstructionConst.RETURN);
 
-			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null,
-					Const.CONSTRUCTOR_NAME, className, il, cpg);
+			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null, Const.CONSTRUCTOR_NAME, className, il, cpg);
 			addMethod(constructor, false);
 		}
 	}
@@ -84,9 +80,9 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 		};
 
 		PushLoad pushLoad = new PushLoad();
-		if (!className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME))
-			eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
-				.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
+		// we push the value of all eager fields but in superclasses only
+		eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
+			.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
 
 		il.append(factory.createInvoke(getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
 			argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));

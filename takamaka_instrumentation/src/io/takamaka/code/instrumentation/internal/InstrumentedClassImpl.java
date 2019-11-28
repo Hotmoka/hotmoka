@@ -275,7 +275,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * types that are allowed in storage objects (such as {@link java.lang.String}
 			 * and {@link java.math.BigInteger}). They are defined in the class being
 			 * instrumented or in its superclasses up to {@link io.takamaka.code.lang.Storage}
-			 * (excluded). This list is non-empty for storage classes only. The first set in
+			 * (included). This list is non-empty for storage classes only. The first set in
 			 * the list are the fields of the topmost class; the last are the fields of the
 			 * class being considered.
 			 */
