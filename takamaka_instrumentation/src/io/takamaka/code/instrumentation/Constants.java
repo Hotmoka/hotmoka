@@ -38,6 +38,11 @@ public interface Constants {
 	public final static String STORAGE_REFERENCE_NAME = "io.takamaka.code.blockchain.values.StorageReference";
 
 	/**
+	 * The name of the instrumented field of storage objects that holds their storage reference.
+	 */
+	public final static String STORAGE_REFERENCE_FIELD_NAME = "storageReference";
+
+	/**
 	 * The prefix of the name of the field used in instrumented storage classes
 	 * to take note of the old value of the fields.
 	 */
@@ -70,9 +75,8 @@ public interface Constants {
 	/**
 	 * The prefix of the name of the field used in instrumented storage classes
 	 * to remember if the object is new or already serialized in blockchain.
-	 * This does not need the forbidden character at its beginning, since
-	 * it is a normal field of class {@code io.takamaka.code.blockchain.runtime.AbstractStorage}.
 	 */
+	//TODO forbidden character
 	public final static String IN_STORAGE = "inStorage";
 
 	/**

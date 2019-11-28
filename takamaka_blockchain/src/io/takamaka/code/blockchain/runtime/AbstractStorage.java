@@ -21,7 +21,7 @@ public abstract class AbstractStorage {
 	 * created during the current transaction but has not been yet
 	 * serialized into blockchain.
 	 */
-	public final boolean inStorage;
+	protected final boolean inStorage;
 
 	/**
 	 * Constructs an object that can be stored in blockchain.

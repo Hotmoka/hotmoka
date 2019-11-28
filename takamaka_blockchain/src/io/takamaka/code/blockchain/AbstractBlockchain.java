@@ -63,6 +63,7 @@ import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.types.StorageType;
 import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.blockchain.values.StorageValue;
+import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.instrumentation.JarInstrumentation;
 import io.takamaka.code.verification.Dummy;
@@ -737,7 +738,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					}
 					else {
 						MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-								(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(response.size());
 						increaseBalance(deserializedCaller, remainingGas());
 						return new MethodCallTransactionSuccessfulResponse
@@ -874,6 +875,24 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return classLoader.payableEntryBigInteger;
 	}
 
+	/**
+	 * Yields field {@link io.takamaka.code.lang.Storage#storageReference)}.
+	 * 
+	 * @return the field
+	 */
+	public final Field getStorageReferenceField() {
+		return classLoader.storageReference;
+	}
+
+	/**
+	 * Yields field {@link io.takamaka.code.lang.Storage#inStorage)}.
+	 * 
+	 * @return the field
+	 */
+	public final Field getInStorageField() {
+		return classLoader.inStorage;
+	}
+
 	private static void checkMinimalGas(TransactionRequest request, UpdateOfBalance balanceUpdateInCaseOfFailure) throws IllegalTransactionRequestException {
 		if (!request.hasMinimalGas(balanceUpdateInCaseOfFailure))
 			throw new IllegalTransactionRequestException("Not enough gas to start the transaction");
@@ -932,6 +951,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 		private final Method payableEntryBigInteger;
 
 		/**
+		 * The field {@link io.takamaka.code.lang.Storage#storageReference}.
+		 */
+		private final Field storageReference;
+
+		/**
+		 * The field {@link io.takamaka.code.lang.Storage#inStorage}.
+		 */
+		private final Field inStorage;
+
+		/**
 		 * Builds the class loader for the given class path and its dependencies.
 		 * 
 		 * @param classpath the class path
@@ -957,6 +986,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.payableEntryLong.setAccessible(true); // it was private
 			this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
 			this.payableEntryBigInteger.setAccessible(true); // it was private
+			this.storageReference = loadClass(Constants.ABSTRACT_STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference.setAccessible(true); // it was private
+			this.inStorage = loadClass(Constants.ABSTRACT_STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
+			this.inStorage.setAccessible(true); // it was private
 		}
 
 		/**
@@ -986,6 +1019,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.payableEntryLong.setAccessible(true); // it was private
 			this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
 			this.payableEntryBigInteger.setAccessible(true); // it was private
+			this.storageReference = loadClass(Constants.ABSTRACT_STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference.setAccessible(true); // it was private
+			this.inStorage = loadClass(Constants.ABSTRACT_STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
+			this.inStorage.setAccessible(true); // it was private
 		}
 
 		private static URL[] collectURLs(Stream<Classpath> classpaths, AbstractBlockchain blockchain, URL start) throws Exception {
@@ -1279,7 +1316,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the ordered updates
 	 */
 	private SortedSet<Update> collectUpdates(Object[] actuals, AbstractStorage caller, AbstractStorage receiver, Object result) {
-		List<AbstractStorage> potentiallyAffectedObjects = new ArrayList<>();
+		List<Object> potentiallyAffectedObjects = new ArrayList<>();
 		if (caller != null)
 			potentiallyAffectedObjects.add(caller);
 		if (receiver != null)
@@ -1789,5 +1826,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			return (TransactionException) t;
 		else
 			return new TransactionException(message, t);
+	}
+
+	protected Class<?> getStorage() {
+		return classLoader.getStorage();
 	}
 }

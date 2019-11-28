@@ -12,8 +12,6 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.runtime.AbstractStorage;
-import io.takamaka.code.blockchain.runtime.Runtime;
 import io.takamaka.code.blockchain.types.BasicTypes;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.StorageReference;
@@ -28,7 +26,7 @@ public class ExtractedUpdates {
 	 * @param blockchain the blockchain for which the extraction is performed
 	 * @param objects the storage objects whose updates must be computed
 	 */
-	public ExtractedUpdates(AbstractBlockchain blockchain, Stream<AbstractStorage> objects) {
+	public ExtractedUpdates(AbstractBlockchain blockchain, Stream<Object> objects) {
 		new Builder(blockchain, objects);
 	}
 
@@ -40,16 +38,16 @@ public class ExtractedUpdates {
 	public SortedSet<Update> getUpdates() {
 		return updates;
 	}
-	
+
 	private class Builder {
 		private final AbstractBlockchain blockchain;
-		private final List<AbstractStorage> workingSet;
+		private final List<Object> workingSet;
 		private final Set<StorageReference> seen = new HashSet<>();
 
-		private Builder(AbstractBlockchain blockchain, Stream<AbstractStorage> objects) {
+		private Builder(AbstractBlockchain blockchain, Stream<Object> objects) {
 			this.blockchain = blockchain;
 			this.workingSet = objects
-				.filter(object -> seen.add(object.storageReference))
+				.filter(object -> seen.add(getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
 
 			do {
@@ -60,19 +58,37 @@ public class ExtractedUpdates {
 			while (!workingSet.isEmpty());
 		}
 
+		private StorageReference getStorageReferenceOf(Object object) {
+			try {
+				return (StorageReference) blockchain.getStorageReferenceField().get(object);
+			}
+			catch (IllegalArgumentException | IllegalAccessException e) {
+				throw new IllegalStateException("cannot read the storage reference of a storage object of class " + object.getClass().getName());
+			}
+		}
+
+		private boolean getInStorageOf(Object object) {
+			try {
+				return (boolean) blockchain.getInStorageField().get(object);
+			}
+			catch (IllegalArgumentException | IllegalAccessException e) {
+				throw new IllegalStateException("cannot read the inStorage tag of a storage object of class " + object.getClass().getName());
+			}
+		}
+
 		private class ExtractedUpdatesSingleObject {
 			private final StorageReference storageReference;
 			private final boolean inStorage;
 
-			private ExtractedUpdatesSingleObject(AbstractStorage object) {
+			private ExtractedUpdatesSingleObject(Object object) {
 				Class<?> clazz = object.getClass();
-				this.storageReference = object.storageReference;
-				this.inStorage = object.inStorage;
+				this.storageReference = getStorageReferenceOf(object);
+				this.inStorage = getInStorageOf(object);
 
 				if (!inStorage)
-					updates.add(new ClassTag(storageReference, clazz.getName(), Runtime.getBlockchain().transactionThatInstalledJarFor(clazz)));
+					updates.add(new ClassTag(storageReference, clazz.getName(), blockchain.transactionThatInstalledJarFor(clazz)));
 
-				while (clazz != AbstractStorage.class) {
+				while (clazz != blockchain.getStorage()) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);
 					clazz = clazz.getSuperclass();
 				}
@@ -85,12 +101,15 @@ public class ExtractedUpdates {
 			 * @param s the storage objects whose fields are considered
 			 */
 			private void recursiveExtract(Object s) {
-				if (s instanceof AbstractStorage) {
-					if (seen.add(((AbstractStorage) s).storageReference))
-						workingSet.add((AbstractStorage) s);
+				if (s != null) {
+					Class<?> clazz = s.getClass();
+					if (blockchain.getStorage().isAssignableFrom(clazz)) {
+						if (seen.add(getStorageReferenceOf(s)))
+							workingSet.add(s);
+					}
+					else if (blockchain.isLazilyLoaded(clazz)) // eager types are not recursively followed
+						throw new DeserializationError("a field of a storage object cannot hold a " + clazz.getName());
 				}
-				else if (s != null && blockchain.isLazilyLoaded(s.getClass())) // eager types are not recursively followed
-					throw new DeserializationError("a field of a storage object cannot hold a " + s.getClass().getName());
 			}
 
 			/**
@@ -107,15 +126,14 @@ public class ExtractedUpdates {
 				if (s == null)
 					//the field has been set to null
 					updates.add(new UpdateToNullLazy(storageReference, field));
-				else if (s instanceof AbstractStorage) {
+				else if (blockchain.getStorage().isAssignableFrom(s.getClass())) {
 					// the field has been set to a storage object
-					AbstractStorage storage = (AbstractStorage) s;
-					StorageReference storageReference2 = storage.storageReference;
+					StorageReference storageReference2 = getStorageReferenceOf(s);
 					updates.add(new UpdateOfStorage(storageReference, field, storageReference2));
 
 					// if the new value has not yet been considered, we put in the list of object still to be processed
 					if (seen.add(storageReference2))
-						workingSet.add(storage);
+						workingSet.add(s);
 				}
 				// the following cases occur if the declared type of the field is Object but it is updated
 				// to an object whose type is allowed in storage
@@ -141,8 +159,8 @@ public class ExtractedUpdates {
 			 */
 			private boolean hasInstanceFields(Class<?> clazz) {
 				return Stream.of(clazz.getDeclaredFields())
-						.map(Field::getModifiers)
-						.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));
+					.map(Field::getModifiers)
+					.anyMatch(modifiers -> !Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers));
 			}
 
 			/**
@@ -280,7 +298,7 @@ public class ExtractedUpdates {
 					updates.add(new UpdateOfEnumEager(storageReference, field, element.getClass().getName(), element.name()));
 			}
 
-			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, AbstractStorage object) {
+			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) {
 				for (Field field: clazz.getDeclaredFields())
 					if (!isStaticOrTransient(field)) {
 						field.setAccessible(true); // it might be private
@@ -306,7 +324,7 @@ public class ExtractedUpdates {
 						if (!inStorage || !Objects.equals(oldValue, currentValue))
 							addUpdateFor(field, currentValue);
 
-						if (inStorage && Runtime.getBlockchain().isLazilyLoaded(field.getType()))
+						if (inStorage && blockchain.isLazilyLoaded(field.getType()))
 							recursiveExtract(oldValue);
 					}
 			}
@@ -338,7 +356,7 @@ public class ExtractedUpdates {
 					addUpdateFor(fieldDefiningClass, fieldName, (String) currentValue);
 				else if (fieldType.isEnum())
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), (Enum<?>) currentValue);
-				else if (Runtime.getBlockchain().isLazilyLoaded(fieldType))
+				else if (blockchain.isLazilyLoaded(fieldType))
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), currentValue);
 				else
 					throw new IllegalStateException("unexpected field in storage object: " + fieldDefiningClass + '.' + fieldName);
