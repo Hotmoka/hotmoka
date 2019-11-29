@@ -18,7 +18,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import io.takamaka.code.instrumentation.GasCostModel;
-import io.takamaka.code.instrumentation.JarInstrumentation;
+import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
 
@@ -65,7 +65,7 @@ public class Translator {
 			    	if (parent != null)
 			    		Files.createDirectories(parent);
 
-			    	JarInstrumentation.of(verifiedJar, GasCostModel.standard(), destination);
+			    	InstrumentedJar.of(verifiedJar, GasCostModel.standard()).dump(destination);
 		    	}
 		    }
 	    }

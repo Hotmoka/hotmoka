@@ -64,7 +64,7 @@ import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.blockchain.values.StorageValue;
 import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.GasCostModel;
-import io.takamaka.code.instrumentation.JarInstrumentation;
+import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
@@ -478,14 +478,15 @@ public abstract class AbstractBlockchain implements Blockchain {
 			Files.write(original, request.getJar());
 
 			// we create a temporary file to hold the instrumented jar
-			Path instrumented = Files.createTempFile("instrumented", ".jar");
+			Path destination = Files.createTempFile("instrumented", ".jar");
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 				VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, true);
-				JarInstrumentation.of(verifiedJar, gasCostModel, instrumented);
+				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
+				instrumentedJar.dump(destination);
 			}
 
-			byte[] instrumentedBytes = Files.readAllBytes(instrumented);
-			Files.delete(instrumented);
+			byte[] instrumentedBytes = Files.readAllBytes(destination);
+			Files.delete(destination);
 		
 			return new JarStoreInitialTransactionResponse(instrumentedBytes);
 		});
@@ -545,15 +546,16 @@ public abstract class AbstractBlockchain implements Blockchain {
 					Files.write(original, jar);
 
 					// we create a temporary file to hold the instrumented jar
-					Path instrumented = Files.createTempFile("instrumented", ".jar");
+					Path destination = Files.createTempFile("instrumented", ".jar");
 
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 						VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, false);
-						JarInstrumentation.of(verifiedJar, gasCostModel, instrumented);
+						InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
+						instrumentedJar.dump(destination);
 					}
 
-					byte[] instrumentedBytes = Files.readAllBytes(instrumented);
-					Files.delete(instrumented);
+					byte[] instrumentedBytes = Files.readAllBytes(destination);
+					Files.delete(destination);
 
 					BigInteger balanceOfCaller = increaseBalance(deserializedCaller, BigInteger.ZERO);
 					UpdateOfBalance balanceUpdate = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), balanceOfCaller);

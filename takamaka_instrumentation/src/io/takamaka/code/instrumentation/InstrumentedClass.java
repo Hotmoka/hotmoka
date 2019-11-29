@@ -6,10 +6,11 @@ import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.VerifiedClass;
 
 /**
- * An instrumenter of a single class file. For instance, it instruments storage
+ * An instrumented class file. For instance, it instruments storage
  * classes, by adding the serialization support, and contracts, to deal with entries.
+ * They are ordered by their name.
  */
-public interface InstrumentedClass {
+public interface InstrumentedClass extends Comparable<InstrumentedClass> {
 
 	/**
 	 * Yields an instrumented class from a verified class.

@@ -9,6 +9,7 @@ import org.apache.bcel.generic.InvokeInstruction;
 
 /**
  * A class that passed the static Takamaka verification tests.
+ * They are ordered wrt their name.
  */
 public interface VerifiedClass extends Comparable<VerifiedClass> {
 

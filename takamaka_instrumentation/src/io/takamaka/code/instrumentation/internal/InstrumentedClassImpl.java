@@ -55,8 +55,9 @@ import io.takamaka.code.verification.VerifiedClass;
 import it.univr.bcel.StackMapReplacer;
 
 /**
- * An instrumenter of a single class file. For instance, it instruments storage
+ * An instrumented class file. For instance, it instruments storage
  * classes, by adding the serialization support, and contracts, to deal with entries.
+ * They are ordered by their name.
  */
 public class InstrumentedClassImpl implements InstrumentedClass {
 
@@ -90,6 +91,11 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 	@Override
 	public JavaClass toJavaClass() {
 		return javaClass;
+	}
+
+	@Override
+	public int compareTo(InstrumentedClass other) {
+		return getClassName().compareTo(other.getClassName());
 	}
 
 	/**
