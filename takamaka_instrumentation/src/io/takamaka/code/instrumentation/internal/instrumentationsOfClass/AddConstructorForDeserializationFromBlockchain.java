@@ -16,6 +16,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.instrumentation.Constants;
 
 /**
@@ -25,7 +26,6 @@ import io.takamaka.code.instrumentation.Constants;
  * constructed, ordered by name and then by {@code toString()} of their type.
  */
 public class AddConstructorForDeserializationFromBlockchain extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
-	private final static ObjectType STORAGE_REFERENCE_OT = new ObjectType(Constants.STORAGE_REFERENCE_NAME);
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 
 	public AddConstructorForDeserializationFromBlockchain(InstrumentedClassImpl.Builder builder) {
@@ -35,7 +35,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 			List<Type> args = new ArrayList<>();
 
 			// the parameters of the constructor start with a storage reference to the object being deserialized
-			args.add(STORAGE_REFERENCE_OT);
+			args.add(Type.OBJECT);
 
 			// then there are the fields of the class and superclasses, with superclasses first
 			eagerNonTransientInstanceFields.stream()
@@ -43,6 +43,10 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 				.map(Field::getType)
 				.map(Type::getType)
 				.forEachOrdered(args::add);
+
+			// at the end, there is a fictitious argument used to avoid clashes with
+			// already existing, user-provided constructors
+			args.add(new ObjectType(Dummy.class.getName()));
 
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
@@ -76,10 +80,10 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 		List<Type> argsForSuperclasses = new ArrayList<>();
 		il.append(InstructionFactory.createThis());
 
-		// the Storage class does not ass the storage reference upwards
+		// the Storage class does not pass the storage reference upwards
 		if (!className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)) {
 			il.append(InstructionConst.ALOAD_1);
-			argsForSuperclasses.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
+			argsForSuperclasses.add(ObjectType.OBJECT);
 		}
 
 		// the fields of the superclasses are passed into a call to super(...)
@@ -99,6 +103,12 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 		// we push the value of all eager fields but in superclasses only
 		eagerNonTransientInstanceFields.stream().limit(eagerNonTransientInstanceFields.size() - 1)
 			.flatMap(SortedSet::stream).map(Field::getType).map(Type::getType).forEachOrdered(pushLoad);
+
+		if (!className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)) {
+			// we pass null for the dummy argument
+			il.append(InstructionConst.ACONST_NULL);
+			argsForSuperclasses.add(new ObjectType(Dummy.class.getName()));
+		}
 
 		il.append(factory.createInvoke(getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,
 			argsForSuperclasses.toArray(Type.NO_ARGS), Const.INVOKESPECIAL));

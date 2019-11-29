@@ -1221,7 +1221,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			List<Object> actuals = new ArrayList<>();
 			// the constructor for deserialization has a first parameter
 			// that receives the storage reference of the object
-			formals.add(StorageReference.class);
+			formals.add(Object.class);
 			actuals.add(reference);
 
 			// we process the updates in the same order they have in the deserialization constructor
@@ -1242,6 +1242,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
 				throw new DeserializationError("Class " + classTag.className + " was instantiated from jar at " + expected + " not from jar at " + actual);
+
+			// we add the fictitious argument that avoids name clashes
+			formals.add(Dummy.class);
+			actuals.add(null);
 
 			Constructor<?> constructor = clazz.getConstructor(formals.toArray(new Class<?>[formals.size()]));
 

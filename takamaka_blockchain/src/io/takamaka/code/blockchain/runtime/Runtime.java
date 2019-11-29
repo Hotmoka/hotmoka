@@ -208,6 +208,17 @@ public abstract class Runtime {
 		return blockchain.getInStorageOf(object);
 	}
 
+	public static int compareStorageReferencesOf(Object o1, Object o2) {
+		if (o1 == o2)
+			return 0;
+		else if (o1 == null)
+			return -1;
+		else if (o2 == null)
+			return 1;
+		else
+			return blockchain.getStorageReferenceOf(o1).compareTo(blockchain.getStorageReferenceOf(o2));
+	}
+
 	/**
 	 * Called during verification and by instrumented code to check
 	 * the {@link io.takamaka.code.whitelisting.MustBeFalse} annotation. 
@@ -286,7 +297,7 @@ public abstract class Runtime {
 	 * 
 	 * @return the next storage reference
 	 */
-	public static StorageReference getNextStorageReference() {
+	public static Object getNextStorageReference() {
 		return StorageReference.mk(blockchain.getCurrentTransaction(), generateNextProgressive());
 	}
 

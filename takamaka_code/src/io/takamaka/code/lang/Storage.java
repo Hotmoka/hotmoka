@@ -69,7 +69,7 @@ public abstract class Storage {
 	 */
 	public final int compareByStorageReference(Storage other) {
 		// the following actual code will be provided by instrumentation:
-		//   storageReference.compareTo(other.storageReference)
+		//   return Runtime.compareStorageReferencesOf(this, other);
 		// which works since this class is made subclass of AbstractStorage by instrumentation
 		return 0;
 	}

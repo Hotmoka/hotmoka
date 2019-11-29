@@ -23,11 +23,6 @@ public interface Constants {
 	public final static String VIEW_NAME = "io.takamaka.code.lang.View";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.AbstractStorage}.
-	 */
-	public final static String ABSTRACT_STORAGE_NAME = "io.takamaka.code.blockchain.runtime.AbstractStorage";
-
-	/**
 	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.Runtime}.
 	 */
 	public final static String RUNTIME_NAME = "io.takamaka.code.blockchain.runtime.Runtime";
@@ -39,6 +34,7 @@ public interface Constants {
 
 	/**
 	 * The name of the instrumented field of storage objects that holds their storage reference.
+	 * Since it is private, it does not need any forbidden character at its beginning.
 	 */
 	public final static String STORAGE_REFERENCE_FIELD_NAME = "storageReference";
 
@@ -75,21 +71,9 @@ public interface Constants {
 	/**
 	 * The name of the field used in instrumented storage classes
 	 * to remember if the object is new or already serialized in blockchain.
+	 * Since it is private, it does not need any forbidden character at its beginning.
 	 */
-	//TODO forbidden character
 	public final static String IN_STORAGE = "inStorage";
-
-	/**
-	 * The name of the method in class {@link io.takamaka.code.blockchain.runtime.Runtime}
-	 * used to recursively extract updates from fields of reference type.
-	 */
-	public final static String RECURSIVE_EXTRACT = "recursiveExtract";
-
-	/**
-	 * The name of the methods of {@code io.takamaka.code.blockchain.runtime.Runtime}
-	 * used to add updates for a given field at the end of a transaction.
-	 */
-	public final static String ADD_UPDATE_FOR = "addUpdateFor";
 
 	/**
 	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}

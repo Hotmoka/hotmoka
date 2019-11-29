@@ -108,8 +108,8 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Bu
 		else if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC)) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
-			return receiver instanceof ObjectType &&
-				annotations.isEntryPossiblyAlreadyInstrumented
+			return receiver instanceof ObjectType
+				&& annotations.isEntryPossiblyAlreadyInstrumented
 					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
 		}
 		else

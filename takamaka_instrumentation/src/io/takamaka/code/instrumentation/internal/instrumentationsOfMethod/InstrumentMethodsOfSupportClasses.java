@@ -19,8 +19,6 @@ import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
  */
 public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static ObjectType STORAGE_OT = new ObjectType(io.takamaka.code.verification.Constants.STORAGE_NAME);
-	private final static ObjectType STORAGE_REFERENCE_OT = new ObjectType(io.takamaka.code.verification.Constants.STORAGE_REFERENCE_NAME);
-	private final static ObjectType STORAGE_VALUE_OT = new ObjectType(io.takamaka.code.verification.Constants.STORAGE_VALUE_NAME);
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 
@@ -33,12 +31,8 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 			if ("compareByStorageReference".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
-				il.append(factory.createGetField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
-				il.append(factory.createCast(Type.OBJECT, STORAGE_REFERENCE_OT));
 				il.append(InstructionConst.ALOAD_1);
-				il.append(factory.createGetField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
-				il.append(factory.createCast(Type.OBJECT, STORAGE_REFERENCE_OT));
-				il.append(factory.createInvoke(Constants.STORAGE_REFERENCE_NAME, "compareTo", Type.INT, new Type[] { STORAGE_VALUE_OT }, Const.INVOKEVIRTUAL));
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "compareStorageReferencesOf", Type.INT, new Type[] { Type.OBJECT, Type.OBJECT }, Const.INVOKESTATIC));
 				il.append(InstructionConst.IRETURN);
 				method.setInstructionList(il);
 			}
@@ -50,7 +44,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				il.append(factory.createConstant(false));
 				il.append(factory.createPutField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.IN_STORAGE, Type.BOOLEAN));
 				il.append(InstructionFactory.createThis());
-				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "getNextStorageReference", STORAGE_REFERENCE_OT, Type.NO_ARGS, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "getNextStorageReference", Type.OBJECT, Type.NO_ARGS, Const.INVOKESTATIC));
 				il.append(factory.createPutField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
