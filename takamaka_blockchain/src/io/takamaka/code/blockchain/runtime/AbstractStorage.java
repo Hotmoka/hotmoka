@@ -13,7 +13,7 @@ public abstract class AbstractStorage {
 	/**
 	 * The abstract pointer used to refer to this object in blockchain.
 	 */
-	public final StorageReference storageReference;
+	protected final transient StorageReference storageReference;
 
 	/**
 	 * True if the object reflects an object serialized in blockchain.
@@ -21,7 +21,7 @@ public abstract class AbstractStorage {
 	 * created during the current transaction but has not been yet
 	 * serialized into blockchain.
 	 */
-	protected final boolean inStorage;
+	protected final transient boolean inStorage;
 
 	/**
 	 * Constructs an object that can be stored in blockchain.

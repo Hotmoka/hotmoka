@@ -21,7 +21,7 @@ import io.takamaka.code.instrumentation.Constants;
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.
  */
 public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
-	private final static Type[] DESERIALIZE_LAST_UPDATE_ARGS = { new ObjectType(Constants.ABSTRACT_STORAGE_NAME), Type.STRING, Type.STRING, Type.STRING };
+	private final static Type[] DESERIALIZE_LAST_UPDATE_ARGS = { ObjectType.OBJECT, Type.STRING, Type.STRING, Type.STRING };
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
 	public AddEnsureLoadedMethods(InstrumentedClassImpl.Builder builder) {

@@ -54,8 +54,8 @@ public abstract class Runtime {
 	 * @return the value of the field
 	 * @throws Exception if the value could not be found
 	 */
-	public static Object deserializeLastLazyUpdateFor(AbstractStorage object, String definingClass, String name, String fieldClassName) throws Exception {
-		return Runtime.getBlockchain().deserializeLastLazyUpdateFor(object.storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
+		return blockchain.deserializeLastLazyUpdateFor(blockchain.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -69,8 +69,8 @@ public abstract class Runtime {
 	 * @return the value of the field
 	 * @throws Exception if the value could not be found
 	 */
-	public static Object deserializeLastLazyUpdateForFinal(AbstractStorage object, String definingClass, String name, String fieldClassName) throws Exception {
-		return Runtime.getBlockchain().deserializeLastLazyUpdateForFinal(object.storageReference, FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
+		return blockchain.deserializeLastLazyUpdateForFinal(blockchain.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -169,7 +169,7 @@ public abstract class Runtime {
 	 *
 	 * @param event the event
 	 */
-	public static void event(AbstractStorage event) {
+	public static void event(Object event) {
 		blockchain.event(event);
 	}
 

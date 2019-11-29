@@ -51,8 +51,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 			if ("event".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && EVENT_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
-				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "event", Type.VOID,
-						new Type[] { new ObjectType(Constants.ABSTRACT_STORAGE_NAME) }, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "event", Type.VOID, new Type[] { ObjectType.OBJECT }, Const.INVOKESTATIC));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}

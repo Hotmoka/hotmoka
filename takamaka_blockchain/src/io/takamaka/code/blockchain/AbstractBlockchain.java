@@ -57,7 +57,6 @@ import io.takamaka.code.blockchain.response.TransactionResponse;
 import io.takamaka.code.blockchain.response.TransactionResponseWithInstrumentedJar;
 import io.takamaka.code.blockchain.response.TransactionResponseWithUpdates;
 import io.takamaka.code.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.runtime.AbstractStorage;
 import io.takamaka.code.blockchain.runtime.Runtime;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.types.StorageType;
@@ -82,7 +81,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
 	 */
-	private final List<AbstractStorage> events = new ArrayList<>();
+	private final List<Object> events = new ArrayList<>();
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -91,7 +90,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * a distinct class loader and each storage object keeps a reference to its class loader, as
 	 * always in Java.
 	 */
-	private final Map<StorageReference, AbstractStorage> cache = new HashMap<>();
+	private final Map<StorageReference, Object> cache = new HashMap<>();
 
 	/**
 	 * The gas cost model of this blockchain.
@@ -461,7 +460,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param event the event
 	 * @throws IllegalArgumentException if the event is {@code null}
 	 */
-	public final void event(AbstractStorage event) {
+	public final void event(Object event) {
 		if (event == null)
 			throw new IllegalArgumentException("Events cannot be null");
 
@@ -503,13 +502,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try (TakamakaClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-				AbstractStorage gamete = (AbstractStorage) classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+				Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 				// we set the balance field of the gamete
 				Field balanceField = classLoader.getContract().getDeclaredField("balance");
 				balanceField.setAccessible(true); // since the field is private
 				balanceField.set(gamete, request.initialAmount);
 
-				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), gamete.storageReference);
+				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), getStorageReferenceOf(gamete));
 			}
 		});
 	}
@@ -521,13 +520,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
-				AbstractStorage deserializedCaller = request.caller.deserialize(this);
+				Object deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 
 				// we sell all gas first: what remains will be paid back at the end;
 				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
 				BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
-				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
+				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 				checkMinimalGas(request, balanceUpdateInCaseOfFailure);
 
 				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
@@ -557,11 +556,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 					Files.delete(instrumented);
 
 					BigInteger balanceOfCaller = increaseBalance(deserializedCaller, BigInteger.ZERO);
-					UpdateOfBalance balanceUpdate = new UpdateOfBalance(deserializedCaller.storageReference, balanceOfCaller);
+					UpdateOfBalance balanceUpdate = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), balanceOfCaller);
 					JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(response.size());
 					balanceOfCaller = increaseBalance(deserializedCaller, remainingGas());
-					balanceUpdate = new UpdateOfBalance(deserializedCaller.storageReference, balanceOfCaller);
+					balanceUpdate = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), balanceOfCaller);
 					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 				catch (Throwable t) {
@@ -580,13 +579,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
-				AbstractStorage deserializedCaller = request.caller.deserialize(this);
+				Object deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
 				// we sell all gas first: what remains will be paid back at the end;
 				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
 				BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
-				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
+				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 				checkMinimalGas(request, balanceUpdateInCaseOfFailure);
 
 				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
@@ -601,21 +600,21 @@ public abstract class AbstractBlockchain implements Blockchain {
 					executor.join();
 
 					if (executor.exception instanceof InvocationTargetException) {
-						ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(response.size());
 						increaseBalance(deserializedCaller, remainingGas());
-						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 
 					if (executor.exception != null)
 						throw executor.exception;
 
 					ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						((StorageReference) StorageValue.serialize(this, executor.result), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(response.size());
 					increaseBalance(deserializedCaller, remainingGas());
 					return new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						((StorageReference) StorageValue.serialize(this, executor.result), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 				catch (Throwable t) {
 					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -633,13 +632,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
-				AbstractStorage deserializedCaller = request.caller.deserialize(this);
+				Object deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
 				// we sell all gas first: what remains will be paid back at the end;
 				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
 				BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
-				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
+				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 				checkMinimalGas(request, balanceUpdateInCaseOfFailure);
 
 				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
@@ -654,10 +653,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 					executor.join();
 
 					if (executor.exception instanceof InvocationTargetException) {
-						MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(response.size());
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 
 					if (executor.exception != null)
@@ -667,18 +666,18 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
 
 					if (executor.isVoidMethod) {
-						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(response.size());
 						increaseBalance(deserializedCaller, remainingGas());
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 					else {
 						MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+							(StorageValue.serialize(this, executor.result), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(response.size());
 						increaseBalance(deserializedCaller, remainingGas());
 						return new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+							(StorageValue.serialize(this, executor.result), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 				}
 				catch (Throwable t) {
@@ -697,13 +696,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
-				AbstractStorage deserializedCaller = request.caller.deserialize(this);
+				Object deserializedCaller = request.caller.deserialize(this);
 				checkIsExternallyOwned(deserializedCaller);
 				
 				// we sell all gas first: what remains will be paid back at the end;
 				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
 				BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
-				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(deserializedCaller.storageReference, decreasedBalanceOfCaller);
+				UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 				checkMinimalGas(request, balanceUpdateInCaseOfFailure);
 
 				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
@@ -718,10 +717,10 @@ public abstract class AbstractBlockchain implements Blockchain {
 					executor.join();
 
 					if (executor.exception instanceof InvocationTargetException) {
-						MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(response.size());
 						increaseBalance(deserializedCaller, remainingGas());
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 
 					if (executor.exception != null)
@@ -731,18 +730,18 @@ public abstract class AbstractBlockchain implements Blockchain {
 						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
 
 					if (executor.isVoidMethod) {
-						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(response.size());
 						increaseBalance(deserializedCaller, remainingGas());
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 					else {
 						MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+							(StorageValue.serialize(this, executor.result), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(response.size());
 						increaseBalance(deserializedCaller, remainingGas());
 						return new MethodCallTransactionSuccessfulResponse
-							(StorageValue.serialize(executor.result), executor.updates(), events.stream().map(event -> event.storageReference), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+							(StorageValue.serialize(this, executor.result), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 				}
 				catch (Throwable t) {
@@ -763,7 +762,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param object the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	public final AbstractStorage deserialize(StorageReference object) {
+	public final Object deserialize(StorageReference object) {
 		return cache.computeIfAbsent(object, this::deserializeAnew);
 	}
 
@@ -891,6 +890,28 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	public final Field getInStorageField() {
 		return classLoader.inStorage;
+	}
+
+	public boolean isStorage(Object object) {
+		return object != null && classLoader.getStorage().isAssignableFrom(object.getClass());
+	}
+
+	public StorageReference getStorageReferenceOf(Object object) {
+		try {
+			return (StorageReference) classLoader.storageReference.get(object);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot read the storage reference of a storage object of class " + object.getClass().getName());
+		}
+	}
+
+	public boolean getInStorageOf(Object object) {
+		try {
+			return (boolean) classLoader.inStorage.get(object);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot read the inStorage tag of a storage object of class " + object.getClass().getName());
+		}
 	}
 
 	private static void checkMinimalGas(TransactionRequest request, UpdateOfBalance balanceUpdateInCaseOfFailure) throws IllegalTransactionRequestException {
@@ -1173,7 +1194,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param reference the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
-	private AbstractStorage deserializeAnew(StorageReference reference) {
+	private Object deserializeAnew(StorageReference reference) {
 		try {
 			return createStorageObject(reference, getLastUpdatesToEagerFieldsOf(reference));
 		}
@@ -1193,7 +1214,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the object
 	 * @throws DeserializationError if the object could not be created
 	 */
-	private AbstractStorage createStorageObject(StorageReference reference, Stream<Update> updates) {
+	private Object createStorageObject(StorageReference reference, Stream<Update> updates) {
 		try {
 			ClassTag classTag = null;
 			List<Class<?>> formals = new ArrayList<>();
@@ -1228,7 +1249,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			// hence we must force accessibility
 			constructor.setAccessible(true);
 
-			return (AbstractStorage) constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
+			return constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
 		}
 		catch (DeserializationError e) {
 			throw e;
@@ -1252,7 +1273,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private BigInteger decreaseBalance(AbstractStorage eoa, BigInteger gas)
+	private BigInteger decreaseBalance(Object eoa, BigInteger gas)
 			throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
@@ -1280,7 +1301,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private BigInteger increaseBalance(AbstractStorage eoa, BigInteger gas)
+	private BigInteger increaseBalance(Object eoa, BigInteger gas)
 			throws ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
@@ -1301,7 +1322,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws ClassNotFoundException if the {@link io.takamaka.code.lang.ExternallyOwnedAccount} class cannot be found
 	 *                                in the class path of the transaction
 	 */
-	private void checkIsExternallyOwned(AbstractStorage object) throws ClassNotFoundException, IllegalTransactionRequestException {
+	private void checkIsExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(object.getClass()))
 			throw new IllegalTransactionRequestException("Only an externally owned contract can start a transaction");
 	}
@@ -1315,19 +1336,19 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @param result the result; relevant only if {@code Storage}
 	 * @return the ordered updates
 	 */
-	private SortedSet<Update> collectUpdates(Object[] actuals, AbstractStorage caller, AbstractStorage receiver, Object result) {
+	private SortedSet<Update> collectUpdates(Object[] actuals, Object caller, Object receiver, Object result) {
 		List<Object> potentiallyAffectedObjects = new ArrayList<>();
 		if (caller != null)
 			potentiallyAffectedObjects.add(caller);
 		if (receiver != null)
 			potentiallyAffectedObjects.add(receiver);
-		if (result instanceof AbstractStorage)
-			potentiallyAffectedObjects.add((AbstractStorage) result);
+		if (result != null && classLoader.getStorage().isAssignableFrom(result.getClass()))
+			potentiallyAffectedObjects.add(result);
 
 		if (actuals != null)
 			for (Object actual: actuals)
-				if (actual instanceof AbstractStorage)
-					potentiallyAffectedObjects.add((AbstractStorage) actual);
+				if (actual != null && classLoader.getStorage().isAssignableFrom(actual.getClass()))
+					potentiallyAffectedObjects.add(actual);
 
 		// events are accessible from outside, hence they count as side-effects
 		events.forEach(potentiallyAffectedObjects::add);
@@ -1358,7 +1379,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		/**
 		 * The deserialized caller.
 		 */
-		private final AbstractStorage deserializedCaller;
+		private final Object deserializedCaller;
 
 		/**
 		 * The method or constructor that is being called.
@@ -1378,7 +1399,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		/**
 		 * The deserialized receiver of a method call. This is {@code null} for static methods and constructors.
 		 */
-		protected final AbstractStorage deserializedReceiver; // it might be null
+		protected final Object deserializedReceiver; // it might be null
 
 		/**
 		 * The deserialized actual arguments of the call.
@@ -1394,7 +1415,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param receiver the receiver of the call, if any. This is {@code null} for constructors and static methods
 		 * @param actuals the actuals provided to the method or constructor
 		 */
-		private CodeExecutor(AbstractStorage deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
+		private CodeExecutor(Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
 			this.deserializedCaller = deseralizedCaller;
 			this.methodOrConstructor = methodOrConstructor;
 			this.deserializedReceiver = receiver != null ? receiver.deserialize(AbstractBlockchain.this) : null;
@@ -1458,9 +1479,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param deserializedCaller the caller contract
 		 * @return true  if and only if that condition holds
 		 */
-		protected final boolean onlyAffectedBalanceOf(AbstractStorage deserializedCaller) {
+		protected final boolean onlyAffectedBalanceOf(Object deserializedCaller) {
 			return updates().allMatch
-				(update -> update.object.equals(deserializedCaller.storageReference)
+				(update -> update.object.equals(getStorageReferenceOf(deserializedCaller))
 				&& update instanceof UpdateOfField
 				&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
 		}
@@ -1625,7 +1646,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param deseralizedCaller the deserialized caller
 		 * @param actuals the actuals provided to the constructor
 		 */
-		private ConstructorExecutor(ConstructorSignature constructor, AbstractStorage deserializedCaller, Stream<StorageValue> actuals) {
+		private ConstructorExecutor(ConstructorSignature constructor, Object deserializedCaller, Stream<StorageValue> actuals) {
 			super(deserializedCaller, constructor, null, actuals);
 		}
 
@@ -1684,7 +1705,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
 
 				try {
-					result = (AbstractStorage) constructorJVM.newInstance(deserializedActuals);
+					result = constructorJVM.newInstance(deserializedActuals);
 				}
 				catch (InvocationTargetException e) {
 					exception = unwrapInvocationException(e, constructorJVM);
@@ -1711,7 +1732,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param receiver the receiver of the method
 		 * @param actuals the actuals provided to the method
 		 */
-		private InstanceMethodExecutor(MethodSignature method, AbstractStorage deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
+		private InstanceMethodExecutor(MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
 			super(deserializedCaller, method, receiver, actuals);
 		}
 
@@ -1773,7 +1794,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @param deseralizedCaller the deserialized caller
 		 * @param actuals the actuals provided to the method
 		 */
-		private StaticMethodExecutor(MethodSignature method, AbstractStorage deserializedCaller, Stream<StorageValue> actuals) {
+		private StaticMethodExecutor(MethodSignature method, Object deserializedCaller, Stream<StorageValue> actuals) {
 			super(deserializedCaller, method, null, actuals);
 		}
 

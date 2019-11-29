@@ -47,7 +47,7 @@ public class ExtractedUpdates {
 		private Builder(AbstractBlockchain blockchain, Stream<Object> objects) {
 			this.blockchain = blockchain;
 			this.workingSet = objects
-				.filter(object -> seen.add(getStorageReferenceOf(object)))
+				.filter(object -> seen.add(blockchain.getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
 
 			do {
@@ -58,32 +58,14 @@ public class ExtractedUpdates {
 			while (!workingSet.isEmpty());
 		}
 
-		private StorageReference getStorageReferenceOf(Object object) {
-			try {
-				return (StorageReference) blockchain.getStorageReferenceField().get(object);
-			}
-			catch (IllegalArgumentException | IllegalAccessException e) {
-				throw new IllegalStateException("cannot read the storage reference of a storage object of class " + object.getClass().getName());
-			}
-		}
-
-		private boolean getInStorageOf(Object object) {
-			try {
-				return (boolean) blockchain.getInStorageField().get(object);
-			}
-			catch (IllegalArgumentException | IllegalAccessException e) {
-				throw new IllegalStateException("cannot read the inStorage tag of a storage object of class " + object.getClass().getName());
-			}
-		}
-
 		private class ExtractedUpdatesSingleObject {
 			private final StorageReference storageReference;
 			private final boolean inStorage;
 
 			private ExtractedUpdatesSingleObject(Object object) {
 				Class<?> clazz = object.getClass();
-				this.storageReference = getStorageReferenceOf(object);
-				this.inStorage = getInStorageOf(object);
+				this.storageReference = blockchain.getStorageReferenceOf(object);
+				this.inStorage = blockchain.getInStorageOf(object);
 
 				if (!inStorage)
 					updates.add(new ClassTag(storageReference, clazz.getName(), blockchain.transactionThatInstalledJarFor(clazz)));
@@ -104,7 +86,7 @@ public class ExtractedUpdates {
 				if (s != null) {
 					Class<?> clazz = s.getClass();
 					if (blockchain.getStorage().isAssignableFrom(clazz)) {
-						if (seen.add(getStorageReferenceOf(s)))
+						if (seen.add(blockchain.getStorageReferenceOf(s)))
 							workingSet.add(s);
 					}
 					else if (blockchain.isLazilyLoaded(clazz)) // eager types are not recursively followed
@@ -128,7 +110,7 @@ public class ExtractedUpdates {
 					updates.add(new UpdateToNullLazy(storageReference, field));
 				else if (blockchain.getStorage().isAssignableFrom(s.getClass())) {
 					// the field has been set to a storage object
-					StorageReference storageReference2 = getStorageReferenceOf(s);
+					StorageReference storageReference2 = blockchain.getStorageReferenceOf(s);
 					updates.add(new UpdateOfStorage(storageReference, field, storageReference2));
 
 					// if the new value has not yet been considered, we put in the list of object still to be processed

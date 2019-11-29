@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.runtime.AbstractStorage;
 
 /**
  * A value that can be stored in the blockchain, passed as argument to an entry
@@ -25,15 +24,16 @@ public interface StorageValue extends Serializable, Comparable<StorageValue> {
 	 * Yields the serialization of the given objects, that is, yields its
 	 * representation in blockchain.
 	 * 
+	 * @param blockchain the blockchain for which the serialization is performed
 	 * @param object the object to serialize. This must be a storage object, a Java wrapper
 	 *               object for numerical types or a special Java object that is allowed
 	 *               in blockchain, such as a {@link java.lang.String} or {@link java.math.BigInteger}
 	 * @return the serialization of {@code object}, if any
 	 * @throws IllegalArgumentException if the type of {@code object} is not allowed in blockchain
 	 */
-	static StorageValue serialize(Object object) throws IllegalArgumentException {
-		if (object instanceof AbstractStorage)
-			return ((AbstractStorage) object).storageReference;
+	static StorageValue serialize(AbstractBlockchain blockchain, Object object) throws IllegalArgumentException {
+		if (blockchain.isStorage(object))
+			return blockchain.getStorageReferenceOf(object);
 		else if (object instanceof BigInteger)
 			return new BigIntegerValue((BigInteger) object);
 		else if (object instanceof Boolean)

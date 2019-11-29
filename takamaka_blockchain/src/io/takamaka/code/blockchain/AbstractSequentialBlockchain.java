@@ -32,7 +32,6 @@ import io.takamaka.code.blockchain.response.MethodCallTransactionSuccessfulRespo
 import io.takamaka.code.blockchain.response.TransactionResponse;
 import io.takamaka.code.blockchain.response.TransactionResponseWithUpdates;
 import io.takamaka.code.blockchain.response.VoidMethodCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.runtime.AbstractStorage;
 import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.blockchain.values.StorageValue;
 
@@ -385,16 +384,17 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 
 	/**
 	 * Collects all eager fields of the given storage class, including those of its superclasses,
-	 * up to and excluding {@link io.takamaka.code.blockchain.runtime.AbstractStorage}.
+	 * up to and excluding {@link io.takamaka.code.lang.Storage}.
 	 * 
 	 * @param className the name of the storage class
 	 * @return the eager fields
 	 */
 	private Set<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException {
 		Set<Field> bag = new HashSet<>();
+		Class<?> storage = getStorage();
 
 		// fields added by instrumentation by Takamaka itself are not considered, since they are transient
-		for (Class<?> clazz = loadClass(className); clazz != AbstractStorage.class; clazz = clazz.getSuperclass())
+		for (Class<?> clazz = loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
 			Stream.of(clazz.getDeclaredFields())
 			.filter(field -> !Modifier.isTransient(field.getModifiers())
 					&& !Modifier.isStatic(field.getModifiers())
