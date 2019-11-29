@@ -32,8 +32,8 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
 			StreamSupport.stream(il.spliterator(), false).filter(this::isAccessToLazilyLoadedFieldInStorageClass)
-					.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
-		}		
+				.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
+		}
 	}
 
 	/**
@@ -52,10 +52,10 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
 			// we do not consider field accesses added by instrumentation
-			return !receiverClassName.equals(Constants.ABSTRACT_STORAGE_NAME)
-					&& classLoader.isStorage(receiverClassName)
-					&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
-					&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
+			return !receiverClassName.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)
+				&& classLoader.isStorage(receiverClassName)
+				&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
+				&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
 		}
 		else if (instruction instanceof PUTFIELD) {
 			FieldInstruction fi = (FieldInstruction) instruction;
@@ -63,10 +63,10 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
 			// we do not consider field accesses added by instrumentation
-			return !receiverClassName.equals(Constants.ABSTRACT_STORAGE_NAME)
-					&& classLoader.isStorage(receiverClassName)
-					&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
-					&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
+			return !receiverClassName.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)
+				&& classLoader.isStorage(receiverClassName)
+				&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
+				&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
 		}
 		else
 			return false;
@@ -104,6 +104,12 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			Class<?> clazz = classLoader.loadClass(className);
 			
 			do {
+				// these two fields are added by instrumentation hence not found by reflection:
+				// they are transient
+				if (clazz == classLoader.getStorage() &&
+						(fieldName.equals(Constants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(Constants.IN_STORAGE)))
+					return true;
+
 				Optional<Field> match = Stream.of(clazz.getDeclaredFields())
 					.filter(field -> field.getName().equals(fieldName) && fieldType == field.getType())
 					.findFirst();
@@ -132,6 +138,12 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			Class<?> clazz = classLoader.loadClass(className);
 			
 			do {
+				// these two fields are added by instrumentation hence not found by reflection:
+				// they are transient
+				if (clazz == classLoader.getStorage() &&
+						(fieldName.equals(Constants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(Constants.IN_STORAGE)))
+					return true;
+
 				Optional<Field> match = Stream.of(clazz.getDeclaredFields())
 					.filter(field -> field.getName().equals(fieldName) && fieldType == field.getType())
 					.findFirst();

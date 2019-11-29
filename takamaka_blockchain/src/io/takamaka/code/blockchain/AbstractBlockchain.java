@@ -1007,9 +1007,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.payableEntryLong.setAccessible(true); // it was private
 			this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
 			this.payableEntryBigInteger.setAccessible(true); // it was private
-			this.storageReference = loadClass(Constants.ABSTRACT_STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
-			this.inStorage = loadClass(Constants.ABSTRACT_STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
+			this.inStorage = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
 			this.inStorage.setAccessible(true); // it was private
 		}
 
@@ -1040,9 +1040,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.payableEntryLong.setAccessible(true); // it was private
 			this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
 			this.payableEntryBigInteger.setAccessible(true); // it was private
-			this.storageReference = loadClass(Constants.ABSTRACT_STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
-			this.inStorage = loadClass(Constants.ABSTRACT_STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
+			this.inStorage = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
 			this.inStorage.setAccessible(true); // it was private
 		}
 

@@ -73,7 +73,7 @@ public interface Constants {
 	public final static String SETTER_PREFIX = FORBIDDEN_PREFIX + "set_";
 
 	/**
-	 * The prefix of the name of the field used in instrumented storage classes
+	 * The name of the field used in instrumented storage classes
 	 * to remember if the object is new or already serialized in blockchain.
 	 */
 	//TODO forbidden character

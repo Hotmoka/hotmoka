@@ -43,7 +43,6 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddCons
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddOldAndIfAlreadyLoadedFields;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.DesugarBootstrapsInvokingEntries;
-import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.SwapSuperclassOfSpecialClasses;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddContractToCallsToEntries;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddGasUpdates;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddRuntimeChecksForWhiteListingProofObligations;
@@ -520,7 +519,6 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * Performs class-level instrumentations.
 		 */
 		private void classLevelInstrumentations() {
-			new SwapSuperclassOfSpecialClasses(this);
 			new AddConstructorForDeserializationFromBlockchain(this);
 			new AddOldAndIfAlreadyLoadedFields(this);
 			new AddAccessorMethods(this);

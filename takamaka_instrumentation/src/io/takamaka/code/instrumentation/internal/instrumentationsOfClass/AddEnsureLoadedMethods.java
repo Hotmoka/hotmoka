@@ -55,7 +55,8 @@ public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassL
 		InstructionList il = new InstructionList();
 		InstructionHandle _return = il.append(InstructionConst.RETURN);
 		il.insert(_return, InstructionFactory.createThis());
-		il.insert(_return, factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, Constants.IN_STORAGE, BasicType.BOOLEAN));
+		// we need to require to reflection to access private field "inStorage"
+		il.insert(_return, factory.createInvoke(Constants.RUNTIME_NAME, "inStorageOf", Type.BOOLEAN, new Type[] { Type.OBJECT }, Const.INVOKESTATIC));
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 		il.insert(_return, InstructionFactory.createThis());
 		String fieldName = field.getName();

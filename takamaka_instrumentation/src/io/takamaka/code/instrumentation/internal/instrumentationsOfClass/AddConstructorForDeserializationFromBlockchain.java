@@ -25,6 +25,7 @@ import io.takamaka.code.instrumentation.Constants;
  * constructed, ordered by name and then by {@code toString()} of their type.
  */
 public class AddConstructorForDeserializationFromBlockchain extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
+	private final static ObjectType STORAGE_REFERENCE_OT = new ObjectType(Constants.STORAGE_REFERENCE_NAME);
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 
 	public AddConstructorForDeserializationFromBlockchain(InstrumentedClassImpl.Builder builder) {
@@ -34,7 +35,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 			List<Type> args = new ArrayList<>();
 
 			// the parameters of the constructor start with a storage reference to the object being deserialized
-			args.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
+			args.add(STORAGE_REFERENCE_OT);
 
 			// then there are the fields of the class and superclasses, with superclasses first
 			eagerNonTransientInstanceFields.stream()
@@ -46,6 +47,17 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
 			addInitializationOfEagerFields(il, nextLocal);
+
+			if (className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)) {
+				// the Storage class needs to initialize its two synthetic transient fields
+				il.append(InstructionFactory.createThis());
+				il.append(factory.createConstant(true));
+				il.append(factory.createPutField(className, Constants.IN_STORAGE, Type.BOOLEAN));
+				il.append(InstructionFactory.createThis());
+				il.append(InstructionConst.ALOAD_1); // the first parameter: the storage reference
+				il.append(factory.createPutField(className, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));	
+			}
+
 			il.append(InstructionConst.RETURN);
 
 			MethodGen constructor = new MethodGen(PUBLIC_SYNTHETIC, BasicType.VOID, args.toArray(Type.NO_ARGS), null, Const.CONSTRUCTOR_NAME, className, il, cpg);
@@ -63,8 +75,12 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 	private int addCallToSuper(InstructionList il) {
 		List<Type> argsForSuperclasses = new ArrayList<>();
 		il.append(InstructionFactory.createThis());
-		il.append(InstructionConst.ALOAD_1);
-		argsForSuperclasses.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
+
+		// the Storage class does not ass the storage reference upwards
+		if (!className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)) {
+			il.append(InstructionConst.ALOAD_1);
+			argsForSuperclasses.add(new ObjectType(Constants.STORAGE_REFERENCE_NAME));
+		}
 
 		// the fields of the superclasses are passed into a call to super(...)
 		class PushLoad implements Consumer<Type> {

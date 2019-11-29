@@ -199,6 +199,16 @@ public abstract class Runtime {
 	}
 
 	/**
+	 * Yields the value of field {@code inStorage} of the given storage object}.
+	 * 
+	 * @param object the storage object
+	 * @return the value of the field
+	 */
+	public static boolean inStorageOf(Object object) {
+		return blockchain.getInStorageOf(object);
+	}
+
+	/**
 	 * Called during verification and by instrumented code to check
 	 * the {@link io.takamaka.code.whitelisting.MustBeFalse} annotation. 
 	 * Its name must be the uncapitalized simple name of the annotation.

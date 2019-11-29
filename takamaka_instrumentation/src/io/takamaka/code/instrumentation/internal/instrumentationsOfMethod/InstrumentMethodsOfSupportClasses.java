@@ -5,13 +5,14 @@ import java.util.concurrent.Callable;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.InstructionConst;
+import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 
 /**
  * Edits the code of the methods in some support classes of Takamaka.
@@ -32,17 +33,25 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 			if ("compareByStorageReference".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
-				il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, "storageReference", STORAGE_REFERENCE_OT));
+				il.append(factory.createGetField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
+				il.append(factory.createCast(Type.OBJECT, STORAGE_REFERENCE_OT));
 				il.append(InstructionConst.ALOAD_1);
-				il.append(factory.createGetField(Constants.ABSTRACT_STORAGE_NAME, "storageReference", STORAGE_REFERENCE_OT));
+				il.append(factory.createGetField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
+				il.append(factory.createCast(Type.OBJECT, STORAGE_REFERENCE_OT));
 				il.append(factory.createInvoke(Constants.STORAGE_REFERENCE_NAME, "compareTo", Type.INT, new Type[] { STORAGE_VALUE_OT }, Const.INVOKEVIRTUAL));
 				il.append(InstructionConst.IRETURN);
 				method.setInstructionList(il);
 			}
 			else if (Const.CONSTRUCTOR_NAME.equals(method.getName()) && method.getArgumentTypes().length == 0) {
 				InstructionList il = new InstructionList();
-				il.append(InstructionConst.ALOAD_0);
-				il.append(factory.createInvoke(Constants.ABSTRACT_STORAGE_NAME, Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+				il.append(InstructionFactory.createThis());
+				il.append(factory.createInvoke(Object.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+				il.append(InstructionFactory.createThis());
+				il.append(factory.createConstant(false));
+				il.append(factory.createPutField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.IN_STORAGE, Type.BOOLEAN));
+				il.append(InstructionFactory.createThis());
+				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "getNextStorageReference", STORAGE_REFERENCE_OT, Type.NO_ARGS, Const.INVOKESTATIC));
+				il.append(factory.createPutField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}
