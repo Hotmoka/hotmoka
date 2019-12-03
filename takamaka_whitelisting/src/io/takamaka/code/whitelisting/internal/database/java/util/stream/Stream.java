@@ -17,4 +17,6 @@ public interface Stream<T> {
 	java.util.stream.Stream<T> skip(long n);
 	java.util.stream.Stream<T> limit(long maxSize);
 	long count();
+	java.util.Optional<T> min(java.util.Comparator<? super T> comparator);
+	java.util.Optional<T> max(java.util.Comparator<? super T> comparator);
 }

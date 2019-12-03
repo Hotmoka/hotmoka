@@ -22,7 +22,7 @@ public class Ballot extends Contract {
 		VotingPaper votingPaper = new VotingPaper();
 		votingPaper.giveRightToVote(); // the chairperson has right to vote
 		papers.put(chairperson, votingPaper);
-		proposalNames.stream().map(Proposal::new).forEach(proposals::add);
+		proposalNames.stream().map(Proposal::new).forEachOrdered(proposals::add);
 	}
 
 	public @Entry void giveRightToVote(Contract to) {
