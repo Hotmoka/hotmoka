@@ -370,7 +370,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		int initialSize = il.getLength();
 
 		for (Annotation ann: annotations) {
-			Optional<java.lang.reflect.Method> checkMethod = getWhiteListingCheckFor(ann);
+			Optional<java.lang.reflect.Method> checkMethod = getWhiteListingCheckFor(ann.annotationType());
 			if (checkMethod.isPresent())
 				// we check if the annotation could not be statically discharged
 				if (ih == null || key.charAt(annotationsCursor++) == '1') {
@@ -381,10 +381,6 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		}
 
 		return il.getLength() > initialSize;
-	}
-
-	private Optional<java.lang.reflect.Method> getWhiteListingCheckFor(Annotation annotation) {
-		return getWhiteListingCheckFor(annotation.annotationType());
 	}
 
 	private Optional<java.lang.reflect.Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
