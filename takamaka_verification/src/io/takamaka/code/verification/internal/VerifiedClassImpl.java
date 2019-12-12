@@ -43,6 +43,7 @@ import io.takamaka.code.verification.internal.checksOnClass.BootstrapsAreLegalCh
 import io.takamaka.code.verification.internal.checksOnClass.EntriesAreOnlyCalledFromContractsCheck;
 import io.takamaka.code.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
 import io.takamaka.code.verification.internal.checksOnClass.PackagesAreLegalCheck;
+import io.takamaka.code.verification.internal.checksOnClass.RedPayableIsOnlyCalledFromRedGreenContractsCheck;
 import io.takamaka.code.verification.internal.checksOnClass.StorageClassesHaveFieldsOfStorageTypeCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.BytecodesAreLegalCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThisAndInEntryCheck;
@@ -58,6 +59,7 @@ import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsNotRe
 import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeReceivesAmountCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsEntryCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsInRedGreenContract;
 import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeReceivesAmountCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsCodeIsPublicCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
@@ -256,6 +258,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 			new BootstrapsAreLegalCheck(this);
 			new StorageClassesHaveFieldsOfStorageTypeCheck(this);
 			new EntriesAreOnlyCalledFromContractsCheck(this);
+			new RedPayableIsOnlyCalledFromRedGreenContractsCheck(this);
 
 			Stream.of(methods).forEachOrdered(MethodVerification::new);
 
@@ -427,6 +430,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 				new EntryCodeIsConsistentWithClassHierarchyCheck(this);
 				new PayableCodeIsConsistentWithClassHierarchyCheck(this);
 				new RedPayableCodeIsConsistentWithClassHierarchyCheck(this);
+				new RedPayableCodeIsInRedGreenContract(this);
 				new PayableCodeIsNotRedPayableCheck(this);
 				new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(this);
 				new IsNotStaticInitializerCheck(this);

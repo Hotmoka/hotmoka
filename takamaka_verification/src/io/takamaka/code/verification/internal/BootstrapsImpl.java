@@ -84,7 +84,30 @@ public class BootstrapsImpl implements Bootstraps {
 					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
 					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
 
-					return verifiedClass.jar.annotations.isEntryPossiblyAlreadyInstrumented(className, methodName, methodSignature);
+					return verifiedClass.jar.annotations.isEntry(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
+				}
+			}
+		};
+
+		return false;
+	}
+
+	@Override
+	public boolean lambdaIsRedPayable(BootstrapMethod bootstrap) {
+		if (bootstrap.getNumBootstrapArguments() == 3) {
+			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
+			if (constant instanceof ConstantMethodHandle) {
+				ConstantMethodHandle mh = (ConstantMethodHandle) constant;
+				Constant constant2 = cpg.getConstant(mh.getReferenceIndex());
+				if (constant2 instanceof ConstantMethodref) {
+					ConstantMethodref mr = (ConstantMethodref) constant2;
+					int classNameIndex = ((ConstantClass) cpg.getConstant(mr.getClassIndex())).getNameIndex();
+					String className = ((ConstantUtf8) cpg.getConstant(classNameIndex)).getBytes().replace('/', '.');
+					ConstantNameAndType nt = (ConstantNameAndType) cpg.getConstant(mr.getNameAndTypeIndex());
+					String methodName = ((ConstantUtf8) cpg.getConstant(nt.getNameIndex())).getBytes();
+					String methodSignature = ((ConstantUtf8) cpg.getConstant(nt.getSignatureIndex())).getBytes();
+
+					return verifiedClass.jar.annotations.isRedPayable(className, methodName, Type.getArgumentTypes(methodSignature), Type.getReturnType(methodSignature));
 				}
 			}
 		};
@@ -273,8 +296,8 @@ public class BootstrapsImpl implements Bootstraps {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType &&
-				verifiedClass.jar.annotations.isEntryPossiblyAlreadyInstrumented
-					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+				verifiedClass.jar.annotations.isEntry
+					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 		else
 			return false;

@@ -109,8 +109,8 @@ public class EntriesAreOnlyCalledFromContractsCheck extends VerifiedClassImpl.Bu
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType
-				&& annotations.isEntryPossiblyAlreadyInstrumented
-					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+				&& annotations.isEntry
+					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 		else
 			return false;

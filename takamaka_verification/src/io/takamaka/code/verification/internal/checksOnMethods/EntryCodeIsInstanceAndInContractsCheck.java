@@ -12,10 +12,10 @@ public class EntryCodeIsInstanceAndInContractsCheck extends VerifiedClassImpl.Bu
 	public EntryCodeIsInstanceAndInContractsCheck(VerifiedClassImpl.Builder.MethodVerification verification) {
 		verification.super();
 
-		annotations.isEntry(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {
+		annotations.getEntryArgument(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {
 			if (!classLoader.getContract().isAssignableFrom(tag))
 				issue(new IllegalEntryArgumentError(inferSourceFile(), methodName));
-			if (method.isStatic() || !classLoader.isContract(className))
+			if (method.isStatic() || (!classLoader.isInterface(className) && !classLoader.isContract(className)))
 				issue(new IllegalEntryMethodError(inferSourceFile(), methodName));
 		});
 	}

@@ -13,10 +13,10 @@ import org.junit.jupiter.api.Test;
 
 import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
-import io.takamaka.code.verification.issues.IllegalCallToRedPayableError;
+import io.takamaka.code.verification.issues.RedPayableInSimpleContractError;
 import takamaka.tests.TakamakaTest;
 
-class IllegalCallToRedPayable1 extends TakamakaTest {
+class RedPayableInSimpleContract extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -32,10 +32,10 @@ class IllegalCallToRedPayable1 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() {
-		throwsVerificationExceptionWithCause(IllegalCallToRedPayableError.class, () ->
+		throwsVerificationExceptionWithCause(RedPayableInSimpleContractError.class, () ->
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-				Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegalcalltoredpayable1.jar")), blockchain.takamakaBase))
+				Files.readAllBytes(Paths.get("../takamaka_examples/dist/redpayableinsimplecontract.jar")), blockchain.takamakaBase))
 		);
 	}
 }

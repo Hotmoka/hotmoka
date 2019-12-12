@@ -49,6 +49,7 @@
   	<jar jarfile="${dist}/redpayablewithoutentry2.jar" basedir="${build}" includes="io/takamaka/tests/errors/redpayablewithoutentry2/**"/>
 	<jar jarfile="${dist}/payablewithoutamount1.jar" basedir="${build}" includes="io/takamaka/tests/errors/payablewithoutamount1/**"/>
   	<jar jarfile="${dist}/payablewithoutamount2.jar" basedir="${build}" includes="io/takamaka/tests/errors/payablewithoutamount2/**"/>
+  	<jar jarfile="${dist}/redpayableinsimplecontract.jar" basedir="${build}" includes="io/takamaka/tests/errors/redpayableinsimplecontract/**"/>
   	<jar jarfile="${dist}/redpayablewithoutamount1.jar" basedir="${build}" includes="io/takamaka/tests/errors/redpayablewithoutamount1/**"/>
 	<jar jarfile="${dist}/redpayablewithoutamount2.jar" basedir="${build}" includes="io/takamaka/tests/errors/redpayablewithoutamount2/**"/>
   	<jar jarfile="${dist}/inconsistentpayable1.jar" basedir="${build}" includes="io/takamaka/tests/errors/inconsistentpayable1/**"/>

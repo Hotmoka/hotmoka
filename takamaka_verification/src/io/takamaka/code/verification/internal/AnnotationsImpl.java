@@ -39,55 +39,66 @@ public class AnnotationsImpl implements Annotations {
 
 	@Override
 	public final boolean isPayable(String className, String methodName, Type[] formals, Type returnType) {
-		return getAnnotation(className, methodName, formals, returnType, Constants.PAYABLE_NAME).isPresent();
+		return getAnnotation(className, methodName, formals, returnType, Constants.PAYABLE_NAME).isPresent()
+			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.PAYABLE_NAME).isPresent();
 	}
 
 	@Override
 	public final boolean isRedPayable(String className, String methodName, Type[] formals, Type returnType) {
-		return getAnnotation(className, methodName, formals, returnType, Constants.RED_PAYABLE_NAME).isPresent();
+		return getAnnotation(className, methodName, formals, returnType, Constants.RED_PAYABLE_NAME).isPresent()
+			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.RED_PAYABLE_NAME).isPresent();
 	}
 
 	@Override
 	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) {
-		return getAnnotation(className, methodName, formals, returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent();
+		return getAnnotation(className, methodName, formals, returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent()
+			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent();
 	}
 
 	@Override
-	public final Optional<Class<?>> isEntry(String className, String methodName, Type[] formals, Type returnType) {
+	public final boolean isEntry(String className, String methodName, Type[] formals, Type returnType) {
+		return getEntryArgument(className, methodName, formals, returnType).isPresent();
+	}
+
+	@Override
+	public final Optional<Class<?>> getEntryArgument(String className, String methodName, Type[] formals, Type returnType) {
 		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.ENTRY_NAME);
-		if (annotation.isPresent()) {
-			Annotation entry = annotation.get();
-			// we call, by reflection, its value() method, to find the type of the calling contract
+		if (!annotation.isPresent())
+			// the method might have been already instrumented, since it comes from
+			// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
+			annotation = getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.ENTRY_NAME);
 
-			Class<?> contractClass;
-			try {
-				Method value = entry.getClass().getMethod("value");
-				contractClass = (Class<?>) value.invoke(entry);
-			}
-			catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				return Optional.empty();
-			}
-
-			return Optional.of(contractClass != null ? contractClass : jar.classLoader.getContract());
-		}
-
-		return Optional.empty();
+		return annotation.isPresent() ? extractContractClass(annotation) : Optional.empty();
 	}
 
-	@Override
-	public final boolean isEntryPossiblyAlreadyInstrumented(String className, String methodName, String signature) {
-		Type[] formals = Type.getArgumentTypes(signature);
-		Type returnType = Type.getReturnType(signature);
-		if (isEntry(className, methodName, formals, returnType).isPresent())
-			return true;
-
-		// the method might have been already instrumented, since it comes from
-		// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
+	/**
+	 * Adds, to the given formal arguments, the extra two used in instrumented entries.
+	 * 
+	 * @param formals the original formals
+	 * @return the expanded formals
+	 */
+	private static Type[] expandFormals(Type[] formals) {
 		Type[] formalsExpanded = new Type[formals.length + 2];
 		System.arraycopy(formals, 0, formalsExpanded, 0, formals.length);
 		formalsExpanded[formals.length] = CONTRACT_OT;
 		formalsExpanded[formals.length + 1] = DUMMY_OT;
-		return isEntry(className, methodName, formalsExpanded, returnType).isPresent();
+		return formalsExpanded;
+	}
+
+	private Optional<Class<?>> extractContractClass(Optional<Annotation> annotation) {
+		Annotation entry = annotation.get();
+		// we call, by reflection, its value() method, to find the type of the calling contract
+
+		Class<?> contractClass;
+		try {
+			Method value = entry.getClass().getMethod("value");
+			contractClass = (Class<?>) value.invoke(entry);
+		}
+		catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			return Optional.empty();
+		}
+
+		return Optional.of(contractClass != null ? contractClass : jar.classLoader.getContract());
 	}
 
 	/**

@@ -42,6 +42,14 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	boolean isRedGreenContract(String className);
 
 	/**
+	 * Checks if a class is actually an interface.
+	 * 
+	 * @param className the name of the class
+	 * @return true if and only if that condition holds
+	 */
+	boolean isInterface(String className);
+
+	/**
 	 * Determines if a field of a storage class, having the given field, is lazily loaded.
 	 * 
 	 * @param type the type

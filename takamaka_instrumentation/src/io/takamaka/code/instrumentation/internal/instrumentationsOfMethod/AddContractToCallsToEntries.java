@@ -107,8 +107,8 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			// we do not consider calls added by instrumentation
 			if (receiver instanceof ObjectType && !receiver.equals(RUNTIME_OT))
-				return verifiedClass.getJar().getAnnotations().isEntryPossiblyAlreadyInstrumented(((ObjectType) receiver).getClassName(),
-					invoke.getMethodName(cpg), invoke.getSignature(cpg));
+				return verifiedClass.getJar().getAnnotations().isEntry(((ObjectType) receiver).getClassName(),
+					invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 
 		return false;

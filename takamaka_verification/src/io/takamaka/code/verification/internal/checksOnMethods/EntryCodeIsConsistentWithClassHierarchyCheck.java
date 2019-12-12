@@ -22,7 +22,7 @@ public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassI
 		verification.super();
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
-			Optional<Class<?>> contractTypeForEntry = annotations.isEntry(className, methodName, methodArgs, methodReturnType);
+			Optional<Class<?>> contractTypeForEntry = annotations.getEntryArgument(className, methodName, methodArgs, methodReturnType);
 	
 			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 				isIdenticallyEntryInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry);
@@ -35,7 +35,7 @@ public class EntryCodeIsConsistentWithClassHierarchyCheck extends VerifiedClassI
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
 						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
-				.anyMatch(m -> !compatibleEntries(contractTypeForEntry, annotations.isEntry(clazz.getName(), methodName, methodArgs, methodReturnType))))
+				.anyMatch(m -> !compatibleEntries(contractTypeForEntry, annotations.getEntryArgument(clazz.getName(), methodName, methodArgs, methodReturnType))))
 			issue(new InconsistentEntryError(inferSourceFile(), methodName, clazz.getName()));
 
 		Class<?> superclass = clazz.getSuperclass();

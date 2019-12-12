@@ -12,7 +12,7 @@ public class PayableCodeIsEntryCheck extends VerifiedClassImpl.Builder.MethodVer
 		verification.super();
 
 		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType)
-				&& !annotations.isEntry(className, methodName, methodArgs, methodReturnType).isPresent())
+				&& !annotations.isEntry(className, methodName, methodArgs, methodReturnType))
 			issue(new PayableWithoutEntryError(inferSourceFile(), methodName));
 	}
 }

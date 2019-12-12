@@ -51,7 +51,7 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			String name = method.getName();
 			Type[] args = method.getArgumentTypes();
 			Type returnType = method.getReturnType();
-			Optional<Class<?>> callerContract = annotations.isEntry(className, name, args, returnType);
+			Optional<Class<?>> callerContract = annotations.getEntryArgument(className, name, args, returnType);
 			if (callerContract.isPresent()) {
 				boolean isPayable = annotations.isPayable(className, name, args, returnType);
 				boolean isRedPayable = annotations.isRedPayable(className, name, args, returnType);

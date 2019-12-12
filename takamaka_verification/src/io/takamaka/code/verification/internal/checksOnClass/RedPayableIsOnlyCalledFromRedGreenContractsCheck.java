@@ -15,7 +15,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
-import io.takamaka.code.verification.issues.IllegalCallToEntryError;
+import io.takamaka.code.verification.issues.IllegalCallToRedPayableError;
 
 /**
  * A check that {@code @@RedPayable} methods or constructors are called only from red/green contracts.
@@ -25,34 +25,33 @@ public class RedPayableIsOnlyCalledFromRedGreenContractsCheck extends VerifiedCl
 	public RedPayableIsOnlyCalledFromRedGreenContractsCheck(VerifiedClassImpl.Builder verification) {
 		verification.super();
 
-
-		if (!classLoader.isContract(className))
+		if (!classLoader.isRedGreenContract(className))
 			getMethods()
-			.forEachOrdered(method ->
-				instructionsOf(method)
-					.filter(this::callsEntry)
-					.map(ih -> new IllegalCallToEntryError(inferSourceFile(), method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
-					.forEachOrdered(this::issue)
-			);
+				.forEachOrdered(method ->
+					instructionsOf(method)
+						.filter(this::callsRedPayable)
+						.map(ih -> new IllegalCallToRedPayableError(inferSourceFile(), method.getName(), nameOfEntryCalledDirectly(ih), lineOf(method, ih)))
+						.forEachOrdered(this::issue)
+				);
 	}
 
 	/**
-	 * Determines if the given instruction calls an {@code @@Entry}.
+	 * Determines if the given instruction calls a {@code @@RedPayable} method or constructor.
 	 * 
 	 * @param ih the instruction
 	 * @return true if and only if that condition holds
 	 */
-	private boolean callsEntry(InstructionHandle ih) {
+	private boolean callsRedPayable(InstructionHandle ih) {
 		Instruction instruction = ih.getInstruction();
 		
 		if (instruction instanceof INVOKEDYNAMIC)
-			return bootstraps.lambdaIsEntry(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
+			return bootstraps.lambdaIsRedPayable(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
 		else if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC)) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);
 			return receiver instanceof ObjectType
-				&& annotations.isEntryPossiblyAlreadyInstrumented
-					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getSignature(cpg));
+				&& annotations.isRedPayable
+					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		}
 		else
 			return false;

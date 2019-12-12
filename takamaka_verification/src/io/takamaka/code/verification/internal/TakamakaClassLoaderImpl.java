@@ -97,6 +97,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
+	public final boolean isInterface(String className) {
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> loadClass(className).isInterface());
+	}
+
+	@Override
 	public final boolean isLazilyLoaded(Class<?> type) {
 		return !type.isPrimitive() && type != String.class && type != BigInteger.class && !type.isEnum();
 	}

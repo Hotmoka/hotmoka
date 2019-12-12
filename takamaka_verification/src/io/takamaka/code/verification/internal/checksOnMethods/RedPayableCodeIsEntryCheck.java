@@ -12,7 +12,7 @@ public class RedPayableCodeIsEntryCheck extends VerifiedClassImpl.Builder.Method
 		verification.super();
 
 		if (annotations.isRedPayable(className, methodName, methodArgs, methodReturnType)
-				&& !annotations.isEntry(className, methodName, methodArgs, methodReturnType).isPresent())
+				&& !annotations.isEntry(className, methodName, methodArgs, methodReturnType))
 			issue(new RedPayableWithoutEntryError(inferSourceFile(), methodName));
 	}
 }

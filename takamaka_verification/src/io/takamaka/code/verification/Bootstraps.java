@@ -22,6 +22,14 @@ public interface Bootstraps {
 	boolean lambdaIsEntry(BootstrapMethod bootstrap);
 
 	/**
+	 * Determines if the given bootstrap method is a method reference to a red payable method or constructor.
+	 * 
+	 * @param bootstrap the bootstrap method
+	 * @return true if and only if that condition holds
+	 */
+	boolean lambdaIsRedPayable(BootstrapMethod bootstrap);
+
+	/**
 	 * Yields the bootstrap methods in this class.
 	 * 
 	 * @return the bootstrap methods

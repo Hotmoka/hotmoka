@@ -1252,6 +1252,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		@Override
+		public boolean isInterface(String className) {
+			return parent.isInterface(className);
+		}
+
+		@Override
 		public boolean isLazilyLoaded(Class<?> type) {
 			return parent.isLazilyLoaded(type);
 		}
