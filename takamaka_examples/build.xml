@@ -41,12 +41,19 @@
   	<jar jarfile="${dist}/lambdas.jar" basedir="${build}" includes="io/takamaka/tests/lambdas/**"/>
   	<jar jarfile="${dist}/tictactoe.jar" basedir="${build}" includes="io/takamaka/tests/tictactoe/**"/>
   	<jar jarfile="${dist}/illegalpackagename1.jar" basedir="${build}" includes="io/takamaka/code/illegalpackagename1/**"/>
+  	<jar jarfile="${dist}/payablewithredpayable.jar" basedir="${build}" includes="io/takamaka/tests/errors/payablewithredpayable/**"/>
   	<jar jarfile="${dist}/payablewithoutentry1.jar" basedir="${build}" includes="io/takamaka/tests/errors/payablewithoutentry1/**"/>
   	<jar jarfile="${dist}/payablewithoutentry2.jar" basedir="${build}" includes="io/takamaka/tests/errors/payablewithoutentry2/**"/>
+  	<jar jarfile="${dist}/redpayablewithoutentry1.jar" basedir="${build}" includes="io/takamaka/tests/errors/redpayablewithoutentry1/**"/>
+  	<jar jarfile="${dist}/redpayablewithoutentry2.jar" basedir="${build}" includes="io/takamaka/tests/errors/redpayablewithoutentry2/**"/>
 	<jar jarfile="${dist}/payablewithoutamount1.jar" basedir="${build}" includes="io/takamaka/tests/errors/payablewithoutamount1/**"/>
   	<jar jarfile="${dist}/payablewithoutamount2.jar" basedir="${build}" includes="io/takamaka/tests/errors/payablewithoutamount2/**"/>
+  	<jar jarfile="${dist}/redpayablewithoutamount1.jar" basedir="${build}" includes="io/takamaka/tests/errors/redpayablewithoutamount1/**"/>
+	<jar jarfile="${dist}/redpayablewithoutamount2.jar" basedir="${build}" includes="io/takamaka/tests/errors/redpayablewithoutamount2/**"/>
   	<jar jarfile="${dist}/inconsistentpayable1.jar" basedir="${build}" includes="io/takamaka/tests/errors/inconsistentpayable1/**"/>
 	<jar jarfile="${dist}/inconsistentpayable2.jar" basedir="${build}" includes="io/takamaka/tests/errors/inconsistentpayable2/**"/>
+  	<jar jarfile="${dist}/inconsistentredpayable1.jar" basedir="${build}" includes="io/takamaka/tests/errors/inconsistentredpayable1/**"/>
+  	<jar jarfile="${dist}/inconsistentredpayable2.jar" basedir="${build}" includes="io/takamaka/tests/errors/inconsistentredpayable2/**"/>
 	<jar jarfile="${dist}/inconsistentthrowsexceptions1.jar" basedir="${build}" includes="io/takamaka/tests/errors/inconsistentthrowsexceptions1/**"/>
 	<jar jarfile="${dist}/inconsistentthrowsexceptions2.jar" basedir="${build}" includes="io/takamaka/tests/errors/inconsistentthrowsexceptions2/**"/>
   	<jar jarfile="${dist}/throwsexceptionsonnonpublic1.jar" basedir="${build}" includes="io/takamaka/tests/errors/throwsexceptionsonnonpublic1/**"/>

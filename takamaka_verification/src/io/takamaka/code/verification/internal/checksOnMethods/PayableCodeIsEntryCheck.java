@@ -4,7 +4,7 @@ import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.PayableWithoutEntryError;
 
 /**
- * A check that {@code @@Entry} is applied only to instance methods or constructors of contracts.
+ * A check that {@code @@Payable} is applied only to entries.
  */
 public class PayableCodeIsEntryCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 

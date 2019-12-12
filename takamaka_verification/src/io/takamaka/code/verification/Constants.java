@@ -46,6 +46,11 @@ public interface Constants {
 	public final static String PAYABLE_NAME = "io.takamaka.code.lang.Payable";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.RedPayable}.
+	 */
+	public final static String RED_PAYABLE_NAME = "io.takamaka.code.lang.RedPayable";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Entry}.
 	 */
 	public final static String ENTRY_NAME = "io.takamaka.code.lang.Entry";

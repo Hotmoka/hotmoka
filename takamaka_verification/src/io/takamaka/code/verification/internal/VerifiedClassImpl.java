@@ -54,7 +54,11 @@ import io.takamaka.code.verification.internal.checksOnMethods.IsNotStaticInitial
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotSynchronizedCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsEntryCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeIsNotRedPayableCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.PayableCodeReceivesAmountCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsConsistentWithClassHierarchyCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeIsEntryCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.RedPayableCodeReceivesAmountCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsCodeIsPublicCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
@@ -415,11 +419,15 @@ public class VerifiedClassImpl implements VerifiedClass {
 				this.method = method;
 			
 				new PayableCodeReceivesAmountCheck(this);
+				new RedPayableCodeReceivesAmountCheck(this);
 				new ThrowsExceptionsCodeIsPublicCheck(this);
 				new PayableCodeIsEntryCheck(this);
+				new RedPayableCodeIsEntryCheck(this);
 				new EntryCodeIsInstanceAndInContractsCheck(this);
 				new EntryCodeIsConsistentWithClassHierarchyCheck(this);
 				new PayableCodeIsConsistentWithClassHierarchyCheck(this);
+				new RedPayableCodeIsConsistentWithClassHierarchyCheck(this);
+				new PayableCodeIsNotRedPayableCheck(this);
 				new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(this);
 				new IsNotStaticInitializerCheck(this);
 				new IsNotNativeCheck(this);
