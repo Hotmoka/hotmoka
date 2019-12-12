@@ -30,6 +30,7 @@ import org.apache.bcel.generic.Type;
 import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.internal.HeightAtBytecode;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
+import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.Dummy;
 
 /**
@@ -45,11 +46,18 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	public SetCallerAndBalanceAtTheBeginningOfEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 
-		Optional<Class<?>> callerContract;
-		if (isContract && (callerContract = verifiedClass.getJar().getAnnotations().isEntry(className, method.getName(),
-				method.getArgumentTypes(), method.getReturnType())).isPresent())
-			instrumentEntry(method, callerContract.get(), verifiedClass.getJar().getAnnotations().isPayable(className, method.getName(),
-				method.getArgumentTypes(), method.getReturnType()));
+		if (isContract) {
+			Annotations annotations = verifiedClass.getJar().getAnnotations();
+			String name = method.getName();
+			Type[] args = method.getArgumentTypes();
+			Type returnType = method.getReturnType();
+			Optional<Class<?>> callerContract = annotations.isEntry(className, name, args, returnType);
+			if (callerContract.isPresent()) {
+				boolean isPayable = annotations.isPayable(className, name, args, returnType);
+				boolean isRedPayable = annotations.isRedPayable(className, name, args, returnType);
+				instrumentEntry(method, callerContract.get(), isPayable, isRedPayable);
+			}
+		}
 	}
 
 	/**
@@ -58,14 +66,15 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	 * @param method the entry
 	 * @param callerContract the class of the caller contract
 	 * @param isPayable true if and only if the entry is payable
+	 * @param isRedPayable true if and only if the entry is red payable
 	 */
-	private void instrumentEntry(MethodGen method, Class<?> callerContract, boolean isPayable) {
+	private void instrumentEntry(MethodGen method, Class<?> callerContract, boolean isPayable, boolean isRedPayable) {
 		// slotForCaller is the local variable used for the extra "caller" parameter;
 		// there is no need to shift the local variables one slot up, since the use
 		// of caller is limited to the prolog of the synthetic code
 		int slotForCaller = addExtraParameters(method);
 		if (!method.isAbstract())
-			setCallerAndBalance(method, callerContract, slotForCaller, isPayable);
+			setCallerAndBalance(method, callerContract, slotForCaller, isPayable, isRedPayable);
 	}
 
 	/**
@@ -75,8 +84,9 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 	 * @param callerContract the class of the caller contract
 	 * @param slotForCaller the local variable for the caller implicit argument
 	 * @param isPayable true if and only if the entry is payable
+	 * @param isRedPayable true if and only if the entry is red payable
 	 */
-	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable) {
+	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable, boolean isRedPayable) {
 		InstructionList il = method.getInstructionList();
 
 		// the call to the method that sets caller and balance cannot be put at the
@@ -89,12 +99,14 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 		il.insert(start, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));
 		if (callerContract != classLoader.getContract())
 			il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
-		if (isPayable) {
+		if (isPayable || isRedPayable) {
 			// a payable entry method can have a first argument of type int/long/BigInteger
 			Type amountType = method.getArgumentType(0);
 			il.insert(start, InstructionFactory.createLoad(amountType, 1));
 			Type[] paybleEntryArgs = new Type[] { OBJECT_OT, OBJECT_OT, amountType };
-			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME, Constants.PAYABLE_ENTRY, Type.VOID, paybleEntryArgs, Const.INVOKESTATIC));
+			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME,
+				isPayable ? Constants.PAYABLE_ENTRY : Constants.RED_PAYABLE_ENTRY,
+				Type.VOID, paybleEntryArgs, Const.INVOKESTATIC));
 		}
 		else
 			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME, Constants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESTATIC));

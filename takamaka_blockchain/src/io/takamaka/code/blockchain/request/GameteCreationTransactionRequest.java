@@ -8,7 +8,7 @@ import io.takamaka.code.blockchain.UpdateOfBalance;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
- * A request for creating the initial gamete.
+ * A request for creating an initial gamete.
  */
 @Immutable
 public class GameteCreationTransactionRequest implements TransactionRequest {

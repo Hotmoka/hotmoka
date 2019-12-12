@@ -27,6 +27,7 @@
   <target name="dist" depends="compile" description="generate the distribution">
     <mkdir dir="${dist}"/>
   	<jar jarfile="${dist}/abstractfail.jar" basedir="${build}" includes="io/takamaka/tests/abstractfail/**"/>
+  	<jar jarfile="${dist}/redgreendistributor.jar" basedir="${build}" includes="io/takamaka/tests/redgreendistributor/**"/>
   	<jar jarfile="${dist}/allocations.jar" basedir="${build}" includes="io/takamaka/tests/allocations/**"/>
   	<jar jarfile="${dist}/basic.jar" basedir="${build}" includes="io/takamaka/tests/basic/**"/>
     <jar jarfile="${dist}/basicdependency.jar" basedir="${build}" includes="io/takamaka/tests/basicdependency/**"/>
@@ -92,6 +93,7 @@
   	<jar jarfile="${dist}/illegalexceptionhandler5.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalexceptionhandler5/**"/>
   	<jar jarfile="${dist}/illegalexceptionhandler6.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalexceptionhandler6/**"/>
   	<jar jarfile="${dist}/illegalaccesstononwhitelistedfield1.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalaccesstononwhitelistedfield1/**"/>
+  	<jar jarfile="${dist}/illegalcalltoredpayable1.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalcalltoredpayable1/**"/>
   	<jar jarfile="${dist}/illegalcalltononwhitelistedconstructor1.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalcalltononwhitelistedconstructor1/**"/>
   	<jar jarfile="${dist}/illegalcalltononwhitelistedconstructor2.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalcalltononwhitelistedconstructor2/**"/>
   	<jar jarfile="${dist}/illegalcalltononwhitelistedmethod1.jar" basedir="${build}" includes="io/takamaka/tests/errors/illegalcalltononwhitelistedmethod1/**"/>

@@ -5,6 +5,7 @@ import io.takamaka.code.blockchain.request.GameteCreationTransactionRequest;
 import io.takamaka.code.blockchain.request.InstanceMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreInitialTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
+import io.takamaka.code.blockchain.request.RedGreenGameteCreationTransactionRequest;
 import io.takamaka.code.blockchain.request.StaticMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.response.ConstructorCallTransactionResponse;
 import io.takamaka.code.blockchain.response.GameteCreationTransactionResponse;
@@ -45,6 +46,20 @@ public interface Blockchain {
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
 	public abstract GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference current) throws TransactionException;
+
+	/**
+	 * Runs a transaction that creates a red/green gamete, that is, a red/green externally owned contract with the given initial amount of coins.
+	 * This transaction can only occur during initialization of the blockchain. It has
+	 * no caller and requires no gas. This method runs the transaction
+	 * specified by the request, after the given transaction reference, and yields the corresponding response.
+	 * The blockchain does not get modified.
+	 * 
+	 * @param request the transaction request
+	 * @param current the reference to the transaction where this must be executed
+	 * @return the response resulting from the execution of the request
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	public abstract GameteCreationTransactionResponse runRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request, TransactionReference current) throws TransactionException;
 
 	/**
 	 * Runs a transaction that installs a jar in this blockchain. The goal is to install, in blockchain, a jar, with its dependencies.

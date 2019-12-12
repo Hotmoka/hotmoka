@@ -38,6 +38,7 @@ import io.takamaka.code.blockchain.request.GameteCreationTransactionRequest;
 import io.takamaka.code.blockchain.request.InstanceMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreInitialTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
+import io.takamaka.code.blockchain.request.RedGreenGameteCreationTransactionRequest;
 import io.takamaka.code.blockchain.request.StaticMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.request.TransactionRequest;
 import io.takamaka.code.blockchain.response.ConstructorCallTransactionExceptionResponse;
@@ -515,6 +516,33 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	@Override
+	public final GameteCreationTransactionResponse runRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			// we do not count gas for this creation
+			initTransaction(BigInteger.valueOf(-1L), current);
+
+			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
+				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
+
+			try (TakamakaClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
+				// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
+				Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+				// we set the balance field of the gamete
+				Field balanceField = classLoader.getContract().getDeclaredField("balance");
+				balanceField.setAccessible(true); // since the field is private
+				balanceField.set(gamete, request.initialAmount);
+
+				// we set the red balance field of the gamete
+				Field redBalanceField = classLoader.getRedGreenContract().getDeclaredField("balanceRed");
+				redBalanceField.setAccessible(true); // since the field is private
+				redBalanceField.set(gamete, request.redInitialAmount);
+	
+				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), getStorageReferenceOf(gamete));
+			}
+		});
+	}
+
+	@Override
 	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
@@ -877,6 +905,33 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	/**
+	 * Yields method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, int)}.
+	 * 
+	 * @return the method
+	 */
+	public final Method getRedPayableInt() {
+		return classLoader.redPayableInt;
+	}
+
+	/**
+	 * Yields method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, long)}.
+	 * 
+	 * @return the method
+	 */
+	public final Method getRedPayableLong() {
+		return classLoader.redPayableLong;
+	}
+
+	/**
+	 * Yields method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, java.math.BigInteger)}.
+	 * 
+	 * @return the method
+	 */
+	public final Method getRedPayableBigInteger() {
+		return classLoader.redPayableBigInteger;
+	}
+
+	/**
 	 * Yields field {@link io.takamaka.code.lang.Storage#storageReference)}.
 	 * 
 	 * @return the field
@@ -974,6 +1029,21 @@ public abstract class AbstractBlockchain implements Blockchain {
 		private final Method payableEntryBigInteger;
 
 		/**
+		 * Method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, int)}.
+		 */
+		private final Method redPayableInt;
+
+		/**
+		 * Method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, long)}.
+		 */
+		private final Method redPayableLong;
+
+		/**
+		 * Method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, BigInteger)}.
+		 */
+		private final Method redPayableBigInteger;
+
+		/**
 		 * The field {@link io.takamaka.code.lang.Storage#storageReference}.
 		 */
 		private final Field storageReference;
@@ -1009,6 +1079,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.payableEntryLong.setAccessible(true); // it was private
 			this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
 			this.payableEntryBigInteger.setAccessible(true); // it was private
+			this.redPayableInt = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), int.class);
+			this.redPayableInt.setAccessible(true); // it was private
+			this.redPayableLong = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), long.class);
+			this.redPayableLong.setAccessible(true); // it was private
+			this.redPayableBigInteger = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), BigInteger.class);
+			this.redPayableBigInteger.setAccessible(true); // it was private
 			this.storageReference = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
 			this.inStorage = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
@@ -1042,6 +1118,12 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.payableEntryLong.setAccessible(true); // it was private
 			this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
 			this.payableEntryBigInteger.setAccessible(true); // it was private
+			this.redPayableInt = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), int.class);
+			this.redPayableInt.setAccessible(true); // it was private
+			this.redPayableLong = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), long.class);
+			this.redPayableLong.setAccessible(true); // it was private
+			this.redPayableBigInteger = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), BigInteger.class);
+			this.redPayableBigInteger.setAccessible(true); // it was private
 			this.storageReference = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
 			this.inStorage = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
@@ -1165,6 +1247,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		@Override
+		public boolean isRedGreenContract(String className) {
+			return parent.isRedGreenContract(className);
+		}
+
+		@Override
 		public boolean isLazilyLoaded(Class<?> type) {
 			return parent.isLazilyLoaded(type);
 		}
@@ -1180,6 +1267,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		@Override
+		public Class<?> getRedGreenContract() {
+			return parent.getRedGreenContract();
+		}
+
+		@Override
 		public Class<?> getStorage() {
 			return parent.getStorage();
 		}
@@ -1187,6 +1279,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 		@Override
 		public Class<?> getExternallyOwnedAccount() {
 			return parent.getExternallyOwnedAccount();
+		}
+
+		@Override
+		public Class<?> getRedGreenExternallyOwnedAccount() {
+			return parent.getRedGreenExternallyOwnedAccount();
 		}
 	}
 
@@ -1325,12 +1422,24 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * 
 	 * @param object the object to check
 	 * @throws IllegalTransactionRequestException if the object is not an externally owned account
-	 * @throws ClassNotFoundException if the {@link io.takamaka.code.lang.ExternallyOwnedAccount} class cannot be found
-	 *                                in the class path of the transaction
 	 */
 	private void checkIsExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
-		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(object.getClass()))
+		Class<? extends Object> clazz = object.getClass();
+		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
+				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalTransactionRequestException("Only an externally owned contract can start a transaction");
+	}
+
+	/**
+	 * Checks if the given object is a red/green externally owned account or subclass.
+	 * 
+	 * @param object the object to check
+	 * @throws IllegalTransactionRequestException if the object is not a red/green externally owned account
+	 */
+	private void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
+		Class<? extends Object> clazz = object.getClass();
+		if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}
 
 	/**
@@ -1385,7 +1494,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		/**
 		 * The deserialized caller.
 		 */
-		private final Object deserializedCaller;
+		protected final Object deserializedCaller;
 
 		/**
 		 * The method or constructor that is being called.
@@ -1709,6 +1818,8 @@ public abstract class AbstractBlockchain implements Blockchain {
 				}
 
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
+				if (hasAnnotation(constructorJVM, io.takamaka.code.verification.Constants.RED_PAYABLE_NAME))
+					checkIsRedGreenExternallyOwned(deserializedCaller);
 
 				try {
 					result = constructorJVM.newInstance(deserializedActuals);
@@ -1770,7 +1881,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
-				isViewMethod = hasAnnotation(methodJVM, ClassType.VIEW.name);
+				isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+				if (hasAnnotation(methodJVM, io.takamaka.code.verification.Constants.RED_PAYABLE_NAME))
+					checkIsRedGreenExternallyOwned(deserializedCaller);
 
 				try {
 					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);

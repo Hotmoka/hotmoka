@@ -119,6 +119,42 @@ public abstract class Runtime {
 	}
 
 	/**
+	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 */
+	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
+		// we call the private methods of contract
+		try {
+			blockchain.getEntry().invoke(callee, caller);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.entry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.entry() itself: we forward it
+			throw e.getCause();
+		}
+
+		try {
+			blockchain.getRedPayableBigInteger().invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside RedGreenContract.redPayableEntry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
 	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
 	 * 
@@ -142,6 +178,42 @@ public abstract class Runtime {
 	}
 
 	/**
+	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 */
+	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
+		// we call the private methods of contract
+		try {
+			blockchain.getEntry().invoke(callee, caller);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.entry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.entry() itself: we forward it
+			throw e.getCause();
+		}
+
+		try {
+			blockchain.getRedPayableInt().invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside RedGreenContract.redPayableEntry(): we forward it
+			throw e.getCause();
+		}
+	}
+
+	/**
 	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
 	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
 	 * 
@@ -160,6 +232,42 @@ public abstract class Runtime {
 		}
 		catch (InvocationTargetException e) {
 			// an exception inside Contract.payableEntry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	/**
+	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 */
+	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
+		// we call the private methods of contract
+		try {
+			blockchain.getEntry().invoke(callee, caller);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.entry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.entry() itself: we forward it
+			throw e.getCause();
+		}
+	
+		try {
+			blockchain.getRedPayableLong().invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside RedGreenContract.redPayableEntry() itself: we forward it
 			throw e.getCause();
 		}
 	}

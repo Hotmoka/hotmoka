@@ -111,6 +111,12 @@ public interface Constants {
 
 	/**
 	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
+	 * that sets the caller and transfers money at the beginning of a red payable entry.
+	 */
+	public final static String RED_PAYABLE_ENTRY = "redPayableEntry";
+
+	/**
+	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
 	 * that sets the caller at the beginning of an entry.
 	 */
 	public final static String ENTRY = "entry";

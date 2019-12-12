@@ -70,13 +70,13 @@ public abstract class RedGreenContract extends Contract {
 	 * @param caller the caller of the entry
 	 * @param amount the amount of red coins
 	 */
-	private void redPayableEntry(RedGreenContract caller, BigInteger amount) {
+	private void redPayable(RedGreenContract caller, BigInteger amount) {
 		caller.payRed(this, amount);
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It sets the caller of the entry and transfers the amount of red coins to the entry.
+	 * It transfers the amount of red coins to the entry.
 	 * It is private, so that programmers cannot call
 	 * it directly. Instead, instrumented code will call it by reflection.
 	 *
@@ -84,13 +84,13 @@ public abstract class RedGreenContract extends Contract {
 	 * @param amount the amount of red coins
 	 */
 	@SuppressWarnings("unused")
-	private void redPayableEntry(RedGreenContract caller, int amount) {
-		redPayableEntry(caller, BigInteger.valueOf(amount));
+	private void redPayable(RedGreenContract caller, int amount) {
+		redPayable(caller, BigInteger.valueOf(amount));
 	}
 
 	/**
 	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
-	 * It sets the caller of the entry and transfers the amount of red coins to the entry.
+	 * It transfers the amount of red coins to the entry.
 	 * It is private, so that programmers cannot call
 	 * it directly. Instead, instrumented code will call it by reflection.
 	 * 
@@ -98,7 +98,7 @@ public abstract class RedGreenContract extends Contract {
 	 * @param amount the amount of red coins
 	 */
 	@SuppressWarnings("unused")
-	private void redPayableEntry(RedGreenContract caller, long amount) {
-		redPayableEntry(caller, BigInteger.valueOf(amount));
+	private void redPayable(RedGreenContract caller, long amount) {
+		redPayable(caller, BigInteger.valueOf(amount));
 	}
 }

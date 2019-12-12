@@ -38,9 +38,19 @@ public final class ClassType implements StorageType {
 	public final static ClassType EOA = new ClassType(Constants.EOA_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount}.
+	 */
+	public final static ClassType RGEOA = new ClassType(Constants.RGEOA_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.TestExternallyOwnedAccount}.
 	 */
 	public final static ClassType TEOA = new ClassType(Constants.TEOA_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}.
+	 */
+	public final static ClassType TRGEOA = new ClassType(Constants.TRGEOA_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
@@ -66,6 +76,11 @@ public final class ClassType implements StorageType {
 	 * The frequently used class type for {@link io.takamaka.code.lang.PayableContract}.
 	 */
 	public final static ClassType PAYABLE_CONTRACT = new ClassType(Constants.PAYABLE_CONTRACT_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenPayableContract}.
+	 */
+	public final static ClassType RGPAYABLE_CONTRACT = new ClassType(Constants.RGPAYABLE_CONTRACT_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Entry}.

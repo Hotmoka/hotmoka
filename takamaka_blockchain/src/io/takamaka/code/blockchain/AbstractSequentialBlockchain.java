@@ -16,6 +16,7 @@ import io.takamaka.code.blockchain.request.GameteCreationTransactionRequest;
 import io.takamaka.code.blockchain.request.InstanceMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreInitialTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
+import io.takamaka.code.blockchain.request.RedGreenGameteCreationTransactionRequest;
 import io.takamaka.code.blockchain.request.StaticMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.request.TransactionRequest;
 import io.takamaka.code.blockchain.response.ConstructorCallTransactionExceptionResponse;
@@ -156,6 +157,25 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 		return wrapInCaseOfException(() -> {
 			requireBlockchainNotYetInitialized();
 			GameteCreationTransactionResponse response = runGameteCreationTransaction(request, getNextTransaction());
+			expandBlockchainWith(request, response);
+			return response.gamete;
+		});
+	}
+
+	/**
+	 * Expands this blockchain with a transaction that creates a red/green gamete, that is,
+	 * a red/green externally owned contract with the given initial amount of coins.
+	 * This transaction can only occur during initialization of the blockchain. It has
+	 * no caller and requires no gas.
+	 * 
+	 * @param request the transaction request
+	 * @return the reference to the freshly created gamete
+	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the blockchain is not expanded
+	 */
+	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			requireBlockchainNotYetInitialized();
+			GameteCreationTransactionResponse response = runRedGreenGameteCreationTransaction(request, getNextTransaction());
 			expandBlockchainWith(request, response);
 			return response.gamete;
 		});

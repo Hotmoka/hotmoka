@@ -34,6 +34,14 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	boolean isContract(String className);
 
 	/**
+	 * Checks if a class is an instance of the red/green contract class.
+	 * 
+	 * @param className the name of the class
+	 * @return true if and only if that condition holds
+	 */
+	boolean isRedGreenContract(String className);
+
+	/**
 	 * Determines if a field of a storage class, having the given field, is lazily loaded.
 	 * 
 	 * @param type the type
@@ -57,6 +65,13 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	Class<?> getContract();
 
 	/**
+	 * Yields the class token of the red/green contract class.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getRedGreenContract();
+
+	/**
 	 * Yields the class token of the storage class.
 	 * 
 	 * @return the class token
@@ -69,4 +84,11 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	 * @return the class token
 	 */
 	Class<?> getExternallyOwnedAccount();
+
+	/**
+	 * Yields the class token of the red/green externally owned account class.
+	 * 
+	 * @return the class token
+	 */
+	Class<?> getRedGreenExternallyOwnedAccount();
 }

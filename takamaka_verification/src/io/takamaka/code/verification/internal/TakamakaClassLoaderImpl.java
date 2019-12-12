@@ -37,9 +37,19 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> contract;
 
 	/**
+	 * The class token of the red/green contract class.
+	 */
+	public final Class<?> redGreenContract;
+
+	/**
 	 * The class token of the externally owned account class.
 	 */
 	public final Class<?> externallyOwnedAccount;
+
+	/**
+	 * The class token of the red/green externally owned account class.
+	 */
+	public final Class<?> redGreenExternallyOwnedAccount;
 
 	/**
 	 * The class token of the storage class.
@@ -61,7 +71,9 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 
 		try {
 			this.contract = loadClass(Constants.CONTRACT_NAME);
+			this.redGreenContract = loadClass(Constants.RGCONTRACT_NAME);
 			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
+			this.redGreenExternallyOwnedAccount = loadClass(Constants.RGEOA_NAME);
 			this.storage = loadClass(Constants.STORAGE_NAME);
 		}
 		catch (ClassNotFoundException e) {
@@ -80,6 +92,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
+	public final boolean isRedGreenContract(String className) {
+		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> redGreenContract.isAssignableFrom(loadClass(className)));
+	}
+
+	@Override
 	public final boolean isLazilyLoaded(Class<?> type) {
 		return !type.isPrimitive() && type != String.class && type != BigInteger.class && !type.isEnum();
 	}
@@ -95,6 +112,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
+	public final Class<?> getRedGreenContract() {
+		return redGreenContract;
+	}
+
+	@Override
 	public final Class<?> getStorage() {
 		return storage;
 	}
@@ -102,6 +124,11 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public final Class<?> getExternallyOwnedAccount() {
 		return externallyOwnedAccount;
+	}
+
+	@Override
+	public Class<?> getRedGreenExternallyOwnedAccount() {
+		return redGreenExternallyOwnedAccount;
 	}
 
 	@Override

@@ -49,7 +49,7 @@ public class GameteCreationTransactionResponse implements TransactionResponse, T
        		+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
 	}
 
-	//TODO @Override
+	@Override
 	public BigInteger size() {
 		// this response is for a free transaction, at initialization of the blockchain
 		return BigInteger.ZERO;
