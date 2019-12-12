@@ -7,7 +7,7 @@ import java.math.BigInteger;
  * its {@link io.takamaka.code.lang.PayableContract#receive(int)} method.
  * If this class is subclassed, the resulting contract has a balance
  * that is not determined by its payable methods only, but also by the
- * funds received through {@link io.takamaka.code.lang.PayableContract#receive(int)}.
+ * funds received through such receiving methods.
  */
 public abstract class PayableContract extends Contract {
 
