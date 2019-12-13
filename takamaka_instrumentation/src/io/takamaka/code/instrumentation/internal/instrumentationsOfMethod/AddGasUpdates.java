@@ -15,6 +15,7 @@ import org.apache.bcel.generic.ANEWARRAY;
 import org.apache.bcel.generic.AllocationInstruction;
 import org.apache.bcel.generic.ArithmeticInstruction;
 import org.apache.bcel.generic.ArrayInstruction;
+import org.apache.bcel.generic.ArrayType;
 import org.apache.bcel.generic.BranchInstruction;
 import org.apache.bcel.generic.CodeExceptionGen;
 import org.apache.bcel.generic.ExceptionThrower;
@@ -37,8 +38,8 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
 /**
@@ -113,17 +114,52 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 		else if (bytecode instanceof NEW) {
 			NEW _new = (NEW) bytecode;
 			ObjectType createdClass = _new.getLoadClassType(cpg);
-			long size = numberOfInstanceFieldsOf(createdClass) * gasCostModel.ramCostOfField();
+			long size = gasCostModel.ramCostOfObject() + numberOfInstanceFieldsOf(createdClass) * (long) gasCostModel.ramCostOfField();
 			InstructionHandle newTarget = il.insert(ih, createConstantPusher(size));
 			il.insert(ih, chargeCall(size, "chargeForRAM"));
 			il.redirectBranches(ih, newTarget);
 			il.redirectExceptionHandlers(ceg, ih, newTarget);
 		}
 		else if (bytecode instanceof NEWARRAY || bytecode instanceof ANEWARRAY) {
-			InstructionHandle newTarget = il.insert(ih, InstructionConst.DUP);
-			il.insert(ih, factory.createInvoke(Constants.RUNTIME_NAME, "chargeForRAMForArrayOfLength", Type.VOID, ONE_INT_ARGS, Const.INVOKESTATIC));
-			il.redirectBranches(ih, newTarget);
-			il.redirectExceptionHandlers(ceg, ih, newTarget);
+			// the behavior of getType() is different between the two instructions;
+			// it yields the created array type for NEWARRAY, while it gets the type
+			// of the elements of the created array type for ANEWARRAY
+			Type createdType = bytecode instanceof NEWARRAY ?
+				((NEWARRAY) bytecode).getType() :
+				new ArrayType(((ANEWARRAY) bytecode).getType(cpg), 1);
+			String allocatorName = getNewNameForPrivateMethod(Constants.EXTRA_ALLOCATOR);
+			String bigInteger = BigInteger.class.getName();
+			InvokeInstruction valueOf = factory.createInvoke(bigInteger, "valueOf", BIGINTEGER_OT, ONE_LONG_ARGS, Const.INVOKESTATIC);
+			InvokeInstruction multiply = factory.createInvoke(bigInteger, "multiply", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
+			InvokeInstruction add = factory.createInvoke(bigInteger, "add", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
+
+			InstructionList allocatorIl = new InstructionList();
+			allocatorIl.append(InstructionConst.ILOAD_0);
+			allocatorIl.append(InstructionConst.I2L);
+			allocatorIl.append(valueOf);
+			allocatorIl.append(factory.createConstant((long) gasCostModel.ramCostOfArraySlot()));
+			allocatorIl.append(valueOf);
+			allocatorIl.append(multiply);
+			allocatorIl.append(factory.createConstant((long) gasCostModel.ramCostOfArray()));
+			allocatorIl.append(valueOf);
+			allocatorIl.append(add);
+			// we charge the gas
+			allocatorIl.append(factory.createInvoke(Constants.RUNTIME_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
+			// this is where to jump to create the array
+			InstructionHandle creation = allocatorIl.append(InstructionConst.ILOAD_0);
+			// the allocation is moved into the allocator method
+			allocatorIl.append(bytecode);
+			allocatorIl.append(InstructionConst.ARETURN);
+
+			// if the size of the array is negative, non gas is charged and the array creation bytecode will throw an exception
+			allocatorIl.insert(InstructionFactory.createBranchInstruction(Const.IFLT, creation));
+			allocatorIl.insert(InstructionConst.ILOAD_0);
+
+			MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, ONE_INT_ARGS, null, allocatorName, className, allocatorIl, cpg);
+			addMethod(allocator, true);
+
+			// the original multianewarray gets replaced with a call to the allocation method
+			ih.setInstruction(factory.createInvoke(className, allocatorName, createdType, ONE_INT_ARGS, Const.INVOKESTATIC));
 		}
 		else if (bytecode instanceof MULTIANEWARRAY) {
 			MULTIANEWARRAY multianewarray = (MULTIANEWARRAY) bytecode;

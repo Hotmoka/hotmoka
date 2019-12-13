@@ -17,6 +17,14 @@ public interface GasCostModel {
 	}
 
 	/**
+	 * Yields the RAM cost of an object, without considering its fields.
+	 * Hence, this is a constant, not depending on the size of the object.
+	 * 
+	 * @return the cost
+	 */
+	int ramCostOfObject();
+
+	/**
 	 * Yields the RAM cost of a single field of an object allocated in memory. This does not consider the
 	 * objects reachable from the field, if any.
 	 * 
@@ -33,13 +41,16 @@ public interface GasCostModel {
 
 	/**
 	 * Yields the RAM cost of an array, without considering its elements.
+	 * Hence, this is a constant, not depending on the length of the array.
 	 * 
 	 * @return the cost
 	 */
 	int ramCostOfArray();
 
 	/**
-	 * Yields the RAM cost of a single variable inside an activation record.
+	 * Yields the RAM cost of an activation record, without considering the
+	 * variables therein. Hence, this is a constant, not depending on
+	 * the number of local variables inside the activation record.
 	 * 
 	 * @return the cost
 	 */
@@ -89,6 +100,8 @@ public interface GasCostModel {
 
 	/**
 	 * Yields the CPU gas cost of the execution of a memory allocation instruction.
+	 * This is a constant, that does not consider the size of the allocated
+	 * object. That size is charged instead in terms of RAM allocation.
 	 * 
 	 * @return the cost
 	 */

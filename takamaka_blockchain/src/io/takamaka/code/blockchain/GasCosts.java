@@ -19,16 +19,6 @@ public class GasCosts {
 	public static final BigInteger STORAGE_COST_PER_SLOT = BigInteger.valueOf(10L);
 
 	/**
-	 * The RAM cost of a single element of an array.
-	 */
-	public static final int RAM_COST_PER_ARRAY_SLOT = 4;
-
-	/**
-	 * The RAM cost of an array, without considering its elements.
-	 */
-	public static final int RAM_COST_PER_ARRAY = 8;
-
-	/**
 	 * Provides the cost of a given amount of gas.
 	 * 
 	 * @param gas the amount of gas

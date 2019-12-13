@@ -96,7 +96,7 @@ public interface Constants {
 	 * The prefix of the name of extra methods used to simulate multidimensional
 	 * array creations and keep track of the gas consumed for RAM consumption.
 	 */
-	public final static String EXTRA_ALLOCATOR = FORBIDDEN_PREFIX + "multianewarray";
+	public final static String EXTRA_ALLOCATOR = FORBIDDEN_PREFIX + "newarray";
 
 	/**
 	 * The prefix of the name of extra methods used to check white-listing annotations at run time.

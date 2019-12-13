@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.FieldSignature;
-import io.takamaka.code.blockchain.GasCosts;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.OutOfGasError;
 import io.takamaka.code.blockchain.types.ClassType;
@@ -434,19 +433,6 @@ public abstract class Runtime {
 	 */
 	public static void chargeForRAM(int ram) {
 		blockchain.chargeForRAM(BigInteger.valueOf(ram));
-	}
-
-	/**
-	 * Charges the amount of gas for RAM usage for the current blockchain,
-	 * needed to allocate an array of the given length.
-	 * 
-	 * @param length the length of the array
-	 */
-	public static void chargeForRAMForArrayOfLength(int length) {
-		// if the array has negative length, its creation will fail
-		if (length >= 0)
-			// we convert into long to avoid overflow
-			chargeForRAM(GasCosts.RAM_COST_PER_ARRAY + length * (long) GasCosts.RAM_COST_PER_ARRAY_SLOT);
 	}
 
 	/**

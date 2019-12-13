@@ -8,6 +8,11 @@ import io.takamaka.code.instrumentation.GasCostModel;
 public class StandardGasCostModel implements GasCostModel {
 
 	@Override
+	public int ramCostOfObject() {
+		return 8;
+	}
+
+	@Override
 	public int ramCostOfField() {
 		return 4;
 	}
@@ -19,7 +24,7 @@ public class StandardGasCostModel implements GasCostModel {
 
 	@Override
 	public int ramCostOfArray() {
-		return 8;
+		return 12;
 	}
 
 	@Override
