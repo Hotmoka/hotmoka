@@ -53,9 +53,11 @@ public final class Classpath implements Serializable {
 	/**
 	 * The size of this classpath, in terms of storage gas units consumed if it is stored in blockchain.
 	 * 
+	 * @param gasCostModel the gas cost model of the program
 	 * @return the size
 	 */
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT).add(transaction.size());
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
+			.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot())).add(transaction.size(gasCostModel));
 	}
 }

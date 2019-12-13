@@ -70,7 +70,7 @@ public final class ClassTag extends Update {
 	}
 
 	@Override
-	public BigInteger size() {
-		return super.size().add(GasCosts.storageCostOf(className)).add(jar.size());
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(gasCostModel.storageCostOf(className)).add(jar.size(gasCostModel));
 	}
 }

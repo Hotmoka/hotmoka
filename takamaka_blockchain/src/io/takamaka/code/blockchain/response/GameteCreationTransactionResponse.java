@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.Update;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.values.StorageReference;
@@ -50,7 +51,7 @@ public class GameteCreationTransactionResponse implements TransactionResponse, T
 	}
 
 	@Override
-	public BigInteger size() {
+	public BigInteger size(GasCostModel gasCostModel) {
 		// this response is for a free transaction, at initialization of the blockchain
 		return BigInteger.ZERO;
 	}

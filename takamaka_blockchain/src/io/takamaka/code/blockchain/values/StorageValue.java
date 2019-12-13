@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
+import io.takamaka.code.blockchain.GasCostModel;
 
 /**
  * A value that can be stored in the blockchain, passed as argument to an entry
@@ -65,7 +66,8 @@ public interface StorageValue extends Serializable, Comparable<StorageValue> {
 	/**
 	 * The size of this value, in terms of storage gas units consumed if it is stored in blockchain.
 	 * 
+	 * @param gasCostmodel the gas cost model of the blockchain
 	 * @return the size
 	 */
-	BigInteger size();
+	BigInteger size(GasCostModel gasCostModel);
 }

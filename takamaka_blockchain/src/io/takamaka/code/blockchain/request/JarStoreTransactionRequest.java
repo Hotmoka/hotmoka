@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.Classpath;
-import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.UpdateOfBalance;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.response.JarStoreTransactionFailedResponse;
@@ -104,16 +104,16 @@ public class JarStoreTransactionRequest implements TransactionRequest, AbstractJ
 	}
 
 	@Override
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT)
-			.add(caller.size()).add(GasCosts.storageCostOf(gas)).add(classpath.size())
-			.add(getDependencies().map(Classpath::size).reduce(BigInteger.ZERO, BigInteger::add))
-			.add(GasCosts.storageCostForInstalling(jar));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()))
+			.add(caller.size(gasCostModel)).add(gasCostModel.storageCostOf(gas)).add(classpath.size(gasCostModel))
+			.add(getDependencies().map(classpath -> classpath.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add))
+			.add(gasCostModel.storageCostOfJar(jar));
 	}
 
 	@Override
-	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure) {
+	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure, GasCostModel gasCostModel) {
 		// we create a response whose size over-approximates that of a response in case of failure of this request
-		return gas.compareTo(GasCosts.BASE_CPU_TRANSACTION_COST.add(size()).add(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size())) >= 0;
+		return gas.compareTo(BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost()).add(size(gasCostModel)).add(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size(gasCostModel))) >= 0;
 	}
 }

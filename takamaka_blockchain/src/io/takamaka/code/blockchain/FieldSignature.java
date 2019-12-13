@@ -108,9 +108,11 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	 * Yields the size of this field, in terms of storage consumed if this field is
 	 * stored in blockchain.
 	 * 
+	 * @gasCostModel the gas cost model of the blockchain
 	 * @return the size
 	 */
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(definingClass.size()).add(GasCosts.storageCostOf(name)).add(type.size());
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(definingClass.size(gasCostModel))
+			.add(gasCostModel.storageCostOf(name)).add(type.size(gasCostModel));
 	}
 }

@@ -62,7 +62,7 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	}
 
 	@Override
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(field.size());
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(field.size(gasCostModel));
 	}
 }

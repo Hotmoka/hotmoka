@@ -85,7 +85,8 @@ public abstract class CodeSignature implements Serializable {
 	 * 
 	 * @return the size
 	 */
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(definingClass.size()).add(formals().map(StorageType::size).reduce(BigInteger.ZERO, BigInteger::add));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(definingClass.size(gasCostModel))
+			.add(formals().map(type -> type.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 }

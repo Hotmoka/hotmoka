@@ -3,7 +3,7 @@ package io.takamaka.code.blockchain.response;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 
-import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.Update;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
@@ -76,8 +76,10 @@ public abstract class ConstructorCallTransactionResponse implements TransactionR
 	}
 
 	@Override
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.storageCostOf(gasConsumedForCPU)).add(GasCosts.storageCostOf(gasConsumedForRAM)).add(GasCosts.storageCostOf(gasConsumedForStorage))
-			.add(getUpdates().map(Update::size).reduce(BigInteger.ZERO, BigInteger::add));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
+			.add(gasCostModel.storageCostOf(gasConsumedForCPU)).add(gasCostModel.storageCostOf(gasConsumedForRAM))
+			.add(gasCostModel.storageCostOf(gasConsumedForStorage))
+			.add(getUpdates().map(update -> update.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 }

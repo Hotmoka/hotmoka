@@ -2,7 +2,7 @@ package io.takamaka.code.memory;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.SequentialTransactionReference;
 import io.takamaka.code.blockchain.TransactionReference;
 
@@ -104,8 +104,10 @@ final class MemoryTransactionReference implements SequentialTransactionReference
 	}
 
 	@Override
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT).add(GasCosts.storageCostOf(blockNumber));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
+			.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()))
+			.add(gasCostModel.storageCostOf(blockNumber));
 	}
 
 	@Override

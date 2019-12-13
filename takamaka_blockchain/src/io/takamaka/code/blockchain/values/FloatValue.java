@@ -3,7 +3,7 @@ package io.takamaka.code.blockchain.values;
 import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -58,7 +58,7 @@ public final class FloatValue implements StorageValue {
 	}
 
 	@Override
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT);
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()));
 	}
 }

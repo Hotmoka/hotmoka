@@ -60,7 +60,7 @@ public final class UpdateOfBoolean extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public BigInteger size() {
-		return super.size().add(GasCosts.STORAGE_COST_PER_SLOT);
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()));
 	}
 }

@@ -79,7 +79,7 @@ public final class UpdateOfEnumEager extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public BigInteger size() {
-		return super.size().add(GasCosts.storageCostOf(enumClassName)).add(GasCosts.storageCostOf(name));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(gasCostModel.storageCostOf(enumClassName)).add(gasCostModel.storageCostOf(name));
 	}
 }

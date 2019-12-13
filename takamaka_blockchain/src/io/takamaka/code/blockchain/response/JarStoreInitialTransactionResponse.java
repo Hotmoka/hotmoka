@@ -2,6 +2,7 @@ package io.takamaka.code.blockchain.response;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -41,7 +42,7 @@ public class JarStoreInitialTransactionResponse implements TransactionResponse, 
 	}
 
 	//TODO @Override
-	public BigInteger size() {
+	public BigInteger size(GasCostModel gasCostModel) {
 		// this response is for a free transaction, at initialization of the blockchain
 		return BigInteger.ZERO;
 	}

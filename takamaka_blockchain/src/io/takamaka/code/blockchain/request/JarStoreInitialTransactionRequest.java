@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.InitialTransactionRequest;
 import io.takamaka.code.blockchain.UpdateOfBalance;
 import io.takamaka.code.blockchain.annotations.Immutable;
@@ -69,13 +70,13 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
 	}
 
 	@Override
-	public BigInteger size() {
+	public BigInteger size(GasCostModel gasCostModel) {
 		// this request is for a free transaction, at initialization of the blockchain
 		return BigInteger.ZERO;
 	}
 
 	@Override
-	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure) {
+	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure, GasCostModel gasCostModel) {
 		// this request is for a free transaction, at initialization of the blockchain
 		return true;
 	}

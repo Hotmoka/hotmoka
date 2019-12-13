@@ -74,9 +74,10 @@ public abstract class Update implements Serializable, Comparable<Update> {
 	 * Yields a measure of this update, to be used to assess its gas cost
 	 * when stored in blockchain.
 	 * 
+	 * @param gasCostModel the gas cost model of the blockchain
 	 * @return the size of this update. This must be positive
 	 */
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(object.size());
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(object.size(gasCostModel));
 	};
 }

@@ -48,7 +48,7 @@ public abstract class MethodSignature extends CodeSignature {
 	}
 
 	@Override
-	public BigInteger size() {
-		return super.size().add(GasCosts.storageCostOf(methodName));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(gasCostModel.storageCostOf(methodName));
 	}
 }

@@ -65,7 +65,7 @@ public final class UpdateOfStorage extends AbstractUpdateOfField {
 	}
 
 	@Override
-	public BigInteger size() {
-		return super.size().add(value.size());
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(value.size(gasCostModel));
 	}
 }

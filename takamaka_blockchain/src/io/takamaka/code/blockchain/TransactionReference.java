@@ -19,9 +19,10 @@ public interface TransactionReference extends Serializable, Comparable<Transacti
 	 * Yields a measure of this update, to be used to assess its gas cost
 	 * when stored in blockchain.
 	 * 
+	 * @param gasCostModel the gas cost model of the blockchain
 	 * @return the size of this update. This must be positive
 	 */
-	BigInteger size();
+	BigInteger size(GasCostModel gasCostModel);
 
 	boolean equals(Object other);
 

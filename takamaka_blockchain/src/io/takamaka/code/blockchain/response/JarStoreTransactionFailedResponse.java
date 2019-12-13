@@ -2,7 +2,7 @@ package io.takamaka.code.blockchain.response;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.TransactionException;
 import io.takamaka.code.blockchain.UpdateOfBalance;
 import io.takamaka.code.blockchain.annotations.Immutable;
@@ -54,7 +54,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	}
 
 	@Override
-	public BigInteger size() {
-		return super.size().add(GasCosts.storageCostOf(gasConsumedForPenalty));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(gasCostModel.storageCostOf(gasConsumedForPenalty));
 	}
 }

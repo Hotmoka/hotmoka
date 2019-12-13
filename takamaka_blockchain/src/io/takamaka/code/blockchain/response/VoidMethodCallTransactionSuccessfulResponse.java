@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.Update;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.values.StorageReference;
@@ -61,7 +61,8 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	}
 
 	@Override
-	public BigInteger size() {
-		return super.size().add(GasCosts.STORAGE_COST_PER_SLOT).add(getEvents().map(StorageReference::size).reduce(BigInteger.ZERO, BigInteger::add));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return super.size(gasCostModel).add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()))
+			.add(getEvents().map(reference -> reference.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 }

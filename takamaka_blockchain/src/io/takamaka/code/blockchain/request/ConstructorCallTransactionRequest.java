@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.Classpath;
 import io.takamaka.code.blockchain.ConstructorSignature;
-import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.UpdateOfBalance;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.response.ConstructorCallTransactionFailedResponse;
@@ -83,14 +83,16 @@ public class ConstructorCallTransactionRequest implements TransactionRequest {
 	}
 
 	@Override
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(GasCosts.STORAGE_COST_PER_SLOT).add(caller.size()).add(GasCosts.storageCostOf(gas)).add(classpath.size())
-				.add(Stream.of(actuals).map(StorageValue::size).reduce(BigInteger.ZERO, BigInteger::add));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
+			.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot())).add(caller.size(gasCostModel))
+			.add(gasCostModel.storageCostOf(gas)).add(classpath.size(gasCostModel))
+			.add(Stream.of(actuals).map(value -> value.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 
 	@Override
-	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure) {
+	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure, GasCostModel gasCostModel) {
 		// we create a response whose size over-approximates that of a response in case of failure of this request
-		return gas.compareTo(GasCosts.BASE_CPU_TRANSACTION_COST.add(size()).add(new ConstructorCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size())) >= 0;
+		return gas.compareTo(BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost()).add(size(gasCostModel)).add(new ConstructorCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size(gasCostModel))) >= 0;
 	}
 }

@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.GasCosts;
+import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.Update;
 import io.takamaka.code.blockchain.UpdateOfBalance;
 import io.takamaka.code.blockchain.annotations.Immutable;
@@ -90,7 +90,9 @@ public abstract class JarStoreTransactionResponse implements TransactionResponse
 	};
 
 	@Override
-	public BigInteger size() {
-		return GasCosts.STORAGE_COST_PER_SLOT.add(callerBalanceUpdate.size()).add(GasCosts.storageCostOf(gasConsumedForCPU)).add(GasCosts.storageCostOf(gasConsumedForStorage));
+	public BigInteger size(GasCostModel gasCostModel) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
+			.add(callerBalanceUpdate.size(gasCostModel)).add(gasCostModel.storageCostOf(gasConsumedForCPU))
+			.add(gasCostModel.storageCostOf(gasConsumedForStorage));
 	}
 }
