@@ -75,7 +75,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 
 	@Override
-	protected Stream<Update> getLastUpdatesToEagerFieldsOf(StorageReference reference) throws Exception {
+	protected Stream<Update> getLastEagerUpdatesFor(StorageReference reference) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	
 		TransactionResponse response = getResponseAtAndCharge(transaction);
@@ -107,7 +107,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected UpdateOfField getLastUpdateToLazyNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
+	protected UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
 		// goes back from the previous transaction;
 		// there is no reason to look before the transaction that created the object
 		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
@@ -120,7 +120,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected UpdateOfField getLastUpdateToLazyFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
+	protected UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
 		// goes directly to the transaction that created the object
 		return getLastUpdateFor(object, field, object.transaction).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}

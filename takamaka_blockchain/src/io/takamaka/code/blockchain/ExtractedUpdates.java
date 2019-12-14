@@ -260,6 +260,8 @@ public class ExtractedUpdates {
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else if (field.equals(FieldSignature.BALANCE_FIELD))
 					updates.add(new UpdateOfBalance(storageReference, bi));
+				else if (field.equals(FieldSignature.RED_BALANCE_FIELD))
+					updates.add(new UpdateOfRedBalance(storageReference, bi));
 				else
 					updates.add(new UpdateOfBigInteger(storageReference, field, bi));
 			}

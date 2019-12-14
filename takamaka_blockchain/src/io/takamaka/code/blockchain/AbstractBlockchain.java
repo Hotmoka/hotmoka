@@ -164,13 +164,13 @@ public abstract class AbstractBlockchain implements Blockchain {
 	protected abstract TransactionResponse getResponseAt(TransactionReference transaction) throws Exception;
 
 	/**
-	 * Yields the most recent updates to the eager fields for the given storage reference.
+	 * Yields the most recent eager updates for the given storage reference.
 	 * 
 	 * @param reference the storage reference
 	 * @return the updates. These must include the class tag update for the reference
 	 * @throws Exception if the updates cannot be found
 	 */
-	protected abstract Stream<Update> getLastUpdatesToEagerFieldsOf(StorageReference reference) throws Exception;
+	protected abstract Stream<Update> getLastEagerUpdatesFor(StorageReference reference) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given non-{@code final} field,
@@ -183,14 +183,14 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	protected abstract UpdateOfField getLastUpdateToLazyNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception;
+	protected abstract UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given {@code final} field,
 	 * of lazy type, of the object at given storage reference.
 	 * Conceptually, this amounts to accessing the storage reference when the object was
 	 * created and reading the value of the field there. Its implementation can be identical to
-	 * that of {@link #getLastUpdateToLazyNonFinalFieldOf(StorageReference, FieldSignature)},
+	 * that of {@link #getLastLazyUpdateToNonFinalFieldOf(StorageReference, FieldSignature)},
 	 * or exploit the fact that the field is {@code final}, for an optimized look-up.
 	 * 
 	 * @param object the storage reference
@@ -198,7 +198,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	protected abstract UpdateOfField getLastUpdateToLazyFinalFieldOf(StorageReference object, FieldSignature field) throws Exception;
+	protected abstract UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field) throws Exception;
 
 	/**
 	 * Yields the UTC time when the currently executing transaction is being run.
@@ -923,7 +923,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the look up fails
 	 */
 	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		return getLastUpdateToLazyNonFinalFieldOf(reference, field).getValue().deserialize(this);
+		return getLastLazyUpdateToNonFinalFieldOf(reference, field).getValue().deserialize(this);
 	}
 
 	/**
@@ -937,7 +937,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * @throws Exception if the look up fails
 	 */
 	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-		return getLastUpdateToLazyFinalFieldOf(reference, field).getValue().deserialize(this);
+		return getLastLazyUpdateToFinalFieldOf(reference, field).getValue().deserialize(this);
 	}
 
 	/**
@@ -1383,7 +1383,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, getLastUpdatesToEagerFieldsOf(reference));
+			return createStorageObject(reference, getLastEagerUpdatesFor(reference));
 		}
 		catch (DeserializationError e) {
 			throw e;

@@ -23,6 +23,11 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	public final static FieldSignature BALANCE_FIELD = new FieldSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
 
 	/**
+	 * The field that holds the red balance in red/green externally owned accounts.
+	 */
+	public final static FieldSignature RED_BALANCE_FIELD = new FieldSignature(ClassType.RGCONTRACT, "balanceRed", ClassType.BIG_INTEGER);
+
+	/**
 	 * The class of the field.
 	 */
 	public final ClassType definingClass;

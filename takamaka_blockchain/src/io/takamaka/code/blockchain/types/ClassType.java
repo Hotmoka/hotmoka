@@ -58,6 +58,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType CONTRACT = new ClassType(Constants.CONTRACT_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.lang.RedGreenContract}.
+	 */
+	public final static ClassType RGCONTRACT = new ClassType(Constants.RGCONTRACT_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Storage}.
 	 */
 	public final static ClassType STORAGE = new ClassType(Constants.STORAGE_NAME);

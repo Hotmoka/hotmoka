@@ -28,5 +28,12 @@ public interface TransactionReference extends Serializable, Comparable<Transacti
 
 	int hashCode();
 
+	/**
+	 * Yields the description of this transaction reference. This must be injective, that is,
+	 * non-{@code equals()} transaction references must have non-{@code equals()} returned values
+	 * for {@code toString()}.
+	 * 
+	 * @return the description
+	 */
 	String toString();
 }
