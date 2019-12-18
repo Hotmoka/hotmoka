@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
 import io.takamaka.code.blockchain.request.GameteCreationTransactionRequest;
+import io.takamaka.code.blockchain.request.InitialTransactionRequest;
 import io.takamaka.code.blockchain.request.InstanceMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreInitialTransactionRequest;
 import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
@@ -304,11 +305,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 
 	private void requireBlockchainNotYetInitialized() throws Exception {
 		SequentialTransactionReference previous = getTopmostTransactionReference();
-		if (previous != null) {
-			TransactionRequest previousRequest = getRequestAt(previous);
-			if (!(previousRequest instanceof InitialTransactionRequest))
-				throw new IllegalTransactionRequestException("This blockchain is already initialized");
-		}
+		if (previous != null && !(getRequestAt(previous) instanceof InitialTransactionRequest))
+			throw new IllegalTransactionRequestException("This blockchain is already initialized");
 	}
 
 	/**

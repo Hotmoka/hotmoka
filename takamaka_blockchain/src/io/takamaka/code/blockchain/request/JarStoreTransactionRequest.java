@@ -5,34 +5,16 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.Classpath;
-import io.takamaka.code.blockchain.GasCostModel;
-import io.takamaka.code.blockchain.UpdateOfBalance;
 import io.takamaka.code.blockchain.annotations.Immutable;
-import io.takamaka.code.blockchain.response.JarStoreTransactionFailedResponse;
 import io.takamaka.code.blockchain.values.StorageReference;
 
 /**
  * A request for a transaction that installs a jar in an initialized blockchain.
  */
 @Immutable
-public class JarStoreTransactionRequest implements TransactionRequest, AbstractJarStoreTransactionRequest {
+public class JarStoreTransactionRequest extends NonInitialTransactionRequest implements AbstractJarStoreTransactionRequest {
 
 	private static final long serialVersionUID = -986118537465436635L;
-
-	/**
-	 * The externally owned caller contract that pays for the transaction.
-	 */
-	public final StorageReference caller;
-
-	/**
-	 * The gas provided to the transaction.
-	 */
-	public final BigInteger gas;
-
-	/**
-	 * The class path that specifies where the {@code caller} should be interpreted.
-	 */
-	public final Classpath classpath;
 
 	/**
 	 * The bytes of the jar to install.
@@ -54,9 +36,8 @@ public class JarStoreTransactionRequest implements TransactionRequest, AbstractJ
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
 	public JarStoreTransactionRequest(StorageReference caller, BigInteger gas, Classpath classpath, byte[] jar, Classpath... dependencies) {
-		this.caller = caller;
-		this.gas = gas;
-		this.classpath = classpath;
+		super(caller, gas, classpath);
+
 		this.jar = jar.clone();
 		this.dependencies = dependencies;
 	}
@@ -85,7 +66,7 @@ public class JarStoreTransactionRequest implements TransactionRequest, AbstractJ
 	 * 
 	 * @return the size of the jar to install
 	 */
-	public int getJarSize() {
+	public final int getJarSize() {
 		return jar.length;
 	}
 
@@ -101,19 +82,5 @@ public class JarStoreTransactionRequest implements TransactionRequest, AbstractJ
         	+ "  class path: " + classpath + "\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb.toString();
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()))
-			.add(caller.size(gasCostModel)).add(gasCostModel.storageCostOf(gas)).add(classpath.size(gasCostModel))
-			.add(getDependencies().map(classpath -> classpath.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add))
-			.add(gasCostModel.storageCostOfJar(jar));
-	}
-
-	@Override
-	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure, GasCostModel gasCostModel) {
-		// we create a response whose size over-approximates that of a response in case of failure of this request
-		return gas.compareTo(BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost()).add(size(gasCostModel)).add(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size(gasCostModel))) >= 0;
 	}
 }

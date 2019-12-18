@@ -4,15 +4,13 @@ import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.Blockchain;
 import io.takamaka.code.blockchain.Classpath;
-import io.takamaka.code.blockchain.GasCostModel;
-import io.takamaka.code.blockchain.UpdateOfBalance;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
  * A request for creating an initial gamete.
  */
 @Immutable
-public class GameteCreationTransactionRequest implements TransactionRequest {
+public class GameteCreationTransactionRequest implements InitialTransactionRequest {
 
 	private static final long serialVersionUID = -6733566802012789524L;
 
@@ -45,17 +43,5 @@ public class GameteCreationTransactionRequest implements TransactionRequest {
         return getClass().getSimpleName() + ":\n"
         	+ "  class path: " + classpath + "\n"
         	+ "  initialAmount: " + initialAmount;
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		// this request is for a free transaction, at initialization of the blockchain
-		return BigInteger.ZERO;
-	}
-
-	@Override
-	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure, GasCostModel gasCostModel) {
-		// this request is for a free transaction, at initialization of the blockchain
-		return true;
 	}
 }

@@ -1,13 +1,9 @@
 package io.takamaka.code.blockchain.request;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.Classpath;
-import io.takamaka.code.blockchain.GasCostModel;
-import io.takamaka.code.blockchain.InitialTransactionRequest;
-import io.takamaka.code.blockchain.UpdateOfBalance;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -40,12 +36,12 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
 	}
 
 	@Override
-	public byte[] getJar() {
+	public final byte[] getJar() {
 		return jar.clone();
 	}
 
 	@Override
-	public Stream<Classpath> getDependencies() {
+	public final Stream<Classpath> getDependencies() {
 		return Stream.of(dependencies);
 	}
 
@@ -54,7 +50,7 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
 	 * 
 	 * @return the number of dependencies
 	 */
-	public int getNumberOfDependencies() {
+	public final int getNumberOfDependencies() {
 		return dependencies.length;
 	}
 
@@ -67,17 +63,5 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
         return getClass().getSimpleName() + ":\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb.toString();
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		// this request is for a free transaction, at initialization of the blockchain
-		return BigInteger.ZERO;
-	}
-
-	@Override
-	public boolean hasMinimalGas(UpdateOfBalance balanceUpdateInCaseOfFailure, GasCostModel gasCostModel) {
-		// this request is for a free transaction, at initialization of the blockchain
-		return true;
 	}
 }
