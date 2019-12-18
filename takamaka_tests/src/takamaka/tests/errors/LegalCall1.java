@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
+import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 class LegalCall1 {

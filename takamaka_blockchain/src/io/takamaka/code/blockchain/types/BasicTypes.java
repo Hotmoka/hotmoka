@@ -28,7 +28,7 @@ public enum BasicTypes implements StorageType {
 	}
 
 	@Override
-	public Class<?> toClass(AbstractBlockchain classLoader) {
+	public Class<?> toClass(AbstractBlockchain blockchain) {
 		switch (this) {
 		case BOOLEAN: return boolean.class;
 		case BYTE: return byte.class;

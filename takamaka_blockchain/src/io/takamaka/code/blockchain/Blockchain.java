@@ -1,17 +1,17 @@
 package io.takamaka.code.blockchain;
 
-import io.takamaka.code.blockchain.request.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.request.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.request.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.request.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.request.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.request.RedGreenGameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.request.StaticMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.response.ConstructorCallTransactionResponse;
-import io.takamaka.code.blockchain.response.GameteCreationTransactionResponse;
-import io.takamaka.code.blockchain.response.JarStoreInitialTransactionResponse;
-import io.takamaka.code.blockchain.response.JarStoreTransactionResponse;
-import io.takamaka.code.blockchain.response.MethodCallTransactionResponse;
+import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
+import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
+import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
+import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
+import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
+import io.takamaka.code.blockchain.requests.RedGreenGameteCreationTransactionRequest;
+import io.takamaka.code.blockchain.requests.StaticMethodCallTransactionRequest;
+import io.takamaka.code.blockchain.responses.ConstructorCallTransactionResponse;
+import io.takamaka.code.blockchain.responses.GameteCreationTransactionResponse;
+import io.takamaka.code.blockchain.responses.JarStoreInitialTransactionResponse;
+import io.takamaka.code.blockchain.responses.JarStoreTransactionResponse;
+import io.takamaka.code.blockchain.responses.MethodCallTransactionResponse;
 
 /**
  * The abstraction of a Takamaka blockchain. It defines methods for the execution of transactions.

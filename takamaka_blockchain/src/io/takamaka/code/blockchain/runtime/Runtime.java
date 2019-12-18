@@ -8,9 +8,9 @@ import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.FieldSignature;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.OutOfGasError;
+import io.takamaka.code.blockchain.signatures.FieldSignature;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.values.StorageReference;
 

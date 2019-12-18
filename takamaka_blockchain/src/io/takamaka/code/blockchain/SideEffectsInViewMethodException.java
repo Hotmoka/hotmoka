@@ -1,5 +1,7 @@
 package io.takamaka.code.blockchain;
 
+import io.takamaka.code.blockchain.signatures.MethodSignature;
+
 /**
  * An exception thrown when a transaction for the execution of a
  * {@link io.takamaka.code.lang.View} method has side-effects different

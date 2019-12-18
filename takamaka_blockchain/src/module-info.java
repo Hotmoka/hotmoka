@@ -1,7 +1,9 @@
 module io.takamaka.code.blockchain {
 	exports io.takamaka.code.blockchain;
-	exports io.takamaka.code.blockchain.request;
-	exports io.takamaka.code.blockchain.response;
+	exports io.takamaka.code.blockchain.requests;
+	exports io.takamaka.code.blockchain.responses;
+	exports io.takamaka.code.blockchain.updates;
+	exports io.takamaka.code.blockchain.signatures;
 	exports io.takamaka.code.blockchain.values;
 	exports io.takamaka.code.blockchain.types;
 	exports io.takamaka.code.blockchain.runtime;

@@ -17,8 +17,8 @@ import java.util.Comparator;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
 import io.takamaka.code.blockchain.SequentialTransactionReference;
 import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.request.TransactionRequest;
-import io.takamaka.code.blockchain.response.TransactionResponse;
+import io.takamaka.code.blockchain.requests.TransactionRequest;
+import io.takamaka.code.blockchain.responses.TransactionResponse;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory

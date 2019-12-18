@@ -19,7 +19,7 @@ public interface StorageType extends Serializable {
 	 * 
 	 * @param blockchain the blockchain that is executing the transaction
 	 * @return the class object, if any
-	 * @throws ClassNotFoundException if some class type cannot be found for that transaction
+	 * @throws ClassNotFoundException if some class type cannot be found
 	 */
 	Class<?> toClass(AbstractBlockchain blockchain) throws ClassNotFoundException;
 

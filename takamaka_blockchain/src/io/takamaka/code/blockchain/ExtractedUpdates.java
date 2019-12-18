@@ -12,8 +12,28 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.takamaka.code.blockchain.signatures.FieldSignature;
 import io.takamaka.code.blockchain.types.BasicTypes;
 import io.takamaka.code.blockchain.types.ClassType;
+import io.takamaka.code.blockchain.updates.ClassTag;
+import io.takamaka.code.blockchain.updates.Update;
+import io.takamaka.code.blockchain.updates.UpdateOfBalance;
+import io.takamaka.code.blockchain.updates.UpdateOfBigInteger;
+import io.takamaka.code.blockchain.updates.UpdateOfBoolean;
+import io.takamaka.code.blockchain.updates.UpdateOfByte;
+import io.takamaka.code.blockchain.updates.UpdateOfChar;
+import io.takamaka.code.blockchain.updates.UpdateOfDouble;
+import io.takamaka.code.blockchain.updates.UpdateOfEnumEager;
+import io.takamaka.code.blockchain.updates.UpdateOfEnumLazy;
+import io.takamaka.code.blockchain.updates.UpdateOfFloat;
+import io.takamaka.code.blockchain.updates.UpdateOfInt;
+import io.takamaka.code.blockchain.updates.UpdateOfLong;
+import io.takamaka.code.blockchain.updates.UpdateOfRedBalance;
+import io.takamaka.code.blockchain.updates.UpdateOfShort;
+import io.takamaka.code.blockchain.updates.UpdateOfStorage;
+import io.takamaka.code.blockchain.updates.UpdateOfString;
+import io.takamaka.code.blockchain.updates.UpdateToNullEager;
+import io.takamaka.code.blockchain.updates.UpdateToNullLazy;
 import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.instrumentation.Constants;
 
