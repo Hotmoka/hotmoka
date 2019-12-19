@@ -32,10 +32,6 @@ executed in blockchain.
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
-5. [Code Verification](#code-verification)
-    - [JVM Bytecode Verification](#jvm-bytecode-verification)
-    - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
-    - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
 
 # Introduction <a name="introduction"></a>
 
@@ -65,27 +61,37 @@ writing Java code, there is nothing special to learn or install
 before starting writing programs in Takamaka. Just use your
 preferred integrated development environment (IDE) for Java. Or even
 do everything from command-line, if you prefer. Our examples below will be
-shown for the Eclipse IDE.
+shown for the Eclipse IDE, using Java 9 or later.
 
 Our goal will be to create a Java class that we will instantiate
 and use in blockchain. Namely, we will learn how to create an object
 of the class that will persist in blockchain and how we can later
 call the `toString()` method on that instance in blockchain.
 
-Let us hence create an Eclipse Java project `family`. Add
-a `lib` folder inside it and copy there the two jars that contain the
-Takamaka runtime and base development classes.
-Add them both to the build path. The result should look
+Let us hence create an Eclipse Java 9 (or later) project `family`. Add
+a `mods` folder inside it and copy there the jar that contains the
+Takamaka base development classes.
+Add it to the module path. The result should look
 similar to the following:
 
 ![The `family` Eclipse project](pics/family.png "The family Eclipse project")
 
-Let us create a package `takamaka.tests.family`. Inside that package,
+Create a `module-info.java` file inside `src`, to state that this project depends
+on the module containing the runtime classes of Takamaka, needed for
+development:
+
+```java
+module io.takamaka.tests {
+  requires io.takamaka.code;
+}
+```
+
+Create a package `io.takamaka.tests.family` inside `src`. Inside that package,
 create a Java source `Person.java`, by copying and pasting
 the following code:
 
 ```java
-package takamaka.tests.family;
+package io.takamaka.tests.family;
 
 public class Person {
   private final String name;
@@ -122,7 +128,10 @@ with name `family.jar` (click on the
 `family` project, then right-click on the project, select Export &rarr; Java &rarr; Jar File
 and choose the `dist` folder and the `family.jar` name). Only the compiled
 class files will be relevant: Takamaka will ignore source files, manifest
-and any resources in the jar, hence you needn't add them there. The result should
+and any resources in the jar, including the
+`io-takamaka-code-1.0-jar` library; the same compiled
+`module-info.class` is irrelevant in the jar.
+Therefore, you needn't add such files to the jar. The result should
 look as the following:
 
 ![The `family` Eclipse project, exported in jar](pics/family_jar.png "The family Eclipse project, exported in jar")
@@ -135,40 +144,50 @@ blockchain node.
 
 > Future versions of this document will show how to use a test network, instead of running a local simulation of a node.
 
-Let us hence create another Eclipse project, that will start
+Let us hence create another Eclipse Java 9 (or later) project, that will start
 a local simulation of a blockchain node, actually working over the disk memory
-of our local machine. That blockchain simulation in memory is inside a third Takamaka jar.
-Create then another Eclipse project named `blockchain`, add a `lib` folder and
-include four Takamaka jars inside `lib`; `takamaka_runtime.jar`, `takamaka_white_listing.jar` and
-`takamaka_memory.jar` must be added to the build path of this project;
-do not add, instead, `takamaka_base.jar` to the build path: its classes are
-needed for developing Takamaka code (as shown before) and will be installed in blockchain
-and referenced through the classpath of our running code. But they must not be part of the build path
-of the blockchain simulation project.
-Finally, add inside `lib` and to the build path the BCEL jar that Takamaka uses for code instrumentation
+of our local machine. That blockchain simulation in memory requires other jars of Takamaka.
+Create then another Eclipse project named `blockchain`, add a `mods` folder and
+include five Takamaka jars into `mods`, together with
+the BCEL jar that Takamaka uses for code instrumentation
 and the jar that Takamaka uses for recomputing bytecode stack maps after code instrumentation.
+Create a `lib` folder and add `io-takamaka-code-1.0.jar` inside it: these base classes are
+needed for developing Takamaka code (as shown before) and will be installed in blockchain
+and referenced through the classpath of our running code.
+Add the content of `mods` to the module path. Do not add instead the content of `lib`
+to the module path, nor to the class path.
 The result should look like the following:
 
 ![The `blockchain` Eclipse project](pics/blockchain1.png "The blockchain Eclipse project")
 
-Let us write a main class that starts the blockchain in disk memory: create a package
-`takamaka.tests.family` and add the following class `Main.java`:
+Let us write a main class that starts the blockchain in disk memory.
+Create a `module-info.java` inside `src`, containing:
 
 ```java
-package takamaka.tests.family;
+module io.takamaka.tests {
+  requires io.takamaka.code.memory;
+}
+```
+
+Create a package
+`io.takamaka.tests.family` inside `src` and add the following class `Main.java`
+inside it:
+
+```java
+package io.takamaka.tests.family;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 
-import takamaka.blockchain.CodeExecutionException;
-import takamaka.blockchain.TransactionException;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.blockchain.TransactionException;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 public class Main {
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
     InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+      (Paths.get("lib/io-takamaka-code-1.0.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
   }
 }
 ```
@@ -183,7 +202,7 @@ and `blockchain.account(1)`, respectively.
 So, what is the constructor of `InitializedMemoryBlockchain` doing here? Basically, it is
 initializing a directory, named `chain`, and it is running a few initial transactions
 that lead to the creation of two accounts. You can see the result if you run class
-`takamaka.tests.family.Main`, refresh the `blockchain` project (click on it and push the F5 key)
+`io.takamaka.tests.family.Main`, refresh the `blockchain` project (click on it and push the F5 key)
 and inspect the `chain` directory that should have appeared:
 
 ![The `chain` directory appeared](pics/blockchain2.png "The chain directory appeared")
@@ -204,27 +223,27 @@ nor in its class path at run time.
 If we want to call the constructor of `Person`, that class must somehow be in the class path.
 In order to put `Person` in the class path, we must install
 `family.jar` inside the blockchain, so that we can later refer to it and call
-the constructor of `Person`. Let us hence modify the `takamaka.tests.family.Main.java`
-file in order to run a transaction that install `family.jar` inside the blockchain:
+the constructor of `Person`. Let us hence modify the `io.takamaka.tests.family.Main.java`
+file in order to run a transaction that installs `family.jar` inside the blockchain:
 
 ```java
-package takamaka.tests.family;
+package io.takamaka.tests.family;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import takamaka.blockchain.CodeExecutionException;
-import takamaka.blockchain.TransactionException;
-import takamaka.blockchain.TransactionReference;
-import takamaka.blockchain.request.JarStoreTransactionRequest;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.blockchain.TransactionException;
+import io.takamaka.code.blockchain.TransactionReference;
+import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 public class Main {
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
     InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/takamaka_base.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+      (Paths.get("lib/io-takamaka-code-1.0.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
 
     TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
@@ -240,15 +259,15 @@ public class Main {
 The `addJarStoreTransaction()` method expands the blockchain with a new transaction, whose goal
 is to install a jar inside the blockchain. The jar is provided as a sequence of bytes
 (`Files.readAllBytes(Paths.get("../family/dist/family.jar"))`, assuming that the
-`family` project is in the same workspace as `blockchain`). This transaction, as any
+`family` project is in the same Eclipse workspace as `blockchain`). This transaction, as any
 Takamaka transaction, must be payed. The payer is specified as `blockchain.account(0)`, that is,
 the first of the two accounts created at the moment of creation of the blockchain.
 It is specified that the transaction can cost up to 100,000 units of gas. The transaction request
 specifies that its class path is `blockchain.takamakaBase`: this is the reference to a jar
-installed in the blockchain at its creation time and containing `takamaka_base.jar`, that is,
+installed in the blockchain at its creation time and containing `io-takamaka-code-1.0.jar`, that is,
 the basic classes of Takamaka. Finally, the request specifies that `family.jar` has only
-a single dependency: `takamaka_base.jar`. This means that when, below, we will refer to
-`family` in a class path, this will indirectly include its dependency `takamaka_base.jar`.
+a single dependency: `io-takamaka-code-1.0.jar`. This means that when, below, we will refer to
+`family` in a class path, this will indirectly include its dependency `io-takamaka-code-1.0.jar`.
 
 Run the `Main` class again, refresh the `blockchain` project and see that the `chain` directory
 is one transaction longer now:
@@ -262,17 +281,17 @@ coded in the `Main` class. Namely, its textual representation `request.txt` is:
 JarStoreTransactionRequest:
   caller: 0.2#0
   gas: 100000
-  class path: 0.0 non-recursively resolved
-  dependencies: [0.0 non-recursively resolved]
-  jar: 504b0304140008080800d294b24e000000000000000000000000140004004d4554412d494e462f4d414e49464553542e4d46f...
+  class path: 0.0 non recursively resolved
+  dependencies: [0.0 non recursively resolved]
+  jar: 504b0304140008080800416f934f000000000000000000000000140004004d4554412d494e462f4d414e49464553542e4d46...
 ```
 
 The interesting point here is that objects, such as the caller account
 `blockchain.account(0)`, are represented as _storage references_ such as `0.2#0`. You can
 see a storage reference as a machine-independent, deterministic pointer to an object contained
-in the blockchain. Also the `takamaka_base.jar` is represented with an internal representation.
+in the blockchain. Also the `io-takamaka-code-1.0.jar` is represented with an internal representation.
 Namely, `0.0` is a _transaction reference_, that is, a reference to the transaction that installed
-`takamaka_base.jar` in the blockchain: transaction 0 of block 0. The jar is the hexadecimal
+`io-takamaka-code-1.0.jar` in the blockchain: transaction 0 of block 0. The jar is the hexadecimal
 representation of its byte sequence.
 
 Let us have a look at the `response.txt` file, which is the textual representation of the outcome of
@@ -280,20 +299,23 @@ the transaction:
 
 ```
 JarStoreTransactionSuccessfulResponse:
-  consumed gas: 1199
+  gas consumed for CPU execution: 252
+  gas consumed for RAM allocation: 992
+  gas consumed for storage consumption: 1011
   updates:
-    <0.2#0|takamaka.lang.Contract.balance:java.math.BigInteger|99880>
-  instrumented jar: 504b03041400080808007ca3b24e0000000000000000000000002200040074616b616d616b612f74657374732f66616d696c792...
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99977>
+  instrumented jar: 504b0304140008080800ef70934f00000000000000000000000025000400696f2f74616b616d616b612f74657374732f66616d...
 ```
 
-The first bit of information tells us that the transaction costed 1,199 units of gas. We had accepted to spend up to
+The first bits of information tells us that the transaction costed some units of gas, split between
+CPU, RAM and blockchain storage space. We had accepted to spend up to
 100,000 units of gas, hence the transaction could complete correctly. The response reports also the hexadecimal representation
 of a jar, which is named _instrumented_. This is because what gets installed in blockchain is not exactly the jar sent
 with the transaction request, but an instrumentation of that, which adds features that are specific to Takamaka code.
 For instance, the instrumented code will charge gas during its execution. Finally, the response reports _updates_. These are
 state changes occurred during the execution of the transaction. In order terms, updates are the side-effects of the transaction,
 i.e., the fields of the objects modified by the transaction. In this case, the balance of the payer of the transaction
-`0.2#0` has been reduced to 99,880, since it payed for the gas (we initially funded that account with 100,000 units of coin).
+`0.2#0` has been reduced to 99,977, since it payed for the gas (we initially funded that account with 100,000 units of coin).
 
 > The actual amount of gas consumed by this transaction, the bytes of the jars and the final balance of the payer might change in future versions of Takamaka.
 
