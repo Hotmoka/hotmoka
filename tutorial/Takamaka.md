@@ -738,7 +738,7 @@ that belong to the so called _storage types_. Storage values are
 
 1. primitive values of Java (characters, bytes, shorts, integers, longs, floats,
 doubles and booleans), or
-2. reference values whose class extends `takamaka.lang.Storage` (that is, _storage objects_), or
+2. reference values whose class extends `io.takamaka.code.lang.Storage` (that is, _storage objects_), or
 3. `null`, or
 4. elements of an `enum` without instance non-transient fields, or
 5. a few special reference values: `java.math.BigInteger`s and `java.lang.String`s.
@@ -762,10 +762,10 @@ such as, for instance, from our `Main` class or from a wallet.
 We conclude this section with a formal definition of storage objects.
 We have already said that storage objects can be kept in blockchain
 and their class must extend
-`takamaka.lang.Storage`. But there are extra constraints. Namely,
+`io.takamaka.code.lang.Storage`. But there are extra constraints. Namely,
 fields of a storage objects are part of the representation of such
 objects and must, themselves, be kept in blockchain. Hence, a storage object:
-1. has a class that extends (directly or indirectly) `takamaka.lang.Storage`, and
+1. has a class that extends (directly or indirectly) `io.takamaka.code.lang.Storage`, and
 2. is such that all its fields hold storage values (primitives, storage objects, `null`,
 elements of `enum`s without instance non-transient fields, a `java.math.BigInteger` or a `java.lang.String`).
 
