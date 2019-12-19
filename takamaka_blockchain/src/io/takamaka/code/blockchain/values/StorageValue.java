@@ -5,6 +5,7 @@ import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.GasCostModel;
+import io.takamaka.code.verification.Constants;
 
 /**
  * A value that can be stored in the blockchain, passed as argument to an entry
@@ -60,7 +61,7 @@ public interface StorageValue extends Serializable, Comparable<StorageValue> {
 		else if (object == null)
 			return NullValue.INSTANCE;
 		else
-			throw new IllegalArgumentException("Unserializable object " + object);
+			throw new IllegalArgumentException("an object of class " + object.getClass().getName() + " cannot be kept in blockchain since it does not implement " + Constants.STORAGE_NAME);
 	}
 
 	/**
