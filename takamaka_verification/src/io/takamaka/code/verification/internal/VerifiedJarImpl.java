@@ -139,11 +139,11 @@ public class VerifiedJarImpl implements VerifiedJar {
 			try (JarFile originalJar = this.originalJar = new JarFile(origin.toFile())) {
 				// we cannot proceed in parallel since the BCEL library is not thread-safe
 				originalJar.stream()
-				.filter(entry -> entry.getName().endsWith(".class"))
-				.map(this::buildVerifiedClass)
-				.filter(Optional::isPresent) // we only consider classes that did verify
-				.map(Optional::get)
-				.forEach(classes::add);
+					.filter(entry -> entry.getName().endsWith(".class") && !entry.getName().equals("module-info.class"))
+					.map(this::buildVerifiedClass)
+					.filter(Optional::isPresent) // we only consider classes that did verify
+					.map(Optional::get)
+					.forEach(classes::add);
 			}
 			catch (UncheckedIOException e) {
 				throw e.getCause();
