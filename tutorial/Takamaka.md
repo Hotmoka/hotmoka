@@ -32,6 +32,10 @@ executed in blockchain.
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
+5. [Code Verification](#code-verification)
+    - [JVM Bytecode Verification](#jvm-bytecode-verification)
+    - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
+    - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
 
 # Introduction <a name="introduction"></a>
 
@@ -801,9 +805,9 @@ instead, contain code (*smart contracts*).
 The formers are typically controlled by an external agent (a wallet,
 a human) while the latters are typically controlled by their code.
 Takamaka implements both alternatives as instances of the abstract library class
-`takamaka.lang.Contract` (inside `takamaka_base.jar`). That class extends
-`takamaka.lang.Storage`, hence its instances can be kept in blockchain.
-The Takamaka library defines subclasses of `takamaka.lang.Contract`, that
+`io.takamaka.code.lang.Contract` (inside `io-takamaka-code-1.0.jar`). That class extends
+`io.takamaka.code.lang.Storage`, hence its instances can be kept in blockchain.
+The Takamaka library defines subclasses of `io.takamaka.code.lang.Contract`, that
 we will investigate later. Programmers can define their own subclasses.
 
 This chapter presents a simple smart contract, whose goal is to
