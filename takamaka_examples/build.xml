@@ -17,10 +17,8 @@
   </target>
 
   <target name="compile" depends="init" description="compile the source">
-    <javac srcdir="${src}" destdir="${build}" debug="true" debuglevel="lines,vars,source" source="8" target="8" includeantruntime="true">
-    	<classpath>
-          <fileset dir="../takamaka_distribution/dist" includes="io-takamaka-code-*.jar" />
-    	</classpath>
+    <javac srcdir="${src}" destdir="${build}" debug="true" debuglevel="lines,vars,source" source="9" target="9" includeantruntime="true">
+	  <modulepath path ="../takamaka_distribution/dist"/>
     </javac>
   </target>
 

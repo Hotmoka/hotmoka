@@ -16,8 +16,7 @@
 
   <target name="dist" depends="init" description="generate the distribution">
   	<ant dir="../takamaka_whitelisting" target="dist" />
-  	<!-- The following is compiled with Java 8 since it will only be installed and run in blockchain -->
-  	<ant dir="../takamaka_code" target="dist Java 8" />
+  	<ant dir="../takamaka_code" target="dist" />
   	<ant dir="../takamaka_verification" target="dist" />
   	<ant dir="../takamaka_instrumentation" target="dist" />
   	<ant dir="../takamaka_blockchain" target="dist" />
