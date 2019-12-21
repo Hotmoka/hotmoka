@@ -1256,7 +1256,7 @@ Java has many classes for implementing lists, all subclasses
 of `java.util.List<T>`. They can be used in Takamaka, but not as
 fields of a storage class. For that,
 Takamaka provides an implementation of lists with the storage class
-`StorageList<T>`. Its instances are storage objects and
+`io.takamaka.code.util.StorageList<T>`. Its instances are storage objects and
 can consequently be held in fields of storage classes and
 can be stored in blockchain, *as long as only
 storage objects are added to the list*. Takamaka lists provide
@@ -1316,7 +1316,7 @@ public class GradualPonzi extends Contract {
 }
 ```
 
-The construtcor of `GradualPonzi` is an `@Entry`, hence can only be
+The constructor of `GradualPonzi` is an `@Entry`, hence can only be
 called from another contract, that gets added, as first investor,
 in the `io.takamaka.code.util.StorageList` held in field `investors`.
 That utility class implements an unbounded list of objects.
@@ -2031,10 +2031,10 @@ import io.takamaka.code.blockchain.values.StringValue;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 public class Main {
-  private final static BigInteger _20_000 = BigInteger.valueOf(20_000L);
+  private final static BigInteger _50_000 = BigInteger.valueOf(50_000L);
   private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
   private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
-  private static final ClassType TIC_TAC_TOE = new ClassType("takamaka.tests.tictactoe.TicTacToe");
+  private static final ClassType TIC_TAC_TOE = new ClassType("io.takamaka.tests.tictactoe.TicTacToe");
   private static final IntValue _1 = new IntValue(1);
   private static final IntValue _2 = new IntValue(2);
   private static final IntValue _3 = new IntValue(3);
@@ -2053,7 +2053,7 @@ public class Main {
     // installation in blockchain of the jar of the TicTacToe contract
     TransactionReference tictactoe = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       creator, // this account pays for the transaction
-      _20_000, // gas provided to the transaction
+      _50_000, // gas provided to the transaction
       blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
       Files.readAllBytes(Paths.get("../tictactoe/dist/tictactoe.jar")), // bytes containing the jar to install
       blockchain.takamakaBase
@@ -2064,14 +2064,14 @@ public class Main {
     // creation of the TicTacToe contract
     StorageReference ticTacToe = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
       creator, // this account pays for the transaction
-      _20_000, // gas provided to the transaction
+      _50_000, // gas provided to the transaction
       classpath,
       new ConstructorSignature(TIC_TAC_TOE))); /// TicTacToe()
 
     // player1 plays at (1,1)
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
       player1, // this account pays for the transaction
-      _20_000, // gas provided to the transaction
+      _50_000, // gas provided to the transaction
       classpath,
       new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
@@ -2080,7 +2080,7 @@ public class Main {
     // player2 plays at (2,1)
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
       player2, // this account pays for the transaction
-      _20_000, // gas provided to the transaction
+      _50_000, // gas provided to the transaction
       classpath,
       new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
@@ -2089,7 +2089,7 @@ public class Main {
     // player1 plays at (1,2)
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
       player1, // this account pays for the transaction
-      _20_000, // gas provided to the transaction
+      _50_000, // gas provided to the transaction
       classpath,
       new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
@@ -2098,7 +2098,7 @@ public class Main {
     // player2 plays at (2,2)
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
       player2, // this account pays for the transaction
-      _20_000, // gas provided to the transaction
+      _50_000, // gas provided to the transaction
       classpath,
       new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
@@ -2107,7 +2107,7 @@ public class Main {
     // player1 plays at (1,3)
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
       player1, // this account pays for the transaction
-      _20_000, // gas provided to the transaction
+      _50_000, // gas provided to the transaction
       classpath,
       new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
@@ -2116,7 +2116,7 @@ public class Main {
     // player1 calls toString() on the TicTacToe contract
     StringValue toString = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
       player1, // this account pays for the transaction
-      _20_000, // gas provided to the transaction
+      _50_000, // gas provided to the transaction
       classpath,
       new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING), // String TicTacToe.toString()
       ticTacToe)); // receiver of the call
@@ -2126,7 +2126,7 @@ public class Main {
     // the game is over, but player2 continues playing and will get an exception
     blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
       player2, // this account pays for the transaction
-      _20_000, // gas provided to the transaction
+      _50_000, // gas provided to the transaction
       classpath,
       new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
       ticTacToe, // receiver of the call
@@ -2143,32 +2143,48 @@ X|O|
 X|O| 
 -----
 X| | 
-Exception in thread "main" takamaka.blockchain.TransactionException: Failed transaction
-  at takamaka.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.lambda$runInstanceMethodCallTransaction$16(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.runInstanceMethodCallTransaction(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.lambda$addInstanceMethodCallTransaction$17(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.wrapWithCodeInCaseOfException(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.addInstanceMethodCallTransaction(Unknown Source)
-  at takamaka.tests.tictactoe.Main.main(Main.java:121)
-Caused by: takamaka.lang.RequirementViolationException: the game is over
-  at takamaka.lang.Takamaka.require(Unknown Source)
-  at takamaka.tests.tictactoe.TicTacToe.play(TicTacToe.java:67)
-  at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-  at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-  at java.lang.reflect.Method.invoke(Method.java:498)
-  at takamaka.blockchain.AbstractBlockchain$InstanceMethodExecutor.run(Unknown Source)
+Exception in thread "main" io.takamaka.code.blockchain.TransactionException: Failed transaction
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.lambda$runInstanceMethodCallTransaction$15(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.runInstanceMethodCallTransaction(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractSequentialBlockchain.lambda$addInstanceMethodCallTransaction$9(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractSequentialBlockchain.wrapWithCodeInCaseOfException(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractSequentialBlockchain.addInstanceMethodCallTransaction(Unknown Source)
+  at io.takamaka.tests/io.takamaka.tests.tictactoe.Main.main(Main.java:122)
+Caused by: io.takamaka.code.lang.RequirementViolationException: the game is over
+  at io.takamaka.code.lang.Takamaka.require(Takamaka.java:24)
+  at io.takamaka.tests.tictactoe.TicTacToe.play(TicTacToe.java:56)
+  at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+  at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+  at java.base/java.lang.reflect.Method.invoke(Method.java:567)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain$InstanceMethodExecutor.run(Unknown Source)
 ```
 
 The exception, as we said, is expected since we have instructed the contract
-to behave so when the game is over but somebody tries to continue playing.
+to behave that way when the game is over but somebody tries to continue playing.
 
-It might be interesting to have a look at the response of the transaction
-when the first player wins: `b2/t1/response.txt`. You should see
-that the balances of the creator and of the first player are updated,
-as well as that of the contract, that is emptied of all money and
+It is interesting to have a look at the response of the transaction
+`b2/t1/response.txt` when the first player wins:
+
+```
+VoidMethodCallTransactionSuccessfulResponse:
+  gas consumed for CPU execution: 3857
+  gas consumed for RAM allocation: 2811
+  gas consumed for storage consumption: 626
+  updates:
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99474>
+    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|998580>
+    <1.1#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|0>
+    <1.1#0|io.takamaka.tests.tictactoe.TicTacToe.gameOver:boolean|true>
+    <1.1#8|io.takamaka.code.util.StorageArray$Node.value:java.lang.Object|io.takamaka.tests.tictactoe.TicTacToe$Tile.CROSS>
+  events:
+```
+
+You can see that the balances of the creator `0.2#0`
+and of the first player `0.3#0` are updated,
+as well as that of the contract `1.1#0`, that is emptied of all money and
 reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
 
 ## Specialized Storage Array Classes <a name="specialized-storage-array-classes">
@@ -2220,19 +2236,19 @@ of these classes and interfaces, we refer to their JavaDoc.
 
 Maps are dynamic associations of objects to objects. They are useful
 for programming smart contracts, as their extensive use in Solidity proves.
-However, most such uses are related to the withdraw pattern, that is
+However, most such uses are related to the withdrawal pattern, that is
 not needed in Takamaka. Nevertheless, there are still situations when
 maps are useful in Takamaka code, as we show below.
 
 Java has many implementations of maps, that can be used in Takamaka.
 However, they are not storage ojects and consequently cannot be
 stored in blockchain. This section describes the
-`takamaka.util.StorageMap<K, V>` class, that extends `Storage` and
+`io.takamaka.code.util.StorageMap<K, V>` class, that extends `Storage` and
 whose instances can then be held in blockchain, if keys `K` and
 values `V` are types that can be stored in blockchain.
 
 We refer to the JavaDoc of `StorageMap` for a full description of its methods,
-that are similar to methods of traditional Java maps. Here, we just observe
+that are similar to those of traditional Java maps. Here, we just observe
 that a key is mapped into a value by calling method
 `void put(K key, V value)`, while the value bound to a key is retrieved by calling
 `V get(Object key)`. It is possible to yield a default value when a key is not
@@ -2252,8 +2268,7 @@ minimal and the maximal key of a map. Method `List<K> keyList()` yields the
 ordered list of the keys of a map; method `Stream<K> keys()` yields the
 same, as an ordered stream; method `Stream<Entry<K, V>> stream()` yields the
 ordered stream of the entries (ie., key/value pairs) of a map.
-Compare this with Solidity, where
-maps do not know the set of their keys.
+Compare this with Solidity, where maps do not know the set of their keys.
 
 ## A Blind Auction Contract <a name="a-blind-auction-contract"></a>
 
@@ -2283,11 +2298,11 @@ by a similar Solidity contract available
 <a href="https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2">here</a>.
 
 ```java
-package takamaka.tests.auction;
+package io.takamaka.tests.auction;
 
-import static takamaka.lang.Takamaka.event;
-import static takamaka.lang.Takamaka.now;
-import static takamaka.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.event;
+import static io.takamaka.code.lang.Takamaka.now;
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -2295,14 +2310,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import takamaka.lang.Contract;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
-import takamaka.lang.PayableContract;
-import takamaka.lang.Storage;
-import takamaka.util.Bytes32;
-import takamaka.util.StorageList;
-import takamaka.util.StorageMap;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.Storage;
+import io.takamaka.code.util.Bytes32;
+import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageMap;
 
 /**
  * A contract for a simple auction. This class is derived from the Solidity code shown at
@@ -2571,7 +2586,7 @@ milliseconds. This allows the contract to compute tha absolute ending time
 for the bidding phase and for the reveal phase, stored into fields
 `biddingEnd` and `revealEnd`, respectively.
 Note, in the contructor of `BlindAuction`, the
-use of the static method `takamaka.lang.Takamaka.now()`, that yields the
+use of the static method `io.takamaka.code.lang.Takamaka.now()`, that yields the
 current time, as with the traditional `System.currentTimeMillis()` of Java
 (that instead cannot be used in Takamaka code). Method `now()` yields the
 time at the beginning of the block of the current transaction, as seen by its miner.
@@ -2582,8 +2597,8 @@ Method `bid()` allows a caller (the bidder) to place a bid during the bidding ph
 An instance of `Bid` is created and added to a list, specific to each
 bidder. Here is where our map comes to our help. Namely, field
 `bids` hold a `StorageMap<PayableContract, StorageList<Bid>>`,
-that can be held in blockchain since it is a storage map of storage keys
-and values. Method `bid()` computes an empty list of bids if it is the
+that can be held in blockchain since it is a storage map between storage keys
+and storage values. Method `bid()` computes an empty list of bids if it is the
 first time that a bidder places a bid. For that, it uses method
 `computerIfAbsent()` of `StorageMap`. If it used method `get()`, it would
 run into a null-pointer exception the first time a bidder places a bid.
@@ -2618,43 +2633,22 @@ event(new AuctionEnd(winner, highestBid));
 
 Events are milestones that are saved in blockchain and can be queried
 from outside. Observers, external to the blockchain, can use events
-to trigger actions when they appear on blockchain. In terms of the
+to trigger actions when they appear in blockchain. In terms of the
 Takamaka language, events are generated through the
-`takamaka.lang.Takamaka.event(Event event)` method, that receives a parameter
-of type `takamaka.lang.Event`. The latter is simply an abstract class that
-extends `Storage`. Hence, any storage object can be used as an event and will
+`io.takamaka.code.lang.Takamaka.event(Event event)` method, that receives a parameter
+of type `io.takamaka.code.lang.Event`. The latter is simply an abstract class that
+extends `Storage`. Hence, events will
 be stored in blockchain as part of the transaction that generated that event.
 
 In our example, the `BlindAuction` class uses two events, that are defined as
 
 ```java
-package takamaka.tests.auction;
+package io.takamaka.tests.auction;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Event;
-import takamaka.lang.PayableContract;
-
-public class AuctionEnd extends Event {
-  public final PayableContract highestBidder;
-  public final BigInteger highestBid;
-
-  AuctionEnd(PayableContract highestBidder, BigInteger highestBid) {
-    this.highestBidder = highestBidder;
-    this.highestBid = highestBid;
-  }
-}
-```
-
-and
-
-```java
-package takamaka.tests.auction;
-
-import java.math.BigInteger;
-
-import takamaka.lang.Event;
-import takamaka.lang.PayableContract;
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.PayableContract;
 
 public class BidIncrease extends Event {
   public final PayableContract caller;
@@ -2667,22 +2661,43 @@ public class BidIncrease extends Event {
 }
 ```
 
+and
+
+```java
+package io.takamaka.tests.auction;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Event;
+import io.takamaka.code.lang.PayableContract;
+
+public class AuctionEnd extends Event {
+  public final PayableContract highestBidder;
+  public final BigInteger highestBid;
+
+  AuctionEnd(PayableContract highestBidder, BigInteger highestBid) {
+    this.highestBidder = highestBidder;
+    this.highestBid = highestBid;
+  }
+}
+```
+
 ## Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
 
 Let us play with the `BlindAuction` contract. As in the previous examples,
 we need a jar
 that contains the compiled code of the contract. For that, as already
 done previously, you can for
-instance create a new Eclipse Java project `auction`, add the `lib` and
-`dist` folders inside it, copy `takamaka_base.jar` and
-`takamaka_runtime.jar` inside `lib` and add both to the
-build path. Create a package `takamaka.tests.auction` and copy
+instance create a new Eclipse Java 9 (or later) project `auction`, add the `mods` and
+`dist` folders inside it, copy `io-takamaka-code-1.0.jar`
+inside `mods` and add it to the module path.
+Then create a package `io.takamaka.tests.auction` and copy
 inside it the code of `BlindAuction.java`, `AuctionEnd.java` and
 `BidIncrease.java` above. Then export the compiled
 code as a jar inside `dist` as `auction.jar`.
 
 Go now to the `blockchain` Eclipse project and create a new
-`takamaka.tests.auction` package inside its sources. Add the following
+`io.takamaka.tests.auction` package inside `src`. Add the following
 `Main.java` class inside that package.
 
 ```java
