@@ -1590,7 +1590,7 @@ Next section shows an example of use of `StorageArray<T>`.
 
 Tic-tac-toe is a two-players game where players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
-player who places three crosses or three circles on the same row, or
+player who places three crosses or three circles on the same row,
 column or diagonal. For instance, in the following board the player of
 the cross wins:
 
@@ -1616,30 +1616,32 @@ an anumeration of the three possible tiles (empty, cross, circle). This is
 possible but overkill. It is simpler and cheaper (also in terms of gas)
 to use the previous diagram as a conceptual representation of the board
 shown to the users, but use, internally,
-a monodimensional array of 9 tiles, distributed as follows:
+a monodimensional array of nine tiles, distributed as follows:
 
 <p align="center">
   <img width="250" height="250" src="pics/tictactoe_grid_linear.png" alt="Tic-tac-toe linear grid">
 </p>
 
 which can be implemented as a `StorageArray<Tile>`. There will be functions
-for translating the conecptual representation into the internal one.
+for translating the conceptual representation into the internal one.
 
 This leads to the following contract:
 
 ```java
-package takamaka.tests.tictactoe;
+package io.takamaka.tests.tictactoe;
 
+import static io.takamaka.code.lang.Takamaka.require;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
-import static takamaka.lang.Takamaka.require;
 
-import takamaka.lang.Contract;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
-import takamaka.lang.PayableContract;
-import takamaka.lang.View;
-import takamaka.util.StorageArray;
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.View;
+import io.takamaka.code.util.StorageArray;
 
 public class TicTacToe extends Contract {
 
@@ -1725,13 +1727,13 @@ put in the tic-tac-toe board. It has a `toString()` method, that yields the
 usual representation for such alternatives, and a `nextTurn()` method, that
 alternates between cross and circle.
 
-> The `Tile` enumeration has been defined as `static` since it does not
-> need to access the external `TicTacToe` object. It is well possible
+> The `Tile` enumeration has been defined as `static` since it needn't
+> access the external `TicTacToe` object. It is well possible
 > to get rid of that `static`: the contract will work perfectly well anyway.
 > However, adding `static` is a Java feature that allows
 > programmers to reduce the memory footprint of the enumeration elements and the
 > cost of garbage collection. In the case of Takamaka, it also reduces the
-> gas cost of using this enumeration, which is probably a more convicing
+> gas cost of using this enumeration, which is probably a more convincing
 > argument for using `static`, since gas is money.
 
 The board of the game is represented as a `new StorageArray<Tile>(9, Tile.EMPTY)`, whose
@@ -1746,8 +1748,8 @@ public TicTacToe() {
 }
 ```
 
-Methods `at()` and `set()` read and set, respectively, the board element
-at indexes (x,y). They transform the bidimensional conceptual representation
+Methods `at()` and `set()` read and set the board element
+at indexes (x,y), respectively. They transform the bidimensional conceptual representation
 of the board into its internal monodimensional representation. Since `at()` is `public`,
 we defensively check the validity of the indexes there.
 
@@ -1817,8 +1819,8 @@ a couple of drawbacks that make it still incomplete. Namely:
 
 1. the creator of the game must spend gas to call its constructor,
    but has no direct incentive in doing so. He must be a benefactor,
-   or hope to take part in the game after creation, in no other contract is
-   faster;
+   or hope to take part in the game after creation, if he is faster than
+   any other potential player;
 2. if the game ends in a draw, money gets stuck in the `TicTacToe` contract
    instance, for ever and ever.
 
@@ -1832,20 +1834,20 @@ is reported below. Note that we added an `@Entry` contructor, that takes
 note of the `creator` of the game:
 
 ```java
-package takamaka.tests.tictactoe;
+package io.takamaka.tests.tictactoe;
 
+import static io.takamaka.code.lang.Takamaka.require;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
-import static takamaka.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
-import takamaka.lang.PayableContract;
-import takamaka.lang.View;
-import takamaka.util.StorageArray;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.View;
+import io.takamaka.code.util.StorageArray;
 
 public class TicTacToe extends Contract {
 
@@ -1914,7 +1916,7 @@ public class TicTacToe extends Contract {
     if (isGameOver(x, y)) {
       // 90% goes to the winner
       player.receive(balance().multiply(BigInteger.valueOf(9L)).divide(BigInteger.valueOf(10L)));
-      // the rest to the creator of the game
+      // the rest goes to the creator of the game
       creator.receive(balance());
     }
     else if (isDraw())
@@ -1947,7 +1949,7 @@ public class TicTacToe extends Contract {
 
 > We have chosen to allow a `long amount` in the `@Payable` method `play()` since
 > it is unlikely that users will want to invest huge quantities of money in this
-> game. This gives us now the opportunity to discuss why the computation of the
+> game. This gives us the opportunity to discuss why the computation of the
 > previous bet has been written as
 > ```java
 > long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue()
@@ -1980,15 +1982,15 @@ public class TicTacToe extends Contract {
 Let us play with the `TicTacToe` contract. First of all, we need a jar
 that contains the compiled code of the contract. For that, as already
 done previously, you can for
-instance create a new Eclipse Java project `tictactoe`, add the `lib` and
-`dist` folders inside it, copy `takamaka_base.jar` and
-`takamaka_runtime.jar` inside `lib` and add both to the
-build path. Create a package `takamaka.tests.tictactoe` and copy
+instance create a new Eclipse Java 9 (or later) project `tictactoe`, add the `mods` and
+`dist` folders inside it, copy `io-takamaka-code-1.0.jar`
+inside `mods` and add it to the module path.
+Then create a package `io.takamaka.tests.tictactoe` and copy
 inside it the code of `TicTacToe.java` above. Then export the compiled
-code as a jar inside `dist` as `tictactoe.jar`.
+code inside `dist` as a jar `tictactoe.jar`.
 
 In the `blokchain` project that we have already created, add a package
-`takamaka.tests.tictactoe` and, inside it, create a `Main.java` class
+`io.takamaka.tests.tictactoe` and, inside it, create a `Main.java` class
 that contains the following code. It creates a test blockchain in
 disk memory and runs a few transactions:
 
@@ -2001,32 +2003,32 @@ disk memory and runs a few transactions:
 The last transaction fails with an exception, since the game is over at that point.
 
 ```java
-package takamaka.tests.tictactoe;
+package io.takamaka.tests.tictactoe;
 
-import static takamaka.blockchain.types.BasicTypes.INT;
-import static takamaka.blockchain.types.BasicTypes.LONG;
+import static io.takamaka.code.blockchain.types.BasicTypes.INT;
+import static io.takamaka.code.blockchain.types.BasicTypes.LONG;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import takamaka.blockchain.Classpath;
-import takamaka.blockchain.CodeExecutionException;
-import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.NonVoidMethodSignature;
-import takamaka.blockchain.TransactionException;
-import takamaka.blockchain.TransactionReference;
-import takamaka.blockchain.VoidMethodSignature;
-import takamaka.blockchain.request.ConstructorCallTransactionRequest;
-import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
-import takamaka.blockchain.request.JarStoreTransactionRequest;
-import takamaka.blockchain.types.ClassType;
-import takamaka.blockchain.values.IntValue;
-import takamaka.blockchain.values.LongValue;
-import takamaka.blockchain.values.StorageReference;
-import takamaka.blockchain.values.StringValue;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.blockchain.TransactionException;
+import io.takamaka.code.blockchain.TransactionReference;
+import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
+import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
+import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
+import io.takamaka.code.blockchain.signatures.ConstructorSignature;
+import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
+import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
+import io.takamaka.code.blockchain.types.ClassType;
+import io.takamaka.code.blockchain.values.IntValue;
+import io.takamaka.code.blockchain.values.LongValue;
+import io.takamaka.code.blockchain.values.StorageReference;
+import io.takamaka.code.blockchain.values.StringValue;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 public class Main {
   private final static BigInteger _20_000 = BigInteger.valueOf(20_000L);
@@ -2042,7 +2044,7 @@ public class Main {
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
     // creation of a test blockchain in memory with three accounts
     InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/takamaka_base.jar"), _100_000, _1_000_000, _1_000_000);
+      (Paths.get("lib/io-takamaka-code-1.0.jar"), _100_000, _1_000_000, _1_000_000);
 
     StorageReference creator = blockchain.account(0);
     StorageReference player1 = blockchain.account(1);
