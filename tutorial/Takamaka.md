@@ -1186,8 +1186,8 @@ with useless transactions, that do not modify its state.
 ## The Hierarchy of Contracts <a name="hierarchy-contracts"></a>
 
 The figure below shows the hierarchy of contract classes in Takamaka.
-The topmost class is `io.takamaka.code.lang.Contract`, an abstract class that
-extends `io.takamaka.code.lang.Storage` since contracts are meant to be
+The topmost `io.takamaka.code.lang.Contract` is an abstract class that
+extends `io.takamaka.code.lang.Storage`, since contracts are meant to be
 stored in blockchain (as well as other classes that are not contracts,
 such as our first `Person` example):
 
@@ -1216,9 +1216,9 @@ amount of coins. As we have seen in sections
 blockchain methods that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
 `ExternallyOwnedAccount`, or an exception will be thrown. In our examples
-using a blockchain in disk memory, the expressions
+that use a blockchain in disk memory, the expressions
 `blockchain.account(0)` and `blockchain.account(1)` actually refer to
-`ExternallyOwnedAccount` created during initialization transactions triggered
+`ExternallyOwnedAccount`s created during initialization transactions triggered
 inside the constructor of the blockchain.
 
 # Utility Classes <a name="utility-classes"></a>
@@ -1234,11 +1234,11 @@ cope with such constraints, by providing fixed or variable-sized collections
 that can be used in storage objects, since they are storage objects themselves.
 Such utility classes implement lists, arrays and maps and are
 consequently generally described as *collections*. They have the
-property of being storage classes, hence their objects can be kept
+property of being storage classes, hence their objects can be kept in
 blockchain, *as long as only storage objects are added as elements of
 a collection*. As usual with collections, these utility classes
 will have generic type, to implement collections of arbitrary, but fixed
-types. Takamaka allows Java generic types.
+types. Namely, Takamaka allows Java generic types.
 
 ## Storage Lists <a name="storage-lists"></a>
 
@@ -1247,7 +1247,7 @@ possible to access the first element in constant time, while accesses
 to the *n*th element require the scan the list from its beginning and
 consequently have a cost proportional to *n*. Because of this,
 lists are **not** random-access data structures, where the *n*th
-element should be accessable in constant time. It is also possible
+element should be accessible in constant time. It is also possible
 to add an element at the beginning of a list, in constant time.
 The size of a list is not fixed: lists grow in size as more elements are
 added.
@@ -1262,9 +1262,9 @@ can be stored in blockchain, *as long as only
 storage objects are added to the list*. Takamaka lists provide
 constant-time access and addition to both ends of a list.
 We refer to the JavaDoc of `StorageList<T>` for a full list of its methods.
-They include methods adding elements to both ends of the list, accessing and
+They include methods for adding elements to either ends of the list, for accessing and
 removing elements, for iterating on a list and for building a Java array
-`T[]` with the elements of a `StorageList<T>`.
+`T[]` holding the elements of a `StorageList<T>`.
 
 Next section shows an example of use of `StorageList`.
 
@@ -1282,17 +1282,17 @@ inspired by a similar Ethereum contract from Iyer and Dannen,
 *Building Games with Ethereum Smart Contracts*, page 150, Apress 2018:
 
 ```java
-package takamaka.tests.ponzi;
+package io.takamaka.tests.ponzi;
 
-import static takamaka.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
-import takamaka.lang.PayableContract;
-import takamaka.util.StorageList;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.util.StorageList;
 
 public class GradualPonzi extends Contract {
   public final BigInteger MINIMUM_INVESTMENT = BigInteger.valueOf(1_000L);
@@ -1318,14 +1318,14 @@ public class GradualPonzi extends Contract {
 
 The construtcor of `GradualPonzi` is an `@Entry`, hence can only be
 called from another contract, that gets added, as first investor,
-in the `takamaka.util.StorageList` held in field `investors`.
+in the `io.takamaka.code.util.StorageList` held in field `investors`.
 That utility class implements an unbounded list of objects.
 It is a storage object, as long as only storage objects are
 added inside it.
 Subsequently, other contracts can invest by calling method `invest()`.
 A minimum investment is required, but this remains constant with the time.
 The `amount` invested gets split by the number of the previous investors
-and sent back to each of them. Note that Takamaka allows one to use
+and sent back to each of them. Note that Takamaka allows programmers to use
 Java 8 lambdas and streams.
 Old fashioned Java programmers, who don't feel at home with such treats,
 can exploit the fact that
@@ -1347,8 +1347,9 @@ for (int pos = 0; pos < investors.size(); pos++)
 
 since lists are not random-access data structures and the complexity of the
 last loop is quadratic in the size of the list. This is not a novelty: the
-same occurs with most traditional Java lists (`java.util.LinkedList`, in particular).
-But, in Takamaka, code execution costs gas and
+same occurs with many traditional Java lists, that do not implement
+`java.util.RandomAccess` (a notable example is `java.util.LinkedList`).
+In Takamaka, code execution costs gas and
 computational complexity does matter more than in other programming contexts.
 
 ### A Note on Re-entrancy <a name="a-note-on-re-entrancy"></a>
@@ -1383,8 +1384,8 @@ is still linear in the number of previous investors, but it is cheaper
 (in Solidity) than sending money back to each of them, which
 requires costy inter-contract calls.
 With this technique, previous investors are
-now required to withdraw their balance explicitly,
-through a `widthdraw()` function.
+now required to withdraw their balance explicitly and voluntarily,
+through a call to some `widthdraw()` function.
 This leads to the *withdrawing pattern* used for writing Solidity contracts.
 
 We have not used the withdrawing pattern in `GradualPonzi.java`. In general,
@@ -1404,11 +1405,11 @@ immediately.
 
 Let us play with the `GradualPonzi` contract. Go to the
 `ponzi` Eclipse project and copy `GradualPonzi.java` inside
-package `takamaka.tests.ponzi`.
+package `io.takamaka.tests.ponzi`.
 Then export the compiled code in jar format inside `dist`,
 as `ponzi.jar`.
 
-Go now to the `blockchain` project and create a package `takamaka.tests.ponzi`
+Go now to the `blockchain` project and create a package `io.takamaka.tests.ponzi`
 inside that project. Copy the following code as `Main.java`. Its goal is
 
 1. to install `ponzi.jar` in blockchain
@@ -1422,36 +1423,36 @@ The last transaction fails with an exception, since the contract
 requires a minimum investment.
 
 ```java
-package takamaka.tests.ponzi;
+package io.takamaka.tests.ponzi;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import takamaka.blockchain.Classpath;
-import takamaka.blockchain.CodeExecutionException;
-import takamaka.blockchain.ConstructorSignature;
-import takamaka.blockchain.TransactionException;
-import takamaka.blockchain.TransactionReference;
-import takamaka.blockchain.VoidMethodSignature;
-import takamaka.blockchain.request.ConstructorCallTransactionRequest;
-import takamaka.blockchain.request.InstanceMethodCallTransactionRequest;
-import takamaka.blockchain.request.JarStoreTransactionRequest;
-import takamaka.blockchain.types.ClassType;
-import takamaka.blockchain.values.BigIntegerValue;
-import takamaka.blockchain.values.StorageReference;
-import takamaka.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.blockchain.TransactionException;
+import io.takamaka.code.blockchain.TransactionReference;
+import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
+import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
+import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
+import io.takamaka.code.blockchain.signatures.ConstructorSignature;
+import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
+import io.takamaka.code.blockchain.types.ClassType;
+import io.takamaka.code.blockchain.values.BigIntegerValue;
+import io.takamaka.code.blockchain.values.StorageReference;
+import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 public class Main {
   private final static BigInteger _20_000 = BigInteger.valueOf(20_000L);
   private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
-  private static final ClassType GRADUAL_PONZI = new ClassType("takamaka.tests.ponzi.GradualPonzi");
+  private static final ClassType GRADUAL_PONZI = new ClassType("io.takamaka.tests.ponzi.GradualPonzi");
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
     // creation of a test blockchain in memory with three accounts
     InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/takamaka_base.jar"), _1_000_000, _1_000_000, _1_000_000);
+      (Paths.get("lib/io-takamaka-code-1.0.jar"), _1_000_000, _1_000_000, _1_000_000);
 
     StorageReference player1 = blockchain.account(0);
     StorageReference player2 = blockchain.account(1);
@@ -1509,23 +1510,23 @@ transactions that create and invest in the contract, until the last one,
 that ends up in exception:
 
 ```
-Exception in thread "main" takamaka.blockchain.TransactionException: Failed transaction
-  at takamaka.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.lambda$runInstanceMethodCallTransaction$16(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.runInstanceMethodCallTransaction(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.lambda$addInstanceMethodCallTransaction$17(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.wrapWithCodeInCaseOfException(Unknown Source)
-  at takamaka.blockchain.AbstractBlockchain.addInstanceMethodCallTransaction(Unknown Source)
-  at takamaka.tests.ponzi.Main.main(Main.java:73)
-Caused by: takamaka.lang.RequirementViolationException: you must invest at least 1000
-  at takamaka.lang.Takamaka.require(Unknown Source)
-  at takamaka.tests.ponzi.GradualPonzi.invest(GradualPonzi.java:38)
-  at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-  at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-  at java.lang.reflect.Method.invoke(Method.java:498)
-  at takamaka.blockchain.AbstractBlockchain$InstanceMethodExecutor.run(Unknown Source)
+Exception in thread "main" io.takamaka.code.blockchain.TransactionException: Failed transaction
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.lambda$runInstanceMethodCallTransaction$15(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.runInstanceMethodCallTransaction(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractSequentialBlockchain.lambda$addInstanceMethodCallTransaction$9(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractSequentialBlockchain.wrapWithCodeInCaseOfException(Unknown Source)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractSequentialBlockchain.addInstanceMethodCallTransaction(Unknown Source)
+  at io.takamaka.tests/io.takamaka.tests.ponzi.Main.main(Main.java:72)
+Caused by: io.takamaka.code.lang.RequirementViolationException: you must invest at least 1000
+  at io.takamaka.code.lang.Takamaka.require(Takamaka.java:62)
+  at io.takamaka.tests.ponzi.GradualPonzi.invest(GradualPonzi.java:27)
+  at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+  at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+  at java.base/java.lang.reflect.Method.invoke(Method.java:567)
+  at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain$InstanceMethodExecutor.run(Unknown Source)
 ```
 
 It might be interesting to look at the response of the transaction where
@@ -1533,17 +1534,19 @@ the third player invests 1500 coins: `b1/t3/response.txt`:
 
 ```
 VoidMethodCallTransactionSuccessfulResponse:
-  consumed gas: 447
+  gas consumed for CPU execution: 1077
+  gas consumed for RAM allocation: 1263
+  gas consumed for storage consumption: 1073
   updates:
-    <THIS_TRANSACTION#0.class|takamaka.util.StorageList$Node>
-    <0.2#0|takamaka.lang.Contract.balance:java.math.BigInteger|1000211>
-    <0.3#0|takamaka.lang.Contract.balance:java.math.BigInteger|999514>
-    <0.4#0|takamaka.lang.Contract.balance:java.math.BigInteger|998455>
-    <1.1#1|takamaka.util.StorageList.size:int|3>
-    <1.1#1|takamaka.util.StorageList.last:takamaka.util.StorageList$Node|THIS_TRANSACTION#0>
-    <1.2#0|takamaka.util.StorageList$Node.next:takamaka.util.StorageList$Node|THIS_TRANSACTION#0>
-    <THIS_TRANSACTION#0|takamaka.util.StorageList$Node.element:java.lang.Object|0.4#0>
-    <THIS_TRANSACTION#0|takamaka.util.StorageList$Node.next:takamaka.util.StorageList$Node|null>
+    <1.3#0.class|io.takamaka.code.util.StorageList$Node|@0.0>
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|1001712>
+    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|999350>
+    <0.4#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|998300>
+    <1.1#1|io.takamaka.code.util.StorageList.size:int|3>
+    <1.1#1|io.takamaka.code.util.StorageList.last:io.takamaka.code.util.StorageList$Node|1.3#0>
+    <1.2#0|io.takamaka.code.util.StorageList$Node.next:io.takamaka.code.util.StorageList$Node|1.3#0>
+    <1.3#0|io.takamaka.code.util.StorageList$Node.element:java.lang.Object|0.4#0>
+    <1.3#0|io.takamaka.code.util.StorageList$Node.next:io.takamaka.code.util.StorageList$Node|null>
   events:
 ```
 
@@ -1551,6 +1554,8 @@ The third player is `0.4#0` and sees its balance updated since it payed
 for the transaction and invested money, that got distributed to the
 previous players `0.2#0` and `0.3#0`. The size of the storage list
 `1.1#1` containing the investors becomes 3 with that transaction.
+You can see that the transaction updates other objects as well, that are
+used internally to represent the nodes of the list.
 
 ## Storage Arrays <a name="storage_arrays"></a>
 
@@ -1562,7 +1567,7 @@ of dynamic arrays.
 Java has native arrays, of type `T[]`, where `T` is the
 type of the elements of the array. They can be used in Takamaka, but not
 as fields of storage classes. For that, Takamaka provides class
-`takamaka.util.StorageArray<T>`. Its instances are storage objects and
+`io.takamaka.code.util.StorageArray<T>`. Its instances are storage objects and
 can consequently be held in fields of storage classes and
 can be stored in blockchain, *as long as only
 storage objects are added to the array*. Their size is fixed and decided
@@ -1575,7 +1580,7 @@ accessing elements of a `StorageList<T>` that, however, has the advantage
 of dynamic size.
 
 We refer to the JavaDoc of `StorageArray<T>` for a full list of its methods.
-They include methods adding elements, accessing and
+They include methods for adding elements, for accessing and
 removing elements, for iterating on an array and for building a Java array
 `T[]` with the elements of a `StorageArray<T>`.
 
