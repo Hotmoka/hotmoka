@@ -85,7 +85,7 @@ on the module containing the runtime classes of Takamaka, needed for
 development:
 
 ```java
-module io.takamaka.tests {
+module family {
   requires io.takamaka.code;
 }
 ```
@@ -824,20 +824,28 @@ the meaning of each language feature of Takamaka.
 
 ## A Simple Ponzi Scheme Contract <a name="simple-ponzi"></a>
 
-Create a new `ponzi` Java project in Eclipse. Create folders `lib`
-and `dist` inside the project. Put both `takamaka_base.jar` and `takamaka_runtime.jar`
-inside `lib` and add them to the build path of `ponzi`. Create package
-`takamaka.tests.ponzi`; create class `SimplePonzi.java` inside that
-package and copy the following code in `SimplePonzi.java`:
+Create a new `ponzi` Java 9 (or later) project in Eclipse. Create folders `mods`
+and `dist` inside the project. Put `io-takamaka-code-1.0.jar`
+inside `mods` and add it to the module path of `ponzi`. Create
+the following module descriptor inside `src`:
 
 ```java
-package takamaka.tests.ponzi;
+module ponzi {
+  requires io.takamaka.code;
+}
+```
 
-import static takamaka.lang.Takamaka.require;
+Create package `io.takamaka.tests.ponzi` inside `src` and add
+class the following `SimplePonzi.java` source inside that package:
+
+```java
+package io.takamaka.tests.ponzi;
+
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
+import io.takamaka.code.lang.Contract;
 
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
@@ -846,9 +854,9 @@ public class SimplePonzi extends Contract {
   private BigInteger currentInvestment = BigInteger.ZERO;
 
   public void invest(Contract investor, BigInteger amount) {
-    // new investments must be 10% greater than current
+    // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) >= 0, () -> "you must invest at least " + minimumInvestment);
 
     // document new investor
     currentInvestor = investor;
@@ -857,7 +865,7 @@ public class SimplePonzi extends Contract {
 }
 ```
 
-> This code is only the starting point of our discussion.
+> This code is only a starting point of our discussion, not yet functional.
 > The real final version of this contract will appear at
 > the end of this section.
 
@@ -869,30 +877,30 @@ is a comparison between two Java `BigInteger`s and should be read as the
 more familiar `amount > minimumInvestment`: the latter cannot be
 written in this form, since Java does not allow comparison operators
 to work on reference types.
-The static method `takamaka.lang.Takamaka.require()` can be used to require
+The static method `io.takamaka.code.lang.Takamaka.require()` can be used to require
 some precondition to hold. The `require(condition, message)` call throws an
 exception if `condition` does not hold, with the given `message`.
 If the new investment is at least 10% larger than the current, it will be
 saved in the state of the contract, together with the new investor.
 
 > You might wonder why we have written
-> `require(..., () -> "you must invest more than " + minimumInvestment)`
+> `require(..., () -> "you must invest at least " + minimumInvestment)`
 > instead of the simpler
-> `require(..., "you must invest more than " + minimumInvestment)`.
+> `require(..., "you must invest at least " + minimumInvestment)`.
 > Both are possible and semantically identical. However, the former
 > uses a lambda expression that computes the string concatenaton only if
 > the message is needed; the latter always computes the string concatenation.
 > Hence, the first version consumes less gas, in general, and is consequently
 > preferrable. This technique simulates lazy evaluation in a language, like
 > Java, that has only eager evaluation for actual parameters. This technique
-> has been used since years in JUnit assertions.
+> has been used since years, for instance in JUnit assertions.
 
 ## The `@Entry` and `@Payable` Annotations <a name="entry-payable"></a>
 
 The previous code of `SimplePonzi.java` is unsatisfactory, for at least two
 reasons, that we will overcome in this section:
 
-1. any contract can call `invest()` and let another contract `investor` invest
+1. any contract can call `invest()` and let another `investor` contract invest
    in the game. This is against our intuition that each investor decides when
    and how much he (himself) decides to invest;
 2. there is no money transfer. Anybody can call `invest()`, with an arbitrary
@@ -902,14 +910,14 @@ reasons, that we will overcome in this section:
 Let us rewrite `SimplePonzi.java` in the following way:
 
 ```java
-package takamaka.tests.ponzi;
+package io.takamaka.tests.ponzi;
 
-import static takamaka.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
-import takamaka.lang.Entry;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
 
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
@@ -918,9 +926,9 @@ public class SimplePonzi extends Contract {
   private BigInteger currentInvestment = BigInteger.ZERO;
 
   public @Entry void invest(BigInteger amount) {
-    // new investments must be 10% greater than current
+    // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) >= 0, () -> "you must invest at least " + minimumInvestment);
 
     // document new investor
     currentInvestor = caller();
@@ -962,15 +970,15 @@ must be charged `amount` coins at the moment of calling `invest()`.
 This can be achieved with the `@Payable` annotation, that we apply to `invest()`:
 
 ```java
-package takamaka.tests.ponzi;
+package io.takamaka.tests.ponzi;
 
-import static takamaka.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
 
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
@@ -979,9 +987,9 @@ public class SimplePonzi extends Contract {
   private BigInteger currentInvestment = BigInteger.ZERO;
 
   public @Payable @Entry void invest(BigInteger amount) {
-    // new investments must be 10% greater than current
+    // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) >= 0, () -> "you must invest at least " + minimumInvestment);
 
     // document new investor
     currentInvestor = caller();
@@ -1011,7 +1019,7 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 The `SimplePonzi.java` class is not ready yet. Namely, investors have to pay
 an always increasing amount of money to replace the current investor.
 However, this one never gets the previous investment back, plus the 10% award
-(at least). Coins keep flowing inside the `SimplePonzi` contract and remain
+(at least). Money keeps flowing inside the `SimplePonzi` contract and remain
 stuck there, forever. The code needs an apparently simple change: just add a single line
 before the update of the new current investor. That line should send
 `amount` units of coin back to `currentInvestor`, before it gets replaced:
@@ -1030,13 +1038,13 @@ previous investor. Money flows through the `SimplePonzi` contract but
 does not stay there for long.
 
 The problem with this simple line of code is that it does not compile.
-There is no `receive()` method in `takamaka.lang.Contract`:
+There is no `receive()` method in `io.takamaka.code.lang.Contract`:
 a contract can receive money only through calls to its `@Payable`
 constructors and methods. Since `currentInvestor` is, very generically,
 an instance of `Contract`, that has no `@Payable` methods,
 there is no method
 that we can call here for sending money back to `currentInvestor`.
-This limitation is a deliberate choice of the design of Takamaka.
+This limitation is a deliberate design choice of Takamaka.
 
 > Solidity programmers will find this very different from what happens
 > in Solidity contracts. Namely, these always have a _fallback function_ that
@@ -1051,10 +1059,10 @@ This limitation is a deliberate choice of the design of Takamaka.
 So how do we send money back to `currentInvestor`? The solution is to
 restrict the kind of contracts that can take part in the Ponzi scheme.
 Namely, we limit the game to contracts that implement class
-`takamaka.lang.PayableContract`, a subclass of `takamaka.lang.Contract`
+`io.takamaka.code.lang.PayableContract`, a subclass of `io.takamaka.code.lang.Contract`
 that, yes, does have a `receive()` method. This is not really a restriction,
 since the typical players of our Ponzi contract are externally
-owned accounts, that are instances of `PayableContract`s.
+owned accounts, that are instances of `PayableContract`.
 
 Let us hence apply the following small changes to our `SimplePonzi.java` class:
 
@@ -1066,16 +1074,16 @@ Let us hence apply the following small changes to our `SimplePonzi.java` class:
 The result is the following:
 
 ```java
-package takamaka.tests.ponzi;
+package io.takamaka.tests.ponzi;
 
-import static takamaka.lang.Takamaka.require;
+import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
 
-import takamaka.lang.Contract;
-import takamaka.lang.Entry;
-import takamaka.lang.Payable;
-import takamaka.lang.PayableContract;
+import io.takamaka.code.lang.Contract;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.PayableContract;
 
 public class SimplePonzi extends Contract {
   private final BigInteger _10 = BigInteger.valueOf(10L);
@@ -1084,9 +1092,9 @@ public class SimplePonzi extends Contract {
   private BigInteger currentInvestment = BigInteger.ZERO;
 
   public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
-    // new investments must be 10% greater than current
+    // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) > 0, () -> "you must invest more than " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) >= 0, () -> "you must invest at least " + minimumInvestment);
 
     // document new investor
     currentInvestor.receive(amount);
@@ -1117,9 +1125,9 @@ running a transaction that might end up in two negative scenarios:
 2. the amount invested might not be enough: the `require()` function
    will throw an exception that makes the transaction running `invest()` fail.
    The investment will not be transferred to the `SimplePonzi` contract, but
-   the investor will be punished by charging him all gas provided for
+   the investor will be penalized by charging him all gas provided for
    the transaction. This is unfair since, after all, the investor had no
-   way to know that the investment was not enough.
+   way to know that the proposed investment was not enough.
 
 Hence, it would be nice and fair to provide investors with a way of accessing
 the `currentInvestment`. This is actually a piece of cake: just add
@@ -1131,21 +1139,23 @@ public BigInteger getCurrentInvestment() {
 }
 ```
 
-This solution is pefectly fine but can be improved. Writtem this way,
+This solution is pefectly fine but can be improved. Written this way,
 an investor that wants to call `getCurrentInvestment()` must run a
 blockchain transaction through the `addInstanceMethodCallTransaction()`
 method of the blockchain, creating a new transaction that ends up in
 blockchain. That transaction will cost gas, hence its side-effect will
-be to reduce the balance of the calling investor. But that is the only
+be to reduce the balance of the calling investor. But the goal of the caller
+was just to access information in blockchain, not to modify any through
+side-effects. The balance reduction is, indeed, the only
 side-effect of that call! In cases like this, Takamaka allows one to
 specify that a method is expected to have no side-effects on the visible
 state of the blockchain, but for the change of the balance of the caller.
-This is possible through the `takamaka.lang.View` annotation. Import that
+This is possible through the `View` annotation. Import that
 class in the Java source and edit the declaration of `getCurrentInvestment()`
 as follows:
 
 ```java
-import takamaka.lang.View;
+import io.takamaka.code.lang.View;
 ...
 public @View BigInteger getCurrentInvestment() {
   return currentInvestment;
@@ -1176,10 +1186,10 @@ with useless transactions, that do not modify its state.
 ## The Hierarchy of Contracts <a name="hierarchy-contracts"></a>
 
 The figure below shows the hierarchy of contract classes in Takamaka.
-The topmost class is `takamaka.lang.Contract`, an abstract class that
-extends `takamaka.lang.Storage` since contracts are meant to be
-stored in blockchain, as well as other classes that are not contracts,
-such as our first `Person` example:
+The topmost class is `io.takamaka.code.lang.Contract`, an abstract class that
+extends `io.takamaka.code.lang.Storage` since contracts are meant to be
+stored in blockchain (as well as other classes that are not contracts,
+such as our first `Person` example):
 
 <p align="center">
   <img width="600" height="700" src="pics/contracts.png" alt="The hierarchy of contracts">
