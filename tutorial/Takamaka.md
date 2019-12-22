@@ -3351,36 +3351,50 @@ static constraint does not hold only by trying to install a jar in blockchain.
 It would be desirable to verify all constraints off line, correct all
 violations (if any) and only then install the jar in blockchain. This is
 possible by using a utility that performs the same identical jar
-verification and transformation that would be executed when the jar is
+verification that would be executed when the jar is
 installed in blockchain.
 
-Create then a directory with three subdirectories: `lib` will contain
+Create then a directory with three subdirectories: `mods` will contain
 all libraries needed to run the utility; `jars` will contain the
 jars that we want to verify and instrument; and `instrumented` will be
 populated with the instrumented jars that pass verification without errors.
-Initially, the three directories will be like below:
+Initially, the three directories will be as below:
 
 ```shell
 $ ls -R
-./instrumented:
- 
-./jars:
-family.jar  family_wrong.jar  takamaka_base.jar
+.:
+instrumented  jars  mods
 
-./lib:
-bcel-6.2.jar  commons-cli-1.4.jar  stackmap.jar  takamaka_runtime.jar  takamaka_translator.jar takamaka_white_listing.jar
+./instrumented:
+
+./jars:
+family.jar  family_wrong.jar  io-takamaka-code-1.0.jar
+
+./mods:
+ls -R
+.:
+instrumented  jars  mods
+
+./instrumented:
+
+./jars:
+family.jar  family_wrong.jar  io-takamaka-code-1.0.jar
+
+./mods:
+bcel-6.2.jar         io-takamaka-code-instrumentation-1.0.jar  io-takamaka-code-verification-1.0.jar  it-univr-bcel-1.1.jar
+commons-cli-1.4.jar  io-takamaka-code-tools-1.0.jar            io-takamaka-code-whitelisting-1.0.jar
 ```
 The jars in `jars` are those that we will verify and instrument.
-`takamaka_base.jar` is needed as dependency of the others.
+`io-takamaka-code-1.0.jar` is needed as dependency of the others.
 `family.jar` is the second example of this tutorial, where a class
 `Person` extends `Storage` correctly. Instead, `family_wrong.jar` contains
 a wrong version of that example, where there are three errors:
 
 ```java
-package takamaka.tests.family;
+package io.takamaka.tests.family;
 
-import takamaka.lang.Entry;
-import takamaka.lang.Storage;
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Storage;
 
 public class Person extends Storage {
   private final String name;
@@ -3412,38 +3426,61 @@ public class Person extends Storage {
 ```
 We can run the utility without parameters, just to discover its syntax:
 ```shell
-$ export JARS=lib/takamaka_translator.jar:lib/commons-cli-1.4.jar:lib/bcel-6.2.jar:lib/stackmap.jar:lib/takamaka_runtime.jar:lib/takamaka_white_listing.jar
-$ java -classpath $JARS takamaka.translator.Translator
-
-Syntax error: Missing required options: app, o
-usage: java takamaka.translator.Translator
- -app <JARS>   instrument the given application jars
+$ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier
+Syntax error: Missing required option: app
+usage: java io.takamaka.code.tools.Verifier
+ -app <JARS>   verify the given application jars
+ -init         verify as during blockchain initialization
  -lib <JARS>   use the given library jars
- -o <DIR>      dump the instrumented jar with the given name
 ```
 
-Let us verify and instrument `takamaka_base.jar` now. We ask to store its
-instrumented version inside `instrumented`:
+Let us verify `io-takamaka-code-1.0.jar` then:
 ```shell
-$ java -classpath $JARS takamaka.translator.Translator -app jars/takamaka_base.jar -o instrumented/takamaka_base.jar
+$ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier -init -app jars/io-takamaka-code-1.0.jar
+Verification succeeded
 ```
-No error will be issued, since the code does not violate any static constraint.
+No error has been issued, since the code does not violate any static constraint.
+Note that we used the `-init` switch, since otherwise we would get many errors
+related to the use of the forbidded `io.takamaka.code.*` packages. With that
+switch, we verify the jar as it would be verified during blockchain initialization,
+that is, considering such packages as legal.
 
-Let us verify and instrument `family.jar` now. It uses classes from `takamaka_base.jar`,
+We can generated the instrumented jar, exactly as it would be generated during
+installation in blockchain. For that, we run:
+```shell
+$ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Translator -init -app jars/io-takamaka-code-1.0.jar -o instrumented/io-takamaka-code-1.0.jar
+```
+
+This time, the `Translator` utility verified and instrumented the jar, storing it at the end
+inside the `instrumented` directory.
+
+Let us verify and instrument `family.jar` now. It uses classes from `io-takamaka-code-1.0.jar`,
 hence it depends on it. We specify this with the `-lib` option, that must
 refer to an already instrumented jar:
 ```shell
-$ java -classpath $JARS takamaka.translator.Translator -app jars/family.jar -lib instrumented/takamaka_base.jar -o instrumented/family.jar
+$ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Translator -lib jars/io-takamaka-code-1.0.jar -app jars/family.jar -o instrumented/family.jar
 ```
-Also this time, no error will be issued, since the code verifies all static constraints.
+Verification succeeds this time as well, and an instrumented `family.jar` is added to the
+`instrumented` directory. Note that we have not used the `-init` switch, since we
+wanted to simulate the verification as it would occur after blockchain initialization,
+when users add their jars to blockchain.
 
-Let us now verify and try to instrument the `family_wrong.jar` archive, that
-(we know) contains three errors. This time, verification will fail, the errors will
-be print on screen and no instrumented jar will be generated:
+Let us now verify the `family_wrong.jar` archive, that
+(we know) contains three errors. This time, verification will fail and the errors will
+be print on screen:
 ```shell
-$ java -classpath $JARS takamaka.translator.Translator -app jars/family_wrong.jar -lib instrumented/takamaka_base.jar -o instrumented/family_wrong.jar
-Verification failed with the following issues, no instrumented jar was generated:
-takamaka/tests/family/Person.java field parents: type not allowed for a field of a storage class
-takamaka/tests/family/Person.java method <init>: @Entry can only be applied to public constructors or instance methods of a contract
-takamaka/tests/family/Person.java:29: static fields cannot be updated
+$ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier -lib jars/io-takamaka-code-1.0.jar -app jars/family_wrong.jar
+io/takamaka/tests/family/Person.java field parents: type not allowed for a field of a storage class
+io/takamaka/tests/family/Person.java method <init>: @Entry can only be applied to constructors or instance methods of a contract
+io/takamaka/tests/family/Person.java:29: static fields cannot be updated
+Verification failed because of errors
+```
+
+The same failure occurs with the `Translator` utility, that will not generate the instrumented jar:
+```shell
+java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Translator -lib jars/io-takamaka-code-1.0.jar -app jars/family_wrong.jar -o instrumented/family_wrong.jar
+io/takamaka/tests/family/Person.java field parents: type not allowed for a field of a storage class
+io/takamaka/tests/family/Person.java method <init>: @Entry can only be applied to constructors or instance methods of a contract
+io/takamaka/tests/family/Person.java:29: static fields cannot be updated
+Verification failed because of errors, no instrumented jar was generated
 ```
