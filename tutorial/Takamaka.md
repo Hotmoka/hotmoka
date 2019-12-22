@@ -3445,13 +3445,13 @@ related to the use of the forbidded `io.takamaka.code.*` packages. With that
 switch, we verify the jar as it would be verified during blockchain initialization,
 that is, considering such packages as legal.
 
-We can generated the instrumented jar, exactly as it would be generated during
+We can generate the instrumented jar, exactly as it would be generated during
 installation in blockchain. For that, we run:
 ```shell
 $ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Translator -init -app jars/io-takamaka-code-1.0.jar -o instrumented/io-takamaka-code-1.0.jar
 ```
 
-This time, the `Translator` utility verified and instrumented the jar, storing it at the end
+The `Translator` utility verified and instrumented the jar, storing it at the end
 inside the `instrumented` directory.
 
 Let us verify and instrument `family.jar` now. It uses classes from `io-takamaka-code-1.0.jar`,
@@ -3461,11 +3461,11 @@ refer to an already instrumented jar:
 $ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Translator -lib jars/io-takamaka-code-1.0.jar -app jars/family.jar -o instrumented/family.jar
 ```
 Verification succeeds this time as well, and an instrumented `family.jar` is added to the
-`instrumented` directory. Note that we have not used the `-init` switch, since we
+`instrumented` directory. Note that we have not used the `-init` switch this time, since we
 wanted to simulate the verification as it would occur after blockchain initialization,
 when users add their jars to blockchain.
 
-Let us now verify the `family_wrong.jar` archive, that
+Let us verify the `family_wrong.jar` archive now, that
 (we know) contains three errors. This time, verification will fail and the errors will
 be print on screen:
 ```shell
