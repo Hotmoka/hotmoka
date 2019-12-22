@@ -18,6 +18,7 @@ executed in blockchain.
     - [Payable Contracts](#payable-contracts)
     - [The `@View` Annotation](#view)
     - [The Hierarchy of Contracts](#hierarchy-contracts)
+    - [Red/Green Contracts](#red-green-contracts)
 4. [Utility Classes](#utility-classes)
     - [Storage Lists](#storage-lists)
         - [A Gradual Ponzi Contract](#a-gradual-ponzi-contract)
@@ -1220,6 +1221,71 @@ that use a blockchain in disk memory, the expressions
 `blockchain.account(0)` and `blockchain.account(1)` actually refer to
 `ExternallyOwnedAccount`s created during initialization transactions triggered
 inside the constructor of the blockchain.
+
+## Red/Green Contracts <a name="red-green-contracts"></a>
+
+Takamaka includes contract classes with double balance. They have the
+normal (_green_) balance and an extra, stable _red_ balance.
+Such red/green contracts are implemented by class
+`io.takamaka.code.lang.RedGreenContract`, with subclass
+`io.takamaka.code.lang.RedGreenPayableContract`, further
+subclassed by `io.takamaka.code.lang.RedGreenExternallyOwnedAccount`.
+That is, such contracts have the ability to keep an extra red balance,
+which should be a stable coin, if the underlying blockchain supports
+such feature.
+
+For instance, the following red/green contract allows payees to
+register by calling the `addAsPayee()` method.
+Moreover, the contract distributes green coins sent to
+the `distributeGreen()` method and red coins sent to the
+`distributeRed()` method, keeping the rest for the owner of the
+contract. Hence, the contract holds coins only temporarily.
+The `@RedPayable` annotation states that the
+`distributeRed()` method transfers red coins when called.
+
+```java
+package io.takamaka.tests.redgreendistributor;
+
+import java.math.BigInteger;
+
+import io.takamaka.code.lang.Entry;
+import io.takamaka.code.lang.Payable;
+import io.takamaka.code.lang.RedGreenContract;
+import io.takamaka.code.lang.RedGreenPayableContract;
+import io.takamaka.code.lang.RedPayable;
+import io.takamaka.code.util.StorageList;
+
+public class Distributor extends RedGreenContract {
+  private final StorageList<RedGreenPayableContract> payees = new StorageList<>();
+  private final RedGreenPayableContract owner;
+
+  public @Entry(RedGreenPayableContract.class) Distributor() {
+    owner = (RedGreenPayableContract) caller();
+  }
+
+  public @Entry(RedGreenPayableContract.class) void addAsPayee() {
+    payees.add((RedGreenPayableContract) caller());
+  }
+
+  public @Payable @Entry void distributeGreen(BigInteger amount) {
+    int size = payees.size();
+    if (size > 0) {
+      BigInteger eachGets = amount.divide(BigInteger.valueOf(size));
+      payees.forEach(payee -> payee.receive(eachGets));
+      owner.receive(balance());
+    }
+  }
+
+  public @RedPayable @Entry void distributeRed(BigInteger amount) {
+    int size = payees.size();
+    if (size > 0) {
+      BigInteger eachGets = amount.divide(BigInteger.valueOf(size));
+      payees.forEach(payee -> payee.receiveRed(eachGets));
+      owner.receiveRed(balanceRed());
+    }
+  }
+}
+```
 
 # Utility Classes <a name="utility-classes"></a>
 
