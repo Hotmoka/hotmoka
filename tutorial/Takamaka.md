@@ -1238,8 +1238,9 @@ For instance, the following red/green contract allows payees to
 register by calling the `addAsPayee()` method.
 Moreover, the contract distributes green coins sent to
 the `distributeGreen()` method and red coins sent to the
-`distributeRed()` method, keeping the rest for the owner of the
-contract. Hence, the contract holds coins only temporarily.
+`distributeRed()` method, sending the rest to the owner of the
+contract (in general, there is a rest because of arithmetic
+approximation). Hence, the contract holds coins only temporarily.
 The `@RedPayable` annotation states that the
 `distributeRed()` method transfers red coins when called.
 
