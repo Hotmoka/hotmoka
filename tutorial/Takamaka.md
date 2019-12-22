@@ -3102,14 +3102,14 @@ actual winner: 0.3#0
 
 # Code Verification <a name="code-verification"></a>
 
-Code verification checks that code adheres to some constraints, that should
+Code verification checks that code complies with some constraints, that should
 guarantee that its execution does not run into errors. Modern programming
 languages apply more or less extensive code verification, since this helps
 programmers write reliable code. This can both occur at run time and at compile
 time. Run-time (_dynamic_) code verification is typically stronger, since it can exploit
-exact information on run-time values flowing thorugh the code. However,
+exact information on run-time values flowing through the code. However,
 compile-time (_static_) code verification has the advantage that it runs only
-once, at compilation time o jar installation, and can prove, once and for all,
+once, at compilation time or at jar installation, and can prove, once and for all,
 that some errors will never occur, regardless of the execution path that will
 be followed at run time.
 
@@ -3117,8 +3117,7 @@ Takamaka applies a combination of static and dynamic code verification.
 Static verification runs only once, on the jars that get
 installed in blockchain, or when classes are loaded for the first time
 at run time.
-Dynamic verification runs every time some piece of
-code that gets executed.
+Dynamic verification runs every time some piece of code gets executed.
 
 ## JVM Bytecode Verification <a name="jvm-bytecode-verification"></a>
 
@@ -3152,27 +3151,32 @@ to overridden methods follow by Liskov's principle.
 Takamaka verifies the following static constraints:
 
 1. the `@Entry(C.class)` annotation is only applied to constructors or
-  instance methods of a contract;
+  instance methods of a `io.takamaka.code.lang.Contract`;
 2. in every use of the `@Entry(C.class)` annotation, class `C` is a subclass
-  of `takamaka.lang.Contract`;
+  of `io.takamaka.code.lang.Contract`;
 3. if a method is annotated as `@Entry(C.class)` and overrides another method,
   then the latter is annotated as `@Entry(D.class)` as well, and `D` is a
   (non-strict) subclass of `C`;
 4. if a method is annotated as `@Entry(D.class)` and is overridden by another method,
   then the latter is annotated as `@Entry(C.class)` as well, and `D` is a
   (non-strict) subclass of `C`;
-5. if a method is annotated as `@Payable`, then it is also annotated as
+5. if a method is annotated as `@Payable` or `@RedPayable`, then it is also annotated as
   `@Entry(C.class)` for some `C`;
-6. if a method is annotated as `@Payable`, then it has a first formal argument
+6. if a method is annotated as `@Payable` or `@RedPayable`, then it has a first formal argument
   (the payed amount) of type `int`, `long` or `BigInteger`;
 7. if a method is annotated as `@Payable` and overrides another method,
-  then the latter is annotated as `@Payable` as well;
+  then the latter is annotated as `@Payable` as well; an identical rule holds
+  for `@RedPayable`;
 8. if a method is annotated as `@Payable` and is overridden by another method,
-  then the latter is annotated as `@Payable` as well;
-9. classes that extend `takamaka.lang.Storage` have instance non-transient
+  then the latter is annotated as `@Payable` as well; an identical rule
+  holds for `@RedPayable`;
+9. a method or constructor is not annotated with both `@Payable` and `@RedPayable`;
+10. the `@RedPayable` annotation is only applied to constructors or instance methods
+    of a `io.takamaka.code.lang.RedGreenContract`;
+11. classes that extend `io.takamaka.code.lang.Storage` have instance non-transient
   fields whose type
   is primitive (`char`, `byte`, `short`, `int`, `long`, `float`,
-  `double` or `boolean`), a class that extends `takamaka.lang.Storage`,
+  `double` or `boolean`), a class that extends `io.takamaka.code.lang.Storage`,
   an `enum` without instance non-transient fields,
   `java.math.BigInteger`, `java.lang.String` or `java.lang.Object`
   (see [Storage Types and Constraints on Storage Classes](#storage-types));
@@ -3181,7 +3185,7 @@ Takamaka verifies the following static constraints:
 > `java.lang.Object` can be surprising. After all, any reference value can be
 > stored in such a field, which requires to verify, at run time, if the field
 > actually contain a storage value or not (see the dynamic checks, below).
-> The reason for this choice was to allow generic storage types, such as
+> The reason for this choice is to allow generic storage types, such as
 > `StorageMap<K,V>`, whose values are storage values as long as `K` and `V`
 > are replaced with storage types. Since Java implements generics by erasure,
 > such class will end up having fields of type `java.lang.Object`. An alternative
@@ -3193,7 +3197,7 @@ Takamaka verifies the following static constraints:
 > `MyEnum` is an enumeration type with no instance non-transient fields: both
 > `MyEnum` and `BigInteger` are storage types, but neither extend `Storage`.
 
-10. there are no static initializer methods;
+12. there are no static initializer methods;
 
 > Static initializer methods are run the first time their class is loaded. They
 > are either coded explicitly, inside a `static { ... }` block, or are
@@ -3208,14 +3212,18 @@ Takamaka verifies the following static constraints:
 > static initializers still allows a class to have static fields, as long as
 > they are bound to constant primitive or `String` values.
 
-11. calls to `caller()` occur only inside `@Entry` constructors or methods
+13. calls to `caller()` occur only inside `@Entry` constructors or methods
     and on `this`;
-12. calls to constructors or methods annotated as `@Entry` occur
-    only from constructors or instance methods of a contract;
-13. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
+14. calls to constructors or methods annotated as `@Entry` occur
+    only from constructors or instance methods of a
+    `io.takamaka.code.lang.Contract`;
+15. calls to constructors or methods annotated as `@RedPayable` occur
+    only from constructors or instance methods of a
+    `io.takamaka.code.lang.RedGreenContract`;
+16. bytecodes `jsr`, `ret` and `putstatic` are not used; inside constructors and instance
     methods, bytecodes `astore 0`, `istore 0`, `lstore 0`, `dstore 0` and
     `fstore 0` are not used;
-14. there are no exception handlers that may catch
+17. there are no exception handlers that may catch
     unchecked exceptions (that is,
     instances of `java.lang.RuntimeException` or of `java.lang.Error`);
 
@@ -3242,7 +3250,7 @@ Takamaka verifies the following static constraints:
 > `this.counter` could be incremented, and the invariant is lost.
 > The contract will remain in blockchain in an inconsistent state,
 > for ever. The situation would be worse if an `OutOfGasError` would
-> be caught: the caller might chooce exactly the amount of gas needed to
+> be caught: the caller might chooce the exact amount of gas needed to
 > reach the `flagAsInList()` call, and leave the contract in an inconsistent
 > state. Checked exceptions, instead, are explicitly checked by the
 > compiler, which should ring a bell in the head of the programmer.
@@ -3250,9 +3258,9 @@ Takamaka verifies the following static constraints:
 > For a more dangerous example, consider the following Java bytecode:
 > ```
 > 10: goto 10
-> exception handler for takamaka.lang.OutOfGasError: 10 11 10 // illegal in Takamaka
+> exception handler for java.lang.Exception: 10 11 10 // illegal in Takamaka
 > ```
-> This Java bytecode exception handler states that any `OutOfGasError`
+> This Java bytecode exception handler entails that any `OutOfGasError`
 > thrown by an instruction from line 10 (included) to line 11 (excluded)
 > redirects control to line 10. Hence, this code will exhaust the gas by looping at line
 > 10. Once all gas is consumed, an `OutOfGasError` is thrown, that is redirected
@@ -3264,39 +3272,38 @@ Takamaka verifies the following static constraints:
 > it is well possible to write it directly, with a bytecode editor,
 > and submit it to the Takamaka blockchain.
 
-15. if a method or constructor is annotated as `@ThrowsException`,
+18. if a method or constructor is annotated as `@ThrowsException`,
     then it is public;
-16. if a method is annotated as `@ThrowsException` and overrides another method,
-  then the latter is annotated as `@ThrowsException` as well;
-17. if a method is annotated as `@ThrowsException` and is overridden by another method,
-  then the latter is annotated as `@ThrowsException` as well;  
-18. classes installed in the blockchain are not in packages `java.*`, `javax.*`
-    or `takamaka.*`, with the exception of `takamaka.tests.*`, which is allowed;
-    moreover, during blockchain initialization also packages `takamaka.*` are
-    allowed;
+19. if a method is annotated as `@ThrowsException` and overrides another method,
+    then the latter is annotated as `@ThrowsException` as well;
+20. if a method is annotated as `@ThrowsException` and is overridden by another method,
+    then the latter is annotated as `@ThrowsException` as well;  
+21. classes installed in blockchain are not in packages `java.*`, `javax.*`
+    or `io.takamaka.code.*`; packages strating iwth `it.takamaka.code.*` are
+    however allowed during blockchain initialization;
 
 > The goal of the previous constraints is to make it impossible to change
 > the semantics of the Java or Takamaka runtime. For instance, it is not
-> possible to replace class `takamaka.lang.Contract`, which could thoroughly
+> possible to replace class `io.takamaka.code.lang.Contract`, which could thoroughly
 > revolutionize the execution of the contracts. During blockchain initialization,
-> that occurs once at blockchain start-up, it is allowed to install the
-> runtime of Takamaka (the `takamaka_base.jar` archive used in the examples
+> that occurs once at blockchain start-up, it is however permitted to install the
+> runtime of Takamaka (the `io-takamaka-code-1.0.jar` archive used in the examples
 > of the previous chapters).
 
-19. all referenced classes, constructors, methods and fields must be white-listed.
+22. all referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in blockchain are always white-listed by
     default. Other classes loaded from the Java classpath must have been explicitly
-    annotated as `@takamaka.lang.WhiteListed`;
+    marked as white-listed in the `io-takamaka-code-whitelisting-1.0.jar` archive;
 
-> Hence, for instance, class `takamaka.lang.Storage` is white-listed, since it
-> is inside `takamaka_base.jar`, installed in blockchain. Classes from user
-> jars installed in blockchain are similarly white-listed. Class
-> `takamaka.lang.Takamaka` is loaded from the Java classpath and
-> is white-listed since it is explicitly annotated
-> as such. Method `java.lang.System.currentTimeMillis()` is not white-listed,
-> since it is loaded from the Java classpath and is not annotated as white-listed;
+> Hence, for instance, classes `io.takamaka.code.lang.Storage`
+> and `io.takamaka.code.lang.Takamaka` are white-listed, since they
+> are inside `io-takamaka-code-1.0.jar`, which is installed in blockchain. Classes from user
+> jars installed in blockchain are similarly white-listed.
+> Method `java.lang.System.currentTimeMillis()` is not white-listed,
+> since it is loaded from the Java classpath and is not annotated as white-listed
+> in `io-takamaka-code-whitelisting-1.0.jar`;
 
-20. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
+23. bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
     or of `java.lang.invoke.StringConcatFactory.makeConcatWithConstants`;
 
@@ -3305,16 +3312,18 @@ Takamaka verifies the following static constraints:
 > side-stepping the white-listing constraint imposed by Takamaka.
 > Java compilers currently do not generate other call-site resolvers.
 
-21. there are no native methods;
-22. there are no `synchronized` methods, nor `synchronized` blocks.
+24. there are no native methods;
+25. there are no `synchronized` methods, nor `synchronized` blocks;
+26. field and method names do not start with a special prefix used
+    for instrumentation, namely they do not start with `§`.
 
 Takamaka verifies the following dynamic constraints:
 
-1. every `@Payable` constructor or method is passed a non-`null` and
+1. every `@Payable` or `@RedPayable` constructor or method is passed a non-`null` and
    non-negative amount of funds;
-2. a call to a `@Payable` constructor or method succeeds only if the caller
+2. a call to a `@Payable` or `@RedPayable` constructor or method succeeds only if the caller
    has enough funds to pay for the call (i.e., the amount first parameter of
-   the `@Payable` method);
+   the method or constructor);
 3. a call to an `@Entry(C.class)` constructor or method succeeds only if
    the caller is an instance of `C` and is not the receiver of the call;
 
