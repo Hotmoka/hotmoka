@@ -27,6 +27,13 @@ public interface ResolvingClassLoader extends AutoCloseable {
 	}
 
 	/**
+	 * Yields the Java class loader used internally by this class loader.
+	 * 
+	 * @return the Java class loader
+	 */
+	ClassLoader getJavaClassLoader();
+
+	/**
 	 * Loads the class with the given name, by using this class loader.
 	 * 
 	 * @param className the name of the class

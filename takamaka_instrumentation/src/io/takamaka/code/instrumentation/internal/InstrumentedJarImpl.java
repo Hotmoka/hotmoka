@@ -1,5 +1,6 @@
 package io.takamaka.code.instrumentation.internal;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -55,6 +56,22 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 		catch (UncheckedIOException e) {
 			throw e.getCause();
 		}
+	}
+
+	@Override
+	public byte[] toBytes() {
+		ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
+		try (JarOutputStream instrumentedJar = new JarOutputStream(byteArray)) {
+			classes.forEach(clazz -> dumpInstrumentedClass(clazz, instrumentedJar));
+		}
+		catch (UncheckedIOException e) {
+			throw new IllegalStateException(e.getCause());
+		}
+		catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+
+		return byteArray.toByteArray();
 	}
 
 	@Override

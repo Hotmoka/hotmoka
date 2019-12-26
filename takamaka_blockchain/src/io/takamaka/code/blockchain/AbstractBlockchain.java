@@ -496,18 +496,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 			Path original = Files.createTempFile("original", ".jar");
 			Files.write(original, request.getJar());
 
-			// we create a temporary file to hold the instrumented jar
-			Path destination = Files.createTempFile("instrumented", ".jar");
 			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 				VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, true);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
-				instrumentedJar.dump(destination);
+				return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
 			}
-
-			byte[] instrumentedBytes = Files.readAllBytes(destination);
-			Files.delete(destination);
-		
-			return new JarStoreInitialTransactionResponse(instrumentedBytes);
 		});
 	}
 
@@ -589,24 +582,20 @@ public abstract class AbstractBlockchain implements Blockchain {
 					Path original = Files.createTempFile("original", ".jar");
 					Files.write(original, jar);
 
-					// we create a temporary file to hold the instrumented jar
-					Path destination = Files.createTempFile("instrumented", ".jar");
-
+					byte[] instrumentedBytes;
 					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
 						VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, false);
 						InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
-						instrumentedJar.dump(destination);
+						instrumentedBytes = instrumentedJar.toBytes();
 					}
 
-					byte[] instrumentedBytes = Files.readAllBytes(destination);
-					Files.delete(destination);
-
 					BigInteger balanceOfCaller = increaseBalance(deserializedCaller, BigInteger.ZERO);
-					UpdateOfBalance balanceUpdate = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), balanceOfCaller);
+					StorageReference storageReferenceOfDeserializedCaller = getStorageReferenceOf(deserializedCaller);
+					UpdateOfBalance balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
 					JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(response.size(gasCostModel));
 					balanceOfCaller = increaseBalance(deserializedCaller, remainingGas());
-					balanceUpdate = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), balanceOfCaller);
+					balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
 					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 				catch (Throwable t) {
@@ -1456,6 +1445,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 		@Override
 		public Class<?> getRedGreenExternallyOwnedAccount() {
 			return parent.getRedGreenExternallyOwnedAccount();
+		}
+
+		@Override
+		public ClassLoader getJavaClassLoader() {
+			return parent.getJavaClassLoader();
 		}
 	}
 

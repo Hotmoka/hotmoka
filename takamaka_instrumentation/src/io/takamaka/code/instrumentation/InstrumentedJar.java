@@ -36,6 +36,13 @@ public interface InstrumentedJar {
 	void dump(Path destination) throws IOException;
 
 	/**
+	 * Yields the bytes of this jar.
+	 * 
+	 * @return the bytes
+	 */
+	byte[] toBytes();
+
+	/**
 	 * Yields the classes in this jar file.
 	 * 
 	 * @return the classes

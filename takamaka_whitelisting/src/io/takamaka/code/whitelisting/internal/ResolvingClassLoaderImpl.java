@@ -33,6 +33,11 @@ public class ResolvingClassLoaderImpl extends URLClassLoader implements Resolvin
 	}
 
 	@Override
+	public ClassLoader getJavaClassLoader() {
+		return this;
+	}
+
+	@Override
 	public WhiteListingWizard getWhiteListingWizard() {
 		return whiteListingWizard;
 	}
