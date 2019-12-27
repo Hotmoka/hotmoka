@@ -32,6 +32,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.takamaka.code.blockchain.internal.TempJarFile;
 import io.takamaka.code.blockchain.requests.AbstractJarStoreTransactionRequest;
 import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
 import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
@@ -493,11 +494,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			initTransaction(BigInteger.valueOf(-1L), current);
 
 			// we transform the array of bytes into a real jar file
-			Path original = Files.createTempFile("original", ".jar");
-			Files.write(original, request.getJar());
-
-			try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-				VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, true);
+			try (TempJarFile original = new TempJarFile(request.getJar());
+				 BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original.toPath(), request.getDependencies(), this)) {
+				VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, true);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
 				return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
 			}
@@ -578,13 +577,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 					chargeForCPU(gasCostModel.cpuCostForInstallingJar(jar));
 					chargeForRAM(gasCostModel.ramCostForInstalling(jar));
 
-					// we transform the array of bytes into a real jar file
-					Path original = Files.createTempFile("original", ".jar");
-					Files.write(original, jar);
-
 					byte[] instrumentedBytes;
-					try (BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original, request.getDependencies(), this)) {
-						VerifiedJar verifiedJar = VerifiedJar.of(original, jarClassLoader, false);
+					// we transform the array of bytes into a real jar file
+					try (TempJarFile original = new TempJarFile(request.getJar());
+						 BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original.toPath(), request.getDependencies(), this)) {
+						VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, false);
 						InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
 						instrumentedBytes = instrumentedJar.toBytes();
 					}
@@ -1318,7 +1315,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			blockchain.chargeForRAM(blockchain.gasCostModel.ramCostForLoading(instrumentedJarBytes));
 
 			try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
-				Path classpathElement = Files.createTempFile(null, "@" + classpath.transaction + ".jar");
+				Path classpathElement = Files.createTempFile("takamaka_", "@" + classpath.transaction + ".jar");
 				Files.copy(is, classpathElement, StandardCopyOption.REPLACE_EXISTING);
 
 				// we add, for class loading, the jar containing the instrumented code
@@ -1332,7 +1329,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		public void close() throws IOException {
 			// we delete all paths elements that were used to build this class loader
 			for (Path classpathElement: classpathElements)
-				Files.delete(classpathElement);
+				Files.deleteIfExists(classpathElement);
 
 			parent.close();
 		}
