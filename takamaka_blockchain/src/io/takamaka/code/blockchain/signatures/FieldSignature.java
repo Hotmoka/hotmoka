@@ -104,10 +104,7 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 			return diff;
 
 		diff = name.compareTo(other.name);
-		if (diff != 0)
-			return diff;
-		else
-			return type.compareAgainst(other.type);
+		return diff != 0 ? diff : type.compareAgainst(other.type);
 	}
 
 	/**

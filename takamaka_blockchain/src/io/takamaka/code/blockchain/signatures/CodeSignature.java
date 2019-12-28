@@ -1,12 +1,10 @@
 package io.takamaka.code.blockchain.signatures;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.types.StorageType;
@@ -79,15 +77,5 @@ public abstract class CodeSignature implements Serializable {
 	@Override
 	public int hashCode() {
 		return definingClass.hashCode() ^ Arrays.hashCode(formals);
-	}
-
-	/**
-	 * The size of this code signature, in terms of storage gas units consumed if it is stored in blockchain.
-	 * 
-	 * @return the size
-	 */
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(definingClass.size(gasCostModel))
-			.add(formals().map(type -> type.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 }

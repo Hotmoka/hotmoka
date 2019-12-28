@@ -32,6 +32,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.takamaka.code.blockchain.internal.SizeCalculator;
 import io.takamaka.code.blockchain.internal.TempJarFile;
 import io.takamaka.code.blockchain.requests.AbstractJarStoreTransactionRequest;
 import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
@@ -107,6 +108,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * The gas cost model of this blockchain.
 	 */
 	private final GasCostModel gasCostModel = getGasCostModel();
+
+	/**
+	 * The object that knows about the size of data once stored in blockchain.
+	 */
+	private final SizeCalculator sizeCalculator = new SizeCalculator(gasCostModel);
 
 	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
@@ -571,7 +577,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 				try {
 					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeOf(request));
+					chargeForStorage(sizeCalculator.sizeOf(request));
 
 					byte[] jar = request.getJar();
 					chargeForCPU(gasCostModel.cpuCostForInstallingJar(jar));
@@ -698,7 +704,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 				try {
 					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeOf(request));
+					chargeForStorage(sizeCalculator.sizeOf(request));
 
 					CodeExecutor executor = new ConstructorExecutor(request.constructor, deserializedCaller, request.actuals());
 					executor.start();
@@ -749,7 +755,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 				try {
 					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeOf(request));
+					chargeForStorage(sizeCalculator.sizeOf(request));
 
 					InstanceMethodExecutor executor = new InstanceMethodExecutor(request.method, deserializedCaller, request.receiver, request.getActuals());
 					executor.start();
@@ -811,7 +817,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 				try {
 					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeOf(request));
+					chargeForStorage(sizeCalculator.sizeOf(request));
 
 					StaticMethodExecutor executor = new StaticMethodExecutor(request.method, deserializedCaller, request.getActuals());
 					executor.start();
@@ -1071,60 +1077,20 @@ public abstract class AbstractBlockchain implements Blockchain {
 		// we create a response whose size over-approximates that of a response in case of failure of this request
 		if (request instanceof ConstructorCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost())
-				.add(sizeOf(request))
+				.add(sizeCalculator.sizeOf(request))
 				.add(new ConstructorCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size(gasCostModel));
 		else if (request instanceof InstanceMethodCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost())
-				.add(sizeOf(request))
+				.add(sizeCalculator.sizeOf(request))
 				.add(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size(gasCostModel));
 		else if (request instanceof StaticMethodCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost())
-				.add(sizeOf(request))
+				.add(sizeCalculator.sizeOf(request))
 				.add(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size(gasCostModel));
 		else if (request instanceof JarStoreTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost())
-				.add(sizeOf(request))
+				.add(sizeCalculator.sizeOf(request))
 				.add(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas).size(gasCostModel));
-		else
-			throw new IllegalTransactionRequestException("unexpected transaction request");
-	}
-
-	/**
-	 * Yields the size of the given request, in terms of storage gas units consumed if it is stored in blockchain.
-	 * 
-	 * @param request the request
-	 * @return the size
-	 */
-	private BigInteger sizeOf(NonInitialTransactionRequest request) throws IllegalTransactionRequestException{
-		if (request instanceof ConstructorCallTransactionRequest)
-			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(request.caller.size(gasCostModel))
-				.add(gasCostModel.storageCostOf(request.gas)).add(request.classpath.size(gasCostModel))
-				.add(((ConstructorCallTransactionRequest) request).actuals().map(value -> value.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
-		else if (request instanceof InstanceMethodCallTransactionRequest) {
-			InstanceMethodCallTransactionRequest instanceMethodCallTransactionRequest = (InstanceMethodCallTransactionRequest) request;
-			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(request.caller.size(gasCostModel))
-				.add(gasCostModel.storageCostOf(gas)).add(request.classpath.size(gasCostModel))
-				.add(instanceMethodCallTransactionRequest.method.size(gasCostModel))
-				.add(instanceMethodCallTransactionRequest.receiver.size(gasCostModel))
-				.add(instanceMethodCallTransactionRequest.getActuals().map(value -> value.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
-		}
-		else if (request instanceof StaticMethodCallTransactionRequest) {
-			StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = (StaticMethodCallTransactionRequest) request;
-			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(request.caller.size(gasCostModel))
-				.add(gasCostModel.storageCostOf(gas)).add(request.classpath.size(gasCostModel))
-				.add(staticMethodCallTransactionRequest.method.size(gasCostModel))
-				.add(staticMethodCallTransactionRequest.getActuals().map(value -> value.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
-		}
-		else if (request instanceof JarStoreTransactionRequest) {
-			JarStoreTransactionRequest jarStoreTransactionRequest = (JarStoreTransactionRequest) request;
-			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(request.caller.size(gasCostModel)).add(gasCostModel.storageCostOf(gas)).add(request.classpath.size(gasCostModel))
-				.add(jarStoreTransactionRequest.getDependencies().map(classpath -> classpath.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add))
-				.add(gasCostModel.storageCostOfJar(jarStoreTransactionRequest.getJar()));
-		}
 		else
 			throw new IllegalTransactionRequestException("unexpected transaction request");
 	}
