@@ -8,6 +8,20 @@ import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest
 import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
 import io.takamaka.code.blockchain.requests.NonInitialTransactionRequest;
 import io.takamaka.code.blockchain.requests.StaticMethodCallTransactionRequest;
+import io.takamaka.code.blockchain.responses.ConstructorCallTransactionExceptionResponse;
+import io.takamaka.code.blockchain.responses.ConstructorCallTransactionFailedResponse;
+import io.takamaka.code.blockchain.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.takamaka.code.blockchain.responses.JarStoreTransactionFailedResponse;
+import io.takamaka.code.blockchain.responses.JarStoreTransactionSuccessfulResponse;
+import io.takamaka.code.blockchain.responses.MethodCallTransactionExceptionResponse;
+import io.takamaka.code.blockchain.responses.MethodCallTransactionFailedResponse;
+import io.takamaka.code.blockchain.responses.MethodCallTransactionSuccessfulResponse;
+import io.takamaka.code.blockchain.responses.NonInitialTransactionResponse;
+import io.takamaka.code.blockchain.responses.TransactionResponseFailed;
+import io.takamaka.code.blockchain.responses.TransactionResponseWithEvents;
+import io.takamaka.code.blockchain.responses.TransactionResponseWithGas;
+import io.takamaka.code.blockchain.responses.TransactionResponseWithUpdates;
+import io.takamaka.code.blockchain.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.takamaka.code.blockchain.signatures.CodeSignature;
 import io.takamaka.code.blockchain.signatures.ConstructorSignature;
 import io.takamaka.code.blockchain.signatures.FieldSignature;
@@ -80,10 +94,53 @@ public class SizeCalculator {
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOf(request.caller)).add(gasCostModel.storageCostOf(request.gas)).add(request.classpath.size(gasCostModel))
 				.add(jarStoreTransactionRequest.getDependencies().map(classpath -> classpath.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add))
-				.add(gasCostModel.storageCostOfJar(jarStoreTransactionRequest.getJar()));
+				.add(gasCostModel.storageCostOfJar(jarStoreTransactionRequest.getJarLength()));
 		}
 		else
 			throw new IllegalArgumentException("unexpected transaction request");
+	}
+
+	/**
+	 * Yields the size of the given response, in terms of storage gas units consumed if it is stored in blockchain.
+	 * 
+	 * @param response the response
+	 * @return the size
+	 */
+	public BigInteger sizeOf(NonInitialTransactionResponse response) {
+		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot());
+
+		if (response instanceof TransactionResponseWithGas) {
+			TransactionResponseWithGas responseAsWithGas = (TransactionResponseWithGas) response;
+
+			size = size.add(gasCostModel.storageCostOf(responseAsWithGas.gasConsumedForCPU()))
+				.add(gasCostModel.storageCostOf(responseAsWithGas.gasConsumedForRAM()))
+				.add(gasCostModel.storageCostOf(responseAsWithGas.gasConsumedForStorage()));
+		}
+
+		if (response instanceof TransactionResponseWithUpdates)
+			size = size.add(((TransactionResponseWithUpdates) response).getUpdates().map(update -> update.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
+
+		if (response instanceof TransactionResponseFailed)
+			size = size.add(gasCostModel.storageCostOf(((TransactionResponseFailed) response).gasConsumedForPenalty()));
+
+		if (response instanceof TransactionResponseWithEvents)
+			size = size.add(((TransactionResponseWithEvents) response).getEvents().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
+
+		if (response instanceof ConstructorCallTransactionSuccessfulResponse)
+			return size.add(sizeOf(((ConstructorCallTransactionSuccessfulResponse) response).newObject));
+		else if (response instanceof MethodCallTransactionSuccessfulResponse)
+			return size.add(sizeOf(((MethodCallTransactionSuccessfulResponse) response).result));
+		else if (response instanceof JarStoreTransactionSuccessfulResponse)
+			return size.add(gasCostModel.storageCostOfJar(((JarStoreTransactionSuccessfulResponse) response).getInstrumentedJarLength()));
+		else if (response instanceof ConstructorCallTransactionExceptionResponse ||
+				response instanceof ConstructorCallTransactionFailedResponse ||
+				response instanceof JarStoreTransactionFailedResponse ||
+				response instanceof MethodCallTransactionExceptionResponse ||
+				response instanceof MethodCallTransactionFailedResponse ||
+				response instanceof VoidMethodCallTransactionSuccessfulResponse)
+			return size;
+		else
+			throw new IllegalArgumentException("unexpected transaction response");
 	}
 
 	/**

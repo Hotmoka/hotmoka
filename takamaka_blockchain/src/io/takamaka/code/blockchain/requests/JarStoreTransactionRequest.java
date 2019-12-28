@@ -48,6 +48,11 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest imp
 	}
 
 	@Override
+	public int getJarLength() {
+		return jar.length;
+	}
+
+	@Override
 	public Stream<Classpath> getDependencies() {
 		return Stream.of(dependencies);
 	}

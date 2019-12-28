@@ -68,18 +68,18 @@ public interface GasCostModel {
 	/**
 	 * Yields the RAM gas cost for installing in blockchain a jar consisting of the given bytes.
 	 * 
-	 * @param jar the bytes of the jar
+	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
 	 */
-	BigInteger ramCostForInstalling(byte[] jar);
+	BigInteger ramCostForInstalling(int numBytes);
 
 	/**
 	 * Yields the RAM gas cost for loading from blockchain a jar consisting of the given bytes.
 	 * 
-	 * @param jar the bytes of the jar
+	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
 	 */
-	BigInteger ramCostForLoading(byte[] jar);
+	BigInteger ramCostForLoading(int numBytes);
 
 	/**
 	 * Yields the CPU gas cost of the execution of an arithmetic instruction.
@@ -136,18 +136,18 @@ public interface GasCostModel {
 	/**
 	 * Yields the CPU gas cost for installing in blockchain a jar consisting of the given bytes.
 	 * 
-	 * @param jar the bytes of the jar
+	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
 	 */
-	BigInteger cpuCostForInstallingJar(byte[] jar);
+	BigInteger cpuCostForInstallingJar(int numBytes);
 
 	/**
 	 * Yields the CPU gas cost for loading from blockchain a jar consisting of the given bytes.
 	 * 
-	 * @param jar the bytes of the jar
+	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
 	 */
-	BigInteger cpuCostForLoadingJar(byte[] jar);
+	BigInteger cpuCostForLoadingJar(int numBytes);
 
 	/**
 	 * Yields the CPU gas cost for starting the execution of a transaction.
@@ -201,10 +201,10 @@ public interface GasCostModel {
 	/**
 	 * Yields the storage gas cost for installing in blockchain a jar consisting of the given bytes.
 	 * 
-	 * @param jar the bytes of the jar
+	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
 	 */
-	BigInteger storageCostOfJar(byte[] jar);
+	BigInteger storageCostOfJar(int numBytes);
 
 	/**
 	 * Provides the cost of a given amount of gas, in terms of coins.

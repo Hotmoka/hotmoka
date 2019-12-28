@@ -47,13 +47,13 @@ public class StandardGasCostModel implements GasCostModel {
 	}
 
 	@Override
-	public BigInteger ramCostForInstalling(byte[] jar) {
-		return BigInteger.valueOf(jar.length / 40);
+	public BigInteger ramCostForInstalling(int numBytes) {
+		return BigInteger.valueOf(numBytes / 40);
 	}
 
 	@Override
-	public BigInteger ramCostForLoading(byte[] jar) {
-		return BigInteger.valueOf(jar.length / 200);
+	public BigInteger ramCostForLoading(int numBytes) {
+		return BigInteger.valueOf(numBytes / 200);
 	}
 
 	@Override
@@ -92,13 +92,13 @@ public class StandardGasCostModel implements GasCostModel {
 	}
 
 	@Override
-	public BigInteger cpuCostForInstallingJar(byte[] jar) {
-		return BigInteger.valueOf(jar.length / 400);
+	public BigInteger cpuCostForInstallingJar(int numBytes) {
+		return BigInteger.valueOf(numBytes / 400);
 	}
 
 	@Override
-	public BigInteger cpuCostForLoadingJar(byte[] jar) {
-		return BigInteger.valueOf(jar.length / 1000);
+	public BigInteger cpuCostForLoadingJar(int numBytes) {
+		return BigInteger.valueOf(numBytes / 1000);
 	}
 
 	@Override
@@ -132,8 +132,8 @@ public class StandardGasCostModel implements GasCostModel {
 	}
 
 	@Override
-	public BigInteger storageCostOfJar(byte[] jar) {
-		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(jar.length / 4));
+	public BigInteger storageCostOfJar(int numBytes) {
+		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(numBytes / 4));
 	}
 
 	@Override

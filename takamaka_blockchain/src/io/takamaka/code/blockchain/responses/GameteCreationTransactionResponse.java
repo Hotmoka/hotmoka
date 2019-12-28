@@ -1,10 +1,8 @@
 package io.takamaka.code.blockchain.responses;
 
-import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.updates.Update;
 import io.takamaka.code.blockchain.values.StorageReference;
@@ -13,7 +11,7 @@ import io.takamaka.code.blockchain.values.StorageReference;
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
  */
 @Immutable
-public class GameteCreationTransactionResponse implements TransactionResponse, TransactionResponseWithUpdates {
+public class GameteCreationTransactionResponse implements InitialTransactionResponse, TransactionResponseWithUpdates {
 
 	private static final long serialVersionUID = -95476487153660743L;
 
@@ -48,11 +46,5 @@ public class GameteCreationTransactionResponse implements TransactionResponse, T
         return getClass().getSimpleName() + ":\n"
         	+ "  gamete: " + gamete + "\n"
        		+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		// this response is for a free transaction, at initialization of the blockchain
-		return BigInteger.ZERO;
 	}
 }

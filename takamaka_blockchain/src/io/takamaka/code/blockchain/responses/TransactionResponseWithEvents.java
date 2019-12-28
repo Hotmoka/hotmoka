@@ -9,7 +9,7 @@ import io.takamaka.code.blockchain.values.StorageReference;
  * A response for a transaction that might contain events.
  */
 @Immutable
-public interface TransactionResponseWithEvents {
+public interface TransactionResponseWithEvents extends TransactionResponse {
 	
 	/**
 	 * Yields the events induced by the execution of this transaction.

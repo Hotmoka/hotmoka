@@ -3,7 +3,6 @@ package io.takamaka.code.blockchain.responses;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.updates.Update;
 
@@ -11,7 +10,7 @@ import io.takamaka.code.blockchain.updates.Update;
  * A response for a transaction that should call a method in blockchain.
  */
 @Immutable
-public abstract class MethodCallTransactionResponse implements TransactionResponseWithGas, TransactionResponseWithUpdates {
+public abstract class MethodCallTransactionResponse implements NonInitialTransactionResponse, TransactionResponseWithGas, TransactionResponseWithUpdates {
 
 	private static final long serialVersionUID = -1734049110058121068L;
 
@@ -74,12 +73,5 @@ public abstract class MethodCallTransactionResponse implements TransactionRespon
 	@Override
 	public BigInteger gasConsumedForStorage() {
 		return gasConsumedForStorage;
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(gasCostModel.storageCostOf(gasConsumedForCPU))
-			.add(gasCostModel.storageCostOf(gasConsumedForRAM)).add(gasCostModel.storageCostOf(gasConsumedForStorage))
-			.add(getUpdates().map(update -> update.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 }

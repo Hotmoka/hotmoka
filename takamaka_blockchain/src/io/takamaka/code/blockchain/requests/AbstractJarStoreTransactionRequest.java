@@ -19,6 +19,13 @@ public interface AbstractJarStoreTransactionRequest {
 	public byte[] getJar();
 
 	/**
+	 * Yields the length, in bytes, of the jar to install.
+	 * 
+	 * @return the length
+	 */
+	public int getJarLength();
+
+	/**
 	 * Yields the dependencies of the jar to install.
 	 * 
 	 * @return the dependencies

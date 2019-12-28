@@ -2,7 +2,6 @@ package io.takamaka.code.blockchain.responses;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.updates.UpdateOfBalance;
 
@@ -40,16 +39,16 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	}
 
 	@Override
+	public int getInstrumentedJarLength() {
+		return instrumentedJar.length;
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
         return super.toString() + "\n  instrumented jar: " + sb.toString();
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOfJar(instrumentedJar));
 	}
 }

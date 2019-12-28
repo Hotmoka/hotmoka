@@ -41,6 +41,11 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
 	}
 
 	@Override
+	public final int getJarLength() {
+		return jar.length;
+	}
+
+	@Override
 	public final Stream<Classpath> getDependencies() {
 		return Stream.of(dependencies);
 	}

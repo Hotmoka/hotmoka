@@ -3,7 +3,6 @@ package io.takamaka.code.blockchain.responses;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.TransactionException;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.updates.Update;
@@ -65,10 +64,5 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	@Override
 	public BigInteger gasConsumedForPenalty() {
 		return gasConsumedForPenalty;
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(gasConsumedForPenalty));
 	}
 }

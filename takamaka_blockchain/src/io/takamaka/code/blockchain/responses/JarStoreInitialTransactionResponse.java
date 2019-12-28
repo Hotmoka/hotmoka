@@ -1,15 +1,12 @@
 package io.takamaka.code.blockchain.responses;
 
-import java.math.BigInteger;
-
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
  */
 @Immutable
-public class JarStoreInitialTransactionResponse implements TransactionResponse, TransactionResponseWithInstrumentedJar {
+public class JarStoreInitialTransactionResponse implements InitialTransactionResponse, TransactionResponseWithInstrumentedJar {
 
 	private static final long serialVersionUID = 7320005929052884412L;
 
@@ -33,17 +30,16 @@ public class JarStoreInitialTransactionResponse implements TransactionResponse, 
 	}
 
 	@Override
+	public int getInstrumentedJarLength() {
+		return instrumentedJar.length;
+	}
+
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
         return getClass().getSimpleName() + ":\n  instrumented jar: " + sb.toString();
-	}
-
-	//TODO @Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		// this response is for a free transaction, at initialization of the blockchain
-		return BigInteger.ZERO;
 	}
 }

@@ -9,7 +9,7 @@ import io.takamaka.code.blockchain.updates.Update;
  * A response for a transaction that might contain updates.
  */
 @Immutable
-public interface TransactionResponseWithUpdates {
+public interface TransactionResponseWithUpdates extends TransactionResponse {
 	
 	/**
 	 * Yields the updates induced by the execution of this transaction.

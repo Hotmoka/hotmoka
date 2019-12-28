@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.updates.Update;
 import io.takamaka.code.blockchain.values.StorageReference;
@@ -67,13 +66,5 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	@Override
 	public Stream<StorageReference> getEvents() {
 		return Stream.of(events);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel)
-			.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot())).add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()))
-			.add(newObject.size(gasCostModel))
-			.add(getEvents().map(reference -> reference.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 }

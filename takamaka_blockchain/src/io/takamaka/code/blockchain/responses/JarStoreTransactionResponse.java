@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.updates.Update;
 import io.takamaka.code.blockchain.updates.UpdateOfBalance;
@@ -13,7 +12,7 @@ import io.takamaka.code.blockchain.updates.UpdateOfBalance;
  * A response for a transaction that should install a jar in the blockchain.
  */
 @Immutable
-public abstract class JarStoreTransactionResponse implements TransactionResponseWithGas, TransactionResponseWithUpdates {
+public abstract class JarStoreTransactionResponse implements NonInitialTransactionResponse, TransactionResponseWithGas, TransactionResponseWithUpdates {
 
 	private static final long serialVersionUID = -8888957484092351352L;
 
@@ -87,12 +86,5 @@ public abstract class JarStoreTransactionResponse implements TransactionResponse
 	@Override
 	public BigInteger gasConsumedForStorage() {
 		return gasConsumedForStorage;
-	};
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
-			.add(callerBalanceUpdate.size(gasCostModel)).add(gasCostModel.storageCostOf(gasConsumedForCPU))
-			.add(gasCostModel.storageCostOf(gasConsumedForStorage));
 	}
 }
