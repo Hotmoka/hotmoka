@@ -2,7 +2,6 @@ package io.takamaka.code.blockchain.updates;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.signatures.FieldSignature;
 import io.takamaka.code.blockchain.values.BigIntegerValue;
@@ -62,11 +61,5 @@ public final class UpdateOfBalance extends UpdateOfField {
 	@Override
 	public FieldSignature getField() {
 		return FieldSignature.BALANCE_FIELD;
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
-			.add(gasCostModel.storageCostOf(balance));
 	}
 }

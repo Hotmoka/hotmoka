@@ -1,8 +1,5 @@
 package io.takamaka.code.blockchain.updates;
 
-import java.math.BigInteger;
-
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.signatures.FieldSignature;
 import io.takamaka.code.blockchain.values.StorageReference;
@@ -22,7 +19,7 @@ public final class UpdateOfStorage extends AbstractUpdateOfField {
 	/**
 	 * The new value of the field.
 	 */
-	private final StorageReference value;
+	public final StorageReference value;
 
 	/**
 	 * Builds an update.
@@ -64,10 +61,5 @@ public final class UpdateOfStorage extends AbstractUpdateOfField {
 			return diff;
 		else
 			return value.compareTo(((UpdateOfStorage) other).value);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(value.size(gasCostModel));
 	}
 }

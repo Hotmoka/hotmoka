@@ -2,7 +2,6 @@ package io.takamaka.code.blockchain.updates;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.signatures.FieldSignature;
 import io.takamaka.code.blockchain.types.ClassType;
@@ -24,7 +23,7 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 	/**
 	 * The new value of the field.
 	 */
-	private final BigInteger value;
+	public final BigInteger value;
 
 	/**
 	 * Builds an update of a {@link java.math.BigInteger} field.
@@ -67,10 +66,5 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 	public boolean isEager() {
 		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
 		return field.type.equals(ClassType.BIG_INTEGER);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(value));
 	}
 }

@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.verification.Constants;
 
 /**
@@ -63,12 +62,4 @@ public interface StorageValue extends Serializable, Comparable<StorageValue> {
 		else
 			throw new IllegalArgumentException("an object of class " + object.getClass().getName() + " cannot be kept in blockchain since it does not implement " + Constants.STORAGE_NAME);
 	}
-
-	/**
-	 * The size of this value, in terms of storage gas units consumed if it is stored in blockchain.
-	 * 
-	 * @param gasCostmodel the gas cost model of the blockchain
-	 * @return the size
-	 */
-	BigInteger size(GasCostModel gasCostModel);
 }

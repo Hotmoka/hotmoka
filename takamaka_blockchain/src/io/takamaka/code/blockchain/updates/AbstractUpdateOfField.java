@@ -1,8 +1,5 @@
 package io.takamaka.code.blockchain.updates;
 
-import java.math.BigInteger;
-
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.signatures.FieldSignature;
 import io.takamaka.code.blockchain.values.StorageReference;
@@ -20,7 +17,7 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	/**
 	 * The field that is modified.
 	 */
-	protected final FieldSignature field;
+	public final FieldSignature field;
 
 	/**
 	 * Builds an update.
@@ -61,10 +58,5 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	@Override
 	public final boolean isForSamePropertyAs(Update other) {
 		return super.isForSamePropertyAs(other) && field.equals(((AbstractUpdateOfField) other).field);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(field.size(gasCostModel));
 	}
 }

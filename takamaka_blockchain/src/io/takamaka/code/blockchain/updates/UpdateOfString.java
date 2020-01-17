@@ -1,8 +1,5 @@
 package io.takamaka.code.blockchain.updates;
 
-import java.math.BigInteger;
-
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.signatures.FieldSignature;
 import io.takamaka.code.blockchain.types.ClassType;
@@ -24,7 +21,7 @@ public final class UpdateOfString extends AbstractUpdateOfField {
 	/**
 	 * The new value of the field.
 	 */
-	private final String value;
+	public final String value;
 
 	/**
 	 * Builds an update of a {@link java.lang.String} field.
@@ -67,10 +64,5 @@ public final class UpdateOfString extends AbstractUpdateOfField {
 	public boolean isEager() {
 		// a lazy String could be stored into a lazy Object or Serializable or Comparable or CharSequence field
 		return field.type.equals(ClassType.STRING);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(value));
 	}
 }

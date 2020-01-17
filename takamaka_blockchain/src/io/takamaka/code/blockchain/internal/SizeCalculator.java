@@ -30,6 +30,26 @@ import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
 import io.takamaka.code.blockchain.types.BasicTypes;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.types.StorageType;
+import io.takamaka.code.blockchain.updates.AbstractUpdateOfField;
+import io.takamaka.code.blockchain.updates.ClassTag;
+import io.takamaka.code.blockchain.updates.Update;
+import io.takamaka.code.blockchain.updates.UpdateOfBalance;
+import io.takamaka.code.blockchain.updates.UpdateOfBigInteger;
+import io.takamaka.code.blockchain.updates.UpdateOfBoolean;
+import io.takamaka.code.blockchain.updates.UpdateOfByte;
+import io.takamaka.code.blockchain.updates.UpdateOfChar;
+import io.takamaka.code.blockchain.updates.UpdateOfDouble;
+import io.takamaka.code.blockchain.updates.UpdateOfEnumEager;
+import io.takamaka.code.blockchain.updates.UpdateOfEnumLazy;
+import io.takamaka.code.blockchain.updates.UpdateOfFloat;
+import io.takamaka.code.blockchain.updates.UpdateOfInt;
+import io.takamaka.code.blockchain.updates.UpdateOfLong;
+import io.takamaka.code.blockchain.updates.UpdateOfRedBalance;
+import io.takamaka.code.blockchain.updates.UpdateOfShort;
+import io.takamaka.code.blockchain.updates.UpdateOfStorage;
+import io.takamaka.code.blockchain.updates.UpdateOfString;
+import io.takamaka.code.blockchain.updates.UpdateToNullEager;
+import io.takamaka.code.blockchain.updates.UpdateToNullLazy;
 import io.takamaka.code.blockchain.values.BigIntegerValue;
 import io.takamaka.code.blockchain.values.BooleanValue;
 import io.takamaka.code.blockchain.values.ByteValue;
@@ -118,7 +138,7 @@ public class SizeCalculator {
 		}
 
 		if (response instanceof TransactionResponseWithUpdates)
-			size = size.add(((TransactionResponseWithUpdates) response).getUpdates().map(update -> update.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
+			size = size.add(((TransactionResponseWithUpdates) response).getUpdates().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
 
 		if (response instanceof TransactionResponseFailed)
 			size = size.add(gasCostModel.storageCostOf(((TransactionResponseFailed) response).gasConsumedForPenalty()));
@@ -224,5 +244,49 @@ public class SizeCalculator {
 			return size;
 		else
 			throw new IllegalArgumentException("unexpected storage value");
+	}
+
+	/**
+	 * Yields the size of the given update, in terms of storage gas units consumed if it is stored in blockchain.
+	 * 
+	 * @param update the update
+	 * @return the size
+	 */
+	public BigInteger sizeOf(Update update) {
+		BigInteger size = sizeOf(update.object);
+
+		if (update instanceof ClassTag) {
+			ClassTag ct = (ClassTag) update;
+			return size.add(gasCostModel.storageCostOf(ct.className)).add(ct.jar.size(gasCostModel));
+		}
+		else if (update instanceof UpdateOfBalance)
+			return size.add(gasCostModel.storageCostOf(((UpdateOfBalance) update).balance));
+		else if (update instanceof UpdateOfRedBalance)
+			return size.add(gasCostModel.storageCostOf(((UpdateOfRedBalance) update).balanceRed));
+
+		size = size.add(sizeOf(((AbstractUpdateOfField) update).field));
+		if (update instanceof UpdateOfBigInteger)
+			return size.add(gasCostModel.storageCostOf(((UpdateOfBigInteger) update).value));
+		else if (update instanceof UpdateOfBoolean || update instanceof UpdateOfByte ||
+				update instanceof UpdateOfChar || update instanceof UpdateOfDouble ||
+				update instanceof UpdateOfFloat || update instanceof UpdateOfInt ||
+				update instanceof UpdateOfLong || update instanceof UpdateOfShort)
+			return size.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()));
+		else if (update instanceof UpdateToNullEager || update instanceof UpdateToNullLazy)
+			return size;
+		else if (update instanceof UpdateOfEnumEager) {
+			UpdateOfEnumEager ee = (UpdateOfEnumEager) update;
+			return size.add(gasCostModel.storageCostOf(ee.enumClassName)).add(gasCostModel.storageCostOf(ee.name));
+		}
+		else if (update instanceof UpdateOfEnumLazy) {
+			UpdateOfEnumLazy el = (UpdateOfEnumLazy) update;
+			return size.add(gasCostModel.storageCostOf(el.enumClassName)).add(gasCostModel.storageCostOf(el.name));
+		}
+		else if (update instanceof UpdateOfString)
+			return size.add(gasCostModel.storageCostOf(((UpdateOfString) update).value));
+		else if (update instanceof UpdateOfStorage)
+			return size.add(sizeOf(((UpdateOfStorage) update).value));
+		else
+			throw new IllegalArgumentException("unexpected update");
 	}
 }

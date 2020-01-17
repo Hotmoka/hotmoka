@@ -1,8 +1,5 @@
 package io.takamaka.code.blockchain.updates;
 
-import java.math.BigInteger;
-
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.signatures.FieldSignature;
 import io.takamaka.code.blockchain.values.EnumValue;
@@ -24,12 +21,12 @@ public final class UpdateOfEnumEager extends AbstractUpdateOfField {
 	/**
 	 * The name of the enumeration class whose element is being assigned to the field.
 	 */
-	private final String enumClassName;
+	public final String enumClassName;
 
 	/**
 	 * The name of the enumeration value put as new value of the field.
 	 */
-	private final String name;
+	public final String name;
 
 	/**
 	 * Builds an update of an enumeration field.
@@ -78,10 +75,5 @@ public final class UpdateOfEnumEager extends AbstractUpdateOfField {
 	@Override
 	public boolean isEager() {
 		return true;
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(enumClassName)).add(gasCostModel.storageCostOf(name));
 	}
 }

@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.verification.Constants;
 
@@ -194,10 +193,5 @@ public final class ClassType implements StorageType {
 			return 1;
 		else
 			return name.compareTo(((ClassType) other).name); // other instanceof ClassType
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(gasCostModel.storageCostOf(name));
 	}
 }

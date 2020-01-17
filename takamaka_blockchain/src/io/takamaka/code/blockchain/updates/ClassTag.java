@@ -1,8 +1,5 @@
 package io.takamaka.code.blockchain.updates;
 
-import java.math.BigInteger;
-
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.TransactionReference;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.values.StorageReference;
@@ -69,10 +66,5 @@ public final class ClassTag extends Update {
 			return diff;
 		else
 			return jar.compareTo(((ClassTag) other).jar);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(className)).add(jar.size(gasCostModel));
 	}
 }

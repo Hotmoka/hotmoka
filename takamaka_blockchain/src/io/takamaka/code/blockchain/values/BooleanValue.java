@@ -1,9 +1,6 @@
 package io.takamaka.code.blockchain.values;
 
-import java.math.BigInteger;
-
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -65,11 +62,5 @@ public final class BooleanValue implements StorageValue {
 			return diff;
 		else
 			return Boolean.compare(value, ((BooleanValue) other).value);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
-			.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()));
 	}
 }

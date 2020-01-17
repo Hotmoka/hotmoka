@@ -1,10 +1,8 @@
 package io.takamaka.code.blockchain.types;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -33,12 +31,4 @@ public interface StorageType extends Serializable {
 	 * @return -1 if {@code this} comes first, 1 if {@code other} comes first, 0 if they are equal
 	 */
 	int compareAgainst(StorageType other);
-
-	/**
-	 * The size of this type, in terms of storage gas units consumed if it is stored in blockchain.
-	 * 
-	 * @param gasCostModel the gas cost model of the blockchain
-	 * @return the size of this type
-	 */
-	BigInteger size(GasCostModel gasCostModel);
 }

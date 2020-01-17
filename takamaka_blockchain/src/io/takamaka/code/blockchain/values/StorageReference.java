@@ -5,7 +5,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.TransactionReference;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
@@ -92,11 +91,5 @@ public final class StorageReference implements StorageValue {
 	 */
 	public String getClassName(AbstractBlockchain blockchain) {
 		return blockchain.getClassNameOf(this);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
-			.add(gasCostModel.storageCostOf(progressive)).add(transaction.size(gasCostModel));
 	}
 }

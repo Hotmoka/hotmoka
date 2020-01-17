@@ -1,9 +1,6 @@
 package io.takamaka.code.blockchain.types;
 
-import java.math.BigInteger;
-
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -47,10 +44,5 @@ public enum BasicTypes implements StorageType {
 			return compareTo((BasicTypes) other);
 		else
 			return -1; // other instanceof ClassType
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot());
 	}
 }

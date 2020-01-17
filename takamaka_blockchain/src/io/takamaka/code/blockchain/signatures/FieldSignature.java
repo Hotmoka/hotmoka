@@ -1,11 +1,9 @@
 package io.takamaka.code.blockchain.signatures;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.blockchain.types.StorageType;
@@ -105,17 +103,5 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 
 		diff = name.compareTo(other.name);
 		return diff != 0 ? diff : type.compareAgainst(other.type);
-	}
-
-	/**
-	 * Yields the size of this field, in terms of storage consumed if this field is
-	 * stored in blockchain.
-	 * 
-	 * @gasCostModel the gas cost model of the blockchain
-	 * @return the size
-	 */
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(definingClass.size(gasCostModel))
-			.add(gasCostModel.storageCostOf(name)).add(type.size(gasCostModel));
 	}
 }

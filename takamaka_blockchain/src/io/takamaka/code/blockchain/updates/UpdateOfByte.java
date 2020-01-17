@@ -1,8 +1,5 @@
 package io.takamaka.code.blockchain.updates;
 
-import java.math.BigInteger;
-
-import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.blockchain.signatures.FieldSignature;
 import io.takamaka.code.blockchain.values.ByteValue;
@@ -22,7 +19,7 @@ public final class UpdateOfByte extends AbstractUpdateOfField {
 	/**
 	 * The new value of the field.
 	 */
-	private final byte value;
+	public final byte value;
 
 	/**
 	 * Builds an update of a {@code byte} field.
@@ -59,10 +56,5 @@ public final class UpdateOfByte extends AbstractUpdateOfField {
 			return diff;
 		else
 			return Byte.compare(value, ((UpdateOfByte) other).value);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()));
 	}
 }
