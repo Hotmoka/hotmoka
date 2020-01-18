@@ -1,6 +1,6 @@
 package io.takamaka.code.blockchain;
 
-import io.takamaka.code.blockchain.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.MethodSignature;
 
 /**
  * An exception thrown when a transaction for the execution of a

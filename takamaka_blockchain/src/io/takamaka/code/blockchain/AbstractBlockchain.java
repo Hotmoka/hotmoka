@@ -28,21 +28,36 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.signatures.CodeSignature;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.updates.ClassTag;
+import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.blockchain.internal.Deserializer;
 import io.takamaka.code.blockchain.internal.Serializer;
 import io.takamaka.code.blockchain.internal.SizeCalculator;
 import io.takamaka.code.blockchain.internal.StorageTypeToClass;
 import io.takamaka.code.blockchain.internal.TempJarFile;
-import io.takamaka.code.blockchain.requests.AbstractJarStoreTransactionRequest;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.requests.NonInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.RedGreenGameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.StaticMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.TransactionRequest;
 import io.takamaka.code.blockchain.responses.ConstructorCallTransactionExceptionResponse;
 import io.takamaka.code.blockchain.responses.ConstructorCallTransactionFailedResponse;
 import io.takamaka.code.blockchain.responses.ConstructorCallTransactionResponse;
@@ -61,19 +76,6 @@ import io.takamaka.code.blockchain.responses.TransactionResponseWithInstrumented
 import io.takamaka.code.blockchain.responses.TransactionResponseWithUpdates;
 import io.takamaka.code.blockchain.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.takamaka.code.blockchain.runtime.Runtime;
-import io.takamaka.code.blockchain.signatures.CodeSignature;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.FieldSignature;
-import io.takamaka.code.blockchain.signatures.MethodSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.types.StorageType;
-import io.takamaka.code.blockchain.updates.ClassTag;
-import io.takamaka.code.blockchain.updates.Update;
-import io.takamaka.code.blockchain.updates.UpdateOfBalance;
-import io.takamaka.code.blockchain.updates.UpdateOfField;
-import io.takamaka.code.blockchain.values.StorageReference;
-import io.takamaka.code.blockchain.values.StorageValue;
 import io.takamaka.code.instrumentation.Constants;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.Dummy;
@@ -1678,7 +1680,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @return the same exception, or its cause
 		 */
 		protected final Throwable unwrapInvocationException(InvocationTargetException e, Executable executable) {
-			if (isChecked(e.getCause()) && hasAnnotation(executable, ClassType.THROWS_EXCEPTIONS.name))
+			if (isChecked(e.getCause()) && hasAnnotation(executable, ClassTypes.THROWS_EXCEPTIONS.name))
 				return e;
 			else
 				return e.getCause();
@@ -1942,7 +1944,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
-				isViewMethod = hasAnnotation(methodJVM, ClassType.VIEW.name);
+				isViewMethod = hasAnnotation(methodJVM, ClassTypes.VIEW.name);
 
 				try {
 					result = methodJVM.invoke(null, deserializedActuals);

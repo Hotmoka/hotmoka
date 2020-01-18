@@ -2,20 +2,20 @@ package io.takamaka.code.blockchain.internal;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.BooleanValue;
+import io.hotmoka.beans.values.ByteValue;
+import io.hotmoka.beans.values.CharValue;
+import io.hotmoka.beans.values.DoubleValue;
+import io.hotmoka.beans.values.EnumValue;
+import io.hotmoka.beans.values.FloatValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
+import io.hotmoka.beans.values.NullValue;
+import io.hotmoka.beans.values.ShortValue;
+import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.values.BigIntegerValue;
-import io.takamaka.code.blockchain.values.BooleanValue;
-import io.takamaka.code.blockchain.values.ByteValue;
-import io.takamaka.code.blockchain.values.CharValue;
-import io.takamaka.code.blockchain.values.DoubleValue;
-import io.takamaka.code.blockchain.values.EnumValue;
-import io.takamaka.code.blockchain.values.FloatValue;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.LongValue;
-import io.takamaka.code.blockchain.values.NullValue;
-import io.takamaka.code.blockchain.values.ShortValue;
-import io.takamaka.code.blockchain.values.StorageValue;
-import io.takamaka.code.blockchain.values.StringValue;
 import io.takamaka.code.verification.Constants;
 
 /**

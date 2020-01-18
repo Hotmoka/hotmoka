@@ -3,7 +3,7 @@
  */
 package takamaka.tests;
 
-import static io.takamaka.code.blockchain.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
@@ -14,24 +14,25 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
-import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.MethodSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.BigIntegerValue;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
@@ -45,11 +46,11 @@ class SimplePyramid extends TakamakaTest {
 
 	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.takamaka.tests.ponzi.SimplePyramid");
 
-	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
+	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassTypes.BIG_INTEGER);
 
-	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
+	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassTypes.BIG_INTEGER);
 
-	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
+	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassTypes.TEOA, "getBalance", ClassTypes.BIG_INTEGER);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
@@ -93,7 +94,7 @@ class SimplePyramid extends TakamakaTest {
 
 		for (int i = 0; i < 4; i++)
 			players[i] = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, _10_000, classpath, new ConstructorSignature(ClassType.TEOA, INT), new IntValue(20_000)));
+				(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.TEOA, INT), new IntValue(20_000)));
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")

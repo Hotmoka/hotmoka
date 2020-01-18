@@ -4,9 +4,9 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.annotations.Immutable;
-import io.takamaka.code.blockchain.updates.Update;
-import io.takamaka.code.blockchain.updates.UpdateOfBalance;
+import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfBalance;
 
 /**
  * A response for a transaction that should install a jar in the blockchain.

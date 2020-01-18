@@ -6,17 +6,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import io.takamaka.code.blockchain.Classpath;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.BigIntegerValue;
-import io.takamaka.code.blockchain.values.StorageReference;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -67,7 +67,7 @@ public class InitializedMemoryBlockchain extends MemoryBlockchain {
 		BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
 		for (int i = 0; i < accounts.length; i++)
 			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, takamakaBase, new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER), new BigIntegerValue(funds[i])));
+				(gamete, gas, takamakaBase, new ConstructorSignature(ClassTypes.TEOA, ClassTypes.BIG_INTEGER), new BigIntegerValue(funds[i])));
 	}
 
 	/**

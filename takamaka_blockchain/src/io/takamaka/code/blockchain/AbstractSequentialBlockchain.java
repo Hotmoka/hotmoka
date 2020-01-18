@@ -11,15 +11,22 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.InitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.requests.RedGreenGameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.StaticMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.TransactionRequest;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitialTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.ClassTag;
+import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.blockchain.responses.ConstructorCallTransactionExceptionResponse;
 import io.takamaka.code.blockchain.responses.ConstructorCallTransactionFailedResponse;
 import io.takamaka.code.blockchain.responses.ConstructorCallTransactionResponse;
@@ -34,12 +41,6 @@ import io.takamaka.code.blockchain.responses.MethodCallTransactionSuccessfulResp
 import io.takamaka.code.blockchain.responses.TransactionResponse;
 import io.takamaka.code.blockchain.responses.TransactionResponseWithUpdates;
 import io.takamaka.code.blockchain.responses.VoidMethodCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.signatures.FieldSignature;
-import io.takamaka.code.blockchain.updates.ClassTag;
-import io.takamaka.code.blockchain.updates.Update;
-import io.takamaka.code.blockchain.updates.UpdateOfField;
-import io.takamaka.code.blockchain.values.StorageReference;
-import io.takamaka.code.blockchain.values.StorageValue;
 
 /**
  * A generic implementation of a blockchain that extends immediately when

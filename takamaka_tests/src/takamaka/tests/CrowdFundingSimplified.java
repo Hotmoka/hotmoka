@@ -3,8 +3,8 @@
  */
 package takamaka.tests;
 
-import static io.takamaka.code.blockchain.types.BasicTypes.BOOLEAN;
-import static io.takamaka.code.blockchain.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,24 +17,25 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.BooleanValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
-import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.BigIntegerValue;
-import io.takamaka.code.blockchain.values.BooleanValue;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
@@ -105,13 +106,13 @@ class CrowdFundingSimplified extends TakamakaTest {
 		classpath = new Classpath(crowdfunding, true);
 
 		beneficiary = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA)));
 
 		funder1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA, INT), new IntValue(10000)));
 
 		funder2 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA, INT), new IntValue(10000)));
 
 		crowdFunding = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(gamete, _10_000, classpath, CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED));
@@ -121,7 +122,7 @@ class CrowdFundingSimplified extends TakamakaTest {
 	void createCampaign() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
-			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassTypes.PAYABLE_CONTRACT, ClassTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		assertNotNull(campaign);
@@ -131,17 +132,17 @@ class CrowdFundingSimplified extends TakamakaTest {
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
-			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassTypes.PAYABLE_CONTRACT, ClassTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder1, _10_000, classpath,
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder2, _10_000, classpath,
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), campaign));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction
@@ -156,17 +157,17 @@ class CrowdFundingSimplified extends TakamakaTest {
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
-			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassTypes.PAYABLE_CONTRACT, ClassTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder1, _10_000, classpath,
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder2, _10_000, classpath,
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), campaign));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction

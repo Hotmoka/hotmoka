@@ -12,29 +12,29 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.signatures.FieldSignature;
-import io.takamaka.code.blockchain.types.BasicTypes;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.updates.ClassTag;
-import io.takamaka.code.blockchain.updates.Update;
-import io.takamaka.code.blockchain.updates.UpdateOfBalance;
-import io.takamaka.code.blockchain.updates.UpdateOfBigInteger;
-import io.takamaka.code.blockchain.updates.UpdateOfBoolean;
-import io.takamaka.code.blockchain.updates.UpdateOfByte;
-import io.takamaka.code.blockchain.updates.UpdateOfChar;
-import io.takamaka.code.blockchain.updates.UpdateOfDouble;
-import io.takamaka.code.blockchain.updates.UpdateOfEnumEager;
-import io.takamaka.code.blockchain.updates.UpdateOfEnumLazy;
-import io.takamaka.code.blockchain.updates.UpdateOfFloat;
-import io.takamaka.code.blockchain.updates.UpdateOfInt;
-import io.takamaka.code.blockchain.updates.UpdateOfLong;
-import io.takamaka.code.blockchain.updates.UpdateOfRedBalance;
-import io.takamaka.code.blockchain.updates.UpdateOfShort;
-import io.takamaka.code.blockchain.updates.UpdateOfStorage;
-import io.takamaka.code.blockchain.updates.UpdateOfString;
-import io.takamaka.code.blockchain.updates.UpdateToNullEager;
-import io.takamaka.code.blockchain.updates.UpdateToNullLazy;
-import io.takamaka.code.blockchain.values.StorageReference;
+import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.updates.ClassTag;
+import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.updates.UpdateOfBigInteger;
+import io.hotmoka.beans.updates.UpdateOfBoolean;
+import io.hotmoka.beans.updates.UpdateOfByte;
+import io.hotmoka.beans.updates.UpdateOfChar;
+import io.hotmoka.beans.updates.UpdateOfDouble;
+import io.hotmoka.beans.updates.UpdateOfEnumEager;
+import io.hotmoka.beans.updates.UpdateOfEnumLazy;
+import io.hotmoka.beans.updates.UpdateOfFloat;
+import io.hotmoka.beans.updates.UpdateOfInt;
+import io.hotmoka.beans.updates.UpdateOfLong;
+import io.hotmoka.beans.updates.UpdateOfRedBalance;
+import io.hotmoka.beans.updates.UpdateOfShort;
+import io.hotmoka.beans.updates.UpdateOfStorage;
+import io.hotmoka.beans.updates.UpdateOfString;
+import io.hotmoka.beans.updates.UpdateToNullEager;
+import io.hotmoka.beans.updates.UpdateToNullLazy;
+import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.instrumentation.Constants;
 
 public class ExtractedUpdates {
@@ -262,9 +262,9 @@ public class ExtractedUpdates {
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String s) {
 				if (s == null)
-					updates.add(new UpdateToNullEager(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
+					updates.add(new UpdateToNullEager(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassTypes.STRING)));
 				else
-					updates.add(new UpdateOfString(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING), s));
+					updates.add(new UpdateOfString(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassTypes.STRING), s));
 			}
 
 			/**
@@ -275,7 +275,7 @@ public class ExtractedUpdates {
 			 * @param bi the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, BigInteger bi) {
-				FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
+				FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassTypes.BIG_INTEGER);
 				if (bi == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else if (field.equals(FieldSignature.BALANCE_FIELD))

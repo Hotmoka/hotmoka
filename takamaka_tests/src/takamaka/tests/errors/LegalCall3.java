@@ -11,16 +11,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.blockchain.Classpath;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BooleanValue;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.requests.StaticMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.types.BasicTypes;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.BooleanValue;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 class LegalCall3 {

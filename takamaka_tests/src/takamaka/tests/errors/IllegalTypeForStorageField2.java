@@ -12,16 +12,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.blockchain.Classpath;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.values.EnumValue;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.DeserializationError;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.EnumValue;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
@@ -49,7 +49,7 @@ class IllegalTypeForStorageField2 extends TakamakaTest {
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath,
-				new ConstructorSignature("takamaka.tests.errors.illegaltypeforstoragefield2.C", ClassType.OBJECT),
+				new ConstructorSignature("takamaka.tests.errors.illegaltypeforstoragefield2.C", ClassTypes.OBJECT),
 				new EnumValue("takamaka.tests.errors.illegaltypeforstoragefield2.MyEnum", "FIRST")))
 		);
 	}

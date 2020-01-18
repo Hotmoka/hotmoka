@@ -2,8 +2,8 @@ package io.takamaka.code.blockchain.responses;
 
 import java.util.stream.Stream;
 
-import io.takamaka.code.blockchain.annotations.Immutable;
-import io.takamaka.code.blockchain.updates.Update;
+import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.updates.Update;
 
 /**
  * A response for a transaction that might contain updates.

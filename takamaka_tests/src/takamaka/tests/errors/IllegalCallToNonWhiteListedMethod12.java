@@ -7,16 +7,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.types.BasicTypes;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
@@ -38,12 +38,12 @@ class IllegalCallToNonWhiteListedMethod12 extends TakamakaTest {
 	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-			new ConstructorSignature(ClassType.EOA)));
+			new ConstructorSignature(ClassTypes.EOA)));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-				new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa))
+				new NonVoidMethodSignature(ClassTypes.OBJECT, "hashCode", BasicTypes.INT), eoa))
 		);
 	}
 }

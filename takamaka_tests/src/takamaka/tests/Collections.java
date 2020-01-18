@@ -3,9 +3,9 @@
  */
 package takamaka.tests;
 
-import static io.takamaka.code.blockchain.types.BasicTypes.BOOLEAN;
-import static io.takamaka.code.blockchain.types.BasicTypes.INT;
-import static io.takamaka.code.blockchain.types.BasicTypes.LONG;
+import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.BasicTypes.LONG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -17,25 +17,26 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BooleanValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
-import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.requests.StaticMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.BooleanValue;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.LongValue;
-import io.takamaka.code.blockchain.values.StorageReference;
-import io.takamaka.code.blockchain.values.StorageValue;
 import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
@@ -191,7 +192,7 @@ class Collections extends TakamakaTest {
 			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isRunning", BOOLEAN, ClassType.OBJECT), mapHolder, state));
+			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isRunning", BOOLEAN, ClassTypes.OBJECT), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -205,7 +206,7 @@ class Collections extends TakamakaTest {
 			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isSleeping", BOOLEAN, ClassType.OBJECT), mapHolder, state));
+			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isSleeping", BOOLEAN, ClassTypes.OBJECT), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -219,7 +220,7 @@ class Collections extends TakamakaTest {
 			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isWaiting", BOOLEAN, ClassType.OBJECT), mapHolder, state));
+			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isWaiting", BOOLEAN, ClassTypes.OBJECT), mapHolder, state));
 
 		assertTrue(result.value);
 	}

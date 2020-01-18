@@ -9,15 +9,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.blockchain.Classpath;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.requests.StaticMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
@@ -44,7 +45,7 @@ class IllegalCallToNonWhiteListedMethod3 extends TakamakaTest {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 				(blockchain.account(0), _20_000, new Classpath(jar, true),
-				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.illegalcalltononwhitelistedmethod3.C"), "foo", ClassType.STRING)))
+				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.illegalcalltononwhitelistedmethod3.C"), "foo", ClassTypes.STRING)))
 		);
 	}
 }

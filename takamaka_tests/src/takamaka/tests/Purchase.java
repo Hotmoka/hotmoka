@@ -3,7 +3,7 @@
  */
 package takamaka.tests;
 
-import static io.takamaka.code.blockchain.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.BasicTypes.INT;
 
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -13,21 +13,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
-import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
@@ -86,15 +87,15 @@ class Purchase extends TakamakaTest {
 		classpath = new Classpath(purchase, true);
 
 		seller = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA, INT), new IntValue(10000)));
 
 		buyer = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA, INT), new IntValue(10000)));
 	}
 
 	@Test @DisplayName("new Purchase(21)")
 	void oddDeposit() throws TransactionException, CodeExecutionException {
-		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 				new IntValue(21)))
@@ -114,7 +115,7 @@ class Purchase extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(buyer, _10_000, classpath, new VoidMethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(18)))
 		);
@@ -136,7 +137,7 @@ class Purchase extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(buyer, _10_000, classpath, new VoidMethodSignature(PURCHASE, "confirmReceived"), purchase))
 		);

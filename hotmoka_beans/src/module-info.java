@@ -1,0 +1,2 @@
+module io.hotmoka.beans {
+}

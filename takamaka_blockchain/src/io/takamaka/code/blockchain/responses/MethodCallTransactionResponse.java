@@ -3,8 +3,8 @@ package io.takamaka.code.blockchain.responses;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 
-import io.takamaka.code.blockchain.annotations.Immutable;
-import io.takamaka.code.blockchain.updates.Update;
+import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.updates.Update;
 
 /**
  * A response for a transaction that should call a method in blockchain.

@@ -13,16 +13,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.blockchain.Classpath;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.StringValue;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.requests.StaticMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.StringValue;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**
@@ -60,14 +61,14 @@ class JavaCollections extends TakamakaTest {
 	@Test @DisplayName("HashMapTests.testToString1() == [how, are, hello, you, ?]")
 	void toString1OnHashMap() throws TransactionException, CodeExecutionException {
 		StringValue toString = (StringValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING)));
+			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassTypes.STRING)));
 		assertEquals("[how, are, hello, you, ?]", toString.value);
 	}
 
 	@Test @DisplayName("HashMapTests.testToString2() == [how, are, hello, you, ?]")
 	void toString2OnHashMap() throws TransactionException, CodeExecutionException {
 		StringValue toString = (StringValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString2", ClassType.STRING)));
+			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString2", ClassTypes.STRING)));
 		assertEquals("[how, are, hello, you, ?]", toString.value);
 	}
 
@@ -75,21 +76,21 @@ class JavaCollections extends TakamakaTest {
 	void toString3OnHashMap() throws TransactionException, CodeExecutionException {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-					(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString3", ClassType.STRING)))
+					(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString3", ClassTypes.STRING)))
 		);
 	}
 
 	@Test @DisplayName("HashMapTests.testToString4() == [how, are, hello, you, ?]")
 	void toString4OnHashMap() throws TransactionException, CodeExecutionException {
 		StringValue toString = (StringValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString4", ClassType.STRING)));
+			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString4", ClassTypes.STRING)));
 		assertEquals("[are, io.takamaka.tests.javacollections.C@2a, hello, you, ?]", toString.value);
 	}
 
 	@Test @DisplayName("HashSetTests.testToString1() == [how, are, hello, you, ?]")
 	void toString1OnHashSet() throws TransactionException, CodeExecutionException {
 		StringValue toString = (StringValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_SET_TESTS, "testToString1", ClassType.STRING)));
+			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_SET_TESTS, "testToString1", ClassTypes.STRING)));
 		assertEquals("[how, are, hello, you, ?]", toString.value);
 	}
 
@@ -97,14 +98,14 @@ class JavaCollections extends TakamakaTest {
 	void toString2OnHashSet() throws TransactionException, CodeExecutionException {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-				(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_SET_TESTS, "testToString2", ClassType.STRING)))
+				(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_SET_TESTS, "testToString2", ClassTypes.STRING)))
 		);
 	}
 
 	@Test @DisplayName("HashSetTests.testToString3() == [how, are, hello, you, ?]")
 	void toString3OnHashSet() throws TransactionException, CodeExecutionException {
 		StringValue toString = (StringValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_SET_TESTS, "testToString3", ClassType.STRING)));
+			(blockchain.account(0), _200_000, classpath, new NonVoidMethodSignature(HASH_SET_TESTS, "testToString3", ClassTypes.STRING)));
 		assertEquals("[how, are, io.takamaka.tests.javacollections.C@2a, hello, you, ?]", toString.value);
 	}
 }

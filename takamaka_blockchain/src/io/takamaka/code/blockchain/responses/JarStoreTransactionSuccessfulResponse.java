@@ -2,8 +2,8 @@ package io.takamaka.code.blockchain.responses;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.blockchain.annotations.Immutable;
-import io.takamaka.code.blockchain.updates.UpdateOfBalance;
+import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.updates.UpdateOfBalance;
 
 /**
  * A response for a successful transaction that installs a jar in a blockchain.

@@ -1,12 +1,13 @@
 package io.takamaka.code.blockchain;
 
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.requests.RedGreenGameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.takamaka.code.blockchain.responses.ConstructorCallTransactionResponse;
 import io.takamaka.code.blockchain.responses.GameteCreationTransactionResponse;
 import io.takamaka.code.blockchain.responses.JarStoreInitialTransactionResponse;

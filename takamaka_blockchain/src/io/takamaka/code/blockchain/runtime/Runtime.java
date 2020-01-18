@@ -7,12 +7,12 @@ import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.OutOfGasError;
-import io.takamaka.code.blockchain.signatures.FieldSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.StorageReference;
 
 /**
  * A class that contains utility methods called by instrumented

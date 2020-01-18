@@ -1,5 +1,7 @@
 package io.takamaka.code.blockchain;
 
+import io.hotmoka.beans.references.TransactionReference;
+
 /**
  * A transaction reference for a blockchain where transactions are executed
  * immediately and stacked sequentially.

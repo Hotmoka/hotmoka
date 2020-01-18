@@ -13,19 +13,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.blockchain.Classpath;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.types.BasicTypes;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**
@@ -91,6 +91,6 @@ class AbstractFail extends TakamakaTest {
 			new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL),
 			abstractfail));
 
-		assertEquals("io.takamaka.tests.abstractfail.AbstractFailImpl", result.getClassName(blockchain));
+		assertEquals("io.takamaka.tests.abstractfail.AbstractFailImpl", blockchain.getClassNameOf(result));
 	}
 }

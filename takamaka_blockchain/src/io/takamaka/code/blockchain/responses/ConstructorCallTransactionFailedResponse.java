@@ -3,10 +3,10 @@ package io.takamaka.code.blockchain.responses;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.annotations.Immutable;
-import io.takamaka.code.blockchain.updates.Update;
-import io.takamaka.code.blockchain.updates.UpdateOfBalance;
 
 /**
  * A response for a failed transaction that should have called a constructor

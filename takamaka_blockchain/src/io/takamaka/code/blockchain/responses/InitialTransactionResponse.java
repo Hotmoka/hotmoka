@@ -1,6 +1,6 @@
 package io.takamaka.code.blockchain.responses;
 
-import io.takamaka.code.blockchain.annotations.Immutable;
+import io.hotmoka.beans.annotations.Immutable;
 
 /**
  * A response for an initial transaction.

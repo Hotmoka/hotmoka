@@ -3,8 +3,8 @@
  */
 package takamaka.tests;
 
-import static io.takamaka.code.blockchain.types.BasicTypes.INT;
-import static io.takamaka.code.blockchain.types.BasicTypes.LONG;
+import static io.hotmoka.beans.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.BasicTypes.LONG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -15,21 +15,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.blockchain.Classpath;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.LongValue;
-import io.takamaka.code.blockchain.values.StorageReference;
-import io.takamaka.code.blockchain.values.StringValue;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**
@@ -111,7 +112,7 @@ class TicTacToe extends TakamakaTest {
 			player1, 
 			_200_000,
 			classpath,
-			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
+			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassTypes.STRING),
 			ticTacToe));
 
 		assertEquals("X| | \n-----\n | | \n-----\n | | ", toString.value);
@@ -130,7 +131,7 @@ class TicTacToe extends TakamakaTest {
 			new LongValue(100L),
 			_1, _1));
 
-		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2,
 				_200_000,
@@ -155,7 +156,7 @@ class TicTacToe extends TakamakaTest {
 			new LongValue(100L),
 			_1, _1));
 
-		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player1,
 				_200_000,
@@ -180,7 +181,7 @@ class TicTacToe extends TakamakaTest {
 			new LongValue(120L),
 			_1, _1));
 
-		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2,
 				_200_000,
@@ -241,7 +242,7 @@ class TicTacToe extends TakamakaTest {
 			player1, 
 			_200_000,
 			classpath,
-			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
+			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassTypes.STRING),
 			ticTacToe));
 
 		assertEquals("X|O| \n-----\nX|O| \n-----\nX| | ", toString.value);
@@ -293,7 +294,7 @@ class TicTacToe extends TakamakaTest {
 			new LongValue(0L),
 			_1, _3));
 
-		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				player2, 
 				_200_000,

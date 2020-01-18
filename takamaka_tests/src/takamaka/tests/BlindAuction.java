@@ -3,9 +3,9 @@
  */
 package takamaka.tests;
 
-import static io.takamaka.code.blockchain.types.BasicTypes.BOOLEAN;
-import static io.takamaka.code.blockchain.types.BasicTypes.BYTE;
-import static io.takamaka.code.blockchain.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.BasicTypes.BYTE;
+import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -20,23 +20,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.takamaka.code.blockchain.Classpath;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.BooleanValue;
+import io.hotmoka.beans.values.ByteValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.MethodSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.BigIntegerValue;
-import io.takamaka.code.blockchain.values.BooleanValue;
-import io.takamaka.code.blockchain.values.ByteValue;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.StorageReference;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**
@@ -66,26 +67,26 @@ class BlindAuction extends TakamakaTest {
 	private static final ConstructorSignature CONSTRUCTOR_BLIND_AUCTION = new ConstructorSignature(BLIND_AUCTION, INT, INT);
 
 	private static final ConstructorSignature CONSTRUCTOR_BYTES32 = new ConstructorSignature
-		(ClassType.BYTES32,
+		(ClassTypes.BYTES32,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE);
 
-	private static final ConstructorSignature CONSTRUCTOR_STORAGE_LIST = new ConstructorSignature(ClassType.STORAGE_LIST);
+	private static final ConstructorSignature CONSTRUCTOR_STORAGE_LIST = new ConstructorSignature(ClassTypes.STORAGE_LIST);
 
 	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("io.takamaka.tests.auction.BlindAuction$RevealedBid"),
-			ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32);
+			ClassTypes.BIG_INTEGER, BOOLEAN, ClassTypes.BYTES32);
 
-	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
+	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassTypes.BIG_INTEGER, ClassTypes.BYTES32);
 
-	private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
+	private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", ClassTypes.STORAGE_LIST);
 
-	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
+	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassTypes.PAYABLE_CONTRACT);
 
-	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
+	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassTypes.TEOA, "getBalance", ClassTypes.BIG_INTEGER);
 
-	private static final MethodSignature ADD = new VoidMethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
+	private static final MethodSignature ADD = new VoidMethodSignature(ClassTypes.STORAGE_LIST, "add", ClassTypes.OBJECT);
 
 	private static final BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
 
@@ -140,7 +141,7 @@ class BlindAuction extends TakamakaTest {
 		StorageReference auction = blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(blockchain.account(0), _100_000, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME)));
 
-		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 		{
 			Random random = new Random();
 			for (int i = 1; i <= NUM_BIDS; i++) {

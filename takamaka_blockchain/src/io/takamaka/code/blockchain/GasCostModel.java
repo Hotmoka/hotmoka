@@ -2,6 +2,7 @@ package io.takamaka.code.blockchain;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.references.TransactionReference;
 import io.takamaka.code.blockchain.internal.StandardGasCostModel;
 
 /**

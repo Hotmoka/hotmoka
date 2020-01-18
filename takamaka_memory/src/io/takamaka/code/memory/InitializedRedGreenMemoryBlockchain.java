@@ -6,19 +6,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import io.takamaka.code.blockchain.Classpath;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.RedGreenGameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.BigIntegerValue;
-import io.takamaka.code.blockchain.values.StorageReference;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -75,10 +75,10 @@ public class InitializedRedGreenMemoryBlockchain extends MemoryBlockchain {
 		for (int i = 0; i < accounts.length; i++) {
 			// the constructor provides the green coins
 			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, takamakaBase, new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER), new BigIntegerValue(funds[i * 2])));
+				(gamete, gas, takamakaBase, new ConstructorSignature(ClassTypes.TRGEOA, ClassTypes.BIG_INTEGER), new BigIntegerValue(funds[i * 2])));
 			// then we add the red coins
 			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, gas, takamakaBase,
-				new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER),
+				new VoidMethodSignature(ClassTypes.RGPAYABLE_CONTRACT, "receiveRed", ClassTypes.BIG_INTEGER),
 				this.accounts[i], new BigIntegerValue(funds[i * 2 + 1])));
 		}
 	}

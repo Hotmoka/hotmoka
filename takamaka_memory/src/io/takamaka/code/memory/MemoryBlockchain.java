@@ -14,10 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
 import io.takamaka.code.blockchain.SequentialTransactionReference;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.TransactionRequest;
 import io.takamaka.code.blockchain.responses.TransactionResponse;
 
 /**

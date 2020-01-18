@@ -3,7 +3,7 @@
  */
 package takamaka.tests;
 
-import static io.takamaka.code.blockchain.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -14,26 +14,27 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
-import io.takamaka.code.blockchain.Classpath;
+import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.GameteCreationTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreInitialTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.signatures.VoidMethodSignature;
-import io.takamaka.code.blockchain.types.BasicTypes;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.BigIntegerValue;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.LongValue;
-import io.takamaka.code.blockchain.values.StorageReference;
-import io.takamaka.code.blockchain.values.StringValue;
 import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
@@ -45,7 +46,7 @@ class Lambdas extends TakamakaTest {
 
 	private static final ClassType LAMBDAS = new ClassType("io.takamaka.tests.lambdas.Lambdas");
 
-	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.takamaka.tests.lambdas.Lambdas", ClassType.BIG_INTEGER);
+	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.takamaka.tests.lambdas.Lambdas", ClassTypes.BIG_INTEGER);
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
@@ -93,7 +94,7 @@ class Lambdas extends TakamakaTest {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new VoidMethodSignature(LAMBDAS, "invest", ClassType.BIG_INTEGER),
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new VoidMethodSignature(LAMBDAS, "invest", ClassTypes.BIG_INTEGER),
 			lambdas, new BigIntegerValue(BigInteger.ONE)));
 	}
 
@@ -149,7 +150,7 @@ class Lambdas extends TakamakaTest {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 
-		throwsTransactionExceptionWithCause(ClassType.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT),
 				lambdas))
@@ -182,7 +183,7 @@ class Lambdas extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		IntValue result = (IntValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath,
-					new NonVoidMethodSignature(LAMBDAS, "whiteListChecks", INT, ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT),
+					new NonVoidMethodSignature(LAMBDAS, "whiteListChecks", INT, ClassTypes.OBJECT, ClassTypes.OBJECT, ClassTypes.OBJECT),
 			lambdas, new BigIntegerValue(BigInteger.valueOf(13L)), new BigIntegerValue(BigInteger.valueOf(1L)), new BigIntegerValue(BigInteger.valueOf(1973L))));
 
 		assertEquals(7, result.value);
@@ -194,8 +195,8 @@ class Lambdas extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		StringValue result = (StringValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath,
-					new NonVoidMethodSignature(LAMBDAS, "concatenation", ClassType.STRING,
-					ClassType.STRING, ClassType.OBJECT, LAMBDAS, BasicTypes.LONG, INT),
+					new NonVoidMethodSignature(LAMBDAS, "concatenation", ClassTypes.STRING,
+					ClassTypes.STRING, ClassTypes.OBJECT, LAMBDAS, BasicTypes.LONG, INT),
 			lambdas,
 			new StringValue("hello"), new StringValue("hi"), lambdas, new LongValue(1973L), new IntValue(13)));
 
