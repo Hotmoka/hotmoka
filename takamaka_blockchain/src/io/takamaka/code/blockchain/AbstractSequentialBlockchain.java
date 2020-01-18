@@ -427,22 +427,6 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	}
 
 	/**
-	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.takamaka.code.blockchain.TransactionException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws TransactionException the wrapped exception
-	 */
-	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
-		try {
-			return what.call();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
-	}
-
-	/**
 	 * Calls the given callable. If if throws a {@link io.takamaka.code.blockchain.CodeExecutionException}, if throws it back
 	 * unchanged. Otherwise, it wraps the exception into into a {@link io.takamaka.code.blockchain.TransactionException}.
 	 * 
@@ -461,20 +445,5 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
 		}
-	}
-
-	/**
-	 * Wraps the given throwable in a {@link io.takamaka.code.blockchain.TransactionException}, if it not
-	 * already an instance of that exception.
-	 * 
-	 * @param t the throwable to wrap
-	 * @param message the message added to the {@link io.takamaka.code.blockchain.TransactionException}, if wrapping occurs
-	 * @return the wrapped or original exception
-	 */
-	private static TransactionException wrapAsTransactionException(Throwable t, String message) {
-		if (t instanceof TransactionException)
-			return (TransactionException) t;
-		else
-			return new TransactionException(message, t);
 	}
 }
