@@ -1,6 +1,5 @@
 package io.takamaka.code.blockchain.values;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -23,11 +22,6 @@ public final class ByteValue implements StorageValue {
 	 */
 	public ByteValue(byte value) {
 		this.value = value;
-	}
-
-	@Override
-	public Byte deserialize(AbstractBlockchain blockchain) {
-		return value;
 	}
 
 	@Override

@@ -74,11 +74,6 @@ public final class StorageReference implements StorageValue {
 	}
 
 	@Override
-	public Object deserialize(AbstractBlockchain blockchain) {
-		return blockchain.deserialize(this);
-	}
-
-	@Override
 	public String toString() {
 		return transaction + "#" + progressive.toString(16);
 	}

@@ -1,6 +1,5 @@
 package io.takamaka.code.blockchain.values;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -33,11 +32,6 @@ public final class BooleanValue implements StorageValue {
 	 */
 	public BooleanValue(boolean value) {
 		this.value = value;
-	}
-
-	@Override
-	public Boolean deserialize(AbstractBlockchain blockchain) {
-		return value;
 	}
 
 	@Override

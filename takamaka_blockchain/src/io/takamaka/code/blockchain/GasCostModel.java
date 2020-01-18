@@ -207,6 +207,15 @@ public interface GasCostModel {
 	BigInteger storageCostOfJar(int numBytes);
 
 	/**
+	 * Yields the storage gas cost for the given transaction reference, if stored in blockchain.
+	 * 
+	 * @param transaction the transaction reference
+	 * @return the cost
+	 */
+	//TODO: this should be dependent on the actual implementation of the reference
+	BigInteger storageCostOf(TransactionReference transaction);
+
+	/**
 	 * Provides the cost of a given amount of gas, in terms of coins.
 	 * For red/green contracts, this means the green coins.
 	 * 

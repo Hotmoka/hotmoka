@@ -2,7 +2,6 @@ package io.takamaka.code.blockchain.values;
 
 import java.math.BigInteger;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -25,12 +24,6 @@ public final class BigIntegerValue implements StorageValue {
 	 */
 	public BigIntegerValue(BigInteger value) {
 		this.value = value;
-	}
-
-	@Override
-	public BigInteger deserialize(AbstractBlockchain blockchain) {
-		// we clone the value, so that the alias behavior of values coming from outside the blockchain is fixed
-		return new BigInteger(value.toString());
 	}
 
 	@Override

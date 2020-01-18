@@ -2,6 +2,7 @@ package io.takamaka.code.blockchain.internal;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.blockchain.Classpath;
 import io.takamaka.code.blockchain.GasCostModel;
 import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
 import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
@@ -90,13 +91,13 @@ public class SizeCalculator {
 		if (request instanceof ConstructorCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOf(request.caller))
-				.add(gasCostModel.storageCostOf(request.gas)).add(request.classpath.size(gasCostModel))
+				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
 				.add(((ConstructorCallTransactionRequest) request).actuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
 		else if (request instanceof InstanceMethodCallTransactionRequest) {
 			InstanceMethodCallTransactionRequest instanceMethodCallTransactionRequest = (InstanceMethodCallTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOf(request.caller))
-				.add(gasCostModel.storageCostOf(request.gas)).add(request.classpath.size(gasCostModel))
+				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
 				.add(sizeOf(instanceMethodCallTransactionRequest.method))
 				.add(sizeOf(instanceMethodCallTransactionRequest.receiver))
 				.add(instanceMethodCallTransactionRequest.getActuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
@@ -105,15 +106,15 @@ public class SizeCalculator {
 			StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = (StaticMethodCallTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOf(request.caller))
-				.add(gasCostModel.storageCostOf(request.gas)).add(request.classpath.size(gasCostModel))
+				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
 				.add(sizeOf(staticMethodCallTransactionRequest.method))
 				.add(staticMethodCallTransactionRequest.getActuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
 		}
 		else if (request instanceof JarStoreTransactionRequest) {
 			JarStoreTransactionRequest jarStoreTransactionRequest = (JarStoreTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(sizeOf(request.caller)).add(gasCostModel.storageCostOf(request.gas)).add(request.classpath.size(gasCostModel))
-				.add(jarStoreTransactionRequest.getDependencies().map(classpath -> classpath.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add))
+				.add(sizeOf(request.caller)).add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
+				.add(jarStoreTransactionRequest.getDependencies().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add))
 				.add(gasCostModel.storageCostOfJar(jarStoreTransactionRequest.getJarLength()));
 		}
 		else
@@ -161,6 +162,19 @@ public class SizeCalculator {
 			return size;
 		else
 			throw new IllegalArgumentException("unexpected transaction response");
+	}
+
+	/**
+	 * Yields the size of the given classpath, in terms of storage consumed if it is
+	 * stored in blockchain.
+	 * 
+	 * @param classpath the classpath
+	 * @return the size
+	 */
+	public BigInteger sizeOf(Classpath classpath) {
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
+			.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()))
+			.add(gasCostModel.storageCostOf(classpath.transaction));
 	}
 
 	/**
@@ -231,7 +245,7 @@ public class SizeCalculator {
 		else if (value instanceof StorageReference) {
 			StorageReference storageReference = (StorageReference) value;
 			return size.add(gasCostModel.storageCostOf(storageReference.progressive))
-				.add(storageReference.transaction.size(gasCostModel));
+				.add(gasCostModel.storageCostOf(storageReference.transaction));
 		}
 		else if (value instanceof EnumValue) {
 			EnumValue enumValue = (EnumValue) value;
@@ -257,7 +271,7 @@ public class SizeCalculator {
 
 		if (update instanceof ClassTag) {
 			ClassTag ct = (ClassTag) update;
-			return size.add(gasCostModel.storageCostOf(ct.className)).add(ct.jar.size(gasCostModel));
+			return size.add(gasCostModel.storageCostOf(ct.className)).add(gasCostModel.storageCostOf(ct.jar));
 		}
 		else if (update instanceof UpdateOfBalance)
 			return size.add(gasCostModel.storageCostOf(((UpdateOfBalance) update).balance));

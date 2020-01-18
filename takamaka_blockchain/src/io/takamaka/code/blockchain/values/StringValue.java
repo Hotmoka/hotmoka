@@ -1,6 +1,5 @@
 package io.takamaka.code.blockchain.values;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -23,13 +22,6 @@ public final class StringValue implements StorageValue {
 	 */
 	public StringValue(String value) {
 		this.value = value;
-	}
-
-	@Override
-	public String deserialize(AbstractBlockchain blockchain) {
-		// we clone the value, so that the alias behavior of values coming from outside the blockchain is fixed:
-		// two parameters of an entry are never alias when they come from outside the blockchain
-		return new String(value);
 	}
 
 	@Override

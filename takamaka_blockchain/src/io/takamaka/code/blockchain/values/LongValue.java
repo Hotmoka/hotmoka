@@ -1,6 +1,5 @@
 package io.takamaka.code.blockchain.values;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -23,11 +22,6 @@ public final class LongValue implements StorageValue {
 	 */
 	public LongValue(long value) {
 		this.value = value;
-	}
-
-	@Override
-	public Long deserialize(AbstractBlockchain blockchain) {
-		return value;
 	}
 
 	@Override

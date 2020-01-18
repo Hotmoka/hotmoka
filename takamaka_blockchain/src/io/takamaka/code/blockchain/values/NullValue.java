@@ -1,6 +1,5 @@
 package io.takamaka.code.blockchain.values;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -19,11 +18,6 @@ public final class NullValue implements StorageValue {
 	 * value existing of this class.
 	 */
 	private NullValue() {}
-
-	@Override
-	public Object deserialize(AbstractBlockchain blockchain) {
-		return null;
-	}
 
 	@Override
 	public String toString() {

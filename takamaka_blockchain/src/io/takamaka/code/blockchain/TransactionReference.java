@@ -1,7 +1,6 @@
 package io.takamaka.code.blockchain;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 
 import io.takamaka.code.blockchain.annotations.Immutable;
 
@@ -14,15 +13,6 @@ import io.takamaka.code.blockchain.annotations.Immutable;
  */
 @Immutable
 public interface TransactionReference extends Serializable, Comparable<TransactionReference> {
-
-	/**
-	 * Yields a measure of this update, to be used to assess its gas cost
-	 * when stored in blockchain.
-	 * 
-	 * @param gasCostModel the gas cost model of the blockchain
-	 * @return the size of this update. This must be positive
-	 */
-	BigInteger size(GasCostModel gasCostModel);
 
 	boolean equals(Object other);
 
