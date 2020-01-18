@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.annotations.Immutable;
 import io.takamaka.code.verification.Constants;
 
@@ -170,11 +169,6 @@ public final class ClassType implements StorageType {
 	@Override
 	public String toString() {
 		return name;
-	}
-
-	@Override
-	public Class<?> toClass(AbstractBlockchain blockchain) throws ClassNotFoundException {
-		return blockchain.loadClass(name);
 	}
 
 	@Override

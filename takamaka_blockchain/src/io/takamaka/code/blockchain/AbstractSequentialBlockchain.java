@@ -395,7 +395,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	private boolean updatesNonFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
 		if (update instanceof UpdateOfField) {
 			FieldSignature sig = ((UpdateOfField) update).getField();
-			Class<?> type = sig.type.toClass(this);
+			Class<?> type = toClass(sig.type);
 			String name = sig.name;
 			return eagerFields.stream()
 				.anyMatch(field -> !Modifier.isFinal(field.getModifiers()) && field.getType() == type && field.getName().equals(name));

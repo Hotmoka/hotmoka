@@ -34,6 +34,9 @@ import io.takamaka.code.blockchain.values.StorageValue;
 import io.takamaka.code.blockchain.values.StringValue;
 import io.takamaka.code.verification.Dummy;
 
+/**
+ * An object that translates storage values into RAM values.
+ */
 public class Deserializer {
 
 	/**
@@ -211,7 +214,7 @@ public class Deserializer {
 					classTag = (ClassTag) update;
 				else {
 					UpdateOfField updateOfField = (UpdateOfField) update;
-					formals.add(updateOfField.getField().type.toClass(blockchain));
+					formals.add(blockchain.toClass(updateOfField.getField().type));
 					actuals.add(deserialize(updateOfField.getValue()));
 				}
 	

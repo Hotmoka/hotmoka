@@ -1,6 +1,5 @@
 package io.takamaka.code.blockchain.types;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -25,24 +24,8 @@ public enum BasicTypes implements StorageType {
 	}
 
 	@Override
-	public Class<?> toClass(AbstractBlockchain blockchain) {
-		switch (this) {
-		case BOOLEAN: return boolean.class;
-		case BYTE: return byte.class;
-		case CHAR: return char.class;
-		case SHORT: return short.class;
-		case INT: return int.class;
-		case LONG: return long.class;
-		case FLOAT: return float.class;
-		default: return double.class;
-		}
-	}
-
-	@Override
 	public int compareAgainst(StorageType other) {
-		if (other instanceof BasicTypes)
-			return compareTo((BasicTypes) other);
-		else
-			return -1; // other instanceof ClassType
+		return other instanceof BasicTypes ? compareTo((BasicTypes) other)
+			: -1; // other instanceof ClassType
 	}
 }

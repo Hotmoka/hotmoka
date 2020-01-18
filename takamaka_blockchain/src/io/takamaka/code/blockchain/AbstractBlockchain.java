@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 import io.takamaka.code.blockchain.internal.Deserializer;
 import io.takamaka.code.blockchain.internal.Serializer;
 import io.takamaka.code.blockchain.internal.SizeCalculator;
+import io.takamaka.code.blockchain.internal.StorageTypeToClass;
 import io.takamaka.code.blockchain.internal.TempJarFile;
 import io.takamaka.code.blockchain.requests.AbstractJarStoreTransactionRequest;
 import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
@@ -112,6 +113,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	 * The object that deserializes storage objects into RAM values.
 	 */
 	private final Deserializer deserializer = new Deserializer(this, this::getLastEagerUpdatesFor);
+
+	/**
+	 * The object that translates storage types into their run-time class tag.
+	 */
+	private final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
 
 	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
@@ -279,6 +285,18 @@ public abstract class AbstractBlockchain implements Blockchain {
 	private TransactionRequest getRequestAtAndCharge(TransactionReference transaction) throws Exception {
 		chargeForCPU(gasCostModel.cpuCostForGettingRequestAt(transaction));
 		return getRequestAt(transaction);
+	}
+
+	/**
+	 * Yields the class object that represents the given storage type in the Java language,
+	 * for the current transaction.
+	 * 
+	 * @param type the storage type
+	 * @return the class object, if any
+	 * @throws ClassNotFoundException if some class type cannot be found
+	 */
+	public final Class<?> toClass(StorageType type) throws ClassNotFoundException {
+		return storageTypeToClass.toClass(type);
 	}
 
 	/**
@@ -1560,7 +1578,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 */
 		protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
 			MethodSignature method = (MethodSignature) methodOrConstructor;
-			Class<?> returnType = method instanceof NonVoidMethodSignature ? ((NonVoidMethodSignature) method).returnType.toClass(AbstractBlockchain.this) : void.class;
+			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 			Class<?>[] argTypes = formalsAsClass();
 
 			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
@@ -1577,7 +1595,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 */
 		protected final Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 			MethodSignature method = (MethodSignature) methodOrConstructor;
-			Class<?> returnType = method instanceof NonVoidMethodSignature ? ((NonVoidMethodSignature) method).returnType.toClass(AbstractBlockchain.this) : void.class;
+			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 			Class<?>[] argTypes = formalsAsClassForEntry();
 
 			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
@@ -1606,7 +1624,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
 			List<Class<?>> classes = new ArrayList<>();
 			for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-				classes.add(type.toClass(AbstractBlockchain.this));
+				classes.add(storageTypeToClass.toClass(type));
 
 			return classes.toArray(new Class<?>[classes.size()]);
 		}
@@ -1622,7 +1640,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		protected final Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
 			List<Class<?>> classes = new ArrayList<>();
 			for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-				classes.add(type.toClass(AbstractBlockchain.this));
+				classes.add(storageTypeToClass.toClass(type));
 
 			classes.add(classLoader.getContract());
 			classes.add(Dummy.class);

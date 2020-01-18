@@ -2,7 +2,6 @@ package io.takamaka.code.blockchain.types;
 
 import java.io.Serializable;
 
-import io.takamaka.code.blockchain.AbstractBlockchain;
 import io.takamaka.code.blockchain.annotations.Immutable;
 
 /**
@@ -10,16 +9,6 @@ import io.takamaka.code.blockchain.annotations.Immutable;
  */
 @Immutable
 public interface StorageType extends Serializable {
-
-	/**
-	 * Yields the class object that represents this type in the Java language,
-	 * for the current transaction of the given blockchain.
-	 * 
-	 * @param blockchain the blockchain that is executing the transaction
-	 * @return the class object, if any
-	 * @throws ClassNotFoundException if some class type cannot be found
-	 */
-	Class<?> toClass(AbstractBlockchain blockchain) throws ClassNotFoundException;
 
 	/**
 	 * Compares this storage type with another. Puts first basic types, in their order of
