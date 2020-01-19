@@ -91,7 +91,7 @@ class CrowdFunding extends TakamakaTest {
 	void beforeEach() throws Exception {
 		blockchain = new MemoryBlockchain(Paths.get("chain"));
 
-		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../takamaka_distribution/dist/io-takamaka-code-1.0.jar"))));
+		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"))));
 		Classpath takamakaBase = new Classpath(takamaka_base, false);  // true/false irrelevant here
 
 		gamete = blockchain.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaBase, ALL_FUNDS));

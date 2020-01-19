@@ -18,7 +18,7 @@
 
   <target name="compile" depends="init" description="compile the source">
     <javac srcdir="${src}" destdir="${build}" debug="true" debuglevel="lines,vars,source" source="9" target="9" includeantruntime="true">
-	  <modulepath path ="../takamaka_distribution/dist"/>
+	  <modulepath path ="../distribution/dist"/>
     </javac>
   </target>
 

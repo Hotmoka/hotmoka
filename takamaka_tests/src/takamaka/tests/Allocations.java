@@ -44,7 +44,7 @@ class Allocations extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../takamaka_distribution/dist/io-takamaka-code-1.0.jar"),
+		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
 			_1_000_000_000, BigInteger.valueOf(100_000L));
 
 		TransactionReference allocations = blockchain.addJarStoreTransaction

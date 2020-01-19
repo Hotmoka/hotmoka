@@ -5,7 +5,7 @@
 
   <property name="src" location="src"/>
   <property name="build" location="build"/>
-  <property name="dist" location="../takamaka_distribution/dist"/>
+  <property name="dist" location="../distribution/dist"/>
   <property name="version" value="UNVERSIONED"/>
 
   <target name="clean" description="clean up">
@@ -19,7 +19,7 @@
   <target name="compile" depends="init" description="compile">
 	<javac srcdir="${src}" destdir="${build}" source="9" target="9" includeantruntime="no">
 		<compilerarg value="-Xlint"/>
-		<modulepath path ="../takamaka_distribution/mods"/>
+		<modulepath path ="../distribution/mods"/>
     </javac>
   </target>
 
@@ -27,7 +27,7 @@
 	<javac srcdir="${src}" destdir="${build}" source="8" target="8" includeantruntime="no" excludes="module-info.java">
 		<compilerarg value="-Xlint"/>
 		<classpath>
-		   <fileset dir="../takamaka_distribution/libs" includes="*.jar" />
+		   <fileset dir="../distribution/libs" includes="*.jar" />
 	  	</classpath>
 	</javac>
   </target>

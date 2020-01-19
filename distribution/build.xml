@@ -1,6 +1,6 @@
-<project name="takamaka_distribution" default="dist" basedir=".">
+<project name="distribution" default="dist" basedir=".">
   <description>
-    Compiles all Takamaka modules
+    Compiles all Hotmoka and Takamaka modules
   </description>
 
   <property name="dist" location="dist"/>
