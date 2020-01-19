@@ -452,10 +452,8 @@ class Basic extends TakamakaTest {
 				(new InstanceMethodCallTransactionRequest(master, _5_000, classpath, new VoidMethodSignature(entryFilter, "foo5"), ef));
 		}
 		catch (CodeExecutionException e) {
-			if (e.getCause().getClass().getName().equals("io.takamaka.tests.basic.MyCheckedException"))
-				return;
-
-			fail("wrong exception");
+			Assertions.assertEquals("io.takamaka.tests.basic.MyCheckedException", e.classNameOfCause, "wrong exceptions");
+			return;
 		}
 
 		fail("expected exception");

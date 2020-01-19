@@ -25,7 +25,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	/**
 	 * The update of balance of the caller of the transaction, for paying for the transaction.
 	 */
-	private UpdateOfBalance callerBalanceUpdate;
+	private final UpdateOfBalance callerBalanceUpdate;
 
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.

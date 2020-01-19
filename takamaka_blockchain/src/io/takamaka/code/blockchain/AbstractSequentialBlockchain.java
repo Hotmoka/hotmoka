@@ -221,8 +221,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
 	 * @throws CodeExecutionException if the constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception (that exception is available as
-	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
+	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.takamaka.code.blockchain.TransactionException} is thrown
 	 */
@@ -234,7 +233,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 			if (response instanceof ConstructorCallTransactionFailedResponse)
 				throw ((ConstructorCallTransactionFailedResponse) response).cause;
 			else if (response instanceof ConstructorCallTransactionExceptionResponse)
-				throw new CodeExecutionException("Constructor threw exception", ((ConstructorCallTransactionExceptionResponse) response).exception);
+				throw new CodeExecutionException("constructor threw", ((ConstructorCallTransactionExceptionResponse) response).exception);
 			else
 				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject;
 		});
@@ -253,8 +252,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
 	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception (that exception is available as
-	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
+	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.takamaka.code.blockchain.TransactionException} is thrown
 	 */
@@ -266,7 +264,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 			if (response instanceof MethodCallTransactionFailedResponse)
 				throw ((MethodCallTransactionFailedResponse) response).cause;
 			else if (response instanceof MethodCallTransactionExceptionResponse)
-				throw new CodeExecutionException("Method threw exception", ((MethodCallTransactionExceptionResponse) response).exception);
+				throw new CodeExecutionException("method threw", ((MethodCallTransactionExceptionResponse) response).exception);
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
 			else
@@ -287,8 +285,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
 	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
 	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception (that exception is available as
-	 *                                {@link java.lang.Throwable#getCause()}). Note that, in this case, from the point of view of Takamaka,
+	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.takamaka.code.blockchain.TransactionException} is thrown
 	 */
@@ -300,7 +297,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 			if (response instanceof MethodCallTransactionFailedResponse)
 				throw ((MethodCallTransactionFailedResponse) response).cause;
 			else if (response instanceof MethodCallTransactionExceptionResponse)
-				throw new CodeExecutionException("Method threw exception", ((MethodCallTransactionExceptionResponse) response).exception);
+				throw new CodeExecutionException("method threw", ((MethodCallTransactionExceptionResponse) response).exception);
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
 			else
