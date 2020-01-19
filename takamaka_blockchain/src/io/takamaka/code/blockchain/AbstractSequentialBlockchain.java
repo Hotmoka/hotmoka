@@ -232,8 +232,10 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 
 			if (response instanceof ConstructorCallTransactionFailedResponse)
 				throw ((ConstructorCallTransactionFailedResponse) response).cause;
-			else if (response instanceof ConstructorCallTransactionExceptionResponse)
-				throw new CodeExecutionException("constructor threw", ((ConstructorCallTransactionExceptionResponse) response).exception);
+			else if (response instanceof ConstructorCallTransactionExceptionResponse) {
+				ConstructorCallTransactionExceptionResponse ccter = (ConstructorCallTransactionExceptionResponse) response;
+				throw new CodeExecutionException("constructor threw", ccter.classNameOfCause, ccter.messageOfCause, ccter.getStackTrace());
+			}
 			else
 				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject;
 		});
@@ -263,8 +265,10 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 
 			if (response instanceof MethodCallTransactionFailedResponse)
 				throw ((MethodCallTransactionFailedResponse) response).cause;
-			else if (response instanceof MethodCallTransactionExceptionResponse)
-				throw new CodeExecutionException("method threw", ((MethodCallTransactionExceptionResponse) response).exception);
+			else if (response instanceof MethodCallTransactionExceptionResponse) {
+				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
+				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.getStackTrace());
+			}
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
 			else
@@ -296,8 +300,10 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 
 			if (response instanceof MethodCallTransactionFailedResponse)
 				throw ((MethodCallTransactionFailedResponse) response).cause;
-			else if (response instanceof MethodCallTransactionExceptionResponse)
-				throw new CodeExecutionException("method threw", ((MethodCallTransactionExceptionResponse) response).exception);
+			else if (response instanceof MethodCallTransactionExceptionResponse) {
+				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
+				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.getStackTrace());
+			}
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
 			else

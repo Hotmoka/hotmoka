@@ -1,5 +1,7 @@
 package io.takamaka.code.blockchain;
 
+import java.util.stream.Stream;
+
 /**
  * A wrapper of an exception that occurred during the execution of
  * a Takamaka constructor or method. It does not keep the
@@ -20,13 +22,21 @@ public class CodeExecutionException extends Exception {
 	 */
 	public final String messageOfCause;
 
-	public CodeExecutionException(String message, Throwable cause) {
-		super(message + ' ' + cause.getClass().getName() + (cause.getMessage() == null ? ":" : (": " + cause.getMessage() + ":")));
+	/**
+	 * Builds an exception that occurred during the execution of a Takamaka constructor or method.
+	 * 
+	 * @param message the message of the exception
+	 * @param classNameOfCause the name of the class of the cause of the exception
+	 * @param messageOfCause the message of the cause of the exception
+	 * @param stackTrace the stack trace of the cause of the exception
+	 */
+	public CodeExecutionException(String message, String classNameOfCause, String messageOfCause, Stream<StackTraceElement> stackTrace) {
+		super(message + ' ' + classNameOfCause + (messageOfCause == null ? ":" : (": " + messageOfCause + ":")));
 
-		this.classNameOfCause = cause.getClass().getName();
-		this.messageOfCause = cause.getMessage();
+		this.classNameOfCause = classNameOfCause;
+		this.messageOfCause = messageOfCause;
 
 		// we use the stack trace of the code that threw the exception
-		setStackTrace(cause.getStackTrace());
+		setStackTrace(stackTrace.toArray(StackTraceElement[]::new));
 	}
 }

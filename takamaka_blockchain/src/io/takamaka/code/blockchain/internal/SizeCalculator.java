@@ -153,10 +153,16 @@ public class SizeCalculator {
 			return size.add(sizeOf(((MethodCallTransactionSuccessfulResponse) response).result));
 		else if (response instanceof JarStoreTransactionSuccessfulResponse)
 			return size.add(gasCostModel.storageCostOfJar(((JarStoreTransactionSuccessfulResponse) response).getInstrumentedJarLength()));
-		else if (response instanceof ConstructorCallTransactionExceptionResponse ||
-				response instanceof ConstructorCallTransactionFailedResponse ||
+		else if (response instanceof ConstructorCallTransactionExceptionResponse) {
+			ConstructorCallTransactionExceptionResponse ccter = (ConstructorCallTransactionExceptionResponse) response;
+			return size.add(gasCostModel.storageCostOf(ccter.classNameOfCause)).add(gasCostModel.storageCostOf(ccter.messageOfCause));
+		}
+		else if (response instanceof MethodCallTransactionExceptionResponse) {
+			MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
+			return size.add(gasCostModel.storageCostOf(mcter.classNameOfCause)).add(gasCostModel.storageCostOf(mcter.messageOfCause));
+		}
+		else if (response instanceof ConstructorCallTransactionFailedResponse ||
 				response instanceof JarStoreTransactionFailedResponse ||
-				response instanceof MethodCallTransactionExceptionResponse ||
 				response instanceof MethodCallTransactionFailedResponse ||
 				response instanceof VoidMethodCallTransactionSuccessfulResponse)
 			return size;

@@ -29,9 +29,19 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	private final StorageReference[] events;
 
 	/**
-	 * The exception that has been thrown by the constructor.
+	 * The fully-qualified class name of the cause exception.
 	 */
-	public final transient Exception exception;
+	public final String classNameOfCause;
+
+	/**
+	 * The message of the cause exception.
+	 */
+	public final String messageOfCause;
+
+	/**
+	 * The stack trace of the cause exception. This is not serialized.
+	 */
+	private final transient StackTraceElement[] stackTrace;
 
 	/**
 	 * Builds the transaction response.
@@ -48,7 +58,18 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 
 		this.updates = updates.toArray(Update[]::new);
 		this.events = events.toArray(StorageReference[]::new);
-		this.exception = exception;
+		this.classNameOfCause = exception.getClass().getName();
+		this.messageOfCause = exception.getMessage();
+		this.stackTrace = exception.getStackTrace();
+	}
+
+	/**
+	 * Yields the stack trace of the cause exception.
+	 * 
+	 * @return the stack trace
+	 */
+	public final Stream<StackTraceElement> getStackTrace() {
+		return Stream.of(stackTrace);
 	}
 
 	@Override
