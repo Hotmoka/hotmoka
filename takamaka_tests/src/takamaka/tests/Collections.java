@@ -34,7 +34,6 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
 import io.takamaka.code.memory.MemoryBlockchain;
@@ -192,7 +191,7 @@ class Collections extends TakamakaTest {
 			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isRunning", BOOLEAN, ClassTypes.OBJECT), mapHolder, state));
+			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isRunning", BOOLEAN, ClassType.OBJECT), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -206,7 +205,7 @@ class Collections extends TakamakaTest {
 			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isSleeping", BOOLEAN, ClassTypes.OBJECT), mapHolder, state));
+			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isSleeping", BOOLEAN, ClassType.OBJECT), mapHolder, state));
 
 		assertTrue(result.value);
 	}
@@ -220,7 +219,7 @@ class Collections extends TakamakaTest {
 			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder));
 
 		BooleanValue result = (BooleanValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isWaiting", BOOLEAN, ClassTypes.OBJECT), mapHolder, state));
+			(gamete, _5_000_000, classpath, new NonVoidMethodSignature(MAP_HOLDER, "isWaiting", BOOLEAN, ClassType.OBJECT), mapHolder, state));
 
 		assertTrue(result.value);
 	}

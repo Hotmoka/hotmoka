@@ -15,7 +15,6 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.TransactionException;
@@ -45,7 +44,7 @@ class IllegalCallToNonWhiteListedMethod5 extends TakamakaTest {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 				(blockchain.account(0), _20_000, new Classpath(jar, true),
-				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.illegalcalltononwhitelistedmethod5.C"), "foo", ClassTypes.STRING)))
+				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.illegalcalltononwhitelistedmethod5.C"), "foo", ClassType.STRING)))
 		);
 	}
 }

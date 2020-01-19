@@ -12,9 +12,9 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
 
@@ -67,7 +67,7 @@ public class InitializedMemoryBlockchain extends MemoryBlockchain {
 		BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
 		for (int i = 0; i < accounts.length; i++)
 			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, takamakaBase, new ConstructorSignature(ClassTypes.TEOA, ClassTypes.BIG_INTEGER), new BigIntegerValue(funds[i])));
+				(gamete, gas, takamakaBase, new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER), new BigIntegerValue(funds[i])));
 	}
 
 	/**

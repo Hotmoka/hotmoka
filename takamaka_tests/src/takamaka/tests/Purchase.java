@@ -26,9 +26,9 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
@@ -87,15 +87,15 @@ class Purchase extends TakamakaTest {
 		classpath = new Classpath(purchase, true);
 
 		seller = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
 
 		buyer = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
 	}
 
 	@Test @DisplayName("new Purchase(21)")
 	void oddDeposit() throws TransactionException, CodeExecutionException {
-		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 				new IntValue(21)))
@@ -115,7 +115,7 @@ class Purchase extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(buyer, _10_000, classpath, new VoidMethodSignature(PURCHASE, "confirmPurchase", INT), purchase, new IntValue(18)))
 		);
@@ -137,7 +137,7 @@ class Purchase extends TakamakaTest {
 			(new ConstructorCallTransactionRequest(seller, _10_000, classpath, CONSTRUCTOR_PURCHASE,
 			new IntValue(20)));
 
-		throwsTransactionExceptionWithCause(ClassTypes.REQUIREMENT_VIOLATION_EXCEPTION.name, () ->
+		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			blockchain.addInstanceMethodCallTransaction
 				(new InstanceMethodCallTransactionRequest(buyer, _10_000, classpath, new VoidMethodSignature(PURCHASE, "confirmReceived"), purchase))
 		);

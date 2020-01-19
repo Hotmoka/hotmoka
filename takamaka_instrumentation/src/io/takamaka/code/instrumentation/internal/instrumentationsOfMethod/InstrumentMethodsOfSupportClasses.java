@@ -11,14 +11,15 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.constants.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 
 /**
  * Edits the code of the methods in some support classes of Takamaka.
  */
 public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType STORAGE_OT = new ObjectType(io.takamaka.code.constants.Constants.STORAGE_NAME);
+	private final static ObjectType STORAGE_OT = new ObjectType(Constants.STORAGE_NAME);
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 
@@ -27,12 +28,12 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 
 		Type[] args;
 
-		if (className.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)) {
+		if (className.equals(Constants.STORAGE_NAME)) {
 			if ("compareByStorageReference".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(InstructionConst.ALOAD_1);
-				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "compareStorageReferencesOf", Type.INT, new Type[] { Type.OBJECT, Type.OBJECT }, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "compareStorageReferencesOf", Type.INT, new Type[] { Type.OBJECT, Type.OBJECT }, Const.INVOKESTATIC));
 				il.append(InstructionConst.IRETURN);
 				method.setInstructionList(il);
 			}
@@ -42,10 +43,10 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				il.append(factory.createInvoke(Object.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(false));
-				il.append(factory.createPutField(io.takamaka.code.constants.Constants.STORAGE_NAME, Constants.IN_STORAGE, Type.BOOLEAN));
+				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationConstants.IN_STORAGE, Type.BOOLEAN));
 				il.append(InstructionFactory.createThis());
-				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "getNextStorageReference", Type.OBJECT, Type.NO_ARGS, Const.INVOKESTATIC));
-				il.append(factory.createPutField(io.takamaka.code.constants.Constants.STORAGE_NAME, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
+				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "getNextStorageReference", Type.OBJECT, Type.NO_ARGS, Const.INVOKESTATIC));
+				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}
@@ -54,7 +55,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 			if ("event".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && EVENT_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
-				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "event", Type.VOID, new Type[] { ObjectType.OBJECT }, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "event", Type.VOID, new Type[] { ObjectType.OBJECT }, Const.INVOKESTATIC));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}
@@ -63,13 +64,13 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
 				il.append(InstructionConst.ALOAD_1);
-				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "withGas", Type.OBJECT, args, Const.INVOKESTATIC));
 				il.append(InstructionConst.ARETURN);
 				method.setInstructionList(il);
 			}
 			else if ("now".equals(method.getName()) && (args = method.getArgumentTypes()).length == 0) {
 				InstructionList il = new InstructionList();
-				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
+				il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "now", Type.LONG, Type.NO_ARGS, Const.INVOKESTATIC));
 				il.append(InstructionConst.LRETURN);
 				method.setInstructionList(il);
 			}

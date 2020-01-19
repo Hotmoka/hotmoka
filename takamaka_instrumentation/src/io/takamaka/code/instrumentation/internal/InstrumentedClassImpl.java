@@ -35,7 +35,7 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ReturnInstruction;
 
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentedClass;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
@@ -325,12 +325,12 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 
 			protected final String getterNameFor(String className, String fieldName) {
 				// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
-				return Constants.GETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
+				return InstrumentationConstants.GETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
 			}
 
 			protected final String setterNameFor(String className, String fieldName) {
 				// we use the class name as well, in order to disambiguate fields with the same name in sub and superclass
-				return Constants.SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
+				return InstrumentationConstants.SETTER_PREFIX + className.replace('.', '_') + '_' + fieldName;
 			}
 
 			protected final short invokeCorrespondingToBootstrapInvocationType(int invokeKind) {

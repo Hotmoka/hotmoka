@@ -33,7 +33,6 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
 import io.takamaka.code.memory.MemoryBlockchain;
@@ -104,13 +103,13 @@ class CrowdFunding extends TakamakaTest {
 		classpath = new Classpath(crowdfunding, true);
 
 		beneficiary = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA)));
 
 		funder1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
 
 		funder2 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassTypes.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
 
 		crowdFunding = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(gamete, _10_000, classpath, CONSTRUCTOR_CROWD_FUNDING));
@@ -120,7 +119,7 @@ class CrowdFunding extends TakamakaTest {
 	void createCampaign() throws TransactionException, CodeExecutionException {
 		IntValue id = (IntValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassTypes.PAYABLE_CONTRACT, ClassTypes.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		assertEquals(0, id.value);
@@ -130,12 +129,12 @@ class CrowdFunding extends TakamakaTest {
 	void createTwoCampaigns() throws TransactionException, CodeExecutionException {
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassTypes.PAYABLE_CONTRACT, ClassTypes.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		IntValue id = (IntValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassTypes.PAYABLE_CONTRACT, ClassTypes.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		assertEquals(1, id.value);
@@ -145,17 +144,17 @@ class CrowdFunding extends TakamakaTest {
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException {
 		IntValue id = (IntValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassTypes.PAYABLE_CONTRACT, ClassTypes.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder1, _10_000, classpath,
-			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassTypes.BIG_INTEGER, INT),
+			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), id));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder2, _10_000, classpath,
-			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassTypes.BIG_INTEGER, INT),
+			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), id));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction
@@ -170,17 +169,17 @@ class CrowdFunding extends TakamakaTest {
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException {
 		IntValue id = (IntValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassTypes.PAYABLE_CONTRACT, ClassTypes.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder1, _10_000, classpath,
-			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassTypes.BIG_INTEGER, INT),
+			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), id));
 
 		blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(funder2, _10_000, classpath,
-			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassTypes.BIG_INTEGER, INT),
+			new VoidMethodSignature(CROWD_FUNDING, "contribute", ClassType.BIG_INTEGER, INT),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), id));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction

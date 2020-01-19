@@ -76,7 +76,7 @@ import io.takamaka.code.blockchain.responses.TransactionResponseWithInstrumented
 import io.takamaka.code.blockchain.responses.TransactionResponseWithUpdates;
 import io.takamaka.code.blockchain.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.takamaka.code.blockchain.runtime.Runtime;
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -1166,9 +1166,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.redPayableLong.setAccessible(true); // it was private
 			this.redPayableBigInteger = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), BigInteger.class);
 			this.redPayableBigInteger.setAccessible(true); // it was private
-			this.storageReference = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
-			this.inStorage = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
+			this.inStorage = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(InstrumentationConstants.IN_STORAGE);
 			this.inStorage.setAccessible(true); // it was private
 		}
 
@@ -1205,9 +1205,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.redPayableLong.setAccessible(true); // it was private
 			this.redPayableBigInteger = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), BigInteger.class);
 			this.redPayableBigInteger.setAccessible(true); // it was private
-			this.storageReference = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
-			this.inStorage = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
+			this.inStorage = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(InstrumentationConstants.IN_STORAGE);
 			this.inStorage.setAccessible(true); // it was private
 		}
 
@@ -1680,7 +1680,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		 * @return the same exception, or its cause
 		 */
 		protected final Throwable unwrapInvocationException(InvocationTargetException e, Executable executable) {
-			if (isChecked(e.getCause()) && hasAnnotation(executable, ClassTypes.THROWS_EXCEPTIONS.name))
+			if (isChecked(e.getCause()) && hasAnnotation(executable, ClassType.THROWS_EXCEPTIONS.name))
 				return e;
 			else
 				return e.getCause();
@@ -1897,7 +1897,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
-				isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+				isViewMethod = hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
 				if (hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
 					checkIsRedGreenExternallyOwned(deserializedCaller);
 
@@ -1944,7 +1944,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
-				isViewMethod = hasAnnotation(methodJVM, ClassTypes.VIEW.name);
+				isViewMethod = hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
 
 				try {
 					result = methodJVM.invoke(null, deserializedActuals);

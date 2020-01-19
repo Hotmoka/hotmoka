@@ -27,7 +27,7 @@ import org.apache.bcel.generic.StackProducer;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.HeightAtBytecode;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Annotations;
@@ -104,12 +104,12 @@ public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClas
 			Type amountType = method.getArgumentType(0);
 			il.insert(start, InstructionFactory.createLoad(amountType, 1));
 			Type[] paybleEntryArgs = new Type[] { OBJECT_OT, OBJECT_OT, amountType };
-			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME,
-				isPayable ? Constants.PAYABLE_ENTRY : Constants.RED_PAYABLE_ENTRY,
+			il.insert(where, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME,
+				isPayable ? InstrumentationConstants.PAYABLE_ENTRY : InstrumentationConstants.RED_PAYABLE_ENTRY,
 				Type.VOID, paybleEntryArgs, Const.INVOKESTATIC));
 		}
 		else
-			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME, Constants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESTATIC));
+			il.insert(where, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, InstrumentationConstants.ENTRY, Type.VOID, ENTRY_ARGS, Const.INVOKESTATIC));
 	}
 
 	/**

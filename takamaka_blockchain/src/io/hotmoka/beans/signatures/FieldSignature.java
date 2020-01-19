@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.takamaka.code.blockchain.ClassTypes;
 
 /**
  * The signature of a field of a class.
@@ -20,12 +19,12 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	/**
 	 * The field that holds the balance in externally owned accounts.
 	 */
-	public final static FieldSignature BALANCE_FIELD = new FieldSignature(ClassTypes.CONTRACT, "balance", ClassTypes.BIG_INTEGER);
+	public final static FieldSignature BALANCE_FIELD = new FieldSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
 
 	/**
 	 * The field that holds the red balance in red/green externally owned accounts.
 	 */
-	public final static FieldSignature RED_BALANCE_FIELD = new FieldSignature(ClassTypes.RGCONTRACT, "balanceRed", ClassTypes.BIG_INTEGER);
+	public final static FieldSignature RED_BALANCE_FIELD = new FieldSignature(ClassType.RGCONTRACT, "balanceRed", ClassType.BIG_INTEGER);
 
 	/**
 	 * The class of the field.

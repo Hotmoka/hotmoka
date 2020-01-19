@@ -38,7 +38,7 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
@@ -47,7 +47,7 @@ import io.takamaka.code.verification.ThrowIncompleteClasspathError;
  * before instructions that allocate memory.
  */
 public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
+	private final static ObjectType RUNTIME_OT = new ObjectType(InstrumentationConstants.RUNTIME_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };
 	private final static Type[] ONE_INT_ARGS = { Type.INT };
@@ -127,7 +127,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			Type createdType = bytecode instanceof NEWARRAY ?
 				((NEWARRAY) bytecode).getType() :
 				new ArrayType(((ANEWARRAY) bytecode).getType(cpg), 1);
-			String allocatorName = getNewNameForPrivateMethod(Constants.EXTRA_ALLOCATOR);
+			String allocatorName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_ALLOCATOR);
 			String bigInteger = BigInteger.class.getName();
 			InvokeInstruction valueOf = factory.createInvoke(bigInteger, "valueOf", BIGINTEGER_OT, ONE_LONG_ARGS, Const.INVOKESTATIC);
 			InvokeInstruction multiply = factory.createInvoke(bigInteger, "multiply", BIGINTEGER_OT, ONE_BIGINTEGER_ARGS, Const.INVOKEVIRTUAL);
@@ -144,7 +144,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			allocatorIl.append(valueOf);
 			allocatorIl.append(add);
 			// we charge the gas
-			allocatorIl.append(factory.createInvoke(Constants.RUNTIME_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
+			allocatorIl.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
 			// this is where to jump to create the array
 			InstructionHandle creation = allocatorIl.append(InstructionConst.ILOAD_0);
 			// the allocation is moved into the allocator method
@@ -170,7 +170,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			Type[] args = IntStream.range(0, createdDimensions)
 				.mapToObj(dim -> Type.INT)
 				.toArray(Type[]::new);
-			String allocatorName = getNewNameForPrivateMethod(Constants.EXTRA_ALLOCATOR);
+			String allocatorName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_ALLOCATOR);
 			InstructionList allocatorIl = new InstructionList();
 			IntStream.range(0, createdDimensions)
 				.mapToObj(dim -> InstructionFactory.createLoad(Type.INT, dim))
@@ -239,7 +239,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			allocatorIl.insert(fallBack2, add);
 
 			// we charge the gas
-			allocatorIl.insert(fallBack2, factory.createInvoke(Constants.RUNTIME_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
+			allocatorIl.insert(fallBack2, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "chargeForRAM", Type.VOID, ONE_BIGINTEGER_ARGS, Const.INVOKESTATIC));
 			allocatorIl.insert(fallBack2, InstructionFactory.createBranchInstruction(Const.GOTO, creation));
 
 			MethodGen allocator = new MethodGen(PRIVATE_SYNTHETIC_STATIC, createdType, args, null, allocatorName, className, allocatorIl, cpg);
@@ -265,8 +265,8 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 		InstructionHandle newTarget;
 
 		// we check if there is an optimized charge method for the cost
-		if (cost <= Constants.MAX_OPTIMIZED_CHARGE)
-			newTarget = il.insert(dominator, factory.createInvoke(Constants.RUNTIME_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
+		if (cost <= InstrumentationConstants.MAX_OPTIMIZED_CHARGE)
+			newTarget = il.insert(dominator, factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "charge" + cost, Type.VOID, Type.NO_ARGS, Const.INVOKESTATIC));
 		else {
 			newTarget = il.insert(dominator, createConstantPusher(cost));
 			il.insert(dominator, chargeCall(cost, "charge"));
@@ -277,7 +277,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 	}
 
 	private InvokeInstruction chargeCall(long value, String name) {
-		return factory.createInvoke(Constants.RUNTIME_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
+		return factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, name, Type.VOID, value < Integer.MAX_VALUE ? ONE_INT_ARGS : ONE_LONG_ARGS, Const.INVOKESTATIC);
 	}
 
 	private Instruction createConstantPusher(long value) {

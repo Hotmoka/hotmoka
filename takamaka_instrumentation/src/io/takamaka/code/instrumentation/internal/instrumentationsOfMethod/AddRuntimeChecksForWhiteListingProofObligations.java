@@ -35,7 +35,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
@@ -149,7 +149,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	}
 
 	private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) {
-		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER);
+		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
 		InstructionList il = new InstructionList();
 		String signature = invokedynamic.getSignature(cpg);
 		Type verifierReturnType = Type.getReturnType(signature);
@@ -206,7 +206,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	 *                      for the call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
-		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER);
+		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
 		Bootstraps classBootstraps = verifiedClass.getBootstraps();
 		InstructionList il = new InstructionList();
 		List<Type> args = new ArrayList<>();
@@ -307,7 +307,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	 *              call, to be white-listed
 	 */
 	private InvokeInstruction addWhiteListVerificationMethodForNonINVOKEDYNAMIC(InstructionHandle ih, InvokeInstruction invoke, Executable model, String key) {
-		String verifierName = getNewNameForPrivateMethod(Constants.EXTRA_VERIFIER);
+		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
 		Type verifierReturnType = invoke.getReturnType(cpg);
 		String methodName = invoke.getMethodName(cpg);
 		InstructionList il = new InstructionList();
@@ -403,7 +403,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	}
 
 	private InvokeInstruction createInvokeForWhiteListingCheck(java.lang.reflect.Method checkMethod) {
-		return factory.createInvoke(Constants.RUNTIME_NAME, checkMethod.getName(), Type.VOID,
+		return factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, checkMethod.getName(), Type.VOID,
 			new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC);
 	}
 

@@ -69,4 +69,29 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.lang.ThrowsException}.
 	 */
 	public final static String THROWS_EXCEPTIONS_NAME = "io.takamaka.code.lang.ThrowsExceptions";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.Event}.
+	 */
+	public final static String EVENT_NAME = "io.takamaka.code.lang.Event";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.View}.
+	 */
+	public final static String VIEW_NAME = "io.takamaka.code.lang.View";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.Takamaka}.
+	 */
+	public final static String TAKAMAKA_NAME = "io.takamaka.code.lang.Takamaka";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.RequirementViolationException}.
+	 */
+	public final static String REQUIREMENT_VIOLATION_EXCEPTION_NAME = "io.takamaka.code.lang.RequirementViolationException";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.lang.InsufficientFundsError}.
+	 */
+	public final static String INSUFFICIENT_FUNDS_ERROR_NAME = "io.takamaka.code.lang.InsufficientFundsError";
 }

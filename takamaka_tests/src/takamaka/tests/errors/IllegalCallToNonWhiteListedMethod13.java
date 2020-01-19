@@ -11,8 +11,8 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.NonWhiteListedCallException;
 import io.takamaka.code.blockchain.TransactionException;
@@ -39,12 +39,12 @@ public class IllegalCallToNonWhiteListedMethod13 extends TakamakaTest {
 	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-				new ConstructorSignature(ClassTypes.EOA)));
+				new ConstructorSignature(ClassType.EOA)));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction
 				(new StaticMethodCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
-				new VoidMethodSignature(IllegalCallToNonWhiteListedMethod13.class.getName(), "callee", ClassTypes.OBJECT),
+				new VoidMethodSignature(IllegalCallToNonWhiteListedMethod13.class.getName(), "callee", ClassType.OBJECT),
 				eoa))
 		);
 	}

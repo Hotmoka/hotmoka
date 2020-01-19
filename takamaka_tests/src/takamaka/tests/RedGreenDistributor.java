@@ -23,7 +23,6 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.IllegalTransactionRequestException;
 import io.takamaka.code.blockchain.TransactionException;
@@ -95,21 +94,21 @@ class RedGreenDistributor extends TakamakaTest {
 			blockchain.account(0),
 			_20_000,
 			classpath,
-			new VoidMethodSignature(DISTRIBUTOR, "distributeGreen", ClassTypes.BIG_INTEGER),
+			new VoidMethodSignature(DISTRIBUTOR, "distributeGreen", ClassType.BIG_INTEGER),
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))));
 
 		BigIntegerValue balanceRed1 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
 			classpath,
-			new NonVoidMethodSignature(ClassTypes.TRGEOA, "getBalanceRed", ClassTypes.BIG_INTEGER),
+			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			blockchain.account(1)));
 
 		BigIntegerValue balanceRed2 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
 			classpath,
-			new NonVoidMethodSignature(ClassTypes.TRGEOA, "getBalanceRed", ClassTypes.BIG_INTEGER),
+			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			blockchain.account(2)));
 
 		Assertions.assertEquals(BigInteger.ZERO, balanceRed1.value);
@@ -141,21 +140,21 @@ class RedGreenDistributor extends TakamakaTest {
 			blockchain.account(0),
 			_20_000,
 			classpath,
-			new VoidMethodSignature(DISTRIBUTOR, "distributeRed", ClassTypes.BIG_INTEGER),
+			new VoidMethodSignature(DISTRIBUTOR, "distributeRed", ClassType.BIG_INTEGER),
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))));
 
 		BigIntegerValue balanceRed1 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
 			classpath,
-			new NonVoidMethodSignature(ClassTypes.TRGEOA, "getBalanceRed", ClassTypes.BIG_INTEGER),
+			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			blockchain.account(1)));
 
 		BigIntegerValue balanceRed2 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
 			classpath,
-			new NonVoidMethodSignature(ClassTypes.TRGEOA, "getBalanceRed", ClassTypes.BIG_INTEGER),
+			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			blockchain.account(2)));
 
 		Assertions.assertEquals(500, balanceRed1.value.intValue());
@@ -187,7 +186,7 @@ class RedGreenDistributor extends TakamakaTest {
 			blockchain.account(0),
 			_20_000,
 			classpath,
-			new ConstructorSignature(ClassTypes.EOA, ClassTypes.BIG_INTEGER),
+			new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER),
 			new BigIntegerValue(_20_000)));
 
 		throwsTransactionExceptionWithCause(IllegalTransactionRequestException.class, () ->
@@ -195,7 +194,7 @@ class RedGreenDistributor extends TakamakaTest {
 				eoa,
 				_20_000,
 				classpath,
-				new VoidMethodSignature(DISTRIBUTOR, "distributeRed", ClassTypes.BIG_INTEGER),
+				new VoidMethodSignature(DISTRIBUTOR, "distributeRed", ClassType.BIG_INTEGER),
 				distributor, new BigIntegerValue(BigInteger.valueOf(1_000))))
 		);
 	}

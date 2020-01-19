@@ -11,7 +11,7 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 
 /**
@@ -49,7 +49,7 @@ public class AddAccessorMethods extends InstrumentedClassImpl.Builder.ClassLevel
 		InstructionList il = new InstructionList();
 		il.append(InstructionFactory.createThis());
 		il.append(InstructionConst.DUP);
-		il.append(factory.createInvoke(className, Constants.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+		il.append(factory.createInvoke(className, InstrumentationConstants.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 		il.append(InstructionConst.ALOAD_1);
 		il.append(factory.createPutField(className, field.getName(), type));
 		il.append(InstructionConst.RETURN);
@@ -69,7 +69,7 @@ public class AddAccessorMethods extends InstrumentedClassImpl.Builder.ClassLevel
 		InstructionList il = new InstructionList();
 		il.append(InstructionFactory.createThis());
 		il.append(InstructionConst.DUP);
-		il.append(factory.createInvoke(className, Constants.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
+		il.append(factory.createInvoke(className, InstrumentationConstants.ENSURE_LOADED_PREFIX + field.getName(), BasicType.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 		il.append(factory.createGetField(className, field.getName(), type));
 		il.append(InstructionFactory.createReturn(type));
 

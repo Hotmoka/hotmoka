@@ -5,32 +5,12 @@ import static io.takamaka.code.verification.VerifiedClass.FORBIDDEN_PREFIX;
 /**
  * A collector of constants useful during code instrumentation.
  */
-public interface Constants {
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.Takamaka}.
-	 */
-	public final static String TAKAMAKA_NAME = "io.takamaka.code.lang.Takamaka";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.Event}.
-	 */
-	public final static String EVENT_NAME = "io.takamaka.code.lang.Event";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.View}.
-	 */
-	public final static String VIEW_NAME = "io.takamaka.code.lang.View";
+public interface InstrumentationConstants {
 
 	/**
 	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.Runtime}.
 	 */
 	public final static String RUNTIME_NAME = "io.takamaka.code.blockchain.runtime.Runtime";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageReference}.
-	 */
-	public final static String STORAGE_REFERENCE_NAME = "io.takamaka.code.blockchain.values.StorageReference";
 
 	/**
 	 * The name of the instrumented field of storage objects that holds their storage reference.

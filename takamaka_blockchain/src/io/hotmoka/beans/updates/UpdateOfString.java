@@ -2,10 +2,10 @@ package io.hotmoka.beans.updates;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.blockchain.ClassTypes;
 
 /**
  * An update of a field states that the {@link java.lang.String}
@@ -63,6 +63,6 @@ public final class UpdateOfString extends AbstractUpdateOfField {
 	@Override
 	public boolean isEager() {
 		// a lazy String could be stored into a lazy Object or Serializable or Comparable or CharSequence field
-		return field.type.equals(ClassTypes.STRING);
+		return field.type.equals(ClassType.STRING);
 	}
 }

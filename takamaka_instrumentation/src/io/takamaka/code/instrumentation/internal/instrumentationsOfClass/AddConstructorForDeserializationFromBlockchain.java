@@ -17,7 +17,7 @@ import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.Dummy;
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 
 /**
  * An instrumentation that adds a constructor that deserializes an object of storage type. This
@@ -56,10 +56,10 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 				// the Storage class needs to initialize its two synthetic transient fields
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(true));
-				il.append(factory.createPutField(className, Constants.IN_STORAGE, Type.BOOLEAN));
+				il.append(factory.createPutField(className, InstrumentationConstants.IN_STORAGE, Type.BOOLEAN));
 				il.append(InstructionFactory.createThis());
 				il.append(InstructionConst.ALOAD_1); // the first parameter: the storage reference
-				il.append(factory.createPutField(className, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));	
+				il.append(factory.createPutField(className, InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));	
 			}
 
 			il.append(InstructionConst.RETURN);
@@ -141,7 +141,7 @@ public class AddConstructorForDeserializationFromBlockchain extends Instrumented
 					il.append(InstructionFactory.createThis());
 					il.append(InstructionFactory.createLoad(type, local));
 				}
-				il.append(factory.createPutField(className, Constants.OLD_PREFIX + field.getName(), type));
+				il.append(factory.createPutField(className, InstrumentationConstants.OLD_PREFIX + field.getName(), type));
 				local += size;
 			}
 		};

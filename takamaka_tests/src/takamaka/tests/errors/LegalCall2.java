@@ -22,7 +22,6 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
@@ -64,7 +63,7 @@ class LegalCall2 {
 			(blockchain.account(0), _20_000, classpath, new VoidMethodSignature(C, "test"), c));
 
 		StringValue result = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(blockchain.account(0), _20_000, classpath, new NonVoidMethodSignature(C, "toString", ClassTypes.STRING), c));
+			(blockchain.account(0), _20_000, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c));
 
 		assertEquals("53331", result.value);
 	}

@@ -18,7 +18,7 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.Dummy;
 
 /**
@@ -27,7 +27,7 @@ import io.takamaka.code.verification.Dummy;
  */
 public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
-	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
+	private final static ObjectType RUNTIME_OT = new ObjectType(InstrumentationConstants.RUNTIME_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
 	public AddContractToCallsToEntries(InstrumentedClassImpl.Builder builder, MethodGen method) {

@@ -17,7 +17,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 
@@ -107,7 +107,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 				// these two fields are added by instrumentation hence not found by reflection:
 				// they are transient
 				if (clazz == classLoader.getStorage() &&
-						(fieldName.equals(Constants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(Constants.IN_STORAGE)))
+						(fieldName.equals(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(InstrumentationConstants.IN_STORAGE)))
 					return true;
 
 				Optional<Field> match = Stream.of(clazz.getDeclaredFields())
@@ -141,7 +141,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 				// these two fields are added by instrumentation hence not found by reflection:
 				// they are transient
 				if (clazz == classLoader.getStorage() &&
-						(fieldName.equals(Constants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(Constants.IN_STORAGE)))
+						(fieldName.equals(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(InstrumentationConstants.IN_STORAGE)))
 					return true;
 
 				Optional<Field> match = Stream.of(clazz.getDeclaredFields())

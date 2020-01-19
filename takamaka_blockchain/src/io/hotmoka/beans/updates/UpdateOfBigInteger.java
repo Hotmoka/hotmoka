@@ -4,10 +4,10 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.blockchain.ClassTypes;
 
 /**
  * An update of a field states that the {@link java.math.BigInteger}
@@ -65,6 +65,6 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 	@Override
 	public boolean isEager() {
 		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
-		return field.type.equals(ClassTypes.BIG_INTEGER);
+		return field.type.equals(ClassType.BIG_INTEGER);
 	}
 }

@@ -30,7 +30,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
 import io.takamaka.code.memory.MemoryBlockchain;
@@ -46,13 +45,13 @@ class SimplePyramidWithBalance extends TakamakaTest {
 
 	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.takamaka.tests.ponzi.SimplePyramidWithBalance");
 
-	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassTypes.BIG_INTEGER);
+	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
 
-	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassTypes.BIG_INTEGER);
+	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
 
 	private static final MethodSignature WITHDRAW = new VoidMethodSignature(SIMPLE_PYRAMID, "withdraw");
 
-	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassTypes.TEOA, "getBalance", ClassTypes.BIG_INTEGER);
+	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
@@ -95,7 +94,7 @@ class SimplePyramidWithBalance extends TakamakaTest {
 
 		for (int i = 0; i < 4; i++)
 			players[i] = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, _50_000, classpath, new ConstructorSignature(ClassTypes.TEOA, INT), new IntValue(20_000)));
+				(gamete, _50_000, classpath, new ConstructorSignature(ClassType.TEOA, INT), new IntValue(20_000)));
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")

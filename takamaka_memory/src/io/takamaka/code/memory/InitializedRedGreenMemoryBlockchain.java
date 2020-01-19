@@ -14,9 +14,9 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.TransactionException;
 
@@ -75,10 +75,10 @@ public class InitializedRedGreenMemoryBlockchain extends MemoryBlockchain {
 		for (int i = 0; i < accounts.length; i++) {
 			// the constructor provides the green coins
 			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, takamakaBase, new ConstructorSignature(ClassTypes.TRGEOA, ClassTypes.BIG_INTEGER), new BigIntegerValue(funds[i * 2])));
+				(gamete, gas, takamakaBase, new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER), new BigIntegerValue(funds[i * 2])));
 			// then we add the red coins
 			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, gas, takamakaBase,
-				new VoidMethodSignature(ClassTypes.RGPAYABLE_CONTRACT, "receiveRed", ClassTypes.BIG_INTEGER),
+				new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER),
 				this.accounts[i], new BigIntegerValue(funds[i * 2 + 1])));
 		}
 	}

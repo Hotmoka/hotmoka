@@ -35,7 +35,7 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.instrumentation.Constants;
+import io.takamaka.code.instrumentation.InstrumentationConstants;
 
 public class ExtractedUpdates {
 	private final SortedSet<Update> updates = new TreeSet<>();
@@ -262,9 +262,9 @@ public class ExtractedUpdates {
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String s) {
 				if (s == null)
-					updates.add(new UpdateToNullEager(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassTypes.STRING)));
+					updates.add(new UpdateToNullEager(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
 				else
-					updates.add(new UpdateOfString(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassTypes.STRING), s));
+					updates.add(new UpdateOfString(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING), s));
 			}
 
 			/**
@@ -275,7 +275,7 @@ public class ExtractedUpdates {
 			 * @param bi the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, BigInteger bi) {
-				FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassTypes.BIG_INTEGER);
+				FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
 				if (bi == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else if (field.equals(FieldSignature.BALANCE_FIELD))
@@ -315,7 +315,7 @@ public class ExtractedUpdates {
 							throw new IllegalStateException("cannot access field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
 						}
 
-						String oldName = Constants.OLD_PREFIX + field.getName();
+						String oldName = InstrumentationConstants.OLD_PREFIX + field.getName();
 						try {
 							Field oldField = field.getDeclaringClass().getDeclaredField(oldName);
 							oldField.setAccessible(true); // it is always private

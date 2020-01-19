@@ -17,8 +17,8 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.EnumValue;
-import io.takamaka.code.blockchain.ClassTypes;
 import io.takamaka.code.blockchain.CodeExecutionException;
 import io.takamaka.code.blockchain.DeserializationError;
 import io.takamaka.code.blockchain.TransactionException;
@@ -49,7 +49,7 @@ class IllegalTypeForStorageField2 extends TakamakaTest {
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath,
-				new ConstructorSignature("takamaka.tests.errors.illegaltypeforstoragefield2.C", ClassTypes.OBJECT),
+				new ConstructorSignature("takamaka.tests.errors.illegaltypeforstoragefield2.C", ClassType.OBJECT),
 				new EnumValue("takamaka.tests.errors.illegaltypeforstoragefield2.MyEnum", "FIRST")))
 		);
 	}
