@@ -1,4 +1,4 @@
-<project name="takamaka_instrumentation" default="dist Java 8" basedir=".">
+<project name="takamaka_instrumentation" default="dist" basedir=".">
   <description>
     Compiles the Takamaka instrumentation module
   </description>

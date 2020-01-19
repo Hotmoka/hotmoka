@@ -1,7 +1,7 @@
-package io.takamaka.code.verification;
+package io.takamaka.code.constants;
 
 /**
- * A collector of constants useful during code verification.
+ * The names of some classes of the Takamaka library.
  */
 public interface Constants {
 
@@ -51,16 +51,6 @@ public interface Constants {
 	public final static String STORAGE_NAME = "io.takamaka.code.lang.Storage";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageReference}.
-	 */
-	public final static String STORAGE_REFERENCE_NAME = "io.takamaka.code.blockchain.values.StorageReference";
-
-	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.values.StorageValue}.
-	 */
-	public final static String STORAGE_VALUE_NAME = "io.takamaka.code.blockchain.values.StorageValue";
-
-	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
 	 */
 	public final static String PAYABLE_NAME = "io.takamaka.code.lang.Payable";
@@ -79,12 +69,4 @@ public interface Constants {
 	 * The name of the class type for {@link io.takamaka.code.lang.ThrowsException}.
 	 */
 	public final static String THROWS_EXCEPTIONS_NAME = "io.takamaka.code.lang.ThrowsExceptions";
-
-	/**
-	 * This character is forbidden in the name of fields and methods of Takamaka code,
-	 * since it will be used for instrumentation. Java compilers do not allow one to
-	 * use this character in the name of fields or methods, but it is still possible if
-	 * Java bytecode is produced in other ways. Hence it is necessary to check that it is not used.
-	 */
-	public final static char FORBIDDEN_PREFIX = '§';
 }

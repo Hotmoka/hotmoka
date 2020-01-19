@@ -21,7 +21,12 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_instrumentation">
+	<classpathentry kind="lib" path="/takamaka_distribution/dist/io-takamaka-code-constants-1.0.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
@@ -31,7 +36,12 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting">
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_instrumentation">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_constants">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>

@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import org.apache.bcel.Repository;
 import org.apache.bcel.util.ClassLoaderRepository;
 
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.IncompleteClasspathError;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;

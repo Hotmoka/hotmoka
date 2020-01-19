@@ -1166,9 +1166,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.redPayableLong.setAccessible(true); // it was private
 			this.redPayableBigInteger = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), BigInteger.class);
 			this.redPayableBigInteger.setAccessible(true); // it was private
-			this.storageReference = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
-			this.inStorage = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
+			this.inStorage = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
 			this.inStorage.setAccessible(true); // it was private
 		}
 
@@ -1205,9 +1205,9 @@ public abstract class AbstractBlockchain implements Blockchain {
 			this.redPayableLong.setAccessible(true); // it was private
 			this.redPayableBigInteger = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), BigInteger.class);
 			this.redPayableBigInteger.setAccessible(true); // it was private
-			this.storageReference = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(Constants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
-			this.inStorage = loadClass(io.takamaka.code.verification.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
+			this.inStorage = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(Constants.IN_STORAGE);
 			this.inStorage.setAccessible(true); // it was private
 		}
 
@@ -1834,7 +1834,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 				}
 
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
-				if (hasAnnotation(constructorJVM, io.takamaka.code.verification.Constants.RED_PAYABLE_NAME))
+				if (hasAnnotation(constructorJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
 					checkIsRedGreenExternallyOwned(deserializedCaller);
 
 				try {
@@ -1898,7 +1898,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 				isVoidMethod = methodJVM.getReturnType() == void.class;
 				isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
-				if (hasAnnotation(methodJVM, io.takamaka.code.verification.Constants.RED_PAYABLE_NAME))
+				if (hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
 					checkIsRedGreenExternallyOwned(deserializedCaller);
 
 				try {

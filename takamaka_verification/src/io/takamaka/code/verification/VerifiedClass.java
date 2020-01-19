@@ -14,6 +14,14 @@ import org.apache.bcel.generic.InvokeInstruction;
 public interface VerifiedClass extends Comparable<VerifiedClass> {
 
 	/**
+	 * This prefix is forbidden in the name of fields and methods of a Takamaka class,
+	 * since it will be used for instrumentation. Java compilers do not allow one to
+	 * use this character in the name of fields or methods, but it is still possible if
+	 * Java bytecode is produced in other ways. Hence it is necessary to check that it is not used.
+	 */
+	public final static String FORBIDDEN_PREFIX = "§";
+
+	/**
 	 * Yields the white-listing model for the field accessed by the given instruction.
 	 * This means that that instruction accesses that field but that access is white-listed
 	 * only if the resulting model is verified.

@@ -8,6 +8,7 @@ module io.takamaka.code.blockchain {
 	exports io.hotmoka.beans.types;
 	exports io.takamaka.code.blockchain.runtime;
 	exports io.hotmoka.beans.references;
+	requires io.takamaka.code.constants;
 	requires io.takamaka.code.instrumentation;
 	requires io.takamaka.code.verification;
 	requires io.takamaka.code.whitelisting;

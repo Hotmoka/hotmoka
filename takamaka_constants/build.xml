@@ -1,6 +1,6 @@
-<project name="takamaka_whitelisting" default="dist" basedir=".">
+<project name="takamaka_constants" default="dist" basedir=".">
   <description>
-    Compiles the Takamaka white-listing module
+    Compiles the Takamaka constants module
   </description>
 
   <property name="src" location="src"/>
@@ -20,26 +20,28 @@
 	<javac srcdir="${src}" destdir="${build}" source="9" target="9" includeantruntime="no">
 		<compilerarg value="-Xlint"/>
 		<modulepath path ="../takamaka_distribution/mods"/>
+		<modulepath path ="../takamaka_distribution/dist"/>
     </javac>
   </target>
 
   <target name="compile Java 8" depends="init" description="compile into Java 8 code">
 	<javac srcdir="${src}" destdir="${build}" source="8" target="8" includeantruntime="no" excludes="module-info.java">
 		<compilerarg value="-Xlint"/>
-		<classpath>
+	    <classpath>
 		   <fileset dir="../takamaka_distribution/libs" includes="*.jar" />
+	       <fileset dir="../takamaka_distribution/dist" includes="*.jar" />
 	  	</classpath>
 	</javac>
   </target>
 
   <target name="dist" depends="compile" description="generate the distribution">
-    <jar jarfile="${dist}/io-takamaka-code-whitelisting-${version}.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/io-takamaka-code-constants-${version}.jar" basedir="${build}"/>
   </target>
 
   <target name="dist Java 8" depends="compile Java 8" description="generate the distribution">
-	<jar jarfile="${dist}/io-takamaka-code-whitelisting-${version}.jar" basedir="${build}">
+	<jar jarfile="${dist}/io-takamaka-code-constants-${version}.jar" basedir="${build}">
 		<manifest>
-			<attribute name="Automatic-Module-Name" value = "io.takamaka.code.whitelisting" />
+			<attribute name="Automatic-Module-Name" value = "io.takamaka.code.constants" />
 		</manifest>
   	</jar>
   </target>

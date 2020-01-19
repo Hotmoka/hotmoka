@@ -26,7 +26,7 @@ import io.takamaka.code.verification.Dummy;
  * contract where the entry is called and {@code null} (for the dummy argument).
  */
 public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.verification.Constants.CONTRACT_NAME);
+	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 

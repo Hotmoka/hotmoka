@@ -11,8 +11,8 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.Annotations;
-import io.takamaka.code.verification.Constants;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 

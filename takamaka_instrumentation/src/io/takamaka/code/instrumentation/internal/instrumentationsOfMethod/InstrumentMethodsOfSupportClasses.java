@@ -18,7 +18,7 @@ import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
  * Edits the code of the methods in some support classes of Takamaka.
  */
 public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType STORAGE_OT = new ObjectType(io.takamaka.code.verification.Constants.STORAGE_NAME);
+	private final static ObjectType STORAGE_OT = new ObjectType(io.takamaka.code.constants.Constants.STORAGE_NAME);
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 
@@ -27,7 +27,7 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 
 		Type[] args;
 
-		if (className.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)) {
+		if (className.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)) {
 			if ("compareByStorageReference".equals(method.getName()) && (args = method.getArgumentTypes()).length == 1 && STORAGE_OT.equals(args[0])) {
 				InstructionList il = new InstructionList();
 				il.append(InstructionConst.ALOAD_0);
@@ -42,10 +42,10 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				il.append(factory.createInvoke(Object.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(false));
-				il.append(factory.createPutField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.IN_STORAGE, Type.BOOLEAN));
+				il.append(factory.createPutField(io.takamaka.code.constants.Constants.STORAGE_NAME, Constants.IN_STORAGE, Type.BOOLEAN));
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "getNextStorageReference", Type.OBJECT, Type.NO_ARGS, Const.INVOKESTATIC));
-				il.append(factory.createPutField(io.takamaka.code.verification.Constants.STORAGE_NAME, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
+				il.append(factory.createPutField(io.takamaka.code.constants.Constants.STORAGE_NAME, Constants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}

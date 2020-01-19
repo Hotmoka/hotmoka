@@ -1,6 +1,6 @@
 package io.takamaka.code.instrumentation;
 
-import static io.takamaka.code.verification.Constants.FORBIDDEN_PREFIX;
+import static io.takamaka.code.verification.VerifiedClass.FORBIDDEN_PREFIX;
 
 /**
  * A collector of constants useful during code instrumentation.

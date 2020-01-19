@@ -1,4 +1,4 @@
-<project name="takamaka_blockchain" default="dist Java 8" basedir=".">
+<project name="takamaka_blockchain" default="dist" basedir=".">
   <description>
     Compiles the Takamaka blockchain module
   </description>

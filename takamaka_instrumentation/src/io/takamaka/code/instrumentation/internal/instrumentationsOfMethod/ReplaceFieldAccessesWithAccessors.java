@@ -52,7 +52,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
 			// we do not consider field accesses added by instrumentation
-			return !receiverClassName.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)
+			return !receiverClassName.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)
 				&& classLoader.isStorage(receiverClassName)
 				&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
 				&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
@@ -63,7 +63,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
 			// we do not consider field accesses added by instrumentation
-			return !receiverClassName.equals(io.takamaka.code.verification.Constants.STORAGE_NAME)
+			return !receiverClassName.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)
 				&& classLoader.isStorage(receiverClassName)
 				&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
 				&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);

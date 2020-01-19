@@ -38,7 +38,7 @@ import io.takamaka.code.verification.Dummy;
  * at the beginning of payable entries.
  */
 public class SetCallerAndBalanceAtTheBeginningOfEntries extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
-	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.verification.Constants.CONTRACT_NAME);
+	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType OBJECT_OT = new ObjectType(Object.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 	private final static Type[] ENTRY_ARGS = { OBJECT_OT, OBJECT_OT };

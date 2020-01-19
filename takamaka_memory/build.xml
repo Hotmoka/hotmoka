@@ -1,4 +1,4 @@
-<project name="takamaka_memory" default="dist Java 8" basedir=".">
+<project name="takamaka_memory" default="dist" basedir=".">
   <description>
     Compiles the Takamaka memory module
   </description>

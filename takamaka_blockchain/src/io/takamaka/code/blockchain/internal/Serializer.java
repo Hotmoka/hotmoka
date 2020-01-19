@@ -16,7 +16,7 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.constants.Constants;
 
 /**
  * An object that translates RAM values into storage values.

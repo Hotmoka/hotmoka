@@ -8,7 +8,7 @@ import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import io.takamaka.code.verification.Constants;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.CallerNotOnThisError;
 import io.takamaka.code.verification.issues.CallerOutsideEntryError;

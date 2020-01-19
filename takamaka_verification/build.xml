@@ -1,4 +1,4 @@
-<project name="takamaka_verification" default="dist Java 8" basedir=".">
+<project name="takamaka_verification" default="dist" basedir=".">
   <description>
     Compiles the Takamaka verification module
   </description>
