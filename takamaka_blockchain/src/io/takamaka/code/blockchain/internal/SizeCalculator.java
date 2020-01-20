@@ -8,6 +8,20 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.NonInitialTransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseFailed;
+import io.hotmoka.beans.responses.TransactionResponseWithEvents;
+import io.hotmoka.beans.responses.TransactionResponseWithGas;
+import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -51,20 +65,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.blockchain.GasCostModel;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionExceptionResponse;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionFailedResponse;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.responses.JarStoreTransactionFailedResponse;
-import io.takamaka.code.blockchain.responses.JarStoreTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionExceptionResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionFailedResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.responses.NonInitialTransactionResponse;
-import io.takamaka.code.blockchain.responses.TransactionResponseFailed;
-import io.takamaka.code.blockchain.responses.TransactionResponseWithEvents;
-import io.takamaka.code.blockchain.responses.TransactionResponseWithGas;
-import io.takamaka.code.blockchain.responses.TransactionResponseWithUpdates;
-import io.takamaka.code.blockchain.responses.VoidMethodCallTransactionSuccessfulResponse;
 
 /**
  * An object that knows about the size of objects when stored in blockchain.
@@ -155,11 +155,19 @@ public class SizeCalculator {
 			return size.add(gasCostModel.storageCostOfJar(((JarStoreTransactionSuccessfulResponse) response).getInstrumentedJarLength()));
 		else if (response instanceof ConstructorCallTransactionExceptionResponse) {
 			ConstructorCallTransactionExceptionResponse ccter = (ConstructorCallTransactionExceptionResponse) response;
-			return size.add(gasCostModel.storageCostOf(ccter.classNameOfCause)).add(gasCostModel.storageCostOf(ccter.messageOfCause));
+			size = size.add(gasCostModel.storageCostOf(ccter.classNameOfCause));
+			if (ccter.messageOfCause != null)
+				size = size.add(gasCostModel.storageCostOf(ccter.messageOfCause));
+
+			return size;
 		}
 		else if (response instanceof MethodCallTransactionExceptionResponse) {
 			MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
-			return size.add(gasCostModel.storageCostOf(mcter.classNameOfCause)).add(gasCostModel.storageCostOf(mcter.messageOfCause));
+			size = size.add(gasCostModel.storageCostOf(mcter.classNameOfCause));
+			if (mcter.messageOfCause != null)
+				size = size.add(gasCostModel.storageCostOf(mcter.messageOfCause));
+
+			return size;
 		}
 		else if (response instanceof ConstructorCallTransactionFailedResponse ||
 				response instanceof JarStoreTransactionFailedResponse ||

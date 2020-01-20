@@ -2,7 +2,7 @@ package takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-import io.takamaka.code.blockchain.TransactionException;
+import io.hotmoka.beans.TransactionException;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.issues.Issue;
 

@@ -1,5 +1,6 @@
 package io.takamaka.code.blockchain;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -8,11 +9,11 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionResponse;
-import io.takamaka.code.blockchain.responses.GameteCreationTransactionResponse;
-import io.takamaka.code.blockchain.responses.JarStoreInitialTransactionResponse;
-import io.takamaka.code.blockchain.responses.JarStoreTransactionResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 
 /**
  * The abstraction of a Takamaka blockchain. It defines methods for the execution of transactions.

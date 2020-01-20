@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -21,26 +22,26 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionExceptionResponse;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionFailedResponse;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionResponse;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.responses.GameteCreationTransactionResponse;
-import io.takamaka.code.blockchain.responses.JarStoreTransactionFailedResponse;
-import io.takamaka.code.blockchain.responses.JarStoreTransactionResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionExceptionResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionFailedResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.responses.TransactionResponse;
-import io.takamaka.code.blockchain.responses.TransactionResponseWithUpdates;
-import io.takamaka.code.blockchain.responses.VoidMethodCallTransactionSuccessfulResponse;
 
 /**
  * A generic implementation of a blockchain that extends immediately when
@@ -223,7 +224,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @throws CodeExecutionException if the constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
-	 *                                In all other cases, a {@link io.takamaka.code.blockchain.TransactionException} is thrown
+	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
 	 */
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
@@ -256,7 +257,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
-	 *                                In all other cases, a {@link io.takamaka.code.blockchain.TransactionException} is thrown
+	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
 	 */
 	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
@@ -291,7 +292,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
-	 *                                In all other cases, a {@link io.takamaka.code.blockchain.TransactionException} is thrown
+	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
 	 */
 	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
@@ -432,7 +433,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 
 	/**
 	 * Calls the given callable. If if throws a {@link io.takamaka.code.blockchain.CodeExecutionException}, if throws it back
-	 * unchanged. Otherwise, it wraps the exception into into a {@link io.takamaka.code.blockchain.TransactionException}.
+	 * unchanged. Otherwise, it wraps the exception into into a {@link io.hotmoka.beans.TransactionException}.
 	 * 
 	 * @param what the callable
 	 * @return the result of the callable

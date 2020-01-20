@@ -1,6 +1,5 @@
 module io.takamaka.code.blockchain {
 	exports io.takamaka.code.blockchain;
-	exports io.takamaka.code.blockchain.responses;
 	exports io.takamaka.code.blockchain.runtime;
 	requires io.takamaka.code.constants;
 	requires transitive io.hotmoka.beans;

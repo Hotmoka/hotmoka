@@ -28,6 +28,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
@@ -40,6 +41,23 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
+import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -58,23 +76,6 @@ import io.takamaka.code.blockchain.internal.Serializer;
 import io.takamaka.code.blockchain.internal.SizeCalculator;
 import io.takamaka.code.blockchain.internal.StorageTypeToClass;
 import io.takamaka.code.blockchain.internal.TempJarFile;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionExceptionResponse;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionFailedResponse;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionResponse;
-import io.takamaka.code.blockchain.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.responses.GameteCreationTransactionResponse;
-import io.takamaka.code.blockchain.responses.JarStoreInitialTransactionResponse;
-import io.takamaka.code.blockchain.responses.JarStoreTransactionFailedResponse;
-import io.takamaka.code.blockchain.responses.JarStoreTransactionResponse;
-import io.takamaka.code.blockchain.responses.JarStoreTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionExceptionResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionFailedResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionResponse;
-import io.takamaka.code.blockchain.responses.MethodCallTransactionSuccessfulResponse;
-import io.takamaka.code.blockchain.responses.TransactionResponse;
-import io.takamaka.code.blockchain.responses.TransactionResponseWithInstrumentedJar;
-import io.takamaka.code.blockchain.responses.TransactionResponseWithUpdates;
-import io.takamaka.code.blockchain.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.takamaka.code.blockchain.runtime.Runtime;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.InstrumentedJar;
@@ -1058,7 +1059,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	/**
-	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.takamaka.code.blockchain.TransactionException}.
+	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
 	 * 
 	 * @param what the callable
 	 * @return the result of the callable
@@ -1970,11 +1971,11 @@ public abstract class AbstractBlockchain implements Blockchain {
 	}
 
 	/**
-	 * Wraps the given throwable in a {@link io.takamaka.code.blockchain.TransactionException}, if it not
+	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
 	 * already an instance of that exception.
 	 * 
 	 * @param t the throwable to wrap
-	 * @param message the message used for the {@link io.takamaka.code.blockchain.TransactionException}, if wrapping occurs
+	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
 	 * @return the wrapped or original exception
 	 */
 	protected static TransactionException wrapAsTransactionException(Throwable t, String message) {

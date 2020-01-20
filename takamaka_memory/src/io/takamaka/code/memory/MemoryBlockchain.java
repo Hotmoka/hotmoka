@@ -16,9 +16,9 @@ import java.util.Comparator;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.takamaka.code.blockchain.AbstractSequentialBlockchain;
 import io.takamaka.code.blockchain.SequentialTransactionReference;
-import io.takamaka.code.blockchain.responses.TransactionResponse;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
