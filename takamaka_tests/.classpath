@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_constants"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_engine"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_memory"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_verification"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/hotmoka_beans"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-9">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-blockchain-1.0.jar"/>
 	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-instrumentation-1.0.jar"/>
 	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-memory-1.0.jar"/>
 	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-verification-1.0.jar"/>
@@ -16,11 +21,6 @@
 	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/libs/it-univr-bcel-1.1-Java8.jar"/>
 	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-constants-1.0.jar"/>
 	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-hotmoka-beans-1.0.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_constants"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_engine"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_memory"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_verification"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/hotmoka_beans"/>
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-engine-1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

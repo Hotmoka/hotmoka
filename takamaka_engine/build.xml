@@ -36,13 +36,13 @@
   </target>
 
   <target name="dist" depends="compile" description="generate the distribution">
-    <jar jarfile="${dist}/io-takamaka-code-blockchain-${version}.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/io-takamaka-code-engine-${version}.jar" basedir="${build}"/>
   </target>
 
   <target name="dist Java 8" depends="compile Java 8" description="generate the distribution">
-	<jar jarfile="${dist}/io-takamaka-code-blockchain-${version}.jar" basedir="${build}">
+	<jar jarfile="${dist}/io-takamaka-code-engine-${version}.jar" basedir="${build}">
 		<manifest>
-			<attribute name="Automatic-Module-Name" value = "io.takamaka.code.blockchain" />
+			<attribute name="Automatic-Module-Name" value = "io.takamaka.code.engine" />
 		</manifest>
   	</jar>
   </target>
