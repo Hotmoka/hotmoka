@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain.internal;
+package io.takamaka.code.engine.internal;
 
 import java.math.BigInteger;
 
@@ -64,7 +64,7 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.blockchain.GasCostModel;
+import io.takamaka.code.engine.GasCostModel;
 
 /**
  * An object that knows about the size of objects when stored in blockchain.

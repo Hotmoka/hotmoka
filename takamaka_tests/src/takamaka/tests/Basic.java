@@ -36,11 +36,11 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.blockchain.CodeExecutionException;
-import io.takamaka.code.blockchain.DeserializationError;
-import io.takamaka.code.blockchain.IllegalTransactionRequestException;
-import io.takamaka.code.blockchain.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
+import io.takamaka.code.engine.CodeExecutionException;
+import io.takamaka.code.engine.DeserializationError;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
+import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**

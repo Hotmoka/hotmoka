@@ -1,9 +1,9 @@
-package io.takamaka.code.blockchain.internal;
+package io.takamaka.code.engine.internal;
 
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.takamaka.code.blockchain.AbstractBlockchain;
+import io.takamaka.code.engine.AbstractBlockchain;
 
 /**
  * An object that translates storage types into their run-time class tag.

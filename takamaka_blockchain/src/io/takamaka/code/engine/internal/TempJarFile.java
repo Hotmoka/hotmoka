@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain.internal;
+package io.takamaka.code.engine.internal;
 
 import java.io.IOException;
 import java.nio.file.Files;

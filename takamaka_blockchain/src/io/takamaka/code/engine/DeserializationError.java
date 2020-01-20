@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain;
+package io.takamaka.code.engine;
 
 /**
  * An exception thrown when a storage reference cannot be deserialized.

@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import io.takamaka.code.verification.issues.IllegalTypeForStorageFieldError;
 import takamaka.tests.TakamakaTest;

@@ -8,9 +8,9 @@ import static io.takamaka.code.verification.VerifiedClass.FORBIDDEN_PREFIX;
 public interface InstrumentationConstants {
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.blockchain.runtime.Runtime}.
+	 * The name of the class type for {@link io.takamaka.code.engine.runtime.Runtime}.
 	 */
-	public final static String RUNTIME_NAME = "io.takamaka.code.blockchain.runtime.Runtime";
+	public final static String RUNTIME_NAME = "io.takamaka.code.engine.runtime.Runtime";
 
 	/**
 	 * The name of the instrumented field of storage objects that holds their storage reference.
@@ -56,13 +56,13 @@ public interface InstrumentationConstants {
 	public final static String IN_STORAGE = "inStorage";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
+	 * The name of the method of {@code io.takamaka.code.engine.runtime.Runtime}
 	 * used to retrieve the last update for a non-final lazy field.
 	 */
 	public final static String DESERIALIZE_LAST_UPDATE_FOR = "deserializeLastLazyUpdateFor";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
+	 * The name of the method of {@code io.takamaka.code.engine.runtime.Runtime}
 	 * used to retrieve the last update for a final lazy field.
 	 */
 	public final static String DESERIALIZE_LAST_UPDATE_FOR_FINAL = "deserializeLastLazyUpdateForFinal";
@@ -84,26 +84,26 @@ public interface InstrumentationConstants {
 	public final static String EXTRA_VERIFIER = FORBIDDEN_PREFIX + "verifier";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
+	 * The name of the method of {@code io.takamaka.code.engine.runtime.Runtime}
 	 * that sets the caller and transfers money at the beginning of a payable entry.
 	 */
 	public final static String PAYABLE_ENTRY = "payableEntry";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
+	 * The name of the method of {@code io.takamaka.code.engine.runtime.Runtime}
 	 * that sets the caller and transfers money at the beginning of a red payable entry.
 	 */
 	public final static String RED_PAYABLE_ENTRY = "redPayableEntry";
 
 	/**
-	 * The name of the method of {@code io.takamaka.code.blockchain.runtime.Runtime}
+	 * The name of the method of {@code io.takamaka.code.engine.runtime.Runtime}
 	 * that sets the caller at the beginning of an entry.
 	 */
 	public final static String ENTRY = "entry";
 
 	/**
 	 * The number of optimized methods for gas charge in the
-	 * {@code io.takamaka.code.blockchain.runtime.Runtime} class.
+	 * {@code io.takamaka.code.engine.runtime.Runtime} class.
 	 */
 	public static final long MAX_OPTIMIZED_CHARGE = 20;
 }

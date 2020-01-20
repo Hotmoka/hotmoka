@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain.runtime;
+package io.takamaka.code.engine.runtime;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,9 +10,9 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.NonWhiteListedCallException;
-import io.takamaka.code.blockchain.OutOfGasError;
+import io.takamaka.code.engine.AbstractBlockchain;
+import io.takamaka.code.engine.NonWhiteListedCallException;
+import io.takamaka.code.engine.OutOfGasError;
 
 /**
  * A class that contains utility methods called by instrumented

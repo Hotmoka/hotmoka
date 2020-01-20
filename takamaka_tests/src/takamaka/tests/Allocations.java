@@ -18,7 +18,7 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**

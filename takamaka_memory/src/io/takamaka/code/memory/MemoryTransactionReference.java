@@ -3,7 +3,7 @@ package io.takamaka.code.memory;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.references.TransactionReference;
-import io.takamaka.code.blockchain.SequentialTransactionReference;
+import io.takamaka.code.engine.SequentialTransactionReference;
 
 /**
  * In the disk memory representation of a blockchain, a transaction can be

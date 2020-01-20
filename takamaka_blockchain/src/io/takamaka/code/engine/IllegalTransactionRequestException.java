@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain;
+package io.takamaka.code.engine;
 
 /**
  * An exception thrown when an illegal request is being executed on a blockchain.

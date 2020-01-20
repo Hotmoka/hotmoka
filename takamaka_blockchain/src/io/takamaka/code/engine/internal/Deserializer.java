@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain.internal;
+package io.takamaka.code.engine.internal;
 
 import java.lang.reflect.Constructor;
 import java.math.BigInteger;
@@ -30,8 +30,8 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.DeserializationError;
+import io.takamaka.code.engine.AbstractBlockchain;
+import io.takamaka.code.engine.DeserializationError;
 import io.takamaka.code.verification.Dummy;
 
 /**

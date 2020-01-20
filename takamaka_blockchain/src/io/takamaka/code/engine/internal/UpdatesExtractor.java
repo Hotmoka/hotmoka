@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain.internal;
+package io.takamaka.code.engine.internal;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -35,8 +35,8 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.blockchain.AbstractBlockchain;
-import io.takamaka.code.blockchain.DeserializationError;
+import io.takamaka.code.engine.AbstractBlockchain;
+import io.takamaka.code.engine.DeserializationError;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 
 /**

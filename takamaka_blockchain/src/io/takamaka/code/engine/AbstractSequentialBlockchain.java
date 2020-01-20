@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain;
+package io.takamaka.code.engine;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -216,7 +216,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @param request the request of the transaction
 	 * @return the created object, if the constructor was successfully executed, without exception
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.takamaka.code.blockchain.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	 *                              {@link io.takamaka.code.engine.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed.
@@ -249,7 +249,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.takamaka.code.blockchain.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	 *                              {@link io.takamaka.code.engine.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
@@ -284,7 +284,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.takamaka.code.blockchain.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	 *                              {@link io.takamaka.code.engine.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
@@ -432,7 +432,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	}
 
 	/**
-	 * Calls the given callable. If if throws a {@link io.takamaka.code.blockchain.CodeExecutionException}, if throws it back
+	 * Calls the given callable. If if throws a {@link io.takamaka.code.engine.CodeExecutionException}, if throws it back
 	 * unchanged. Otherwise, it wraps the exception into into a {@link io.hotmoka.beans.TransactionException}.
 	 * 
 	 * @param what the callable

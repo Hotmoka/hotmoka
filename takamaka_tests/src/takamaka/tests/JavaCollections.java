@@ -21,8 +21,8 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.blockchain.CodeExecutionException;
-import io.takamaka.code.blockchain.NonWhiteListedCallException;
+import io.takamaka.code.engine.CodeExecutionException;
+import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**

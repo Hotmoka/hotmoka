@@ -16,7 +16,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.blockchain.CodeExecutionException;
+import io.takamaka.code.engine.CodeExecutionException;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory

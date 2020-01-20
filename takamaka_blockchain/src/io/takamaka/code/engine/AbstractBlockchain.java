@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain;
+package io.takamaka.code.engine;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -71,13 +71,13 @@ import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.blockchain.internal.Deserializer;
-import io.takamaka.code.blockchain.internal.UpdatesExtractor;
-import io.takamaka.code.blockchain.internal.Serializer;
-import io.takamaka.code.blockchain.internal.SizeCalculator;
-import io.takamaka.code.blockchain.internal.StorageTypeToClass;
-import io.takamaka.code.blockchain.internal.TempJarFile;
-import io.takamaka.code.blockchain.runtime.Runtime;
+import io.takamaka.code.engine.internal.Deserializer;
+import io.takamaka.code.engine.internal.Serializer;
+import io.takamaka.code.engine.internal.SizeCalculator;
+import io.takamaka.code.engine.internal.StorageTypeToClass;
+import io.takamaka.code.engine.internal.TempJarFile;
+import io.takamaka.code.engine.internal.UpdatesExtractor;
+import io.takamaka.code.engine.runtime.Runtime;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.Dummy;
@@ -1556,7 +1556,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		}
 
 		/**
-		 * A cache for {@link io.takamaka.code.blockchain.AbstractBlockchain.CodeExecutor#updates()}.
+		 * A cache for {@link io.takamaka.code.engine.AbstractBlockchain.CodeExecutor#updates()}.
 		 */
 		private SortedSet<Update> updates;
 

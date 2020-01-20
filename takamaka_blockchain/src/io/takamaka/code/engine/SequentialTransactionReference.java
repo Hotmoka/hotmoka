@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain;
+package io.takamaka.code.engine;
 
 import io.hotmoka.beans.references.TransactionReference;
 

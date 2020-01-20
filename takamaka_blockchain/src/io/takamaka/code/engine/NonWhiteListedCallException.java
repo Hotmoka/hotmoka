@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain;
+package io.takamaka.code.engine;
 
 /**
  * An exception thrown when a potentially white-listed method is called
