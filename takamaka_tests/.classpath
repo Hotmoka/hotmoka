@@ -17,7 +17,7 @@
 	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-constants-1.0.jar"/>
 	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-hotmoka-beans-1.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_constants"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_blockchain"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_engine"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_memory"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_verification"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_whitelisting"/>
