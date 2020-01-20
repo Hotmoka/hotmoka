@@ -72,6 +72,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.blockchain.internal.Deserializer;
+import io.takamaka.code.blockchain.internal.UpdatesExtractor;
 import io.takamaka.code.blockchain.internal.Serializer;
 import io.takamaka.code.blockchain.internal.SizeCalculator;
 import io.takamaka.code.blockchain.internal.StorageTypeToClass;
@@ -1485,7 +1486,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		// events are accessible from outside, hence they count as side-effects
 		events.forEach(potentiallyAffectedObjects::add);
 
-		return new ExtractedUpdates(this, potentiallyAffectedObjects.stream()).getUpdates();
+		return new UpdatesExtractor(this, potentiallyAffectedObjects.stream()).getUpdates();
 	}
 
 	/**
@@ -1982,7 +1983,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
 	}
 
-	protected Class<?> getStorage() {
+	public Class<?> getStorage() {
 		return classLoader.getStorage();
 	}
 }

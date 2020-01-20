@@ -1,4 +1,4 @@
-package io.takamaka.code.blockchain;
+package io.takamaka.code.blockchain.internal;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -35,23 +35,33 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.blockchain.AbstractBlockchain;
+import io.takamaka.code.blockchain.DeserializationError;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 
-public class ExtractedUpdates {
+/**
+ * An extractor of the updates to the state reachable from some storage objects.
+ */
+public class UpdatesExtractor {
+
+	/**
+	 * The extracted updates.
+	 */
 	private final SortedSet<Update> updates = new TreeSet<>();
 
 	/**
-	 * Builds a collection of the updates to the given storage objects and to those reachable from them.
+	 * Builds an extractor of updates to the state reachable from some storage objects.
 	 * 
 	 * @param blockchain the blockchain for which the extraction is performed
-	 * @param objects the storage objects whose updates must be computed
+	 * @param objects the storage objects whose updates must be computed (for them and
+	 *                for the objects recursively reachable from them)
 	 */
-	public ExtractedUpdates(AbstractBlockchain blockchain, Stream<Object> objects) {
+	public UpdatesExtractor(AbstractBlockchain blockchain, Stream<Object> objects) {
 		new Builder(blockchain, objects);
 	}
 
 	/**
-	 * Yields the updates computed by this object.
+	 * Yields the updates extracted by this object.
 	 * 
 	 * @return the updates
 	 */
