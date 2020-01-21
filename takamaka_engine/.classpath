@@ -31,27 +31,27 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-instrumentation-1.0.jar">
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-constants-1.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-whitelisting-1.0.jar">
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-instrumentation-1.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-verification-1.0.jar">
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-verification-1.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-constants-1.0.jar">
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-whitelisting-1.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-hotmoka-beans-1.0.jar">
+	<classpathentry kind="lib" path="/distribution/dist/io-hotmoka-beans-1.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>

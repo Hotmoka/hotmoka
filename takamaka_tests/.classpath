@@ -13,14 +13,14 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-instrumentation-1.0.jar"/>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-memory-1.0.jar"/>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-verification-1.0.jar"/>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-whitelisting-1.0.jar"/>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/libs/bcel-6.2.jar"/>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/libs/it-univr-bcel-1.1-Java8.jar"/>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-takamaka-code-constants-1.0.jar"/>
-	<classpathentry kind="lib" path="/home/spoto/Gits/takamaka/distribution/dist/io-hotmoka-beans-1.0.jar"/>
 	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-engine-1.0.jar"/>
+	<classpathentry kind="lib" path="/distribution/libs/bcel-6.2.jar"/>
+	<classpathentry kind="lib" path="/distribution/dist/io-hotmoka-beans-1.0.jar"/>
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-constants-1.0.jar"/>
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-instrumentation-1.0.jar"/>
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-memory-1.0.jar"/>
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-verification-1.0.jar"/>
+	<classpathentry kind="lib" path="/distribution/dist/io-takamaka-code-whitelisting-1.0.jar"/>
+	<classpathentry kind="lib" path="/distribution/libs/it-univr-bcel-1.1-Java8.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
