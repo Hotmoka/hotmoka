@@ -1,12 +1,7 @@
 package io.takamaka.code.engine;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.security.CodeSource;
 import java.util.ArrayList;
@@ -15,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
@@ -45,32 +39,29 @@ import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.internal.CodeExecutor;
+import io.takamaka.code.engine.internal.ConstructorExecutor;
 import io.takamaka.code.engine.internal.Deserializer;
+import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.internal.InstanceMethodExecutor;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
+import io.takamaka.code.engine.internal.StaticMethodExecutor;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.TempJarFile;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
 import io.takamaka.code.engine.runtime.Runtime;
 import io.takamaka.code.instrumentation.InstrumentedJar;
-import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
-import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -102,12 +93,12 @@ public abstract class AbstractBlockchain implements Engine {
 	/**
 	 * The object that deserializes storage objects into RAM values.
 	 */
-	private final Deserializer deserializer = new Deserializer(this, this::getLastEagerUpdatesFor);
+	public final Deserializer deserializer = new Deserializer(this, this::getLastEagerUpdatesFor);
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
 	 */
-	private final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
+	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
 
 	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
@@ -139,7 +130,7 @@ public abstract class AbstractBlockchain implements Engine {
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	private EngineClassLoader classLoader;
+	public EngineClassLoader classLoader;
 
 	/**
 	 * The reference to the transaction where this must be executed.
@@ -279,18 +270,6 @@ public abstract class AbstractBlockchain implements Engine {
 	}
 
 	/**
-	 * Yields the class object that represents the given storage type in the Java language,
-	 * for the current transaction.
-	 * 
-	 * @param type the storage type
-	 * @return the class object, if any
-	 * @throws ClassNotFoundException if some class type cannot be found
-	 */
-	public final Class<?> toClass(StorageType type) throws ClassNotFoundException {
-		return storageTypeToClass.toClass(type);
-	}
-
-	/**
 	 * Yields the response that generated the given transaction.
 	 * 
 	 * @param transaction the reference to the transaction
@@ -301,26 +280,6 @@ public abstract class AbstractBlockchain implements Engine {
 	public final TransactionResponse getResponseAtAndCharge(TransactionReference transaction) throws Exception {
 		chargeForCPU(gasCostModel.cpuCostForGettingResponseAt(transaction));
 		return getResponseAt(transaction);
-	}
-
-	/**
-	 * Determines if a field of a storage class, having the given field, is eagerly loaded.
-	 * 
-	 * @param type the type
-	 * @return true if and only if that condition holds
-	 */
-	public boolean isEagerlyLoaded(Class<?> type) {
-		return classLoader.isEagerlyLoaded(type);
-	}
-
-	/**
-	 * Determines if a field of a storage class, having the given field, is lazily loaded.
-	 * 
-	 * @param type the type
-	 * @return true if and only if that condition holds
-	 */
-	public boolean isLazilyLoaded(Class<?> type) {
-		return classLoader.isLazilyLoaded(type);
 	}
 
 	/**
@@ -671,7 +630,7 @@ public abstract class AbstractBlockchain implements Engine {
 					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
 					chargeForStorage(sizeCalculator.sizeOf(request));
 
-					CodeExecutor executor = new ConstructorExecutor(request.constructor, deserializedCaller, request.actuals());
+					CodeExecutor executor = new ConstructorExecutor(this, request.constructor, deserializedCaller, request.actuals());
 					executor.start();
 					executor.join();
 
@@ -722,7 +681,7 @@ public abstract class AbstractBlockchain implements Engine {
 					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
 					chargeForStorage(sizeCalculator.sizeOf(request));
 
-					InstanceMethodExecutor executor = new InstanceMethodExecutor(request.method, deserializedCaller, request.receiver, request.getActuals());
+					InstanceMethodExecutor executor = new InstanceMethodExecutor(this, request.method, deserializedCaller, request.receiver, request.getActuals());
 					executor.start();
 					executor.join();
 
@@ -784,7 +743,7 @@ public abstract class AbstractBlockchain implements Engine {
 					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
 					chargeForStorage(sizeCalculator.sizeOf(request));
 
-					StaticMethodExecutor executor = new StaticMethodExecutor(request.method, deserializedCaller, request.getActuals());
+					StaticMethodExecutor executor = new StaticMethodExecutor(this, request.method, deserializedCaller, request.getActuals());
 					executor.start();
 					executor.join();
 
@@ -884,102 +843,6 @@ public abstract class AbstractBlockchain implements Engine {
 	 */
 	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
 		return deserializer.deserialize(getLastLazyUpdateToFinalFieldOf(reference, field).getValue());
-	}
-
-	/**
-	 * Yields the class with the given name for the current transaction.
-	 * 
-	 * @param name the name of the class
-	 * @return the class, if any
-	 * @throws ClassNotFoundException if the class cannot be found for the current transaction
-	 */
-	public final Class<?> loadClass(String name) throws ClassNotFoundException {
-		return classLoader.loadClass(name);
-	}
-
-	/**
-	 * Yields method {@link io.takamaka.code.lang.Contract#entry(io.takamaka.code.lang.Contract)}.
-	 * 
-	 * @return the method
-	 */
-	public final Method getEntry() {
-		return classLoader.entry;
-	}
-
-	/**
-	 * Yields method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, int)}.
-	 * 
-	 * @return the method
-	 */
-	public final Method getPayableEntryInt() {
-		return classLoader.payableEntryInt;
-	}
-
-	/**
-	 * Yields method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, long)}.
-	 * 
-	 * @return the method
-	 */
-	public final Method getPayableEntryLong() {
-		return classLoader.payableEntryLong;
-	}
-
-	/**
-	 * Yields method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, java.math.BigInteger)}.
-	 * 
-	 * @return the method
-	 */
-	public final Method getPayableEntryBigInteger() {
-		return classLoader.payableEntryBigInteger;
-	}
-
-	/**
-	 * Yields method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, int)}.
-	 * 
-	 * @return the method
-	 */
-	public final Method getRedPayableInt() {
-		return classLoader.redPayableInt;
-	}
-
-	/**
-	 * Yields method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, long)}.
-	 * 
-	 * @return the method
-	 */
-	public final Method getRedPayableLong() {
-		return classLoader.redPayableLong;
-	}
-
-	/**
-	 * Yields method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, java.math.BigInteger)}.
-	 * 
-	 * @return the method
-	 */
-	public final Method getRedPayableBigInteger() {
-		return classLoader.redPayableBigInteger;
-	}
-
-	/**
-	 * Yields field {@link io.takamaka.code.lang.Storage#storageReference)}.
-	 * 
-	 * @return the field
-	 */
-	public final Field getStorageReferenceField() {
-		return classLoader.storageReference;
-	}
-
-	/**
-	 * Yields field {@link io.takamaka.code.lang.Storage#inStorage)}.
-	 * 
-	 * @return the field
-	 */
-	public final Field getInStorageField() {
-		return classLoader.inStorage;
-	}
-
-	public boolean isStorage(Object object) {
-		return object != null && classLoader.getStorage().isAssignableFrom(object.getClass());
 	}
 
 	public StorageReference getStorageReferenceOf(Object object) {
@@ -1128,7 +991,7 @@ public abstract class AbstractBlockchain implements Engine {
 		Class<? extends Object> clazz = object.getClass();
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
-			throw new IllegalTransactionRequestException("Only an externally owned contract can start a transaction");
+			throw new IllegalTransactionRequestException("Only an externally owned account can start a transaction");
 	}
 
 	/**
@@ -1137,7 +1000,7 @@ public abstract class AbstractBlockchain implements Engine {
 	 * @param object the object to check
 	 * @throws IllegalTransactionRequestException if the object is not a red/green externally owned account
 	 */
-	private void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
+	public void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
 		Class<? extends Object> clazz = object.getClass();
 		if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
@@ -1152,496 +1015,25 @@ public abstract class AbstractBlockchain implements Engine {
 	 * @param result the result; relevant only if {@code Storage}
 	 * @return the ordered updates
 	 */
-	private SortedSet<Update> collectUpdates(Object[] actuals, Object caller, Object receiver, Object result) {
+	public SortedSet<Update> collectUpdates(Object[] actuals, Object caller, Object receiver, Object result) {
 		List<Object> potentiallyAffectedObjects = new ArrayList<>();
 		if (caller != null)
 			potentiallyAffectedObjects.add(caller);
 		if (receiver != null)
 			potentiallyAffectedObjects.add(receiver);
-		if (result != null && classLoader.getStorage().isAssignableFrom(result.getClass()))
+		Class<?> storage = classLoader.getStorage();
+		if (result != null && storage.isAssignableFrom(result.getClass()))
 			potentiallyAffectedObjects.add(result);
 
 		if (actuals != null)
 			for (Object actual: actuals)
-				if (actual != null && classLoader.getStorage().isAssignableFrom(actual.getClass()))
+				if (actual != null && storage.isAssignableFrom(actual.getClass()))
 					potentiallyAffectedObjects.add(actual);
 
 		// events are accessible from outside, hence they count as side-effects
 		events.forEach(potentiallyAffectedObjects::add);
 
 		return new UpdatesExtractor(this, potentiallyAffectedObjects.stream()).getUpdates();
-	}
-
-	/**
-	 * The thread that executes a constructor or method of a storage object. It creates the class loader
-	 * from the class path and deserializes receiver and actuals. Then calls the code and serializes
-	 * the resulting value back.
-	 */
-	private abstract class CodeExecutor extends Thread {
-
-		/**
-		 * The exception resulting from the execution of the method or constructor, if any.
-		 * This is {@code null} if the execution completed without exception.
-		 */
-		protected Throwable exception;
-
-		/**
-		 * The resulting value for methods or the created object for constructors.
-		 * This is {@code null} if the execution completed with an exception or
-		 * if the method actually returned {@code null}.
-		 */
-		protected Object result;
-
-		/**
-		 * The deserialized caller.
-		 */
-		protected final Object deserializedCaller;
-
-		/**
-		 * The method or constructor that is being called.
-		 */
-		protected final CodeSignature methodOrConstructor;
-		
-		/**
-		 * True if the method has been called correctly and it is declared as {@code void},
-		 */
-		protected boolean isVoidMethod;
-
-		/**
-		 * True if the method has been called correctly and it is annotated as {@link io.takamaka.code.lang.View}.
-		 */
-		protected boolean isViewMethod;
-
-		/**
-		 * The deserialized receiver of a method call. This is {@code null} for static methods and constructors.
-		 */
-		protected final Object deserializedReceiver; // it might be null
-
-		/**
-		 * The deserialized actual arguments of the call.
-		 */
-		protected final Object[] deserializedActuals;
-
-		/**
-		 * Builds the executor of a method or constructor.
-		 * 
-		 * @param classLoader the class loader that must be used to find the classes during the execution of the method or constructor
-		 * @param deseralizedCaller the deserialized caller
-		 * @param methodOrConstructor the method or constructor to call
-		 * @param receiver the receiver of the call, if any. This is {@code null} for constructors and static methods
-		 * @param actuals the actuals provided to the method or constructor
-		 */
-		private CodeExecutor(Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
-			this.deserializedCaller = deseralizedCaller;
-			this.methodOrConstructor = methodOrConstructor;
-			this.deserializedReceiver = receiver != null ? deserializer.deserialize(receiver) : null;
-			this.deserializedActuals = actuals.map(deserializer::deserialize).toArray(Object[]::new);
-		}
-
-		/**
-		 * A cache for {@link io.takamaka.code.engine.AbstractBlockchain.CodeExecutor#updates()}.
-		 */
-		private SortedSet<Update> updates;
-
-		/**
-		 * Yields the updates resulting from the execution of the method or constructor.
-		 * 
-		 * @return the updates
-		 */
-		protected final Stream<Update> updates() {
-			if (updates != null)
-				return updates.stream();
-
-			return (updates = collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result)).stream();
-		}
-
-		/**
-		 * Resolves the method that must be called.
-		 * 
-		 * @return the method
-		 * @throws NoSuchMethodException if the method could not be found
-		 * @throws SecurityException if the method could not be accessed
-		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-		 */
-		protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
-			MethodSignature method = (MethodSignature) methodOrConstructor;
-			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-			Class<?>[] argTypes = formalsAsClass();
-
-			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
-				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
-		}
-
-		/**
-		 * Resolves the method that must be called, assuming that it is an entry.
-		 * 
-		 * @return the method
-		 * @throws NoSuchMethodException if the method could not be found
-		 * @throws SecurityException if the method could not be accessed
-		 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-		 */
-		protected final Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
-			MethodSignature method = (MethodSignature) methodOrConstructor;
-			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-			Class<?>[] argTypes = formalsAsClassForEntry();
-
-			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
-				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
-		}
-
-		/**
-		 * Determines if the execution only affected the balance of the caller contract.
-		 *
-		 * @param deserializedCaller the caller contract
-		 * @return true  if and only if that condition holds
-		 */
-		protected final boolean onlyAffectedBalanceOf(Object deserializedCaller) {
-			return updates().allMatch
-				(update -> update.object.equals(getStorageReferenceOf(deserializedCaller))
-				&& update instanceof UpdateOfField
-				&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
-		}
-
-		/**
-		 * Yields the classes of the formal arguments of the method or constructor.
-		 * 
-		 * @return the array of classes, in the same order as the formals
-		 * @throws ClassNotFoundException if some class cannot be found
-		 */
-		protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
-			List<Class<?>> classes = new ArrayList<>();
-			for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-				classes.add(storageTypeToClass.toClass(type));
-
-			return classes.toArray(new Class<?>[classes.size()]);
-		}
-
-		/**
-		 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-		 * and {@link io.takamaka.code.lang.Entry}. Entries are instrumented with the addition of
-		 * trailing contract formal (the caller) and of a dummy type.
-		 * 
-		 * @return the array of classes, in the same order as the formals
-		 * @throws ClassNotFoundException if some class cannot be found
-		 */
-		protected final Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
-			List<Class<?>> classes = new ArrayList<>();
-			for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-				classes.add(storageTypeToClass.toClass(type));
-
-			classes.add(classLoader.getContract());
-			classes.add(Dummy.class);
-
-			return classes.toArray(new Class<?>[classes.size()]);
-		}
-
-		/**
-		 * Adds to the actual parameters the implicit actuals that are passed
-		 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
-		 * the entry and {@code null} for the dummy argument.
-		 * 
-		 * @return the resulting actual parameters
-		 */
-		protected final Object[] addExtraActualsForEntry() {
-			int al = deserializedActuals.length;
-			Object[] result = new Object[al + 2];
-			System.arraycopy(deserializedActuals, 0, result, 0, al);
-			result[al] = deserializedCaller;
-			result[al + 1] = null; // Dummy is not used
-
-			return result;
-		}
-
-		protected final boolean isChecked(Throwable t) {
-			return !(t instanceof RuntimeException || t instanceof Error);
-		}
-
-		/**
-		 * Yields the same exception, if it is checked and the executable is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
-		 * Otherwise, yields its cause.
-		 * 
-		 * @param e the exception
-		 * @param executable the method or constructor whose execution has thrown the exception
-		 * @return the same exception, or its cause
-		 */
-		protected final Throwable unwrapInvocationException(InvocationTargetException e, Executable executable) {
-			if (isChecked(e.getCause()) && hasAnnotation(executable, ClassType.THROWS_EXCEPTIONS.name))
-				return e;
-			else
-				return e.getCause();
-		}
-
-		/**
-		 * Checks that the given method or constructor can be called from Takamaka code, that is,
-		 * is white-listed and its white-listing proof-obligations hold.
-		 * 
-		 * @param executable the method or constructor
-		 * @param actuals the actual arguments passed to {@code executable}, including the
-		 *                receiver for instance methods
-		 * @throws ClassNotFoundException if some class could not be found during the check
-		 */
-		protected final void ensureWhiteListingOf(Executable executable, Object[] actuals) throws ClassNotFoundException {
-			Optional<? extends Executable> model;
-			if (executable instanceof Constructor<?>) {
-				model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
-				if (!model.isPresent())
-					throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of "
-						+ ((ConstructorSignature) methodOrConstructor).definingClass.name);
-			}
-			else {
-				model = classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable);
-				if (!model.isPresent())
-					throw new NonWhiteListedCallException("illegal call to non-white-listed method "
-						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
-			}
-
-			if (executable instanceof java.lang.reflect.Method && !Modifier.isStatic(executable.getModifiers()))
-				checkWhiteListingProofObligations(model.get().getName(), deserializedReceiver, model.get().getAnnotations());
-
-			Annotation[][] anns = model.get().getParameterAnnotations();
-			for (int pos = 0; pos < anns.length; pos++)
-				checkWhiteListingProofObligations(model.get().getName(), actuals[pos], anns[pos]);
-		}
-
-		private void checkWhiteListingProofObligations(String methodName, Object value, Annotation[] annotations) {
-			Stream.of(annotations)
-				.map(Annotation::annotationType)
-				.map(this::getWhiteListingCheckFor)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.forEachOrdered(checkMethod -> {
-					try {
-						// white-listing check methods are static
-						checkMethod.invoke(null, value, methodName);
-					}
-					catch (InvocationTargetException e) {
-						throw (NonWhiteListedCallException) e.getCause();
-					}
-					catch (IllegalAccessException | IllegalArgumentException e) {
-						throw new IllegalStateException("could not check white-listing proof-obligations for " + methodName, e);
-					}
-				});
-		}
-
-		private Optional<Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
-			if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class)) {
-				String checkName = lowerInitial(annotationType.getSimpleName());
-				Optional<Method> checkMethod = Stream.of(Runtime.class.getDeclaredMethods())
-					.filter(method -> method.getName().equals(checkName)).findFirst();
-		
-				if (!checkMethod.isPresent())
-					throw new IllegalStateException("unexpected white-list annotation " + annotationType.getSimpleName());
-		
-				return checkMethod;
-			}
-		
-			return Optional.empty();
-		}
-
-		private String lowerInitial(String name) {
-			return Character.toLowerCase(name.charAt(0)) + name.substring(1);
-		}
-
-		protected final boolean hasAnnotation(Executable executable, String annotationName) {
-			return Stream.of(executable.getAnnotations())
-				.anyMatch(annotation -> annotation.annotationType().getName().equals(annotationName));
-		}
-	}
-
-	/**
-	 * The thread that executes a constructor of a storage object. It creates the class loader
-	 * from the class path and deserializes the actuals. Then calls the code and serializes
-	 * the resulting value back.
-	 */
-	private class ConstructorExecutor extends CodeExecutor {
-
-		/**
-		 * Builds the executor of a constructor.
-		 * 
-		 * @param constructor the constructor to call
-		 * @param deseralizedCaller the deserialized caller
-		 * @param actuals the actuals provided to the constructor
-		 */
-		private ConstructorExecutor(ConstructorSignature constructor, Object deserializedCaller, Stream<StorageValue> actuals) {
-			super(deserializedCaller, constructor, null, actuals);
-		}
-
-		/**
-		 * Resolves the constructor that must be called.
-		 * 
-		 * @return the constructor
-		 * @throws NoSuchMethodException if the constructor could not be found
-		 * @throws SecurityException if the constructor could not be accessed
-		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
-		 */
-		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
-			Class<?>[] argTypes = formalsAsClass();
-
-			return classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
-		}
-
-		/**
-		 * Resolves the constructor that must be called, assuming that it is an entry.
-		 * 
-		 * @return the constructor
-		 * @throws NoSuchMethodException if the constructor could not be found
-		 * @throws SecurityException if the constructor could not be accessed
-		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
-		 */
-		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
-			Class<?>[] argTypes = formalsAsClassForEntry();
-
-			return classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
-		}
-
-		@Override
-		public void run() {
-			try {
-				Constructor<?> constructorJVM;
-				Object[] deserializedActuals;
-
-				try {
-					// we first try to call the constructor with exactly the parameter types explicitly provided
-					constructorJVM = getConstructor();
-					deserializedActuals = this.deserializedActuals;
-				}
-				catch (NoSuchMethodException e) {
-					// if not found, we try to add the trailing types that characterize the @Entry constructors
-					try {
-						constructorJVM = getEntryConstructor();
-						deserializedActuals = addExtraActualsForEntry();
-					}
-					catch (NoSuchMethodException ee) {
-						throw e; // the message must be relative to the constructor as the user sees it
-					}
-				}
-
-				ensureWhiteListingOf(constructorJVM, deserializedActuals);
-				if (hasAnnotation(constructorJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
-					checkIsRedGreenExternallyOwned(deserializedCaller);
-
-				try {
-					result = constructorJVM.newInstance(deserializedActuals);
-				}
-				catch (InvocationTargetException e) {
-					exception = unwrapInvocationException(e, constructorJVM);
-				}
-			}
-			catch (Throwable t) {
-				exception = t;
-			}
-		}
-	}
-
-	/**
-	 * The thread that executes an instance method of a storage object. It creates the class loader
-	 * from the class path and deserializes receiver and actuals. Then calls the code and serializes
-	 * the resulting value back.
-	 */
-	private class InstanceMethodExecutor extends CodeExecutor {
-
-		/**
-		 * Builds the executor of an instance method.
-		 * 
-		 * @param method the method to call
-		 * @param deseralizedCaller the deserialized caller
-		 * @param receiver the receiver of the method
-		 * @param actuals the actuals provided to the method
-		 */
-		private InstanceMethodExecutor(MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
-			super(deserializedCaller, method, receiver, actuals);
-		}
-
-		@Override
-		public void run() {
-			try {
-				Method methodJVM;
-				Object[] deserializedActuals;
-
-				try {
-					// we first try to call the method with exactly the parameter types explicitly provided
-					methodJVM = getMethod();
-					deserializedActuals = this.deserializedActuals;
-				}
-				catch (NoSuchMethodException e) {
-					// if not found, we try to add the trailing types that characterize the @Entry methods
-					try {
-						methodJVM = getEntryMethod();
-						deserializedActuals = addExtraActualsForEntry();
-					}
-					catch (NoSuchMethodException ee) {
-						throw e; // the message must be relative to the method as the user sees it
-					}
-				}
-
-				if (Modifier.isStatic(methodJVM.getModifiers()))
-					throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
-
-				ensureWhiteListingOf(methodJVM, deserializedActuals);
-
-				isVoidMethod = methodJVM.getReturnType() == void.class;
-				isViewMethod = hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
-				if (hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
-					checkIsRedGreenExternallyOwned(deserializedCaller);
-
-				try {
-					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
-				}
-				catch (InvocationTargetException e) {
-					exception = unwrapInvocationException(e, methodJVM);
-				}
-			}
-			catch (Throwable t) {
-				exception = t;
-			}
-		}
-	}
-
-	/**
-	 * The thread that executes a static method of a storage object. It creates the class loader
-	 * from the class path and deserializes the actuals. Then calls the code and serializes
-	 * the resulting value back.
-	 */
-	private class StaticMethodExecutor extends CodeExecutor {
-
-		/**
-		 * Builds the executor of a static method.
-		 * 
-		 * @param method the method to call
-		 * @param caller the caller, that pays for the execution
-		 * @param deseralizedCaller the deserialized caller
-		 * @param actuals the actuals provided to the method
-		 */
-		private StaticMethodExecutor(MethodSignature method, Object deserializedCaller, Stream<StorageValue> actuals) {
-			super(deserializedCaller, method, null, actuals);
-		}
-
-		@Override
-		public void run() {
-			try {
-				Method methodJVM = getMethod();
-
-				if (!Modifier.isStatic(methodJVM.getModifiers()))
-					throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
-
-				ensureWhiteListingOf(methodJVM, deserializedActuals);
-
-				isVoidMethod = methodJVM.getReturnType() == void.class;
-				isViewMethod = hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
-
-				try {
-					result = methodJVM.invoke(null, deserializedActuals);
-				}
-				catch (InvocationTargetException e) {
-					exception = unwrapInvocationException(e, methodJVM);
-				}
-			}
-			catch (Throwable t) {
-				exception = t;
-			}
-		}
 	}
 
 	/**
@@ -1664,9 +1056,5 @@ public abstract class AbstractBlockchain implements Engine {
 	 */
 	protected static TransactionException wrapAsTransactionException(Throwable t, String message) {
 		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
-	}
-
-	public Class<?> getStorage() {
-		return classLoader.getStorage();
 	}
 }

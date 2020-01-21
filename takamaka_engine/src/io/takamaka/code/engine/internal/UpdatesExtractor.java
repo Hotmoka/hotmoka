@@ -100,7 +100,7 @@ public class UpdatesExtractor {
 				if (!inStorage)
 					updates.add(new ClassTag(storageReference, clazz.getName(), blockchain.transactionThatInstalledJarFor(clazz)));
 
-				while (clazz != blockchain.getStorage()) {
+				while (clazz != blockchain.classLoader.getStorage()) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);
 					clazz = clazz.getSuperclass();
 				}
@@ -115,11 +115,11 @@ public class UpdatesExtractor {
 			private void recursiveExtract(Object s) {
 				if (s != null) {
 					Class<?> clazz = s.getClass();
-					if (blockchain.getStorage().isAssignableFrom(clazz)) {
+					if (blockchain.classLoader.getStorage().isAssignableFrom(clazz)) {
 						if (seen.add(blockchain.getStorageReferenceOf(s)))
 							workingSet.add(s);
 					}
-					else if (blockchain.isLazilyLoaded(clazz)) // eager types are not recursively followed
+					else if (blockchain.classLoader.isLazilyLoaded(clazz)) // eager types are not recursively followed
 						throw new DeserializationError("a field of a storage object cannot hold a " + clazz.getName());
 				}
 			}
@@ -138,7 +138,7 @@ public class UpdatesExtractor {
 				if (s == null)
 					//the field has been set to null
 					updates.add(new UpdateToNullLazy(storageReference, field));
-				else if (blockchain.getStorage().isAssignableFrom(s.getClass())) {
+				else if (blockchain.classLoader.getStorage().isAssignableFrom(s.getClass())) {
 					// the field has been set to a storage object
 					StorageReference storageReference2 = blockchain.getStorageReferenceOf(s);
 					updates.add(new UpdateOfStorage(storageReference, field, storageReference2));
@@ -338,7 +338,7 @@ public class UpdatesExtractor {
 						if (!inStorage || !Objects.equals(oldValue, currentValue))
 							addUpdateFor(field, currentValue);
 
-						if (inStorage && blockchain.isLazilyLoaded(field.getType()))
+						if (inStorage && blockchain.classLoader.isLazilyLoaded(field.getType()))
 							recursiveExtract(oldValue);
 					}
 			}
@@ -370,7 +370,7 @@ public class UpdatesExtractor {
 					addUpdateFor(fieldDefiningClass, fieldName, (String) currentValue);
 				else if (fieldType.isEnum())
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), (Enum<?>) currentValue);
-				else if (blockchain.isLazilyLoaded(fieldType))
+				else if (blockchain.classLoader.isLazilyLoaded(fieldType))
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), currentValue);
 				else
 					throw new IllegalStateException("unexpected field in storage object: " + fieldDefiningClass + '.' + fieldName);

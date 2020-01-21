@@ -400,7 +400,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	private boolean updatesNonFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
 		if (update instanceof UpdateOfField) {
 			FieldSignature sig = ((UpdateOfField) update).getField();
-			Class<?> type = toClass(sig.type);
+			Class<?> type = storageTypeToClass.toClass(sig.type);
 			String name = sig.name;
 			return eagerFields.stream()
 				.anyMatch(field -> !Modifier.isFinal(field.getModifiers()) && field.getType() == type && field.getName().equals(name));
@@ -418,14 +418,14 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	private Set<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException {
 		Set<Field> bag = new HashSet<>();
-		Class<?> storage = getStorage();
+		Class<?> storage = classLoader.getStorage();
 
 		// fields added by instrumentation by Takamaka itself are not considered, since they are transient
-		for (Class<?> clazz = loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
+		for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
 			Stream.of(clazz.getDeclaredFields())
 			.filter(field -> !Modifier.isTransient(field.getModifiers())
 					&& !Modifier.isStatic(field.getModifiers())
-					&& isEagerlyLoaded(field.getType()))
+					&& classLoader.isEagerlyLoaded(field.getType()))
 			.forEach(bag::add);
 
 		return bag;

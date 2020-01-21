@@ -79,8 +79,8 @@ public class Deserializer {
 							return field1.type.toString().compareTo(field2.type.toString());
 					}
 
-					Class<?> clazz1 = blockchain.loadClass(className1);
-					Class<?> clazz2 = blockchain.loadClass(className2);
+					Class<?> clazz1 = blockchain.classLoader.loadClass(className1);
+					Class<?> clazz2 = blockchain.classLoader.loadClass(className2);
 					if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
 						return -1;
 					else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
@@ -117,7 +117,7 @@ public class Deserializer {
 		this.getLastEagerUpdatesFor = getLastEagerUpdatesFor;
 	}
 
-	public void init() {
+	public void init() { //TODO: to remove
 		cache.clear();
 	}
 
@@ -162,7 +162,7 @@ public class Deserializer {
 			EnumValue ev = (EnumValue) value;
 
 			try {
-				return Enum.valueOf((Class<? extends Enum>) blockchain.loadClass(ev.enumClassName), ev.name);
+				return Enum.valueOf((Class<? extends Enum>) blockchain.classLoader.loadClass(ev.enumClassName), ev.name);
 			}
 			catch (ClassNotFoundException e) {
 				throw new DeserializationError(e);
@@ -214,14 +214,14 @@ public class Deserializer {
 					classTag = (ClassTag) update;
 				else {
 					UpdateOfField updateOfField = (UpdateOfField) update;
-					formals.add(blockchain.toClass(updateOfField.getField().type));
+					formals.add(blockchain.storageTypeToClass.toClass(updateOfField.getField().type));
 					actuals.add(deserialize(updateOfField.getValue()));
 				}
 	
 			if (classTag == null)
 				throw new DeserializationError("No class tag found for " + reference);
 
-			Class<?> clazz = blockchain.loadClass(classTag.className);
+			Class<?> clazz = blockchain.classLoader.loadClass(classTag.className);
 			TransactionReference actual = blockchain.transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))

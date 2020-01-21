@@ -83,7 +83,7 @@ public abstract class Runtime {
 	public static void entry(Object callee, Object caller) throws Throwable {
 		// we call the private method of contract
 		try {
-			blockchain.getEntry().invoke(callee, caller);
+			blockchain.classLoader.entry.invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.entry()", e);
@@ -106,7 +106,7 @@ public abstract class Runtime {
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			blockchain.getPayableEntryBigInteger().invoke(callee, caller, amount);
+			blockchain.classLoader.payableEntryBigInteger.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
@@ -131,7 +131,7 @@ public abstract class Runtime {
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
 		// we call the private methods of contract
 		try {
-			blockchain.getEntry().invoke(callee, caller);
+			blockchain.classLoader.entry.invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.entry()", e);
@@ -142,7 +142,7 @@ public abstract class Runtime {
 		}
 
 		try {
-			blockchain.getRedPayableBigInteger().invoke(callee, caller, amount);
+			blockchain.classLoader.redPayableBigInteger.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
@@ -165,7 +165,7 @@ public abstract class Runtime {
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			blockchain.getPayableEntryInt().invoke(callee, caller, amount);
+			blockchain.classLoader.payableEntryInt.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
@@ -190,7 +190,7 @@ public abstract class Runtime {
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
 		// we call the private methods of contract
 		try {
-			blockchain.getEntry().invoke(callee, caller);
+			blockchain.classLoader.entry.invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.entry()", e);
@@ -201,7 +201,7 @@ public abstract class Runtime {
 		}
 
 		try {
-			blockchain.getRedPayableInt().invoke(callee, caller, amount);
+			blockchain.classLoader.redPayableInt.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
@@ -224,7 +224,7 @@ public abstract class Runtime {
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			blockchain.getPayableEntryLong().invoke(callee, caller, amount);
+			blockchain.classLoader.payableEntryLong.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
@@ -249,7 +249,7 @@ public abstract class Runtime {
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
 		// we call the private methods of contract
 		try {
-			blockchain.getEntry().invoke(callee, caller);
+			blockchain.classLoader.entry.invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.entry()", e);
@@ -260,7 +260,7 @@ public abstract class Runtime {
 		}
 	
 		try {
-			blockchain.getRedPayableLong().invoke(callee, caller, amount);
+			blockchain.classLoader.redPayableLong.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);

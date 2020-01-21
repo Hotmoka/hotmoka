@@ -46,7 +46,7 @@ public class StorageTypeToClass {
 			}
 		}
 		else if (type instanceof ClassType)
-			return blockchain.loadClass(((ClassType) type).name);
+			return blockchain.classLoader.loadClass(((ClassType) type).name);
 	
 		throw new IllegalArgumentException("unexpected storage type");
 	}

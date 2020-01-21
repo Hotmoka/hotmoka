@@ -49,7 +49,7 @@ public class Serializer {
 	 * @throws IllegalArgumentException if the type of {@code object} is not allowed in blockchain
 	 */
 	public StorageValue serialize(Object object) throws IllegalArgumentException {
-		if (blockchain.isStorage(object))
+		if (isStorage(object))
 			return blockchain.getStorageReferenceOf(object);
 		else if (object instanceof BigInteger)
 			return new BigIntegerValue((BigInteger) object);
@@ -78,5 +78,9 @@ public class Serializer {
 		else
 			throw new IllegalArgumentException("an object of class " + object.getClass().getName()
 				+ " cannot be kept in blockchain since it does not implement " + Constants.STORAGE_NAME);
+	}
+
+	private boolean isStorage(Object object) {
+		return object != null && blockchain.classLoader.getStorage().isAssignableFrom(object.getClass());
 	}
 }
