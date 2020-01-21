@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.net.URISyntaxException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,7 +34,7 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
  * A class loader used to access the definition of the classes
  * of Takamaka methods or constructors executed during a transaction.
  */
-public class BlockchainClassLoader implements TakamakaClassLoader {
+public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
 	 * The parent of this class loader;
@@ -97,35 +97,26 @@ public class BlockchainClassLoader implements TakamakaClassLoader {
 	 * @param classpath the class path
 	 * @throws Exception if an error occurs
 	 */
-	public BlockchainClassLoader(Classpath classpath, AbstractBlockchain blockchain) throws Exception {
+	public EngineClassLoader(Classpath classpath, AbstractBlockchain blockchain) throws Exception {
 		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), blockchain, null));
-
-		getOrigins().forEach(url -> {
-			try {
-				classpathElements.add(Paths.get(url.toURI()));
-			}
-			catch (URISyntaxException e) {
-				throw new IllegalStateException("Unexpected illegal URL", e);
-			}
-		});
-
-		this.entry = getContract().getDeclaredMethod("entry", getContract());
+		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
+		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
-		this.payableEntryInt = getContract().getDeclaredMethod("payableEntry", getContract(), int.class);
+		this.payableEntryInt = contract.getDeclaredMethod("payableEntry", contract, int.class);
 		this.payableEntryInt.setAccessible(true); // it was private
-		this.payableEntryLong = getContract().getDeclaredMethod("payableEntry", getContract(), long.class);
+		this.payableEntryLong = contract.getDeclaredMethod("payableEntry", contract, long.class);
 		this.payableEntryLong.setAccessible(true); // it was private
-		this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
+		this.payableEntryBigInteger = contract.getDeclaredMethod("payableEntry", contract, BigInteger.class);
 		this.payableEntryBigInteger.setAccessible(true); // it was private
-		this.redPayableInt = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), int.class);
+		this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
 		this.redPayableInt.setAccessible(true); // it was private
-		this.redPayableLong = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), long.class);
+		this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
 		this.redPayableLong.setAccessible(true); // it was private
-		this.redPayableBigInteger = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), BigInteger.class);
+		this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
 		this.redPayableBigInteger.setAccessible(true); // it was private
-		this.storageReference = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
+		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 		this.storageReference.setAccessible(true); // it was private
-		this.inStorage = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(InstrumentationConstants.IN_STORAGE);
+		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
 		this.inStorage.setAccessible(true); // it was private
 	}
 
@@ -136,42 +127,35 @@ public class BlockchainClassLoader implements TakamakaClassLoader {
 	 * @param dependencies the dependencies
 	 * @throws Exception if an error occurs
 	 */
-	public BlockchainClassLoader(Path jar, Stream<Classpath> dependencies, AbstractBlockchain blockchain) throws Exception {
-		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, blockchain, jar.toUri().toURL()));
-
-		getOrigins().forEach(url -> {
-			try {
-				classpathElements.add(Paths.get(url.toURI()));
-			}
-			catch (URISyntaxException e) {
-				throw new IllegalStateException("Unexpected illegal URL", e);
-			}
-		});
-
-		this.entry = getContract().getDeclaredMethod("entry", getContract());
+	public EngineClassLoader(Path jar, Stream<Classpath> dependencies, AbstractBlockchain blockchain) throws Exception {
+		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, blockchain, jar.toUri()));
+		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
+		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
-		this.payableEntryInt = getContract().getDeclaredMethod("payableEntry", getContract(), int.class);
+		this.payableEntryInt = contract.getDeclaredMethod("payableEntry", contract, int.class);
 		this.payableEntryInt.setAccessible(true); // it was private
-		this.payableEntryLong = getContract().getDeclaredMethod("payableEntry", getContract(), long.class);
+		this.payableEntryLong = contract.getDeclaredMethod("payableEntry", contract, long.class);
 		this.payableEntryLong.setAccessible(true); // it was private
-		this.payableEntryBigInteger = getContract().getDeclaredMethod("payableEntry", getContract(), BigInteger.class);
+		this.payableEntryBigInteger = contract.getDeclaredMethod("payableEntry", contract, BigInteger.class);
 		this.payableEntryBigInteger.setAccessible(true); // it was private
-		this.redPayableInt = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), int.class);
+		this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
 		this.redPayableInt.setAccessible(true); // it was private
-		this.redPayableLong = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), long.class);
+		this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
 		this.redPayableLong.setAccessible(true); // it was private
-		this.redPayableBigInteger = getRedGreenContract().getDeclaredMethod("redPayable", getRedGreenContract(), BigInteger.class);
+		this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
 		this.redPayableBigInteger.setAccessible(true); // it was private
-		this.storageReference = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
+		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 		this.storageReference.setAccessible(true); // it was private
-		this.inStorage = loadClass(io.takamaka.code.constants.Constants.STORAGE_NAME).getDeclaredField(InstrumentationConstants.IN_STORAGE);
+		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
 		this.inStorage.setAccessible(true); // it was private
 	}
 
-	private static URL[] collectURLs(Stream<Classpath> classpaths, AbstractBlockchain blockchain, URL start) throws Exception {
+	private URL[] collectURLs(Stream<Classpath> classpaths, AbstractBlockchain blockchain, URI start) throws Exception {
 		List<URL> urls = new ArrayList<>();
-		if (start != null)
-			urls.add(start);
+		if (start != null) {
+			urls.add(start.toURL());
+			classpathElements.add(Paths.get(start));
+		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
 			urls = addURLs(classpath, blockchain, urls);
@@ -179,7 +163,7 @@ public class BlockchainClassLoader implements TakamakaClassLoader {
 		return urls.toArray(new URL[urls.size()]);
 	}
 
-	private static List<URL> addURLs(Classpath classpath, AbstractBlockchain blockchain, List<URL> bag) throws Exception {
+	private List<URL> addURLs(Classpath classpath, AbstractBlockchain blockchain, List<URL> bag) throws Exception {
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
 			TransactionRequest request = blockchain.getRequestAtAndCharge(classpath.transaction);
@@ -204,7 +188,9 @@ public class BlockchainClassLoader implements TakamakaClassLoader {
 			Files.copy(is, classpathElement, StandardCopyOption.REPLACE_EXISTING);
 
 			// we add, for class loading, the jar containing the instrumented code
-			bag.add(classpathElement.toFile().toURI().toURL());
+			URI uri = classpathElement.toFile().toURI();
+			bag.add(uri.toURL());
+			classpathElements.add(Paths.get(uri));
 		}
 
 		return bag;
@@ -222,11 +208,6 @@ public class BlockchainClassLoader implements TakamakaClassLoader {
 	@Override
 	public final Class<?> loadClass(String className) throws ClassNotFoundException {
 		return parent.loadClass(className);
-	}
-
-	@Override
-	public Stream<URL> getOrigins() {
-		return parent.getOrigins();
 	}
 
 	@Override

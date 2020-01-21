@@ -58,7 +58,7 @@ import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.internal.BlockchainClassLoader;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
@@ -77,7 +77,7 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-public abstract class AbstractBlockchain implements Blockchain {
+public abstract class AbstractBlockchain implements Engine {
 
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
@@ -139,7 +139,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	private BlockchainClassLoader classLoader;
+	private EngineClassLoader classLoader;
 
 	/**
 	 * The reference to the transaction where this must be executed.
@@ -466,7 +466,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 
 			// we transform the array of bytes into a real jar file
 			try (TempJarFile original = new TempJarFile(request.getJar());
-				 BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original.toPath(), request.getDependencies(), this)) {
+				 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this)) {
 				VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, true);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
 				return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
@@ -483,7 +483,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			if (request.initialAmount.signum() < 0)
 				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
-			try (TakamakaClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (TakamakaClassLoader classLoader = this.classLoader = new EngineClassLoader(request.classpath, this)) {
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 				Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 				// we set the balance field of the gamete
@@ -505,7 +505,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
 				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
-			try (TakamakaClassLoader classLoader = this.classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (TakamakaClassLoader classLoader = this.classLoader = new EngineClassLoader(request.classpath, this)) {
 				// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
 				Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 				// we set the balance field of the gamete
@@ -528,7 +528,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
 
-			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
 				Object deserializedCaller = deserializer.deserialize(request.caller);
 				checkIsExternallyOwned(deserializedCaller);
@@ -551,7 +551,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 					byte[] instrumentedBytes;
 					// we transform the array of bytes into a real jar file
 					try (TempJarFile original = new TempJarFile(jar);
-						 BlockchainClassLoader jarClassLoader = new BlockchainClassLoader(original.toPath(), request.getDependencies(), this)) {
+						 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this)) {
 						VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, false);
 						InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
 						instrumentedBytes = instrumentedJar.toBytes();
@@ -655,7 +655,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
 
-			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
 				Object deserializedCaller = deserializer.deserialize(request.caller);
 				checkIsExternallyOwned(deserializedCaller);
@@ -706,7 +706,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
 
-			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
 				Object deserializedCaller = deserializer.deserialize(request.caller);
 				checkIsExternallyOwned(deserializedCaller);
@@ -768,7 +768,7 @@ public abstract class AbstractBlockchain implements Blockchain {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
 
-			try (BlockchainClassLoader classLoader = new BlockchainClassLoader(request.classpath, this)) {
+			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
 				Object deserializedCaller = deserializer.deserialize(request.caller);
 				checkIsExternallyOwned(deserializedCaller);

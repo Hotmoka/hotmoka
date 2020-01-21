@@ -43,11 +43,6 @@ public class ResolvingClassLoaderImpl extends URLClassLoader implements Resolvin
 	}
 
 	@Override
-	public Stream<URL> getOrigins() {
-		return Stream.of(super.getURLs());
-	}
-
-	@Override
 	public final Optional<Field> resolveField(String className, String name, Class<?> type) throws ClassNotFoundException {
 		return resolveField(loadClass(className), name, type);
 	}

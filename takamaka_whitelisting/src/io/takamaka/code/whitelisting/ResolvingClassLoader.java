@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import io.takamaka.code.whitelisting.internal.ResolvingClassLoaderImpl;
 
@@ -41,13 +40,6 @@ public interface ResolvingClassLoader extends AutoCloseable {
 	 * @throws ClassNotFoundException if the class cannot be found with this class loader
 	 */
 	Class<?> loadClass(String className) throws ClassNotFoundException;
-
-	/**
-	 * Yields the URLs of the jars from where this class loader loads the classes.
-	 * 
-	 * @return the URLs
-	 */
-	Stream<URL> getOrigins();
 
 	@Override
 	void close() throws IOException; // refined exception type

@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.apache.bcel.Repository;
 import org.apache.bcel.util.ClassLoaderRepository;
@@ -130,11 +129,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public Class<?> getRedGreenExternallyOwnedAccount() {
 		return redGreenExternallyOwnedAccount;
-	}
-
-	@Override
-	public final Stream<URL> getOrigins() {
-		return parent.getOrigins();
 	}
 
 	public final WhiteListingWizard getWhiteListingWizard() {
