@@ -60,7 +60,7 @@ public class InstanceMethodExecutor extends CodeExecutor {
 			isVoidMethod = methodJVM.getReturnType() == void.class;
 			isViewMethod = hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
 			if (hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
-				engine.checkIsRedGreenExternallyOwned(deserializedCaller);
+				checkIsRedGreenExternallyOwned(deserializedCaller);
 
 			try {
 				result = methodJVM.invoke(deserializedReceiver, deserializedActuals);

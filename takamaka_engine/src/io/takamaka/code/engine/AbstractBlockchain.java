@@ -311,7 +311,7 @@ public abstract class AbstractBlockchain implements Engine {
 	 */
 	public final void chargeForCPU(BigInteger amount) {
 		if (amount.signum() < 0)
-			throw new IllegalArgumentException("Gas cannot inrease");
+			throw new IllegalArgumentException("Gas cannot increase");
 
 		// gas can be negative only if it was initialized so; this special case is
 		// used for the creation of the gamete, when gas should not be counted
@@ -516,12 +516,12 @@ public abstract class AbstractBlockchain implements Engine {
 						instrumentedBytes = instrumentedJar.toBytes();
 					}
 
-					BigInteger balanceOfCaller = increaseBalance(deserializedCaller, BigInteger.ZERO);
+					BigInteger balanceOfCaller = getBalanceOf(deserializedCaller);
 					StorageReference storageReferenceOfDeserializedCaller = getStorageReferenceOf(deserializedCaller);
 					UpdateOfBalance balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
 					JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(sizeCalculator.sizeOf(response));
-					balanceOfCaller = increaseBalance(deserializedCaller, remainingGas());
+					balanceOfCaller = increaseBalance(deserializedCaller);
 					balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
 					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
@@ -637,7 +637,7 @@ public abstract class AbstractBlockchain implements Engine {
 					if (executor.exception instanceof InvocationTargetException) {
 						ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller, remainingGas());
+						increaseBalance(deserializedCaller);
 						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 
@@ -647,7 +647,7 @@ public abstract class AbstractBlockchain implements Engine {
 					ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
 						((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller, remainingGas());
+					increaseBalance(deserializedCaller);
 					return new ConstructorCallTransactionSuccessfulResponse
 						((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
@@ -688,7 +688,7 @@ public abstract class AbstractBlockchain implements Engine {
 					if (executor.exception instanceof InvocationTargetException) {
 						MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller, remainingGas());
+						increaseBalance(deserializedCaller);
 						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 
@@ -701,14 +701,14 @@ public abstract class AbstractBlockchain implements Engine {
 					if (executor.isVoidMethod) {
 						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller, remainingGas());
+						increaseBalance(deserializedCaller);
 						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 					else {
 						MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
 							(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller, remainingGas());
+						increaseBalance(deserializedCaller);
 						return new MethodCallTransactionSuccessfulResponse
 							(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
@@ -750,7 +750,7 @@ public abstract class AbstractBlockchain implements Engine {
 					if (executor.exception instanceof InvocationTargetException) {
 						MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller, remainingGas());
+						increaseBalance(deserializedCaller);
 						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 
@@ -763,14 +763,14 @@ public abstract class AbstractBlockchain implements Engine {
 					if (executor.isVoidMethod) {
 						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller, remainingGas());
+						increaseBalance(deserializedCaller);
 						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
 					else {
 						MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
 							(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller, remainingGas());
+						increaseBalance(deserializedCaller);
 						return new MethodCallTransactionSuccessfulResponse
 							(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					}
@@ -962,16 +962,12 @@ public abstract class AbstractBlockchain implements Engine {
 	 * @param eoa the reference to the externally owned account
 	 * @param gas the gas to buy back
 	 * @return the balance of the contract after buying back the given amount of gas
-	 * @throws ClassNotFoundException if the balance of the account cannot be correctly modified
 	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
 	 * @throws SecurityException if the balance of the account cannot be correctly modified
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private BigInteger increaseBalance(Object eoa, BigInteger gas)
-			throws ClassNotFoundException, NoSuchFieldException,
-			SecurityException, IllegalArgumentException, IllegalAccessException {
-	
+	private BigInteger increaseBalance(Object eoa) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		BigInteger delta = gasCostModel.toCoin(gas);
 		Field balanceField = classLoader.getContract().getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
@@ -979,6 +975,22 @@ public abstract class AbstractBlockchain implements Engine {
 		BigInteger result = previousBalance.add(delta);
 		balanceField.set(eoa, result);
 		return result;
+	}
+
+	/**
+	 * Yields the balance of the given externally owned account.
+	 * 
+	 * @param eoa the reference to the externally owned account
+	 * @return the balance of {@code eoa}
+	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
+	 * @throws SecurityException if the balance of the account cannot be correctly modified
+	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
+	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
+	 */
+	private BigInteger getBalanceOf(Object eoa) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+		Field balanceField = classLoader.getContract().getDeclaredField("balance");
+		balanceField.setAccessible(true); // since the field is private
+		return (BigInteger) balanceField.get(eoa);
 	}
 
 	/**
@@ -992,18 +1004,6 @@ public abstract class AbstractBlockchain implements Engine {
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalTransactionRequestException("Only an externally owned account can start a transaction");
-	}
-
-	/**
-	 * Checks if the given object is a red/green externally owned account or subclass.
-	 * 
-	 * @param object the object to check
-	 * @throws IllegalTransactionRequestException if the object is not a red/green externally owned account
-	 */
-	public void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
-		Class<? extends Object> clazz = object.getClass();
-		if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
-			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}
 
 	/**
@@ -1034,16 +1034,6 @@ public abstract class AbstractBlockchain implements Engine {
 		events.forEach(potentiallyAffectedObjects::add);
 
 		return new UpdatesExtractor(this, potentiallyAffectedObjects.stream()).getUpdates();
-	}
-
-	/**
-	 * Yields the amount of gas still available to the
-	 * currently executing transaction.
-	 * 
-	 * @return the remaining gas
-	 */
-	private BigInteger remainingGas() {
-		return gas;
 	}
 
 	/**

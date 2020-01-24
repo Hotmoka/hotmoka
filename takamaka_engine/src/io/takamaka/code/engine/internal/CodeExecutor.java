@@ -25,6 +25,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.AbstractBlockchain;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.runtime.Runtime;
 import io.takamaka.code.verification.Dummy;
@@ -309,6 +310,18 @@ public abstract class CodeExecutor extends Thread {
 
 	protected final boolean hasAnnotation(Executable executable, String annotationName) {
 		return Stream.of(executable.getAnnotations())
-				.anyMatch(annotation -> annotation.annotationType().getName().equals(annotationName));
+			.anyMatch(annotation -> annotation.annotationType().getName().equals(annotationName));
+	}
+
+	/**
+	 * Checks if the given object is a red/green externally owned account or subclass.
+	 * 
+	 * @param object the object to check
+	 * @throws IllegalTransactionRequestException if the object is not a red/green externally owned account
+	 */
+	protected void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
+		Class<? extends Object> clazz = object.getClass();
+		if (!engine.classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}
 }

@@ -81,7 +81,7 @@ public class ConstructorExecutor extends CodeExecutor {
 
 			ensureWhiteListingOf(constructorJVM, deserializedActuals);
 			if (hasAnnotation(constructorJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
-				engine.checkIsRedGreenExternallyOwned(deserializedCaller);
+				checkIsRedGreenExternallyOwned(deserializedCaller);
 
 			try {
 				result = constructorJVM.newInstance(deserializedActuals);
