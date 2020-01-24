@@ -6,13 +6,14 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A request for a transaction that installs a jar in an initialized blockchain.
  */
 @Immutable
-public class JarStoreTransactionRequest extends NonInitialTransactionRequest implements AbstractJarStoreTransactionRequest {
+public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest {
 
 	private static final long serialVersionUID = -986118537465436635L;
 

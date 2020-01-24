@@ -4,10 +4,11 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
 @Immutable
-public abstract class NonInitialTransactionRequest implements TransactionRequest {
+public abstract class NonInitialTransactionRequest<R extends NonInitialTransactionResponse> implements TransactionRequest<R> {
 	private static final long serialVersionUID = 8584281399116101538L;
 
 	/**

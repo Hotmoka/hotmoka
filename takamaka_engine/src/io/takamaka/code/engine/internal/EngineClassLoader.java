@@ -20,12 +20,14 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.takamaka.code.engine.AbstractBlockchain;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
+import io.takamaka.code.engine.Node;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -97,8 +99,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param classpath the class path
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, AbstractBlockchain blockchain) throws Exception {
-		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), blockchain, null));
+	public EngineClassLoader(Classpath classpath, Node node, AbstractBlockchain blockchain) throws Exception {
+		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), node, blockchain, null));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -127,8 +129,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param dependencies the dependencies
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Path jar, Stream<Classpath> dependencies, AbstractBlockchain blockchain) throws Exception {
-		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, blockchain, jar.toUri()));
+	public EngineClassLoader(Path jar, Stream<Classpath> dependencies, Node node, AbstractBlockchain blockchain) throws Exception {
+		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, node, blockchain, jar.toUri()));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -150,7 +152,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		this.inStorage.setAccessible(true); // it was private
 	}
 
-	private URL[] collectURLs(Stream<Classpath> classpaths, AbstractBlockchain blockchain, URI start) throws Exception {
+	private URL[] collectURLs(Stream<Classpath> classpaths, Node node, AbstractBlockchain blockchain, URI start) throws Exception {
 		List<URL> urls = new ArrayList<>();
 		if (start != null) {
 			urls.add(start.toURL());
@@ -158,24 +160,48 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
-			urls = addURLs(classpath, blockchain, urls);
+			urls = addURLs(classpath, node, blockchain, urls);
 
 		return urls.toArray(new URL[urls.size()]);
 	}
 
-	private List<URL> addURLs(Classpath classpath, AbstractBlockchain blockchain, List<URL> bag) throws Exception {
+	/**
+	 * Yields the request that generated the given transaction.
+	 * 
+	 * @param transaction the reference to the transaction
+	 * @return the request
+	 * @throws Exception if the request could not be found
+	 */
+	private static TransactionRequest<?> getRequestAndCharge(TransactionReference transaction, Node node, AbstractBlockchain blockchain) throws Exception {
+		blockchain.chargeForCPU(blockchain.gasCostModel.cpuCostForGettingRequestAt(transaction));
+		return node.getRequestAt(transaction);
+	}
+
+	/**
+	 * Yields the response that generated the given transaction.
+	 * 
+	 * @param transaction the reference to the transaction
+	 * @return the response
+	 * @throws Exception if the response could not be found
+	 */
+	private static TransactionResponse getResponseAtAndCharge(TransactionReference transaction, Node node, AbstractBlockchain blockchain) throws Exception {
+		blockchain.chargeForCPU(blockchain.gasCostModel.cpuCostForGettingResponseAt(transaction));
+		return node.getResponseAt(transaction);
+	}
+
+	private List<URL> addURLs(Classpath classpath, Node node, AbstractBlockchain blockchain, List<URL> bag) throws Exception {
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
-			TransactionRequest request = blockchain.getRequestAtAndCharge(classpath.transaction);
+			TransactionRequest<?> request = getRequestAndCharge(classpath.transaction, node, blockchain);
 			if (!(request instanceof AbstractJarStoreTransactionRequest))
 				throw new IllegalTransactionRequestException("classpath does not refer to a jar store transaction");
 
 			Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-				addURLs(dependency, blockchain, bag);
+				addURLs(dependency, node, blockchain, bag);
 		}
 
-		TransactionResponse response = blockchain.getResponseAtAndCharge(classpath.transaction);
+		TransactionResponse response = getResponseAtAndCharge(classpath.transaction, node, blockchain);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalTransactionRequestException("classpath does not refer to a successful jar store transaction");
 

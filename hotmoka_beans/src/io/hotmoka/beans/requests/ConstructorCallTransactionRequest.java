@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -14,7 +15,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A request for calling a constructor of a storage class in blockchain.
  */
 @Immutable
-public class ConstructorCallTransactionRequest extends NonInitialTransactionRequest {
+public class ConstructorCallTransactionRequest extends NonInitialTransactionRequest<ConstructorCallTransactionResponse> {
 
 	private static final long serialVersionUID = -6485399240275200765L;
 

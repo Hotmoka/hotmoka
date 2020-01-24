@@ -128,12 +128,12 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 	}
 
 	@Override
-	protected TransactionReference getTransactionReferenceFor(String toString) {
+	public TransactionReference getTransactionReferenceFor(String toString) {
 		return new MemoryTransactionReference(toString);
 	}
 
 	@Override
-	protected TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception {
+	protected <R extends TransactionResponse> TransactionReference expandBlockchainWith(TransactionRequest<? extends R> request, R response) throws Exception {
 		MemoryTransactionReference next = (MemoryTransactionReference) getNextTransaction();
 		Path requestPath = getPathFor(next, REQUEST_NAME);
 		ensureDeleted(requestPath.getParent());
@@ -179,15 +179,15 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 	}
 
 	@Override
-	protected TransactionRequest getRequestAt(TransactionReference reference) throws FileNotFoundException, IOException, ClassNotFoundException {
+	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws FileNotFoundException, IOException, ClassNotFoundException {
 		Path request = getPathFor((MemoryTransactionReference) reference, REQUEST_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(request)))) {
-			return (TransactionRequest) in.readObject();
+			return (TransactionRequest<?>) in.readObject();
 		}
 	}
 
 	@Override
-	protected TransactionResponse getResponseAt(TransactionReference reference) throws Exception {
+	public TransactionResponse getResponseAt(TransactionReference reference) throws Exception {
 		Path response = getPathFor((MemoryTransactionReference) reference, RESPONSE_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
 			return (TransactionResponse) in.readObject();

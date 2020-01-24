@@ -87,7 +87,7 @@ public class SizeCalculator {
 	 * @param request the request
 	 * @return the size
 	 */
-	public BigInteger sizeOf(NonInitialTransactionRequest request) {
+	public BigInteger sizeOf(NonInitialTransactionRequest<?> request) {
 		if (request instanceof ConstructorCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOf(request.caller))

@@ -4,12 +4,13 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 
 /**
  * A request for creating an initial gamete.
  */
 @Immutable
-public class GameteCreationTransactionRequest implements InitialTransactionRequest {
+public class GameteCreationTransactionRequest implements InitialTransactionRequest<GameteCreationTransactionResponse> {
 
 	private static final long serialVersionUID = -6733566802012789524L;
 

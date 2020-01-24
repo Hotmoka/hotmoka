@@ -77,15 +77,15 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @return the reference to the transaction that has been added
 	 * @throws Exception if the expansion cannot be completed
 	 */
-	protected abstract TransactionReference expandBlockchainWith(TransactionRequest request, TransactionResponse response) throws Exception;
+	protected abstract <R extends TransactionResponse> TransactionReference expandBlockchainWith(TransactionRequest<? extends R> request, R response) throws Exception;
 
 	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 
 	@Override
-	protected Stream<Update> getLastEagerUpdatesFor(StorageReference reference) throws Exception {
+	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	
-		TransactionResponse response = getResponseAtAndCharge(transaction);
+		TransactionResponse response = getResponseAtAndCharge(transaction, this);
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new DeserializationError("Storage reference " + reference + " does not contain updates");
 	
@@ -114,7 +114,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
+	public UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
 		// goes back from the previous transaction;
 		// there is no reason to look before the transaction that created the object
 		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
@@ -127,7 +127,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	protected UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
+	public UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
 		// goes directly to the transaction that created the object
 		return getLastUpdateFor(object, field, object.transaction).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
@@ -349,11 +349,23 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @throws IOException if there is an error while accessing the disk
 	 */
 	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) throws Exception {
-		TransactionResponse response = getResponseAtAndCharge(transaction);
+		TransactionResponse response = getResponseAtAndCharge(transaction, this);
 		if (response instanceof TransactionResponseWithUpdates)
 			((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
 				.forEach(updates::add);
+	}
+
+	/**
+	 * Yields the response that generated the given transaction.
+	 * 
+	 * @param transaction the reference to the transaction
+	 * @return the response
+	 * @throws Exception if the response could not be found
+	 */
+	private TransactionResponse getResponseAtAndCharge(TransactionReference transaction, Node node) throws Exception {
+		chargeForCPU(gasCostModel.cpuCostForGettingResponseAt(transaction));
+		return node.getResponseAt(transaction);
 	}
 
 	/**
@@ -379,7 +391,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
-		TransactionResponse response = getResponseAtAndCharge(transaction);
+		TransactionResponse response = getResponseAtAndCharge(transaction, this);
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField)

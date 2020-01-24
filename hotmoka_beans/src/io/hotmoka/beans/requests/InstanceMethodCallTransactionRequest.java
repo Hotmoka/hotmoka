@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -14,7 +15,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A request for calling an instance method of a storage object in blockchain.
  */
 @Immutable
-public class InstanceMethodCallTransactionRequest extends NonInitialTransactionRequest {
+public class InstanceMethodCallTransactionRequest extends NonInitialTransactionRequest<MethodCallTransactionResponse> {
 
 	private static final long serialVersionUID = -1016861794592561931L;
 
