@@ -288,33 +288,6 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 
 	/*
 	@Override
-	public final GameteCreationTransactionResponse runRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			// we do not count gas for this creation
-			initTransaction(BigInteger.valueOf(-1L), current);
-
-			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
-				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
-
-			try (TakamakaClassLoader classLoader = this.classLoader = new EngineClassLoader(request.classpath, this, this)) {
-				// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
-				Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-				// we set the balance field of the gamete
-				Field balanceField = classLoader.getContract().getDeclaredField("balance");
-				balanceField.setAccessible(true); // since the field is private
-				balanceField.set(gamete, request.initialAmount);
-
-				// we set the red balance field of the gamete
-				Field redBalanceField = classLoader.getRedGreenContract().getDeclaredField("balanceRed");
-				redBalanceField.setAccessible(true); // since the field is private
-				redBalanceField.set(gamete, request.redInitialAmount);
-	
-				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), getStorageReferenceOf(gamete));
-			}
-		});
-	}
-
-	@Override
 	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);

@@ -146,7 +146,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			requireBlockchainNotYetInitialized();
-			return expandBlockchainWith(request, Transaction.mkFor(request, getNextTransaction(), this).response);
+			return expandBlockchainWith(request, Transaction.mkFor(request, getNextTransaction(), this).getResponse());
 		});
 	}
 
@@ -163,7 +163,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			requireBlockchainNotYetInitialized();
-			GameteCreationTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).response;
+			GameteCreationTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
 			expandBlockchainWith(request, response);
 			return response.gamete;
 		});
@@ -182,7 +182,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			requireBlockchainNotYetInitialized();
-			GameteCreationTransactionResponse response = runRedGreenGameteCreationTransaction(request, getNextTransaction());
+			GameteCreationTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
 			expandBlockchainWith(request, response);
 			return response.gamete;
 		});

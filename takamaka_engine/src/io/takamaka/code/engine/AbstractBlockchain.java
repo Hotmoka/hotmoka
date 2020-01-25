@@ -17,13 +17,11 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
@@ -54,7 +52,6 @@ import io.takamaka.code.engine.internal.executors.InstanceMethodExecutor;
 import io.takamaka.code.engine.internal.executors.StaticMethodExecutor;
 import io.takamaka.code.engine.runtime.Runtime;
 import io.takamaka.code.instrumentation.InstrumentedJar;
-import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;
 
 /**
@@ -309,33 +306,6 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 			throw new IllegalArgumentException("Events cannot be null");
 
 		events.add(event);
-	}
-
-	@Override
-	public final GameteCreationTransactionResponse runRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			// we do not count gas for this creation
-			initTransaction(BigInteger.valueOf(-1L), current);
-
-			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
-				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
-
-			try (TakamakaClassLoader classLoader = this.classLoader = new EngineClassLoader(request.classpath, this)) {
-				// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
-				Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-				// we set the balance field of the gamete
-				Field balanceField = classLoader.getContract().getDeclaredField("balance");
-				balanceField.setAccessible(true); // since the field is private
-				balanceField.set(gamete, request.initialAmount);
-
-				// we set the red balance field of the gamete
-				Field redBalanceField = classLoader.getRedGreenContract().getDeclaredField("balanceRed");
-				redBalanceField.setAccessible(true); // since the field is private
-				redBalanceField.set(gamete, request.redInitialAmount);
-	
-				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), getStorageReferenceOf(gamete));
-			}
-		});
 	}
 
 	@Override

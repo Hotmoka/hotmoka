@@ -26,7 +26,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
-import io.takamaka.code.engine.Node;
 import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
