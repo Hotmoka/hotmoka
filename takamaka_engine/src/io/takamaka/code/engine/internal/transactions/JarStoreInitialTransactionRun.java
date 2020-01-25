@@ -15,14 +15,14 @@ import io.takamaka.code.verification.VerifiedJar;
 public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 
 	public JarStoreInitialTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		super(request, current, node, BigInteger.valueOf(-1L));
+		super(request, current, node, BigInteger.valueOf(-1L)); // we do not count gas for this creation
 	}
 
 	@Override
 	protected JarStoreInitialTransactionResponse computeResponse() throws Exception {
 		// we transform the array of bytes into a real jar file
 		try (TempJarFile original = new TempJarFile(request.getJar());
-			EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), node, this)) {
+			EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this)) {
 			VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, true);
 			InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
 			return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());

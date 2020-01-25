@@ -163,7 +163,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			requireBlockchainNotYetInitialized();
-			GameteCreationTransactionResponse response = runGameteCreationTransaction(request, getNextTransaction());
+			GameteCreationTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).response;
 			expandBlockchainWith(request, response);
 			return response.gamete;
 		});

@@ -87,6 +87,18 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
 
 	/**
+	 * A stack of available gas. When a sub-computation is started
+	 * with a subset of the available gas, the latter is taken away from
+	 * the current available gas and pushed on top of this stack.
+	 */
+	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
+
+	/**
+	 * The reference to the transaction where this must be executed.
+	 */
+	private final TransactionReference current;
+
+	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
 	 */
 	private BigInteger gas;
@@ -107,21 +119,9 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	private BigInteger gasConsumedForStorage;
 
 	/**
-	 * A stack of available gas. When a sub-computation is started
-	 * with a subset of the available gas, the latter is taken away from
-	 * the current available gas and pushed on top of this stack.
-	 */
-	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
-
-	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	public EngineClassLoader classLoader;
-
-	/**
-	 * The reference to the transaction where this must be executed.
-	 */
-	private TransactionReference current;
+	protected EngineClassLoader classLoader;
 
 	protected AbstractTransactionRun(Request request, TransactionReference current, Node node, BigInteger gas) throws TransactionException {
 		this.request = request;
@@ -287,28 +287,6 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	protected abstract Response computeResponse() throws Exception;
 
 	/*
-	@Override
-	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			// we do not count gas for this creation
-			initTransaction(BigInteger.valueOf(-1L), current);
-
-			if (request.initialAmount.signum() < 0)
-				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
-
-			try (TakamakaClassLoader classLoader = this.classLoader = new EngineClassLoader(request.classpath, this, this)) {
-				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-				Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-				// we set the balance field of the gamete
-				Field balanceField = classLoader.getContract().getDeclaredField("balance");
-				balanceField.setAccessible(true); // since the field is private
-				balanceField.set(gamete, request.initialAmount);
-
-				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), getStorageReferenceOf(gamete));
-			}
-		});
-	}
-
 	@Override
 	public final GameteCreationTransactionResponse runRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {

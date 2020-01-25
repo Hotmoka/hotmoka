@@ -99,8 +99,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param classpath the class path
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, Node node, TransactionRun run) throws Exception {
-		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), node, run, null));
+	public EngineClassLoader(Classpath classpath, TransactionRun run) throws Exception {
+		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), run, null));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -129,8 +129,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param dependencies the dependencies
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Path jar, Stream<Classpath> dependencies, Node node, TransactionRun run) throws Exception {
-		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, node, run, jar.toUri()));
+	public EngineClassLoader(Path jar, Stream<Classpath> dependencies, TransactionRun run) throws Exception {
+		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, run, jar.toUri()));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -152,7 +152,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		this.inStorage.setAccessible(true); // it was private
 	}
 
-	private URL[] collectURLs(Stream<Classpath> classpaths, Node node, TransactionRun run, URI start) throws Exception {
+	private URL[] collectURLs(Stream<Classpath> classpaths, TransactionRun run, URI start) throws Exception {
 		List<URL> urls = new ArrayList<>();
 		if (start != null) {
 			urls.add(start.toURL());
@@ -160,7 +160,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
-			urls = addURLs(classpath, node, run, urls);
+			urls = addURLs(classpath, run, urls);
 
 		return urls.toArray(new URL[urls.size()]);
 	}
@@ -172,9 +172,9 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @return the request
 	 * @throws Exception if the request could not be found
 	 */
-	private static TransactionRequest<?> getRequestAndCharge(TransactionReference transaction, Node node, TransactionRun run) throws Exception {
+	private static TransactionRequest<?> getRequestAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
 		run.chargeForCPU(run.getGasCostModel().cpuCostForGettingRequestAt(transaction));
-		return node.getRequestAt(transaction);
+		return run.getNode().getRequestAt(transaction);
 	}
 
 	/**
@@ -184,24 +184,24 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @return the response
 	 * @throws Exception if the response could not be found
 	 */
-	private static TransactionResponse getResponseAtAndCharge(TransactionReference transaction, Node node, TransactionRun run) throws Exception {
+	private static TransactionResponse getResponseAtAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
 		run.chargeForCPU(run.getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		return node.getResponseAt(transaction);
+		return run.getNode().getResponseAt(transaction);
 	}
 
-	private List<URL> addURLs(Classpath classpath, Node node, TransactionRun run, List<URL> bag) throws Exception {
+	private List<URL> addURLs(Classpath classpath, TransactionRun run, List<URL> bag) throws Exception {
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
-			TransactionRequest<?> request = getRequestAndCharge(classpath.transaction, node, run);
+			TransactionRequest<?> request = getRequestAndCharge(classpath.transaction, run);
 			if (!(request instanceof AbstractJarStoreTransactionRequest))
 				throw new IllegalTransactionRequestException("classpath does not refer to a jar store transaction");
 
 			Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-				addURLs(dependency, node, run, bag);
+				addURLs(dependency, run, bag);
 		}
 
-		TransactionResponse response = getResponseAtAndCharge(classpath.transaction, node, run);
+		TransactionResponse response = getResponseAtAndCharge(classpath.transaction, run);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalTransactionRequestException("classpath does not refer to a successful jar store transaction");
 

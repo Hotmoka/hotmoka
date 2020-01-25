@@ -14,7 +14,6 @@ import java.util.concurrent.Callable;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
@@ -313,28 +312,6 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	}
 
 	@Override
-	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			// we do not count gas for this creation
-			initTransaction(BigInteger.valueOf(-1L), current);
-
-			if (request.initialAmount.signum() < 0)
-				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
-
-			try (TakamakaClassLoader classLoader = this.classLoader = new EngineClassLoader(request.classpath, this, this)) {
-				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-				Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-				// we set the balance field of the gamete
-				Field balanceField = classLoader.getContract().getDeclaredField("balance");
-				balanceField.setAccessible(true); // since the field is private
-				balanceField.set(gamete, request.initialAmount);
-
-				return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), getStorageReferenceOf(gamete));
-			}
-		});
-	}
-
-	@Override
 	public final GameteCreationTransactionResponse runRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			// we do not count gas for this creation
@@ -343,7 +320,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
 				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
-			try (TakamakaClassLoader classLoader = this.classLoader = new EngineClassLoader(request.classpath, this, this)) {
+			try (TakamakaClassLoader classLoader = this.classLoader = new EngineClassLoader(request.classpath, this)) {
 				// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
 				Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 				// we set the balance field of the gamete
@@ -366,7 +343,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
 
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this, this)) {
+			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
 				Object deserializedCaller = deserializer.deserialize(request.caller);
 				checkIsExternallyOwned(deserializedCaller);
@@ -389,7 +366,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 					byte[] instrumentedBytes;
 					// we transform the array of bytes into a real jar file
 					try (TempJarFile original = new TempJarFile(jar);
-						 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this, this)) {
+						 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this)) {
 						VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, false);
 						InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
 						instrumentedBytes = instrumentedJar.toBytes();
@@ -493,7 +470,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
 
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this, this)) {
+			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
 				Object deserializedCaller = deserializer.deserialize(request.caller);
 				checkIsExternallyOwned(deserializedCaller);
@@ -544,7 +521,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
 
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this, this)) {
+			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
 				Object deserializedCaller = deserializer.deserialize(request.caller);
 				checkIsExternallyOwned(deserializedCaller);
@@ -606,7 +583,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
 
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this, this)) {
+			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 				this.classLoader = classLoader;
 				Object deserializedCaller = deserializer.deserialize(request.caller);
 				checkIsExternallyOwned(deserializedCaller);
