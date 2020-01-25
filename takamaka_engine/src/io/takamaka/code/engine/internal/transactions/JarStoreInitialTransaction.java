@@ -6,21 +6,14 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.takamaka.code.engine.Node;
 
-public class JarStoreInitialTransaction extends AbstractTransaction<JarStoreInitialTransactionResponse> {
-	private final JarStoreInitialTransactionResponse response;
+public class JarStoreInitialTransaction extends AbstractTransaction<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 
 	public JarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		super(request);
-
-		this.response = run(request, current);
+		super(request, current, node);
 	}
 
 	@Override
-	public JarStoreInitialTransactionResponse getResponse() {
-		return response;
-	}
-
-	private JarStoreInitialTransactionResponse run(JarStoreInitialTransactionRequest request, TransactionReference current) throws TransactionException {
-		return null; // TODO
+	protected JarStoreInitialTransactionResponse run(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+		return new JarStoreInitialTransactionRun(request, current, node).response;
 	}
 }

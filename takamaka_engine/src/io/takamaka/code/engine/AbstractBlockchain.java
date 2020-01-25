@@ -16,7 +16,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
@@ -26,7 +25,6 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
@@ -312,22 +310,6 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 			throw new IllegalArgumentException("Events cannot be null");
 
 		events.add(event);
-	}
-
-	@Override
-	public final JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			// we do not count gas for this transaction
-			initTransaction(BigInteger.valueOf(-1L), current);
-
-			// we transform the array of bytes into a real jar file
-			try (TempJarFile original = new TempJarFile(request.getJar());
-				 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this, this)) {
-				VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, true);
-				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
-				return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
-			}
-		});
 	}
 
 	@Override

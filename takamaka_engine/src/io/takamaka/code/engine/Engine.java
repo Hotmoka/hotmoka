@@ -22,21 +22,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 public interface Engine {
 
 	/**
-	 * Runs a transaction that installs a jar. This transaction can only occur during initialization
-	 * of the engine. It has no caller and requires no gas. The goal is to install, in the
-	 * engine, some basic jars that are likely needed as dependencies by future jars.
-	 * For instance, the jar containing the basic contract classes. This method runs the transaction
-	 * specified by the request, after the given transaction reference, and yields the corresponding response.
-	 * The engine does not get modified.
-	 * 
-	 * @param request the transaction request
-	 * @param current the reference to the transaction where this must be executed
-	 * @return the response resulting from the execution of the request
-	 * @throws TransactionException if the transaction could not be completed successfully
-	 */
-	public JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference current) throws TransactionException;
-
-	/**
 	 * Runs a transaction that creates a gamete, that is, an externally owned contract with the given initial amount of coins.
 	 * This transaction can only occur during initialization of the engine. It has
 	 * no caller and requires no gas. This method runs the transaction

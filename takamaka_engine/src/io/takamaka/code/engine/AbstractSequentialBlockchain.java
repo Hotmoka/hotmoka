@@ -146,7 +146,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			requireBlockchainNotYetInitialized();
-			return expandBlockchainWith(request, runJarStoreInitialTransaction(request, getNextTransaction()));
+			return expandBlockchainWith(request, Transaction.mkFor(request, getNextTransaction(), this).response);
 		});
 	}
 

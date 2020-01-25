@@ -14,10 +14,10 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
@@ -48,11 +48,13 @@ import io.takamaka.code.engine.runtime.Runtime;
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-abstract class AbstractTransactionRun<R extends TransactionResponse> implements TransactionRun {
+abstract class AbstractTransactionRun<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionRun {
 
-	private final Node node;
+	protected final Node node;
 
-	public final R response;
+	protected final Request request;
+
+	public final Response response;
 
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
@@ -121,7 +123,8 @@ abstract class AbstractTransactionRun<R extends TransactionResponse> implements 
 	 */
 	private TransactionReference current;
 
-	protected AbstractTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node, BigInteger gas) {
+	protected AbstractTransactionRun(Request request, TransactionReference current, Node node, BigInteger gas) throws TransactionException {
+		this.request = request;
 		Runtime.init(this);
 		ClassType.clearCache();
 		FieldSignature.clearCache();
@@ -134,7 +137,7 @@ abstract class AbstractTransactionRun<R extends TransactionResponse> implements 
 		this.gasConsumedForRAM = BigInteger.ZERO;
 		this.gasConsumedForStorage = BigInteger.ZERO;
 		this.current = current;
-		this.response = computeResponse();
+		this.response = wrapInCaseOfException(this::computeResponse);
 	}
 
 	/**
@@ -281,7 +284,7 @@ abstract class AbstractTransactionRun<R extends TransactionResponse> implements 
 		events.add(event);
 	}
 
-	protected abstract R computeResponse();
+	protected abstract Response computeResponse() throws Exception;
 
 	/*
 	AbstractTransactionExecutor(JarStoreInitialTransactionRequest request, TransactionReference current, Node node, BigInteger gas) throws TransactionException {
@@ -417,7 +420,7 @@ abstract class AbstractTransactionRun<R extends TransactionResponse> implements 
 	 * 
 	 * @return the adapted gas model
 	 */
-	private io.takamaka.code.instrumentation.GasCostModel gasModelAsForInstrumentation() {
+	protected final io.takamaka.code.instrumentation.GasCostModel gasModelAsForInstrumentation() {
 		return new io.takamaka.code.instrumentation.GasCostModel() {
 
 			@Override
@@ -772,15 +775,15 @@ abstract class AbstractTransactionRun<R extends TransactionResponse> implements 
 	}
 
 	/**
-	 * Runs the given runnable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
+	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
 	 * 
-	 * @param what the runnable
-	 * @return the result of the runnable
+	 * @param what the callable
+	 * @return the result of the callable
 	 * @throws TransactionException the wrapped exception
 	 */
-	private static void wrapInCaseOfException(Runnable what) throws TransactionException {
+	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
 		try {
-			what.run();
+			return what.call();
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
