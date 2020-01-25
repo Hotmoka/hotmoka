@@ -1,7 +1,6 @@
-package io.takamaka.code.engine;
+package io.takamaka.code.engine.internal.transactions;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.security.CodeSource;
 import java.util.ArrayList;
@@ -14,58 +13,46 @@ import java.util.concurrent.Callable;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
-import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.engine.DeserializationError;
+import io.takamaka.code.engine.GasCostModel;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
+import io.takamaka.code.engine.Node;
+import io.takamaka.code.engine.OutOfGasError;
+import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
-import io.takamaka.code.engine.internal.TempJarFile;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
-import io.takamaka.code.engine.internal.executors.CodeExecutor;
-import io.takamaka.code.engine.internal.executors.ConstructorExecutor;
-import io.takamaka.code.engine.internal.executors.InstanceMethodExecutor;
-import io.takamaka.code.engine.internal.executors.StaticMethodExecutor;
 import io.takamaka.code.engine.runtime.Runtime;
-import io.takamaka.code.instrumentation.InstrumentedJar;
-import io.takamaka.code.verification.TakamakaClassLoader;
-import io.takamaka.code.verification.VerifiedJar;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-public abstract class AbstractBlockchain implements Engine, Node, TransactionRun {
+abstract class AbstractTransactionRun<R extends TransactionResponse> implements TransactionRun {
+
+	private final Node node;
+
+	public final R response;
 
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
@@ -75,12 +62,12 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	/**
 	 * The gas cost model of this blockchain.
 	 */
-	public final GasCostModel gasCostModel = mkGasCostModel(); //TODO: too visible
+	private final GasCostModel gasCostModel;
 
 	/**
 	 * The object that knows about the size of data once stored in blockchain.
 	 */
-	private final SizeCalculator sizeCalculator = new SizeCalculator(gasCostModel);
+	private final SizeCalculator sizeCalculator;
 
 	/**
 	 * The object that serializes RAM values into storage objects.
@@ -90,7 +77,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	/**
 	 * The object that deserializes storage objects into RAM values.
 	 */
-	public final Deserializer deserializer = new Deserializer(this, this::getLastEagerUpdatesFor);
+	public final Deserializer deserializer;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -134,61 +121,30 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	 */
 	private TransactionReference current;
 
-	/**
-	 * Yields the gas cost model of this blockchain.
-	 * 
-	 * @return the standard gas cost model. Subclasses may redefine
-	 */
-	public GasCostModel mkGasCostModel() {
-		return GasCostModel.standard();
-	}
-
-	public GasCostModel getGasCostModel() {
-		return gasCostModel;
-	}
-
-	@Override
-	public Node getNode() {
-		return this;
-	}
-
-	public EngineClassLoader getClassLoader() {
-		return classLoader;
-	}
-
-	public StorageTypeToClass getStorageTypeToClass() {
-		return storageTypeToClass;
-	}
-
-	/**
-	 * Initializes the state at the beginning of the execution of a new transaction
-	 * 
-	 * @param gas the amount of gas available for the transaction
-	 * @param previous the transaction reference after which the transaction is being executed.
-	 *                 If this is the first transaction, then {@code previous} will be {@code null}
-	 * @param current the reference to the transaction where this must be executed
-	 * @throws Exception if the transaction could not be initialized
-	 */
-	protected void initTransaction(BigInteger gas, TransactionReference current) throws Exception {
-		Runtime.init(AbstractBlockchain.this); // this blockchain will be used during the execution of the code
-		events.clear();
-		deserializer.init();
+	protected AbstractTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node, BigInteger gas) {
+		Runtime.init(this);
 		ClassType.clearCache();
 		FieldSignature.clearCache();
+		this.node = node;
+		this.deserializer = new Deserializer(this, node::getLastEagerUpdatesFor);
 		this.gas = gas;
+		this.gasCostModel = node.mkGasCostModel();
+		this.sizeCalculator = new SizeCalculator(gasCostModel);
 		this.gasConsumedForCPU = BigInteger.ZERO;
 		this.gasConsumedForRAM = BigInteger.ZERO;
 		this.gasConsumedForStorage = BigInteger.ZERO;
-		oldGas.clear();
 		this.current = current;
+		this.response = computeResponse();
 	}
 
-	@Override
+	/**
+	 * Yields the reference to the transaction being executed.
+	 * 
+	 * @return the reference
+	 */
 	public final TransactionReference getCurrentTransaction() {
 		return current;
 	}
-
-	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 
 	/**
 	 * Yields the transaction reference that installed the jar
@@ -209,7 +165,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		int start = classpath.lastIndexOf('@');
 		if (start < 0)
 			throw new IllegalStateException("Class path " + classpath + " misses @ separator");
-		return getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
+		return node.getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
 	}
 
 	/**
@@ -287,7 +243,18 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		gasConsumedForStorage = gasConsumedForStorage.add(amount);
 	}
 
-	@Override
+	/**
+	 * Runs a given piece of code with a subset of the available gas.
+	 * It first charges the given amount of gas. Then runs the code
+	 * with the charged gas only. At its end, the remaining gas is added
+	 * to the available gas to continue the computation.
+	 * 
+	 * @param amount the amount of gas provided to the code
+	 * @param what the code to run
+	 * @return the result of the execution of the code
+	 * @throws OutOfGasError if there is not enough gas
+	 * @throws Exception if the code runs into this exception
+	 */
 	public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
 		chargeForCPU(amount);
 		oldGas.addFirst(gas);
@@ -314,22 +281,35 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		events.add(event);
 	}
 
-	@Override
-	public final JarStoreInitialTransactionResponse runJarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			// we do not count gas for this transaction
-			initTransaction(BigInteger.valueOf(-1L), current);
+	protected abstract R computeResponse();
+
+	/*
+	AbstractTransactionExecutor(JarStoreInitialTransactionRequest request, TransactionReference current, Node node, BigInteger gas) throws TransactionException {
+		wrapInCaseOfException(() -> {
+			Runtime.init(this);
+			ClassType.clearCache();
+			FieldSignature.clearCache();
+			this.node = node;
+			this.deserializer = new Deserializer(this, node::getLastEagerUpdatesFor);
+			this.gas = gas;
+			this.gasCostModel = node.mkGasCostModel();
+			this.gasConsumedForCPU = BigInteger.ZERO;
+			this.gasConsumedForRAM = BigInteger.ZERO;
+			this.gasConsumedForStorage = BigInteger.ZERO;
+			this.current = current;
 
 			// we transform the array of bytes into a real jar file
 			try (TempJarFile original = new TempJarFile(request.getJar());
-				 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this, this)) {
+				 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), node, this)) {
 				VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, true);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
-				return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
+				this.response = new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
 			}
 		});
 	}
+	*/
 
+	/*
 	@Override
 	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
@@ -430,6 +410,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 			}
 		});
 	}
+	*/
 
 	/**
 	 * Yields an adapter of the gas cost model for instrumentation.
@@ -506,6 +487,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		};
 	}
 
+	/*
 	@Override
 	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
@@ -680,6 +662,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 			}
 		});
 	}
+	*/
 
 	/**
 	 * Yields the run-time class of the given object.
@@ -690,7 +673,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	 */
 	public final String getClassNameOf(StorageReference object) {
 		try {
-			TransactionResponse response = getResponseAt(object.transaction);
+			TransactionResponse response = node.getResponseAt(object.transaction);
 			if (response instanceof TransactionResponseWithUpdates) {
 				Optional<ClassTag> classTag = ((TransactionResponseWithUpdates) response).getUpdates()
 					.filter(update -> update instanceof ClassTag)
@@ -710,15 +693,18 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 
 		throw new DeserializationError("Did not find the class tag for " + object);
 	}
-
+	
+	@Override
 	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(getLastLazyUpdateToNonFinalFieldOf(reference, field).getValue());
+		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field).getValue());
 	}
 
+	@Override
 	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(getLastLazyUpdateToFinalFieldOf(reference, field).getValue());
+		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field).getValue());
 	}
 
+	@Override
 	public StorageReference getStorageReferenceOf(Object object) {
 		try {
 			return (StorageReference) classLoader.storageReference.get(object);
@@ -728,6 +714,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		}
 	}
 
+	@Override
 	public boolean getInStorageOf(Object object) {
 		try {
 			return (boolean) classLoader.inStorage.get(object);
@@ -785,15 +772,15 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	}
 
 	/**
-	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
+	 * Runs the given runnable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
 	 * 
-	 * @param what the callable
-	 * @return the result of the callable
+	 * @param what the runnable
+	 * @return the result of the runnable
 	 * @throws TransactionException the wrapped exception
 	 */
-	protected static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
+	private static void wrapInCaseOfException(Runnable what) throws TransactionException {
 		try {
-			return what.call();
+			what.run();
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
@@ -918,7 +905,26 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
 	 * @return the wrapped or original exception
 	 */
-	protected static TransactionException wrapAsTransactionException(Throwable t, String message) {
+	private static TransactionException wrapAsTransactionException(Throwable t, String message) {
 		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
+	}
+
+	@Override
+	public EngineClassLoader getClassLoader() {
+		return classLoader;
+	}
+
+	public GasCostModel getGasCostModel() {
+		return gasCostModel;
+	}
+
+	@Override
+	public Node getNode() {
+		return node;
+	}
+
+	@Override
+	public StorageTypeToClass getStorageTypeToClass() {
+		return storageTypeToClass;
 	}
 }

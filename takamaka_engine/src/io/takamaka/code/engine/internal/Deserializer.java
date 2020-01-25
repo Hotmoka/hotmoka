@@ -30,8 +30,8 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.engine.AbstractBlockchain;
 import io.takamaka.code.engine.DeserializationError;
+import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.verification.Dummy;
 
 /**
@@ -42,7 +42,7 @@ public class Deserializer {
 	/**
 	 * The blockchain for which deserialization is performed.
 	 */
-	private AbstractBlockchain blockchain;
+	private TransactionRun run;
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -79,8 +79,8 @@ public class Deserializer {
 							return field1.type.toString().compareTo(field2.type.toString());
 					}
 
-					Class<?> clazz1 = blockchain.classLoader.loadClass(className1);
-					Class<?> clazz2 = blockchain.classLoader.loadClass(className2);
+					Class<?> clazz1 = run.getClassLoader().loadClass(className1);
+					Class<?> clazz2 = run.getClassLoader().loadClass(className2);
 					if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
 						return -1;
 					else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
@@ -109,11 +109,11 @@ public class Deserializer {
 	/**
 	 * Builds an object that translates storage values into RAM values.
 	 * 
-	 * @param blockchain the blockchain for which deserialization is performed
+	 * @param run the blockchain for which deserialization is performed
 	 * @param a function that yields the last updates for the eager fields of a storage reference
 	 */
-	public Deserializer(AbstractBlockchain blockchain, GetLastEagerUpdatesFor getLastEagerUpdatesFor) {
-		this.blockchain = blockchain;
+	public Deserializer(TransactionRun run, GetLastEagerUpdatesFor getLastEagerUpdatesFor) {
+		this.run = run;
 		this.getLastEagerUpdatesFor = getLastEagerUpdatesFor;
 	}
 
@@ -162,7 +162,7 @@ public class Deserializer {
 			EnumValue ev = (EnumValue) value;
 
 			try {
-				return Enum.valueOf((Class<? extends Enum>) blockchain.classLoader.loadClass(ev.enumClassName), ev.name);
+				return Enum.valueOf((Class<? extends Enum>) run.getClassLoader().loadClass(ev.enumClassName), ev.name);
 			}
 			catch (ClassNotFoundException e) {
 				throw new DeserializationError(e);
@@ -214,15 +214,15 @@ public class Deserializer {
 					classTag = (ClassTag) update;
 				else {
 					UpdateOfField updateOfField = (UpdateOfField) update;
-					formals.add(blockchain.storageTypeToClass.toClass(updateOfField.getField().type));
+					formals.add(run.getStorageTypeToClass().toClass(updateOfField.getField().type));
 					actuals.add(deserialize(updateOfField.getValue()));
 				}
 	
 			if (classTag == null)
 				throw new DeserializationError("No class tag found for " + reference);
 
-			Class<?> clazz = blockchain.classLoader.loadClass(classTag.className);
-			TransactionReference actual = blockchain.transactionThatInstalledJarFor(clazz);
+			Class<?> clazz = run.getClassLoader().loadClass(classTag.className);
+			TransactionReference actual = run.transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
 				throw new DeserializationError("Class " + classTag.className + " was instantiated from jar at " + expected + " not from jar at " + actual);

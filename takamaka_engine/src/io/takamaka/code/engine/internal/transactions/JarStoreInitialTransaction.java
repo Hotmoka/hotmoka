@@ -4,11 +4,12 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.takamaka.code.engine.Node;
 
 public class JarStoreInitialTransaction extends AbstractTransaction<JarStoreInitialTransactionResponse> {
 	private final JarStoreInitialTransactionResponse response;
 
-	public JarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference current) throws TransactionException {
+	public JarStoreInitialTransaction(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request);
 
 		this.response = run(request, current);

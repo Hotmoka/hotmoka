@@ -10,9 +10,9 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.AbstractBlockchain;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.OutOfGasError;
+import io.takamaka.code.engine.TransactionRun;
 
 /**
  * A class that contains utility methods called by instrumented
@@ -25,7 +25,7 @@ public abstract class Runtime {
 	/**
 	 * The blockchain used for the current transaction.
 	 */
-	private static AbstractBlockchain blockchain;
+	private static TransactionRun run;
 
 	/**
 	 * The counter for the next storage object created during the current transaction.
@@ -35,10 +35,10 @@ public abstract class Runtime {
 	/**
 	 * Resets static data at the beginning of a transaction.
 	 * 
-	 * @param blockchain the blockchain used for the new transaction
+	 * @param run the blockchain used for the new transaction
 	 */
-	public static void init(AbstractBlockchain blockchain) {
-		Runtime.blockchain = blockchain;
+	public static void init(TransactionRun run) {
+		Runtime.run = run;
 		Runtime.nextProgressive = BigInteger.ZERO;
 	}
 
@@ -54,7 +54,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return blockchain.deserializeLastLazyUpdateFor(blockchain.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return run.deserializeLastLazyUpdateFor(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -69,7 +69,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return blockchain.deserializeLastLazyUpdateForFinal(blockchain.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return run.deserializeLastLazyUpdateForFinal(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -83,7 +83,7 @@ public abstract class Runtime {
 	public static void entry(Object callee, Object caller) throws Throwable {
 		// we call the private method of contract
 		try {
-			blockchain.classLoader.entry.invoke(callee, caller);
+			run.getClassLoader().entry.invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.entry()", e);
@@ -106,7 +106,7 @@ public abstract class Runtime {
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			blockchain.classLoader.payableEntryBigInteger.invoke(callee, caller, amount);
+			run.getClassLoader().payableEntryBigInteger.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
@@ -131,7 +131,7 @@ public abstract class Runtime {
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
 		// we call the private methods of contract
 		try {
-			blockchain.classLoader.entry.invoke(callee, caller);
+			run.getClassLoader().entry.invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.entry()", e);
@@ -142,7 +142,7 @@ public abstract class Runtime {
 		}
 
 		try {
-			blockchain.classLoader.redPayableBigInteger.invoke(callee, caller, amount);
+			run.getClassLoader().redPayableBigInteger.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
@@ -165,7 +165,7 @@ public abstract class Runtime {
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			blockchain.classLoader.payableEntryInt.invoke(callee, caller, amount);
+			run.getClassLoader().payableEntryInt.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
@@ -190,7 +190,7 @@ public abstract class Runtime {
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
 		// we call the private methods of contract
 		try {
-			blockchain.classLoader.entry.invoke(callee, caller);
+			run.getClassLoader().entry.invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.entry()", e);
@@ -201,7 +201,7 @@ public abstract class Runtime {
 		}
 
 		try {
-			blockchain.classLoader.redPayableInt.invoke(callee, caller, amount);
+			run.getClassLoader().redPayableInt.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
@@ -224,7 +224,7 @@ public abstract class Runtime {
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
 		// we call the private method of contract
 		try {
-			blockchain.classLoader.payableEntryLong.invoke(callee, caller, amount);
+			run.getClassLoader().payableEntryLong.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
@@ -249,7 +249,7 @@ public abstract class Runtime {
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
 		// we call the private methods of contract
 		try {
-			blockchain.classLoader.entry.invoke(callee, caller);
+			run.getClassLoader().entry.invoke(callee, caller);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call Contract.entry()", e);
@@ -260,7 +260,7 @@ public abstract class Runtime {
 		}
 	
 		try {
-			blockchain.classLoader.redPayableLong.invoke(callee, caller, amount);
+			run.getClassLoader().redPayableLong.invoke(callee, caller, amount);
 		}
 		catch (IllegalAccessException | IllegalArgumentException e) {
 			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
@@ -277,7 +277,7 @@ public abstract class Runtime {
 	 * @param event the event
 	 */
 	public static void event(Object event) {
-		blockchain.event(event);
+		run.event(event);
 	}
 
 	/**
@@ -293,7 +293,7 @@ public abstract class Runtime {
 	 * @throws Exception if the code runs into this exception
 	 */
 	public static <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		return blockchain.withGas(amount, what);
+		return run.withGas(amount, what);
 	}
 
 	/**
@@ -302,7 +302,7 @@ public abstract class Runtime {
 	 * @return the time
 	 */
 	public static long now() {
-		return blockchain.getNow();
+		return run.getNode().getNow();
 	}
 
 	/**
@@ -312,7 +312,7 @@ public abstract class Runtime {
 	 * @return the value of the field
 	 */
 	public static boolean inStorageOf(Object object) {
-		return blockchain.getInStorageOf(object);
+		return run.getInStorageOf(object);
 	}
 
 	public static int compareStorageReferencesOf(Object o1, Object o2) {
@@ -323,7 +323,7 @@ public abstract class Runtime {
 		else if (o2 == null)
 			return 1;
 		else
-			return blockchain.getStorageReferenceOf(o1).compareTo(blockchain.getStorageReferenceOf(o2));
+			return run.getStorageReferenceOf(o1).compareTo(run.getStorageReferenceOf(o2));
 	}
 
 	/**
@@ -382,8 +382,8 @@ public abstract class Runtime {
 	 * 
 	 * @return the blockchain
 	 */
-	public static AbstractBlockchain getBlockchain() {
-		return blockchain;
+	public static TransactionRun getBlockchain() {
+		return run;
 	}
 
 	/**
@@ -405,7 +405,7 @@ public abstract class Runtime {
 	 * @return the next storage reference
 	 */
 	public static Object getNextStorageReference() {
-		return StorageReference.mk(blockchain.getCurrentTransaction(), generateNextProgressive());
+		return StorageReference.mk(run.getCurrentTransaction(), generateNextProgressive());
 	}
 
 	/**
@@ -414,7 +414,7 @@ public abstract class Runtime {
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
 	public static void chargeForRAM(BigInteger ram) {
-		blockchain.chargeForRAM(ram);
+		run.chargeForRAM(ram);
 	}
 
 	/**
@@ -423,7 +423,7 @@ public abstract class Runtime {
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
 	public static void chargeForRAM(long ram) {
-		blockchain.chargeForRAM(BigInteger.valueOf(ram));
+		run.chargeForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
@@ -432,7 +432,7 @@ public abstract class Runtime {
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
 	public static void chargeForRAM(int ram) {
-		blockchain.chargeForRAM(BigInteger.valueOf(ram));
+		run.chargeForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
@@ -441,7 +441,7 @@ public abstract class Runtime {
 	 * @param cpu the amount of gas to consume
 	 */
 	public static void charge(long cpu) {
-		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+		run.chargeForCPU(BigInteger.valueOf(cpu));
 	}
 
 	/**
@@ -450,146 +450,146 @@ public abstract class Runtime {
 	 * @param cpu the amount of gas to consume
 	 */
 	public static void charge(int cpu) {
-		blockchain.chargeForCPU(BigInteger.valueOf(cpu));
+		run.chargeForCPU(BigInteger.valueOf(cpu));
 	}
 
 	/**
 	 * Charges one unit of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge1() {
-		blockchain.chargeForCPU(BigInteger.ONE);
+		run.chargeForCPU(BigInteger.ONE);
 	}
 
 	/**
 	 * Charges two units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge2() {
-		blockchain.chargeForCPU(BigInteger.valueOf(2L));
+		run.chargeForCPU(BigInteger.valueOf(2L));
 	}
 
 	/**
 	 * Charges three units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge3() {
-		blockchain.chargeForCPU(BigInteger.valueOf(3L));
+		run.chargeForCPU(BigInteger.valueOf(3L));
 	}
 
 	/**
 	 * Charges four units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge4() {
-		blockchain.chargeForCPU(BigInteger.valueOf(4L));
+		run.chargeForCPU(BigInteger.valueOf(4L));
 	}
 
 	/**
 	 * Charges five units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge5() {
-		blockchain.chargeForCPU(BigInteger.valueOf(5L));
+		run.chargeForCPU(BigInteger.valueOf(5L));
 	}
 
 	/**
 	 * Charges six units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge6() {
-		blockchain.chargeForCPU(BigInteger.valueOf(6L));
+		run.chargeForCPU(BigInteger.valueOf(6L));
 	}
 
 	/**
 	 * Charges seven units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge7() {
-		blockchain.chargeForCPU(BigInteger.valueOf(7L));
+		run.chargeForCPU(BigInteger.valueOf(7L));
 	}
 
 	/**
 	 * Charges eight units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge8() {
-		blockchain.chargeForCPU(BigInteger.valueOf(8L));
+		run.chargeForCPU(BigInteger.valueOf(8L));
 	}
 
 	/**
 	 * Charges nine units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge9() {
-		blockchain.chargeForCPU(BigInteger.valueOf(9L));
+		run.chargeForCPU(BigInteger.valueOf(9L));
 	}
 
 	/**
 	 * Charges ten units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge10() {
-		blockchain.chargeForCPU(BigInteger.valueOf(10L));
+		run.chargeForCPU(BigInteger.valueOf(10L));
 	}
 
 	/**
 	 * Charges eleven units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge11() {
-		blockchain.chargeForCPU(BigInteger.valueOf(11L));
+		run.chargeForCPU(BigInteger.valueOf(11L));
 	}
 
 	/**
 	 * Charges twelve units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge12() {
-		blockchain.chargeForCPU(BigInteger.valueOf(12L));
+		run.chargeForCPU(BigInteger.valueOf(12L));
 	}
 
 	/**
 	 * Charges 13 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge13() {
-		blockchain.chargeForCPU(BigInteger.valueOf(13L));
+		run.chargeForCPU(BigInteger.valueOf(13L));
 	}
 
 	/**
 	 * Charges 14 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge14() {
-		blockchain.chargeForCPU(BigInteger.valueOf(14L));
+		run.chargeForCPU(BigInteger.valueOf(14L));
 	}
 
 	/**
 	 * Charges 15 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge15() {
-		blockchain.chargeForCPU(BigInteger.valueOf(15L));
+		run.chargeForCPU(BigInteger.valueOf(15L));
 	}
 
 	/**
 	 * Charges 16 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge16() {
-		blockchain.chargeForCPU(BigInteger.valueOf(16L));
+		run.chargeForCPU(BigInteger.valueOf(16L));
 	}
 
 	/**
 	 * Charges 17 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge17() {
-		blockchain.chargeForCPU(BigInteger.valueOf(17L));
+		run.chargeForCPU(BigInteger.valueOf(17L));
 	}
 
 	/**
 	 * Charges 18 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge18() {
-		blockchain.chargeForCPU(BigInteger.valueOf(18L));
+		run.chargeForCPU(BigInteger.valueOf(18L));
 	}
 
 	/**
 	 * Charges 19 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge19() {
-		blockchain.chargeForCPU(BigInteger.valueOf(19L));
+		run.chargeForCPU(BigInteger.valueOf(19L));
 	}
 
 	/**
 	 * Charges 20 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge20() {
-		blockchain.chargeForCPU(BigInteger.valueOf(20L));
+		run.chargeForCPU(BigInteger.valueOf(20L));
 	}
 }

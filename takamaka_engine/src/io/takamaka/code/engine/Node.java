@@ -90,5 +90,5 @@ public interface Node {
 	 * 
 	 * @return the standard gas cost model. Subclasses may redefine
 	 */
-	GasCostModel getGasCostModel();
+	GasCostModel mkGasCostModel();
 }

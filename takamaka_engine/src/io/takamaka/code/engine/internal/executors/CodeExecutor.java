@@ -105,7 +105,7 @@ public abstract class CodeExecutor extends Thread {
 	}
 
 	/**
-	 * A cache for {@link io.takamaka.code.engine.AbstractBlockchain.CodeExecutor#updates()}.
+	 * A cache for {@link io.takamaka.code.engine.AbstractTransactionRun.CodeExecutor#updates()}.
 	 */
 	private SortedSet<Update> updates;
 

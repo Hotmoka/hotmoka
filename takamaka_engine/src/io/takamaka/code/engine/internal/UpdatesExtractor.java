@@ -35,8 +35,8 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.AbstractBlockchain;
 import io.takamaka.code.engine.DeserializationError;
+import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 
 /**
@@ -52,12 +52,12 @@ public class UpdatesExtractor {
 	/**
 	 * Builds an extractor of updates to the state reachable from some storage objects.
 	 * 
-	 * @param blockchain the blockchain for which the extraction is performed
+	 * @param run the blockchain for which the extraction is performed
 	 * @param objects the storage objects whose updates must be computed (for them and
 	 *                for the objects recursively reachable from them)
 	 */
-	public UpdatesExtractor(AbstractBlockchain blockchain, Stream<Object> objects) {
-		new Builder(blockchain, objects);
+	public UpdatesExtractor(TransactionRun run, Stream<Object> objects) {
+		new Builder(run, objects);
 	}
 
 	/**
@@ -70,14 +70,14 @@ public class UpdatesExtractor {
 	}
 
 	private class Builder {
-		private final AbstractBlockchain blockchain;
+		private final TransactionRun run;
 		private final List<Object> workingSet;
 		private final Set<StorageReference> seen = new HashSet<>();
 
-		private Builder(AbstractBlockchain blockchain, Stream<Object> objects) {
-			this.blockchain = blockchain;
+		private Builder(TransactionRun run, Stream<Object> objects) {
+			this.run = run;
 			this.workingSet = objects
-				.filter(object -> seen.add(blockchain.getStorageReferenceOf(object)))
+				.filter(object -> seen.add(run.getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
 
 			do {
@@ -94,13 +94,13 @@ public class UpdatesExtractor {
 
 			private ExtractedUpdatesSingleObject(Object object) {
 				Class<?> clazz = object.getClass();
-				this.storageReference = blockchain.getStorageReferenceOf(object);
-				this.inStorage = blockchain.getInStorageOf(object);
+				this.storageReference = run.getStorageReferenceOf(object);
+				this.inStorage = run.getInStorageOf(object);
 
 				if (!inStorage)
-					updates.add(new ClassTag(storageReference, clazz.getName(), blockchain.transactionThatInstalledJarFor(clazz)));
+					updates.add(new ClassTag(storageReference, clazz.getName(), run.transactionThatInstalledJarFor(clazz)));
 
-				while (clazz != blockchain.classLoader.getStorage()) {
+				while (clazz != run.getClassLoader().getStorage()) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);
 					clazz = clazz.getSuperclass();
 				}
@@ -115,11 +115,11 @@ public class UpdatesExtractor {
 			private void recursiveExtract(Object s) {
 				if (s != null) {
 					Class<?> clazz = s.getClass();
-					if (blockchain.classLoader.getStorage().isAssignableFrom(clazz)) {
-						if (seen.add(blockchain.getStorageReferenceOf(s)))
+					if (run.getClassLoader().getStorage().isAssignableFrom(clazz)) {
+						if (seen.add(run.getStorageReferenceOf(s)))
 							workingSet.add(s);
 					}
-					else if (blockchain.classLoader.isLazilyLoaded(clazz)) // eager types are not recursively followed
+					else if (run.getClassLoader().isLazilyLoaded(clazz)) // eager types are not recursively followed
 						throw new DeserializationError("a field of a storage object cannot hold a " + clazz.getName());
 				}
 			}
@@ -138,9 +138,9 @@ public class UpdatesExtractor {
 				if (s == null)
 					//the field has been set to null
 					updates.add(new UpdateToNullLazy(storageReference, field));
-				else if (blockchain.classLoader.getStorage().isAssignableFrom(s.getClass())) {
+				else if (run.getClassLoader().getStorage().isAssignableFrom(s.getClass())) {
 					// the field has been set to a storage object
-					StorageReference storageReference2 = blockchain.getStorageReferenceOf(s);
+					StorageReference storageReference2 = run.getStorageReferenceOf(s);
 					updates.add(new UpdateOfStorage(storageReference, field, storageReference2));
 
 					// if the new value has not yet been considered, we put in the list of object still to be processed
@@ -338,7 +338,7 @@ public class UpdatesExtractor {
 						if (!inStorage || !Objects.equals(oldValue, currentValue))
 							addUpdateFor(field, currentValue);
 
-						if (inStorage && blockchain.classLoader.isLazilyLoaded(field.getType()))
+						if (inStorage && run.getClassLoader().isLazilyLoaded(field.getType()))
 							recursiveExtract(oldValue);
 					}
 			}
@@ -370,7 +370,7 @@ public class UpdatesExtractor {
 					addUpdateFor(fieldDefiningClass, fieldName, (String) currentValue);
 				else if (fieldType.isEnum())
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), (Enum<?>) currentValue);
-				else if (blockchain.classLoader.isLazilyLoaded(fieldType))
+				else if (run.getClassLoader().isLazilyLoaded(fieldType))
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), currentValue);
 				else
 					throw new IllegalStateException("unexpected field in storage object: " + fieldDefiningClass + '.' + fieldName);
