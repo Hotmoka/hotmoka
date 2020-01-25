@@ -12,9 +12,9 @@ import io.takamaka.code.engine.internal.TempJarFile;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
-class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
+public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 
-	JarStoreInitialTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public JarStoreInitialTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node, BigInteger.valueOf(-1L));
 	}
 

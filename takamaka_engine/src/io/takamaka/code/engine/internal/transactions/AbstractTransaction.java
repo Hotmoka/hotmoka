@@ -1,21 +1,19 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.takamaka.code.engine.Node;
 import io.takamaka.code.engine.Transaction;
 
 /**
  * A transaction of HotMoka code: it is the execution of a
  * request, that led to a response.
  *
- * @param <R> the type of the response of this transaction
+ * @param <Request> the type of the request of this transaction
+ * @param <Response> the type of the response of this transaction
  */
 @Immutable
-public abstract class AbstractTransaction<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements Transaction<Request, Response> {
+public final class AbstractTransaction<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements Transaction<Request, Response> {
 
 	/**
 	 * The request from which this transaction started.
@@ -31,13 +29,12 @@ public abstract class AbstractTransaction<Request extends TransactionRequest<Res
 	 * Builds a transaction from the given request.
 	 * 
 	 * @param request the request
+	 * @param response the corresponding response
 	 */
-	protected AbstractTransaction(Request request, TransactionReference current, Node node) throws TransactionException {
+	public AbstractTransaction(Request request, Response response) {
 		this.request = request;
-		this.response = run(request, current, node);
+		this.response = response;
 	}
-
-	protected abstract Response run(Request request, TransactionReference current, Node node) throws TransactionException;
 
 	@Override
 	public final Request getRequest() {

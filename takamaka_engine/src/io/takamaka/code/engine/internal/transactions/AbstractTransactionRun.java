@@ -287,32 +287,6 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	protected abstract Response computeResponse() throws Exception;
 
 	/*
-	AbstractTransactionExecutor(JarStoreInitialTransactionRequest request, TransactionReference current, Node node, BigInteger gas) throws TransactionException {
-		wrapInCaseOfException(() -> {
-			Runtime.init(this);
-			ClassType.clearCache();
-			FieldSignature.clearCache();
-			this.node = node;
-			this.deserializer = new Deserializer(this, node::getLastEagerUpdatesFor);
-			this.gas = gas;
-			this.gasCostModel = node.mkGasCostModel();
-			this.gasConsumedForCPU = BigInteger.ZERO;
-			this.gasConsumedForRAM = BigInteger.ZERO;
-			this.gasConsumedForStorage = BigInteger.ZERO;
-			this.current = current;
-
-			// we transform the array of bytes into a real jar file
-			try (TempJarFile original = new TempJarFile(request.getJar());
-				 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), node, this)) {
-				VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, true);
-				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
-				this.response = new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
-			}
-		});
-	}
-	*/
-
-	/*
 	@Override
 	public final GameteCreationTransactionResponse runGameteCreationTransaction(GameteCreationTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
