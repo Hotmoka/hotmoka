@@ -20,8 +20,6 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
@@ -41,13 +39,10 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
-import io.takamaka.code.engine.internal.TempJarFile;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
 import io.takamaka.code.engine.internal.executors.InstanceMethodExecutor;
 import io.takamaka.code.engine.internal.executors.StaticMethodExecutor;
 import io.takamaka.code.engine.runtime.Runtime;
-import io.takamaka.code.instrumentation.InstrumentedJar;
-import io.takamaka.code.verification.VerifiedJar;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -292,144 +287,12 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		}
 	}
 
-	/**
-	 * Adds an event to those occurred during the execution of the current transaction.
-	 * 
-	 * @param event the event
-	 * @throws IllegalArgumentException if the event is {@code null}
-	 */
+	@Override
 	public final void event(Object event) {
 		if (event == null)
 			throw new IllegalArgumentException("Events cannot be null");
 
 		events.add(event);
-	}
-
-	@Override
-	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, current);
-
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
-				this.classLoader = classLoader;
-				Object deserializedCaller = deserializer.deserialize(request.caller);
-				checkIsExternallyOwned(deserializedCaller);
-
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-
-				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
-				// after this line, the transaction will be added to the blockchain, possibly as a failed one
-
-				try {
-					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeCalculator.sizeOf(request));
-
-					byte[] jar = request.getJar();
-					chargeForCPU(gasCostModel.cpuCostForInstallingJar(jar.length));
-					chargeForRAM(gasCostModel.ramCostForInstalling(jar.length));
-
-					byte[] instrumentedBytes;
-					// we transform the array of bytes into a real jar file
-					try (TempJarFile original = new TempJarFile(jar);
-						 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this)) {
-						VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, false);
-						InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
-						instrumentedBytes = instrumentedJar.toBytes();
-					}
-
-					BigInteger balanceOfCaller = getBalanceOf(deserializedCaller);
-					StorageReference storageReferenceOfDeserializedCaller = getStorageReferenceOf(deserializedCaller);
-					UpdateOfBalance balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-					JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					balanceOfCaller = increaseBalance(deserializedCaller);
-					balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-				}
-				catch (Throwable t) {
-					// we do not pay back the gas
-					BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForStorage);
-					return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-				}
-			}
-		});
-	}
-
-	/**
-	 * Yields an adapter of the gas cost model for instrumentation.
-	 * 
-	 * @return the adapted gas model
-	 */
-	private io.takamaka.code.instrumentation.GasCostModel gasModelAsForInstrumentation() {
-		return new io.takamaka.code.instrumentation.GasCostModel() {
-
-			@Override
-			public int cpuCostOfArithmeticInstruction() {
-				return gasCostModel.cpuCostOfArithmeticInstruction();
-			}
-
-			@Override
-			public int cpuCostOfArrayAccessInstruction() {
-				return gasCostModel.cpuCostOfArrayAccessInstruction();
-			}
-
-			@Override
-			public int cpuCostOfFieldAccessInstruction() {
-				return gasCostModel.cpuCostOfFieldAccessInstruction();
-			}
-
-			@Override
-			public int cpuCostOfInstruction() {
-				return gasCostModel.cpuCostOfInstruction();
-			}
-
-			@Override
-			public int cpuCostOfInvokeInstruction() {
-				return gasCostModel.cpuCostOfInvokeInstruction();
-			}
-
-			@Override
-			public int cpuCostOfMemoryAllocationInstruction() {
-				return gasCostModel.cpuCostOfMemoryAllocationInstruction();
-			}
-
-			@Override
-			public int cpuCostOfSelectInstruction() {
-				return gasCostModel.cpuCostOfSelectInstruction();
-			}
-
-			@Override
-			public int ramCostOfActivationRecord() {
-				return gasCostModel.ramCostOfActivationRecord();
-			}
-
-			@Override
-			public int ramCostOfActivationSlot() {
-				return gasCostModel.ramCostOfActivationSlot();
-			}
-
-			@Override
-			public int ramCostOfArray() {
-				return gasCostModel.ramCostOfArray();
-			}
-
-			@Override
-			public int ramCostOfArraySlot() {
-				return gasCostModel.ramCostOfArraySlot();
-			}
-
-			@Override
-			public int ramCostOfField() {
-				return gasCostModel.ramCostOfField();
-			}
-
-			@Override
-			public int ramCostOfObject() {
-				return gasCostModel.ramCostOfObject();
-			}
-		};
 	}
 
 	@Override

@@ -3,9 +3,7 @@ package io.takamaka.code.engine;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 
 /**
@@ -13,18 +11,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
  * and yield a response.
  */
 public interface Engine {
-
-	/**
-	 * Runs a transaction that installs a jar in this engine. The goal is to install a jar, with its dependencies.
-	 * This method runs the transaction specified by the request, after the given transaction reference, and yields
-	 * the corresponding response. The engine does not get modified.
-	 * 
-	 * @param request the transaction request
-	 * @param current the reference to the transaction where this must be executed
-	 * @return the response resulting from the execution of the request
-	 * @throws TransactionException if the transaction could not be completed successfully
-	 */
-	public JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference current) throws TransactionException;
 
 	/**
 	 * Runs a transaction that calls an instance method of an object in the engine.

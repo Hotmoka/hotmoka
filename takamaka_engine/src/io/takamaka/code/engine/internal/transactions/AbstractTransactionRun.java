@@ -776,7 +776,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private BigInteger getBalanceOf(Object eoa) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+	protected final BigInteger getBalanceOf(Object eoa) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		Field balanceField = classLoader.getContract().getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
 		return (BigInteger) balanceField.get(eoa);

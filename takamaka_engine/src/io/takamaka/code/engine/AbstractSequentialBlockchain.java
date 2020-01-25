@@ -199,7 +199,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			JarStoreTransactionResponse response = runJarStoreTransaction(request, getNextTransaction());
+			JarStoreTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
 			TransactionReference transaction = expandBlockchainWith(request, response);
 
 			if (response instanceof JarStoreTransactionFailedResponse)
