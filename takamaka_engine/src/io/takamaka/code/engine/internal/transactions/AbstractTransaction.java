@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.internal;
+package io.takamaka.code.engine.internal.transactions;
 
 import java.util.concurrent.Callable;
 

@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.internal;
+package io.takamaka.code.engine.internal.transactions;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
