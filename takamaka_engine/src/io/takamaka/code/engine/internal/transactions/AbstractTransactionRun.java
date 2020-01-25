@@ -59,7 +59,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
 	 */
-	private final List<Object> events = new ArrayList<>();
+	protected final List<Object> events = new ArrayList<>();
 
 	/**
 	 * The gas cost model of this blockchain.
@@ -69,12 +69,12 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	/**
 	 * The object that knows about the size of data once stored in blockchain.
 	 */
-	private final SizeCalculator sizeCalculator;
+	protected final SizeCalculator sizeCalculator;
 
 	/**
 	 * The object that serializes RAM values into storage objects.
 	 */
-	private final Serializer serializer = new Serializer(this);
+	protected final Serializer serializer = new Serializer(this);
 
 	/**
 	 * The object that deserializes storage objects into RAM values.
@@ -106,17 +106,17 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	/**
 	 * The amount of gas consumed for CPU execution.
 	 */
-	private BigInteger gasConsumedForCPU;
+	protected BigInteger gasConsumedForCPU;
 
 	/**
 	 * The amount of gas consumed for RAM allocation.
 	 */
-	private BigInteger gasConsumedForRAM;
+	protected BigInteger gasConsumedForRAM;
 
 	/**
 	 * The amount of gas consumed for storage consumption.
 	 */
-	private BigInteger gasConsumedForStorage;
+	protected BigInteger gasConsumedForStorage;
 
 	/**
 	 * The class loader for the transaction currently being executed.
@@ -129,7 +129,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 		ClassType.clearCache();
 		FieldSignature.clearCache();
 		this.node = node;
-		this.deserializer = new Deserializer(this, node::getLastEagerUpdatesFor);
+		this.deserializer = new Deserializer(this);
 		this.gas = gas;
 		this.gasCostModel = node.mkGasCostModel();
 		this.sizeCalculator = new SizeCalculator(gasCostModel);
@@ -198,7 +198,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 * 
 	 * @param amount the amount of gas to consume
 	 */
-	private void chargeForCPU(int amount) {
+	protected final void chargeForCPU(int amount) {
 		chargeForCPU(BigInteger.valueOf(amount));
 	}
 
@@ -623,13 +623,13 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	}
 	
 	@Override
-	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field).getValue());
+	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception {
+		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, run).getValue());
 	}
 
 	@Override
-	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field).getValue());
+	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception {
+		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, run).getValue());
 	}
 
 	@Override
@@ -667,7 +667,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+	protected final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
 		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 
@@ -756,7 +756,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private BigInteger increaseBalance(Object eoa) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+	protected final BigInteger increaseBalance(Object eoa) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		BigInteger delta = gasCostModel.toCoin(gas);
 		Field balanceField = classLoader.getContract().getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
@@ -788,22 +788,14 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 * @param object the object to check
 	 * @throws IllegalTransactionRequestException if the object is not an externally owned account
 	 */
-	private void checkIsExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
+	protected final void checkIsExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
 		Class<? extends Object> clazz = object.getClass();
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalTransactionRequestException("Only an externally owned account can start a transaction");
 	}
 
-	/**
-	 * Collects all updates reachable from the actuals or from the caller, receiver or result of a method call.
-	 * 
-	 * @param actuals the actuals; only {@code Storage} are relevant; this might be {@code null}
-	 * @param caller the caller of an {@code @@Entry} method; this might be {@code null}
-	 * @param receiver the receiver of the call; this might be {@code null}
-	 * @param result the result; relevant only if {@code Storage}
-	 * @return the ordered updates
-	 */
+	@Override
 	public SortedSet<Update> collectUpdates(Object[] actuals, Object caller, Object receiver, Object result) {
 		List<Object> potentiallyAffectedObjects = new ArrayList<>();
 		if (caller != null)
@@ -833,7 +825,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
 	 * @return the wrapped or original exception
 	 */
-	private static TransactionException wrapAsTransactionException(Throwable t, String message) {
+	protected final static TransactionException wrapAsTransactionException(Throwable t, String message) {
 		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
 	}
 
@@ -842,8 +834,14 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 		return classLoader;
 	}
 
+	@Override
 	public GasCostModel getGasCostModel() {
 		return gasCostModel;
+	}
+
+	@Override
+	public Deserializer getDeserializer() {
+		return deserializer;
 	}
 
 	@Override

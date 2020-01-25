@@ -27,6 +27,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.AbstractBlockchain;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.NonWhiteListedCallException;
+import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.engine.runtime.Runtime;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
@@ -41,7 +42,7 @@ public abstract class CodeExecutor extends Thread {
 	/**
 	 * The engine for which code is being executed.
 	 */
-	protected final AbstractBlockchain engine;
+	protected final TransactionRun run;
 
 	/**
 	 * The exception resulting from the execution of the method or constructor, if any.
@@ -89,19 +90,19 @@ public abstract class CodeExecutor extends Thread {
 	/**
 	 * Builds the executor of a method or constructor.
 	 * 
-	 * @param engine the engine for which code is being executed
+	 * @param run the engine for which code is being executed
 	 * @param classLoader the class loader that must be used to find the classes during the execution of the method or constructor
 	 * @param deseralizedCaller the deserialized caller
 	 * @param methodOrConstructor the method or constructor to call
 	 * @param receiver the receiver of the call, if any. This is {@code null} for constructors and static methods
 	 * @param actuals the actuals provided to the method or constructor
 	 */
-	protected CodeExecutor(AbstractBlockchain engine, Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
-		this.engine = engine;
+	protected CodeExecutor(TransactionRun run, Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
+		this.run = run;
 		this.deserializedCaller = deseralizedCaller;
 		this.methodOrConstructor = methodOrConstructor;
-		this.deserializedReceiver = receiver != null ? engine.deserializer.deserialize(receiver) : null;
-		this.deserializedActuals = actuals.map(engine.deserializer::deserialize).toArray(Object[]::new);
+		this.deserializedReceiver = receiver != null ? run.getDeserializer().deserialize(receiver) : null;
+		this.deserializedActuals = actuals.map(run.getDeserializer()::deserialize).toArray(Object[]::new);
 	}
 
 	/**
@@ -118,7 +119,7 @@ public abstract class CodeExecutor extends Thread {
 		if (updates != null)
 			return updates.stream();
 
-		return (updates = engine.collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result)).stream();
+		return (updates = run.collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result)).stream();
 	}
 
 	/**
@@ -131,10 +132,10 @@ public abstract class CodeExecutor extends Thread {
 	 */
 	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
 		MethodSignature method = (MethodSignature) methodOrConstructor;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? engine.storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? run.getStorageTypeToClass().toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClass();
 
-		return engine.classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+		return run.getClassLoader().resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 
@@ -148,10 +149,10 @@ public abstract class CodeExecutor extends Thread {
 	 */
 	protected final Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 		MethodSignature method = (MethodSignature) methodOrConstructor;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? engine.storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? run.getStorageTypeToClass().toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClassForEntry();
 
-		return engine.classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+		return run.getClassLoader().resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 
@@ -163,7 +164,7 @@ public abstract class CodeExecutor extends Thread {
 	 */
 	public final boolean onlyAffectedBalanceOf(Object deserializedCaller) {
 		return updates().allMatch
-			(update -> update.object.equals(engine.getStorageReferenceOf(deserializedCaller))
+			(update -> update.object.equals(run.getStorageReferenceOf(deserializedCaller))
 						&& update instanceof UpdateOfField
 						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
 	}
@@ -177,7 +178,7 @@ public abstract class CodeExecutor extends Thread {
 	protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-			classes.add(engine.storageTypeToClass.toClass(type));
+			classes.add(run.getStorageTypeToClass().toClass(type));
 
 		return classes.toArray(new Class<?>[classes.size()]);
 	}
@@ -193,9 +194,9 @@ public abstract class CodeExecutor extends Thread {
 	protected final Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-			classes.add(engine.storageTypeToClass.toClass(type));
+			classes.add(run.getStorageTypeToClass().toClass(type));
 
-		classes.add(engine.classLoader.getContract());
+		classes.add(run.getClassLoader().getContract());
 		classes.add(Dummy.class);
 
 		return classes.toArray(new Class<?>[classes.size()]);
@@ -249,13 +250,13 @@ public abstract class CodeExecutor extends Thread {
 	protected final void ensureWhiteListingOf(Executable executable, Object[] actuals) throws ClassNotFoundException {
 		Optional<? extends Executable> model;
 		if (executable instanceof Constructor<?>) {
-			model = engine.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
+			model = run.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
 			if (!model.isPresent())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of "
 						+ ((ConstructorSignature) methodOrConstructor).definingClass.name);
 		}
 		else {
-			model = engine.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable);
+			model = run.getClassLoader().getWhiteListingWizard().whiteListingModelOf((Method) executable);
 			if (!model.isPresent())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed method "
 						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
@@ -321,7 +322,7 @@ public abstract class CodeExecutor extends Thread {
 	 */
 	protected void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
 		Class<? extends Object> clazz = object.getClass();
-		if (!engine.classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+		if (!run.getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}
 }

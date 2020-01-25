@@ -97,24 +97,14 @@ public class Deserializer {
 		}
 	};
 
-	public static interface GetLastEagerUpdatesFor {
-		Stream<Update> apply(StorageReference storageReference) throws Exception;
-	}
-
-	/**
-	 * A function that yields the last updates for the eager fields of a storage reference.
-	 */
-	private final GetLastEagerUpdatesFor getLastEagerUpdatesFor;
-
 	/**
 	 * Builds an object that translates storage values into RAM values.
 	 * 
 	 * @param run the blockchain for which deserialization is performed
 	 * @param a function that yields the last updates for the eager fields of a storage reference
 	 */
-	public Deserializer(TransactionRun run, GetLastEagerUpdatesFor getLastEagerUpdatesFor) {
+	public Deserializer(TransactionRun run) {
 		this.run = run;
-		this.getLastEagerUpdatesFor = getLastEagerUpdatesFor;
 	}
 
 	public void init() { //TODO: to remove
@@ -180,7 +170,7 @@ public class Deserializer {
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, getLastEagerUpdatesFor.apply(reference));
+			return createStorageObject(reference, run.getNode().getLastEagerUpdatesFor(reference, run));
 		}
 		catch (DeserializationError e) {
 			throw e;

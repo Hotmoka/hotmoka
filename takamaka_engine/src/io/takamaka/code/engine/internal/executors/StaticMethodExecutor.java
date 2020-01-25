@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.AbstractBlockchain;
+import io.takamaka.code.engine.TransactionRun;
 
 /**
  * The thread that executes a static method of a storage object. It creates the class loader
@@ -19,14 +19,14 @@ public class StaticMethodExecutor extends CodeExecutor {
 	/**
 	 * Builds the executor of a static method.
 	 * 
-	 * @param engine the engine for which the method is being executed
+	 * @param run the engine for which the method is being executed
 	 * @param method the method to call
 	 * @param caller the caller, that pays for the execution
 	 * @param deseralizedCaller the deserialized caller
 	 * @param actuals the actuals provided to the method
 	 */
-	public StaticMethodExecutor(AbstractBlockchain engine, MethodSignature method, Object deserializedCaller, Stream<StorageValue> actuals) {
-		super(engine, deserializedCaller, method, null, actuals);
+	public StaticMethodExecutor(TransactionRun run, MethodSignature method, Object deserializedCaller, Stream<StorageValue> actuals) {
+		super(run, deserializedCaller, method, null, actuals);
 	}
 
 	@Override

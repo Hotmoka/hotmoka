@@ -42,6 +42,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
  * A generic implementation of a blockchain that extends immediately when
@@ -79,13 +80,11 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	protected abstract <R extends TransactionResponse> TransactionReference expandBlockchainWith(TransactionRequest<? extends R> request, R response) throws Exception;
 
-	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
-
 	@Override
-	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference) throws Exception {
+	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, TransactionRun run) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	
-		TransactionResponse response = getResponseAtAndCharge(transaction, this);
+		TransactionResponse response = getResponseAtAndCharge(transaction, run);
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new DeserializationError("Storage reference " + reference + " does not contain updates");
 	
@@ -102,23 +101,23 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 			throw new DeserializationError("No class tag found for " + reference);
 	
 		// we drop updates to non-final fields
-		Set<Field> eagerFields = collectEagerFieldsOf(classTag.get().className);
+		Set<Field> eagerFields = collectEagerFieldsOf(classTag.get().className, run);
 		Iterator<Update> it = updates.iterator();
 		while (it.hasNext())
-			if (updatesNonFinalField(it.next(), eagerFields))
+			if (updatesNonFinalField(it.next(), eagerFields, run))
 				it.remove();
 	
 		// the updates set contains the updates to eager final fields now:
 		// we must still collect the latest updates to the eager non-final fields
-		return collectEagerUpdatesFor(reference, updates, eagerFields.size());
+		return collectEagerUpdatesFor(reference, updates, eagerFields.size(), run);
 	}
 
 	@Override
-	public UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
+	public UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field, TransactionRun run) throws Exception {
 		// goes back from the previous transaction;
 		// there is no reason to look before the transaction that created the object
 		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
-			Optional<UpdateOfField> update = getLastUpdateFor(object, field, cursor);
+			Optional<UpdateOfField> update = getLastUpdateFor(object, field, cursor, run);
 			if (update.isPresent())
 				return update.get();
 		}
@@ -127,9 +126,9 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	}
 
 	@Override
-	public UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field) throws Exception {
+	public UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field, TransactionRun run) throws Exception {
 		// goes directly to the transaction that created the object
-		return getLastUpdateFor(object, field, object.transaction).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
+		return getLastUpdateFor(object, field, object.transaction, run).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
 
 	/**
@@ -228,7 +227,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			ConstructorCallTransactionResponse response = runConstructorCallTransaction(request, getNextTransaction());
+			ConstructorCallTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
 			expandBlockchainWith(request, response);
 
 			if (response instanceof ConstructorCallTransactionFailedResponse)
@@ -327,14 +326,14 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @param eagerFields the number of eager fields whose latest update needs to be found
 	 * @throws Exception if the operation fails
 	 */
-	private Stream<Update> collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields) throws Exception {
+	private Stream<Update> collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields, TransactionRun run) throws Exception {
 		// goes back from the transaction that precedes that being executed;
 		// there is no reason to look before the transaction that created the object;
 		// moreover, there is no reason to look beyond the total number of fields
 		// whose update was expected to be found
 		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); updates.size() <= eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
 			// adds the eager updates from the cursor, if any and if they are the latest
-			addEagerUpdatesFor(object, cursor, updates);
+			addEagerUpdatesFor(object, cursor, updates, run);
 
 		return updates.stream();
 	}
@@ -348,8 +347,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @param updates the set where they must be added
 	 * @throws IOException if there is an error while accessing the disk
 	 */
-	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) throws Exception {
-		TransactionResponse response = getResponseAtAndCharge(transaction, this);
+	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates, TransactionRun run) throws Exception {
+		TransactionResponse response = getResponseAtAndCharge(transaction, run);
 		if (response instanceof TransactionResponseWithUpdates)
 			((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
@@ -363,9 +362,9 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @return the response
 	 * @throws Exception if the response could not be found
 	 */
-	private TransactionResponse getResponseAtAndCharge(TransactionReference transaction, Node node) throws Exception {
-		chargeForCPU(gasCostModel.cpuCostForGettingResponseAt(transaction));
-		return node.getResponseAt(transaction);
+	private TransactionResponse getResponseAtAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
+		run.chargeForCPU(gasCostModel.cpuCostForGettingResponseAt(transaction));
+		return run.getNode().getResponseAt(transaction);
 	}
 
 	/**
@@ -390,8 +389,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @return the update, if any. If the field of {@code reference} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
-	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction) throws Exception {
-		TransactionResponse response = getResponseAtAndCharge(transaction, this);
+	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction, TransactionRun run) throws Exception {
+		TransactionResponse response = getResponseAtAndCharge(transaction, run);
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField)
@@ -409,10 +408,10 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @param eagerFields the set of all possible eager fields
 	 * @return true if and only if that condition holds
 	 */
-	private boolean updatesNonFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
+	private boolean updatesNonFinalField(Update update, Set<Field> eagerFields, TransactionRun run) throws ClassNotFoundException {
 		if (update instanceof UpdateOfField) {
 			FieldSignature sig = ((UpdateOfField) update).getField();
-			Class<?> type = storageTypeToClass.toClass(sig.type);
+			Class<?> type = run.getStorageTypeToClass().toClass(sig.type);
 			String name = sig.name;
 			return eagerFields.stream()
 				.anyMatch(field -> !Modifier.isFinal(field.getModifiers()) && field.getType() == type && field.getName().equals(name));
@@ -428,7 +427,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 * @param className the name of the storage class
 	 * @return the eager fields
 	 */
-	private Set<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException {
+	private Set<Field> collectEagerFieldsOf(String className, TransactionRun run) throws ClassNotFoundException {
+		EngineClassLoader classLoader = run.getClassLoader();
 		Set<Field> bag = new HashSet<>();
 		Class<?> storage = classLoader.getStorage();
 

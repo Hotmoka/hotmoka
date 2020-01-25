@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.AbstractBlockchain;
+import io.takamaka.code.engine.TransactionRun;
 
 /**
  * The thread that executes an instance method of a storage object. It creates the class loader
@@ -20,14 +20,14 @@ public class InstanceMethodExecutor extends CodeExecutor {
 	/**
 	 * Builds the executor of an instance method.
 	 * 
-	 * @param engine the engine for which the method is being executed
+	 * @param run the engine for which the method is being executed
 	 * @param method the method to call
 	 * @param deseralizedCaller the deserialized caller
 	 * @param receiver the receiver of the method
 	 * @param actuals the actuals provided to the method
 	 */
-	public InstanceMethodExecutor(AbstractBlockchain engine, MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
-		super(engine, deserializedCaller, method, receiver, actuals);
+	public InstanceMethodExecutor(TransactionRun run, MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
+		super(run, deserializedCaller, method, receiver, actuals);
 	}
 
 	@Override

@@ -18,10 +18,7 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
@@ -46,8 +43,6 @@ import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.TempJarFile;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
-import io.takamaka.code.engine.internal.executors.CodeExecutor;
-import io.takamaka.code.engine.internal.executors.ConstructorExecutor;
 import io.takamaka.code.engine.internal.executors.InstanceMethodExecutor;
 import io.takamaka.code.engine.internal.executors.StaticMethodExecutor;
 import io.takamaka.code.engine.runtime.Runtime;
@@ -84,7 +79,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	/**
 	 * The object that deserializes storage objects into RAM values.
 	 */
-	public final Deserializer deserializer = new Deserializer(this, this::getLastEagerUpdatesFor);
+	public final Deserializer deserializer = new Deserializer(this);
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -141,6 +136,10 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		return gasCostModel;
 	}
 
+	public Deserializer getDeserializer() {
+		return deserializer;
+	}
+
 	@Override
 	public Node getNode() {
 		return this;
@@ -181,8 +180,6 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	public final TransactionReference getCurrentTransaction() {
 		return current;
 	}
-
-	// BLOCKCHAIN-AGNOSTIC IMPLEMENTATION
 
 	/**
 	 * Yields the transaction reference that installed the jar
@@ -436,57 +433,6 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 	}
 
 	@Override
-	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, current);
-
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
-				this.classLoader = classLoader;
-				Object deserializedCaller = deserializer.deserialize(request.caller);
-				checkIsExternallyOwned(deserializedCaller);
-				
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-
-				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
-				// after this line, the transaction can be added to the blockchain, possibly as a failed one
-
-				try {
-					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeCalculator.sizeOf(request));
-
-					CodeExecutor executor = new ConstructorExecutor(this, request.constructor, deserializedCaller, request.actuals());
-					executor.start();
-					executor.join();
-
-					if (executor.exception instanceof InvocationTargetException) {
-						ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller);
-						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					}
-
-					if (executor.exception != null)
-						throw executor.exception;
-
-					ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
-					return new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-				}
-				catch (Throwable t) {
-					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
-					return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-				}
-			}
-		});
-	}
-
-	@Override
 	public final MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference current) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			initTransaction(request.gas, current);
@@ -640,14 +586,17 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		throw new DeserializationError("Did not find the class tag for " + object);
 	}
 
-	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(getLastLazyUpdateToNonFinalFieldOf(reference, field).getValue());
+	@Override
+	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception {
+		return deserializer.deserialize(getLastLazyUpdateToNonFinalFieldOf(reference, field, run).getValue());
 	}
 
-	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(getLastLazyUpdateToFinalFieldOf(reference, field).getValue());
+	@Override
+	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception {
+		return deserializer.deserialize(getLastLazyUpdateToFinalFieldOf(reference, field, run).getValue());
 	}
 
+	@Override
 	public StorageReference getStorageReferenceOf(Object object) {
 		try {
 			return (StorageReference) classLoader.storageReference.get(object);
@@ -657,6 +606,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 		}
 	}
 
+	@Override
 	public boolean getInStorageOf(Object object) {
 		try {
 			return (boolean) classLoader.inStorage.get(object);
@@ -809,15 +759,7 @@ public abstract class AbstractBlockchain implements Engine, Node, TransactionRun
 			throw new IllegalTransactionRequestException("Only an externally owned account can start a transaction");
 	}
 
-	/**
-	 * Collects all updates reachable from the actuals or from the caller, receiver or result of a method call.
-	 * 
-	 * @param actuals the actuals; only {@code Storage} are relevant; this might be {@code null}
-	 * @param caller the caller of an {@code @@Entry} method; this might be {@code null}
-	 * @param receiver the receiver of the call; this might be {@code null}
-	 * @param result the result; relevant only if {@code Storage}
-	 * @return the ordered updates
-	 */
+	@Override
 	public SortedSet<Update> collectUpdates(Object[] actuals, Object caller, Object receiver, Object result) {
 		List<Object> potentiallyAffectedObjects = new ArrayList<>();
 		if (caller != null)

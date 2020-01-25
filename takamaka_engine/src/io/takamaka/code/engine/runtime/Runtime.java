@@ -54,7 +54,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return run.deserializeLastLazyUpdateFor(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return run.deserializeLastLazyUpdateFor(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)), run);
 	}
 
 	/**
@@ -69,7 +69,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return run.deserializeLastLazyUpdateForFinal(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return run.deserializeLastLazyUpdateForFinal(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)), run);
 	}
 
 	/**

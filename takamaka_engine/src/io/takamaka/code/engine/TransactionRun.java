@@ -1,11 +1,14 @@
 package io.takamaka.code.engine;
 
 import java.math.BigInteger;
+import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 
@@ -32,9 +35,22 @@ public interface TransactionRun {
 
 	StorageTypeToClass getStorageTypeToClass();
 	
+	Deserializer getDeserializer();
+
 	GasCostModel getGasCostModel();
 
 	Node getNode();
+
+	/**
+	 * Collects all updates reachable from the actuals or from the caller, receiver or result of a method call.
+	 * 
+	 * @param actuals the actuals; only {@code Storage} are relevant; this might be {@code null}
+	 * @param caller the caller of an {@code @@Entry} method; this might be {@code null}
+	 * @param receiver the receiver of the call; this might be {@code null}
+	 * @param result the result; relevant only if {@code Storage}
+	 * @return the ordered updates
+	 */
+	SortedSet<Update> collectUpdates(Object[] actuals, Object caller, Object receiver, Object result);
 
 	/**
 	 * Yields the reference to the transaction being executed.
@@ -54,7 +70,7 @@ public interface TransactionRun {
 	 * @return the value of the field
 	 * @throws Exception if the look up fails
 	 */
-	Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception;
+	Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception;
 
 	/**
 	 * Yields the latest value for the given field, of lazy type, of the given storage reference.
@@ -66,7 +82,7 @@ public interface TransactionRun {
 	 * @return the value of the field
 	 * @throws Exception if the look up fails
 	 */
-	Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception;
+	Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception;
 
 	/**
 	 * Decreases the available gas by the given amount, for CPU execution.

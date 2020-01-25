@@ -42,10 +42,11 @@ public interface Node {
 	 * Yields the most recent eager updates for the given storage reference.
 	 * 
 	 * @param reference the storage reference
+	 * @param run 
 	 * @return the updates. These must include the class tag update for the reference
 	 * @throws Exception if the updates cannot be found
 	 */
-	Stream<Update> getLastEagerUpdatesFor(StorageReference reference) throws Exception;
+	Stream<Update> getLastEagerUpdatesFor(StorageReference reference, TransactionRun run) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given non-{@code final} field,
@@ -58,7 +59,7 @@ public interface Node {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field) throws Exception;
+	UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field, TransactionRun run) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given {@code final} field,
@@ -73,7 +74,7 @@ public interface Node {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field) throws Exception;
+	UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field, TransactionRun run) throws Exception;
 
 	/**
 	 * Yields the UTC time when the currently executing transaction is being run.

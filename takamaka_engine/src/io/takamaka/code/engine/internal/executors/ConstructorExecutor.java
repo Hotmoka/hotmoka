@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.AbstractBlockchain;
+import io.takamaka.code.engine.TransactionRun;
 
 /**
  * The thread that executes a constructor of a storage object. It creates the class loader
@@ -18,13 +18,13 @@ public class ConstructorExecutor extends CodeExecutor {
 	/**
 	 * Builds the executor of a constructor.
 	 * 
-	 * @param engine the engine for which the constructor is being executed
+	 * @param run the engine for which the constructor is being executed
 	 * @param constructor the constructor to call
 	 * @param deseralizedCaller the deserialized caller
 	 * @param actuals the actuals provided to the constructor
 	 */
-	public ConstructorExecutor(AbstractBlockchain engine, ConstructorSignature constructor, Object deserializedCaller, Stream<StorageValue> actuals) {
-		super(engine, deserializedCaller, constructor, null, actuals);
+	public ConstructorExecutor(TransactionRun run, ConstructorSignature constructor, Object deserializedCaller, Stream<StorageValue> actuals) {
+		super(run, deserializedCaller, constructor, null, actuals);
 	}
 
 	/**
@@ -38,7 +38,7 @@ public class ConstructorExecutor extends CodeExecutor {
 	private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
 		Class<?>[] argTypes = formalsAsClass();
 
-		return engine.classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
+		return run.getClassLoader().resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
 	}
 
@@ -53,7 +53,7 @@ public class ConstructorExecutor extends CodeExecutor {
 	private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
 		Class<?>[] argTypes = formalsAsClassForEntry();
 
-		return engine.classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
+		return run.getClassLoader().resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
 	}
 
