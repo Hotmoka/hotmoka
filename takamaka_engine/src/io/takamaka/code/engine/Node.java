@@ -80,11 +80,12 @@ public interface Node {
 	 * Yields the UTC time when the currently executing transaction is being run.
 	 * This might be for instance the time of creation of the block where the transaction
 	 * occurs, but the detail is left to the implementation. In any case, this
-	 * time must be the same for a given transaction, if it gets executed more times.
+	 * time must be the same for a given transaction, if it gets executed more times
+	 * in the same block.
 	 * 
 	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
 	 */
-	long getNow();
+	long getNow() throws Exception;
 
 	/**
 	 * Yields the gas cost model of this blockchain.

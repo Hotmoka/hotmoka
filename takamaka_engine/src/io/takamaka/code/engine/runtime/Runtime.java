@@ -302,7 +302,7 @@ public abstract class Runtime {
 	 * @return the time
 	 */
 	public static long now() {
-		return run.getNode().getNow();
+		return run.now();
 	}
 
 	/**

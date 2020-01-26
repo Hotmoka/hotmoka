@@ -42,6 +42,15 @@ public interface TransactionRun {
 	Node getNode();
 
 	/**
+	 * Yields the UTC time when the transaction is being run.
+	 * This might be for instance the time of creation of the block where the transaction
+	 * occurs, but the detail is left to the implementation.
+	 * 
+	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+	 */
+	long now();
+
+	/**
 	 * Collects all updates reachable from the actuals or from the caller, receiver or result of a method call.
 	 * 
 	 * @param actuals the actuals; only {@code Storage} are relevant; this might be {@code null}

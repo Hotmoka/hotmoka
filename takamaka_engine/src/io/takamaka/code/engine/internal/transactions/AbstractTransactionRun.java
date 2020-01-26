@@ -123,12 +123,15 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 */
 	protected EngineClassLoader classLoader;
 
+	private final long now;
+
 	protected AbstractTransactionRun(Request request, TransactionReference current, Node node, BigInteger gas) throws TransactionException {
 		this.request = request;
 		Runtime.init(this);
 		ClassType.clearCache();
 		FieldSignature.clearCache();
 		this.node = node;
+		this.now = wrapInCaseOfException(node::getNow);
 		this.deserializer = new Deserializer(this);
 		this.gas = gas;
 		this.gasCostModel = node.mkGasCostModel();
@@ -140,13 +143,14 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 		this.response = wrapInCaseOfException(this::computeResponse);
 	}
 
-	/**
-	 * Yields the reference to the transaction being executed.
-	 * 
-	 * @return the reference
-	 */
+	@Override
 	public final TransactionReference getCurrentTransaction() {
 		return current;
+	}
+
+	@Override
+	public long now() {
+		return now;
 	}
 
 	/**

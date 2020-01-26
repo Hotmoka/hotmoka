@@ -74,11 +74,6 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 	private MemoryTransactionReference topmost;
 
 	/**
-	 * The time used for <em>now</em> during the execution of the current transaction.
-	 */
-	private long now;
-
-	/**
 	 * Builds a blockchain that stores transaction in disk memory.
 	 * 
 	 * @param root the directory where blocks and transactions must be stored.
@@ -94,19 +89,7 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 	}
 
 	@Override
-	public long getNow() {
-		return now;
-	}
-
-	@Override
-	protected SequentialTransactionReference getNextTransaction() {
-		return topmost == null ? new MemoryTransactionReference(BigInteger.ZERO, (short) 0) : topmost.getNext();
-	}
-
-	@Override
-	protected void initTransaction(BigInteger gas, TransactionReference current) throws Exception {
-		super.initTransaction(gas, current);
-
+	public long getNow() throws Exception {
 		// we access the block header where the transaction would occur
 		MemoryTransactionReference previous = topmost;
 		if (previous != null) {
@@ -114,12 +97,26 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 			Path headerPath = getPathInBlockFor(next.blockNumber, HEADER_NAME);
 			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(headerPath)))) {
 				MemoryBlockHeader header = (MemoryBlockHeader) in.readObject();
-				this.now = header.time;
+				return header.time;
 			}
 		}
 		else
 			// the first transaction does not use the time anyway
-			this.now = 0L;
+			return 0L;
+	}
+
+	public long now() {
+		try {
+			return getNow();
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	protected SequentialTransactionReference getNextTransaction() {
+		return topmost == null ? new MemoryTransactionReference(BigInteger.ZERO, (short) 0) : topmost.getNext();
 	}
 
 	@Override
