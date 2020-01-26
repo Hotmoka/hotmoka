@@ -4,21 +4,26 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.takamaka.code.engine.internal.transactions.AbstractTransaction;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallTransactionRun;
 import io.takamaka.code.engine.internal.transactions.GameteCreationTransactionRun;
+import io.takamaka.code.engine.internal.transactions.InstanceMethodCallTransactionRun;
 import io.takamaka.code.engine.internal.transactions.JarStoreInitialTransactionRun;
 import io.takamaka.code.engine.internal.transactions.JarStoreTransactionRun;
 import io.takamaka.code.engine.internal.transactions.RedGreenGameteCreationTransactionRun;
+import io.takamaka.code.engine.internal.transactions.StaticMethodCallTransactionRun;
 
 /**
  * A transaction of HotMoka code: it is the execution of a
@@ -119,5 +124,35 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 */
 	static Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> mkFor(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new ConstructorCallTransactionRun(request, current, node).response);
+	}
+
+	/**
+	 * Yields a transaction that calls an instance method of an object in the node.
+	 * The goal is to run the method and compute its returned value (if any).
+	 * This method runs the transaction specified by the request, after the given transaction reference, and yields
+	 * the corresponding response.
+	 * 
+	 * @param request the transaction request
+	 * @param current the reference to the transaction after which this must be executed
+	 * @return the transaction
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	static Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+		return new AbstractTransaction<>(request, new InstanceMethodCallTransactionRun(request, current, node).response);
+	}
+
+	/**
+	 * Yields a transaction that calls a static method of an object in the node.
+	 * The goal is to run the method and compute its returned value (if any).
+	 * This method runs the transaction specified by the request, after the given transaction reference, and yields
+	 * the corresponding response.
+	 * 
+	 * @param request the transaction request
+	 * @param current the reference to the transaction after which this must be executed
+	 * @return the transaction
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+		return new AbstractTransaction<>(request, new StaticMethodCallTransactionRun(request, current, node).response);
 	}
 }

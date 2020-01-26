@@ -260,7 +260,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = runInstanceMethodCallTransaction(request, getNextTransaction());
+			MethodCallTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
 			expandBlockchainWith(request, response);
 
 			if (response instanceof MethodCallTransactionFailedResponse)
@@ -295,7 +295,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
 	 */
 	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = runStaticMethodCallTransaction(request, getNextTransaction());
+			MethodCallTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
 			expandBlockchainWith(request, response);
 
 			if (response instanceof MethodCallTransactionFailedResponse)
