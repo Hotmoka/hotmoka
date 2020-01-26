@@ -50,7 +50,7 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-public abstract class AbstractSequentialBlockchain extends AbstractBlockchain {
+public abstract class AbstractSequentialBlockchain extends AbstractNode {
 
 	/**
 	 * Yields the reference to the transaction on top of the blockchain.
