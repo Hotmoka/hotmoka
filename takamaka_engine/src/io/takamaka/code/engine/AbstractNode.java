@@ -10,15 +10,16 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * A generic implementation of a blockchain. Specific implementations can subclass this class
- * and just implement the abstract template methods. The rest of code should work instead
- * as a generic layer for all blockchain implementations.
+ * A generic implementation of a HotMoka node. Specific implementations can subclass this class
+ * and just implement the remaining missing abstract template methods.
  */
 public abstract class AbstractNode implements Node {
 
+	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
+
 	@Override
-	public GasCostModel mkGasCostModel() {
-		return GasCostModel.standard();
+	public GasCostModel getGasCostModel() {
+		return defaultGasCostModel;
 	}
 
 	@Override

@@ -78,13 +78,13 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	 * @return the reference to the transaction that has been added
 	 * @throws Exception if the expansion cannot be completed
 	 */
-	protected abstract <R extends TransactionResponse> TransactionReference expandBlockchainWith(TransactionRequest<? extends R> request, R response) throws Exception;
+	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandBlockchainWith(Transaction<Request, Response> transaction) throws Exception;
 
 	@Override
 	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, TransactionRun run) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	
-		TransactionResponse response = getResponseAtAndCharge(transaction, run);
+		TransactionResponse response = getResponseAndCharge(transaction, run);
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new DeserializationError("Storage reference " + reference + " does not contain updates");
 	
@@ -145,7 +145,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			requireBlockchainNotYetInitialized();
-			return expandBlockchainWith(request, Transaction.mkFor(request, getNextTransaction(), this).getResponse());
+			return expandBlockchainWith(Transaction.mkFor(request, getNextTransaction(), this));
 		});
 	}
 
@@ -162,9 +162,9 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			requireBlockchainNotYetInitialized();
-			GameteCreationTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
-			expandBlockchainWith(request, response);
-			return response.gamete;
+			Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+			expandBlockchainWith(transaction);
+			return transaction.getResponse().gamete;
 		});
 	}
 
@@ -181,9 +181,9 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			requireBlockchainNotYetInitialized();
-			GameteCreationTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
-			expandBlockchainWith(request, response);
-			return response.gamete;
+			Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+			expandBlockchainWith(transaction);
+			return transaction.getResponse().gamete;
 		});
 	}
 
@@ -199,13 +199,14 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	 */
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			JarStoreTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
-			TransactionReference transaction = expandBlockchainWith(request, response);
+			Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+			TransactionReference transactionReference = expandBlockchainWith(transaction);
+			JarStoreTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof JarStoreTransactionFailedResponse)
 				throw ((JarStoreTransactionFailedResponse) response).cause;
 			else
-				return transaction;
+				return transactionReference;
 		});
 	}
 
@@ -255,8 +256,9 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	 */
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			ConstructorCallTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
-			expandBlockchainWith(request, response);
+			Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+			expandBlockchainWith(transaction);
+			ConstructorCallTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof ConstructorCallTransactionFailedResponse)
 				throw ((ConstructorCallTransactionFailedResponse) response).cause;
@@ -288,8 +290,9 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	 */
 	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
-			expandBlockchainWith(request, response);
+			Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+			expandBlockchainWith(transaction);
+			MethodCallTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof MethodCallTransactionFailedResponse)
 				throw ((MethodCallTransactionFailedResponse) response).cause;
@@ -323,8 +326,9 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	 */
 	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = Transaction.mkFor(request, getNextTransaction(), this).getResponse();
-			expandBlockchainWith(request, response);
+			Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+			expandBlockchainWith(transaction);
+			MethodCallTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof MethodCallTransactionFailedResponse)
 				throw ((MethodCallTransactionFailedResponse) response).cause;
@@ -376,7 +380,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	 * @throws IOException if there is an error while accessing the disk
 	 */
 	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates, TransactionRun run) throws Exception {
-		TransactionResponse response = getResponseAtAndCharge(transaction, run);
+		TransactionResponse response = getResponseAndCharge(transaction, run);
 		if (response instanceof TransactionResponseWithUpdates)
 			((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
@@ -390,8 +394,8 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	 * @return the response
 	 * @throws Exception if the response could not be found
 	 */
-	private TransactionResponse getResponseAtAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
-		run.chargeForCPU(run.getGasCostModel().cpuCostForGettingResponseAt(transaction));
+	private TransactionResponse getResponseAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
+		run.chargeForCPU(getGasCostModel().cpuCostForGettingResponseAt(transaction));
 		return run.getNode().getResponseAt(transaction);
 	}
 
@@ -418,7 +422,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction, TransactionRun run) throws Exception {
-		TransactionResponse response = getResponseAtAndCharge(transaction, run);
+		TransactionResponse response = getResponseAndCharge(transaction, run);
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField)

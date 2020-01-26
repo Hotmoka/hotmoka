@@ -377,16 +377,6 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Yields the blockchain used by the current transaction.
-	 * This method can only be called during a transaction.
-	 * 
-	 * @return the blockchain
-	 */
-	public static TransactionRun getBlockchain() {
-		return run;
-	}
-
-	/**
 	 * Yields the next identifier that can be used for a new storage object
 	 * created during the execution of the current transaction. This identifier is unique
 	 * inside the transaction. This method will return distinct identifiers at each call.

@@ -39,7 +39,7 @@ public class StaticMethodCallTransactionRun extends AbstractTransactionRun<Stati
 			// after this line, the transaction can be added to the blockchain, possibly as a failed one
 
 			try {
-				chargeForCPU(getGasCostModel().cpuBaseTransactionCost());
+				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 				chargeForStorage(sizeCalculator.sizeOf(request));
 
 				StaticMethodExecutor executor = new StaticMethodExecutor(this, request.method, deserializedCaller, request.getActuals());

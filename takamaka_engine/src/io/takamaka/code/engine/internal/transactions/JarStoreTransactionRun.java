@@ -37,12 +37,12 @@ public class JarStoreTransactionRun extends AbstractTransactionRun<JarStoreTrans
 			// after this line, the transaction will be added to the blockchain, possibly as a failed one
 
 			try {
-				chargeForCPU(getGasCostModel().cpuBaseTransactionCost());
+				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 				chargeForStorage(sizeCalculator.sizeOf(request));
 
 				byte[] jar = request.getJar();
-				chargeForCPU(getGasCostModel().cpuCostForInstallingJar(jar.length));
-				chargeForRAM(getGasCostModel().ramCostForInstalling(jar.length));
+				chargeForCPU(node.getGasCostModel().cpuCostForInstallingJar(jar.length));
+				chargeForRAM(node.getGasCostModel().ramCostForInstalling(jar.length));
 
 				byte[] instrumentedBytes;
 				// we transform the array of bytes into a real jar file

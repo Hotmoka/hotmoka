@@ -38,7 +38,7 @@ public class ConstructorCallTransactionRun extends AbstractTransactionRun<Constr
 			// after this line, the transaction can be added to the blockchain, possibly as a failed one
 
 			try {
-				chargeForCPU(getGasCostModel().cpuBaseTransactionCost());
+				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 				chargeForStorage(sizeCalculator.sizeOf(request));
 
 				CodeExecutor executor = new ConstructorExecutor(this, request.constructor, deserializedCaller, request.actuals());

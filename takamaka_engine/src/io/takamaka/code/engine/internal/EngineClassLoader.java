@@ -172,7 +172,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws Exception if the request could not be found
 	 */
 	private static TransactionRequest<?> getRequestAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
-		run.chargeForCPU(run.getGasCostModel().cpuCostForGettingRequestAt(transaction));
+		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForGettingRequestAt(transaction));
 		return run.getNode().getRequestAt(transaction);
 	}
 
@@ -183,8 +183,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @return the response
 	 * @throws Exception if the response could not be found
 	 */
-	private static TransactionResponse getResponseAtAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
-		run.chargeForCPU(run.getGasCostModel().cpuCostForGettingResponseAt(transaction));
+	private static TransactionResponse getResponseAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
+		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForGettingResponseAt(transaction));
 		return run.getNode().getResponseAt(transaction);
 	}
 
@@ -200,13 +200,13 @@ public class EngineClassLoader implements TakamakaClassLoader {
 				addURLs(dependency, run, bag);
 		}
 
-		TransactionResponse response = getResponseAtAndCharge(classpath.transaction, run);
+		TransactionResponse response = getResponseAndCharge(classpath.transaction, run);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalTransactionRequestException("classpath does not refer to a successful jar store transaction");
 
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
-		run.chargeForCPU(run.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
-		run.chargeForRAM(run.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
+		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
+		run.chargeForRAM(run.getNode().getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 
 		try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
 			Path classpathElement = Files.createTempFile("takamaka_", "@" + classpath.transaction + ".jar");

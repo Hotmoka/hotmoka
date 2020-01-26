@@ -12,22 +12,50 @@ import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 
+/**
+ * A creator of a transaction. It executes a request and builds the corresponding response.
+ */
 public interface TransactionRun {
+
+	/**
+	 * Yields the value of the {@code storageReference} field
+	 * of the given storage object in RAM.
+	 * 
+	 * @param object the object
+	 * @return the value of the field
+	 */
 	StorageReference getStorageReferenceOf(Object object);
+
+	/**
+	 * Yields the value of the boolean {@code inStorage} field
+	 * of the given storage object in RAM.
+	 * 
+	 * @param object the object
+	 * @return the value of the field
+	 */
 	boolean getInStorageOf(Object object);
 
 	/**
-	 * Yields the class loader used for running the transaction.
+	 * Yields the class loader used for running the transaction being built.
 	 * 
 	 * @return the class loader
 	 */
 	EngineClassLoader getClassLoader();
 
+	/**
+	 * Yields the object that translates storage types into class types, for the
+	 * transaction being built.
+	 * 
+	 * @return the object
+	 */
 	StorageTypeToClass getStorageTypeToClass();
-	
-	Deserializer getDeserializer();
 
-	GasCostModel getGasCostModel();
+	/**
+	 * Yields the deserializer for the transaction being built.
+	 * 
+	 * @return the deserializer
+	 */
+	Deserializer getDeserializer();
 
 	Node getNode();
 

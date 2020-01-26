@@ -39,7 +39,7 @@ public class InstanceMethodCallTransactionRun extends AbstractTransactionRun<Ins
 			// after this line, the transaction can be added to the blockchain, possibly as a failed one
 
 			try {
-				chargeForCPU(getGasCostModel().cpuBaseTransactionCost());
+				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 				chargeForStorage(sizeCalculator.sizeOf(request));
 
 				InstanceMethodExecutor executor = new InstanceMethodExecutor(this, request.method, deserializedCaller, request.receiver, request.getActuals());

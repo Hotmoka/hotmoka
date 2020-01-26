@@ -19,6 +19,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.takamaka.code.engine.AbstractSequentialBlockchain;
 import io.takamaka.code.engine.SequentialTransactionReference;
+import io.takamaka.code.engine.Transaction;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -130,26 +131,26 @@ public class MemoryBlockchain extends AbstractSequentialBlockchain {
 	}
 
 	@Override
-	protected <R extends TransactionResponse> TransactionReference expandBlockchainWith(TransactionRequest<? extends R> request, R response) throws Exception {
+	protected <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandBlockchainWith(Transaction<Request, Response> transaction) throws Exception {
 		MemoryTransactionReference next = (MemoryTransactionReference) getNextTransaction();
 		Path requestPath = getPathFor(next, REQUEST_NAME);
 		ensureDeleted(requestPath.getParent());
 		Files.createDirectories(requestPath.getParent());
 
 		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(requestPath)))) {
-			os.writeObject(request);
+			os.writeObject(transaction.getRequest());
 		}
 
 		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(next, REQUEST_TXT_NAME)))) {
-			output.print(request);
+			output.print(transaction.getRequest());
 		}
 
 		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor(next, RESPONSE_NAME))))) {
-			os.writeObject(response);
+			os.writeObject(transaction.getResponse());
 		}
 
 		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(next, RESPONSE_TXT_NAME)))) {
-			output.print(response);
+			output.print(transaction.getResponse());
 		}
 
 		topmost = next;

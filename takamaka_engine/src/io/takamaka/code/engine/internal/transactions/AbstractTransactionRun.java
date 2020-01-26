@@ -61,11 +61,6 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	protected final List<Object> events = new ArrayList<>();
 
 	/**
-	 * The gas cost model of this blockchain.
-	 */
-	private final GasCostModel gasCostModel;
-
-	/**
 	 * The object that knows about the size of data once stored in blockchain.
 	 */
 	protected final SizeCalculator sizeCalculator;
@@ -133,8 +128,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 		this.now = wrapInCaseOfException(node::getNow);
 		this.deserializer = new Deserializer(this);
 		this.gas = gas;
-		this.gasCostModel = node.mkGasCostModel();
-		this.sizeCalculator = new SizeCalculator(gasCostModel);
+		this.sizeCalculator = new SizeCalculator(node.getGasCostModel());
 		this.gasConsumedForCPU = BigInteger.ZERO;
 		this.gasConsumedForRAM = BigInteger.ZERO;
 		this.gasConsumedForStorage = BigInteger.ZERO;
@@ -219,18 +213,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 		gasConsumedForStorage = gasConsumedForStorage.add(amount);
 	}
 
-	/**
-	 * Runs a given piece of code with a subset of the available gas.
-	 * It first charges the given amount of gas. Then runs the code
-	 * with the charged gas only. At its end, the remaining gas is added
-	 * to the available gas to continue the computation.
-	 * 
-	 * @param amount the amount of gas provided to the code
-	 * @param what the code to run
-	 * @return the result of the execution of the code
-	 * @throws OutOfGasError if there is not enough gas
-	 * @throws Exception if the code runs into this exception
-	 */
+	@Override
 	public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
 		chargeForCPU(amount);
 		oldGas.addFirst(gas);
@@ -244,12 +227,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 		}
 	}
 
-	/**
-	 * Adds an event to those occurred during the execution of the current transaction.
-	 * 
-	 * @param event the event
-	 * @throws IllegalArgumentException if the event is {@code null}
-	 */
+	@Override
 	public final void event(Object event) {
 		if (event == null)
 			throw new IllegalArgumentException("Events cannot be null");
@@ -259,60 +237,6 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 
 	protected abstract Response computeResponse() throws Exception;
 
-	/*
-	@Override
-	public final JarStoreTransactionResponse runJarStoreTransaction(JarStoreTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, current);
-
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this, this)) {
-				this.classLoader = classLoader;
-				Object deserializedCaller = deserializer.deserialize(request.caller);
-				checkIsExternallyOwned(deserializedCaller);
-
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-
-				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
-				// after this line, the transaction will be added to the blockchain, possibly as a failed one
-
-				try {
-					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeCalculator.sizeOf(request));
-
-					byte[] jar = request.getJar();
-					chargeForCPU(gasCostModel.cpuCostForInstallingJar(jar.length));
-					chargeForRAM(gasCostModel.ramCostForInstalling(jar.length));
-
-					byte[] instrumentedBytes;
-					// we transform the array of bytes into a real jar file
-					try (TempJarFile original = new TempJarFile(jar);
-						 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this, this)) {
-						VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, false);
-						InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
-						instrumentedBytes = instrumentedJar.toBytes();
-					}
-
-					BigInteger balanceOfCaller = getBalanceOf(deserializedCaller);
-					StorageReference storageReferenceOfDeserializedCaller = getStorageReferenceOf(deserializedCaller);
-					UpdateOfBalance balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-					JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					balanceOfCaller = increaseBalance(deserializedCaller);
-					balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-					return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-				}
-				catch (Throwable t) {
-					// we do not pay back the gas
-					BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForStorage);
-					return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-				}
-			}
-		});
-	}
-	*/
-
 	/**
 	 * Yields an adapter of the gas cost model for instrumentation.
 	 * 
@@ -320,6 +244,8 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 */
 	protected final io.takamaka.code.instrumentation.GasCostModel gasModelAsForInstrumentation() {
 		return new io.takamaka.code.instrumentation.GasCostModel() {
+
+			private final GasCostModel gasCostModel = node.getGasCostModel();
 
 			@Override
 			public int cpuCostOfArithmeticInstruction() {
@@ -387,183 +313,6 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 			}
 		};
 	}
-
-	/*
-	@Override
-	public final ConstructorCallTransactionResponse runConstructorCallTransaction(ConstructorCallTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, current);
-
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this, this)) {
-				this.classLoader = classLoader;
-				Object deserializedCaller = deserializer.deserialize(request.caller);
-				checkIsExternallyOwned(deserializedCaller);
-				
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-
-				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
-				// after this line, the transaction can be added to the blockchain, possibly as a failed one
-
-				try {
-					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeCalculator.sizeOf(request));
-
-					CodeExecutor executor = new ConstructorExecutor(this, request.constructor, deserializedCaller, request.actuals());
-					executor.start();
-					executor.join();
-
-					if (executor.exception instanceof InvocationTargetException) {
-						ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller);
-						return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					}
-
-					if (executor.exception != null)
-						throw executor.exception;
-
-					ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
-					return new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-				}
-				catch (Throwable t) {
-					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
-					return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-				}
-			}
-		});
-	}
-
-	@Override
-	public final MethodCallTransactionResponse runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, current);
-
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this, this)) {
-				this.classLoader = classLoader;
-				Object deserializedCaller = deserializer.deserialize(request.caller);
-				checkIsExternallyOwned(deserializedCaller);
-				
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-
-				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
-				// after this line, the transaction can be added to the blockchain, possibly as a failed one
-
-				try {
-					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeCalculator.sizeOf(request));
-
-					InstanceMethodExecutor executor = new InstanceMethodExecutor(this, request.method, deserializedCaller, request.receiver, request.getActuals());
-					executor.start();
-					executor.join();
-
-					if (executor.exception instanceof InvocationTargetException) {
-						MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller);
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					}
-
-					if (executor.exception != null)
-						throw executor.exception;
-
-					if (executor.isViewMethod && !executor.onlyAffectedBalanceOf(deserializedCaller))
-						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
-
-					if (executor.isVoidMethod) {
-						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller);
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					}
-					else {
-						MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-							(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller);
-						return new MethodCallTransactionSuccessfulResponse
-							(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					}
-				}
-				catch (Throwable t) {
-					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
-					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-				}
-			}
-		});
-	}
-
-	@Override
-	public final MethodCallTransactionResponse runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference current) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			initTransaction(request.gas, current);
-
-			try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this, this)) {
-				this.classLoader = classLoader;
-				Object deserializedCaller = deserializer.deserialize(request.caller);
-				checkIsExternallyOwned(deserializedCaller);
-				
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-
-				// before this line, an exception will abort the transaction and leave the blockchain unchanged;
-				// after this line, the transaction can be added to the blockchain, possibly as a failed one
-
-				try {
-					chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-					chargeForStorage(sizeCalculator.sizeOf(request));
-
-					StaticMethodExecutor executor = new StaticMethodExecutor(this, request.method, deserializedCaller, request.getActuals());
-					executor.start();
-					executor.join();
-
-					if (executor.exception instanceof InvocationTargetException) {
-						MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller);
-						return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					}
-
-					if (executor.exception != null)
-						throw executor.exception;
-
-					if (executor.isViewMethod && !executor.onlyAffectedBalanceOf(deserializedCaller))
-						throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
-
-					if (executor.isVoidMethod) {
-						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller);
-						return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					}
-					else {
-						MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-							(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-						chargeForStorage(sizeCalculator.sizeOf(response));
-						increaseBalance(deserializedCaller);
-						return new MethodCallTransactionSuccessfulResponse
-							(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					}
-				}
-				catch (Throwable t) {
-					// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-					BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
-					return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-				}
-			}
-		});
-	}
-	*/
 
 	/**
 	 * Yields the run-time class of the given object.
@@ -653,19 +402,19 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request, UpdateOfBalance balanceUpdateInCaseOfFailure) throws IllegalTransactionRequestException {
 		// we create a response whose size over-approximates that of a response in case of failure of this request
 		if (request instanceof ConstructorCallTransactionRequest)
-			return BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost())
+			return BigInteger.valueOf(node.getGasCostModel().cpuBaseTransactionCost())
 				.add(sizeCalculator.sizeOf(request))
 				.add(sizeCalculator.sizeOf(new ConstructorCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else if (request instanceof InstanceMethodCallTransactionRequest)
-			return BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost())
+			return BigInteger.valueOf(node.getGasCostModel().cpuBaseTransactionCost())
 				.add(sizeCalculator.sizeOf(request))
 				.add(sizeCalculator.sizeOf(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else if (request instanceof StaticMethodCallTransactionRequest)
-			return BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost())
+			return BigInteger.valueOf(node.getGasCostModel().cpuBaseTransactionCost())
 				.add(sizeCalculator.sizeOf(request))
 				.add(sizeCalculator.sizeOf(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else if (request instanceof JarStoreTransactionRequest)
-			return BigInteger.valueOf(gasCostModel.cpuBaseTransactionCost())
+			return BigInteger.valueOf(node.getGasCostModel().cpuBaseTransactionCost())
 				.add(sizeCalculator.sizeOf(request))
 				.add(sizeCalculator.sizeOf(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else
@@ -706,7 +455,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 			throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 	
-		BigInteger delta = gasCostModel.toCoin(gas);
+		BigInteger delta = node.getGasCostModel().toCoin(gas);
 		Field balanceField = classLoader.getContract().getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
@@ -730,7 +479,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
 	protected final BigInteger increaseBalance(Object eoa) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-		BigInteger delta = gasCostModel.toCoin(gas);
+		BigInteger delta = node.getGasCostModel().toCoin(gas);
 		Field balanceField = classLoader.getContract().getDeclaredField("balance");
 		balanceField.setAccessible(true); // since the field is private
 		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
@@ -805,11 +554,6 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	@Override
 	public EngineClassLoader getClassLoader() {
 		return classLoader;
-	}
-
-	@Override
-	public GasCostModel getGasCostModel() {
-		return gasCostModel;
 	}
 
 	@Override
