@@ -212,7 +212,7 @@ public class Deserializer {
 				throw new DeserializationError("No class tag found for " + reference);
 
 			Class<?> clazz = run.getClassLoader().loadClass(classTag.className);
-			TransactionReference actual = run.transactionThatInstalledJarFor(clazz);
+			TransactionReference actual = run.getNode().transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
 				throw new DeserializationError("Class " + classTag.className + " was instantiated from jar at " + expected + " not from jar at " + actual);

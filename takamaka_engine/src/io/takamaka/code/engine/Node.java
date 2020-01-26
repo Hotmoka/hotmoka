@@ -13,6 +13,25 @@ import io.hotmoka.beans.values.StorageReference;
 public interface Node {
 
 	/**
+	 * Yields the transaction reference that installed the jar
+	 * where the given class is defined.
+	 * 
+	 * @param clazz the class
+	 * @return the transaction reference
+	 * @throws IllegalStateException if the transaction reference cannot be determined
+	 */
+	TransactionReference transactionThatInstalledJarFor(Class<?> clazz);
+
+	/**
+	 * Yields the run-time class of the given object.
+	 * 
+	 * @param object the object
+	 * @return the name of the class
+	 * @throws DeserializationError if the class of the object cannot be found
+	 */
+	String getClassNameOf(StorageReference object);
+
+	/**
 	 * Yields a transaction reference whose {@code toString()} is the given string.
 	 * 
 	 * @param toString the result of {@code toString()} on the desired transaction reference

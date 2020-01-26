@@ -2,7 +2,6 @@ package io.takamaka.code.engine.internal.transactions;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -153,33 +152,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 		return now;
 	}
 
-	/**
-	 * Yields the transaction reference that installed the jar
-	 * where the given class is defined.
-	 * 
-	 * @param clazz the class
-	 * @return the transaction reference
-	 * @throws IllegalStateException if the transaction reference cannot be determined
-	 */
-	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
-		String className = clazz.getName();
-		CodeSource src = clazz.getProtectionDomain().getCodeSource();
-		if (src == null)
-			throw new IllegalStateException("Cannot determine the jar of class "+ className);
-		String classpath = src.getLocation().getPath();
-		if (!classpath.endsWith(".jar"))
-			throw new IllegalStateException("Unexpected class path " + classpath + " for class " + className);
-		int start = classpath.lastIndexOf('@');
-		if (start < 0)
-			throw new IllegalStateException("Class path " + classpath + " misses @ separator");
-		return node.getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
-	}
-
-	/**
-	 * Decreases the available gas by the given amount, for CPU execution.
-	 * 
-	 * @param amount the amount of gas to consume
-	 */
+	@Override
 	public final void chargeForCPU(BigInteger amount) {
 		if (amount.signum() < 0)
 			throw new IllegalArgumentException("Gas cannot increase");
@@ -206,11 +179,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 		chargeForCPU(BigInteger.valueOf(amount));
 	}
 
-	/**
-	 * Decreases the available gas by the given amount, for RAM execution.
-	 * 
-	 * @param amount the amount of gas to consume
-	 */
+	@Override
 	public final void chargeForRAM(BigInteger amount) {
 		if (amount.signum() < 0)
 			throw new IllegalArgumentException("Gas cannot increase");
@@ -637,7 +606,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	}
 
 	@Override
-	public StorageReference getStorageReferenceOf(Object object) {
+	public final StorageReference getStorageReferenceOf(Object object) {
 		try {
 			return (StorageReference) classLoader.storageReference.get(object);
 		}
@@ -647,7 +616,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	}
 
 	@Override
-	public boolean getInStorageOf(Object object) {
+	public final boolean getInStorageOf(Object object) {
 		try {
 			return (boolean) classLoader.inStorage.get(object);
 		}

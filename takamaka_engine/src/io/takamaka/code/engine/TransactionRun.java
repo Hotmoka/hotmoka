@@ -17,16 +17,6 @@ public interface TransactionRun {
 	boolean getInStorageOf(Object object);
 
 	/**
-	 * Yields the transaction reference that installed the jar
-	 * where the given class is defined.
-	 * 
-	 * @param clazz the class
-	 * @return the transaction reference
-	 * @throws IllegalStateException if the transaction reference cannot be determined
-	 */
-	TransactionReference transactionThatInstalledJarFor(Class<?> clazz);
-
-	/**
 	 * Yields the class loader used for running the transaction.
 	 * 
 	 * @return the class loader

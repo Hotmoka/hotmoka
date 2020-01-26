@@ -98,7 +98,7 @@ public class UpdatesExtractor {
 				this.inStorage = run.getInStorageOf(object);
 
 				if (!inStorage)
-					updates.add(new ClassTag(storageReference, clazz.getName(), run.transactionThatInstalledJarFor(clazz)));
+					updates.add(new ClassTag(storageReference, clazz.getName(), run.getNode().transactionThatInstalledJarFor(clazz)));
 
 				while (clazz != run.getClassLoader().getStorage()) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);

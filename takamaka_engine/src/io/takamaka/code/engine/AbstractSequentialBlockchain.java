@@ -210,6 +210,34 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	}
 
 	/**
+	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
+	 * 
+	 * @param what the callable
+	 * @return the result of the callable
+	 * @throws TransactionException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
+		try {
+			return what.call();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+		}
+	}
+
+	/**
+	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
+	 * already an instance of that exception.
+	 * 
+	 * @param t the throwable to wrap
+	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
+	 * @return the wrapped or original exception
+	 */
+	private static TransactionException wrapAsTransactionException(Throwable t, String message) {
+		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
+	}
+
+	/**
 	 * Expands this blockchain with a transaction that runs a constructor of a class.
 	 * 
 	 * @param request the request of the transaction
@@ -363,7 +391,7 @@ public abstract class AbstractSequentialBlockchain extends AbstractNode {
 	 * @throws Exception if the response could not be found
 	 */
 	private TransactionResponse getResponseAtAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
-		run.chargeForCPU(gasCostModel.cpuCostForGettingResponseAt(transaction));
+		run.chargeForCPU(run.getGasCostModel().cpuCostForGettingResponseAt(transaction));
 		return run.getNode().getResponseAt(transaction);
 	}
 
