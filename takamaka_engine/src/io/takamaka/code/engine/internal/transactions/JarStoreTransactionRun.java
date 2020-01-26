@@ -11,7 +11,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.Node;
-import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.TempJarFile;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
@@ -24,7 +24,7 @@ public class JarStoreTransactionRun extends AbstractTransactionRun<JarStoreTrans
 
 	@Override
 	protected JarStoreTransactionResponse computeResponse() throws Exception {
-		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
+		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
 			Object deserializedCaller = deserializer.deserialize(request.caller);
 			checkIsExternallyOwned(deserializedCaller);
@@ -47,14 +47,14 @@ public class JarStoreTransactionRun extends AbstractTransactionRun<JarStoreTrans
 				byte[] instrumentedBytes;
 				// we transform the array of bytes into a real jar file
 				try (TempJarFile original = new TempJarFile(jar);
-					 EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this)) {
+					 EngineClassLoaderImpl jarClassLoader = new EngineClassLoaderImpl(original.toPath(), request.getDependencies(), this)) {
 					VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, false);
 					InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
 					instrumentedBytes = instrumentedJar.toBytes();
 				}
 
 				BigInteger balanceOfCaller = getBalanceOf(deserializedCaller);
-				StorageReference storageReferenceOfDeserializedCaller = getStorageReferenceOf(deserializedCaller);
+				StorageReference storageReferenceOfDeserializedCaller = classLoader.getStorageReferenceOf(deserializedCaller);
 				UpdateOfBalance balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
 				JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));

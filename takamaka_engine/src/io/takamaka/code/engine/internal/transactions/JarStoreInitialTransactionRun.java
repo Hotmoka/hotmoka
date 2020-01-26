@@ -7,7 +7,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.takamaka.code.engine.Node;
-import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.TempJarFile;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
@@ -22,7 +22,7 @@ public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarSto
 	protected JarStoreInitialTransactionResponse computeResponse() throws Exception {
 		// we transform the array of bytes into a real jar file
 		try (TempJarFile original = new TempJarFile(request.getJar());
-			EngineClassLoader jarClassLoader = new EngineClassLoader(original.toPath(), request.getDependencies(), this)) {
+			EngineClassLoaderImpl jarClassLoader = new EngineClassLoaderImpl(original.toPath(), request.getDependencies(), this)) {
 			VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, true);
 			InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
 			return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());

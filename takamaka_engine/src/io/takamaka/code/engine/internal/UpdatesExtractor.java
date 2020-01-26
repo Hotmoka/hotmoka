@@ -36,6 +36,7 @@ import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.DeserializationError;
+import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 
@@ -71,13 +72,15 @@ public class UpdatesExtractor {
 
 	private class Builder {
 		private final TransactionRun run;
+		private final EngineClassLoader classLoader;
 		private final List<Object> workingSet;
 		private final Set<StorageReference> seen = new HashSet<>();
 
 		private Builder(TransactionRun run, Stream<Object> objects) {
 			this.run = run;
+			this.classLoader = run.getClassLoader();
 			this.workingSet = objects
-				.filter(object -> seen.add(run.getStorageReferenceOf(object)))
+				.filter(object -> seen.add(run.getClassLoader().getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
 
 			do {
@@ -94,13 +97,13 @@ public class UpdatesExtractor {
 
 			private ExtractedUpdatesSingleObject(Object object) {
 				Class<?> clazz = object.getClass();
-				this.storageReference = run.getStorageReferenceOf(object);
-				this.inStorage = run.getInStorageOf(object);
+				this.storageReference = classLoader.getStorageReferenceOf(object);
+				this.inStorage = classLoader.getInStorageOf(object);
 
 				if (!inStorage)
 					updates.add(new ClassTag(storageReference, clazz.getName(), run.getNode().transactionThatInstalledJarFor(clazz)));
 
-				while (clazz != run.getClassLoader().getStorage()) {
+				while (clazz != classLoader.getStorage()) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);
 					clazz = clazz.getSuperclass();
 				}
@@ -115,11 +118,11 @@ public class UpdatesExtractor {
 			private void recursiveExtract(Object s) {
 				if (s != null) {
 					Class<?> clazz = s.getClass();
-					if (run.getClassLoader().getStorage().isAssignableFrom(clazz)) {
-						if (seen.add(run.getStorageReferenceOf(s)))
+					if (classLoader.getStorage().isAssignableFrom(clazz)) {
+						if (seen.add(classLoader.getStorageReferenceOf(s)))
 							workingSet.add(s);
 					}
-					else if (run.getClassLoader().isLazilyLoaded(clazz)) // eager types are not recursively followed
+					else if (classLoader.isLazilyLoaded(clazz)) // eager types are not recursively followed
 						throw new DeserializationError("a field of a storage object cannot hold a " + clazz.getName());
 				}
 			}
@@ -138,9 +141,9 @@ public class UpdatesExtractor {
 				if (s == null)
 					//the field has been set to null
 					updates.add(new UpdateToNullLazy(storageReference, field));
-				else if (run.getClassLoader().getStorage().isAssignableFrom(s.getClass())) {
+				else if (classLoader.getStorage().isAssignableFrom(s.getClass())) {
 					// the field has been set to a storage object
-					StorageReference storageReference2 = run.getStorageReferenceOf(s);
+					StorageReference storageReference2 = classLoader.getStorageReferenceOf(s);
 					updates.add(new UpdateOfStorage(storageReference, field, storageReference2));
 
 					// if the new value has not yet been considered, we put in the list of object still to be processed
@@ -338,7 +341,7 @@ public class UpdatesExtractor {
 						if (!inStorage || !Objects.equals(oldValue, currentValue))
 							addUpdateFor(field, currentValue);
 
-						if (inStorage && run.getClassLoader().isLazilyLoaded(field.getType()))
+						if (inStorage && classLoader.isLazilyLoaded(field.getType()))
 							recursiveExtract(oldValue);
 					}
 			}
@@ -370,7 +373,7 @@ public class UpdatesExtractor {
 					addUpdateFor(fieldDefiningClass, fieldName, (String) currentValue);
 				else if (fieldType.isEnum())
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), (Enum<?>) currentValue);
-				else if (run.getClassLoader().isLazilyLoaded(fieldType))
+				else if (classLoader.isLazilyLoaded(fieldType))
 					addUpdateFor(fieldDefiningClass, fieldName, fieldType.getName(), currentValue);
 				else
 					throw new IllegalStateException("unexpected field in storage object: " + fieldDefiningClass + '.' + fieldName);

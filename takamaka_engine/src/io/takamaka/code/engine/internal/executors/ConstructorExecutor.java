@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 
 /**
  * The thread that executes a constructor of a storage object. It creates the class loader
@@ -23,7 +23,7 @@ public class ConstructorExecutor extends CodeExecutor {
 	 * @param deseralizedCaller the deserialized caller
 	 * @param actuals the actuals provided to the constructor
 	 */
-	public ConstructorExecutor(TransactionRun run, ConstructorSignature constructor, Object deserializedCaller, Stream<StorageValue> actuals) {
+	public ConstructorExecutor(AbstractTransactionRun<?,?> run, ConstructorSignature constructor, Object deserializedCaller, Stream<StorageValue> actuals) {
 		super(run, deserializedCaller, constructor, null, actuals);
 	}
 
@@ -38,8 +38,8 @@ public class ConstructorExecutor extends CodeExecutor {
 	private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
 		Class<?>[] argTypes = formalsAsClass();
 
-		return run.getClassLoader().resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
+		return classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
 	}
 
 	/**
@@ -53,8 +53,8 @@ public class ConstructorExecutor extends CodeExecutor {
 	private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
 		Class<?>[] argTypes = formalsAsClassForEntry();
 
-		return run.getClassLoader().resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
+		return classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
 	}
 
 	@Override

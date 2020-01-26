@@ -50,7 +50,7 @@ public class Serializer {
 	 */
 	public StorageValue serialize(Object object) throws IllegalArgumentException {
 		if (isStorage(object))
-			return run.getStorageReferenceOf(object);
+			return run.getClassLoader().getStorageReferenceOf(object);
 		else if (object instanceof BigInteger)
 			return new BigIntegerValue((BigInteger) object);
 		else if (object instanceof Boolean)

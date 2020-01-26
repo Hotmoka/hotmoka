@@ -42,7 +42,6 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
  * A generic implementation of a blockchain that extends immediately when

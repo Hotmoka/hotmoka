@@ -9,31 +9,12 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.internal.Deserializer;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 
 /**
  * A creator of a transaction. It executes a request and builds the corresponding response.
  */
 public interface TransactionRun {
-
-	/**
-	 * Yields the value of the {@code storageReference} field
-	 * of the given storage object in RAM.
-	 * 
-	 * @param object the object
-	 * @return the value of the field
-	 */
-	StorageReference getStorageReferenceOf(Object object);
-
-	/**
-	 * Yields the value of the boolean {@code inStorage} field
-	 * of the given storage object in RAM.
-	 * 
-	 * @param object the object
-	 * @return the value of the field
-	 */
-	boolean getInStorageOf(Object object);
 
 	/**
 	 * Yields the class loader used for running the transaction being built.
@@ -97,7 +78,7 @@ public interface TransactionRun {
 	 * @return the value of the field
 	 * @throws Exception if the look up fails
 	 */
-	Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception;
+	Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception;
 
 	/**
 	 * Yields the latest value for the given field, of lazy type, of the given storage reference.
@@ -109,7 +90,7 @@ public interface TransactionRun {
 	 * @return the value of the field
 	 * @throws Exception if the look up fails
 	 */
-	Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception;
+	Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception;
 
 	/**
 	 * Decreases the available gas by the given amount, for CPU execution.

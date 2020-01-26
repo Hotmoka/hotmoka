@@ -42,7 +42,7 @@ public class Deserializer {
 	/**
 	 * The blockchain for which deserialization is performed.
 	 */
-	private TransactionRun run;
+	private final TransactionRun run;
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -105,10 +105,6 @@ public class Deserializer {
 	 */
 	public Deserializer(TransactionRun run) {
 		this.run = run;
-	}
-
-	public void init() { //TODO: to remove
-		cache.clear();
 	}
 
 	/**

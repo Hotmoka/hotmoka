@@ -1,6 +1,5 @@
 package io.takamaka.code.engine.runtime;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
@@ -10,6 +9,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.OutOfGasError;
 import io.takamaka.code.engine.TransactionRun;
@@ -54,7 +54,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return run.deserializeLastLazyUpdateFor(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)), run);
+		return run.deserializeLastLazyUpdateFor(run.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -69,7 +69,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return run.deserializeLastLazyUpdateForFinal(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)), run);
+		return run.deserializeLastLazyUpdateForFinal(run.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -81,17 +81,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void entry(Object callee, Object caller) throws Throwable {
-		// we call the private method of contract
-		try {
-			run.getClassLoader().entry.invoke(callee, caller);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.entry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.entry() itself: we forward it
-			throw e.getCause();
-		}
+		run.getClassLoader().entry(callee, caller);
 	}
 
 	/**
@@ -104,17 +94,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		// we call the private method of contract
-		try {
-			run.getClassLoader().payableEntryBigInteger.invoke(callee, caller, amount);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.payableEntry() itself: we forward it
-			throw e.getCause();
-		}
+		run.getClassLoader().payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -129,28 +109,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		// we call the private methods of contract
-		try {
-			run.getClassLoader().entry.invoke(callee, caller);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.entry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.entry() itself: we forward it
-			throw e.getCause();
-		}
-
-		try {
-			run.getClassLoader().redPayableBigInteger.invoke(callee, caller, amount);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside RedGreenContract.redPayableEntry() itself: we forward it
-			throw e.getCause();
-		}
+		run.getClassLoader().redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -163,17 +122,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
-		// we call the private method of contract
-		try {
-			run.getClassLoader().payableEntryInt.invoke(callee, caller, amount);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.payableEntry() itself: we forward it
-			throw e.getCause();
-		}
+		run.getClassLoader().payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -188,28 +137,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		// we call the private methods of contract
-		try {
-			run.getClassLoader().entry.invoke(callee, caller);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.entry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.entry() itself: we forward it
-			throw e.getCause();
-		}
-
-		try {
-			run.getClassLoader().redPayableInt.invoke(callee, caller, amount);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside RedGreenContract.redPayableEntry(): we forward it
-			throw e.getCause();
-		}
+		run.getClassLoader().redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -222,17 +150,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
-		// we call the private method of contract
-		try {
-			run.getClassLoader().payableEntryLong.invoke(callee, caller, amount);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.payableEntry() itself: we forward it
-			throw e.getCause();
-		}
+		run.getClassLoader().payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -247,28 +165,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		// we call the private methods of contract
-		try {
-			run.getClassLoader().entry.invoke(callee, caller);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call Contract.entry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside Contract.entry() itself: we forward it
-			throw e.getCause();
-		}
-	
-		try {
-			run.getClassLoader().redPayableLong.invoke(callee, caller, amount);
-		}
-		catch (IllegalAccessException | IllegalArgumentException e) {
-			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
-		}
-		catch (InvocationTargetException e) {
-			// an exception inside RedGreenContract.redPayableEntry() itself: we forward it
-			throw e.getCause();
-		}
+		run.getClassLoader().redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -312,7 +209,7 @@ public abstract class Runtime {
 	 * @return the value of the field
 	 */
 	public static boolean inStorageOf(Object object) {
-		return run.getInStorageOf(object);
+		return run.getClassLoader().getInStorageOf(object);
 	}
 
 	public static int compareStorageReferencesOf(Object o1, Object o2) {
@@ -322,8 +219,10 @@ public abstract class Runtime {
 			return -1;
 		else if (o2 == null)
 			return 1;
-		else
-			return run.getStorageReferenceOf(o1).compareTo(run.getStorageReferenceOf(o2));
+		else {
+			EngineClassLoader classLoader = run.getClassLoader();
+			return classLoader.getStorageReferenceOf(o1).compareTo(classLoader.getStorageReferenceOf(o2));
+		}
 	}
 
 	/**

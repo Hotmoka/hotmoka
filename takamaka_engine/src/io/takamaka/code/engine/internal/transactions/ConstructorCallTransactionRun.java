@@ -13,7 +13,7 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.Node;
-import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.executors.CodeExecutor;
 import io.takamaka.code.engine.internal.executors.ConstructorExecutor;
 
@@ -25,7 +25,7 @@ public class ConstructorCallTransactionRun extends AbstractTransactionRun<Constr
 
 	@Override
 	protected ConstructorCallTransactionResponse computeResponse() throws Exception {
-		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
+		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
 			Object deserializedCaller = deserializer.deserialize(request.caller);
 			checkIsExternallyOwned(deserializedCaller);
@@ -46,21 +46,21 @@ public class ConstructorCallTransactionRun extends AbstractTransactionRun<Constr
 				executor.join();
 
 				if (executor.exception instanceof InvocationTargetException) {
-					ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
-					return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 
 				if (executor.exception != null)
 					throw executor.exception;
 
 				ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(deserializedCaller);
 				return new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller

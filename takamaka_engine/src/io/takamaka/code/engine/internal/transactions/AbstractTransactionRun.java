@@ -35,7 +35,7 @@ import io.takamaka.code.engine.Node;
 import io.takamaka.code.engine.OutOfGasError;
 import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.engine.internal.Deserializer;
-import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
@@ -47,7 +47,7 @@ import io.takamaka.code.engine.runtime.Runtime;
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-abstract class AbstractTransactionRun<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionRun {
+public abstract class AbstractTransactionRun<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionRun {
 
 	protected final Node node;
 
@@ -115,7 +115,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	protected EngineClassLoader classLoader;
+	protected EngineClassLoaderImpl classLoader;
 
 	private final long now;
 
@@ -345,33 +345,13 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	}
 	
 	@Override
-	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, run).getValue());
+	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
+		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this).getValue());
 	}
 
 	@Override
-	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field, TransactionRun run) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, run).getValue());
-	}
-
-	@Override
-	public final StorageReference getStorageReferenceOf(Object object) {
-		try {
-			return (StorageReference) classLoader.storageReference.get(object);
-		}
-		catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new IllegalStateException("cannot read the storage reference of a storage object of class " + object.getClass().getName());
-		}
-	}
-
-	@Override
-	public final boolean getInStorageOf(Object object) {
-		try {
-			return (boolean) classLoader.inStorage.get(object);
-		}
-		catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new IllegalStateException("cannot read the inStorage tag of a storage object of class " + object.getClass().getName());
-		}
+	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
+		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this).getValue());
 	}
 
 	/**
@@ -391,7 +371,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	 */
 	protected final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
-		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
+		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(classLoader.getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 
 		if (gas.compareTo(minimalGasForRunning(request, balanceUpdateInCaseOfFailure)) < 0)
 			throw new IllegalTransactionRequestException("Not enough gas to start the transaction");
@@ -552,7 +532,7 @@ abstract class AbstractTransactionRun<Request extends TransactionRequest<Respons
 	}
 
 	@Override
-	public EngineClassLoader getClassLoader() {
+	public EngineClassLoaderImpl getClassLoader() {
 		return classLoader;
 	}
 

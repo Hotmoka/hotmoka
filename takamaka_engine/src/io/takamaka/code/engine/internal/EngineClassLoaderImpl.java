@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.net.URI;
@@ -25,6 +26,8 @@ import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
+import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
@@ -35,7 +38,7 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
  * A class loader used to access the definition of the classes
  * of Takamaka methods or constructors executed during a transaction.
  */
-public class EngineClassLoader implements TakamakaClassLoader {
+public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLoader {
 
 	/**
 	 * The parent of this class loader;
@@ -50,47 +53,47 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	/**
 	 * Method {@link io.takamaka.code.lang.Contract#entry(io.takamaka.code.lang.Contract)}.
 	 */
-	public final Method entry;
+	private final Method entry;
 
 	/**
 	 * Method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, int)}.
 	 */
-	public final Method payableEntryInt;
+	private final Method payableEntryInt;
 
 	/**
 	 * Method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, long)}.
 	 */
-	public final Method payableEntryLong;
+	private final Method payableEntryLong;
 
 	/**
 	 * Method {@link io.takamaka.code.lang.Contract#payableEntry(io.takamaka.code.lang.Contract, BigInteger)}.
 	 */
-	public final Method payableEntryBigInteger;
+	private final Method payableEntryBigInteger;
 
 	/**
 	 * Method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, int)}.
 	 */
-	public final Method redPayableInt;
+	private final Method redPayableInt;
 
 	/**
 	 * Method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, long)}.
 	 */
-	public final Method redPayableLong;
+	private final Method redPayableLong;
 
 	/**
 	 * Method {@link io.takamaka.code.lang.RedGreenContract#redPayable(io.takamaka.code.lang.RedGreenContract, BigInteger)}.
 	 */
-	public final Method redPayableBigInteger;
+	private final Method redPayableBigInteger;
 
 	/**
 	 * The field {@link io.takamaka.code.lang.Storage#storageReference}.
 	 */
-	public final Field storageReference;
+	private final Field storageReference;
 
 	/**
 	 * The field {@link io.takamaka.code.lang.Storage#inStorage}.
 	 */
-	public final Field inStorage;
+	private final Field inStorage;
 
 	/**
 	 * Builds the class loader for the given class path and its dependencies.
@@ -98,7 +101,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param classpath the class path
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, TransactionRun run) throws Exception {
+	public EngineClassLoaderImpl(Classpath classpath, TransactionRun run) throws Exception {
 		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), run, null));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
@@ -128,7 +131,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param dependencies the dependencies
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Path jar, Stream<Classpath> dependencies, TransactionRun run) throws Exception {
+	public EngineClassLoaderImpl(Path jar, Stream<Classpath> dependencies, TransactionRun run) throws Exception {
 		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, run, jar.toUri()));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
@@ -228,6 +231,164 @@ public class EngineClassLoader implements TakamakaClassLoader {
 			Files.deleteIfExists(classpathElement);
 
 		parent.close();
+	}
+
+	@Override
+	public final StorageReference getStorageReferenceOf(Object object) {
+		try {
+			return (StorageReference) storageReference.get(object);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot read the storage reference of a storage object of class " + object.getClass().getName());
+		}
+	}
+
+	@Override
+	public final boolean getInStorageOf(Object object) {
+		try {
+			return (boolean) inStorage.get(object);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot read the inStorage tag of a storage object of class " + object.getClass().getName());
+		}
+	}
+
+	@Override
+	public final void entry(Object callee, Object caller) throws Throwable {
+		// we call the private method of contract
+		try {
+			entry.invoke(callee, caller);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.entry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.entry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	@Override
+	public final void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
+		// we call the private method of contract
+		try {
+			payableEntryBigInteger.invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.payableEntry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	@Override
+	public final void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
+		// we call the private methods of contract
+		try {
+			entry.invoke(callee, caller);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.entry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.entry() itself: we forward it
+			throw e.getCause();
+		}
+
+		try {
+			redPayableBigInteger.invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside RedGreenContract.redPayableEntry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	@Override
+	public final void payableEntry(Object callee, Object caller, int amount) throws Throwable {
+		// we call the private method of contract
+		try {
+			payableEntryInt.invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.payableEntry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	@Override
+	public final void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
+		// we call the private methods of contract
+		try {
+			entry.invoke(callee, caller);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.entry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.entry() itself: we forward it
+			throw e.getCause();
+		}
+
+		try {
+			redPayableInt.invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside RedGreenContract.redPayableEntry(): we forward it
+			throw e.getCause();
+		}
+	}
+
+	@Override
+	public final void payableEntry(Object callee, Object caller, long amount) throws Throwable {
+		// we call the private method of contract
+		try {
+			payableEntryLong.invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.payableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.payableEntry() itself: we forward it
+			throw e.getCause();
+		}
+	}
+
+	@Override
+	public final void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
+		// we call the private methods of contract
+		try {
+			entry.invoke(callee, caller);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call Contract.entry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside Contract.entry() itself: we forward it
+			throw e.getCause();
+		}
+	
+		try {
+			redPayableLong.invoke(callee, caller, amount);
+		}
+		catch (IllegalAccessException | IllegalArgumentException e) {
+			throw new IllegalStateException("cannot call RedGreenContract.redPayableEntry()", e);
+		}
+		catch (InvocationTargetException e) {
+			// an exception inside RedGreenContract.redPayableEntry() itself: we forward it
+			throw e.getCause();
+		}
 	}
 
 	@Override

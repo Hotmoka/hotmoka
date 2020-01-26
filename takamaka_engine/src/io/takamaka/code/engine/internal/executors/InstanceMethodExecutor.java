@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 
 /**
  * The thread that executes an instance method of a storage object. It creates the class loader
@@ -26,7 +26,7 @@ public class InstanceMethodExecutor extends CodeExecutor {
 	 * @param receiver the receiver of the method
 	 * @param actuals the actuals provided to the method
 	 */
-	public InstanceMethodExecutor(TransactionRun run, MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
+	public InstanceMethodExecutor(AbstractTransactionRun<?,?> run, MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
 		super(run, deserializedCaller, method, receiver, actuals);
 	}
 

@@ -9,8 +9,7 @@ import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.Node;
-import io.takamaka.code.engine.internal.EngineClassLoader;
-import io.takamaka.code.verification.TakamakaClassLoader;
+import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
@@ -23,7 +22,7 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 		if (request.initialAmount.signum() < 0)
 			throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
-		try (TakamakaClassLoader classLoader = this.classLoader = new EngineClassLoader(request.classpath, this)) {
+		try (EngineClassLoaderImpl classLoader = this.classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 			Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 			// we set the balance field of the gamete
@@ -31,7 +30,7 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 			balanceField.setAccessible(true); // since the field is private
 			balanceField.set(gamete, request.initialAmount);
 
-			return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), getStorageReferenceOf(gamete));
+			return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), classLoader.getStorageReferenceOf(gamete));
 		}
 	}
 }

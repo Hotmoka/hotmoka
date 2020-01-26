@@ -15,7 +15,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.takamaka.code.engine.Node;
 import io.takamaka.code.engine.SideEffectsInViewMethodException;
-import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.executors.InstanceMethodExecutor;
 
 public class InstanceMethodCallTransactionRun extends AbstractTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> {
@@ -26,7 +26,7 @@ public class InstanceMethodCallTransactionRun extends AbstractTransactionRun<Ins
 
 	@Override
 	protected MethodCallTransactionResponse computeResponse() throws Exception {
-		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
+		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
 			Object deserializedCaller = deserializer.deserialize(request.caller);
 			checkIsExternallyOwned(deserializedCaller);
@@ -47,10 +47,10 @@ public class InstanceMethodCallTransactionRun extends AbstractTransactionRun<Ins
 				executor.join();
 
 				if (executor.exception instanceof InvocationTargetException) {
-					MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
-					return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(event -> getStorageReferenceOf(event)), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 
 				if (executor.exception != null)
@@ -60,18 +60,18 @@ public class InstanceMethodCallTransactionRun extends AbstractTransactionRun<Ins
 					throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
 
 				if (executor.isVoidMethod) {
-					MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
-					return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					return new VoidMethodCallTransactionSuccessfulResponse(executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 				else {
 					MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						(serializer.serialize(executor.result), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
 					return new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(executor.result), executor.updates(), events.stream().map(this::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						(serializer.serialize(executor.result), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 			}
 			catch (Throwable t) {
