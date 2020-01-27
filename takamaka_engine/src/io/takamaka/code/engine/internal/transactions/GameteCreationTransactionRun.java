@@ -7,8 +7,8 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
-import io.takamaka.code.engine.Node;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {

@@ -26,7 +26,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.AbstractSequentialNode;
+import io.hotmoka.nodes.AbstractSequentialNode;
 import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.memory.MemoryBlockchain;

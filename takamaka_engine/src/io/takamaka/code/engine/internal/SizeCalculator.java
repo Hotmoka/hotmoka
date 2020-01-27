@@ -64,7 +64,7 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.engine.GasCostModel;
+import io.hotmoka.nodes.GasCostModel;
 
 /**
  * An object that knows about the size of objects when stored in blockchain.
@@ -233,7 +233,6 @@ public class SizeCalculator {
 	 * @param type the type
 	 * @return the size
 	 */
-	@SuppressWarnings("overloads")
 	public BigInteger sizeOf(StorageType type) {
 		if (type instanceof BasicTypes)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot());
@@ -251,7 +250,6 @@ public class SizeCalculator {
 	 * @param value the value
 	 * @return the size
 	 */
-	@SuppressWarnings("overloads")
 	public BigInteger sizeOf(StorageValue value) {
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot());
 		if (value instanceof BigIntegerValue)

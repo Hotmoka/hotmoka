@@ -1,4 +1,5 @@
 module io.takamaka.code.engine {
+	exports io.hotmoka.nodes;
 	exports io.takamaka.code.engine;
 	exports io.takamaka.code.engine.runtime;
 	requires io.takamaka.code.constants;

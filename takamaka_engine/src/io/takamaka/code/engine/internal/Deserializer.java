@@ -30,7 +30,7 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.engine.DeserializationError;
+import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.verification.Dummy;
 

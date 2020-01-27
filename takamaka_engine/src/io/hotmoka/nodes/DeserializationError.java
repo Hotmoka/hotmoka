@@ -1,4 +1,4 @@
-package io.takamaka.code.engine;
+package io.hotmoka.nodes;
 
 /**
  * An exception thrown when a storage reference cannot be deserialized.

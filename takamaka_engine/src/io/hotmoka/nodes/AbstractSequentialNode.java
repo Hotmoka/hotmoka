@@ -1,4 +1,4 @@
-package io.takamaka.code.engine;
+package io.hotmoka.nodes;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -45,6 +45,12 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.takamaka.code.engine.CodeExecutionException;
+import io.takamaka.code.engine.EngineClassLoader;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
+import io.takamaka.code.engine.SequentialTransactionReference;
+import io.takamaka.code.engine.Transaction;
+import io.takamaka.code.engine.TransactionRun;
 
 /**
  * A generic implementation of a blockchain that extends immediately when
@@ -210,34 +216,6 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 			else
 				return transactionReference;
 		});
-	}
-
-	/**
-	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws TransactionException the wrapped exception
-	 */
-	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
-		try {
-			return what.call();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
-	}
-
-	/**
-	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
-	 * already an instance of that exception.
-	 * 
-	 * @param t the throwable to wrap
-	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
-	 * @return the wrapped or original exception
-	 */
-	private static TransactionException wrapAsTransactionException(Throwable t, String message) {
-		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
 	}
 
 	/**
@@ -442,7 +420,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @param eagerFields the set of all possible eager fields
 	 * @return true if and only if that condition holds
 	 */
-	private boolean updatesNonFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
+	private static boolean updatesNonFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
 		if (update instanceof UpdateOfField) {
 			FieldSignature sig = ((UpdateOfField) update).getField();
 			StorageType type = sig.type;
@@ -488,7 +466,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @param className the name of the storage class
 	 * @return the eager fields
 	 */
-	private Set<Field> collectEagerFieldsOf(String className, TransactionRun run) throws ClassNotFoundException {
+	private static Set<Field> collectEagerFieldsOf(String className, TransactionRun run) throws ClassNotFoundException {
 		EngineClassLoader classLoader = run.getClassLoader();
 		Set<Field> bag = new HashSet<>();
 		Class<?> storage = classLoader.getStorage();
@@ -502,6 +480,34 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 			.forEach(bag::add);
 
 		return bag;
+	}
+
+	/**
+	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
+	 * 
+	 * @param what the callable
+	 * @return the result of the callable
+	 * @throws TransactionException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
+		try {
+			return what.call();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+		}
+	}
+
+	/**
+	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
+	 * already an instance of that exception.
+	 * 
+	 * @param t the throwable to wrap
+	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
+	 * @return the wrapped or original exception
+	 */
+	private static TransactionException wrapAsTransactionException(Throwable t, String message) {
+		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
 	}
 
 	/**

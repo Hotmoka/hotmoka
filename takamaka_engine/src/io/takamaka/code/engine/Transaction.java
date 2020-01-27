@@ -16,6 +16,7 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.transactions.AbstractTransaction;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallTransactionRun;
 import io.takamaka.code.engine.internal.transactions.GameteCreationTransactionRun;

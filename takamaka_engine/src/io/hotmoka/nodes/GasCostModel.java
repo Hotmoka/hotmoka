@@ -1,9 +1,9 @@
-package io.takamaka.code.engine;
+package io.hotmoka.nodes;
 
 import java.math.BigInteger;
 
 import io.hotmoka.beans.references.TransactionReference;
-import io.takamaka.code.engine.internal.StandardGasCostModel;
+import io.hotmoka.nodes.internal.StandardGasCostModel;
 
 /**
  * A specification of the cost of gas.

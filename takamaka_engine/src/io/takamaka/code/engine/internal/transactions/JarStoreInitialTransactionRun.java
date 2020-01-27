@@ -6,7 +6,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
-import io.takamaka.code.engine.Node;
+import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.TempJarFile;
 import io.takamaka.code.instrumentation.InstrumentedJar;

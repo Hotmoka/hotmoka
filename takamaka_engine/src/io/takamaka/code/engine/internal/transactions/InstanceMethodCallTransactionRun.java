@@ -13,7 +13,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.updates.UpdateOfBalance;
-import io.takamaka.code.engine.Node;
+import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.executors.InstanceMethodExecutor;

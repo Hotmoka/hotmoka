@@ -1,4 +1,4 @@
-package io.takamaka.code.engine;
+package io.hotmoka.nodes;
 
 import java.util.stream.Stream;
 
@@ -9,6 +9,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.engine.TransactionRun;
 
 /**
  * A node of the HotMoka network, that provides the storage

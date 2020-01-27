@@ -34,7 +34,7 @@ import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.engine.AbstractSequentialNode;
+import io.hotmoka.nodes.AbstractSequentialNode;
 import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.memory.MemoryBlockchain;
 

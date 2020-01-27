@@ -8,6 +8,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.Node;
 
 /**
  * A creator of a transaction. It executes a request and builds the corresponding response.

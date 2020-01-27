@@ -12,7 +12,7 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.Node;
+import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.executors.CodeExecutor;
 import io.takamaka.code.engine.internal.executors.ConstructorExecutor;
