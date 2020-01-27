@@ -78,9 +78,9 @@ public class UpdatesExtractor {
 
 		private Builder(AbstractTransactionRun<?,?> run, Stream<Object> objects) {
 			this.run = run;
-			this.classLoader = run.getClassLoader();
+			this.classLoader = run.classLoader;
 			this.workingSet = objects
-				.filter(object -> seen.add(run.getClassLoader().getStorageReferenceOf(object)))
+				.filter(object -> seen.add(run.classLoader.getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
 
 			do {

@@ -16,7 +16,7 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 
 /**
  * An object that translates RAM values into storage values.
@@ -26,14 +26,14 @@ public class Serializer {
 	/**
 	 * The blockchain for which serialization is performed.
 	 */
-	private final TransactionRun run;
+	private final AbstractTransactionRun<?,?> run;
 
 	/**
 	 * Builds an object that translates RAM values into storage values.
 	 * 
 	 * @param run the blockchain for which serialization is performed
 	 */
-	public Serializer(TransactionRun run) {
+	public Serializer(AbstractTransactionRun<?,?> run) {
 		this.run = run;
 	}
 
@@ -50,7 +50,7 @@ public class Serializer {
 	 */
 	public StorageValue serialize(Object object) throws IllegalArgumentException {
 		if (isStorage(object))
-			return run.getClassLoader().getStorageReferenceOf(object);
+			return run.classLoader.getStorageReferenceOf(object);
 		else if (object instanceof BigInteger)
 			return new BigIntegerValue((BigInteger) object);
 		else if (object instanceof Boolean)
@@ -81,6 +81,6 @@ public class Serializer {
 	}
 
 	private boolean isStorage(Object object) {
-		return object != null && run.getClassLoader().getStorage().isAssignableFrom(object.getClass());
+		return object != null && run.classLoader.getStorage().isAssignableFrom(object.getClass());
 	}
 }

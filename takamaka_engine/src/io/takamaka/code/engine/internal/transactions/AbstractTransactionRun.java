@@ -107,7 +107,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	protected EngineClassLoaderImpl classLoader;
+	public EngineClassLoaderImpl classLoader;
 
 	/**
 	 * A stack of available gas. When a sub-computation is started

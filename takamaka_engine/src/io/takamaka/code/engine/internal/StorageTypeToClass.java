@@ -3,7 +3,7 @@ package io.takamaka.code.engine.internal;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 
 /**
  * An object that translates storage types into their run-time class tag.
@@ -13,14 +13,14 @@ public class StorageTypeToClass {
 	/**
 	 * The blockchain for which the translation is performed.
 	 */
-	private final TransactionRun run;
+	private final AbstractTransactionRun<?,?> run;
 
 	/**
 	 * Builds an object that translates storage types into their run-time class tag.
 	 * 
 	 * @param run the blockchain for which the translation is performed
 	 */
-	public StorageTypeToClass(TransactionRun run) {
+	public StorageTypeToClass(AbstractTransactionRun<?,?> run) {
 		this.run = run;
 	}
 
@@ -46,7 +46,7 @@ public class StorageTypeToClass {
 			}
 		}
 		else if (type instanceof ClassType)
-			return run.getClassLoader().loadClass(((ClassType) type).name);
+			return run.classLoader.loadClass(((ClassType) type).name);
 	
 		throw new IllegalArgumentException("unexpected storage type");
 	}

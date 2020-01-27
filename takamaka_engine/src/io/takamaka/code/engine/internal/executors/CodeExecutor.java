@@ -104,7 +104,7 @@ public abstract class CodeExecutor extends Thread {
 	 */
 	protected CodeExecutor(AbstractTransactionRun<?,?> run, Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
 		this.run = run;
-		this.classLoader = run.getClassLoader();
+		this.classLoader = run.classLoader;
 		this.deserializedCaller = deseralizedCaller;
 		this.methodOrConstructor = methodOrConstructor;
 		this.deserializedReceiver = receiver != null ? run.deserializer.deserialize(receiver) : null;

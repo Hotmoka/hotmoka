@@ -79,8 +79,8 @@ public class Deserializer {
 							return field1.type.toString().compareTo(field2.type.toString());
 					}
 
-					Class<?> clazz1 = run.getClassLoader().loadClass(className1);
-					Class<?> clazz2 = run.getClassLoader().loadClass(className2);
+					Class<?> clazz1 = run.classLoader.loadClass(className1);
+					Class<?> clazz2 = run.classLoader.loadClass(className2);
 					if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
 						return -1;
 					else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
@@ -141,7 +141,7 @@ public class Deserializer {
 			EnumValue ev = (EnumValue) value;
 
 			try {
-				return Enum.valueOf((Class<? extends Enum>) run.getClassLoader().loadClass(ev.enumClassName), ev.name);
+				return Enum.valueOf((Class<? extends Enum>) run.classLoader.loadClass(ev.enumClassName), ev.name);
 			}
 			catch (ClassNotFoundException e) {
 				throw new DeserializationError(e);
@@ -159,7 +159,7 @@ public class Deserializer {
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, run.node.getLastEagerUpdatesFor(reference, run::chargeForCPU, run.getClassLoader()));
+			return createStorageObject(reference, run.node.getLastEagerUpdatesFor(reference, run::chargeForCPU, run.classLoader));
 		}
 		catch (DeserializationError e) {
 			throw e;
@@ -200,7 +200,7 @@ public class Deserializer {
 			if (classTag == null)
 				throw new DeserializationError("No class tag found for " + reference);
 
-			Class<?> clazz = run.getClassLoader().loadClass(classTag.className);
+			Class<?> clazz = run.classLoader.loadClass(classTag.className);
 			TransactionReference actual = run.node.transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
