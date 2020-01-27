@@ -37,6 +37,9 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
@@ -103,7 +106,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 		Set<Field> eagerFields = collectEagerFieldsOf(classTag.get().className, run);
 		Iterator<Update> it = updates.iterator();
 		while (it.hasNext())
-			if (updatesNonFinalField(it.next(), eagerFields, run))
+			if (updatesNonFinalField(it.next(), eagerFields))
 				it.remove();
 	
 		// the updates set contains the updates to eager final fields now:
@@ -439,16 +442,43 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @param eagerFields the set of all possible eager fields
 	 * @return true if and only if that condition holds
 	 */
-	private boolean updatesNonFinalField(Update update, Set<Field> eagerFields, TransactionRun run) throws ClassNotFoundException {
+	private boolean updatesNonFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
 		if (update instanceof UpdateOfField) {
 			FieldSignature sig = ((UpdateOfField) update).getField();
-			Class<?> type = run.getStorageTypeToClass().toClass(sig.type);
+			StorageType type = sig.type;
 			String name = sig.name;
 			return eagerFields.stream()
-				.anyMatch(field -> !Modifier.isFinal(field.getModifiers()) && field.getType() == type && field.getName().equals(name));
+				.anyMatch(field -> !Modifier.isFinal(field.getModifiers()) && hasType(field, type) && field.getName().equals(name));
 		}
 
 		return false;
+	}
+
+	/**
+	 * Determines if the given field has the given type.
+	 * 
+	 * @param field the field
+	 * @param type the type
+	 * @return true if and only if that condition holds
+	 */
+	private static boolean hasType(Field field, StorageType type) {
+		Class<?> fieldType = field.getType();
+		if (type instanceof BasicTypes)
+			switch ((BasicTypes) type) {
+			case BOOLEAN: return fieldType == boolean.class;
+			case BYTE: return fieldType == byte.class;
+			case CHAR: return fieldType == char.class;
+			case SHORT: return fieldType == short.class;
+			case INT: return fieldType == int.class;
+			case LONG: return fieldType == long.class;
+			case FLOAT: return fieldType == float.class;
+			case DOUBLE: return fieldType == double.class;
+			default: throw new IllegalStateException("unexpected basic type " + type);
+			}
+		else if (type instanceof ClassType)
+			return ((ClassType) type).name.equals(fieldType.getName());
+		else
+			throw new IllegalStateException("unexpected storage type " + type);
 	}
 
 	/**

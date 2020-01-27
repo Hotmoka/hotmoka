@@ -8,7 +8,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.internal.StorageTypeToClass;
 
 /**
  * A creator of a transaction. It executes a request and builds the corresponding response.
@@ -21,14 +20,6 @@ public interface TransactionRun {
 	 * @return the class loader
 	 */
 	EngineClassLoader getClassLoader();
-
-	/**
-	 * Yields the object that translates storage types into class types, for the
-	 * transaction being built.
-	 * 
-	 * @return the object
-	 */
-	StorageTypeToClass getStorageTypeToClass();
 
 	Node getNode();
 

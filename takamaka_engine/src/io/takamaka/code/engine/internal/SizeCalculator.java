@@ -233,6 +233,7 @@ public class SizeCalculator {
 	 * @param type the type
 	 * @return the size
 	 */
+	@SuppressWarnings("overloads")
 	public BigInteger sizeOf(StorageType type) {
 		if (type instanceof BasicTypes)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot());
@@ -250,6 +251,7 @@ public class SizeCalculator {
 	 * @param value the value
 	 * @return the size
 	 */
+	@SuppressWarnings("overloads")
 	public BigInteger sizeOf(StorageValue value) {
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot());
 		if (value instanceof BigIntegerValue)

@@ -549,9 +549,4 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	public Node getNode() {
 		return node;
 	}
-
-	@Override
-	public StorageTypeToClass getStorageTypeToClass() {
-		return storageTypeToClass;
-	}
 }
