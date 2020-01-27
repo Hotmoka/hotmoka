@@ -8,7 +8,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 
 /**

@@ -29,12 +29,13 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.DeserializationError;
+import io.takamaka.code.engine.Deserializer;
 import io.takamaka.code.engine.GasCostModel;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.Node;
 import io.takamaka.code.engine.OutOfGasError;
 import io.takamaka.code.engine.TransactionRun;
-import io.takamaka.code.engine.internal.Deserializer;
+import io.takamaka.code.engine.internal.DeserializerImpl;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
@@ -49,31 +50,30 @@ import io.takamaka.code.engine.runtime.Runtime;
  */
 public abstract class AbstractTransactionRun<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionRun {
 
-	protected final Node node;
-
-	protected final Request request;
-
-	public final Response response;
+	/**
+	 * The request of the transaction.
+	 */
+	public final Request request;
 
 	/**
-	 * The events accumulated during the current transaction. This is reset at each transaction.
+	 * The response computed for the transaction, starting from the request.
 	 */
-	protected final List<Object> events = new ArrayList<>();
+	public final Response response;
 
 	/**
 	 * The object that knows about the size of data once stored in blockchain.
 	 */
-	protected final SizeCalculator sizeCalculator;
+	public final SizeCalculator sizeCalculator;
 
 	/**
 	 * The object that serializes RAM values into storage objects.
 	 */
-	protected final Serializer serializer = new Serializer(this);
+	public final Serializer serializer = new Serializer(this);
 
 	/**
 	 * The object that deserializes storage objects into RAM values.
 	 */
-	public final Deserializer deserializer;
+	public final DeserializerImpl deserializer;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -96,6 +96,16 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * The remaining amount of gas for the current transaction, not yet consumed.
 	 */
 	private BigInteger gas;
+
+	/**
+	 * The HotMoka node that is running the transaction.
+	 */
+	protected final Node node;
+
+	/**
+	 * The events accumulated during the current transaction. This is reset at each transaction.
+	 */
+	protected final List<Object> events = new ArrayList<>();
 
 	/**
 	 * The amount of gas consumed for CPU execution.
@@ -126,7 +136,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		FieldSignature.clearCache();
 		this.node = node;
 		this.now = wrapInCaseOfException(node::getNow);
-		this.deserializer = new Deserializer(this);
+		this.deserializer = new DeserializerImpl(this);
 		this.gas = gas;
 		this.sizeCalculator = new SizeCalculator(node.getGasCostModel());
 		this.gasConsumedForCPU = BigInteger.ZERO;

@@ -31,13 +31,14 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.engine.DeserializationError;
+import io.takamaka.code.engine.Deserializer;
 import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.verification.Dummy;
 
 /**
- * An object that translates storage values into RAM values.
+ * An implementation of an object that translates storage values into RAM values.
  */
-public class Deserializer {
+public class DeserializerImpl implements Deserializer {
 
 	/**
 	 * The blockchain for which deserialization is performed.
@@ -103,17 +104,11 @@ public class Deserializer {
 	 * @param run the blockchain for which deserialization is performed
 	 * @param a function that yields the last updates for the eager fields of a storage reference
 	 */
-	public Deserializer(TransactionRun run) {
+	public DeserializerImpl(TransactionRun run) {
 		this.run = run;
 	}
 
-	/**
-	 * Yields the deserialization of the given value. That is, it yields an actual object in RAM
-	 * that reflects its representation in blockchain.
-	 * 
-	 * @param value the value to deserialize
-	 * @return the deserialization of {@code value}
-	 */
+	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object deserialize(StorageValue value) {
 		if (value instanceof StorageReference)
