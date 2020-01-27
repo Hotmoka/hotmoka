@@ -29,13 +29,12 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.DeserializationError;
-import io.takamaka.code.engine.Deserializer;
 import io.takamaka.code.engine.GasCostModel;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.Node;
 import io.takamaka.code.engine.OutOfGasError;
 import io.takamaka.code.engine.TransactionRun;
-import io.takamaka.code.engine.internal.DeserializerImpl;
+import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
@@ -73,7 +72,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	/**
 	 * The object that deserializes storage objects into RAM values.
 	 */
-	public final DeserializerImpl deserializer;
+	public final Deserializer deserializer;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -136,7 +135,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		FieldSignature.clearCache();
 		this.node = node;
 		this.now = wrapInCaseOfException(node::getNow);
-		this.deserializer = new DeserializerImpl(this);
+		this.deserializer = new Deserializer(this);
 		this.gas = gas;
 		this.sizeCalculator = new SizeCalculator(node.getGasCostModel());
 		this.gasConsumedForCPU = BigInteger.ZERO;
@@ -544,11 +543,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	@Override
 	public EngineClassLoaderImpl getClassLoader() {
 		return classLoader;
-	}
-
-	@Override
-	public Deserializer getDeserializer() {
-		return deserializer;
 	}
 
 	@Override

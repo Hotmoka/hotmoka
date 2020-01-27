@@ -49,7 +49,7 @@ import io.hotmoka.beans.values.StorageValue;
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-public abstract class AbstractSequentialBlockchain extends AbstractNode {
+public abstract class AbstractSequentialNode extends AbstractNode {
 
 	/**
 	 * Yields the reference to the transaction on top of the blockchain.

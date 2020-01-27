@@ -17,7 +17,7 @@ import java.util.Comparator;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.takamaka.code.engine.AbstractSequentialBlockchain;
+import io.takamaka.code.engine.AbstractSequentialNode;
 import io.takamaka.code.engine.SequentialTransactionReference;
 import io.takamaka.code.engine.Transaction;
 
@@ -26,7 +26,7 @@ import io.takamaka.code.engine.Transaction;
  * on disk memory. It is only meant for experimentation and testing. It is not
  * really a blockchain, since there is no peer-to-peer network, nor mining.
  */
-public class MemoryBlockchain extends AbstractSequentialBlockchain {
+public class MemoryBlockchain extends AbstractSequentialNode {
 
 	/**
 	 * The name used for the file containing the serialized header of a block.

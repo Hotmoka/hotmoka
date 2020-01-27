@@ -30,7 +30,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.AbstractSequentialBlockchain;
+import io.takamaka.code.engine.AbstractSequentialNode;
 import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.memory.MemoryBlockchain;
 
@@ -60,7 +60,7 @@ class SimplePyramidWithBalance extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private AbstractSequentialBlockchain blockchain;
+	private AbstractSequentialNode blockchain;
 
 	/**
 	 * The first object, that holds all funds initially.

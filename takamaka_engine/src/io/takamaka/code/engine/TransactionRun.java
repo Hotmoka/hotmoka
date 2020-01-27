@@ -30,13 +30,6 @@ public interface TransactionRun {
 	 */
 	StorageTypeToClass getStorageTypeToClass();
 
-	/**
-	 * Yields the deserializer for the transaction being built.
-	 * 
-	 * @return the deserializer
-	 */
-	Deserializer getDeserializer();
-
 	Node getNode();
 
 	/**

@@ -31,19 +31,18 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.engine.DeserializationError;
-import io.takamaka.code.engine.Deserializer;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.verification.Dummy;
 
 /**
  * An implementation of an object that translates storage values into RAM values.
  */
-public class DeserializerImpl implements Deserializer {
+public class Deserializer {
 
 	/**
 	 * The blockchain for which deserialization is performed.
 	 */
-	private final TransactionRun run;
+	private final AbstractTransactionRun<?,?> run;
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -104,11 +103,10 @@ public class DeserializerImpl implements Deserializer {
 	 * @param run the blockchain for which deserialization is performed
 	 * @param a function that yields the last updates for the eager fields of a storage reference
 	 */
-	public DeserializerImpl(TransactionRun run) {
+	public Deserializer(AbstractTransactionRun<?,?> run) {
 		this.run = run;
 	}
 
-	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object deserialize(StorageValue value) {
 		if (value instanceof StorageReference)
@@ -195,7 +193,7 @@ public class DeserializerImpl implements Deserializer {
 					classTag = (ClassTag) update;
 				else {
 					UpdateOfField updateOfField = (UpdateOfField) update;
-					formals.add(run.getStorageTypeToClass().toClass(updateOfField.getField().type));
+					formals.add(run.storageTypeToClass.toClass(updateOfField.getField().type));
 					actuals.add(deserialize(updateOfField.getValue()));
 				}
 	

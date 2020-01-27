@@ -26,7 +26,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.NonWhiteListedCallException;
-import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.engine.runtime.Runtime;
@@ -43,7 +42,7 @@ public abstract class CodeExecutor extends Thread {
 	/**
 	 * The engine for which code is being executed.
 	 */
-	protected final TransactionRun run;
+	protected final AbstractTransactionRun<?,?> run;
 
 	/**
 	 * The class loader of the transaction being executed.
@@ -108,8 +107,8 @@ public abstract class CodeExecutor extends Thread {
 		this.classLoader = run.getClassLoader();
 		this.deserializedCaller = deseralizedCaller;
 		this.methodOrConstructor = methodOrConstructor;
-		this.deserializedReceiver = receiver != null ? run.getDeserializer().deserialize(receiver) : null;
-		this.deserializedActuals = actuals.map(run.getDeserializer()::deserialize).toArray(Object[]::new);
+		this.deserializedReceiver = receiver != null ? run.deserializer.deserialize(receiver) : null;
+		this.deserializedActuals = actuals.map(run.deserializer::deserialize).toArray(Object[]::new);
 	}
 
 	/**
@@ -139,7 +138,7 @@ public abstract class CodeExecutor extends Thread {
 	 */
 	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
 		MethodSignature method = (MethodSignature) methodOrConstructor;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? run.getStorageTypeToClass().toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? run.storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClass();
 
 		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
@@ -156,7 +155,7 @@ public abstract class CodeExecutor extends Thread {
 	 */
 	protected final Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 		MethodSignature method = (MethodSignature) methodOrConstructor;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? run.getStorageTypeToClass().toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? run.storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClassForEntry();
 
 		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
@@ -185,7 +184,7 @@ public abstract class CodeExecutor extends Thread {
 	protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-			classes.add(run.getStorageTypeToClass().toClass(type));
+			classes.add(run.storageTypeToClass.toClass(type));
 
 		return classes.toArray(new Class<?>[classes.size()]);
 	}
@@ -201,7 +200,7 @@ public abstract class CodeExecutor extends Thread {
 	protected final Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-			classes.add(run.getStorageTypeToClass().toClass(type));
+			classes.add(run.storageTypeToClass.toClass(type));
 
 		classes.add(classLoader.getContract());
 		classes.add(Dummy.class);

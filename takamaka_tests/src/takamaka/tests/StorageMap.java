@@ -34,7 +34,7 @@ import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.takamaka.code.engine.AbstractSequentialBlockchain;
+import io.takamaka.code.engine.AbstractSequentialNode;
 import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.memory.MemoryBlockchain;
 
@@ -60,7 +60,7 @@ class StorageMap extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private AbstractSequentialBlockchain blockchain;
+	private AbstractSequentialNode blockchain;
 
 	/**
 	 * The first object, that holds all funds initially.
