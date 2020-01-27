@@ -99,7 +99,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	/**
 	 * The HotMoka node that is running the transaction.
 	 */
-	protected final Node node;
+	public final Node node;
 
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
@@ -543,10 +543,5 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	@Override
 	public EngineClassLoaderImpl getClassLoader() {
 		return classLoader;
-	}
-
-	@Override
-	public Node getNode() {
-		return node;
 	}
 }

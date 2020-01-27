@@ -37,7 +37,7 @@ import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.EngineClassLoader;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 
 /**
@@ -57,7 +57,7 @@ public class UpdatesExtractor {
 	 * @param objects the storage objects whose updates must be computed (for them and
 	 *                for the objects recursively reachable from them)
 	 */
-	public UpdatesExtractor(TransactionRun run, Stream<Object> objects) {
+	public UpdatesExtractor(AbstractTransactionRun<?,?> run, Stream<Object> objects) {
 		new Builder(run, objects);
 	}
 
@@ -71,12 +71,12 @@ public class UpdatesExtractor {
 	}
 
 	private class Builder {
-		private final TransactionRun run;
+		private final AbstractTransactionRun<?,?> run;
 		private final EngineClassLoader classLoader;
 		private final List<Object> workingSet;
 		private final Set<StorageReference> seen = new HashSet<>();
 
-		private Builder(TransactionRun run, Stream<Object> objects) {
+		private Builder(AbstractTransactionRun<?,?> run, Stream<Object> objects) {
 			this.run = run;
 			this.classLoader = run.getClassLoader();
 			this.workingSet = objects
@@ -101,7 +101,7 @@ public class UpdatesExtractor {
 				this.inStorage = classLoader.getInStorageOf(object);
 
 				if (!inStorage)
-					updates.add(new ClassTag(storageReference, clazz.getName(), run.getNode().transactionThatInstalledJarFor(clazz)));
+					updates.add(new ClassTag(storageReference, clazz.getName(), run.node.transactionThatInstalledJarFor(clazz)));
 
 				while (clazz != classLoader.getStorage()) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);

@@ -40,7 +40,7 @@ import io.takamaka.code.verification.Dummy;
 public class Deserializer {
 
 	/**
-	 * The blockchain for which deserialization is performed.
+	 * The HotMoka node for which deserialization is performed.
 	 */
 	private final AbstractTransactionRun<?,?> run;
 
@@ -159,7 +159,7 @@ public class Deserializer {
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, run.getNode().getLastEagerUpdatesFor(reference, run));
+			return createStorageObject(reference, run.node.getLastEagerUpdatesFor(reference, run));
 		}
 		catch (DeserializationError e) {
 			throw e;
@@ -201,7 +201,7 @@ public class Deserializer {
 				throw new DeserializationError("No class tag found for " + reference);
 
 			Class<?> clazz = run.getClassLoader().loadClass(classTag.className);
-			TransactionReference actual = run.getNode().transactionThatInstalledJarFor(clazz);
+			TransactionReference actual = run.node.transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
 				throw new DeserializationError("Class " + classTag.className + " was instantiated from jar at " + expected + " not from jar at " + actual);

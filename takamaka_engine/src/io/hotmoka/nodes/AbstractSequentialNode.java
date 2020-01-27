@@ -376,7 +376,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 */
 	private TransactionResponse getResponseAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
 		run.chargeForCPU(getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		return run.getNode().getResponseAt(transaction);
+		return getResponseAt(transaction);
 	}
 
 	/**

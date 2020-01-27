@@ -29,7 +29,7 @@ import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -39,6 +39,11 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
  * of Takamaka methods or constructors executed during a transaction.
  */
 public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLoader {
+
+	/**
+	 * The HotMoka node for which deserialization is performed.
+	 */
+	private final AbstractTransactionRun<?,?> run;
 
 	/**
 	 * The parent of this class loader;
@@ -101,8 +106,9 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 * @param classpath the class path
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoaderImpl(Classpath classpath, TransactionRun run) throws Exception {
-		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), run, null));
+	public EngineClassLoaderImpl(Classpath classpath, AbstractTransactionRun<?,?> run) throws Exception {
+		this.run = run;
+		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), null));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -131,8 +137,9 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 * @param dependencies the dependencies
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoaderImpl(Path jar, Stream<Classpath> dependencies, TransactionRun run) throws Exception {
-		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, run, jar.toUri()));
+	public EngineClassLoaderImpl(Path jar, Stream<Classpath> dependencies, AbstractTransactionRun<?,?> run) throws Exception {
+		this.run = run;
+		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, jar.toUri()));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -154,7 +161,7 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		this.inStorage.setAccessible(true); // it was private
 	}
 
-	private URL[] collectURLs(Stream<Classpath> classpaths, TransactionRun run, URI start) throws Exception {
+	private URL[] collectURLs(Stream<Classpath> classpaths, URI start) throws Exception {
 		List<URL> urls = new ArrayList<>();
 		if (start != null) {
 			urls.add(start.toURL());
@@ -162,7 +169,7 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
-			urls = addURLs(classpath, run, urls);
+			urls = addURLs(classpath, urls);
 
 		return urls.toArray(new URL[urls.size()]);
 	}
@@ -174,9 +181,9 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 * @return the request
 	 * @throws Exception if the request could not be found
 	 */
-	private static TransactionRequest<?> getRequestAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
-		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForGettingRequestAt(transaction));
-		return run.getNode().getRequestAt(transaction);
+	private TransactionRequest<?> getRequestAndCharge(TransactionReference transaction) throws Exception {
+		run.chargeForCPU(run.node.getGasCostModel().cpuCostForGettingRequestAt(transaction));
+		return run.node.getRequestAt(transaction);
 	}
 
 	/**
@@ -186,30 +193,30 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 * @return the response
 	 * @throws Exception if the response could not be found
 	 */
-	private static TransactionResponse getResponseAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
-		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		return run.getNode().getResponseAt(transaction);
+	private TransactionResponse getResponseAndCharge(TransactionReference transaction) throws Exception {
+		run.chargeForCPU(run.node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
+		return run.node.getResponseAt(transaction);
 	}
 
-	private List<URL> addURLs(Classpath classpath, TransactionRun run, List<URL> bag) throws Exception {
+	private List<URL> addURLs(Classpath classpath, List<URL> bag) throws Exception {
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
-			TransactionRequest<?> request = getRequestAndCharge(classpath.transaction, run);
+			TransactionRequest<?> request = getRequestAndCharge(classpath.transaction);
 			if (!(request instanceof AbstractJarStoreTransactionRequest))
 				throw new IllegalTransactionRequestException("classpath does not refer to a jar store transaction");
 
 			Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-				addURLs(dependency, run, bag);
+				addURLs(dependency, bag);
 		}
 
-		TransactionResponse response = getResponseAndCharge(classpath.transaction, run);
+		TransactionResponse response = getResponseAndCharge(classpath.transaction);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalTransactionRequestException("classpath does not refer to a successful jar store transaction");
 
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
-		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
-		run.chargeForRAM(run.getNode().getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
+		run.chargeForCPU(run.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
+		run.chargeForRAM(run.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 
 		try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
 			Path classpathElement = Files.createTempFile("takamaka_", "@" + classpath.transaction + ".jar");
