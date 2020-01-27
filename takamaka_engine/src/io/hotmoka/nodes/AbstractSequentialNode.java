@@ -3,11 +3,13 @@ package io.hotmoka.nodes;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,7 +52,6 @@ import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.SequentialTransactionReference;
 import io.takamaka.code.engine.Transaction;
-import io.takamaka.code.engine.TransactionRun;
 
 /**
  * A generic implementation of a blockchain that extends immediately when
@@ -89,10 +90,10 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandBlockchainWith(Transaction<Request, Response> transaction) throws Exception;
 
 	@Override
-	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, TransactionRun run) throws Exception {
+	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, EngineClassLoader classLoader) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	
-		TransactionResponse response = getResponseAndCharge(transaction, run);
+		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);
 		if (!(response instanceof TransactionResponseWithUpdates))
 			throw new DeserializationError("Storage reference " + reference + " does not contain updates");
 	
@@ -109,7 +110,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 			throw new DeserializationError("No class tag found for " + reference);
 	
 		// we drop updates to non-final fields
-		Set<Field> eagerFields = collectEagerFieldsOf(classTag.get().className, run);
+		Set<Field> eagerFields = collectEagerFieldsOf(classTag.get().className, classLoader);
 		Iterator<Update> it = updates.iterator();
 		while (it.hasNext())
 			if (updatesNonFinalField(it.next(), eagerFields))
@@ -117,15 +118,15 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	
 		// the updates set contains the updates to eager final fields now:
 		// we must still collect the latest updates to the eager non-final fields
-		return collectEagerUpdatesFor(reference, updates, eagerFields.size(), run);
+		return collectEagerUpdatesFor(reference, updates, eagerFields.size(), chargeForCPU);
 	}
 
 	@Override
-	public UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field, TransactionRun run) throws Exception {
+	public UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
 		// goes back from the previous transaction;
 		// there is no reason to look before the transaction that created the object
 		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
-			Optional<UpdateOfField> update = getLastUpdateFor(object, field, cursor, run);
+			Optional<UpdateOfField> update = getLastUpdateFor(object, field, cursor, chargeForCPU);
 			if (update.isPresent())
 				return update.get();
 		}
@@ -134,9 +135,9 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	@Override
-	public UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field, TransactionRun run) throws Exception {
+	public UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
 		// goes directly to the transaction that created the object
-		return getLastUpdateFor(object, field, object.transaction, run).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
+		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
 
 	/**
@@ -338,14 +339,14 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @param eagerFields the number of eager fields whose latest update needs to be found
 	 * @throws Exception if the operation fails
 	 */
-	private Stream<Update> collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields, TransactionRun run) throws Exception {
+	private Stream<Update> collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields, Consumer<BigInteger> chargeForCPU) throws Exception {
 		// goes back from the transaction that precedes that being executed;
 		// there is no reason to look before the transaction that created the object;
 		// moreover, there is no reason to look beyond the total number of fields
 		// whose update was expected to be found
 		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); updates.size() <= eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
 			// adds the eager updates from the cursor, if any and if they are the latest
-			addEagerUpdatesFor(object, cursor, updates, run);
+			addEagerUpdatesFor(object, cursor, updates, chargeForCPU);
 
 		return updates.stream();
 	}
@@ -359,8 +360,8 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @param updates the set where they must be added
 	 * @throws IOException if there is an error while accessing the disk
 	 */
-	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates, TransactionRun run) throws Exception {
-		TransactionResponse response = getResponseAndCharge(transaction, run);
+	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates, Consumer<BigInteger> chargeForCPU) throws Exception {
+		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);
 		if (response instanceof TransactionResponseWithUpdates)
 			((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
@@ -374,8 +375,8 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @return the response
 	 * @throws Exception if the response could not be found
 	 */
-	private TransactionResponse getResponseAndCharge(TransactionReference transaction, TransactionRun run) throws Exception {
-		run.chargeForCPU(getGasCostModel().cpuCostForGettingResponseAt(transaction));
+	private TransactionResponse getResponseAndCharge(TransactionReference transaction, Consumer<BigInteger> chargeForCPU) throws Exception {
+		chargeForCPU.accept(getGasCostModel().cpuCostForGettingResponseAt(transaction));
 		return getResponseAt(transaction);
 	}
 
@@ -401,8 +402,8 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @return the update, if any. If the field of {@code reference} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
-	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction, TransactionRun run) throws Exception {
-		TransactionResponse response = getResponseAndCharge(transaction, run);
+	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction, Consumer<BigInteger> chargeForCPU) throws Exception {
+		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof UpdateOfField)
@@ -466,8 +467,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @param className the name of the storage class
 	 * @return the eager fields
 	 */
-	private static Set<Field> collectEagerFieldsOf(String className, TransactionRun run) throws ClassNotFoundException {
-		EngineClassLoader classLoader = run.getClassLoader();
+	private static Set<Field> collectEagerFieldsOf(String className, EngineClassLoader classLoader) throws ClassNotFoundException {
 		Set<Field> bag = new HashSet<>();
 		Class<?> storage = classLoader.getStorage();
 

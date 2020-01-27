@@ -1,5 +1,7 @@
 package io.hotmoka.nodes;
 
+import java.math.BigInteger;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.TransactionReference;
@@ -9,7 +11,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.EngineClassLoader;
 
 /**
  * A node of the HotMoka network, that provides the storage
@@ -70,7 +72,7 @@ public interface Node {
 	 * @return the updates; these include the class tag update for the reference
 	 * @throws Exception if the updates cannot be found
 	 */
-	Stream<Update> getLastEagerUpdatesFor(StorageReference storageReference, TransactionRun run) throws Exception;
+	Stream<Update> getLastEagerUpdatesFor(StorageReference storageReference, Consumer<BigInteger> chargeForCPU, EngineClassLoader classLoader) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given non-{@code final} field,
@@ -82,7 +84,7 @@ public interface Node {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference storageReference, FieldSignature field, TransactionRun run) throws Exception;
+	UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given {@code final} field,
@@ -97,7 +99,7 @@ public interface Node {
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
-	UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference storageReference, FieldSignature field, TransactionRun run) throws Exception;
+	UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception;
 
 	/**
 	 * Yields the UTC time that must be used for a transaction, if it is executed

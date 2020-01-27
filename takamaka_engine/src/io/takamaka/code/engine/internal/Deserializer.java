@@ -159,7 +159,7 @@ public class Deserializer {
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, run.node.getLastEagerUpdatesFor(reference, run));
+			return createStorageObject(reference, run.node.getLastEagerUpdatesFor(reference, run::chargeForCPU, run.getClassLoader()));
 		}
 		catch (DeserializationError e) {
 			throw e;

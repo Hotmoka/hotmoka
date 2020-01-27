@@ -80,23 +80,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
 
 	/**
-	 * A stack of available gas. When a sub-computation is started
-	 * with a subset of the available gas, the latter is taken away from
-	 * the current available gas and pushed on top of this stack.
-	 */
-	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
-
-	/**
-	 * The reference to the transaction where this must be executed.
-	 */
-	private final TransactionReference current;
-
-	/**
-	 * The remaining amount of gas for the current transaction, not yet consumed.
-	 */
-	private BigInteger gas;
-
-	/**
 	 * The HotMoka node that is running the transaction.
 	 */
 	public final Node node;
@@ -125,6 +108,23 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * The class loader for the transaction currently being executed.
 	 */
 	protected EngineClassLoaderImpl classLoader;
+
+	/**
+	 * A stack of available gas. When a sub-computation is started
+	 * with a subset of the available gas, the latter is taken away from
+	 * the current available gas and pushed on top of this stack.
+	 */
+	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
+
+	/**
+	 * The reference to the transaction where this must be executed.
+	 */
+	private final TransactionReference current;
+
+	/**
+	 * The remaining amount of gas for the current transaction, not yet consumed.
+	 */
+	private BigInteger gas;
 
 	private final long now;
 
@@ -355,12 +355,12 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	
 	@Override
 	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this).getValue());
+		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this::chargeForCPU).getValue());
 	}
 
 	@Override
 	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this).getValue());
+		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this::chargeForCPU).getValue());
 	}
 
 	/**
