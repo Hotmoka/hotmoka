@@ -24,7 +24,7 @@ public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarSto
 		try (TempJarFile original = new TempJarFile(request.getJar());
 			EngineClassLoaderImpl jarClassLoader = new EngineClassLoaderImpl(original.toPath(), request.getDependencies(), this)) {
 			VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, true);
-			InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
+			InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, new GasCostModelAdapter(node.getGasCostModel()));
 			return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
 		}
 	}

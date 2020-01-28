@@ -101,6 +101,11 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	private final Field inStorage;
 
 	/**
+	 * The field {@link io.takamaka.code.lang.Contract#balance}.
+	 */
+	private final Field balanceField;
+
+	/**
 	 * Builds the class loader for the given class path and its dependencies.
 	 * 
 	 * @param classpath the class path
@@ -128,6 +133,8 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		this.storageReference.setAccessible(true); // it was private
 		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
 		this.inStorage.setAccessible(true); // it was private
+		this.balanceField = contract.getDeclaredField("balance");
+		this.balanceField.setAccessible(true); // it was private
 	}
 
 	/**
@@ -159,6 +166,8 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		this.storageReference.setAccessible(true); // it was private
 		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
 		this.inStorage.setAccessible(true); // it was private
+		this.balanceField = contract.getDeclaredField("balance");
+		this.balanceField.setAccessible(true); // it was private
 	}
 
 	private URL[] collectURLs(Stream<Classpath> classpaths, URI start) throws Exception {
@@ -257,6 +266,26 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 		catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new IllegalStateException("cannot read the inStorage tag of a storage object of class " + object.getClass().getName());
+		}
+	}
+
+	@Override
+	public final BigInteger getBalanceOf(Object object) {
+		try {
+			return (BigInteger) balanceField.get(object);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot read the balance field of a contract object of class " + object.getClass().getName());
+		}
+	}
+
+	@Override
+	public final void setBalanceOf(Object object, BigInteger value) {
+		try {
+			balanceField.set(object, value);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot write the balance field of a contract object of class " + object.getClass().getName());
 		}
 	}
 

@@ -101,9 +101,11 @@ public class StandardGasCostModel implements GasCostModel {
 		return BigInteger.valueOf(numBytes / 1000);
 	}
 
+	private final static BigInteger CPU_BASE_TRANSACTION_COST = BigInteger.valueOf(10);
+
 	@Override
-	public int cpuBaseTransactionCost() {
-		return 10;
+	public BigInteger cpuBaseTransactionCost() {
+		return CPU_BASE_TRANSACTION_COST;
 	}
 
 	@Override

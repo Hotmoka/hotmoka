@@ -29,6 +29,22 @@ public interface EngineClassLoader extends AutoCloseable {
 	boolean getInStorageOf(Object object);
 
 	/**
+	 * Yields the value of the {@code balance} field of the given contract in RAM.
+	 * 
+	 * @param object the contract
+	 * @return the value of the field
+	 */
+	BigInteger getBalanceOf(Object object);
+
+	/**
+	 * Sets the value of the {@code balance} field of the given contract in RAM.
+	 * 
+	 * @param object the contract
+	 * @param value to value to set for the balance of the contract
+	 */
+	void setBalanceOf(Object object, BigInteger value);
+
+	/**
 	 * Called at the beginning of the instrumentation of an entry method or constructor
 	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Contract.entry()}.
 	 * 

@@ -46,21 +46,21 @@ public class ConstructorCallTransactionRun extends AbstractTransactionRun<Constr
 				executor.join();
 
 				if (executor.exception instanceof InvocationTargetException) {
-					ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
-					return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 
 				if (executor.exception != null)
 					throw executor.exception;
 
 				ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(executor.result), executor.updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(deserializedCaller);
 				return new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(executor.result), executor.updates(), events.stream().map(classLoader::getStorageReferenceOf), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(executor.result), executor.updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller

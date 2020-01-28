@@ -155,7 +155,7 @@ public interface GasCostModel {
 	 * 
 	 * @return the cost
 	 */
-	int cpuBaseTransactionCost();
+	BigInteger cpuBaseTransactionCost();
 
 	/**
 	 * Yields the CPU gas cost for accessing from blockchain the request at the given transaction.

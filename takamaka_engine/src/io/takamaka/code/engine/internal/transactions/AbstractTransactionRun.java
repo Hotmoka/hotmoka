@@ -1,13 +1,13 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -21,15 +21,11 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.OutOfGasError;
@@ -85,29 +81,29 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	public final Node node;
 
 	/**
-	 * The events accumulated during the current transaction. This is reset at each transaction.
-	 */
-	protected final List<Object> events = new ArrayList<>();
-
-	/**
 	 * The amount of gas consumed for CPU execution.
 	 */
-	protected BigInteger gasConsumedForCPU;
+	protected BigInteger gasConsumedForCPU = BigInteger.ZERO;
 
 	/**
 	 * The amount of gas consumed for RAM allocation.
 	 */
-	protected BigInteger gasConsumedForRAM;
+	protected BigInteger gasConsumedForRAM = BigInteger.ZERO;
 
 	/**
 	 * The amount of gas consumed for storage consumption.
 	 */
-	protected BigInteger gasConsumedForStorage;
+	protected BigInteger gasConsumedForStorage = BigInteger.ZERO;
 
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
 	public EngineClassLoaderImpl classLoader;
+
+	/**
+	 * The events accumulated during the current transaction. This is reset at each transaction.
+	 */
+	private final List<Object> events = new ArrayList<>();
 
 	/**
 	 * A stack of available gas. When a sub-computation is started
@@ -138,9 +134,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		this.deserializer = new Deserializer(this);
 		this.gas = gas;
 		this.sizeCalculator = new SizeCalculator(node.getGasCostModel());
-		this.gasConsumedForCPU = BigInteger.ZERO;
-		this.gasConsumedForRAM = BigInteger.ZERO;
-		this.gasConsumedForStorage = BigInteger.ZERO;
 		this.current = current;
 		this.response = wrapInCaseOfException(this::computeResponse);
 	}
@@ -151,53 +144,35 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	}
 
 	@Override
-	public long now() {
+	public final long now() {
 		return now;
+	}
+
+	private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
+		if (amount.signum() < 0)
+			throw new IllegalArgumentException("Gas cannot increase");
+
+		// gas can be negative only if it was initialized so; this special case is
+		// used for the creation of the gamete, when gas should not be counted
+		if (gas.signum() < 0)
+			return;
+
+		if (gas.compareTo(amount) < 0)
+			// we report how much gas is missing
+			throw new OutOfGasError();
+	
+		gas = gas.subtract(amount);
+		forWhat.accept(amount);
 	}
 
 	@Override
 	public final void chargeForCPU(BigInteger amount) {
-		if (amount.signum() < 0)
-			throw new IllegalArgumentException("Gas cannot increase");
-
-		// gas can be negative only if it was initialized so; this special case is
-		// used for the creation of the gamete, when gas should not be counted
-		if (gas.signum() < 0)
-			return;
-
-		if (gas.compareTo(amount) < 0)
-			// we report how much gas is missing
-			throw new OutOfGasError();
-	
-		gas = gas.subtract(amount);
-		gasConsumedForCPU = gasConsumedForCPU.add(amount);
-	}
-
-	/**
-	 * Decreases the available gas by the given amount, for CPU execution.
-	 * 
-	 * @param amount the amount of gas to consume
-	 */
-	protected final void chargeForCPU(int amount) {
-		chargeForCPU(BigInteger.valueOf(amount));
+		charge(amount, x -> gasConsumedForCPU = gasConsumedForCPU.add(x));
 	}
 
 	@Override
 	public final void chargeForRAM(BigInteger amount) {
-		if (amount.signum() < 0)
-			throw new IllegalArgumentException("Gas cannot increase");
-
-		// gas can be negative only if it was initialized so; this special case is
-		// used for the creation of the gamete, when gas should not be counted
-		if (gas.signum() < 0)
-			return;
-
-		if (gas.compareTo(amount) < 0)
-			// we report how much gas is missing
-			throw new OutOfGasError();
-	
-		gas = gas.subtract(amount);
-		gasConsumedForRAM = gasConsumedForRAM.add(amount);
+		charge(amount, x -> gasConsumedForRAM = gasConsumedForRAM.add(x));
 	}
 
 	/**
@@ -206,20 +181,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @param amount the amount of gas to consume
 	 */
 	public final void chargeForStorage(BigInteger amount) {
-		if (amount.signum() < 0)
-			throw new IllegalArgumentException("Gas cannot increase");
-
-		// gas can be negative only if it was initialized so; this special case is
-		// used for the creation of the gamete, when gas should not be counted
-		if (gas.signum() < 0)
-			return;
-
-		if (gas.compareTo(amount) < 0)
-			// we report how much gas is missing
-			throw new OutOfGasError();
-	
-		gas = gas.subtract(amount);
-		gasConsumedForStorage = gasConsumedForStorage.add(amount);
+		charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
 	}
 
 	@Override
@@ -246,113 +208,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 
 	protected abstract Response computeResponse() throws Exception;
 
-	/**
-	 * Yields an adapter of the gas cost model for instrumentation.
-	 * 
-	 * @return the adapted gas model
-	 */
-	protected final io.takamaka.code.instrumentation.GasCostModel gasModelAsForInstrumentation() {
-		return new io.takamaka.code.instrumentation.GasCostModel() {
-
-			private final GasCostModel gasCostModel = node.getGasCostModel();
-
-			@Override
-			public int cpuCostOfArithmeticInstruction() {
-				return gasCostModel.cpuCostOfArithmeticInstruction();
-			}
-
-			@Override
-			public int cpuCostOfArrayAccessInstruction() {
-				return gasCostModel.cpuCostOfArrayAccessInstruction();
-			}
-
-			@Override
-			public int cpuCostOfFieldAccessInstruction() {
-				return gasCostModel.cpuCostOfFieldAccessInstruction();
-			}
-
-			@Override
-			public int cpuCostOfInstruction() {
-				return gasCostModel.cpuCostOfInstruction();
-			}
-
-			@Override
-			public int cpuCostOfInvokeInstruction() {
-				return gasCostModel.cpuCostOfInvokeInstruction();
-			}
-
-			@Override
-			public int cpuCostOfMemoryAllocationInstruction() {
-				return gasCostModel.cpuCostOfMemoryAllocationInstruction();
-			}
-
-			@Override
-			public int cpuCostOfSelectInstruction() {
-				return gasCostModel.cpuCostOfSelectInstruction();
-			}
-
-			@Override
-			public int ramCostOfActivationRecord() {
-				return gasCostModel.ramCostOfActivationRecord();
-			}
-
-			@Override
-			public int ramCostOfActivationSlot() {
-				return gasCostModel.ramCostOfActivationSlot();
-			}
-
-			@Override
-			public int ramCostOfArray() {
-				return gasCostModel.ramCostOfArray();
-			}
-
-			@Override
-			public int ramCostOfArraySlot() {
-				return gasCostModel.ramCostOfArraySlot();
-			}
-
-			@Override
-			public int ramCostOfField() {
-				return gasCostModel.ramCostOfField();
-			}
-
-			@Override
-			public int ramCostOfObject() {
-				return gasCostModel.ramCostOfObject();
-			}
-		};
-	}
-
-	/**
-	 * Yields the run-time class of the given object.
-	 * 
-	 * @param object the object
-	 * @return the name of the class
-	 * @throws DeserializationError if the class of the object cannot be found
-	 */
-	public final String getClassNameOf(StorageReference object) {
-		try {
-			TransactionResponse response = node.getResponseAt(object.transaction);
-			if (response instanceof TransactionResponseWithUpdates) {
-				Optional<ClassTag> classTag = ((TransactionResponseWithUpdates) response).getUpdates()
-					.filter(update -> update instanceof ClassTag)
-					.map(update -> (ClassTag) update)
-					.findFirst();
-
-				if (classTag.isPresent())
-					return classTag.get().className;
-			}
-		}
-		catch (DeserializationError e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw new DeserializationError(e);
-		}
-
-		throw new DeserializationError("Did not find the class tag for " + object);
-	}
-	
 	@Override
 	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
 		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this::chargeForCPU).getValue());
@@ -372,13 +227,8 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @return the update to the balance that would follow if the failed transaction request is added to the blockchain
 	 * @throws IllegalTransactionRequestException if the caller has not enough money to buy the promised gas and the addition
 	 *                                            of a failed transaction response to blockchain
-	 * @throws ClassNotFoundException if the balance of the account cannot be correctly modified
-	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
-	 * @throws SecurityException if the balance of the account cannot be correctly modified
-	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
-	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	protected final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+	protected final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) throws IllegalTransactionRequestException {
 		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
 		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(classLoader.getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 
@@ -388,24 +238,26 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		return balanceUpdateInCaseOfFailure;
 	}
 
+	/**
+	 * Yields the storage references of the events generated so far.
+	 * 
+	 * @return the storage references
+	 */
+	protected final Stream<StorageReference> events() {
+		return events.stream().map(classLoader::getStorageReferenceOf);
+	}
+
 	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request, UpdateOfBalance balanceUpdateInCaseOfFailure) throws IllegalTransactionRequestException {
 		// we create a response whose size over-approximates that of a response in case of failure of this request
+		BigInteger result = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOf(request));
 		if (request instanceof ConstructorCallTransactionRequest)
-			return BigInteger.valueOf(node.getGasCostModel().cpuBaseTransactionCost())
-				.add(sizeCalculator.sizeOf(request))
-				.add(sizeCalculator.sizeOf(new ConstructorCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOf(new ConstructorCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else if (request instanceof InstanceMethodCallTransactionRequest)
-			return BigInteger.valueOf(node.getGasCostModel().cpuBaseTransactionCost())
-				.add(sizeCalculator.sizeOf(request))
-				.add(sizeCalculator.sizeOf(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOf(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else if (request instanceof StaticMethodCallTransactionRequest)
-			return BigInteger.valueOf(node.getGasCostModel().cpuBaseTransactionCost())
-				.add(sizeCalculator.sizeOf(request))
-				.add(sizeCalculator.sizeOf(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOf(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else if (request instanceof JarStoreTransactionRequest)
-			return BigInteger.valueOf(node.getGasCostModel().cpuBaseTransactionCost())
-				.add(sizeCalculator.sizeOf(request))
-				.add(sizeCalculator.sizeOf(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOf(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else
 			throw new IllegalTransactionRequestException("unexpected transaction request");
 	}
@@ -434,25 +286,13 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @return the balance of the contract after paying the given amount of gas
 	 * @throws IllegalTransactionRequestException if the externally owned account does not have funds
 	 *                                            for buying the given amount of gas
-	 * @throws ClassNotFoundException if the balance of the account cannot be correctly modified
-	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
-	 * @throws SecurityException if the balance of the account cannot be correctly modified
-	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
-	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	private BigInteger decreaseBalance(Object eoa, BigInteger gas)
-			throws IllegalTransactionRequestException, ClassNotFoundException, NoSuchFieldException,
-			SecurityException, IllegalArgumentException, IllegalAccessException {
-	
-		BigInteger delta = node.getGasCostModel().toCoin(gas);
-		Field balanceField = classLoader.getContract().getDeclaredField("balance");
-		balanceField.setAccessible(true); // since the field is private
-		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
-		if (previousBalance.compareTo(delta) < 0)
+	private BigInteger decreaseBalance(Object eoa, BigInteger gas) throws IllegalTransactionRequestException {
+		BigInteger result = classLoader.getBalanceOf(eoa).subtract(node.getGasCostModel().toCoin(gas));
+		if (result.signum() < 0)
 			throw new IllegalTransactionRequestException("Caller has not enough funds to buy " + gas + " units of gas");
 
-		BigInteger result = previousBalance.subtract(delta);
-		balanceField.set(eoa, result);
+		classLoader.setBalanceOf(eoa, result);
 		return result;
 	}
 
@@ -462,35 +302,11 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @param eoa the reference to the externally owned account
 	 * @param gas the gas to buy back
 	 * @return the balance of the contract after buying back the given amount of gas
-	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
-	 * @throws SecurityException if the balance of the account cannot be correctly modified
-	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
-	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
 	 */
-	protected final BigInteger increaseBalance(Object eoa) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-		BigInteger delta = node.getGasCostModel().toCoin(gas);
-		Field balanceField = classLoader.getContract().getDeclaredField("balance");
-		balanceField.setAccessible(true); // since the field is private
-		BigInteger previousBalance = (BigInteger) balanceField.get(eoa);
-		BigInteger result = previousBalance.add(delta);
-		balanceField.set(eoa, result);
+	protected final BigInteger increaseBalance(Object eoa) {
+		BigInteger result = classLoader.getBalanceOf(eoa).add(node.getGasCostModel().toCoin(gas));
+		classLoader.setBalanceOf(eoa, result);
 		return result;
-	}
-
-	/**
-	 * Yields the balance of the given externally owned account.
-	 * 
-	 * @param eoa the reference to the externally owned account
-	 * @return the balance of {@code eoa}
-	 * @throws NoSuchFieldException if the balance of the account cannot be correctly modified
-	 * @throws SecurityException if the balance of the account cannot be correctly modified
-	 * @throws IllegalArgumentException if the balance of the account cannot be correctly modified
-	 * @throws IllegalAccessException if the balance of the account cannot be correctly modified
-	 */
-	protected final BigInteger getBalanceOf(Object eoa) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-		Field balanceField = classLoader.getContract().getDeclaredField("balance");
-		balanceField.setAccessible(true); // since the field is private
-		return (BigInteger) balanceField.get(eoa);
 	}
 
 	/**
@@ -499,7 +315,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @param object the object to check
 	 * @throws IllegalTransactionRequestException if the object is not an externally owned account
 	 */
-	protected final void checkIsExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
+	protected final void checkIsExternallyOwned(Object object) throws IllegalTransactionRequestException {
 		Class<? extends Object> clazz = object.getClass();
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))

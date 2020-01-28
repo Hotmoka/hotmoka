@@ -49,11 +49,11 @@ public class JarStoreTransactionRun extends AbstractTransactionRun<JarStoreTrans
 				try (TempJarFile original = new TempJarFile(jar);
 					 EngineClassLoaderImpl jarClassLoader = new EngineClassLoaderImpl(original.toPath(), request.getDependencies(), this)) {
 					VerifiedJar verifiedJar = VerifiedJar.of(original.toPath(), jarClassLoader, false);
-					InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasModelAsForInstrumentation());
+					InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, new GasCostModelAdapter(node.getGasCostModel()));
 					instrumentedBytes = instrumentedJar.toBytes();
 				}
 
-				BigInteger balanceOfCaller = getBalanceOf(deserializedCaller);
+				BigInteger balanceOfCaller = classLoader.getBalanceOf(deserializedCaller);
 				StorageReference storageReferenceOfDeserializedCaller = classLoader.getStorageReferenceOf(deserializedCaller);
 				UpdateOfBalance balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
 				JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
