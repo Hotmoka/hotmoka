@@ -1,6 +1,5 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
@@ -14,7 +13,7 @@ import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
 	public GameteCreationTransactionRun(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
-		super(request, current, node, BigInteger.valueOf(-1L)); // we do not count gas for this creation
+		super(request, current, node);
 	}
 
 	@Override

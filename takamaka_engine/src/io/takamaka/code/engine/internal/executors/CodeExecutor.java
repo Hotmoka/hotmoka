@@ -34,6 +34,7 @@ import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 import io.takamaka.code.engine.runtime.Runtime;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
@@ -43,8 +44,13 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * from the class path and deserializes receiver and actuals (if any). It then calls the code and serializes
  * the resulting value back (if any).
  */
-public abstract class CodeExecutor<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends TransactionExecutor<Request, Response> {
+public abstract class CodeExecutor<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends Thread {
 	public final UpdateOfBalance balanceUpdateInCaseOfFailure;
+
+	/**
+	 * The engine for which code is being executed.
+	 */
+	protected final AbstractTransactionRun<Request, Response> run;
 
 	/**
 	 * The class loader of the transaction being executed.
@@ -114,16 +120,15 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	 * @param actuals the actuals provided to the method or constructor
 	 * @throws TransactionException 
 	 */
-	protected CodeExecutor(AbstractTransactionRun<Request, Response> run, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) throws IllegalTransactionRequestException, TransactionException {
-		super(run);
-
+	protected CodeExecutor(NonInitialTransactionRun<Request, Response> run, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) throws IllegalTransactionRequestException, TransactionException {
 		try {
-			deserializedCaller = run.deserializer.deserialize(run.request.caller);
+			this.run = run;
+			this.deserializedCaller = run.deserializer.deserialize(run.request.caller);
 			run.checkIsExternallyOwned(deserializedCaller);
 
 			// we sell all gas first: what remains will be paid back at the end;
 			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-			balanceUpdateInCaseOfFailure = run.checkMinimalGas(run.request, deserializedCaller);
+			this.balanceUpdateInCaseOfFailure = run.checkMinimalGas(run.request, deserializedCaller);
 			run.chargeForCPU(run.node.getGasCostModel().cpuBaseTransactionCost());
 			run.chargeForStorage(run.sizeCalculator.sizeOf(run.request));
 			Runtime.init(this);

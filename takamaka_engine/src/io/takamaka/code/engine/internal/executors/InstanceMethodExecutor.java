@@ -12,7 +12,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 
 /**
  * The thread that executes an instance method of a storage object. It creates the class loader
@@ -31,7 +31,7 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 	 * @throws TransactionException 
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public InstanceMethodExecutor(AbstractTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> run, MethodSignature method, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
+	public InstanceMethodExecutor(NonInitialTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> run, MethodSignature method, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
 		super(run, method, receiver, actuals);
 	}
 

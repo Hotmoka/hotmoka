@@ -1,7 +1,5 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import java.math.BigInteger;
-
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
@@ -14,7 +12,7 @@ import io.takamaka.code.verification.VerifiedJar;
 
 public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 	public JarStoreInitialTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
-		super(request, current, node, BigInteger.valueOf(-1L)); // we do not count gas for this creation
+		super(request, current, node);
 	}
 
 	@Override

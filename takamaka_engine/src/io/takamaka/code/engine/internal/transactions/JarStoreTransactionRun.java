@@ -16,10 +16,10 @@ import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
-public class JarStoreTransactionRun extends AbstractTransactionRun<JarStoreTransactionRequest, JarStoreTransactionResponse> {
+public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTransactionRequest, JarStoreTransactionResponse> {
 
 	public JarStoreTransactionRun(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
-		super(request, current, node, request.gas);
+		super(request, current, node);
 	}
 
 	@Override

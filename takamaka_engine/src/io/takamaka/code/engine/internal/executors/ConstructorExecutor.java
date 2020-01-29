@@ -10,7 +10,7 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 
 /**
  * The thread that executes a constructor of a storage object. It creates the class loader
@@ -29,7 +29,7 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 	 * @throws TransactionException 
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public ConstructorExecutor(AbstractTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> run, ConstructorSignature constructor, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
+	public ConstructorExecutor(NonInitialTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> run, ConstructorSignature constructor, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
 		super(run, constructor, null, actuals);
 	}
 

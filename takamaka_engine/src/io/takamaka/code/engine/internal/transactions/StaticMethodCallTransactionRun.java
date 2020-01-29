@@ -18,10 +18,10 @@ import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.executors.StaticMethodExecutor;
 
-public class StaticMethodCallTransactionRun extends AbstractTransactionRun<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> {
+public class StaticMethodCallTransactionRun extends NonInitialTransactionRun<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> {
 
 	public StaticMethodCallTransactionRun(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
-		super(request, current, node, request.gas);
+		super(request, current, node);
 	}
 
 	@Override

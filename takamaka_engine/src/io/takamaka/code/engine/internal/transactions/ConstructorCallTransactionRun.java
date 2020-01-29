@@ -16,10 +16,10 @@ import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.executors.ConstructorExecutor;
 
-public class ConstructorCallTransactionRun extends AbstractTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
+public class ConstructorCallTransactionRun extends NonInitialTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
 
 	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
-		super(request, current, node, request.gas);
+		super(request, current, node);
 	}
 
 	@Override
