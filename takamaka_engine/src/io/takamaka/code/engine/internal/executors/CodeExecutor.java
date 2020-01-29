@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -41,12 +43,12 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * from the class path and deserializes receiver and actuals (if any). It then calls the code and serializes
  * the resulting value back (if any).
  */
-public abstract class CodeExecutor extends Thread {
+public abstract class CodeExecutor<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends Thread {
 
 	/**
 	 * The engine for which code is being executed.
 	 */
-	protected final AbstractTransactionRun<?,?> run;
+	protected final AbstractTransactionRun<Request, Response> run;
 
 	/**
 	 * The class loader of the transaction being executed.
@@ -117,7 +119,9 @@ public abstract class CodeExecutor extends Thread {
 	 * @param actuals the actuals provided to the method or constructor
 	 * @throws TransactionException 
 	 */
-	protected CodeExecutor(AbstractTransactionRun<?,?> run, Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException {
+	protected CodeExecutor(AbstractTransactionRun<Request, Response> run, Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException {
+		run.chargeForCPU(run.node.getGasCostModel().cpuBaseTransactionCost());
+		run.chargeForStorage(run.sizeCalculator.sizeOf(run.request));
 		Runtime.init(this);
 		this.run = run;
 		this.now = wrapInCaseOfException(run.node::getNow);

@@ -268,11 +268,10 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	}
 
 	/**
-	 * Buys back the given amount of gas from the given externally owned account.
+	 * Buys back the remaining gas to the given externally owned account.
 	 * 
-	 * @param eoa the reference to the externally owned account
-	 * @param gas the gas to buy back
-	 * @return the balance of the contract after buying back the given amount of gas
+	 * @param eoa the externally owned account
+	 * @return the balance of the contract after buying back the remaining gas
 	 */
 	protected final BigInteger increaseBalance(Object eoa) {
 		BigInteger result = classLoader.getBalanceOf(eoa).add(node.getGasCostModel().toCoin(gas));

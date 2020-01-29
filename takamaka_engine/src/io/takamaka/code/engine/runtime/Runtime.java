@@ -31,7 +31,7 @@ public abstract class Runtime {
 	/**
 	 * The executor of the transaction.
 	 */
-	private static CodeExecutor executor;
+	private static CodeExecutor<?,?> executor;
 
 	/**
 	 * The counter for the next storage object created during the current transaction.
@@ -53,7 +53,7 @@ public abstract class Runtime {
 	 * 
 	 * @param executor the executor of the transaction
 	 */
-	public static void init(CodeExecutor executor) {
+	public static void init(CodeExecutor<?,?> executor) {
 		Runtime.executor = executor;
 	}
 

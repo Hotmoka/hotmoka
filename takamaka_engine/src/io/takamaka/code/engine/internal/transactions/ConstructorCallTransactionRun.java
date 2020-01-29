@@ -14,7 +14,6 @@ import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
-import io.takamaka.code.engine.internal.executors.CodeExecutor;
 import io.takamaka.code.engine.internal.executors.ConstructorExecutor;
 
 public class ConstructorCallTransactionRun extends AbstractTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
@@ -38,10 +37,7 @@ public class ConstructorCallTransactionRun extends AbstractTransactionRun<Constr
 			// after this line, the transaction can be added to the blockchain, possibly as a failed one
 
 			try {
-				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
-				chargeForStorage(sizeCalculator.sizeOf(request));
-
-				CodeExecutor executor = new ConstructorExecutor(this, request.constructor, deserializedCaller, request.actuals());
+				ConstructorExecutor executor = new ConstructorExecutor(this, request.constructor, deserializedCaller, request.actuals());
 				executor.start();
 				executor.join();
 

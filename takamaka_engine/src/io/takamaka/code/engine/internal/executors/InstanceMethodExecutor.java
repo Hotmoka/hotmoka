@@ -6,6 +6,8 @@ import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -16,7 +18,7 @@ import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
  * from the class path and deserializes receiver and actuals. Then calls the code and serializes
  * the resulting value back.
  */
-public class InstanceMethodExecutor extends CodeExecutor {
+public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> {
 
 	/**
 	 * Builds the executor of an instance method.
@@ -28,7 +30,7 @@ public class InstanceMethodExecutor extends CodeExecutor {
 	 * @param actuals the actuals provided to the method
 	 * @throws TransactionException 
 	 */
-	public InstanceMethodExecutor(AbstractTransactionRun<?,?> run, MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException {
+	public InstanceMethodExecutor(AbstractTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> run, MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException {
 		super(run, deserializedCaller, method, receiver, actuals);
 	}
 

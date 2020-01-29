@@ -5,6 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
@@ -14,7 +16,7 @@ import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
  * from the class path and deserializes the actuals. Then calls the code and serializes
  * the resulting value back.
  */
-public class ConstructorExecutor extends CodeExecutor {
+public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
 
 	/**
 	 * Builds the executor of a constructor.
@@ -25,7 +27,7 @@ public class ConstructorExecutor extends CodeExecutor {
 	 * @param actuals the actuals provided to the constructor
 	 * @throws TransactionException 
 	 */
-	public ConstructorExecutor(AbstractTransactionRun<?,?> run, ConstructorSignature constructor, Object deserializedCaller, Stream<StorageValue> actuals) throws TransactionException {
+	public ConstructorExecutor(AbstractTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> run, ConstructorSignature constructor, Object deserializedCaller, Stream<StorageValue> actuals) throws TransactionException {
 		super(run, deserializedCaller, constructor, null, actuals);
 	}
 
