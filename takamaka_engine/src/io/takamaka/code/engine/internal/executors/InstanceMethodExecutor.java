@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -25,8 +26,9 @@ public class InstanceMethodExecutor extends CodeExecutor {
 	 * @param deseralizedCaller the deserialized caller
 	 * @param receiver the receiver of the method
 	 * @param actuals the actuals provided to the method
+	 * @throws TransactionException 
 	 */
-	public InstanceMethodExecutor(AbstractTransactionRun<?,?> run, MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) {
+	public InstanceMethodExecutor(AbstractTransactionRun<?,?> run, MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException {
 		super(run, deserializedCaller, method, receiver, actuals);
 	}
 

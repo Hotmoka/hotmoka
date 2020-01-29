@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -25,6 +27,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
@@ -99,6 +102,11 @@ public abstract class CodeExecutor extends Thread {
 	private final List<Object> events = new ArrayList<>();
 
 	/**
+	 * The time of execution of this transaction.
+	 */
+	private final long now;
+
+	/**
 	 * Builds the executor of a method or constructor.
 	 * 
 	 * @param run the engine for which code is being executed
@@ -107,10 +115,12 @@ public abstract class CodeExecutor extends Thread {
 	 * @param methodOrConstructor the method or constructor to call
 	 * @param receiver the receiver of the call, if any. This is {@code null} for constructors and static methods
 	 * @param actuals the actuals provided to the method or constructor
+	 * @throws TransactionException 
 	 */
-	protected CodeExecutor(AbstractTransactionRun<?,?> run, Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
+	protected CodeExecutor(AbstractTransactionRun<?,?> run, Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException {
 		Runtime.init(this);
 		this.run = run;
+		this.now = wrapInCaseOfException(run.node::getNow);
 		this.classLoader = run.classLoader;
 		this.deserializedCaller = deseralizedCaller;
 		this.methodOrConstructor = methodOrConstructor;
@@ -118,11 +128,64 @@ public abstract class CodeExecutor extends Thread {
 		this.deserializedActuals = actuals.map(run.deserializer::deserialize).toArray(Object[]::new);
 	}
 
+	/**
+	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
+	 * 
+	 * @param what the callable
+	 * @return the result of the callable
+	 * @throws TransactionException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
+		try {
+			return what.call();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+		}
+	}
+
+	/**
+	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
+	 * already an instance of that exception.
+	 * 
+	 * @param t the throwable to wrap
+	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
+	 * @return the wrapped or original exception
+	 */
+	protected final static TransactionException wrapAsTransactionException(Throwable t, String message) {
+		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
+	}
+
+	/**
+	 * Yields the UTC time when the transaction is being run.
+	 * This might be for instance the time of creation of the block where the transaction
+	 * occurs, but the detail is left to the implementation.
+	 * 
+	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+	 */
+	public final long now() {
+		return now;
+	}
+
+	/**
+	 * Takes note of the given event, emitted during this execution.
+	 * 
+	 * @param event the event
+	 */
 	public final void event(Object event) {
 		if (event == null)
 			throw new IllegalArgumentException("an event cannot be null");
 
 		events.add(event);
+	}
+
+	/**
+	 * Yields the class loader used by this executor.
+	 * 
+	 * @return the class loader
+	 */
+	public final EngineClassLoader getClassLoader() {
+		return classLoader;
 	}
 
 	/**

@@ -118,15 +118,12 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 */
 	private BigInteger gas;
 
-	private final long now;
-
 	protected AbstractTransactionRun(Request request, TransactionReference current, Node node, BigInteger gas) throws TransactionException {
 		this.request = request;
 		Runtime.init(this);
 		ClassType.clearCache();
 		FieldSignature.clearCache();
 		this.node = node;
-		this.now = wrapInCaseOfException(node::getNow);
 		this.deserializer = new Deserializer(this);
 		this.gas = gas;
 		this.sizeCalculator = new SizeCalculator(node.getGasCostModel());
@@ -137,11 +134,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	@Override
 	public final TransactionReference getCurrentTransaction() {
 		return current;
-	}
-
-	@Override
-	public final long now() {
-		return now;
 	}
 
 	private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
@@ -311,10 +303,5 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 */
 	protected final static TransactionException wrapAsTransactionException(Throwable t, String message) {
 		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
-	}
-
-	@Override
-	public EngineClassLoaderImpl getClassLoader() {
-		return classLoader;
 	}
 }

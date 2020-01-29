@@ -106,15 +106,6 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 			return 0L;
 	}
 
-	public long now() {
-		try {
-			return getNow();
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
 	@Override
 	protected SequentialTransactionReference getNextTransaction() {
 		return topmost == null ? new MemoryTransactionReference(BigInteger.ZERO, (short) 0) : topmost.getNext();

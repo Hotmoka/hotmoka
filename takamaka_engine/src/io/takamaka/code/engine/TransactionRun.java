@@ -13,22 +13,6 @@ import io.hotmoka.beans.values.StorageReference;
 public interface TransactionRun {
 
 	/**
-	 * Yields the class loader used for running the transaction being built.
-	 * 
-	 * @return the class loader
-	 */
-	EngineClassLoader getClassLoader();
-
-	/**
-	 * Yields the UTC time when the transaction is being run.
-	 * This might be for instance the time of creation of the block where the transaction
-	 * occurs, but the detail is left to the implementation.
-	 * 
-	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
-	 */
-	long now();
-
-	/**
 	 * Yields the reference to the transaction being executed.
 	 * 
 	 * @return the reference

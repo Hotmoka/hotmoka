@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
@@ -24,8 +25,9 @@ public class StaticMethodExecutor extends CodeExecutor {
 	 * @param caller the caller, that pays for the execution
 	 * @param deseralizedCaller the deserialized caller
 	 * @param actuals the actuals provided to the method
+	 * @throws TransactionException 
 	 */
-	public StaticMethodExecutor(AbstractTransactionRun<?,?> run, MethodSignature method, Object deserializedCaller, Stream<StorageValue> actuals) {
+	public StaticMethodExecutor(AbstractTransactionRun<?,?> run, MethodSignature method, Object deserializedCaller, Stream<StorageValue> actuals) throws TransactionException {
 		super(run, deserializedCaller, method, null, actuals);
 	}
 
