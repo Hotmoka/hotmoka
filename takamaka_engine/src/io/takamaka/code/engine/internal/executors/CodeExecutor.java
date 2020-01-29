@@ -94,6 +94,11 @@ public abstract class CodeExecutor extends Thread {
 	protected final Object[] deserializedActuals;
 
 	/**
+	 * The events accumulated during the execution.
+	 */
+	private final List<Object> events = new ArrayList<>();
+
+	/**
 	 * Builds the executor of a method or constructor.
 	 * 
 	 * @param run the engine for which code is being executed
@@ -104,12 +109,29 @@ public abstract class CodeExecutor extends Thread {
 	 * @param actuals the actuals provided to the method or constructor
 	 */
 	protected CodeExecutor(AbstractTransactionRun<?,?> run, Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) {
+		Runtime.init(this);
 		this.run = run;
 		this.classLoader = run.classLoader;
 		this.deserializedCaller = deseralizedCaller;
 		this.methodOrConstructor = methodOrConstructor;
 		this.deserializedReceiver = receiver != null ? run.deserializer.deserialize(receiver) : null;
 		this.deserializedActuals = actuals.map(run.deserializer::deserialize).toArray(Object[]::new);
+	}
+
+	public final void event(Object event) {
+		if (event == null)
+			throw new IllegalArgumentException("an event cannot be null");
+
+		events.add(event);
+	}
+
+	/**
+	 * Yields the storage references of the events generated so far.
+	 * 
+	 * @return the storage references
+	 */
+	public final Stream<StorageReference> events() {
+		return events.stream().map(classLoader::getStorageReferenceOf);
 	}
 
 	private SortedSet<Update> updates;
@@ -138,7 +160,7 @@ public abstract class CodeExecutor extends Thread {
 					potentiallyAffectedObjects.add(actual);
 
 		// events are accessible from outside, hence they count as side-effects
-		run.events.forEach(potentiallyAffectedObjects::add);
+		events.forEach(potentiallyAffectedObjects::add);
 
 		return (updates = run.updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new))).stream();
 	}

@@ -1,12 +1,9 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -105,11 +102,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	public EngineClassLoaderImpl classLoader;
 
 	/**
-	 * The events accumulated during the current transaction. This is reset at each transaction.
-	 */
-	public final List<Object> events = new ArrayList<>(); //TODO: too visible
-
-	/**
 	 * A stack of available gas. When a sub-computation is started
 	 * with a subset of the available gas, the latter is taken away from
 	 * the current available gas and pushed on top of this stack.
@@ -202,14 +194,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		}
 	}
 
-	@Override
-	public final void event(Object event) {
-		if (event == null)
-			throw new IllegalArgumentException("Events cannot be null");
-
-		events.add(event);
-	}
-
 	protected abstract Response computeResponse() throws Exception;
 
 	@Override
@@ -240,15 +224,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 			throw new IllegalTransactionRequestException("Not enough gas to start the transaction");
 
 		return balanceUpdateInCaseOfFailure;
-	}
-
-	/**
-	 * Yields the storage references of the events generated so far.
-	 * 
-	 * @return the storage references
-	 */
-	public final Stream<StorageReference> events() {
-		return events.stream().map(classLoader::getStorageReferenceOf);
 	}
 
 	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request, UpdateOfBalance balanceUpdateInCaseOfFailure) throws IllegalTransactionRequestException {

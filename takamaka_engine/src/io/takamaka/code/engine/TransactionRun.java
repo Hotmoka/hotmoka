@@ -87,12 +87,4 @@ public interface TransactionRun {
 	 * @throws Exception if the code runs into this exception
 	 */
 	<T> T withGas(BigInteger amount, Callable<T> what) throws Exception;
-
-	/**
-	 * Adds an event to those occurred during the execution of the current transaction.
-	 * 
-	 * @param event the event
-	 * @throws IllegalArgumentException if the event is {@code null}
-	 */
-	void event(Object event);
 }

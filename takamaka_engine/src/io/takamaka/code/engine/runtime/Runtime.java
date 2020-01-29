@@ -13,6 +13,7 @@ import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.OutOfGasError;
 import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.internal.executors.CodeExecutor;
 
 /**
  * A class that contains utility methods called by instrumented
@@ -28,6 +29,11 @@ public abstract class Runtime {
 	private static TransactionRun run;
 
 	/**
+	 * The executor of the transaction.
+	 */
+	private static CodeExecutor executor;
+
+	/**
 	 * The counter for the next storage object created during the current transaction.
 	 */
 	private static BigInteger nextProgressive;
@@ -40,6 +46,15 @@ public abstract class Runtime {
 	public static void init(TransactionRun run) {
 		Runtime.run = run;
 		Runtime.nextProgressive = BigInteger.ZERO;
+	}
+
+	/**
+	 * Resets static data at the beginning of a transaction.
+	 * 
+	 * @param executor the executor of the transaction
+	 */
+	public static void init(CodeExecutor executor) {
+		Runtime.executor = executor;
 	}
 
 	/**
@@ -174,7 +189,7 @@ public abstract class Runtime {
 	 * @param event the event
 	 */
 	public static void event(Object event) {
-		run.event(event);
+		executor.event(event);
 	}
 
 	/**
