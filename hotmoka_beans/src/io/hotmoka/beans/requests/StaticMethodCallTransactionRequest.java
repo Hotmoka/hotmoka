@@ -15,8 +15,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A request for calling a static method of a storage class in blockchain.
  */
 @Immutable
-public class StaticMethodCallTransactionRequest extends NonInitialTransactionRequest<MethodCallTransactionResponse> {
-
+public class StaticMethodCallTransactionRequest extends CodeExecutionTransactionRequest<MethodCallTransactionResponse> {
 	private static final long serialVersionUID = -501977352886002289L;
 
 	/**

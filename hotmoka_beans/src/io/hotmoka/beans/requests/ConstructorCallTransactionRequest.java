@@ -15,7 +15,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A request for calling a constructor of a storage class in blockchain.
  */
 @Immutable
-public class ConstructorCallTransactionRequest extends NonInitialTransactionRequest<ConstructorCallTransactionResponse> {
+public class ConstructorCallTransactionRequest extends CodeExecutionTransactionRequest<ConstructorCallTransactionResponse> {
 
 	private static final long serialVersionUID = -6485399240275200765L;
 

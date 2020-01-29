@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.responses.NonInitialTransactionResponse;
+import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
+import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -43,13 +43,8 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * from the class path and deserializes receiver and actuals (if any). It then calls the code and serializes
  * the resulting value back (if any).
  */
-public abstract class CodeExecutor<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends Thread {
+public abstract class CodeExecutor<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends TransactionExecutor<Request, Response> {
 	public final UpdateOfBalance balanceUpdateInCaseOfFailure;
-
-	/**
-	 * The engine for which code is being executed.
-	 */
-	protected final AbstractTransactionRun<Request, Response> run;
 
 	/**
 	 * The class loader of the transaction being executed.
@@ -120,6 +115,8 @@ public abstract class CodeExecutor<Request extends NonInitialTransactionRequest<
 	 * @throws TransactionException 
 	 */
 	protected CodeExecutor(AbstractTransactionRun<Request, Response> run, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) throws IllegalTransactionRequestException, TransactionException {
+		super(run);
+
 		try {
 			deserializedCaller = run.deserializer.deserialize(run.request.caller);
 			run.checkIsExternallyOwned(deserializedCaller);
@@ -130,7 +127,6 @@ public abstract class CodeExecutor<Request extends NonInitialTransactionRequest<
 			run.chargeForCPU(run.node.getGasCostModel().cpuBaseTransactionCost());
 			run.chargeForStorage(run.sizeCalculator.sizeOf(run.request));
 			Runtime.init(this);
-			this.run = run;
 			this.now = run.node.getNow();
 			this.classLoader = run.classLoader;
 			this.methodOrConstructor = methodOrConstructor;
@@ -143,18 +139,6 @@ public abstract class CodeExecutor<Request extends NonInitialTransactionRequest<
 		catch (Throwable t) {
 			throw new IllegalTransactionRequestException(t);
 		}
-	}
-
-	/**
-	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
-	 * already an instance of that exception.
-	 * 
-	 * @param t the throwable to wrap
-	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
-	 * @return the wrapped or original exception
-	 */
-	protected final static TransactionException wrapAsTransactionException(Throwable t, String message) {
-		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
 	}
 
 	/**
@@ -412,11 +396,11 @@ public abstract class CodeExecutor<Request extends NonInitialTransactionRequest<
 		return Optional.empty();
 	}
 
-	private String lowerInitial(String name) {
+	private static String lowerInitial(String name) {
 		return Character.toLowerCase(name.charAt(0)) + name.substring(1);
 	}
 
-	protected final boolean hasAnnotation(Executable executable, String annotationName) {
+	protected final static boolean hasAnnotation(Executable executable, String annotationName) {
 		return Stream.of(executable.getAnnotations())
 			.anyMatch(annotation -> annotation.annotationType().getName().equals(annotationName));
 	}
