@@ -9,6 +9,7 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageValue;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 
 /**
@@ -26,9 +27,10 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 	 * @param deseralizedCaller the deserialized caller
 	 * @param actuals the actuals provided to the constructor
 	 * @throws TransactionException 
+	 * @throws IllegalTransactionRequestException 
 	 */
-	public ConstructorExecutor(AbstractTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> run, ConstructorSignature constructor, Object deserializedCaller, Stream<StorageValue> actuals) throws TransactionException {
-		super(run, deserializedCaller, constructor, null, actuals);
+	public ConstructorExecutor(AbstractTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> run, ConstructorSignature constructor, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
+		super(run, constructor, null, actuals);
 	}
 
 	/**

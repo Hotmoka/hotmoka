@@ -11,6 +11,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.TempJarFile;
 import io.takamaka.code.instrumentation.InstrumentedJar;
@@ -18,7 +19,7 @@ import io.takamaka.code.verification.VerifiedJar;
 
 public class JarStoreTransactionRun extends AbstractTransactionRun<JarStoreTransactionRequest, JarStoreTransactionResponse> {
 
-	public JarStoreTransactionRun(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public JarStoreTransactionRun(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node, request.gas);
 	}
 

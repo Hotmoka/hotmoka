@@ -189,7 +189,7 @@ class RedGreenDistributor extends TakamakaTest {
 			new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER),
 			new BigIntegerValue(_20_000)));
 
-		throwsTransactionExceptionWithCause(IllegalTransactionRequestException.class, () ->
+		throwsIllegalTransactionRequestException(() ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				eoa,
 				_20_000,
@@ -204,7 +204,7 @@ class RedGreenDistributor extends TakamakaTest {
 		StorageReference distributor = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath, new ConstructorSignature(DISTRIBUTOR)));
 
-		throwsTransactionExceptionWithCause(IllegalTransactionRequestException.class, () ->
+		throwsIllegalTransactionRequestException(() ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				blockchain.account(3),
 				_20_000,

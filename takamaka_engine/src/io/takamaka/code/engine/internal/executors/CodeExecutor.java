@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,6 +25,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -44,6 +44,7 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * the resulting value back (if any).
  */
 public abstract class CodeExecutor<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends Thread {
+	public final UpdateOfBalance balanceUpdateInCaseOfFailure;
 
 	/**
 	 * The engine for which code is being executed.
@@ -71,7 +72,7 @@ public abstract class CodeExecutor<Request extends NonInitialTransactionRequest<
 	/**
 	 * The deserialized caller.
 	 */
-	protected final Object deserializedCaller;
+	public final Object deserializedCaller;
 
 	/**
 	 * The method or constructor that is being called.
@@ -113,38 +114,34 @@ public abstract class CodeExecutor<Request extends NonInitialTransactionRequest<
 	 * 
 	 * @param run the engine for which code is being executed
 	 * @param classLoader the class loader that must be used to find the classes during the execution of the method or constructor
-	 * @param deseralizedCaller the deserialized caller
 	 * @param methodOrConstructor the method or constructor to call
 	 * @param receiver the receiver of the call, if any. This is {@code null} for constructors and static methods
 	 * @param actuals the actuals provided to the method or constructor
 	 * @throws TransactionException 
 	 */
-	protected CodeExecutor(AbstractTransactionRun<Request, Response> run, Object deseralizedCaller, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException {
-		run.chargeForCPU(run.node.getGasCostModel().cpuBaseTransactionCost());
-		run.chargeForStorage(run.sizeCalculator.sizeOf(run.request));
-		Runtime.init(this);
-		this.run = run;
-		this.now = wrapInCaseOfException(run.node::getNow);
-		this.classLoader = run.classLoader;
-		this.deserializedCaller = deseralizedCaller;
-		this.methodOrConstructor = methodOrConstructor;
-		this.deserializedReceiver = receiver != null ? run.deserializer.deserialize(receiver) : null;
-		this.deserializedActuals = actuals.map(run.deserializer::deserialize).toArray(Object[]::new);
-	}
-
-	/**
-	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws TransactionException the wrapped exception
-	 */
-	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
+	protected CodeExecutor(AbstractTransactionRun<Request, Response> run, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) throws IllegalTransactionRequestException, TransactionException {
 		try {
-			return what.call();
+			deserializedCaller = run.deserializer.deserialize(run.request.caller);
+			run.checkIsExternallyOwned(deserializedCaller);
+
+			// we sell all gas first: what remains will be paid back at the end;
+			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+			balanceUpdateInCaseOfFailure = run.checkMinimalGas(run.request, deserializedCaller);
+			run.chargeForCPU(run.node.getGasCostModel().cpuBaseTransactionCost());
+			run.chargeForStorage(run.sizeCalculator.sizeOf(run.request));
+			Runtime.init(this);
+			this.run = run;
+			this.now = run.node.getNow();
+			this.classLoader = run.classLoader;
+			this.methodOrConstructor = methodOrConstructor;
+			this.deserializedReceiver = receiver != null ? run.deserializer.deserialize(receiver) : null;
+			this.deserializedActuals = actuals.map(run.deserializer::deserialize).toArray(Object[]::new);
+		}
+		catch (IllegalTransactionRequestException e) {
+			throw e;
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+			throw new IllegalTransactionRequestException(t);
 		}
 	}
 

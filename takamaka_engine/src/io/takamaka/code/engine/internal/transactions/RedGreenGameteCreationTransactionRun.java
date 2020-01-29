@@ -14,7 +14,7 @@ import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class RedGreenGameteCreationTransactionRun extends AbstractTransactionRun<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
-	public RedGreenGameteCreationTransactionRun(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public RedGreenGameteCreationTransactionRun(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node, BigInteger.valueOf(-1L)); // we do not count gas for this creation
 	}
 
@@ -27,9 +27,7 @@ public class RedGreenGameteCreationTransactionRun extends AbstractTransactionRun
 			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
 			Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 			// we set the balance field of the gamete
-			Field balanceField = classLoader.getContract().getDeclaredField("balance");
-			balanceField.setAccessible(true); // since the field is private
-			balanceField.set(gamete, request.initialAmount);
+			classLoader.setBalanceOf(gamete, request.initialAmount);
 
 			// we set the red balance field of the gamete
 			Field redBalanceField = classLoader.getRedGreenContract().getDeclaredField("balanceRed");

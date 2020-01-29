@@ -1,6 +1,5 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
@@ -14,7 +13,7 @@ import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
-	public GameteCreationTransactionRun(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public GameteCreationTransactionRun(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node, BigInteger.valueOf(-1L)); // we do not count gas for this creation
 	}
 
@@ -27,9 +26,7 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 			Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 			// we set the balance field of the gamete
-			Field balanceField = classLoader.getContract().getDeclaredField("balance");
-			balanceField.setAccessible(true); // since the field is private
-			balanceField.set(gamete, request.initialAmount);
+			classLoader.setBalanceOf(gamete, request.initialAmount);
 
 			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}

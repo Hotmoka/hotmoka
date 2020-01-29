@@ -118,7 +118,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 */
 	private BigInteger gas;
 
-	protected AbstractTransactionRun(Request request, TransactionReference current, Node node, BigInteger gas) throws TransactionException {
+	protected AbstractTransactionRun(Request request, TransactionReference current, Node node, BigInteger gas) throws TransactionException, IllegalTransactionRequestException {
 		this.request = request;
 		Runtime.init(this);
 		ClassType.clearCache();
@@ -208,7 +208,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @throws IllegalTransactionRequestException if the caller has not enough money to buy the promised gas and the addition
 	 *                                            of a failed transaction response to blockchain
 	 */
-	protected final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) throws IllegalTransactionRequestException {
+	public final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) throws IllegalTransactionRequestException {
 		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
 		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(classLoader.getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 
@@ -239,10 +239,14 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @param what the callable
 	 * @return the result of the callable
 	 * @throws TransactionException the wrapped exception
+	 * @throws IllegalTransactionRequestException 
 	 */
-	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
+	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException, IllegalTransactionRequestException {
 		try {
 			return what.call();
+		}
+		catch (IllegalTransactionRequestException e) {
+			throw e;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
@@ -285,7 +289,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @param object the object to check
 	 * @throws IllegalTransactionRequestException if the object is not an externally owned account
 	 */
-	protected final void checkIsExternallyOwned(Object object) throws IllegalTransactionRequestException {
+	public final void checkIsExternallyOwned(Object object) throws IllegalTransactionRequestException {
 		Class<? extends Object> clazz = object.getClass();
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))

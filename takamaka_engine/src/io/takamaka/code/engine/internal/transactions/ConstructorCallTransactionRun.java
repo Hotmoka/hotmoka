@@ -10,15 +10,15 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.executors.ConstructorExecutor;
 
 public class ConstructorCallTransactionRun extends AbstractTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
 
-	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node, request.gas);
 	}
 
@@ -26,25 +26,17 @@ public class ConstructorCallTransactionRun extends AbstractTransactionRun<Constr
 	protected ConstructorCallTransactionResponse computeResponse() throws Exception {
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
-			Object deserializedCaller = deserializer.deserialize(request.caller);
-			checkIsExternallyOwned(deserializedCaller);
-			
-			// we sell all gas first: what remains will be paid back at the end;
-			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-			UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
 
-			// before this line, an exception will abort the transaction and leave the blockchain unchanged;
-			// after this line, the transaction can be added to the blockchain, possibly as a failed one
-
+			ConstructorExecutor executor = null;
 			try {
-				ConstructorExecutor executor = new ConstructorExecutor(this, request.constructor, deserializedCaller, request.actuals());
+				executor = new ConstructorExecutor(this, request.constructor, request.actuals());
 				executor.start();
 				executor.join();
 
 				if (executor.exception instanceof InvocationTargetException) {
 					ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
+					increaseBalance(executor.deserializedCaller);
 					return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				}
 
@@ -54,14 +46,17 @@ public class ConstructorCallTransactionRun extends AbstractTransactionRun<Constr
 				ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
 					((StorageReference) serializer.serialize(executor.result), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
-				increaseBalance(deserializedCaller);
+				increaseBalance(executor.deserializedCaller);
 				return new ConstructorCallTransactionSuccessfulResponse
 					((StorageReference) serializer.serialize(executor.result), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			}
+			catch (IllegalTransactionRequestException e) {
+				throw e;
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
-				return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+				return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), executor.balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 			}
 		}
 	}

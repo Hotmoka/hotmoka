@@ -61,8 +61,9 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param node the node that executes the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws IllegalTransactionRequestException 
 	 */
-	static Transaction<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> mkFor(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	static Transaction<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> mkFor(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		return new AbstractTransaction<>(request, new JarStoreInitialTransactionRun(request, current, node).response);
 	}
 
@@ -77,8 +78,9 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param node the node that executes the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws IllegalTransactionRequestException 
 	 */
-	static Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	static Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		return new AbstractTransaction<>(request, new GameteCreationTransactionRun(request, current, node).response);
 	}
 
@@ -93,8 +95,9 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param node the node that executes the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws IllegalTransactionRequestException 
 	 */
-	static Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	static Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		return new AbstractTransaction<>(request, new RedGreenGameteCreationTransactionRun(request, current, node).response);
 	}
 
@@ -107,8 +110,9 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param current the reference to the transaction where this must be executed
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws IllegalTransactionRequestException 
 	 */
-	static Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> mkFor(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	static Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> mkFor(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		return new AbstractTransaction<>(request, new JarStoreTransactionRun(request, current, node).response);
 	}
 
@@ -122,8 +126,9 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param current the reference to the transaction after which this must be executed
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws IllegalTransactionRequestException 
 	 */
-	static Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> mkFor(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	static Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> mkFor(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		return new AbstractTransaction<>(request, new ConstructorCallTransactionRun(request, current, node).response);
 	}
 
@@ -137,8 +142,9 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param current the reference to the transaction after which this must be executed
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws IllegalTransactionRequestException 
 	 */
-	static Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	static Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		return new AbstractTransaction<>(request, new InstanceMethodCallTransactionRun(request, current, node).response);
 	}
 
@@ -152,8 +158,9 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param current the reference to the transaction after which this must be executed
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws IllegalTransactionRequestException 
 	 */
-	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		return new AbstractTransaction<>(request, new StaticMethodCallTransactionRun(request, current, node).response);
 	}
 }

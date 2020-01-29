@@ -10,6 +10,7 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageValue;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 
 /**
@@ -25,12 +26,12 @@ public class StaticMethodExecutor extends CodeExecutor<StaticMethodCallTransacti
 	 * @param run the engine for which the method is being executed
 	 * @param method the method to call
 	 * @param caller the caller, that pays for the execution
-	 * @param deseralizedCaller the deserialized caller
 	 * @param actuals the actuals provided to the method
 	 * @throws TransactionException 
+	 * @throws IllegalTransactionRequestException 
 	 */
-	public StaticMethodExecutor(AbstractTransactionRun<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> run, MethodSignature method, Object deserializedCaller, Stream<StorageValue> actuals) throws TransactionException {
-		super(run, deserializedCaller, method, null, actuals);
+	public StaticMethodExecutor(AbstractTransactionRun<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> run, MethodSignature method, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
+		super(run, method, null, actuals);
 	}
 
 	@Override

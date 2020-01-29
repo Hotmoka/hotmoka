@@ -186,7 +186,7 @@ class Basic extends TakamakaTest {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(master, _20_000, classpath, new ConstructorSignature(ClassType.EOA)));
 
-		throwsTransactionExceptionWithCause(IllegalTransactionRequestException.class, () ->
+		throwsIllegalTransactionRequestException(() ->
 			blockchain.addConstructorCallTransaction
 				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)))
 		);

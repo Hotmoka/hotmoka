@@ -11,6 +11,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 
 /**
@@ -25,13 +26,13 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 	 * 
 	 * @param run the engine for which the method is being executed
 	 * @param method the method to call
-	 * @param deseralizedCaller the deserialized caller
 	 * @param receiver the receiver of the method
 	 * @param actuals the actuals provided to the method
 	 * @throws TransactionException 
+	 * @throws IllegalTransactionRequestException 
 	 */
-	public InstanceMethodExecutor(AbstractTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> run, MethodSignature method, Object deserializedCaller, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException {
-		super(run, deserializedCaller, method, receiver, actuals);
+	public InstanceMethodExecutor(AbstractTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> run, MethodSignature method, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
+		super(run, method, receiver, actuals);
 	}
 
 	@Override

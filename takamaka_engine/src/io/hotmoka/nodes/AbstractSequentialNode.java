@@ -234,8 +234,9 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	 * @throws IllegalTransactionRequestException 
 	 */
-	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
+	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException, IllegalTransactionRequestException {
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandBlockchainWith(transaction);
@@ -268,8 +269,9 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	 * @throws IllegalTransactionRequestException 
 	 */
-	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
+	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, IllegalTransactionRequestException {
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandBlockchainWith(transaction);
@@ -304,8 +306,9 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	 * @throws IllegalTransactionRequestException 
 	 */
-	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
+	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, IllegalTransactionRequestException {
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandBlockchainWith(transaction);
@@ -493,6 +496,9 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 		try {
 			return what.call();
 		}
+		catch (IllegalTransactionRequestException e) {
+			throw e;
+		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "Cannot complete the transaction");
 		}
@@ -518,12 +524,16 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @return the result of the callable
 	 * @throws CodeExecutionException the unwrapped exception
 	 * @throws TransactionException the wrapped exception
+	 * @throws IllegalTransactionRequestException 
 	 */
-	private static <T> T wrapWithCodeInCaseOfException(Callable<T> what) throws TransactionException, CodeExecutionException {
+	private static <T> T wrapWithCodeInCaseOfException(Callable<T> what) throws TransactionException, CodeExecutionException, IllegalTransactionRequestException {
 		try {
 			return what.call();
 		}
 		catch (CodeExecutionException e) {
+			throw e;
+		}
+		catch (IllegalTransactionRequestException e) {
 			throw e;
 		}
 		catch (Throwable t) {
