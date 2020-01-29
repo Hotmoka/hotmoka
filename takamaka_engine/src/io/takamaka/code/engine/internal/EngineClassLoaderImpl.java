@@ -55,6 +55,8 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 */
 	private final List<Path> classpathElements = new ArrayList<>();
 
+	private final TempJarFile tempJarFile;
+
 	/**
 	 * Method {@link io.takamaka.code.lang.Contract#entry(io.takamaka.code.lang.Contract)}.
 	 */
@@ -113,6 +115,7 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 */
 	public EngineClassLoaderImpl(Classpath classpath, AbstractTransactionRun<?,?> run) throws Exception {
 		this.run = run;
+		this.tempJarFile = null;
 		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), null));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
@@ -144,30 +147,48 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 * @param dependencies the dependencies
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoaderImpl(Path jar, Stream<Classpath> dependencies, AbstractTransactionRun<?,?> run) throws Exception {
-		this.run = run;
-		this.parent = TakamakaClassLoader.of(collectURLs(dependencies, jar.toUri()));
-		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
-		this.entry = contract.getDeclaredMethod("entry", contract);
-		this.entry.setAccessible(true); // it was private
-		this.payableEntryInt = contract.getDeclaredMethod("payableEntry", contract, int.class);
-		this.payableEntryInt.setAccessible(true); // it was private
-		this.payableEntryLong = contract.getDeclaredMethod("payableEntry", contract, long.class);
-		this.payableEntryLong.setAccessible(true); // it was private
-		this.payableEntryBigInteger = contract.getDeclaredMethod("payableEntry", contract, BigInteger.class);
-		this.payableEntryBigInteger.setAccessible(true); // it was private
-		this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
-		this.redPayableInt.setAccessible(true); // it was private
-		this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
-		this.redPayableLong.setAccessible(true); // it was private
-		this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
-		this.redPayableBigInteger.setAccessible(true); // it was private
-		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
-		this.storageReference.setAccessible(true); // it was private
-		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
-		this.inStorage.setAccessible(true); // it was private
-		this.balanceField = contract.getDeclaredField("balance");
-		this.balanceField.setAccessible(true); // it was private
+	public EngineClassLoaderImpl(byte[] jar, Stream<Classpath> dependencies, AbstractTransactionRun<?,?> run) throws Exception {
+		this.tempJarFile = new TempJarFile(jar);
+
+		try {
+			this.run = run;
+			this.parent = TakamakaClassLoader.of(collectURLs(dependencies, tempJarFile.toPath().toUri()));
+			Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
+			this.entry = contract.getDeclaredMethod("entry", contract);
+			this.entry.setAccessible(true); // it was private
+			this.payableEntryInt = contract.getDeclaredMethod("payableEntry", contract, int.class);
+			this.payableEntryInt.setAccessible(true); // it was private
+			this.payableEntryLong = contract.getDeclaredMethod("payableEntry", contract, long.class);
+			this.payableEntryLong.setAccessible(true); // it was private
+			this.payableEntryBigInteger = contract.getDeclaredMethod("payableEntry", contract, BigInteger.class);
+			this.payableEntryBigInteger.setAccessible(true); // it was private
+			this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
+			this.redPayableInt.setAccessible(true); // it was private
+			this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
+			this.redPayableLong.setAccessible(true); // it was private
+			this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
+			this.redPayableBigInteger.setAccessible(true); // it was private
+			this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference.setAccessible(true); // it was private
+			this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
+			this.inStorage.setAccessible(true); // it was private
+			this.balanceField = contract.getDeclaredField("balance");
+			this.balanceField.setAccessible(true); // it was private
+		}
+		catch (Throwable t) {
+			tempJarFile.close();
+			throw t;
+		}
+	}
+
+	/**
+	 * Yields the path of the jar temporary file that contains the
+	 * jar being installed in the node, if any.
+	 * 
+	 * @return the path
+	 */
+	public final Path jarPath() {
+		return tempJarFile.toPath();
 	}
 
 	private URL[] collectURLs(Stream<Classpath> classpaths, URI start) throws Exception {
@@ -242,11 +263,37 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 
 	@Override
 	public void close() throws IOException {
+		IOException ioe = null;
+
 		// we delete all paths elements that were used to build this class loader
 		for (Path classpathElement: classpathElements)
-			Files.deleteIfExists(classpathElement);
+			try {
+				Files.deleteIfExists(classpathElement);
+			}
+			catch (IOException e) {
+				if (ioe == null)
+					ioe = e;
+			}
 
-		parent.close();
+		if (tempJarFile != null)
+			try {
+				tempJarFile.close();
+			}
+			catch (IOException e) {
+				if (ioe == null)
+					ioe = e;
+			}
+
+		try {
+			parent.close();
+		}
+		catch (IOException e) {
+			if (ioe == null)
+				ioe = e;
+		}
+
+		if (ioe != null)
+			throw ioe;
 	}
 
 	@Override

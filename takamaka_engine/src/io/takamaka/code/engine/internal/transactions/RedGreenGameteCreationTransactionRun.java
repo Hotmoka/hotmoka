@@ -19,22 +19,25 @@ public class RedGreenGameteCreationTransactionRun extends AbstractTransactionRun
 	}
 
 	@Override
+	protected EngineClassLoaderImpl mkClassLoader() throws Exception {
+		return new EngineClassLoaderImpl(request.classpath, this);
+	}
+
+	@Override
 	protected GameteCreationTransactionResponse computeResponse() throws Exception {
 		if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
 			throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
-		try (EngineClassLoaderImpl classLoader = this.classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
-			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
-			Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-			// we set the balance field of the gamete
-			classLoader.setBalanceOf(gamete, request.initialAmount);
+		// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
+		Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+		// we set the balance field of the gamete
+		classLoader.setBalanceOf(gamete, request.initialAmount);
 
-			// we set the red balance field of the gamete
-			Field redBalanceField = classLoader.getRedGreenContract().getDeclaredField("balanceRed");
-			redBalanceField.setAccessible(true); // since the field is private
-			redBalanceField.set(gamete, request.redInitialAmount);
+		// we set the red balance field of the gamete
+		Field redBalanceField = classLoader.getRedGreenContract().getDeclaredField("balanceRed");
+		redBalanceField.setAccessible(true); // since the field is private
+		redBalanceField.set(gamete, request.redInitialAmount);
 
-			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
-		}
+		return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 	}
 }

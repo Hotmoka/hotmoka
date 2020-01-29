@@ -412,7 +412,7 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	 * @throws IllegalTransactionRequestException if the object is not a red/green externally owned account
 	 */
 	protected void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
-		Class<? extends Object> clazz = object.getClass();
+		Class<?> clazz = object.getClass();
 		if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}

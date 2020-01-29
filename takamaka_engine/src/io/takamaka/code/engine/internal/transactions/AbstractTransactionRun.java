@@ -82,6 +82,11 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	public final Node node;
 
 	/**
+	 * The class loader for the transaction currently being executed.
+	 */
+	public final EngineClassLoaderImpl classLoader;
+
+	/**
 	 * The amount of gas consumed for CPU execution.
 	 */
 	protected BigInteger gasConsumedForCPU = BigInteger.ZERO;
@@ -95,11 +100,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * The amount of gas consumed for storage consumption.
 	 */
 	protected BigInteger gasConsumedForStorage = BigInteger.ZERO;
-
-	/**
-	 * The class loader for the transaction currently being executed.
-	 */
-	public EngineClassLoaderImpl classLoader;
 
 	/**
 	 * A stack of available gas. When a sub-computation is started
@@ -128,8 +128,17 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		this.gas = gas;
 		this.sizeCalculator = new SizeCalculator(node.getGasCostModel());
 		this.current = current;
-		this.response = wrapInCaseOfException(this::computeResponse);
+
+		try (EngineClassLoaderImpl classLoader = mkClassLoader()) {
+			this.classLoader = classLoader;
+			this.response = computeResponse();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "cannot complete the transaction");
+		}
 	}
+
+	protected abstract EngineClassLoaderImpl mkClassLoader() throws Exception;
 
 	@Override
 	public final TransactionReference getCurrentTransaction() {
@@ -138,7 +147,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 
 	private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
 		if (amount.signum() < 0)
-			throw new IllegalArgumentException("Gas cannot increase");
+			throw new IllegalArgumentException("gas cannot increase");
 
 		// gas can be negative only if it was initialized so; this special case is
 		// used for the creation of the gamete, when gas should not be counted
@@ -231,26 +240,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 			return result.add(sizeCalculator.sizeOf(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else
 			throw new IllegalTransactionRequestException("unexpected transaction request");
-	}
-
-	/**
-	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws TransactionException the wrapped exception
-	 * @throws IllegalTransactionRequestException 
-	 */
-	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException, IllegalTransactionRequestException {
-		try {
-			return what.call();
-		}
-		catch (IllegalTransactionRequestException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
-		}
 	}
 
 	/**

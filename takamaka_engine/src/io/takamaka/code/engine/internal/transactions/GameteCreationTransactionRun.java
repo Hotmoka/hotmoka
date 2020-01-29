@@ -18,17 +18,20 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 	}
 
 	@Override
+	protected EngineClassLoaderImpl mkClassLoader() throws Exception {
+		return new EngineClassLoaderImpl(request.classpath, this);
+	}
+
+	@Override
 	protected GameteCreationTransactionResponse computeResponse() throws Exception {
 		if (request.initialAmount.signum() < 0)
 			throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
-		try (EngineClassLoaderImpl classLoader = this.classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
-			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-			Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-			// we set the balance field of the gamete
-			classLoader.setBalanceOf(gamete, request.initialAmount);
+		// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
+		Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+		// we set the balance field of the gamete
+		classLoader.setBalanceOf(gamete, request.initialAmount);
 
-			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
-		}
+		return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 	}
 }

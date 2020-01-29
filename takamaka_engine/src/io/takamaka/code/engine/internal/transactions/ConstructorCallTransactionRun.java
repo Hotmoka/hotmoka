@@ -23,41 +23,42 @@ public class ConstructorCallTransactionRun extends AbstractTransactionRun<Constr
 	}
 
 	@Override
+	protected EngineClassLoaderImpl mkClassLoader() throws Exception {
+		return new EngineClassLoaderImpl(request.classpath, this);
+	}
+
+	@Override
 	protected ConstructorCallTransactionResponse computeResponse() throws Exception {
-		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
-			this.classLoader = classLoader;
+		ConstructorExecutor executor = null;
+		try {
+			executor = new ConstructorExecutor(this, request.constructor, request.actuals());
+			executor.start();
+			executor.join();
 
-			ConstructorExecutor executor = null;
-			try {
-				executor = new ConstructorExecutor(this, request.constructor, request.actuals());
-				executor.start();
-				executor.join();
-
-				if (executor.exception instanceof InvocationTargetException) {
-					ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(executor.deserializedCaller);
-					return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-				}
-
-				if (executor.exception != null)
-					throw executor.exception;
-
-				ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(executor.result), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			if (executor.exception instanceof InvocationTargetException) {
+				ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(executor.deserializedCaller);
-				return new ConstructorCallTransactionSuccessfulResponse
+				return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			}
+
+			if (executor.exception != null)
+				throw executor.exception;
+
+			ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
 					((StorageReference) serializer.serialize(executor.result), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-			}
-			catch (IllegalTransactionRequestException e) {
-				throw e;
-			}
-			catch (Throwable t) {
-				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
-				return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), executor.balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
-			}
+			chargeForStorage(sizeCalculator.sizeOf(response));
+			increaseBalance(executor.deserializedCaller);
+			return new ConstructorCallTransactionSuccessfulResponse
+					((StorageReference) serializer.serialize(executor.result), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		}
+		catch (IllegalTransactionRequestException e) {
+			throw e;
+		}
+		catch (Throwable t) {
+			// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
+			BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
+			return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), executor.balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 		}
 	}
 }
