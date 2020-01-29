@@ -1,12 +1,10 @@
 package io.takamaka.code.engine;
 
 import java.math.BigInteger;
-import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -29,17 +27,6 @@ public interface TransactionRun {
 	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
 	 */
 	long now();
-
-	/**
-	 * Collects all updates reachable from the actuals or from the caller, receiver or result of a method call.
-	 * 
-	 * @param actuals the actuals; only {@code Storage} are relevant; this might be {@code null}
-	 * @param caller the caller of an {@code @@Entry} method; this might be {@code null}
-	 * @param receiver the receiver of the call; this might be {@code null}
-	 * @param result the result; relevant only if {@code Storage}
-	 * @return the ordered updates
-	 */
-	SortedSet<Update> collectUpdates(Object[] actuals, Object caller, Object receiver, Object result);
 
 	/**
 	 * Yields the reference to the transaction being executed.

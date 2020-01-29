@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.SortedSet;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -23,7 +22,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
@@ -76,6 +74,12 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
 
 	/**
+	 * The object that can be used to extract the updates to a set of storage objects
+	 * induced by the run of the transaction.
+	 */
+	public final UpdatesExtractor updatesExtractor = new UpdatesExtractor(this);
+
+	/**
 	 * The HotMoka node that is running the transaction.
 	 */
 	public final Node node;
@@ -103,7 +107,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	/**
 	 * The events accumulated during the current transaction. This is reset at each transaction.
 	 */
-	private final List<Object> events = new ArrayList<>();
+	public final List<Object> events = new ArrayList<>(); //TODO: too visible
 
 	/**
 	 * A stack of available gas. When a sub-computation is started
@@ -243,7 +247,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * 
 	 * @return the storage references
 	 */
-	protected final Stream<StorageReference> events() {
+	public final Stream<StorageReference> events() {
 		return events.stream().map(classLoader::getStorageReferenceOf);
 	}
 
@@ -320,28 +324,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalTransactionRequestException("Only an externally owned account can start a transaction");
-	}
-
-	@Override
-	public SortedSet<Update> collectUpdates(Object[] actuals, Object caller, Object receiver, Object result) {
-		List<Object> potentiallyAffectedObjects = new ArrayList<>();
-		if (caller != null)
-			potentiallyAffectedObjects.add(caller);
-		if (receiver != null)
-			potentiallyAffectedObjects.add(receiver);
-		Class<?> storage = classLoader.getStorage();
-		if (result != null && storage.isAssignableFrom(result.getClass()))
-			potentiallyAffectedObjects.add(result);
-
-		if (actuals != null)
-			for (Object actual: actuals)
-				if (actual != null && storage.isAssignableFrom(actual.getClass()))
-					potentiallyAffectedObjects.add(actual);
-
-		// events are accessible from outside, hence they count as side-effects
-		events.forEach(potentiallyAffectedObjects::add);
-
-		return new UpdatesExtractor(this, potentiallyAffectedObjects.stream()).getUpdates();
 	}
 
 	/**

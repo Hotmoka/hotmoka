@@ -2,6 +2,7 @@ package io.takamaka.code.engine.internal.transactions;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -30,7 +31,7 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 			balanceField.setAccessible(true); // since the field is private
 			balanceField.set(gamete, request.initialAmount);
 
-			return new GameteCreationTransactionResponse(collectUpdates(null, null, null, gamete).stream(), classLoader.getStorageReferenceOf(gamete));
+			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}
 	}
 }

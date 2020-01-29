@@ -45,10 +45,7 @@ import io.takamaka.code.instrumentation.InstrumentationConstants;
  */
 public class UpdatesExtractor {
 
-	/**
-	 * The extracted updates.
-	 */
-	private final SortedSet<Update> updates = new TreeSet<>();
+	private final AbstractTransactionRun<?,?> run;
 
 	/**
 	 * Builds an extractor of updates to the state reachable from some storage objects.
@@ -57,27 +54,32 @@ public class UpdatesExtractor {
 	 * @param objects the storage objects whose updates must be computed (for them and
 	 *                for the objects recursively reachable from them)
 	 */
-	public UpdatesExtractor(AbstractTransactionRun<?,?> run, Stream<Object> objects) {
-		new Builder(run, objects);
+	public UpdatesExtractor(AbstractTransactionRun<?,?> run) {
+		this.run = run;
 	}
 
 	/**
-	 * Yields the updates extracted by this object.
+	 * Yields the updates extracted from the given storage objects.
 	 * 
-	 * @return the updates
+	 * @param objects the storage objects whose updates must be computed (for them and
+	 *                for the objects recursively reachable from them)
+	 * @return the updates, sorted
 	 */
-	public SortedSet<Update> getUpdates() {
-		return updates;
+	public Stream<Update> extractUpdatesFrom(Stream<Object> objects) {
+		return new Processor(objects).updates.stream();
 	}
 
-	private class Builder {
-		private final AbstractTransactionRun<?,?> run;
+	private class Processor {
 		private final EngineClassLoader classLoader;
 		private final List<Object> workingSet;
 		private final Set<StorageReference> seen = new HashSet<>();
 
-		private Builder(AbstractTransactionRun<?,?> run, Stream<Object> objects) {
-			this.run = run;
+		/**
+		 * The extracted updates.
+		 */
+		private final SortedSet<Update> updates = new TreeSet<>();
+
+		private Processor(Stream<Object> objects) {
 			this.classLoader = run.classLoader;
 			this.workingSet = objects
 				.filter(object -> seen.add(run.classLoader.getStorageReferenceOf(object)))

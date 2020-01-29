@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -111,21 +112,35 @@ public abstract class CodeExecutor extends Thread {
 		this.deserializedActuals = actuals.map(run.deserializer::deserialize).toArray(Object[]::new);
 	}
 
-	/**
-	 * A cache for {@link io.takamaka.code.engine.AbstractTransactionRun.CodeExecutor#updates()}.
-	 */
 	private SortedSet<Update> updates;
 
 	/**
-	 * Yields the updates resulting from the execution of the method or constructor.
+	 * Collects all updates reachable from the actuals or from the caller, receiver or result of a method call.
 	 * 
-	 * @return the updates
+	 * @return the updates, sorted
 	 */
 	public final Stream<Update> updates() {
 		if (updates != null)
 			return updates.stream();
 
-		return (updates = run.collectUpdates(deserializedActuals, deserializedCaller, deserializedReceiver, result)).stream();
+		List<Object> potentiallyAffectedObjects = new ArrayList<>();
+		if (deserializedCaller != null)
+			potentiallyAffectedObjects.add(deserializedCaller);
+		if (deserializedReceiver != null)
+			potentiallyAffectedObjects.add(deserializedReceiver);
+		Class<?> storage = classLoader.getStorage();
+		if (result != null && storage.isAssignableFrom(result.getClass()))
+			potentiallyAffectedObjects.add(result);
+
+		if (deserializedActuals != null)
+			for (Object actual: deserializedActuals)
+				if (actual != null && storage.isAssignableFrom(actual.getClass()))
+					potentiallyAffectedObjects.add(actual);
+
+		// events are accessible from outside, hence they count as side-effects
+		run.events.forEach(potentiallyAffectedObjects::add);
+
+		return (updates = run.updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new))).stream();
 	}
 
 	/**
@@ -166,7 +181,7 @@ public abstract class CodeExecutor extends Thread {
 	 * Determines if the execution only affected the balance of the caller contract.
 	 *
 	 * @param deserializedCaller the caller contract
-	 * @return true  if and only if that condition holds
+	 * @return true if and only if that condition holds
 	 */
 	public final boolean onlyAffectedBalanceOf(Object deserializedCaller) {
 		return updates().allMatch
