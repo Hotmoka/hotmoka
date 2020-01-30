@@ -33,36 +33,6 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 		super(run, constructor, null, actuals);
 	}
 
-	/**
-	 * Resolves the constructor that must be called.
-	 * 
-	 * @return the constructor
-	 * @throws NoSuchMethodException if the constructor could not be found
-	 * @throws SecurityException if the constructor could not be accessed
-	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
-	 */
-	private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
-		Class<?>[] argTypes = formalsAsClass();
-
-		return classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
-			.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
-	}
-
-	/**
-	 * Resolves the constructor that must be called, assuming that it is an entry.
-	 * 
-	 * @return the constructor
-	 * @throws NoSuchMethodException if the constructor could not be found
-	 * @throws SecurityException if the constructor could not be accessed
-	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
-	 */
-	private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
-		Class<?>[] argTypes = formalsAsClassForEntry();
-
-		return classLoader.resolveConstructor(methodOrConstructor.definingClass.name, argTypes)
-			.orElseThrow(() -> new NoSuchMethodException(methodOrConstructor.toString()));
-	}
-
 	@Override
 	public void run() {
 		try {
@@ -71,13 +41,13 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 
 			try {
 				// we first try to call the constructor with exactly the parameter types explicitly provided
-				constructorJVM = getConstructor();
+				constructorJVM = run.getConstructor(this);
 				deserializedActuals = this.deserializedActuals;
 			}
 			catch (NoSuchMethodException e) {
 				// if not found, we try to add the trailing types that characterize the @Entry constructors
 				try {
-					constructorJVM = getEntryConstructor();
+					constructorJVM = run.getEntryConstructor(this);
 					deserializedActuals = addExtraActualsForEntry();
 				}
 				catch (NoSuchMethodException ee) {
@@ -87,7 +57,7 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 
 			ensureWhiteListingOf(constructorJVM, deserializedActuals);
 			if (hasAnnotation(constructorJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
-				checkIsRedGreenExternallyOwned(deserializedCaller);
+				run.checkIsExternallyOwned(deserializedCaller);
 
 			try {
 				result = constructorJVM.newInstance(deserializedActuals);

@@ -43,13 +43,13 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 
 			try {
 				// we first try to call the method with exactly the parameter types explicitly provided
-				methodJVM = getMethod();
+				methodJVM = run.getMethod(this);
 				deserializedActuals = this.deserializedActuals;
 			}
 			catch (NoSuchMethodException e) {
 				// if not found, we try to add the trailing types that characterize the @Entry methods
 				try {
-					methodJVM = getEntryMethod();
+					methodJVM = run.getEntryMethod(this);
 					deserializedActuals = addExtraActualsForEntry();
 				}
 				catch (NoSuchMethodException ee) {
@@ -65,7 +65,7 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 			isVoidMethod = methodJVM.getReturnType() == void.class;
 			isViewMethod = hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
 			if (hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
-				checkIsRedGreenExternallyOwned(deserializedCaller);
+				run.checkIsRedGreenExternallyOwned(deserializedCaller);
 
 			try {
 				result = methodJVM.invoke(deserializedReceiver, deserializedActuals);

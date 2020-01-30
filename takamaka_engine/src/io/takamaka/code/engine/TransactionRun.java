@@ -20,6 +20,15 @@ public interface TransactionRun {
 	TransactionReference getCurrentTransaction();
 
 	/**
+	 * Yields the UTC time when the transaction is being run.
+	 * This might be for instance the time of creation of the block where the transaction
+	 * occurs, but the detail is left to the implementation.
+	 * 
+	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+	 */
+	long now();
+
+	/**
 	 * Decreases the available gas by the given amount, for CPU execution.
 	 * 
 	 * @param amount the amount of gas to consume

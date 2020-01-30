@@ -214,7 +214,7 @@ public abstract class Runtime {
 	 * @return the time
 	 */
 	public static long now() {
-		return executor.now();
+		return run.now();
 	}
 
 	/**

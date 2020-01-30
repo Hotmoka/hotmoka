@@ -37,7 +37,7 @@ public class StaticMethodExecutor extends CodeExecutor<StaticMethodCallTransacti
 	@Override
 	public void run() {
 		try {
-			Method methodJVM = getMethod();
+			Method methodJVM = run.getMethod(this);
 
 			if (!Modifier.isStatic(methodJVM.getModifiers()))
 				throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");

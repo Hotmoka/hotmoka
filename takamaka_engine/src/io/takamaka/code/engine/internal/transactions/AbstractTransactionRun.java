@@ -1,8 +1,13 @@
 package io.takamaka.code.engine.internal.transactions;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -10,7 +15,10 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
@@ -21,7 +29,9 @@ import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
+import io.takamaka.code.engine.internal.executors.CodeExecutor;
 import io.takamaka.code.engine.runtime.Runtime;
+import io.takamaka.code.verification.Dummy;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -108,6 +118,11 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 */
 	protected BigInteger gas;
 
+	/**
+	 * The time of execution of this transaction.
+	 */
+	private final long now;
+
 	protected AbstractTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
 		this.request = request;
 		this.gas = request instanceof NonInitialTransactionRequest ? ((NonInitialTransactionRequest<?>) request).gas : BigInteger.valueOf(-1);
@@ -121,6 +136,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 
 		try (EngineClassLoaderImpl classLoader = mkClassLoader()) {
 			this.classLoader = classLoader;
+			this.now = node.getNow();
 			this.response = computeResponse();
 		}
 		catch (Throwable t) {
@@ -129,6 +145,11 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	}
 
 	protected abstract EngineClassLoaderImpl mkClassLoader() throws Exception;
+
+	@Override
+	public final long now() {
+		return now;
+	}
 
 	@Override
 	public final TransactionReference getCurrentTransaction() {
@@ -175,6 +196,115 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalTransactionRequestException("Only an externally owned account can start a transaction");
+	}
+
+	/**
+	 * Checks if the given object is a red/green externally owned account or subclass.
+	 * 
+	 * @param object the object to check
+	 * @throws IllegalTransactionRequestException if the object is not a red/green externally owned account
+	 */
+	public final void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
+		Class<?> clazz = object.getClass();
+		if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
+	}
+
+	/**
+	 * Resolves the method that must be called.
+	 * 
+	 * @return the method
+	 * @throws NoSuchMethodException if the method could not be found
+	 * @throws SecurityException if the method could not be accessed
+	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+	 */
+	public final Method getMethod(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
+		MethodSignature method = (MethodSignature) executor.methodOrConstructor;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?>[] argTypes = formalsAsClass(executor);
+
+		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+	}
+
+	/**
+	 * Resolves the method that must be called, assuming that it is an entry.
+	 * 
+	 * @return the method
+	 * @throws NoSuchMethodException if the method could not be found
+	 * @throws SecurityException if the method could not be accessed
+	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+	 */
+	public final Method getEntryMethod(CodeExecutor<?,?> executor) throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+		MethodSignature method = (MethodSignature) executor.methodOrConstructor;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?>[] argTypes = formalsAsClassForEntry(executor);
+
+		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+	}
+
+	/**
+	 * Resolves the constructor that must be called.
+	 * 
+	 * @return the constructor
+	 * @throws NoSuchMethodException if the constructor could not be found
+	 * @throws SecurityException if the constructor could not be accessed
+	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+	 */
+	public final Constructor<?> getConstructor(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
+		Class<?>[] argTypes = formalsAsClass(executor);
+
+		return classLoader.resolveConstructor(executor.methodOrConstructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(executor.methodOrConstructor.toString()));
+	}
+
+	/**
+	 * Resolves the constructor that must be called, assuming that it is an entry.
+	 * 
+	 * @return the constructor
+	 * @throws NoSuchMethodException if the constructor could not be found
+	 * @throws SecurityException if the constructor could not be accessed
+	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+	 */
+	public final Constructor<?> getEntryConstructor(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
+		Class<?>[] argTypes = formalsAsClassForEntry(executor);
+
+		return classLoader.resolveConstructor(executor.methodOrConstructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(executor.methodOrConstructor.toString()));
+	}
+
+	/**
+	 * Yields the classes of the formal arguments of the method or constructor.
+	 * 
+	 * @return the array of classes, in the same order as the formals
+	 * @throws ClassNotFoundException if some class cannot be found
+	 */
+	public final Class<?>[] formalsAsClass(CodeExecutor<?,?> executor) throws ClassNotFoundException {
+		List<Class<?>> classes = new ArrayList<>();
+		for (StorageType type: executor.methodOrConstructor.formals().collect(Collectors.toList()))
+			classes.add(storageTypeToClass.toClass(type));
+
+		return classes.toArray(new Class<?>[classes.size()]);
+	}
+
+	/**
+	 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
+	 * and {@link io.takamaka.code.lang.Entry}. Entries are instrumented with the addition of
+	 * trailing contract formal (the caller) and of a dummy type.
+	 * 
+	 * @return the array of classes, in the same order as the formals
+	 * @throws ClassNotFoundException if some class cannot be found
+	 */
+	public final Class<?>[] formalsAsClassForEntry(CodeExecutor<?,?> executor) throws ClassNotFoundException {
+		List<Class<?>> classes = new ArrayList<>();
+		for (StorageType type: executor.methodOrConstructor.formals().collect(Collectors.toList()))
+			classes.add(storageTypeToClass.toClass(type));
+
+		classes.add(classLoader.getContract());
+		classes.add(Dummy.class);
+
+		return classes.toArray(new Class<?>[classes.size()]);
 	}
 
 	/**

@@ -19,24 +19,18 @@ import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.NonWhiteListedCallException;
-import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 import io.takamaka.code.engine.runtime.Runtime;
-import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
 /**
@@ -51,11 +45,6 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	 * The engine for which code is being executed.
 	 */
 	protected final AbstractTransactionRun<Request, Response> run;
-
-	/**
-	 * The class loader of the transaction being executed.
-	 */
-	protected final EngineClassLoaderImpl classLoader;
 
 	/**
 	 * The exception resulting from the execution of the method or constructor, if any.
@@ -106,11 +95,6 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	private final List<Object> events = new ArrayList<>();
 
 	/**
-	 * The time of execution of this transaction.
-	 */
-	private final long now;
-
-	/**
 	 * Builds the executor of a method or constructor.
 	 * 
 	 * @param run the engine for which code is being executed
@@ -132,8 +116,6 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 			run.chargeForCPU(run.node.getGasCostModel().cpuBaseTransactionCost());
 			run.chargeForStorage(run.sizeCalculator.sizeOf(run.request));
 			Runtime.init(this);
-			this.now = run.node.getNow();
-			this.classLoader = run.classLoader;
 			this.methodOrConstructor = methodOrConstructor;
 			this.deserializedReceiver = receiver != null ? run.deserializer.deserialize(receiver) : null;
 			this.deserializedActuals = actuals.map(run.deserializer::deserialize).toArray(Object[]::new);
@@ -144,17 +126,6 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 		catch (Throwable t) {
 			throw new IllegalTransactionRequestException(t);
 		}
-	}
-
-	/**
-	 * Yields the UTC time when the transaction is being run.
-	 * This might be for instance the time of creation of the block where the transaction
-	 * occurs, but the detail is left to the implementation.
-	 * 
-	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
-	 */
-	public final long now() {
-		return now;
 	}
 
 	/**
@@ -175,7 +146,7 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	 * @return the class loader
 	 */
 	public final EngineClassLoader getClassLoader() {
-		return classLoader;
+		return run.classLoader;
 	}
 
 	/**
@@ -184,7 +155,7 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	 * @return the storage references
 	 */
 	public final Stream<StorageReference> events() {
-		return events.stream().map(classLoader::getStorageReferenceOf);
+		return events.stream().map(run.classLoader::getStorageReferenceOf);
 	}
 
 	private SortedSet<Update> updates;
@@ -203,7 +174,7 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 			potentiallyAffectedObjects.add(deserializedCaller);
 		if (deserializedReceiver != null)
 			potentiallyAffectedObjects.add(deserializedReceiver);
-		Class<?> storage = classLoader.getStorage();
+		Class<?> storage = run.classLoader.getStorage();
 		if (result != null && storage.isAssignableFrom(result.getClass()))
 			potentiallyAffectedObjects.add(result);
 
@@ -216,86 +187,6 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 		events.forEach(potentiallyAffectedObjects::add);
 
 		return (updates = run.updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new))).stream();
-	}
-
-	/**
-	 * Resolves the method that must be called.
-	 * 
-	 * @return the method
-	 * @throws NoSuchMethodException if the method could not be found
-	 * @throws SecurityException if the method could not be accessed
-	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-	 */
-	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
-		MethodSignature method = (MethodSignature) methodOrConstructor;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? run.storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-		Class<?>[] argTypes = formalsAsClass();
-
-		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
-			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
-	}
-
-	/**
-	 * Resolves the method that must be called, assuming that it is an entry.
-	 * 
-	 * @return the method
-	 * @throws NoSuchMethodException if the method could not be found
-	 * @throws SecurityException if the method could not be accessed
-	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
-	 */
-	protected final Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
-		MethodSignature method = (MethodSignature) methodOrConstructor;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? run.storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-		Class<?>[] argTypes = formalsAsClassForEntry();
-
-		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
-			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
-	}
-
-	/**
-	 * Determines if the execution only affected the balance of the caller contract.
-	 *
-	 * @param deserializedCaller the caller contract
-	 * @return true if and only if that condition holds
-	 */
-	public final boolean onlyAffectedBalanceOf(Object deserializedCaller) {
-		return updates().allMatch
-			(update -> update.object.equals(classLoader.getStorageReferenceOf(deserializedCaller))
-						&& update instanceof UpdateOfField
-						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
-	}
-
-	/**
-	 * Yields the classes of the formal arguments of the method or constructor.
-	 * 
-	 * @return the array of classes, in the same order as the formals
-	 * @throws ClassNotFoundException if some class cannot be found
-	 */
-	protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
-		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-			classes.add(run.storageTypeToClass.toClass(type));
-
-		return classes.toArray(new Class<?>[classes.size()]);
-	}
-
-	/**
-	 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-	 * and {@link io.takamaka.code.lang.Entry}. Entries are instrumented with the addition of
-	 * trailing contract formal (the caller) and of a dummy type.
-	 * 
-	 * @return the array of classes, in the same order as the formals
-	 * @throws ClassNotFoundException if some class cannot be found
-	 */
-	protected final Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
-		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: methodOrConstructor.formals().collect(Collectors.toList()))
-			classes.add(run.storageTypeToClass.toClass(type));
-
-		classes.add(classLoader.getContract());
-		classes.add(Dummy.class);
-
-		return classes.toArray(new Class<?>[classes.size()]);
 	}
 
 	/**
@@ -346,13 +237,13 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	protected final void ensureWhiteListingOf(Executable executable, Object[] actuals) throws ClassNotFoundException {
 		Optional<? extends Executable> model;
 		if (executable instanceof Constructor<?>) {
-			model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
+			model = run.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
 			if (!model.isPresent())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of "
 						+ ((ConstructorSignature) methodOrConstructor).definingClass.name);
 		}
 		else {
-			model = classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable);
+			model = run.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable);
 			if (!model.isPresent())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed method "
 						+ ((MethodSignature) methodOrConstructor).definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
@@ -408,17 +299,5 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	protected final static boolean hasAnnotation(Executable executable, String annotationName) {
 		return Stream.of(executable.getAnnotations())
 			.anyMatch(annotation -> annotation.annotationType().getName().equals(annotationName));
-	}
-
-	/**
-	 * Checks if the given object is a red/green externally owned account or subclass.
-	 * 
-	 * @param object the object to check
-	 * @throws IllegalTransactionRequestException if the object is not a red/green externally owned account
-	 */
-	protected void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
-		Class<?> clazz = object.getClass();
-		if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
-			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}
 }

@@ -47,7 +47,7 @@ public class InstanceMethodCallTransactionRun extends NonInitialTransactionRun<I
 			if (executor.exception != null)
 				throw executor.exception;
 
-			if (executor.isViewMethod && !executor.onlyAffectedBalanceOf(executor.deserializedCaller))
+			if (executor.isViewMethod && !onlyAffectedBalanceOf(executor))
 				throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
 
 			if (executor.isVoidMethod) {

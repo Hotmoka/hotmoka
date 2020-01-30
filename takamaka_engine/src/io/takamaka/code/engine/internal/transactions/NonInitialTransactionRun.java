@@ -15,10 +15,13 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
+import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.OutOfGasError;
+import io.takamaka.code.engine.internal.executors.CodeExecutor;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -141,5 +144,17 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 		BigInteger result = classLoader.getBalanceOf(eoa).add(node.getGasCostModel().toCoin(gas));
 		classLoader.setBalanceOf(eoa, result);
 		return result;
+	}
+
+	/**
+	 * Determines if the execution only affected the balance of the caller contract.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected final boolean onlyAffectedBalanceOf(CodeExecutor<?,?> executor) {
+		return executor.updates().allMatch
+			(update -> update.object.equals(classLoader.getStorageReferenceOf(executor.deserializedCaller))
+						&& update instanceof UpdateOfField
+						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
 	}
 }
