@@ -152,7 +152,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 * @return true if and only if that condition holds
 	 */
 	protected final boolean onlyAffectedBalanceOf(CodeExecutor<?,?> executor) {
-		return executor.updates().allMatch
+		return updates(executor).allMatch
 			(update -> update.object.equals(classLoader.getStorageReferenceOf(executor.deserializedCaller))
 						&& update instanceof UpdateOfField
 						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));

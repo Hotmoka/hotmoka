@@ -29,6 +29,13 @@ public interface TransactionRun {
 	long now();
 
 	/**
+	 * Takes note of the given event, emitted during this execution.
+	 * 
+	 * @param event the event
+	 */
+	void event(Object event);
+
+	/**
 	 * Decreases the available gas by the given amount, for CPU execution.
 	 * 
 	 * @param amount the amount of gas to consume

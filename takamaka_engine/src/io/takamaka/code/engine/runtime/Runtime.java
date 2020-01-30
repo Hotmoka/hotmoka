@@ -12,8 +12,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.OutOfGasError;
-import io.takamaka.code.engine.TransactionRun;
-import io.takamaka.code.engine.internal.executors.CodeExecutor;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 
 /**
  * A class that contains utility methods called by instrumented
@@ -26,12 +25,7 @@ public abstract class Runtime {
 	/**
 	 * The blockchain used for the current transaction.
 	 */
-	private static TransactionRun run;
-
-	/**
-	 * The executor of the transaction.
-	 */
-	private static CodeExecutor<?,?> executor;
+	private static AbstractTransactionRun<?,?> run;
 
 	/**
 	 * The counter for the next storage object created during the current transaction.
@@ -43,18 +37,9 @@ public abstract class Runtime {
 	 * 
 	 * @param run the blockchain used for the new transaction
 	 */
-	public static void init(TransactionRun run) {
+	public static void init(AbstractTransactionRun<?,?> run) {
 		Runtime.run = run;
 		Runtime.nextProgressive = BigInteger.ZERO;
-	}
-
-	/**
-	 * Resets static data at the beginning of a transaction.
-	 * 
-	 * @param executor the executor of the transaction
-	 */
-	public static void init(CodeExecutor<?,?> executor) {
-		Runtime.executor = executor;
 	}
 
 	/**
@@ -69,7 +54,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return run.deserializeLastLazyUpdateFor(executor.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return run.deserializeLastLazyUpdateFor(run.classLoader.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -84,7 +69,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return run.deserializeLastLazyUpdateForFinal(executor.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return run.deserializeLastLazyUpdateForFinal(run.classLoader.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -96,7 +81,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void entry(Object callee, Object caller) throws Throwable {
-		executor.getClassLoader().entry(callee, caller);
+		run.classLoader.entry(callee, caller);
 	}
 
 	/**
@@ -109,7 +94,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		executor.getClassLoader().payableEntry(callee, caller, amount);
+		run.classLoader.payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -124,7 +109,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		executor.getClassLoader().redPayableEntry(callee, caller, amount);
+		run.classLoader.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -137,7 +122,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
-		executor.getClassLoader().payableEntry(callee, caller, amount);
+		run.classLoader.payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -152,7 +137,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		executor.getClassLoader().redPayableEntry(callee, caller, amount);
+		run.classLoader.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -165,7 +150,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
-		executor.getClassLoader().payableEntry(callee, caller, amount);
+		run.classLoader.payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -180,7 +165,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		executor.getClassLoader().redPayableEntry(callee, caller, amount);
+		run.classLoader.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -189,7 +174,7 @@ public abstract class Runtime {
 	 * @param event the event
 	 */
 	public static void event(Object event) {
-		executor.event(event);
+		run.event(event);
 	}
 
 	/**
@@ -224,7 +209,7 @@ public abstract class Runtime {
 	 * @return the value of the field
 	 */
 	public static boolean inStorageOf(Object object) {
-		return executor.getClassLoader().getInStorageOf(object);
+		return run.classLoader.getInStorageOf(object);
 	}
 
 	public static int compareStorageReferencesOf(Object o1, Object o2) {
@@ -235,7 +220,7 @@ public abstract class Runtime {
 		else if (o2 == null)
 			return 1;
 		else {
-			EngineClassLoader classLoader = executor.getClassLoader();
+			EngineClassLoader classLoader = run.classLoader;
 			return classLoader.getStorageReferenceOf(o1).compareTo(classLoader.getStorageReferenceOf(o2));
 		}
 	}

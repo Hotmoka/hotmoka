@@ -10,6 +10,7 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 
 /**
@@ -48,22 +49,22 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 				// if not found, we try to add the trailing types that characterize the @Entry constructors
 				try {
 					constructorJVM = run.getEntryConstructor(this);
-					deserializedActuals = addExtraActualsForEntry();
+					deserializedActuals = run.addExtraActualsForEntry(this);
 				}
 				catch (NoSuchMethodException ee) {
 					throw e; // the message must be relative to the constructor as the user sees it
 				}
 			}
 
-			ensureWhiteListingOf(constructorJVM, deserializedActuals);
-			if (hasAnnotation(constructorJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
+			run.ensureWhiteListingOf(this, constructorJVM, deserializedActuals);
+			if (AbstractTransactionRun.hasAnnotation(constructorJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
 				run.checkIsExternallyOwned(deserializedCaller);
 
 			try {
 				result = constructorJVM.newInstance(deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
-				exception = unwrapInvocationException(e, constructorJVM);
+				exception = AbstractTransactionRun.unwrapInvocationException(e, constructorJVM);
 			}
 		}
 		catch (Throwable t) {

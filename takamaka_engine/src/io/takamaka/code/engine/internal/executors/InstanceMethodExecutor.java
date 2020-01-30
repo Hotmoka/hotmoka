@@ -12,6 +12,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 
 /**
@@ -50,7 +51,7 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 				// if not found, we try to add the trailing types that characterize the @Entry methods
 				try {
 					methodJVM = run.getEntryMethod(this);
-					deserializedActuals = addExtraActualsForEntry();
+					deserializedActuals = run.addExtraActualsForEntry(this);
 				}
 				catch (NoSuchMethodException ee) {
 					throw e; // the message must be relative to the method as the user sees it
@@ -60,18 +61,18 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 			if (Modifier.isStatic(methodJVM.getModifiers()))
 				throw new NoSuchMethodException("Cannot call a static method: use addStaticMethodCallTransaction instead");
 
-			ensureWhiteListingOf(methodJVM, deserializedActuals);
+			run.ensureWhiteListingOf(this, methodJVM, deserializedActuals);
 
 			isVoidMethod = methodJVM.getReturnType() == void.class;
-			isViewMethod = hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
-			if (hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
+			isViewMethod = AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
+			if (AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
 				run.checkIsRedGreenExternallyOwned(deserializedCaller);
 
 			try {
 				result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
-				exception = unwrapInvocationException(e, methodJVM);
+				exception = AbstractTransactionRun.unwrapInvocationException(e, methodJVM);
 			}
 		}
 		catch (Throwable t) {

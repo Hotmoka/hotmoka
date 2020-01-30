@@ -36,21 +36,21 @@ public class ConstructorCallTransactionRun extends NonInitialTransactionRun<Cons
 			executor.join();
 
 			if (executor.exception instanceof InvocationTargetException) {
-				ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(executor.deserializedCaller);
-				return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 
 			if (executor.exception != null)
 				throw executor.exception;
 
 			ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(executor.result), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(executor.result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			chargeForStorage(sizeCalculator.sizeOf(response));
 			increaseBalance(executor.deserializedCaller);
 			return new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(executor.result), executor.updates(), executor.events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(executor.result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
 		catch (IllegalTransactionRequestException e) {
 			throw e;

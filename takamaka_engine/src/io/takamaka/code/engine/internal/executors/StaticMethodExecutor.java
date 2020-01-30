@@ -11,6 +11,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 
 /**
@@ -42,16 +43,16 @@ public class StaticMethodExecutor extends CodeExecutor<StaticMethodCallTransacti
 			if (!Modifier.isStatic(methodJVM.getModifiers()))
 				throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
 
-			ensureWhiteListingOf(methodJVM, deserializedActuals);
+			run.ensureWhiteListingOf(this, methodJVM, deserializedActuals);
 
 			isVoidMethod = methodJVM.getReturnType() == void.class;
-			isViewMethod = hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
+			isViewMethod = AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
 
 			try {
 				result = methodJVM.invoke(null, deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
-				exception = unwrapInvocationException(e, methodJVM);
+				exception = AbstractTransactionRun.unwrapInvocationException(e, methodJVM);
 			}
 		}
 		catch (Throwable t) {
