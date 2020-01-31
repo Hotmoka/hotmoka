@@ -20,15 +20,17 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 
 	public JarStoreTransactionRun(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node);
+
+		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), this)) {
+			this.classLoader = classLoader;
+			this.response = computeResponse();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "cannot complete the transaction");
+		}
 	}
 
-	@Override
-	protected EngineClassLoaderImpl mkClassLoader() throws Exception {
-		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), this);
-	}
-
-	@Override
-	protected JarStoreTransactionResponse computeResponse() throws Exception {
+	private JarStoreTransactionResponse computeResponse() throws Exception {
 		Object deserializedCaller;
 		UpdateOfBalance balanceUpdateInCaseOfFailure;
 

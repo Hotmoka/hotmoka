@@ -22,7 +22,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -60,7 +59,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	/**
 	 * The response computed for the transaction, starting from the request.
 	 */
-	public final Response response;
+	public Response response;
 
 	/**
 	 * The object that knows about the size of data once stored in blockchain.
@@ -96,7 +95,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	/**
 	 * The class loader for the transaction currently being executed.
 	 */
-	public final EngineClassLoaderImpl classLoader;
+	public EngineClassLoaderImpl classLoader;
 
 	/**
 	 * The events accumulated during the transaction.
@@ -151,17 +150,13 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		this.sizeCalculator = new SizeCalculator(node.getGasCostModel());
 		this.current = current;
 
-		try (EngineClassLoaderImpl classLoader = mkClassLoader()) {
-			this.classLoader = classLoader;
+		try {
 			this.now = node.getNow();
-			this.response = computeResponse();
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "cannot complete the transaction");
 		}
 	}
-
-	protected abstract EngineClassLoaderImpl mkClassLoader() throws Exception;
 
 	@Override
 	public final long now() {
@@ -172,8 +167,6 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	public final TransactionReference getCurrentTransaction() {
 		return current;
 	}
-
-	protected abstract Response computeResponse() throws Exception;
 
 	@Override
 	public final void event(Object event) {
@@ -244,7 +237,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
 	public final Method getMethod(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
-		MethodSignature method = (MethodSignature) executor.methodOrConstructor;
+		MethodSignature method = (MethodSignature) ((MethodCallTransactionRun<?>) this).method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClass(executor);
 
@@ -261,7 +254,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
 	public final Method getEntryMethod(CodeExecutor<?,?> executor) throws NoSuchMethodException, SecurityException, ClassNotFoundException {
-		MethodSignature method = (MethodSignature) executor.methodOrConstructor;
+		MethodSignature method = (MethodSignature) ((MethodCallTransactionRun<?>) this).method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClassForEntry(executor);
 
@@ -280,8 +273,8 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	public final Constructor<?> getConstructor(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
 		Class<?>[] argTypes = formalsAsClass(executor);
 
-		return classLoader.resolveConstructor(executor.methodOrConstructor.definingClass.name, argTypes)
-			.orElseThrow(() -> new NoSuchMethodException(executor.methodOrConstructor.toString()));
+		return classLoader.resolveConstructor(((ConstructorCallTransactionRun) this).constructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(((ConstructorCallTransactionRun) this).constructor.toString()));
 	}
 
 	/**
@@ -295,8 +288,8 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	public final Constructor<?> getEntryConstructor(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
 		Class<?>[] argTypes = formalsAsClassForEntry(executor);
 
-		return classLoader.resolveConstructor(executor.methodOrConstructor.definingClass.name, argTypes)
-			.orElseThrow(() -> new NoSuchMethodException(executor.methodOrConstructor.toString()));
+		return classLoader.resolveConstructor(((ConstructorCallTransactionRun) this).constructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(((ConstructorCallTransactionRun) this).constructor.toString()));
 	}
 
 	/**
@@ -307,7 +300,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 */
 	public final Class<?>[] formalsAsClass(CodeExecutor<?,?> executor) throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: executor.methodOrConstructor.formals().collect(Collectors.toList()))
+		for (StorageType type: ((CodeCallTransactionRun<?,?>) this).getMethodOrConstructor().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
 
 		return classes.toArray(new Class<?>[classes.size()]);
@@ -323,7 +316,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 */
 	public final Class<?>[] formalsAsClassForEntry(CodeExecutor<?,?> executor) throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: executor.methodOrConstructor.formals().collect(Collectors.toList()))
+		for (StorageType type: ((CodeCallTransactionRun<?,?>) this).getMethodOrConstructor().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
 
 		classes.add(classLoader.getContract());
@@ -358,8 +351,8 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		if (executor.deserializedReceiver != null)
 			potentiallyAffectedObjects.add(executor.deserializedReceiver);
 		Class<?> storage = classLoader.getStorage();
-		if (executor.result != null && storage.isAssignableFrom(executor.result.getClass()))
-			potentiallyAffectedObjects.add(executor.result);
+		if (((CodeCallTransactionRun<?,?>)this).result != null && storage.isAssignableFrom(((CodeCallTransactionRun<?,?>)this).result.getClass()))
+			potentiallyAffectedObjects.add(((CodeCallTransactionRun<?,?>)this).result);
 
 		if (executor.deserializedActuals != null)
 			for (Object actual: executor.deserializedActuals)
@@ -387,13 +380,13 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 			model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
 			if (!model.isPresent())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of "
-						+ ((ConstructorSignature) executor.methodOrConstructor).definingClass.name);
+						+ ((ConstructorCallTransactionRun) this).constructor.definingClass.name);
 		}
 		else {
 			model = classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable);
 			if (!model.isPresent())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed method "
-						+ ((MethodSignature) executor.methodOrConstructor).definingClass.name + "." + ((MethodSignature) executor.methodOrConstructor).methodName);
+						+ ((MethodCallTransactionRun<?>) this).method.definingClass.name + "." + ((MethodCallTransactionRun<?>) this).method.methodName);
 		}
 
 		if (executable instanceof java.lang.reflect.Method && !Modifier.isStatic(executable.getModifiers()))

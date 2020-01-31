@@ -15,15 +15,17 @@ public class RedGreenGameteCreationTransactionRun extends AbstractTransactionRun
 
 	public RedGreenGameteCreationTransactionRun(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node);
+
+		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
+			this.classLoader = classLoader;
+			this.response = computeResponse();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "cannot complete the transaction");
+		}
 	}
 
-	@Override
-	protected EngineClassLoaderImpl mkClassLoader() throws Exception {
-		return new EngineClassLoaderImpl(request.classpath, this);
-	}
-
-	@Override
-	protected GameteCreationTransactionResponse computeResponse() throws Exception {
+	private GameteCreationTransactionResponse computeResponse() throws Exception {
 		if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
 			throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 

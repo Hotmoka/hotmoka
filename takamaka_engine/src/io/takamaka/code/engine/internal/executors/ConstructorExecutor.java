@@ -7,10 +7,10 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.CodeCallTransactionRun;
 import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 
 /**
@@ -30,8 +30,8 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 	 * @throws TransactionException 
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public ConstructorExecutor(NonInitialTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> run, ConstructorSignature constructor, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
-		super(run, constructor, null, actuals);
+	public ConstructorExecutor(NonInitialTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> run, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
+		super(run, null, actuals);
 	}
 
 	@Override
@@ -61,14 +61,14 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 				run.checkIsExternallyOwned(deserializedCaller);
 
 			try {
-				result = constructorJVM.newInstance(deserializedActuals);
+				((CodeCallTransactionRun<?,?>)run).result = constructorJVM.newInstance(deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
-				exception = AbstractTransactionRun.unwrapInvocationException(e, constructorJVM);
+				((CodeCallTransactionRun<?,?>) run).exception = AbstractTransactionRun.unwrapInvocationException(e, constructorJVM);
 			}
 		}
 		catch (Throwable t) {
-			exception = t;
+			((CodeCallTransactionRun<?,?>) run).exception = t;
 		}
 	}
 }

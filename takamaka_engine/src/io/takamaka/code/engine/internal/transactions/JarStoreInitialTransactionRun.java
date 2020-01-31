@@ -13,15 +13,17 @@ import io.takamaka.code.verification.VerifiedJar;
 public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 	public JarStoreInitialTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node);
+
+		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), this)) {
+			this.classLoader = classLoader;
+			this.response = computeResponse();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "cannot complete the transaction");
+		}
 	}
 
-	@Override
-	protected EngineClassLoaderImpl mkClassLoader() throws Exception {
-		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), this);
-	}
-
-	@Override
-	protected JarStoreInitialTransactionResponse computeResponse() throws Exception {
+	private JarStoreInitialTransactionResponse computeResponse() throws Exception {
 		VerifiedJar verifiedJar = VerifiedJar.of(classLoader.jarPath(), classLoader, true);
 		InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, new GasCostModelAdapter(node.getGasCostModel()));
 		return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());

@@ -8,11 +8,12 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.CodeCallTransactionRun;
+import io.takamaka.code.engine.internal.transactions.MethodCallTransactionRun;
 import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 
 /**
@@ -32,8 +33,8 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 	 * @throws TransactionException 
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public InstanceMethodExecutor(NonInitialTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> run, MethodSignature method, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
-		super(run, method, receiver, actuals);
+	public InstanceMethodExecutor(NonInitialTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> run, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
+		super(run, receiver, actuals);
 	}
 
 	@Override
@@ -63,20 +64,20 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 
 			run.ensureWhiteListingOf(this, methodJVM, deserializedActuals);
 
-			isVoidMethod = methodJVM.getReturnType() == void.class;
-			isViewMethod = AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
+			((MethodCallTransactionRun<?>) run).isVoidMethod = methodJVM.getReturnType() == void.class;
+			((MethodCallTransactionRun<?>) run).isViewMethod = AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
 			if (AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
 				run.checkIsRedGreenExternallyOwned(deserializedCaller);
 
 			try {
-				result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
+				((CodeCallTransactionRun<?,?>) run).result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
-				exception = AbstractTransactionRun.unwrapInvocationException(e, methodJVM);
+				((CodeCallTransactionRun<?,?>) run).exception = AbstractTransactionRun.unwrapInvocationException(e, methodJVM);
 			}
 		}
 		catch (Throwable t) {
-			exception = t;
+			((CodeCallTransactionRun<?,?>) run).exception = t;
 		}
 	}
 }

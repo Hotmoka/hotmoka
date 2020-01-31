@@ -10,47 +10,53 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.executors.ConstructorExecutor;
 
-public class ConstructorCallTransactionRun extends NonInitialTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
+public class ConstructorCallTransactionRun extends CodeCallTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
+	public final CodeSignature constructor;
 
 	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node);
+
+		this.constructor = request.constructor;
+
+		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
+			this.classLoader = classLoader;
+			this.response = computeResponse();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "cannot complete the transaction");
+		}
 	}
 
-	@Override
-	protected EngineClassLoaderImpl mkClassLoader() throws Exception {
-		return new EngineClassLoaderImpl(request.classpath, this);
-	}
-
-	@Override
-	protected ConstructorCallTransactionResponse computeResponse() throws Exception {
+	private ConstructorCallTransactionResponse computeResponse() throws Exception {
 		ConstructorExecutor executor = null;
 		try {
-			executor = new ConstructorExecutor(this, request.constructor, request.actuals());
+			executor = new ConstructorExecutor(this, request.actuals());
 			executor.start();
 			executor.join();
 
-			if (executor.exception instanceof InvocationTargetException) {
-				ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			if (exception instanceof InvocationTargetException) {
+				ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(executor.deserializedCaller);
-				return new ConstructorCallTransactionExceptionResponse((Exception) executor.exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				return new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 
-			if (executor.exception != null)
-				throw executor.exception;
+			if (exception != null)
+				throw exception;
 
 			ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(executor.result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			chargeForStorage(sizeCalculator.sizeOf(response));
 			increaseBalance(executor.deserializedCaller);
 			return new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(executor.result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
 		catch (IllegalTransactionRequestException e) {
 			throw e;
@@ -60,5 +66,10 @@ public class ConstructorCallTransactionRun extends NonInitialTransactionRun<Cons
 			BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
 			return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), executor.balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 		}
+	}
+
+	@Override
+	public final CodeSignature getMethodOrConstructor() {
+		return constructor;
 	}
 }

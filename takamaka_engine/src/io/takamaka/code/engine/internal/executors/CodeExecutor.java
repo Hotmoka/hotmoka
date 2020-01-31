@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -27,37 +26,9 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	protected final AbstractTransactionRun<Request, Response> run;
 
 	/**
-	 * The exception resulting from the execution of the method or constructor, if any.
-	 * This is {@code null} if the execution completed without exception.
-	 */
-	public Throwable exception;
-
-	/**
-	 * The resulting value for methods or the created object for constructors.
-	 * This is {@code null} if the execution completed with an exception or
-	 * if the method actually returned {@code null}.
-	 */
-	public Object result;
-
-	/**
 	 * The deserialized caller.
 	 */
 	public final Object deserializedCaller;
-
-	/**
-	 * The method or constructor that is being called.
-	 */
-	public final CodeSignature methodOrConstructor;
-
-	/**
-	 * True if the method has been called correctly and it is declared as {@code void},
-	 */
-	public boolean isVoidMethod;
-
-	/**
-	 * True if the method has been called correctly and it is annotated as {@link io.takamaka.code.lang.View}.
-	 */
-	public boolean isViewMethod;
 
 	/**
 	 * The deserialized receiver of a method call. This is {@code null} for static methods and constructors.
@@ -74,12 +45,11 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 	 * 
 	 * @param run the engine for which code is being executed
 	 * @param classLoader the class loader that must be used to find the classes during the execution of the method or constructor
-	 * @param methodOrConstructor the method or constructor to call
 	 * @param receiver the receiver of the call, if any. This is {@code null} for constructors and static methods
 	 * @param actuals the actuals provided to the method or constructor
 	 * @throws TransactionException 
 	 */
-	protected CodeExecutor(NonInitialTransactionRun<Request, Response> run, CodeSignature methodOrConstructor, StorageReference receiver, Stream<StorageValue> actuals) throws IllegalTransactionRequestException, TransactionException {
+	protected CodeExecutor(NonInitialTransactionRun<Request, Response> run, StorageReference receiver, Stream<StorageValue> actuals) throws IllegalTransactionRequestException, TransactionException {
 		try {
 			this.run = run;
 			this.deserializedCaller = run.deserializer.deserialize(run.request.caller);
@@ -90,7 +60,6 @@ public abstract class CodeExecutor<Request extends CodeExecutionTransactionReque
 			this.balanceUpdateInCaseOfFailure = run.checkMinimalGas(run.request, deserializedCaller);
 			run.chargeForCPU(run.node.getGasCostModel().cpuBaseTransactionCost());
 			run.chargeForStorage(run.sizeCalculator.sizeOf(run.request));
-			this.methodOrConstructor = methodOrConstructor;
 			this.deserializedReceiver = receiver != null ? run.deserializer.deserialize(receiver) : null;
 			this.deserializedActuals = actuals.map(run.deserializer::deserialize).toArray(Object[]::new);
 		}

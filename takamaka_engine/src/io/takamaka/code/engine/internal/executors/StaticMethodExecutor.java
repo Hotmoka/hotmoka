@@ -8,10 +8,11 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.CodeCallTransactionRun;
+import io.takamaka.code.engine.internal.transactions.MethodCallTransactionRun;
 import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 
 /**
@@ -31,8 +32,8 @@ public class StaticMethodExecutor extends CodeExecutor<StaticMethodCallTransacti
 	 * @throws TransactionException 
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public StaticMethodExecutor(NonInitialTransactionRun<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> run, MethodSignature method, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
-		super(run, method, null, actuals);
+	public StaticMethodExecutor(NonInitialTransactionRun<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> run, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
+		super(run, null, actuals);
 	}
 
 	@Override
@@ -45,18 +46,18 @@ public class StaticMethodExecutor extends CodeExecutor<StaticMethodCallTransacti
 
 			run.ensureWhiteListingOf(this, methodJVM, deserializedActuals);
 
-			isVoidMethod = methodJVM.getReturnType() == void.class;
-			isViewMethod = AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
+			((MethodCallTransactionRun<?>) run).isVoidMethod = methodJVM.getReturnType() == void.class;
+			((MethodCallTransactionRun<?>) run).isViewMethod = AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
 
 			try {
-				result = methodJVM.invoke(null, deserializedActuals);
+				((CodeCallTransactionRun<?,?>) run).result = methodJVM.invoke(null, deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
-				exception = AbstractTransactionRun.unwrapInvocationException(e, methodJVM);
+				((CodeCallTransactionRun<?,?>) run).exception = AbstractTransactionRun.unwrapInvocationException(e, methodJVM);
 			}
 		}
 		catch (Throwable t) {
-			exception = t;
+			((CodeCallTransactionRun<?,?>) run).exception = t;
 		}
 	}
 }

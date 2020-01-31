@@ -11,46 +11,47 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.engine.internal.executors.StaticMethodExecutor;
 
-public class StaticMethodCallTransactionRun extends NonInitialTransactionRun<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> {
+public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<StaticMethodCallTransactionRequest> {
 
 	public StaticMethodCallTransactionRun(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node);
+
+		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
+			this.classLoader = classLoader;
+			this.response = computeResponse();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "cannot complete the transaction");
+		}
 	}
 
-	@Override
-	protected EngineClassLoaderImpl mkClassLoader() throws Exception {
-		return new EngineClassLoaderImpl(request.classpath, this);
-	}
-
-	@Override
-	protected MethodCallTransactionResponse computeResponse() throws Exception {
+	private MethodCallTransactionResponse computeResponse() throws Exception {
 		StaticMethodExecutor executor = null;
 		try {
-			executor = new StaticMethodExecutor(this, request.method, request.getActuals());
+			executor = new StaticMethodExecutor(this, request.getActuals());
 			executor.start();
 			executor.join();
 
-			if (executor.exception instanceof InvocationTargetException) {
-				MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			if (exception instanceof InvocationTargetException) {
+				MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(executor.deserializedCaller);
-				return new MethodCallTransactionExceptionResponse((Exception) executor.exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				return new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 
-			if (executor.exception != null)
-				throw executor.exception;
+			if (exception != null)
+				throw exception;
 
-			if (executor.isViewMethod && !onlyAffectedBalanceOf(executor))
-				throw new SideEffectsInViewMethodException((MethodSignature) executor.methodOrConstructor);
+			if (isViewMethod && !onlyAffectedBalanceOf(executor))
+				throw new SideEffectsInViewMethodException(method);
 
-			if (executor.isVoidMethod) {
+			if (isVoidMethod) {
 				MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(executor.deserializedCaller);
@@ -58,11 +59,11 @@ public class StaticMethodCallTransactionRun extends NonInitialTransactionRun<Sta
 			}
 			else {
 				MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(executor.result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						(serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(executor.deserializedCaller);
 				return new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(executor.result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						(serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 		}
 		catch (IllegalTransactionRequestException e) {
