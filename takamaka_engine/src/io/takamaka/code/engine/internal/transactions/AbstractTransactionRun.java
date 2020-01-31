@@ -39,7 +39,6 @@ import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
-import io.takamaka.code.engine.internal.executors.CodeExecutor;
 import io.takamaka.code.engine.runtime.Runtime;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
@@ -236,10 +235,10 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @throws SecurityException if the method could not be accessed
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
-	public final Method getMethod(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
+	public final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
 		MethodSignature method = ((MethodCallTransactionRun<?>) this).method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-		Class<?>[] argTypes = formalsAsClass(executor);
+		Class<?>[] argTypes = formalsAsClass();
 
 		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
@@ -253,10 +252,10 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @throws SecurityException if the method could not be accessed
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
-	public final Method getEntryMethod(CodeExecutor<?,?> executor) throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+	public final Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 		MethodSignature method = ((MethodCallTransactionRun<?>) this).method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
-		Class<?>[] argTypes = formalsAsClassForEntry(executor);
+		Class<?>[] argTypes = formalsAsClassForEntry();
 
 		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
@@ -270,8 +269,8 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @throws SecurityException if the constructor could not be accessed
 	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
 	 */
-	public final Constructor<?> getConstructor(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
-		Class<?>[] argTypes = formalsAsClass(executor);
+	public final Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
+		Class<?>[] argTypes = formalsAsClass();
 
 		return classLoader.resolveConstructor(((ConstructorCallTransactionRun) this).constructor.definingClass.name, argTypes)
 			.orElseThrow(() -> new NoSuchMethodException(((ConstructorCallTransactionRun) this).constructor.toString()));
@@ -285,8 +284,8 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @throws SecurityException if the constructor could not be accessed
 	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
 	 */
-	public final Constructor<?> getEntryConstructor(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
-		Class<?>[] argTypes = formalsAsClassForEntry(executor);
+	public final Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
+		Class<?>[] argTypes = formalsAsClassForEntry();
 
 		return classLoader.resolveConstructor(((ConstructorCallTransactionRun) this).constructor.definingClass.name, argTypes)
 			.orElseThrow(() -> new NoSuchMethodException(((ConstructorCallTransactionRun) this).constructor.toString()));
@@ -298,7 +297,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @return the array of classes, in the same order as the formals
 	 * @throws ClassNotFoundException if some class cannot be found
 	 */
-	public final Class<?>[] formalsAsClass(CodeExecutor<?,?> executor) throws ClassNotFoundException {
+	public final Class<?>[] formalsAsClass() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: ((CodeCallTransactionRun<?,?>) this).getMethodOrConstructor().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
@@ -314,7 +313,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @return the array of classes, in the same order as the formals
 	 * @throws ClassNotFoundException if some class cannot be found
 	 */
-	public final Class<?>[] formalsAsClassForEntry(CodeExecutor<?,?> executor) throws ClassNotFoundException {
+	public final Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
 		for (StorageType type: ((CodeCallTransactionRun<?,?>) this).getMethodOrConstructor().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
@@ -341,7 +340,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * 
 	 * @return the updates, sorted
 	 */
-	public final Stream<Update> updates(CodeExecutor<?,?> executor) {
+	public final Stream<Update> updates() {
 		if (updates != null)
 			return updates.stream();
 
@@ -374,7 +373,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 *                receiver for instance methods
 	 * @throws ClassNotFoundException if some class could not be found during the check
 	 */
-	public final void ensureWhiteListingOf(CodeExecutor<?,?> executor, Executable executable, Object[] actuals) throws ClassNotFoundException {
+	public final void ensureWhiteListingOf(Executable executable, Object[] actuals) throws ClassNotFoundException {
 		Optional<? extends Executable> model;
 		if (executable instanceof Constructor<?>) {
 			model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
@@ -443,7 +442,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * 
 	 * @return the resulting actual parameters
 	 */
-	public final Object[] addExtraActualsForEntry(CodeExecutor<?,?> executor) {
+	public final Object[] addExtraActualsForEntry() {
 		int al = ((CodeCallTransactionRun<?,?>)this).deserializedActuals.length;
 		Object[] result = new Object[al + 2];
 		System.arraycopy(((CodeCallTransactionRun<?,?>)this).deserializedActuals, 0, result, 0, al);

@@ -1,6 +1,8 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.TransactionException;
@@ -12,10 +14,10 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.nodes.Node;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
-import io.takamaka.code.engine.internal.executors.InstanceMethodExecutor;
 
 public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<InstanceMethodCallTransactionRequest> {
 
@@ -37,8 +39,6 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 	}
 
 	private MethodCallTransactionResponse computeResponse() throws Exception {
-		InstanceMethodExecutor executor = null;
-
 		try {
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedReceiver = deserializer.deserialize(request.receiver);
@@ -58,36 +58,36 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 		}
 
 		try {
-			executor = new InstanceMethodExecutor(this);
+			Thread executor = new Thread(this::run);
 			executor.start();
 			executor.join();
 
 			if (exception instanceof InvocationTargetException) {
-				MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(deserializedCaller);
-				return new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				return new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 
 			if (exception != null)
 				throw exception;
 
-			if (isViewMethod && !onlyAffectedBalanceOf(executor))
+			if (isViewMethod && !onlyAffectedBalanceOf())
 				throw new SideEffectsInViewMethodException(method);
 
 			if (isVoidMethod) {
-				MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(deserializedCaller);
-				return new VoidMethodCallTransactionSuccessfulResponse(updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				return new VoidMethodCallTransactionSuccessfulResponse(updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 			else {
 				MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						(serializer.serialize(result), updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(deserializedCaller);
 				return new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+						(serializer.serialize(result), updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 		}
 		catch (IllegalTransactionRequestException e) {
@@ -97,6 +97,49 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 			// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 			BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
 			return new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+		}
+	}
+
+	private void run() {
+		try {
+			Method methodJVM;
+			Object[] deserializedActuals;
+
+			try {
+				// we first try to call the method with exactly the parameter types explicitly provided
+				methodJVM = getMethod();
+				deserializedActuals = this.deserializedActuals;
+			}
+			catch (NoSuchMethodException e) {
+				// if not found, we try to add the trailing types that characterize the @Entry methods
+				try {
+					methodJVM = getEntryMethod();
+					deserializedActuals = addExtraActualsForEntry();
+				}
+				catch (NoSuchMethodException ee) {
+					throw e; // the message must be relative to the method as the user sees it
+				}
+			}
+
+			if (Modifier.isStatic(methodJVM.getModifiers()))
+				throw new NoSuchMethodException("cannot call a static method: use addStaticMethodCallTransaction instead");
+
+			ensureWhiteListingOf(methodJVM, deserializedActuals);
+
+			isVoidMethod = methodJVM.getReturnType() == void.class;
+			isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+			if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
+				checkIsRedGreenExternallyOwned(deserializedCaller);
+
+			try {
+				result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
+			}
+			catch (InvocationTargetException e) {
+				exception = unwrapInvocationException(e, methodJVM);
+			}
+		}
+		catch (Throwable t) {
+			exception = t;
 		}
 	}
 }

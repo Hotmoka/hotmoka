@@ -21,7 +21,6 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.OutOfGasError;
-import io.takamaka.code.engine.internal.executors.CodeExecutor;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
@@ -151,8 +150,8 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 * 
 	 * @return true if and only if that condition holds
 	 */
-	protected final boolean onlyAffectedBalanceOf(CodeExecutor<?,?> executor) {
-		return updates(executor).allMatch
+	protected final boolean onlyAffectedBalanceOf() {
+		return updates().allMatch
 			(update -> update.object.equals(classLoader.getStorageReferenceOf(((CodeCallTransactionRun<?,?>)this).deserializedCaller))
 						&& update instanceof UpdateOfField
 						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
