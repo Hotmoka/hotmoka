@@ -100,7 +100,7 @@ public class SizeCalculator {
 				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
 				.add(sizeOf(instanceMethodCallTransactionRequest.method))
 				.add(sizeOf(instanceMethodCallTransactionRequest.receiver))
-				.add(instanceMethodCallTransactionRequest.getActuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
+				.add(instanceMethodCallTransactionRequest.actuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
 		}
 		else if (request instanceof StaticMethodCallTransactionRequest) {
 			StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = (StaticMethodCallTransactionRequest) request;
@@ -108,7 +108,7 @@ public class SizeCalculator {
 				.add(sizeOf(request.caller))
 				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
 				.add(sizeOf(staticMethodCallTransactionRequest.method))
-				.add(staticMethodCallTransactionRequest.getActuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
+				.add(staticMethodCallTransactionRequest.actuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
 		}
 		else if (request instanceof JarStoreTransactionRequest) {
 			JarStoreTransactionRequest jarStoreTransactionRequest = (JarStoreTransactionRequest) request;

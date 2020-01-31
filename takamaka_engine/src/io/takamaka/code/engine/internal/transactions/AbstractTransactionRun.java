@@ -237,7 +237,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
 	public final Method getMethod(CodeExecutor<?,?> executor) throws ClassNotFoundException, NoSuchMethodException {
-		MethodSignature method = (MethodSignature) ((MethodCallTransactionRun<?>) this).method;
+		MethodSignature method = ((MethodCallTransactionRun<?>) this).method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClass(executor);
 
@@ -254,7 +254,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
 	public final Method getEntryMethod(CodeExecutor<?,?> executor) throws NoSuchMethodException, SecurityException, ClassNotFoundException {
-		MethodSignature method = (MethodSignature) ((MethodCallTransactionRun<?>) this).method;
+		MethodSignature method = ((MethodCallTransactionRun<?>) this).method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClassForEntry(executor);
 
@@ -346,16 +346,16 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 			return updates.stream();
 
 		List<Object> potentiallyAffectedObjects = new ArrayList<>();
-		if (executor.deserializedCaller != null)
-			potentiallyAffectedObjects.add(executor.deserializedCaller);
-		if (executor.deserializedReceiver != null)
-			potentiallyAffectedObjects.add(executor.deserializedReceiver);
+		if (((CodeCallTransactionRun<?,?>)this).deserializedCaller != null)
+			potentiallyAffectedObjects.add(((CodeCallTransactionRun<?,?>)this).deserializedCaller);
+		if (this instanceof InstanceMethodCallTransactionRun)
+			potentiallyAffectedObjects.add(((InstanceMethodCallTransactionRun) this).deserializedReceiver);
 		Class<?> storage = classLoader.getStorage();
 		if (((CodeCallTransactionRun<?,?>)this).result != null && storage.isAssignableFrom(((CodeCallTransactionRun<?,?>)this).result.getClass()))
 			potentiallyAffectedObjects.add(((CodeCallTransactionRun<?,?>)this).result);
 
-		if (executor.deserializedActuals != null)
-			for (Object actual: executor.deserializedActuals)
+		if (this instanceof CodeCallTransactionRun<?,?>)
+			for (Object actual: ((CodeCallTransactionRun<?,?>)this).deserializedActuals)
 				if (actual != null && storage.isAssignableFrom(actual.getClass()))
 					potentiallyAffectedObjects.add(actual);
 
@@ -390,7 +390,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		}
 
 		if (executable instanceof java.lang.reflect.Method && !Modifier.isStatic(executable.getModifiers()))
-			checkWhiteListingProofObligations(model.get().getName(), executor.deserializedReceiver, model.get().getAnnotations());
+			checkWhiteListingProofObligations(model.get().getName(), ((InstanceMethodCallTransactionRun) this).deserializedReceiver, model.get().getAnnotations());
 
 		Annotation[][] anns = model.get().getParameterAnnotations();
 		for (int pos = 0; pos < anns.length; pos++)
@@ -444,10 +444,10 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @return the resulting actual parameters
 	 */
 	public final Object[] addExtraActualsForEntry(CodeExecutor<?,?> executor) {
-		int al = executor.deserializedActuals.length;
+		int al = ((CodeCallTransactionRun<?,?>)this).deserializedActuals.length;
 		Object[] result = new Object[al + 2];
-		System.arraycopy(executor.deserializedActuals, 0, result, 0, al);
-		result[al] = executor.deserializedCaller;
+		System.arraycopy(((CodeCallTransactionRun<?,?>)this).deserializedActuals, 0, result, 0, al);
+		result[al] = ((CodeCallTransactionRun<?,?>)this).deserializedCaller;
 		result[al + 1] = null; // Dummy is not used
 
 		return result;

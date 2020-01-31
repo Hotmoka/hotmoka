@@ -2,7 +2,6 @@ package io.hotmoka.beans.requests;
 
 import java.math.BigInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
@@ -25,11 +24,6 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	public final ConstructorSignature constructor;
 
 	/**
-	 * The actual arguments passed to the constructor.
-	 */
-	private final StorageValue[] actuals;
-
-	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
@@ -39,19 +33,9 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @param actuals the actual arguments passed to the constructor
 	 */
 	public ConstructorCallTransactionRequest(StorageReference caller, BigInteger gas, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) {
-		super(caller, gas, classpath);
+		super(caller, gas, classpath, actuals);
 
 		this.constructor = constructor;
-		this.actuals = actuals;
-	}
-
-	/**
-	 * Yields the actual arguments passed to the constructor.
-	 * 
-	 * @return the actual arguments
-	 */
-	public final Stream<StorageValue> actuals() {
-		return Stream.of(actuals);
 	}
 
 	@Override

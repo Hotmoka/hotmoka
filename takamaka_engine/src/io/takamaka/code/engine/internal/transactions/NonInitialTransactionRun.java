@@ -153,7 +153,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 */
 	protected final boolean onlyAffectedBalanceOf(CodeExecutor<?,?> executor) {
 		return updates(executor).allMatch
-			(update -> update.object.equals(classLoader.getStorageReferenceOf(executor.deserializedCaller))
+			(update -> update.object.equals(classLoader.getStorageReferenceOf(((CodeCallTransactionRun<?,?>)this).deserializedCaller))
 						&& update instanceof UpdateOfField
 						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
 	}

@@ -2,7 +2,6 @@ package io.hotmoka.beans.requests;
 
 import java.math.BigInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
@@ -24,11 +23,6 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	public final MethodSignature method;
 
 	/**
-	 * The actual arguments passed to the method.
-	 */
-	private final StorageValue[] actuals;
-
-	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
@@ -38,19 +32,9 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	 * @param actuals the actual arguments passed to the method
 	 */
 	protected MethodCallTransactionRequest(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageValue... actuals) {
-		super(caller, gas, classpath);
+		super(caller, gas, classpath, actuals);
 		
 		this.method = method;
-		this.actuals = actuals;
-	}
-
-	/**
-	 * Yields the actual arguments passed to the method.
-	 * 
-	 * @return the actual arguments
-	 */
-	public final Stream<StorageValue> getActuals() {
-		return Stream.of(actuals);
 	}
 
 	@Override
@@ -60,6 +44,6 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
         	+ "  gas: " + gas + "\n"
         	+ "  class path: " + classpath + "\n"
 			+ "  method: " + method + "\n"
-			+ "  actuals:\n" + getActuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "    ", ""));
+			+ "  actuals:\n" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "    ", ""));
 	}
 }

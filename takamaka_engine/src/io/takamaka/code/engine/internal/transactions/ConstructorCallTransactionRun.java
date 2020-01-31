@@ -36,15 +36,24 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 
 	private ConstructorCallTransactionResponse computeResponse() throws Exception {
 		ConstructorExecutor executor = null;
+
 		try {
-			executor = new ConstructorExecutor(this, request.actuals());
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t, "cannot complete the transaction");
+		}
+
+		try {
+			executor = new ConstructorExecutor(this);
 			executor.start();
 			executor.join();
 
 			if (exception instanceof InvocationTargetException) {
 				ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
-				increaseBalance(executor.deserializedCaller);
+				increaseBalance(deserializedCaller);
 				return new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 
@@ -54,7 +63,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 			ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
 					((StorageReference) serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			chargeForStorage(sizeCalculator.sizeOf(response));
-			increaseBalance(executor.deserializedCaller);
+			increaseBalance(deserializedCaller);
 			return new ConstructorCallTransactionSuccessfulResponse
 					((StorageReference) serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}

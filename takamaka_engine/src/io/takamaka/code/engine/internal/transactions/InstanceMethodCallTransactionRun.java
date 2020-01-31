@@ -19,6 +19,11 @@ import io.takamaka.code.engine.internal.executors.InstanceMethodExecutor;
 
 public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<InstanceMethodCallTransactionRequest> {
 
+	/**
+	 * The deserialized receiver the call.
+	 */
+	public Object deserializedReceiver;
+
 	public InstanceMethodCallTransactionRun(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node);
 
@@ -33,15 +38,25 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 
 	private MethodCallTransactionResponse computeResponse() throws Exception {
 		InstanceMethodExecutor executor = null;
+
 		try {
-			executor = new InstanceMethodExecutor(this, request.receiver, request.getActuals());
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			this.deserializedReceiver = deserializer.deserialize(request.receiver);
+			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+		}
+		catch (Throwable t) {
+			throw new IllegalTransactionRequestException(t);
+		}
+
+		try {
+			executor = new InstanceMethodExecutor(this);
 			executor.start();
 			executor.join();
 
 			if (exception instanceof InvocationTargetException) {
 				MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
-				increaseBalance(executor.deserializedCaller);
+				increaseBalance(deserializedCaller);
 				return new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 
@@ -54,14 +69,14 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 			if (isVoidMethod) {
 				MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
-				increaseBalance(executor.deserializedCaller);
+				increaseBalance(deserializedCaller);
 				return new VoidMethodCallTransactionSuccessfulResponse(updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}
 			else {
 				MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
 						(serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 				chargeForStorage(sizeCalculator.sizeOf(response));
-				increaseBalance(executor.deserializedCaller);
+				increaseBalance(deserializedCaller);
 				return new MethodCallTransactionSuccessfulResponse
 						(serializer.serialize(result), updates(executor), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 			}

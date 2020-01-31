@@ -15,6 +15,16 @@ import io.hotmoka.nodes.Node;
 public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionRun<Request, Response> {
 
 	/**
+	 * The deserialized caller.
+	 */
+	public Object deserializedCaller;
+
+	/**
+	 * The deserialized actual arguments of the call.
+	 */
+	public Object[] deserializedActuals;
+
+	/**
 	 * The resulting value for methods or the created object for constructors.
 	 * This is {@code null} if the execution completed with an exception or
 	 * if the method actually returned {@code null}.

@@ -3,16 +3,14 @@ package io.takamaka.code.engine.internal.executors;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.engine.internal.transactions.CodeCallTransactionRun;
+import io.takamaka.code.engine.internal.transactions.InstanceMethodCallTransactionRun;
 import io.takamaka.code.engine.internal.transactions.MethodCallTransactionRun;
 import io.takamaka.code.engine.internal.transactions.NonInitialTransactionRun;
 
@@ -27,14 +25,11 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 	 * Builds the executor of an instance method.
 	 * 
 	 * @param run the engine for which the method is being executed
-	 * @param method the method to call
-	 * @param receiver the receiver of the method
-	 * @param actuals the actuals provided to the method
 	 * @throws TransactionException 
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public InstanceMethodExecutor(NonInitialTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> run, StorageReference receiver, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
-		super(run, receiver, actuals);
+	public InstanceMethodExecutor(NonInitialTransactionRun<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> run) throws TransactionException {
+		super(run);
 	}
 
 	@Override
@@ -46,7 +41,7 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 			try {
 				// we first try to call the method with exactly the parameter types explicitly provided
 				methodJVM = run.getMethod(this);
-				deserializedActuals = this.deserializedActuals;
+				deserializedActuals = ((CodeCallTransactionRun<?,?>) run).deserializedActuals;
 			}
 			catch (NoSuchMethodException e) {
 				// if not found, we try to add the trailing types that characterize the @Entry methods
@@ -67,10 +62,10 @@ public class InstanceMethodExecutor extends CodeExecutor<InstanceMethodCallTrans
 			((MethodCallTransactionRun<?>) run).isVoidMethod = methodJVM.getReturnType() == void.class;
 			((MethodCallTransactionRun<?>) run).isViewMethod = AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
 			if (AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
-				run.checkIsRedGreenExternallyOwned(deserializedCaller);
+				run.checkIsRedGreenExternallyOwned(((CodeCallTransactionRun<?,?>) run).deserializedCaller);
 
 			try {
-				((CodeCallTransactionRun<?,?>) run).result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
+				((CodeCallTransactionRun<?,?>) run).result = methodJVM.invoke(((InstanceMethodCallTransactionRun) run).deserializedReceiver, deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
 				((CodeCallTransactionRun<?,?>) run).exception = AbstractTransactionRun.unwrapInvocationException(e, methodJVM);

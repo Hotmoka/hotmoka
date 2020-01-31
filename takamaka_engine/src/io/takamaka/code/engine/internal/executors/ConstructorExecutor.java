@@ -2,12 +2,10 @@ package io.takamaka.code.engine.internal.executors;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.engine.internal.transactions.CodeCallTransactionRun;
@@ -30,8 +28,8 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 	 * @throws TransactionException 
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public ConstructorExecutor(NonInitialTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> run, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
-		super(run, null, actuals);
+	public ConstructorExecutor(NonInitialTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> run) throws TransactionException {
+		super(run);
 	}
 
 	@Override
@@ -43,7 +41,7 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 			try {
 				// we first try to call the constructor with exactly the parameter types explicitly provided
 				constructorJVM = run.getConstructor(this);
-				deserializedActuals = this.deserializedActuals;
+				deserializedActuals = ((CodeCallTransactionRun<?,?>) run).deserializedActuals;
 			}
 			catch (NoSuchMethodException e) {
 				// if not found, we try to add the trailing types that characterize the @Entry constructors
@@ -58,7 +56,7 @@ public class ConstructorExecutor extends CodeExecutor<ConstructorCallTransaction
 
 			run.ensureWhiteListingOf(this, constructorJVM, deserializedActuals);
 			if (AbstractTransactionRun.hasAnnotation(constructorJVM, io.takamaka.code.constants.Constants.RED_PAYABLE_NAME))
-				run.checkIsExternallyOwned(deserializedCaller);
+				run.checkIsExternallyOwned(((CodeCallTransactionRun<?,?>) run).deserializedCaller);
 
 			try {
 				((CodeCallTransactionRun<?,?>)run).result = constructorJVM.newInstance(deserializedActuals);

@@ -3,12 +3,10 @@ package io.takamaka.code.engine.internal.executors;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.engine.internal.transactions.CodeCallTransactionRun;
@@ -26,14 +24,11 @@ public class StaticMethodExecutor extends CodeExecutor<StaticMethodCallTransacti
 	 * Builds the executor of a static method.
 	 * 
 	 * @param run the engine for which the method is being executed
-	 * @param method the method to call
-	 * @param caller the caller, that pays for the execution
-	 * @param actuals the actuals provided to the method
 	 * @throws TransactionException 
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public StaticMethodExecutor(NonInitialTransactionRun<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> run, Stream<StorageValue> actuals) throws TransactionException, IllegalTransactionRequestException {
-		super(run, null, actuals);
+	public StaticMethodExecutor(NonInitialTransactionRun<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> run) throws TransactionException {
+		super(run);
 	}
 
 	@Override
@@ -44,13 +39,13 @@ public class StaticMethodExecutor extends CodeExecutor<StaticMethodCallTransacti
 			if (!Modifier.isStatic(methodJVM.getModifiers()))
 				throw new NoSuchMethodException("Cannot call an instance method: use addInstanceMethodCallTransaction instead");
 
-			run.ensureWhiteListingOf(this, methodJVM, deserializedActuals);
+			run.ensureWhiteListingOf(this, methodJVM, ((CodeCallTransactionRun<?,?>) run).deserializedActuals);
 
 			((MethodCallTransactionRun<?>) run).isVoidMethod = methodJVM.getReturnType() == void.class;
 			((MethodCallTransactionRun<?>) run).isViewMethod = AbstractTransactionRun.hasAnnotation(methodJVM, io.takamaka.code.constants.Constants.VIEW_NAME);
 
 			try {
-				((CodeCallTransactionRun<?,?>) run).result = methodJVM.invoke(null, deserializedActuals);
+				((CodeCallTransactionRun<?,?>) run).result = methodJVM.invoke(null, ((CodeCallTransactionRun<?,?>) run).deserializedActuals);
 			}
 			catch (InvocationTargetException e) {
 				((CodeCallTransactionRun<?,?>) run).exception = AbstractTransactionRun.unwrapInvocationException(e, methodJVM);
