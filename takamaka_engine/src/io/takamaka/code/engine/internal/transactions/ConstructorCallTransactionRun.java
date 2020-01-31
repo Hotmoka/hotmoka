@@ -40,6 +40,15 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 		try {
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+			checkIsExternallyOwned(deserializedCaller);
+			// we sell all gas first: what remains will be paid back at the end;
+			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+			balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
+			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
+			chargeForStorage(sizeCalculator.sizeOf(request));
+		}
+		catch (IllegalTransactionRequestException e) {
+			throw e;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "cannot complete the transaction");
@@ -73,7 +82,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 		catch (Throwable t) {
 			// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 			BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
-			return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), executor.balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+			return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 		}
 	}
 

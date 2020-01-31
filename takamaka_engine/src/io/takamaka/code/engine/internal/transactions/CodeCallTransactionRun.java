@@ -5,6 +5,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
+import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
 
 /**
@@ -13,6 +14,8 @@ import io.hotmoka.nodes.Node;
  * as a generic layer for all blockchain implementations.
  */
 public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionRun<Request, Response> {
+
+	public UpdateOfBalance balanceUpdateInCaseOfFailure;
 
 	/**
 	 * The deserialized caller.
