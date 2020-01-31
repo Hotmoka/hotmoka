@@ -15,9 +15,7 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.UpdateOfBalance;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.OutOfGasError;
@@ -48,6 +46,19 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	
 		gas = gas.subtract(amount);
 		forWhat.accept(amount);
+	}
+
+	/**
+	 * Checks if the given object is an externally owned account or subclass.
+	 * 
+	 * @param object the object to check
+	 * @throws IllegalTransactionRequestException if the object is not an externally owned account
+	 */
+	protected final void checkIsExternallyOwned(Object object) throws IllegalTransactionRequestException {
+		Class<? extends Object> clazz = object.getClass();
+		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
+				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+			throw new IllegalTransactionRequestException("Only an externally owned account can start a transaction");
 	}
 
 	@Override
@@ -143,17 +154,5 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 		BigInteger result = classLoader.getBalanceOf(eoa).add(node.getGasCostModel().toCoin(gas));
 		classLoader.setBalanceOf(eoa, result);
 		return result;
-	}
-
-	/**
-	 * Determines if the execution only affected the balance of the caller contract.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	protected final boolean onlyAffectedBalanceOf() {
-		return updates().allMatch
-			(update -> update.object.equals(classLoader.getStorageReferenceOf(((CodeCallTransactionRun<?,?>)this).deserializedCaller))
-						&& update instanceof UpdateOfField
-						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
 	}
 }

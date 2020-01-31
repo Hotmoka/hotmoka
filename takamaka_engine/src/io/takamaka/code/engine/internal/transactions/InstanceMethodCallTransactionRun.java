@@ -13,6 +13,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
@@ -141,5 +142,32 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 		catch (Throwable t) {
 			exception = t;
 		}
+	}
+
+	/**
+	 * Checks if the given object is a red/green externally owned account or subclass.
+	 * 
+	 * @param object the object to check
+	 * @throws IllegalTransactionRequestException if the object is not a red/green externally owned account
+	 */
+	private void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
+		if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(object.getClass()))
+			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
+	}
+
+	/**
+	 * Resolves the method that must be called, assuming that it is an entry.
+	 * 
+	 * @return the method
+	 * @throws NoSuchMethodException if the method could not be found
+	 * @throws SecurityException if the method could not be accessed
+	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+	 */
+	private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?>[] argTypes = formalsAsClassForEntry();
+
+		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 }

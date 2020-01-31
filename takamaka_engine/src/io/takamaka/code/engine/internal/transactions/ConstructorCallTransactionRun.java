@@ -122,6 +122,36 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 		}
 	}
 
+	/**
+	 * Resolves the constructor that must be called.
+	 * 
+	 * @return the constructor
+	 * @throws NoSuchMethodException if the constructor could not be found
+	 * @throws SecurityException if the constructor could not be accessed
+	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+	 */
+	private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
+		Class<?>[] argTypes = formalsAsClass();
+
+		return classLoader.resolveConstructor(constructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
+	}
+
+	/**
+	 * Resolves the constructor that must be called, assuming that it is an entry.
+	 * 
+	 * @return the constructor
+	 * @throws NoSuchMethodException if the constructor could not be found
+	 * @throws SecurityException if the constructor could not be accessed
+	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+	 */
+	private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
+		Class<?>[] argTypes = formalsAsClassForEntry();
+
+		return classLoader.resolveConstructor(constructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
+	}
+
 	@Override
 	public final CodeSignature getMethodOrConstructor() {
 		return constructor;

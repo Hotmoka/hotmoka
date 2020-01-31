@@ -1,10 +1,15 @@
 package io.takamaka.code.engine.internal.transactions;
 
+import java.lang.reflect.Method;
+
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.nodes.Node;
 
 /**
@@ -35,6 +40,33 @@ public abstract class MethodCallTransactionRun<Request extends MethodCallTransac
 		this.method = request.method;
 	}
 
+	/**
+	 * Resolves the method that must be called.
+	 * 
+	 * @return the method
+	 * @throws NoSuchMethodException if the method could not be found
+	 * @throws SecurityException if the method could not be accessed
+	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
+	 */
+	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?>[] argTypes = formalsAsClass();
+
+		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
+	}
+
+	/**
+	 * Determines if the execution only affected the balance of the caller contract.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected final boolean onlyAffectedBalanceOf() {
+		return updates().allMatch
+			(update -> update.object.equals(classLoader.getStorageReferenceOf(deserializedCaller))
+						&& update instanceof UpdateOfField
+						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
+	}
 
 	@Override
 	public final MethodSignature getMethodOrConstructor() {
