@@ -64,16 +64,16 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 			BigInteger balanceOfCaller = classLoader.getBalanceOf(deserializedCaller);
 			StorageReference storageReferenceOfDeserializedCaller = classLoader.getStorageReferenceOf(deserializedCaller);
 			UpdateOfBalance balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-			JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			chargeForStorage(sizeCalculator.sizeOf(response));
 			balanceOfCaller = increaseBalance(deserializedCaller);
 			balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-			return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 		}
 		catch (Throwable t) {
 			// we do not pay back the gas
-			BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForStorage);
-			return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+			BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU()).subtract(gasConsumedForStorage());
+			return new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty);
 		}
 	}
 }

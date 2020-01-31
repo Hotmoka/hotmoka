@@ -1,6 +1,7 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.math.BigInteger;
+import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
@@ -27,8 +28,37 @@ import io.takamaka.code.engine.OutOfGasError;
  */
 public abstract class NonInitialTransactionRun<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractTransactionRun<Request, Response> {
 
+	/**
+	 * The remaining amount of gas for the current transaction, not yet consumed.
+	 */
+	private BigInteger gas;
+
+	/**
+	 * The amount of gas consumed for CPU execution.
+	 */
+	private BigInteger gasConsumedForCPU = BigInteger.ZERO;
+
+	/**
+	 * The amount of gas consumed for RAM allocation.
+	 */
+	private BigInteger gasConsumedForRAM = BigInteger.ZERO;
+
+	/**
+	 * The amount of gas consumed for storage consumption.
+	 */
+	private BigInteger gasConsumedForStorage = BigInteger.ZERO;
+
+	/**
+	 * A stack of available gas. When a sub-computation is started
+	 * with a subset of the available gas, the latter is taken away from
+	 * the current available gas and pushed on top of this stack.
+	 */
+	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
+
 	protected NonInitialTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
+
+		this.gas = request.gas;
 	}
 
 	private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
@@ -145,7 +175,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	}
 
 	/**
-	 * Buys back the remaining gas to the given externally owned account.
+	 * Buys back the remaining gas to payer of the caller of this transaction.
 	 * 
 	 * @param eoa the externally owned account
 	 * @return the balance of the contract after buying back the remaining gas
@@ -154,5 +184,32 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 		BigInteger result = classLoader.getBalanceOf(eoa).add(node.getGasCostModel().toCoin(gas));
 		classLoader.setBalanceOf(eoa, result);
 		return result;
+	}
+
+	/**
+	 * Yields the amount of gas consumed for CPU execution.
+	 * 
+	 * @return the amount of gas
+	 */
+	protected final BigInteger gasConsumedForCPU() {
+		return gasConsumedForCPU;
+	}
+
+	/**
+	 * Yields the amount of gas consumed for RAM allocation.
+	 * 
+	 * @return the amount of gas
+	 */
+	protected final BigInteger gasConsumedForRAM() {
+		return gasConsumedForRAM;
+	}
+
+	/**
+	 * Yields the amount of gas consumed for storage consumption.
+	 * 
+	 * @return the amount of gas
+	 */
+	protected final BigInteger gasConsumedForStorage() {
+		return gasConsumedForStorage;
 	}
 }

@@ -2,14 +2,12 @@ package io.takamaka.code.engine.internal.transactions;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -35,7 +33,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	/**
 	 * The request of the transaction.
 	 */
-	public final Request request;
+	protected final Request request;
 
 	/**
 	 * The response computed for the transaction, starting from the request.
@@ -66,7 +64,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * The object that can be used to extract the updates to a set of storage objects
 	 * induced by the run of the transaction.
 	 */
-	public final UpdatesExtractor updatesExtractor = new UpdatesExtractor(this);
+	protected final UpdatesExtractor updatesExtractor = new UpdatesExtractor(this);
 
 	/**
 	 * The HotMoka node that is running the transaction.
@@ -89,40 +87,12 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	private final TransactionReference current;
 
 	/**
-	 * The amount of gas consumed for CPU execution.
-	 */
-	protected BigInteger gasConsumedForCPU = BigInteger.ZERO;
-
-	/**
-	 * The amount of gas consumed for RAM allocation.
-	 */
-	protected BigInteger gasConsumedForRAM = BigInteger.ZERO;
-
-	/**
-	 * The amount of gas consumed for storage consumption.
-	 */
-	protected BigInteger gasConsumedForStorage = BigInteger.ZERO;
-
-	/**
-	 * A stack of available gas. When a sub-computation is started
-	 * with a subset of the available gas, the latter is taken away from
-	 * the current available gas and pushed on top of this stack.
-	 */
-	protected final LinkedList<BigInteger> oldGas = new LinkedList<>();
-
-	/**
-	 * The remaining amount of gas for the current transaction, not yet consumed.
-	 */
-	protected BigInteger gas;
-
-	/**
 	 * The time of execution of this transaction.
 	 */
 	private final long now;
 
 	protected AbstractTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
 		this.request = request;
-		this.gas = request instanceof NonInitialTransactionRequest ? ((NonInitialTransactionRequest<?>) request).gas : BigInteger.valueOf(-1);
 		Runtime.init(this);
 		ClassType.clearCache();
 		FieldSignature.clearCache();
@@ -185,20 +155,11 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	}
 
 	/**
-	 * Yields the storage references of the events generated so far.
-	 * 
-	 * @return the storage references
-	 */
-	protected final Stream<StorageReference> events() {
-		return events.stream().map(classLoader::getStorageReferenceOf);
-	}
-
-	/**
 	 * Yields the events generated so far.
 	 * 
 	 * @return the events
 	 */
-	protected final Stream<Object> eventObjects() {
+	protected final Stream<Object> events() {
 		return events.stream();
 	}
 

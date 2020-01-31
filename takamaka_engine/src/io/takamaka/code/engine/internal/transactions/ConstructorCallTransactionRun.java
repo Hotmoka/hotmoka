@@ -19,7 +19,7 @@ import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class ConstructorCallTransactionRun extends CodeCallTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
-	public final CodeSignature constructor;
+	private final CodeSignature constructor;
 
 	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node);
@@ -59,29 +59,29 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 			executor.join();
 
 			if (exception instanceof InvocationTargetException) {
-				ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(deserializedCaller);
-				return new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+				return new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 
 			if (exception != null)
 				throw exception;
 
 			ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(result), updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			chargeForStorage(sizeCalculator.sizeOf(response));
 			increaseBalance(deserializedCaller);
 			return new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(result), updates(), events(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+					((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 		}
 		catch (IllegalTransactionRequestException e) {
 			throw e;
 		}
 		catch (Throwable t) {
 			// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-			BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
-			return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+			BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU()).subtract(gasConsumedForRAM()).subtract(gasConsumedForStorage());
+			return new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty);
 		}
 	}
 
@@ -153,7 +153,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 	}
 
 	@Override
-	public final CodeSignature getMethodOrConstructor() {
+	protected final CodeSignature getMethodOrConstructor() {
 		return constructor;
 	}
 }

@@ -9,7 +9,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,6 +23,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.runtime.Runtime;
@@ -37,32 +37,30 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  */
 public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionRun<Request, Response> {
 
-	public UpdateOfBalance balanceUpdateInCaseOfFailure;
+	protected UpdateOfBalance balanceUpdateInCaseOfFailure;
 
 	/**
 	 * The deserialized caller.
 	 */
-	public Object deserializedCaller;
+	protected Object deserializedCaller;
 
 	/**
 	 * The deserialized actual arguments of the call.
 	 */
-	public Object[] deserializedActuals;
+	protected Object[] deserializedActuals;
 
 	/**
 	 * The resulting value for methods or the created object for constructors.
 	 * This is {@code null} if the execution completed with an exception or
 	 * if the method actually returned {@code null}.
 	 */
-	public Object result;
+	protected Object result;
 
 	/**
 	 * The exception resulting from the execution of the method or constructor, if any.
 	 * This is {@code null} if the execution completed without exception.
 	 */
-	public Throwable exception;
-
-	private SortedSet<Update> updates;
+	protected Throwable exception;
 
 	protected CodeCallTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
@@ -196,9 +194,6 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	 * @return the updates, sorted
 	 */
 	protected final Stream<Update> updates() {
-		if (updates != null)
-			return updates.stream();
-
 		List<Object> potentiallyAffectedObjects = new ArrayList<>();
 		if (deserializedCaller != null)
 			potentiallyAffectedObjects.add(deserializedCaller);
@@ -213,9 +208,9 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 				potentiallyAffectedObjects.add(actual);
 
 		// events are accessible from outside, hence they count as side-effects
-		eventObjects().forEach(potentiallyAffectedObjects::add);
+		events().forEach(potentiallyAffectedObjects::add);
 
-		return (updates = updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new))).stream();
+		return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new)).stream();
 	}
 
 	/**
@@ -240,9 +235,18 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	}
 
 	/**
+	 * Yields the storage references of the events generated so far.
+	 * 
+	 * @return the storage references
+	 */
+	protected final Stream<StorageReference> storageReferencesOfEvents() {
+		return events().map(classLoader::getStorageReferenceOf);
+	}
+
+	/**
 	 * Yields the method or constructor that is being called.
 	 * 
 	 * @return the method or constructor that is being called
 	 */
-	public abstract CodeSignature getMethodOrConstructor();
+	protected abstract CodeSignature getMethodOrConstructor();
 }

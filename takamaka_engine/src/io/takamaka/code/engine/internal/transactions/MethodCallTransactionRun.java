@@ -22,17 +22,17 @@ public abstract class MethodCallTransactionRun<Request extends MethodCallTransac
 	/**
 	 * The method that is being called.
 	 */
-	public final MethodSignature method;
+	protected final MethodSignature method;
 
 	/**
 	 * True if the method has been called correctly and it is declared as {@code void},
 	 */
-	public boolean isVoidMethod;
+	protected boolean isVoidMethod;
 
 	/**
 	 * True if the method has been called correctly and it is annotated as {@link io.takamaka.code.lang.View}.
 	 */
-	public boolean isViewMethod;
+	protected boolean isViewMethod;
 
 	protected MethodCallTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
@@ -69,7 +69,7 @@ public abstract class MethodCallTransactionRun<Request extends MethodCallTransac
 	}
 
 	@Override
-	public final MethodSignature getMethodOrConstructor() {
+	protected final MethodSignature getMethodOrConstructor() {
 		return method;
 	}
 }
