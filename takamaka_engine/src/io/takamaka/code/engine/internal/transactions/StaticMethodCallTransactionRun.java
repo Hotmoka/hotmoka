@@ -24,87 +24,71 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 	/**
 	 * The response computed at the end of the transaction.
 	 */
-	private MethodCallTransactionResponse response; // make final
+	private final MethodCallTransactionResponse response;
 
 	public StaticMethodCallTransactionRun(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
-			UpdateOfBalance balanceUpdateInCaseOfFailure;
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+			checkIsExternallyOwned(deserializedCaller);
+			// we sell all gas first: what remains will be paid back at the end;
+			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+			UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
+			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
+			chargeForStorage(request);
+			MethodCallTransactionResponse response = null;
 
 			try {
-				this.deserializedCaller = deserializer.deserialize(request.caller);
-				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
-				checkIsExternallyOwned(deserializedCaller);
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
-				chargeForStorage(sizeCalculator.sizeOf(request));
-			}
-			catch (Throwable t) {
-				throw wrapAsTransactionException(t);
-			}
+				Method methodJVM = getMethod();
 
-			try {
-				Throwable exception = null;
+				if (!Modifier.isStatic(methodJVM.getModifiers()))
+					throw new NoSuchMethodException("cannot call an instance method");
+
+				ensureWhiteListingOf(methodJVM, deserializedActuals);
+
+				boolean isVoidMethod = methodJVM.getReturnType() == void.class;
+				boolean isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
 
 				try {
-					Method methodJVM = getMethod();
-
-					if (!Modifier.isStatic(methodJVM.getModifiers()))
-						throw new NoSuchMethodException("cannot call an instance method: use addInstanceMethodCallTransaction instead");
-
-					ensureWhiteListingOf(methodJVM, deserializedActuals);
-
-					isVoidMethod = methodJVM.getReturnType() == void.class;
-					isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
-
-					try {
-						result = methodJVM.invoke(null, deserializedActuals);
+					result = methodJVM.invoke(null, deserializedActuals);
+				}
+				catch (InvocationTargetException e) {
+					if (isCheckedForThrowsExceptions(e, methodJVM)) {
+						chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						increaseBalance(deserializedCaller);
+						response = new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
-					catch (InvocationTargetException e) {
-						exception = unwrapInvocationException(e, methodJVM);
-					}
-				}
-				catch (Throwable t) {
-					exception = t;
+					else
+						throw e.getCause();
 				}
 
-				if (exception instanceof InvocationTargetException) {
-					MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
-					this.response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
-				else {
-					if (exception != null)
-						throw exception;
-
+				if (response == null) {
 					if (isViewMethod && !onlyAffectedBalanceOfCaller())
 						throw new SideEffectsInViewMethodException(method);
 
 					if (isVoidMethod) {
-						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-						chargeForStorage(sizeCalculator.sizeOf(response));
+						chargeForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						increaseBalance(deserializedCaller);
-						this.response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else {
-						MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-						chargeForStorage(sizeCalculator.sizeOf(response));
+						chargeForStorage(new MethodCallTransactionSuccessfulResponse
+							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						increaseBalance(deserializedCaller);
-						this.response = new MethodCallTransactionSuccessfulResponse
+						response = new MethodCallTransactionSuccessfulResponse
 							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 				}
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				this.response = new MethodCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				response = new MethodCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
+
+			this.response = response;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);

@@ -95,6 +95,17 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	}
 
 	/**
+	 * Checks if the given object is a red/green externally owned account or subclass.
+	 * 
+	 * @param object the object to check
+	 * @throws IllegalArgumentException if the object is not a red/green externally owned account
+	 */
+	protected final void checkIsRedGreenExternallyOwned(Object object) {
+		if (!getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(object.getClass()))
+			throw new IllegalArgumentException("only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
+	}
+
+	/**
 	 * Yields the classes of the formal arguments of the method or constructor.
 	 * 
 	 * @return the array of classes, in the same order as the formals
@@ -184,8 +195,20 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	 * @param executable the method or constructor whose execution has thrown the exception
 	 * @return the same exception, or its cause
 	 */
-	protected final static Throwable unwrapInvocationException(InvocationTargetException e, Executable executable) {
+	protected final static Throwable unwrapInvocationTargetException(InvocationTargetException e, Executable executable) {
 		return isChecked(e.getCause()) && hasAnnotation(executable, Constants.THROWS_EXCEPTIONS_NAME) ? e : e.getCause();
+	}
+
+	/**
+	 * Yields the same exception, if it is checked and the executable is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
+	 * Otherwise, yields its cause.
+	 * 
+	 * @param e the exception
+	 * @param executable the method or constructor whose execution has thrown the exception
+	 * @return the same exception, or its cause
+	 */
+	protected final static boolean isCheckedForThrowsExceptions(InvocationTargetException e, Executable executable) {
+		return isChecked(e.getCause()) && hasAnnotation(executable, Constants.THROWS_EXCEPTIONS_NAME);
 	}
 
 	private static boolean isChecked(Throwable t) {

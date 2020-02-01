@@ -27,89 +27,76 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 	/**
 	 * The response computed at the end of the transaction.
 	 */
-	private ConstructorCallTransactionResponse response; // TODO: make final
+	private final ConstructorCallTransactionResponse response;
 
 	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
+
 		this.constructor = request.constructor;
 
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+			checkIsExternallyOwned(deserializedCaller);
+			// we sell all gas first: what remains will be paid back at the end;
+			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+			UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
+			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
+			chargeForStorage(request);
 
-			UpdateOfBalance balanceUpdateInCaseOfFailure;
+			ConstructorCallTransactionResponse response = null;
 			try {
-				this.deserializedCaller = deserializer.deserialize(request.caller);
-				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
-				checkIsExternallyOwned(deserializedCaller);
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
-				chargeForStorage(sizeCalculator.sizeOf(request));
-			}
-			catch (Throwable t) {
-				throw wrapAsTransactionException(t);
-			}
+				Constructor<?> constructorJVM;
+				Object[] deserializedActuals;
 
-			try {
-				Throwable exception = null;
 				try {
-					Constructor<?> constructorJVM;
-					Object[] deserializedActuals;
-
+					// we first try to call the constructor with exactly the parameter types explicitly provided
+					constructorJVM = getConstructor();
+					deserializedActuals = this.deserializedActuals;
+				}
+				catch (NoSuchMethodException e) {
+					// if not found, we try to add the trailing types that characterize the @Entry constructors
 					try {
-						// we first try to call the constructor with exactly the parameter types explicitly provided
-						constructorJVM = getConstructor();
-						deserializedActuals = this.deserializedActuals;
+						constructorJVM = getEntryConstructor();
+						deserializedActuals = addExtraActualsForEntry();
 					}
-					catch (NoSuchMethodException e) {
-						// if not found, we try to add the trailing types that characterize the @Entry constructors
-						try {
-							constructorJVM = getEntryConstructor();
-							deserializedActuals = addExtraActualsForEntry();
-						}
-						catch (NoSuchMethodException ee) {
-							throw e; // the message must be relative to the constructor as the user sees it
-						}
-					}
-
-					ensureWhiteListingOf(constructorJVM, deserializedActuals);
-					if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
-						checkIsExternallyOwned(deserializedCaller);
-
-					try {
-						result = constructorJVM.newInstance(deserializedActuals);
-					}
-					catch (InvocationTargetException e) {
-						exception = unwrapInvocationException(e, constructorJVM);
+					catch (NoSuchMethodException ee) {
+						throw e; // the message must be relative to the constructor as the user sees it
 					}
 				}
-				catch (Throwable t) {
-					exception = t;
+
+				ensureWhiteListingOf(constructorJVM, deserializedActuals);
+				if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
+					checkIsRedGreenExternallyOwned(deserializedCaller);
+
+				try {
+					result = constructorJVM.newInstance(deserializedActuals);
+				}
+				catch (InvocationTargetException e) {
+					if (isCheckedForThrowsExceptions(e, constructorJVM)) {
+						chargeForStorage(new ConstructorCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						increaseBalance(deserializedCaller);
+						response = new ConstructorCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
+					}
+					else
+						throw e.getCause();
 				}
 
-				if (exception instanceof InvocationTargetException) {
-					ConstructorCallTransactionResponse response = new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					chargeForStorage(sizeCalculator.sizeOf(response));
+				if (response == null) {
+					chargeForStorage(new ConstructorCallTransactionSuccessfulResponse
+						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					increaseBalance(deserializedCaller);
-					this.response = new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
-				else {
-					if (exception != null)
-						throw exception;
-
-					ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-							((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
-					this.response = new ConstructorCallTransactionSuccessfulResponse
-							((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					response = new ConstructorCallTransactionSuccessfulResponse
+						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				this.response = new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				response = new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
+
+			this.response = response;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);

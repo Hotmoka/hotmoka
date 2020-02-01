@@ -22,15 +22,9 @@ public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarSto
 
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), this)) {
 			this.classLoader = classLoader;
-
-			try {
-				VerifiedJar verifiedJar = VerifiedJar.of(classLoader.jarPath(), classLoader, true);
-				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, new GasCostModelAdapter(node.getGasCostModel()));
-				this.response = new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
-			}
-			catch (Throwable t) {
-				throw wrapAsTransactionException(t);
-			}
+			VerifiedJar verifiedJar = VerifiedJar.of(classLoader.jarPath(), classLoader, true);
+			InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, new GasCostModelAdapter(node.getGasCostModel()));
+			this.response = new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);

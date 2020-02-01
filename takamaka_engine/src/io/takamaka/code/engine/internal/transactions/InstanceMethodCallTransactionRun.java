@@ -40,99 +40,84 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
-			UpdateOfBalance balanceUpdateInCaseOfFailure;
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			this.deserializedReceiver = deserializer.deserialize(request.receiver);
+			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+			checkIsExternallyOwned(deserializedCaller);
+			// we sell all gas first: what remains will be paid back at the end;
+			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+			UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
+			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
+			chargeForStorage(request);
+			MethodCallTransactionResponse response = null;
 
 			try {
-				this.deserializedCaller = deserializer.deserialize(request.caller);
-				this.deserializedReceiver = deserializer.deserialize(request.receiver);
-				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
-				checkIsExternallyOwned(deserializedCaller);
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
-				chargeForStorage(sizeCalculator.sizeOf(request));
-			}
-			catch (Throwable t) {
-				throw new TransactionException(t);
-			}
+				Method methodJVM;
+				Object[] deserializedActuals;
 
-			try {
-				Throwable exception = null;
 				try {
-					Method methodJVM;
-					Object[] deserializedActuals;
-
+					// we first try to call the method with exactly the parameter types explicitly provided
+					methodJVM = getMethod();
+					deserializedActuals = this.deserializedActuals;
+				}
+				catch (NoSuchMethodException e) {
+					// if not found, we try to add the trailing types that characterize the @Entry methods
 					try {
-						// we first try to call the method with exactly the parameter types explicitly provided
-						methodJVM = getMethod();
-						deserializedActuals = this.deserializedActuals;
+						methodJVM = getEntryMethod();
+						deserializedActuals = addExtraActualsForEntry();
 					}
-					catch (NoSuchMethodException e) {
-						// if not found, we try to add the trailing types that characterize the @Entry methods
-						try {
-							methodJVM = getEntryMethod();
-							deserializedActuals = addExtraActualsForEntry();
-						}
-						catch (NoSuchMethodException ee) {
-							throw e; // the message must be relative to the method as the user sees it
-						}
-					}
-
-					if (Modifier.isStatic(methodJVM.getModifiers()))
-						throw new NoSuchMethodException("cannot call a static method: use addStaticMethodCallTransaction instead");
-
-					ensureWhiteListingOf(methodJVM, deserializedActuals);
-
-					isVoidMethod = methodJVM.getReturnType() == void.class;
-					isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
-					if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
-						checkIsRedGreenExternallyOwned(deserializedCaller);
-
-					try {
-						result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
-					}
-					catch (InvocationTargetException e) {
-						exception = unwrapInvocationException(e, methodJVM);
+					catch (NoSuchMethodException ee) {
+						throw e; // the message must be relative to the method as the user sees it
 					}
 				}
-				catch (Throwable t) {
-					exception = t;
+
+				if (Modifier.isStatic(methodJVM.getModifiers()))
+					throw new NoSuchMethodException("cannot call a static method");
+
+				ensureWhiteListingOf(methodJVM, deserializedActuals);
+
+				boolean isVoidMethod = methodJVM.getReturnType() == void.class;
+				boolean isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+				if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
+					checkIsRedGreenExternallyOwned(deserializedCaller);
+
+				try {
+					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
+				}
+				catch (InvocationTargetException e) {
+					if (isCheckedForThrowsExceptions(e, methodJVM)) {
+						chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						increaseBalance(deserializedCaller);
+						response = new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
+					else
+						throw e.getCause();
 				}
 
-				if (exception instanceof InvocationTargetException) {
-					MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
-					this.response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					return;
-				}
+				if (response == null) {
+					if (isViewMethod && !onlyAffectedBalanceOfCaller())
+						throw new SideEffectsInViewMethodException(method);
 
-				if (exception != null)
-					throw exception;
-
-				if (isViewMethod && !onlyAffectedBalanceOfCaller())
-					throw new SideEffectsInViewMethodException(method);
-
-				if (isVoidMethod) {
-					MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
-					this.response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
-				else {
-					MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
-					this.response = new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					if (isVoidMethod) {
+						chargeForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						increaseBalance(deserializedCaller);
+						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
+					else {
+						chargeForStorage(new MethodCallTransactionSuccessfulResponse
+							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						increaseBalance(deserializedCaller);
+						response = new MethodCallTransactionSuccessfulResponse
+							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
 				}
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				this.response = new MethodCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				response = new MethodCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
+
+			this.response = response;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);
@@ -165,17 +150,6 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 		Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 		if (model.isPresent() && !Modifier.isStatic(executable.getModifiers()))
 			checkWhiteListingProofObligations(model.get().getName(), deserializedReceiver, model.get().getAnnotations());
-	}
-
-	/**
-	 * Checks if the given object is a red/green externally owned account or subclass.
-	 * 
-	 * @param object the object to check
-	 * @throws IllegalArgumentException if the object is not a red/green externally owned account
-	 */
-	private void checkIsRedGreenExternallyOwned(Object object) {
-		if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(object.getClass()))
-			throw new IllegalArgumentException("only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}
 
 	/**

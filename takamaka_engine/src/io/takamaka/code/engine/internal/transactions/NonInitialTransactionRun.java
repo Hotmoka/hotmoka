@@ -86,7 +86,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 * Checks if the given object is an externally owned account or subclass.
 	 * 
 	 * @param object the object to check
-	 * @throws IllegalTransactionRequestException if the object is not an externally owned account
+	 * @throws IllegalArgumentException if the object is not an externally owned account
 	 */
 	protected final void checkIsExternallyOwned(Object object) {
 		Class<? extends Object> clazz = object.getClass();
@@ -108,6 +108,14 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	@Override
 	public final void chargeForStorage(BigInteger amount) {
 		charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
+	}
+
+	protected final void chargeForStorage(Request request) {
+		chargeForStorage(sizeCalculator.sizeOf(request));
+	}
+
+	protected final void chargeForStorage(Response response) {
+		chargeForStorage(sizeCalculator.sizeOf(response));
 	}
 
 	@Override
@@ -178,7 +186,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	}
 
 	/**
-	 * Buys back the remaining gas to payer of the caller of this transaction.
+	 * Buys back the remaining gas to the caller of this transaction.
 	 * 
 	 * @param eoa the externally owned account
 	 * @return the balance of the contract after buying back the remaining gas
