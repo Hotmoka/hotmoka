@@ -15,7 +15,6 @@ import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
@@ -43,9 +42,6 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 				balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
 				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 				chargeForStorage(sizeCalculator.sizeOf(request));
-			}
-			catch (IllegalTransactionRequestException e) {
-				throw e;
 			}
 			catch (Throwable t) {
 				throw wrapAsTransactionException(t);
@@ -104,9 +100,6 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 				}
-			}
-			catch (IllegalTransactionRequestException e) {
-				throw e;
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller

@@ -49,7 +49,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.engine.EngineClassLoader;
-import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.SequentialTransactionReference;
 import io.takamaka.code.engine.Transaction;
 
@@ -234,9 +233,8 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
 	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
-	 * @throws IllegalTransactionRequestException 
 	 */
-	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException, IllegalTransactionRequestException {
+	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandBlockchainWith(transaction);
@@ -271,7 +269,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, IllegalTransactionRequestException {
+	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandBlockchainWith(transaction);
@@ -308,7 +306,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
 	 * @throws IllegalTransactionRequestException 
 	 */
-	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, IllegalTransactionRequestException {
+	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandBlockchainWith(transaction);
@@ -330,7 +328,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	private void requireBlockchainNotYetInitialized() throws Exception {
 		SequentialTransactionReference previous = getTopmostTransactionReference();
 		if (previous != null && !(getRequestAt(previous) instanceof InitialTransactionRequest))
-			throw new IllegalTransactionRequestException("This blockchain is already initialized");
+			throw new IllegalStateException("this blockchain is already initialized");
 	}
 
 	/**
@@ -496,11 +494,8 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 		try {
 			return what.call();
 		}
-		catch (IllegalTransactionRequestException e) {
-			throw e;
-		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+			throw wrapAsTransactionException(t);
 		}
 	}
 
@@ -512,8 +507,8 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
 	 * @return the wrapped or original exception
 	 */
-	private static TransactionException wrapAsTransactionException(Throwable t, String message) {
-		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
+	private static TransactionException wrapAsTransactionException(Throwable t) {
+		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
 	}
 
 	/**
@@ -524,20 +519,16 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @return the result of the callable
 	 * @throws CodeExecutionException the unwrapped exception
 	 * @throws TransactionException the wrapped exception
-	 * @throws IllegalTransactionRequestException 
 	 */
-	private static <T> T wrapWithCodeInCaseOfException(Callable<T> what) throws TransactionException, CodeExecutionException, IllegalTransactionRequestException {
+	private static <T> T wrapWithCodeInCaseOfException(Callable<T> what) throws TransactionException, CodeExecutionException {
 		try {
 			return what.call();
 		}
 		catch (CodeExecutionException e) {
 			throw e;
 		}
-		catch (IllegalTransactionRequestException e) {
-			throw e;
-		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "Cannot complete the transaction");
+			throw wrapAsTransactionException(t);
 		}
 	}
 }

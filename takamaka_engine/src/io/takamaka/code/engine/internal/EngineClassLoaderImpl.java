@@ -28,7 +28,6 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.EngineClassLoader;
-import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -242,7 +241,7 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		if (classpath.recursive) {
 			TransactionRequest<?> request = getRequestAndCharge(classpath.transaction);
 			if (!(request instanceof AbstractJarStoreTransactionRequest))
-				throw new IllegalTransactionRequestException("classpath does not refer to a jar store transaction");
+				throw new IllegalArgumentException("classpath does not refer to a jar store transaction");
 
 			Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
@@ -251,7 +250,7 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 
 		TransactionResponse response = getResponseAndCharge(classpath.transaction);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
-			throw new IllegalTransactionRequestException("classpath does not refer to a successful jar store transaction");
+			throw new IllegalArgumentException("classpath does not refer to a successful jar store transaction");
 
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
 		run.chargeForCPU(run.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));

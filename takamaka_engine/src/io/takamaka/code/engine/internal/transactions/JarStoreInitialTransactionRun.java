@@ -33,7 +33,7 @@ public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarSto
 			}
 		}
 		catch (Throwable t) {
-			throw wrapAsIllegalTransactionRequestException(t);
+			throw wrapAsTransactionException(t);
 		}
 	}
 

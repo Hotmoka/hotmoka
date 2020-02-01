@@ -18,7 +18,6 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
@@ -54,11 +53,8 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 				chargeForStorage(sizeCalculator.sizeOf(request));
 			}
-			catch (IllegalTransactionRequestException e) {
-				throw e;
-			}
 			catch (Throwable t) {
-				throw new IllegalTransactionRequestException(t);
+				throw new TransactionException(t);
 			}
 
 			try {
@@ -133,9 +129,6 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 						(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
-			catch (IllegalTransactionRequestException e) {
-				throw e;
-			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				this.response = new MethodCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
@@ -178,11 +171,11 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 	 * Checks if the given object is a red/green externally owned account or subclass.
 	 * 
 	 * @param object the object to check
-	 * @throws IllegalTransactionRequestException if the object is not a red/green externally owned account
+	 * @throws IllegalArgumentException if the object is not a red/green externally owned account
 	 */
-	private void checkIsRedGreenExternallyOwned(Object object) throws ClassNotFoundException, IllegalTransactionRequestException {
+	private void checkIsRedGreenExternallyOwned(Object object) {
 		if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(object.getClass()))
-			throw new IllegalTransactionRequestException("Only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
+			throw new IllegalArgumentException("only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}
 
 	/**

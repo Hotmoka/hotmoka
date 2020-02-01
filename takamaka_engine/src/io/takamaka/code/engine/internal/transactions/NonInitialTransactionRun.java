@@ -18,7 +18,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.OutOfGasError;
 
 /**
@@ -89,11 +88,11 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 * @param object the object to check
 	 * @throws IllegalTransactionRequestException if the object is not an externally owned account
 	 */
-	protected final void checkIsExternallyOwned(Object object) throws IllegalTransactionRequestException {
+	protected final void checkIsExternallyOwned(Object object) {
 		Class<? extends Object> clazz = object.getClass();
 		if (!getClassLoader().getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
-			throw new IllegalTransactionRequestException("Only an externally owned account can start a transaction");
+			throw new IllegalArgumentException("only an externally owned account can start a transaction");
 	}
 
 	@Override
@@ -133,20 +132,20 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 * @param request the request
 	 * @param deserializedCaller the caller
 	 * @return the update to the balance that would follow if the failed transaction request is added to the blockchain
-	 * @throws IllegalTransactionRequestException if the caller has not enough money to buy the promised gas and the addition
-	 *                                            of a failed transaction response to blockchain
+	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas and the addition
+	 *                               of a failed transaction response to blockchain
 	 */
-	public final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) throws IllegalTransactionRequestException {
+	public final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) {
 		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
 		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getClassLoader().getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 
 		if (gas.compareTo(minimalGasForRunning(request, balanceUpdateInCaseOfFailure)) < 0)
-			throw new IllegalTransactionRequestException("not enough gas to start the transaction");
+			throw new IllegalStateException("not enough gas to start the transaction");
 
 		return balanceUpdateInCaseOfFailure;
 	}
 
-	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request, UpdateOfBalance balanceUpdateInCaseOfFailure) throws IllegalTransactionRequestException {
+	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request, UpdateOfBalance balanceUpdateInCaseOfFailure) {
 		// we create a response whose size over-approximates that of a response in case of failure of this request
 		BigInteger result = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOf(request));
 		if (request instanceof ConstructorCallTransactionRequest)
@@ -158,7 +157,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 		else if (request instanceof JarStoreTransactionRequest)
 			return result.add(sizeCalculator.sizeOf(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else
-			throw new IllegalTransactionRequestException("unexpected transaction request");
+			throw new IllegalStateException("unexpected transaction request");
 	}
 
 	/**
@@ -167,13 +166,12 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 * @param eoa the reference to the externally owned account
 	 * @param gas the gas to sell
 	 * @return the balance of the contract after paying the given amount of gas
-	 * @throws IllegalTransactionRequestException if the externally owned account does not have funds
-	 *                                            for buying the given amount of gas
+	 * @throws IllegalStateException if the externally owned account does not have funds for buying the given amount of gas
 	 */
-	private BigInteger decreaseBalance(Object eoa, BigInteger gas) throws IllegalTransactionRequestException {
+	private BigInteger decreaseBalance(Object eoa, BigInteger gas) {
 		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(node.getGasCostModel().toCoin(gas));
 		if (result.signum() < 0)
-			throw new IllegalTransactionRequestException("Caller has not enough funds to buy " + gas + " units of gas");
+			throw new IllegalStateException("caller has not enough funds to buy " + gas + " units of gas");
 
 		getClassLoader().setBalanceOf(eoa, result);
 		return result;

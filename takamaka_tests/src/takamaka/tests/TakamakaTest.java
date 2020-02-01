@@ -3,7 +3,6 @@ package takamaka.tests;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import io.hotmoka.beans.TransactionException;
-import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.issues.Issue;
 
@@ -49,36 +48,18 @@ public abstract class TakamakaTest {
 		fail("no exception: expected " + TransactionException.class.getName());
 	}
 
-	protected static void throwsIllegalTransactionRequestExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {
+	protected static void throwsTransactionException(TestBody what) {
 		try {
 			what.run();
 		}
-		catch (IllegalTransactionRequestException e) {
-			Class<? extends Throwable> actual = e.getCause().getClass();
-			if (expected.isAssignableFrom(actual))
-				return;
-
-			fail("wrong cause: expected " + expected.getName() + " but got " + actual.getName());
-		}
-		catch (Exception e) {
-			fail("wrong exception: expected " + IllegalTransactionRequestException.class.getName() + " but got " + e.getClass().getName());
-		}
-
-		fail("no exception: expected " + IllegalTransactionRequestException.class.getName());
-	}	
-	
-	protected static void throwsIllegalTransactionRequestException(TestBody what) {
-		try {
-			what.run();
-		}
-		catch (IllegalTransactionRequestException e) {
+		catch (TransactionException e) {
 			return;
 		}
 		catch (Exception e) {
-			fail("wrong exception: expected " + IllegalTransactionRequestException.class.getName() + " but got " + e.getClass().getName());
+			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
 		}
 
-		fail("no exception: expected " + IllegalTransactionRequestException.class.getName());
+		fail("no exception: expected " + TransactionException.class.getName());
 	}	
 
 	protected static void throwsVerificationExceptionWithCause(Class<? extends Issue> expected, TestBody what) {

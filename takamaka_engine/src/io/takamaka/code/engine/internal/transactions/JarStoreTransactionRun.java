@@ -68,7 +68,7 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 			this.response = response;
 		}
 		catch (Throwable t) {
-			throw wrapAsIllegalTransactionRequestException(t);
+			throw wrapAsTransactionException(t);
 		}
 	}
 

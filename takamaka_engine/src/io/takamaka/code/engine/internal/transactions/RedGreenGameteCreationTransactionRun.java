@@ -7,7 +7,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class RedGreenGameteCreationTransactionRun extends AbstractTransactionRun<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> {
@@ -25,7 +24,7 @@ public class RedGreenGameteCreationTransactionRun extends AbstractTransactionRun
 			this.classLoader = classLoader;
 
 			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
-				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
+				throw new IllegalArgumentException("the gamete must be initialized with a non-negative amount of coins");
 
 			try {
 				// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
@@ -39,7 +38,7 @@ public class RedGreenGameteCreationTransactionRun extends AbstractTransactionRun
 			}
 		}
 		catch (Throwable t) {
-			throw wrapAsIllegalTransactionRequestException(t);
+			throw wrapAsTransactionException(t);
 		}
 	}
 

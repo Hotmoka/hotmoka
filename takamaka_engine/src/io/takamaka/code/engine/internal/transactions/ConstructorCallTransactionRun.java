@@ -17,7 +17,6 @@ import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
@@ -30,7 +29,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 	 */
 	private ConstructorCallTransactionResponse response; // TODO: make final
 
-	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
+	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 		this.constructor = request.constructor;
 
@@ -49,7 +48,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 				chargeForStorage(sizeCalculator.sizeOf(request));
 			}
 			catch (Throwable t) {
-				throw wrapAsIllegalTransactionRequestException(t);
+				throw wrapAsTransactionException(t);
 			}
 
 			try {
