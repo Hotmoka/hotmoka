@@ -130,7 +130,7 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 		for (StorageType type: getMethodOrConstructor().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
 
-		classes.add(classLoader.getContract());
+		classes.add(getClassLoader().getContract());
 		classes.add(Dummy.class);
 
 		return classes.toArray(new Class<?>[classes.size()]);
@@ -173,7 +173,7 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	protected void scanPotentiallyAffectedObjects(Consumer<Object> add) {
 		add.accept(deserializedCaller);
 
-		Class<?> storage = classLoader.getStorage();
+		Class<?> storage = getClassLoader().getStorage();
 		if (result != null && storage.isAssignableFrom(result.getClass()))
 			add.accept(result);
 
@@ -212,7 +212,7 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	 * @return the storage references
 	 */
 	protected final Stream<StorageReference> storageReferencesOfEvents() {
-		return events().map(classLoader::getStorageReferenceOf);
+		return events().map(getClassLoader()::getStorageReferenceOf);
 	}
 
 	/**

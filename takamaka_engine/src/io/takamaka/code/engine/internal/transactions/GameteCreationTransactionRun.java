@@ -11,6 +11,12 @@ import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
+	private final EngineClassLoaderImpl classLoader;
+
+	/**
+	 * The response computed at the end of the transaction.
+	 */
+	private final GameteCreationTransactionResponse response;
 
 	public GameteCreationTransactionRun(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
@@ -31,5 +37,15 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "cannot complete the transaction");
 		}
+	}
+
+	@Override
+	public EngineClassLoaderImpl getClassLoader() {
+		return classLoader;
+	}
+
+	@Override
+	public GameteCreationTransactionResponse getResponse() {
+		return response;
 	}
 }

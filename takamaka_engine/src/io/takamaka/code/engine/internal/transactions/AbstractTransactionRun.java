@@ -31,19 +31,14 @@ import io.takamaka.code.engine.runtime.Runtime;
 public abstract class AbstractTransactionRun<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionRun {
 
 	/**
-	 * The request of the transaction.
+	 * The HotMoka node that is running the transaction.
 	 */
-	protected final Request request;
-
-	/**
-	 * The response computed for the transaction, starting from the request.
-	 */
-	public Response response;
+	public final Node node;
 
 	/**
 	 * The object that knows about the size of data once stored in blockchain.
 	 */
-	public final SizeCalculator sizeCalculator;
+	public final SizeCalculator sizeCalculator = new SizeCalculator(this);
 
 	/**
 	 * The object that serializes RAM values into storage objects.
@@ -53,7 +48,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	/**
 	 * The object that deserializes storage objects into RAM values.
 	 */
-	public final Deserializer deserializer;
+	public final Deserializer deserializer = new Deserializer(this);
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -64,17 +59,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * The object that can be used to extract the updates to a set of storage objects
 	 * induced by the run of the transaction.
 	 */
-	protected final UpdatesExtractor updatesExtractor = new UpdatesExtractor(this);
-
-	/**
-	 * The HotMoka node that is running the transaction.
-	 */
-	public final Node node;
-
-	/**
-	 * The class loader for the transaction currently being executed.
-	 */
-	public EngineClassLoaderImpl classLoader;
+	public final UpdatesExtractor updatesExtractor = new UpdatesExtractor(this);
 
 	/**
 	 * The events accumulated during the transaction.
@@ -92,13 +77,10 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	private final long now;
 
 	protected AbstractTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
-		this.request = request;
 		Runtime.init(this);
 		ClassType.clearCache();
 		FieldSignature.clearCache();
 		this.node = node;
-		this.deserializer = new Deserializer(this);
-		this.sizeCalculator = new SizeCalculator(node.getGasCostModel());
 		this.current = current;
 
 		try {
@@ -108,6 +90,10 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 			throw wrapAsTransactionException(t, "cannot complete the transaction");
 		}
 	}
+
+	public abstract EngineClassLoaderImpl getClassLoader();
+
+	public abstract Response getResponse();
 
 	@Override
 	public final long now() {

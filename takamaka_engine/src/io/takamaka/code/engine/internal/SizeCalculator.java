@@ -65,20 +65,21 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.GasCostModel;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 
 /**
  * An object that knows about the size of objects when stored in blockchain.
  */
 public class SizeCalculator {
-	private final GasCostModel gasCostModel;
+	private final AbstractTransactionRun<?,?> run;
 
 	/**
 	 * Builds the size calculator.
 	 * 
 	 * @param gasCostModel the gas model to use for the calculations
 	 */
-	public SizeCalculator(GasCostModel gasCostModel) {
-		this.gasCostModel = gasCostModel;
+	public SizeCalculator(AbstractTransactionRun<?,?> run) {
+		this.run = run;
 	}
 
 	/**
@@ -88,6 +89,8 @@ public class SizeCalculator {
 	 * @return the size
 	 */
 	public BigInteger sizeOf(NonInitialTransactionRequest<?> request) {
+		GasCostModel gasCostModel = run.node.getGasCostModel();
+
 		if (request instanceof ConstructorCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOf(request.caller))
@@ -128,6 +131,8 @@ public class SizeCalculator {
 	 * @return the size
 	 */
 	public BigInteger sizeOf(NonInitialTransactionResponse response) {
+		GasCostModel gasCostModel = run.node.getGasCostModel();
+
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot());
 
 		if (response instanceof TransactionResponseWithGas) {
@@ -186,6 +191,8 @@ public class SizeCalculator {
 	 * @return the size
 	 */
 	public BigInteger sizeOf(Classpath classpath) {
+		GasCostModel gasCostModel = run.node.getGasCostModel();
+
 		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
 			.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()))
 			.add(gasCostModel.storageCostOf(classpath.transaction));
@@ -199,6 +206,8 @@ public class SizeCalculator {
 	 * @return the size
 	 */
 	public BigInteger sizeOf(FieldSignature field) {
+		GasCostModel gasCostModel = run.node.getGasCostModel();
+
 		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(sizeOf(field.definingClass))
 			.add(gasCostModel.storageCostOf(field.name)).add(sizeOf(field.type));
 	}
@@ -211,6 +220,8 @@ public class SizeCalculator {
 	 * @return the size
 	 */
 	public BigInteger sizeOf(CodeSignature methodOrConstructor) {
+		GasCostModel gasCostModel = run.node.getGasCostModel();
+
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot())
 			.add(sizeOf(methodOrConstructor.definingClass))
 			.add(methodOrConstructor.formals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
@@ -234,6 +245,8 @@ public class SizeCalculator {
 	 * @return the size
 	 */
 	public BigInteger sizeOf(StorageType type) {
+		GasCostModel gasCostModel = run.node.getGasCostModel();
+
 		if (type instanceof BasicTypes)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot());
 		else if (type instanceof ClassType)
@@ -251,6 +264,8 @@ public class SizeCalculator {
 	 * @return the size
 	 */
 	public BigInteger sizeOf(StorageValue value) {
+		GasCostModel gasCostModel = run.node.getGasCostModel();
+
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot());
 		if (value instanceof BigIntegerValue)
 			return size.add(gasCostModel.storageCostOf(((BigIntegerValue) value).value));
@@ -281,6 +296,8 @@ public class SizeCalculator {
 	 * @return the size
 	 */
 	public BigInteger sizeOf(Update update) {
+		GasCostModel gasCostModel = run.node.getGasCostModel();
+
 		BigInteger size = sizeOf(update.object);
 
 		if (update instanceof ClassTag) {

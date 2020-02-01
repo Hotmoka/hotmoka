@@ -55,7 +55,7 @@ public abstract class MethodCallTransactionRun<Request extends MethodCallTransac
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClass();
 
-		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+		return getClassLoader().resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 
@@ -66,7 +66,7 @@ public abstract class MethodCallTransactionRun<Request extends MethodCallTransac
 	 */
 	protected final boolean onlyAffectedBalanceOf() {
 		return updates().allMatch
-			(update -> update.object.equals(classLoader.getStorageReferenceOf(deserializedCaller))
+			(update -> update.object.equals(getClassLoader().getStorageReferenceOf(deserializedCaller))
 						&& update instanceof UpdateOfField
 						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
 	}
@@ -81,7 +81,7 @@ public abstract class MethodCallTransactionRun<Request extends MethodCallTransac
 	 * @throws ClassNotFoundException if some class could not be found during the check
 	 */
 	protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
-		Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
+		Optional<Method> model = getClassLoader().getWhiteListingWizard().whiteListingModelOf(executable);
 		if (!model.isPresent())
 			throw new NonWhiteListedCallException("illegal call to non-white-listed method " + method.definingClass.name + "." + method.methodName);
 

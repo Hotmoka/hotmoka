@@ -10,6 +10,13 @@ import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
 public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
+	private final EngineClassLoaderImpl classLoader;
+
+	/**
+	 * The response computed at the end of the transaction.
+	 */
+	private final JarStoreInitialTransactionResponse response;
+
 	public JarStoreInitialTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
@@ -22,5 +29,15 @@ public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarSto
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "cannot complete the transaction");
 		}
+	}
+
+	@Override
+	public JarStoreInitialTransactionResponse getResponse() {
+		return response;
+	}
+
+	@Override
+	public EngineClassLoaderImpl getClassLoader() {
+		return classLoader;
 	}
 }

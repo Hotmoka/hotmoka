@@ -86,8 +86,8 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 */
 	protected final void checkIsExternallyOwned(Object object) throws IllegalTransactionRequestException {
 		Class<? extends Object> clazz = object.getClass();
-		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
-				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+		if (!getClassLoader().getExternallyOwnedAccount().isAssignableFrom(clazz)
+				&& !getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalTransactionRequestException("Only an externally owned account can start a transaction");
 	}
 
@@ -133,7 +133,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 */
 	public final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) throws IllegalTransactionRequestException {
 		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
-		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(classLoader.getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
+		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getClassLoader().getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 
 		if (gas.compareTo(minimalGasForRunning(request, balanceUpdateInCaseOfFailure)) < 0)
 			throw new IllegalTransactionRequestException("not enough gas to start the transaction");
@@ -166,11 +166,11 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 *                                            for buying the given amount of gas
 	 */
 	private BigInteger decreaseBalance(Object eoa, BigInteger gas) throws IllegalTransactionRequestException {
-		BigInteger result = classLoader.getBalanceOf(eoa).subtract(node.getGasCostModel().toCoin(gas));
+		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(node.getGasCostModel().toCoin(gas));
 		if (result.signum() < 0)
 			throw new IllegalTransactionRequestException("Caller has not enough funds to buy " + gas + " units of gas");
 
-		classLoader.setBalanceOf(eoa, result);
+		getClassLoader().setBalanceOf(eoa, result);
 		return result;
 	}
 
@@ -181,8 +181,8 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 * @return the balance of the contract after buying back the remaining gas
 	 */
 	protected final BigInteger increaseBalance(Object eoa) {
-		BigInteger result = classLoader.getBalanceOf(eoa).add(node.getGasCostModel().toCoin(gas));
-		classLoader.setBalanceOf(eoa, result);
+		BigInteger result = getClassLoader().getBalanceOf(eoa).add(node.getGasCostModel().toCoin(gas));
+		getClassLoader().setBalanceOf(eoa, result);
 		return result;
 	}
 

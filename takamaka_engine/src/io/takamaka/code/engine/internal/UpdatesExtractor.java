@@ -80,9 +80,9 @@ public class UpdatesExtractor {
 		private final SortedSet<Update> updates = new TreeSet<>();
 
 		private Processor(Stream<Object> objects) {
-			this.classLoader = run.classLoader;
+			this.classLoader = run.getClassLoader();
 			this.workingSet = objects
-				.filter(object -> seen.add(run.classLoader.getStorageReferenceOf(object)))
+				.filter(object -> seen.add(classLoader.getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
 
 			do {

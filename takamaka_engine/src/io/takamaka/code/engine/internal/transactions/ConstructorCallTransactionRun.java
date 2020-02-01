@@ -23,6 +23,12 @@ import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class ConstructorCallTransactionRun extends CodeCallTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
 	private final CodeSignature constructor;
+	private final EngineClassLoaderImpl classLoader;
+
+	/**
+	 * The response computed at the end of the transaction.
+	 */
+	private ConstructorCallTransactionResponse response; // TODO: make final
 
 	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
 		super(request, current, node);
@@ -66,12 +72,11 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 					throw exception;
 
 				ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				chargeForStorage(sizeCalculator.sizeOf(response));
 				increaseBalance(deserializedCaller);
 				this.response = new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				return;
+					((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (IllegalTransactionRequestException e) {
 				throw e;
@@ -122,6 +127,16 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 		catch (Throwable t) {
 			exception = t;
 		}
+	}
+
+	@Override
+	public EngineClassLoaderImpl getClassLoader() {
+		return classLoader;
+	}
+
+	@Override
+	public ConstructorCallTransactionResponse getResponse() {
+		return response;
 	}
 
 	/**

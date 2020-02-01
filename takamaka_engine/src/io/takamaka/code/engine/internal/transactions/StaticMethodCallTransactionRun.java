@@ -20,6 +20,12 @@ import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<StaticMethodCallTransactionRequest> {
+	private final EngineClassLoaderImpl classLoader;
+
+	/**
+	 * The response computed at the end of the transaction.
+	 */
+	private MethodCallTransactionResponse response; // make final
 
 	public StaticMethodCallTransactionRun(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
@@ -114,5 +120,15 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 		catch (Throwable t) {
 			exception = t;
 		}
+	}
+
+	@Override
+	public EngineClassLoaderImpl getClassLoader() {
+		return classLoader;
+	}
+
+	@Override
+	public MethodCallTransactionResponse getResponse() {
+		return response;
 	}
 }

@@ -46,7 +46,7 @@ public class StorageTypeToClass {
 			}
 		}
 		else if (type instanceof ClassType)
-			return run.classLoader.loadClass(((ClassType) type).name);
+			return run.getClassLoader().loadClass(((ClassType) type).name);
 	
 		throw new IllegalArgumentException("unexpected storage type");
 	}

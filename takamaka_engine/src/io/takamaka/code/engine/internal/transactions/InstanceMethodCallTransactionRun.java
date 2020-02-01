@@ -29,6 +29,13 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 	 */
 	private final Object deserializedReceiver;
 
+	private final EngineClassLoaderImpl classLoader;
+
+	/**
+	 * The response computed at the end of the transaction.
+	 */
+	private MethodCallTransactionResponse response; // TODO: make final
+
 	public InstanceMethodCallTransactionRun(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
@@ -77,7 +84,6 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
 					this.response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					return;
 				}
 				else {
 					MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
@@ -85,8 +91,7 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
 					this.response = new MethodCallTransactionSuccessfulResponse
-							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					return;
+						(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (IllegalTransactionRequestException e) {
@@ -144,6 +149,16 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 		catch (Throwable t) {
 			exception = t;
 		}
+	}
+
+	@Override
+	public EngineClassLoaderImpl getClassLoader() {
+		return classLoader;
+	}
+
+	@Override
+	public MethodCallTransactionResponse getResponse() {
+		return response;
 	}
 
 	@Override
