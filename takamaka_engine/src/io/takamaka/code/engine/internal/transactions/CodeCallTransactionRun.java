@@ -19,7 +19,6 @@ import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
@@ -34,8 +33,6 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * as a generic layer for all blockchain implementations.
  */
 public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionRun<Request, Response> {
-
-	protected UpdateOfBalance balanceUpdateInCaseOfFailure;
 
 	/**
 	 * The deserialized caller.

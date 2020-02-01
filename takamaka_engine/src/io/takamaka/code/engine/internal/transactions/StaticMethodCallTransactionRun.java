@@ -13,6 +13,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
@@ -32,6 +33,7 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
+			UpdateOfBalance balanceUpdateInCaseOfFailure;
 
 			try {
 				this.deserializedCaller = deserializer.deserialize(request.caller);
@@ -51,9 +53,27 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 			}
 
 			try {
-				Thread executor = new Thread(this::run);
-				executor.start();
-				executor.join();
+				try {
+					Method methodJVM = getMethod();
+
+					if (!Modifier.isStatic(methodJVM.getModifiers()))
+						throw new NoSuchMethodException("cannot call an instance method: use addInstanceMethodCallTransaction instead");
+
+					ensureWhiteListingOf(methodJVM, deserializedActuals);
+
+					isVoidMethod = methodJVM.getReturnType() == void.class;
+					isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+
+					try {
+						result = methodJVM.invoke(null, deserializedActuals);
+					}
+					catch (InvocationTargetException e) {
+						exception = unwrapInvocationException(e, methodJVM);
+					}
+				}
+				catch (Throwable t) {
+					exception = t;
+				}
 
 				if (exception instanceof InvocationTargetException) {
 					MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
@@ -95,30 +115,6 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "cannot complete the transaction");
-		}
-	}
-
-	private void run() {
-		try {
-			Method methodJVM = getMethod();
-
-			if (!Modifier.isStatic(methodJVM.getModifiers()))
-				throw new NoSuchMethodException("cannot call an instance method: use addInstanceMethodCallTransaction instead");
-
-			ensureWhiteListingOf(methodJVM, deserializedActuals);
-
-			isVoidMethod = methodJVM.getReturnType() == void.class;
-			isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
-
-			try {
-				result = methodJVM.invoke(null, deserializedActuals);
-			}
-			catch (InvocationTargetException e) {
-				exception = unwrapInvocationException(e, methodJVM);
-			}
-		}
-		catch (Throwable t) {
-			exception = t;
 		}
 	}
 

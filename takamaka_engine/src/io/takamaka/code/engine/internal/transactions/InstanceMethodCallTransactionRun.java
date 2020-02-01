@@ -16,6 +16,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.IllegalTransactionRequestException;
@@ -41,7 +42,8 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
-			
+			UpdateOfBalance balanceUpdateInCaseOfFailure;
+
 			try {
 				this.deserializedCaller = deserializer.deserialize(request.caller);
 				this.deserializedReceiver = deserializer.deserialize(request.receiver);
@@ -61,9 +63,46 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 			}
 
 			try {
-				Thread executor = new Thread(this::run);
-				executor.start();
-				executor.join();
+				try {
+					Method methodJVM;
+					Object[] deserializedActuals;
+
+					try {
+						// we first try to call the method with exactly the parameter types explicitly provided
+						methodJVM = getMethod();
+						deserializedActuals = this.deserializedActuals;
+					}
+					catch (NoSuchMethodException e) {
+						// if not found, we try to add the trailing types that characterize the @Entry methods
+						try {
+							methodJVM = getEntryMethod();
+							deserializedActuals = addExtraActualsForEntry();
+						}
+						catch (NoSuchMethodException ee) {
+							throw e; // the message must be relative to the method as the user sees it
+						}
+					}
+
+					if (Modifier.isStatic(methodJVM.getModifiers()))
+						throw new NoSuchMethodException("cannot call a static method: use addStaticMethodCallTransaction instead");
+
+					ensureWhiteListingOf(methodJVM, deserializedActuals);
+
+					isVoidMethod = methodJVM.getReturnType() == void.class;
+					isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+					if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
+						checkIsRedGreenExternallyOwned(deserializedCaller);
+
+					try {
+						result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
+					}
+					catch (InvocationTargetException e) {
+						exception = unwrapInvocationException(e, methodJVM);
+					}
+				}
+				catch (Throwable t) {
+					exception = t;
+				}
 
 				if (exception instanceof InvocationTargetException) {
 					MethodCallTransactionResponse response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
@@ -87,7 +126,7 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 				}
 				else {
 					MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
 					this.response = new MethodCallTransactionSuccessfulResponse
@@ -105,49 +144,6 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "cannot complete the transaction");
-		}
-	}
-
-	private void run() {
-		try {
-			Method methodJVM;
-			Object[] deserializedActuals;
-
-			try {
-				// we first try to call the method with exactly the parameter types explicitly provided
-				methodJVM = getMethod();
-				deserializedActuals = this.deserializedActuals;
-			}
-			catch (NoSuchMethodException e) {
-				// if not found, we try to add the trailing types that characterize the @Entry methods
-				try {
-					methodJVM = getEntryMethod();
-					deserializedActuals = addExtraActualsForEntry();
-				}
-				catch (NoSuchMethodException ee) {
-					throw e; // the message must be relative to the method as the user sees it
-				}
-			}
-
-			if (Modifier.isStatic(methodJVM.getModifiers()))
-				throw new NoSuchMethodException("cannot call a static method: use addStaticMethodCallTransaction instead");
-
-			ensureWhiteListingOf(methodJVM, deserializedActuals);
-
-			isVoidMethod = methodJVM.getReturnType() == void.class;
-			isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
-			if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
-				checkIsRedGreenExternallyOwned(deserializedCaller);
-
-			try {
-				result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
-			}
-			catch (InvocationTargetException e) {
-				exception = unwrapInvocationException(e, methodJVM);
-			}
-		}
-		catch (Throwable t) {
-			exception = t;
 		}
 	}
 

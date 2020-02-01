@@ -14,6 +14,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
+import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
@@ -159,5 +160,16 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 */
 	protected final static TransactionException wrapAsTransactionException(Throwable t, String message) {
 		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
+	}
+
+	/**
+	 * Wraps the given throwable in a {@link io.takamaka.code.engine.IllegalTransactionRequestException}, if it not
+	 * already an instance of that exception.
+	 * 
+	 * @param t the throwable to wrap
+	 * @return the wrapped or original exception
+	 */
+	protected final static IllegalTransactionRequestException wrapAsIllegalTransactionRequestException(Throwable t) {
+		return t instanceof IllegalTransactionRequestException ? (IllegalTransactionRequestException) t : new IllegalTransactionRequestException(t);
 	}
 }
