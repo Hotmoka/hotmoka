@@ -54,6 +54,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 			}
 
 			try {
+				Throwable exception = null;
 				try {
 					Constructor<?> constructorJVM;
 					Object[] deserializedActuals;

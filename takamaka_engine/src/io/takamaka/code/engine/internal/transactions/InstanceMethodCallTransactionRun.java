@@ -63,6 +63,7 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 			}
 
 			try {
+				Throwable exception = null;
 				try {
 					Method methodJVM;
 					Object[] deserializedActuals;

@@ -53,6 +53,8 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 			}
 
 			try {
+				Throwable exception = null;
+
 				try {
 					Method methodJVM = getMethod();
 

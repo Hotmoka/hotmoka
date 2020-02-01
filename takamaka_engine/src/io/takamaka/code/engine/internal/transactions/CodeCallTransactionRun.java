@@ -51,12 +51,6 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	 */
 	protected Object result;
 
-	/**
-	 * The exception resulting from the execution of the method or constructor, if any.
-	 * This is {@code null} if the execution completed without exception.
-	 */
-	protected Throwable exception;
-
 	protected CodeCallTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 	}
