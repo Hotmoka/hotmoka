@@ -52,10 +52,11 @@ public abstract class MethodCallTransactionRun<Request extends MethodCallTransac
 	/**
 	 * Determines if the execution only affected the balance of the caller contract.
 	 * 
+	 * @param result the returned value for method calls or created object for constructor calls, if any
 	 * @return true if and only if that condition holds
 	 */
-	protected final boolean onlyAffectedBalanceOfCaller() {
-		return updates().allMatch
+	protected final boolean onlyAffectedBalanceOfCaller(Object result) {
+		return updates(result).allMatch
 			(update -> update.object.equals(getClassLoader().getStorageReferenceOf(getDeserializedCaller()))
 						&& update instanceof UpdateOfField
 						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));

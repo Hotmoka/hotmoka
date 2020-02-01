@@ -32,12 +32,12 @@ public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarSto
 	}
 
 	@Override
-	public JarStoreInitialTransactionResponse getResponse() {
+	public final JarStoreInitialTransactionResponse getResponse() {
 		return response;
 	}
 
 	@Override
-	public EngineClassLoaderImpl getClassLoader() {
+	public final EngineClassLoaderImpl getClassLoader() {
 		return classLoader;
 	}
 }

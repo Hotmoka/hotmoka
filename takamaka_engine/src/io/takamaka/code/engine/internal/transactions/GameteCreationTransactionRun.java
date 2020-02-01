@@ -37,12 +37,12 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 	}
 
 	@Override
-	public EngineClassLoaderImpl getClassLoader() {
+	public final EngineClassLoaderImpl getClassLoader() {
 		return classLoader;
 	}
 
 	@Override
-	public GameteCreationTransactionResponse getResponse() {
+	public final GameteCreationTransactionResponse getResponse() {
 		return response;
 	}
 }

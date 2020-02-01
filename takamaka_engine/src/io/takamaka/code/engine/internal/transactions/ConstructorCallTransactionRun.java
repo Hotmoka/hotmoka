@@ -40,11 +40,6 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 	 */
 	private final ConstructorCallTransactionResponse response;
 
-	/**
-	 * The object created by the constructor call.
-	 */
-	private Object result;
-
 	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
@@ -62,8 +57,8 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 			chargeForStorage(request);
 
 			ConstructorCallTransactionResponse response = null;
+			Constructor<?> constructorJVM = null;
 			try {
-				Constructor<?> constructorJVM;
 				Object[] deserializedActuals;
 
 				try {
@@ -86,23 +81,21 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 				if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
 					checkIsRedGreenExternallyOwned(deserializedCaller);
 
-				try {
-					result = constructorJVM.newInstance(deserializedActuals);
-					chargeForStorage(new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				Object result = constructorJVM.newInstance(deserializedActuals);
+				chargeForStorage(new ConstructorCallTransactionSuccessfulResponse
+					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				increaseBalance(deserializedCaller);
+				response = new ConstructorCallTransactionSuccessfulResponse
+					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+			}
+			catch (InvocationTargetException e) {
+				if (isCheckedForThrowsExceptions(e, constructorJVM)) {
+					chargeForStorage(new ConstructorCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					increaseBalance(deserializedCaller);
-					response = new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					response = new ConstructorCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
 				}
-				catch (InvocationTargetException e) {
-					if (isCheckedForThrowsExceptions(e, constructorJVM)) {
-						chargeForStorage(new ConstructorCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						increaseBalance(deserializedCaller);
-						response = new ConstructorCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
-					}
-					else
-						throw e.getCause();
-				}
+				else
+					throw e.getCause();
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -114,6 +107,16 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);
 		}
+	}
+
+	@Override
+	public final EngineClassLoaderImpl getClassLoader() {
+		return classLoader;
+	}
+
+	@Override
+	public final ConstructorCallTransactionResponse getResponse() {
+		return response;
 	}
 
 	/**
@@ -129,18 +132,8 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 		System.arraycopy(deserializedActuals, 0, result, 0, al);
 		result[al] = getDeserializedCaller();
 		result[al + 1] = null; // Dummy is not used
-
+	
 		return result;
-	}
-
-	@Override
-	public EngineClassLoaderImpl getClassLoader() {
-		return classLoader;
-	}
-
-	@Override
-	public ConstructorCallTransactionResponse getResponse() {
-		return response;
 	}
 
 	/**
@@ -204,10 +197,5 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 	@Override
 	protected final Stream<Object> getDeserializedActuals() {
 		return Stream.of(deserializedActuals);
-	}
-
-	@Override
-	protected final Object getResult() {
-		return result;
 	}
 }

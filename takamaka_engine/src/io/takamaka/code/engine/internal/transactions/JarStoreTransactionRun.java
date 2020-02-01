@@ -68,12 +68,12 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 	}
 
 	@Override
-	public EngineClassLoaderImpl getClassLoader() {
+	public final EngineClassLoaderImpl getClassLoader() {
 		return classLoader;
 	}
 
 	@Override
-	public JarStoreTransactionResponse getResponse() {
+	public final JarStoreTransactionResponse getResponse() {
 		return response;
 	}
 }

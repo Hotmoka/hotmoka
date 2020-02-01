@@ -42,11 +42,6 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 	private final Object[] deserializedActuals;
 
 	/**
-	 * The value resulting from the method call. This is {@code null} for void methods.
-	 */
-	private Object result;
-
-	/**
 	 * The response computed at the end of the transaction.
 	 */
 	private final MethodCallTransactionResponse response;
@@ -66,9 +61,9 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 			chargeForStorage(request);
 			MethodCallTransactionResponse response = null;
+			Method methodJVM = null;
 
 			try {
-				Method methodJVM;
 				Object[] deserializedActuals;
 
 				try {
@@ -97,34 +92,30 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 				if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
 					checkIsRedGreenExternallyOwned(deserializedCaller);
 
-				try {
-					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
+				Object result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
 
-					if (isViewMethod && !onlyAffectedBalanceOfCaller())
-						throw new SideEffectsInViewMethodException(method);
+				if (isViewMethod && !onlyAffectedBalanceOfCaller(result))
+					throw new SideEffectsInViewMethodException(method);
 
-					if (isVoidMethod) {
-						chargeForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						increaseBalance(deserializedCaller);
-						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					}
-					else {
-						chargeForStorage(new MethodCallTransactionSuccessfulResponse
-							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						increaseBalance(deserializedCaller);
-						response = new MethodCallTransactionSuccessfulResponse
-							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					}
+				if (isVoidMethod) {
+					chargeForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					increaseBalance(deserializedCaller);
+					response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
-				catch (InvocationTargetException e) {
-					if (isCheckedForThrowsExceptions(e, methodJVM)) {
-						chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						increaseBalance(deserializedCaller);
-						response = new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					}
-					else
-						throw e.getCause();
+				else {
+					chargeForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					increaseBalance(deserializedCaller);
+					response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
+			}
+			catch (InvocationTargetException e) {
+				if (isCheckedForThrowsExceptions(e, methodJVM)) {
+					chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					increaseBalance(deserializedCaller);
+					response = new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				}
+				else
+					throw e.getCause();
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -190,11 +181,6 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 		result[al] = getDeserializedCaller();
 		result[al + 1] = null; // Dummy is not used
 
-		return result;
-	}
-
-	@Override
-	protected final Object getResult() {
 		return result;
 	}
 

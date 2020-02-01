@@ -151,28 +151,6 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	}
 
 	/**
-	 * Scans the objects that might have been affected during the execution of the
-	 * transaction, and consumes each of them.
-	 * 
-	 * @param add the consumer
-	 */
-	protected void scanPotentiallyAffectedObjects(Consumer<Object> add) {
-		add.accept(getDeserializedCaller());
-
-		Class<?> storage = getClassLoader().getStorage();
-		Object result = getResult();
-		if (result != null && storage.isAssignableFrom(result.getClass()))
-			add.accept(result);
-
-		getDeserializedActuals()
-			.filter(actual -> actual != null && storage.isAssignableFrom(actual.getClass()))
-			.forEach(add);
-
-		// events are accessible from outside, hence they count as side-effects
-		events().forEach(add);
-	}
-
-	/**
 	 * Yields the same exception, if it is checked and the executable is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
 	 * Otherwise, yields its cause.
 	 * 
@@ -215,6 +193,25 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	}
 
 	/**
+	 * Scans the objects of the caller that might have been affected during the execution of the
+	 * transaction, and consumes each of them. Such objects do not include the returned value of
+	 * a method or created object of a constructor.
+	 * 
+	 * @param add the consumer
+	 */
+	protected void scanPotentiallyAffectedObjects(Consumer<Object> add) {
+		add.accept(getDeserializedCaller());
+	
+		Class<?> storage = getClassLoader().getStorage();
+		getDeserializedActuals()
+			.filter(actual -> actual != null && storage.isAssignableFrom(actual.getClass()))
+			.forEach(add);
+	
+		// events are accessible from outside, hence they count as side-effects
+		events().forEach(add);
+	}
+
+	/**
 	 * Yields the method or constructor that is being called.
 	 * 
 	 * @return the method or constructor that is being called
@@ -234,11 +231,4 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	 * @return the actual arguments
 	 */
 	protected abstract Stream<Object> getDeserializedActuals();
-
-	/**
-	 * Yields the result of the call, if any.
-	 * 
-	 * @return the result. This is {@code null} for void methods
-	 */
-	protected abstract Object getResult();
 }
