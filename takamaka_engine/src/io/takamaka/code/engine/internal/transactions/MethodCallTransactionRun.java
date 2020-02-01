@@ -56,7 +56,7 @@ public abstract class MethodCallTransactionRun<Request extends MethodCallTransac
 	 */
 	protected final boolean onlyAffectedBalanceOfCaller() {
 		return updates().allMatch
-			(update -> update.object.equals(getClassLoader().getStorageReferenceOf(deserializedCaller))
+			(update -> update.object.equals(getClassLoader().getStorageReferenceOf(getDeserializedCaller()))
 						&& update instanceof UpdateOfField
 						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
 	}

@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -31,9 +32,24 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 	private final EngineClassLoaderImpl classLoader;
 
 	/**
+	 * The deserialized caller.
+	 */
+	private final Object deserializedCaller;
+
+	/**
+	 * The deserialized actual arguments of the call.
+	 */
+	private final Object[] deserializedActuals;
+
+	/**
+	 * The value resulting from the method call. This is {@code null} for void methods.
+	 */
+	private Object result;
+
+	/**
 	 * The response computed at the end of the transaction.
 	 */
-	private MethodCallTransactionResponse response; // TODO: make final
+	private final MethodCallTransactionResponse response;
 
 	public InstanceMethodCallTransactionRun(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
@@ -83,18 +99,7 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 
 				try {
 					result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
-				}
-				catch (InvocationTargetException e) {
-					if (isCheckedForThrowsExceptions(e, methodJVM)) {
-						chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						increaseBalance(deserializedCaller);
-						response = new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					}
-					else
-						throw e.getCause();
-				}
 
-				if (response == null) {
 					if (isViewMethod && !onlyAffectedBalanceOfCaller())
 						throw new SideEffectsInViewMethodException(method);
 
@@ -111,6 +116,15 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 				}
+				catch (InvocationTargetException e) {
+					if (isCheckedForThrowsExceptions(e, methodJVM)) {
+						chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						increaseBalance(deserializedCaller);
+						response = new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
+					else
+						throw e.getCause();
+				}
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -125,12 +139,12 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 	}
 
 	@Override
-	public EngineClassLoaderImpl getClassLoader() {
+	public final EngineClassLoaderImpl getClassLoader() {
 		return classLoader;
 	}
 
 	@Override
-	public MethodCallTransactionResponse getResponse() {
+	public final MethodCallTransactionResponse getResponse() {
 		return response;
 	}
 
@@ -150,6 +164,38 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 		Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 		if (model.isPresent() && !Modifier.isStatic(executable.getModifiers()))
 			checkWhiteListingProofObligations(model.get().getName(), deserializedReceiver, model.get().getAnnotations());
+	}
+
+	@Override
+	protected final Object getDeserializedCaller() {
+		return deserializedCaller;
+	}
+
+	@Override
+	protected final Stream<Object> getDeserializedActuals() {
+		return Stream.of(deserializedActuals);
+	}
+
+	/**
+	 * Adds to the actual parameters the implicit actuals that are passed
+	 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
+	 * the entry and {@code null} for the dummy argument.
+	 * 
+	 * @return the resulting actual parameters
+	 */
+	private Object[] addExtraActualsForEntry() {
+		int al = deserializedActuals.length;
+		Object[] result = new Object[al + 2];
+		System.arraycopy(deserializedActuals, 0, result, 0, al);
+		result[al] = getDeserializedCaller();
+		result[al + 1] = null; // Dummy is not used
+
+		return result;
+	}
+
+	@Override
+	protected final Object getResult() {
+		return result;
 	}
 
 	/**

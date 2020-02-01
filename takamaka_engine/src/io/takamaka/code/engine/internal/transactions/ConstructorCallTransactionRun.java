@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -25,9 +26,24 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 	private final EngineClassLoaderImpl classLoader;
 
 	/**
+	 * The deserialized caller.
+	 */
+	private final Object deserializedCaller;
+
+	/**
+	 * The deserialized actual arguments of the call.
+	 */
+	private final Object[] deserializedActuals;
+
+	/**
 	 * The response computed at the end of the transaction.
 	 */
 	private final ConstructorCallTransactionResponse response;
+
+	/**
+	 * The object created by the constructor call.
+	 */
+	private Object result;
 
 	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
@@ -72,6 +88,11 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 
 				try {
 					result = constructorJVM.newInstance(deserializedActuals);
+					chargeForStorage(new ConstructorCallTransactionSuccessfulResponse
+						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					increaseBalance(deserializedCaller);
+					response = new ConstructorCallTransactionSuccessfulResponse
+						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				catch (InvocationTargetException e) {
 					if (isCheckedForThrowsExceptions(e, constructorJVM)) {
@@ -81,14 +102,6 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 					}
 					else
 						throw e.getCause();
-				}
-
-				if (response == null) {
-					chargeForStorage(new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					increaseBalance(deserializedCaller);
-					response = new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
@@ -101,6 +114,23 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);
 		}
+	}
+
+	/**
+	 * Adds to the actual parameters the implicit actuals that are passed
+	 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
+	 * the entry and {@code null} for the dummy argument.
+	 * 
+	 * @return the resulting actual parameters
+	 */
+	private Object[] addExtraActualsForEntry() {
+		int al = deserializedActuals.length;
+		Object[] result = new Object[al + 2];
+		System.arraycopy(deserializedActuals, 0, result, 0, al);
+		result[al] = getDeserializedCaller();
+		result[al + 1] = null; // Dummy is not used
+
+		return result;
 	}
 
 	@Override
@@ -164,5 +194,20 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 	@Override
 	protected final CodeSignature getMethodOrConstructor() {
 		return constructor;
+	}
+
+	@Override
+	protected final Object getDeserializedCaller() {
+		return deserializedCaller;
+	}
+
+	@Override
+	protected final Stream<Object> getDeserializedActuals() {
+		return Stream.of(deserializedActuals);
+	}
+
+	@Override
+	protected final Object getResult() {
+		return result;
 	}
 }

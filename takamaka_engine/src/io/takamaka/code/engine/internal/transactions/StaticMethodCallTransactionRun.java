@@ -3,6 +3,7 @@ package io.takamaka.code.engine.internal.transactions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -22,9 +23,24 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 	private final EngineClassLoaderImpl classLoader;
 
 	/**
+	 * The deserialized caller.
+	 */
+	private final Object deserializedCaller;
+
+	/**
+	 * The deserialized actual arguments of the call.
+	 */
+	private final Object[] deserializedActuals;
+
+	/**
 	 * The response computed at the end of the transaction.
 	 */
 	private final MethodCallTransactionResponse response;
+
+	/**
+	 * The value resulting from the method call. This is {@code null} for void methods.
+	 */
+	private Object result;
 
 	public StaticMethodCallTransactionRun(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
@@ -40,6 +56,7 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 			chargeForStorage(request);
 			MethodCallTransactionResponse response = null;
+			Object result = null;
 
 			try {
 				Method methodJVM = getMethod();
@@ -54,18 +71,6 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 
 				try {
 					result = methodJVM.invoke(null, deserializedActuals);
-				}
-				catch (InvocationTargetException e) {
-					if (isCheckedForThrowsExceptions(e, methodJVM)) {
-						chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						increaseBalance(deserializedCaller);
-						response = new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					}
-					else
-						throw e.getCause();
-				}
-
-				if (response == null) {
 					if (isViewMethod && !onlyAffectedBalanceOfCaller())
 						throw new SideEffectsInViewMethodException(method);
 
@@ -82,6 +87,17 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 				}
+				catch (InvocationTargetException e) {
+					if (isCheckedForThrowsExceptions(e, methodJVM)) {
+						chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						increaseBalance(deserializedCaller);
+						response = new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
+					else
+						throw e.getCause();
+				}
+
+				this.result = result;
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -103,5 +119,20 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 	@Override
 	public MethodCallTransactionResponse getResponse() {
 		return response;
+	}
+
+	@Override
+	protected Object getDeserializedCaller() {
+		return deserializedCaller;
+	}
+
+	@Override
+	protected final Stream<Object> getDeserializedActuals() {
+		return Stream.of(deserializedActuals);
+	}
+
+	@Override
+	protected final Object getResult() {
+		return result;
 	}
 }

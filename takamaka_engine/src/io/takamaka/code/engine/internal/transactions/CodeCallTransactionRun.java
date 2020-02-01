@@ -34,23 +34,6 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  */
 public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionRun<Request, Response> {
 
-	/**
-	 * The deserialized caller.
-	 */
-	protected Object deserializedCaller;
-
-	/**
-	 * The deserialized actual arguments of the call.
-	 */
-	protected Object[] deserializedActuals;
-
-	/**
-	 * The resulting value for methods or the created object for constructors.
-	 * This is {@code null} if the execution completed with an exception or
-	 * if the method actually returned {@code null}.
-	 */
-	protected Object result;
-
 	protected CodeCallTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 	}
@@ -139,23 +122,6 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	}
 
 	/**
-	 * Adds to the actual parameters the implicit actuals that are passed
-	 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
-	 * the entry and {@code null} for the dummy argument.
-	 * 
-	 * @return the resulting actual parameters
-	 */
-	protected final Object[] addExtraActualsForEntry() {
-		int al = deserializedActuals.length;
-		Object[] result = new Object[al + 2];
-		System.arraycopy(deserializedActuals, 0, result, 0, al);
-		result[al] = deserializedCaller;
-		result[al + 1] = null; // Dummy is not used
-
-		return result;
-	}
-
-	/**
 	 * Collects all updates that can be seen from environment of who calls the transaction.
 	 * 
 	 * @return the updates, sorted
@@ -167,21 +133,40 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	}
 
 	/**
+	 * Collects all updates that can be seen from environment of who calls the transaction,
+	 * including the returned value of a method or created object of a constructor.
+	 * 
+	 * @param result the returned value or created object
+	 * @return the updates, sorted
+	 */
+	protected final Stream<Update> updates(Object result) {
+		List<Object> potentiallyAffectedObjects = new ArrayList<>();
+
+		Class<?> storage = getClassLoader().getStorage();
+		if (result != null && storage.isAssignableFrom(result.getClass()))
+			potentiallyAffectedObjects.add(result);
+
+		scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
+		return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new)).stream();
+	}
+
+	/**
 	 * Scans the objects that might have been affected during the execution of the
 	 * transaction, and consumes each of them.
 	 * 
 	 * @param add the consumer
 	 */
 	protected void scanPotentiallyAffectedObjects(Consumer<Object> add) {
-		add.accept(deserializedCaller);
+		add.accept(getDeserializedCaller());
 
 		Class<?> storage = getClassLoader().getStorage();
+		Object result = getResult();
 		if (result != null && storage.isAssignableFrom(result.getClass()))
 			add.accept(result);
 
-		for (Object actual: deserializedActuals)
-			if (actual != null && storage.isAssignableFrom(actual.getClass()))
-				add.accept(actual);
+		getDeserializedActuals()
+			.filter(actual -> actual != null && storage.isAssignableFrom(actual.getClass()))
+			.forEach(add);
 
 		// events are accessible from outside, hence they count as side-effects
 		events().forEach(add);
@@ -235,4 +220,25 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	 * @return the method or constructor that is being called
 	 */
 	protected abstract CodeSignature getMethodOrConstructor();
+
+	/**
+	 * Yields the caller of this transaction.
+	 * 
+	 * @return the caller
+	 */
+	protected abstract Object getDeserializedCaller();
+
+	/**
+	 * Yields the actual arguments of the call.
+	 * 
+	 * @return the actual arguments
+	 */
+	protected abstract Stream<Object> getDeserializedActuals();
+
+	/**
+	 * Yields the result of the call, if any.
+	 * 
+	 * @return the result. This is {@code null} for void methods
+	 */
+	protected abstract Object getResult();
 }
