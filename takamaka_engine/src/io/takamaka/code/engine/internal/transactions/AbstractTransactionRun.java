@@ -88,7 +88,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 			this.now = node.getNow();
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "cannot complete the transaction");
+			throw wrapAsTransactionException(t);
 		}
 	}
 
@@ -158,18 +158,18 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
 	 * @return the wrapped or original exception
 	 */
-	protected final static TransactionException wrapAsTransactionException(Throwable t, String message) {
-		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(message, t);
+	protected final static TransactionException wrapAsTransactionException(Throwable t) {
+		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
 	}
 
 	/**
-	 * Wraps the given throwable in a {@link io.takamaka.code.engine.IllegalTransactionRequestException}, if it not
-	 * already an instance of that exception.
+	 * Yields the given throwable wrapped in a {@link io.takamaka.code.engine.IllegalTransactionRequestException}, if it not
+	 * already an instance of {@link io.hotmoka.beans.TransactionException}, in which case it is returned unwrapped.
 	 * 
 	 * @param t the throwable to wrap
 	 * @return the wrapped or original exception
 	 */
-	protected final static IllegalTransactionRequestException wrapAsIllegalTransactionRequestException(Throwable t) {
-		return t instanceof IllegalTransactionRequestException ? (IllegalTransactionRequestException) t : new IllegalTransactionRequestException(t);
+	protected final static TransactionException wrapAsIllegalTransactionRequestException(Throwable t) {
+		return t instanceof TransactionException ? (TransactionException) t : new IllegalTransactionRequestException(t);
 	}
 }

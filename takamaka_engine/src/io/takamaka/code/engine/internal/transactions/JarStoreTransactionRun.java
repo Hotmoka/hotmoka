@@ -58,10 +58,10 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 			catch (Throwable t) {
 				try {
 					// we do not pay back the gas
-					response = new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+					response = new JarStoreTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 				}
 				catch (Throwable t2) {
-					throw wrapAsTransactionException(t, "cannot complete the transaction");
+					throw wrapAsTransactionException(t);
 				}
 			}
 

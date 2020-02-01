@@ -115,7 +115,7 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 				if (exception != null)
 					throw exception;
 
-				if (isViewMethod && !onlyAffectedBalanceOf())
+				if (isViewMethod && !onlyAffectedBalanceOfCaller())
 					throw new SideEffectsInViewMethodException(method);
 
 				if (isVoidMethod) {
@@ -138,11 +138,11 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				this.response = new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				this.response = new MethodCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "cannot complete the transaction");
+			throw wrapAsTransactionException(t);
 		}
 	}
 

@@ -27,15 +27,18 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 			if (request.initialAmount.signum() < 0)
 				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
 
-			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-			Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-			// we set the balance field of the gamete
-			classLoader.setBalanceOf(gamete, request.initialAmount);
-
-			this.response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
+			try {
+				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
+				Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+				classLoader.setBalanceOf(gamete, request.initialAmount);
+				this.response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
+			}
+			catch (Throwable t) {
+				throw wrapAsTransactionException(t);
+			}
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "cannot complete the transaction");
+			throw wrapAsIllegalTransactionRequestException(t);
 		}
 	}
 

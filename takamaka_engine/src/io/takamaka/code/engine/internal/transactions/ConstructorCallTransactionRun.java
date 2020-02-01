@@ -94,26 +94,26 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
 					this.response = new ConstructorCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					return;
 				}
+				else {
+					if (exception != null)
+						throw exception;
 
-				if (exception != null)
-					throw exception;
-
-				ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				chargeForStorage(sizeCalculator.sizeOf(response));
-				increaseBalance(deserializedCaller);
-				this.response = new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					ConstructorCallTransactionResponse response = new ConstructorCallTransactionSuccessfulResponse
+							((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					chargeForStorage(sizeCalculator.sizeOf(response));
+					increaseBalance(deserializedCaller);
+					this.response = new ConstructorCallTransactionSuccessfulResponse
+							((StorageReference) serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				}
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				this.response = new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				this.response = new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "cannot complete the transaction");
+			throw wrapAsTransactionException(t);
 		}
 	}
 

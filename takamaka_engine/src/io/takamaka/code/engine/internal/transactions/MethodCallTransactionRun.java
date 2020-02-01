@@ -64,7 +64,7 @@ public abstract class MethodCallTransactionRun<Request extends MethodCallTransac
 	 * 
 	 * @return true if and only if that condition holds
 	 */
-	protected final boolean onlyAffectedBalanceOf() {
+	protected final boolean onlyAffectedBalanceOfCaller() {
 		return updates().allMatch
 			(update -> update.object.equals(getClassLoader().getStorageReferenceOf(deserializedCaller))
 						&& update instanceof UpdateOfField

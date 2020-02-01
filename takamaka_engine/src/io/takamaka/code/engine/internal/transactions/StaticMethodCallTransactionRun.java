@@ -3,7 +3,6 @@ package io.takamaka.code.engine.internal.transactions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -49,7 +48,7 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 				throw e;
 			}
 			catch (Throwable t) {
-				throw wrapAsTransactionException(t, "cannot complete the transaction");
+				throw wrapAsTransactionException(t);
 			}
 
 			try {
@@ -82,28 +81,28 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 					chargeForStorage(sizeCalculator.sizeOf(response));
 					increaseBalance(deserializedCaller);
 					this.response = new MethodCallTransactionExceptionResponse((Exception) exception.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					return;
-				}
-
-				if (exception != null)
-					throw exception;
-
-				if (isViewMethod && !onlyAffectedBalanceOf())
-					throw new SideEffectsInViewMethodException(method);
-
-				if (isVoidMethod) {
-					MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
-					this.response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
-					MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					chargeForStorage(sizeCalculator.sizeOf(response));
-					increaseBalance(deserializedCaller);
-					this.response = new MethodCallTransactionSuccessfulResponse
-						(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					if (exception != null)
+						throw exception;
+
+					if (isViewMethod && !onlyAffectedBalanceOfCaller())
+						throw new SideEffectsInViewMethodException(method);
+
+					if (isVoidMethod) {
+						MethodCallTransactionResponse response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						chargeForStorage(sizeCalculator.sizeOf(response));
+						increaseBalance(deserializedCaller);
+						this.response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
+					else {
+						MethodCallTransactionResponse response = new MethodCallTransactionSuccessfulResponse
+							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						chargeForStorage(sizeCalculator.sizeOf(response));
+						increaseBalance(deserializedCaller);
+						this.response = new MethodCallTransactionSuccessfulResponse
+							(serializer.serialize(result), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
 				}
 			}
 			catch (IllegalTransactionRequestException e) {
@@ -111,11 +110,11 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				this.response = new MethodCallTransactionFailedResponse(wrapAsTransactionException(t, "Failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				this.response = new MethodCallTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "cannot complete the transaction");
+			throw wrapAsTransactionException(t);
 		}
 	}
 

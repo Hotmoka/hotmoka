@@ -108,6 +108,11 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	private final Field balanceField;
 
 	/**
+	 * The field {@link io.takamaka.code.lang.RedGreenContract#redBalance}.
+	 */
+	private final Field redBalanceField;
+
+	/**
 	 * Builds the class loader for the given class path and its dependencies.
 	 * 
 	 * @param classpath the class path
@@ -132,6 +137,8 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		this.redPayableLong.setAccessible(true); // it was private
 		this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
 		this.redPayableBigInteger.setAccessible(true); // it was private
+		this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
+		this.redBalanceField.setAccessible(true); // it was private
 		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 		this.storageReference.setAccessible(true); // it was private
 		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
@@ -168,6 +175,8 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 			this.redPayableLong.setAccessible(true); // it was private
 			this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
 			this.redPayableBigInteger.setAccessible(true); // it was private
+			this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
+			this.redBalanceField.setAccessible(true); // it was private
 			this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
 			this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
@@ -333,6 +342,16 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 		catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new IllegalStateException("cannot write the balance field of a contract object of class " + object.getClass().getName());
+		}
+	}
+
+	@Override
+	public final void setRedBalanceOf(Object object, BigInteger value) {
+		try {
+			redBalanceField.set(object, value);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot write the red balance field of a contract object of class " + object.getClass().getName());
 		}
 	}
 
