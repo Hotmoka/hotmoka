@@ -1,15 +1,14 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,13 +17,12 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.runtime.Runtime;
 import io.takamaka.code.verification.Dummy;
@@ -66,40 +64,7 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 		super(request, current, node);
 	}
 
-	/**
-	 * Checks that the method or constructor called by this transaction, that is,
-	 * is must be white-listed and its white-listing proof-obligations must hold.
-	 * 
-	 * @param executable the method or constructor
-	 * @param actuals the actual arguments passed to {@code executable}, including the
-	 *                receiver for instance methods
-	 * @throws ClassNotFoundException if some class could not be found during the check
-	 */
-	protected final void ensureWhiteListingOf(Executable executable, Object[] actuals) throws ClassNotFoundException {
-		Optional<? extends Executable> model;
-		CodeSignature methodOrConstructor = getMethodOrConstructor();
-		if (executable instanceof Constructor<?>) {
-			model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
-			if (!model.isPresent())
-				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of "
-					+ methodOrConstructor.definingClass.name);
-		}
-		else {
-			model = classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable);
-			if (!model.isPresent())
-				throw new NonWhiteListedCallException("illegal call to non-white-listed method "
-					+ methodOrConstructor.definingClass.name + "." + ((MethodSignature) methodOrConstructor).methodName);
-		}
-
-		if (this instanceof InstanceMethodCallTransactionRun && !Modifier.isStatic(executable.getModifiers()))
-			checkWhiteListingProofObligations(model.get().getName(), ((InstanceMethodCallTransactionRun) this).deserializedReceiver, model.get().getAnnotations());
-
-		Annotation[][] anns = model.get().getParameterAnnotations();
-		for (int pos = 0; pos < anns.length; pos++)
-			checkWhiteListingProofObligations(model.get().getName(), actuals[pos], anns[pos]);
-	}
-
-	private void checkWhiteListingProofObligations(String methodName, Object value, Annotation[] annotations) {
+	protected final void checkWhiteListingProofObligations(String methodName, Object value, Annotation[] annotations) {
 		Stream.of(annotations)
 		.map(Annotation::annotationType)
 		.map(CodeCallTransactionRun::getWhiteListingCheckFor)
@@ -189,28 +154,35 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	}
 
 	/**
-	 * Collects all updates reachable from the actuals or from the caller, receiver or result of a method call.
+	 * Collects all updates that can be seen from environment of who calls the transaction.
 	 * 
 	 * @return the updates, sorted
 	 */
 	protected final Stream<Update> updates() {
 		List<Object> potentiallyAffectedObjects = new ArrayList<>();
-		if (deserializedCaller != null)
-			potentiallyAffectedObjects.add(deserializedCaller);
-		if (this instanceof InstanceMethodCallTransactionRun)
-			potentiallyAffectedObjects.add(((InstanceMethodCallTransactionRun) this).deserializedReceiver);
+		scanPotentiallyAffectedObjects(potentiallyAffectedObjects::add);
+		return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new)).stream();
+	}
+
+	/**
+	 * Scans the objects that might have been affected during the execution of the
+	 * transaction, and consumes each of them.
+	 * 
+	 * @param add the consumer
+	 */
+	protected void scanPotentiallyAffectedObjects(Consumer<Object> add) {
+		add.accept(deserializedCaller);
+
 		Class<?> storage = classLoader.getStorage();
 		if (result != null && storage.isAssignableFrom(result.getClass()))
-			potentiallyAffectedObjects.add(result);
+			add.accept(result);
 
 		for (Object actual: deserializedActuals)
 			if (actual != null && storage.isAssignableFrom(actual.getClass()))
-				potentiallyAffectedObjects.add(actual);
+				add.accept(actual);
 
 		// events are accessible from outside, hence they count as side-effects
-		events().forEach(potentiallyAffectedObjects::add);
-
-		return updatesExtractor.extractUpdatesFrom(potentiallyAffectedObjects.stream()).collect(Collectors.toCollection(TreeSet::new)).stream();
+		events().forEach(add);
 	}
 
 	/**
@@ -222,7 +194,7 @@ public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransa
 	 * @return the same exception, or its cause
 	 */
 	protected final static Throwable unwrapInvocationException(InvocationTargetException e, Executable executable) {
-		return isChecked(e.getCause()) && hasAnnotation(executable, ClassType.THROWS_EXCEPTIONS.name) ? e : e.getCause();
+		return isChecked(e.getCause()) && hasAnnotation(executable, Constants.THROWS_EXCEPTIONS_NAME) ? e : e.getCause();
 	}
 
 	private static boolean isChecked(Throwable t) {

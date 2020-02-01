@@ -136,7 +136,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(classLoader.getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 
 		if (gas.compareTo(minimalGasForRunning(request, balanceUpdateInCaseOfFailure)) < 0)
-			throw new IllegalTransactionRequestException("Not enough gas to start the transaction");
+			throw new IllegalTransactionRequestException("not enough gas to start the transaction");
 
 		return balanceUpdateInCaseOfFailure;
 	}

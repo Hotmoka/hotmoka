@@ -13,32 +13,29 @@ import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class RedGreenGameteCreationTransactionRun extends AbstractTransactionRun<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
-	public RedGreenGameteCreationTransactionRun(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
+	public RedGreenGameteCreationTransactionRun(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
-			this.response = computeResponse();
+
+			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
+				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
+
+			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
+			Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+			// we set the balance field of the gamete
+			classLoader.setBalanceOf(gamete, request.initialAmount);
+
+			// we set the red balance field of the gamete
+			Field redBalanceField = classLoader.getRedGreenContract().getDeclaredField("balanceRed");
+			redBalanceField.setAccessible(true); // since the field is private
+			redBalanceField.set(gamete, request.redInitialAmount);
+
+			this.response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "cannot complete the transaction");
 		}
-	}
-
-	private GameteCreationTransactionResponse computeResponse() throws Exception {
-		if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
-			throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
-
-		// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
-		Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-		// we set the balance field of the gamete
-		classLoader.setBalanceOf(gamete, request.initialAmount);
-
-		// we set the red balance field of the gamete
-		Field redBalanceField = classLoader.getRedGreenContract().getDeclaredField("balanceRed");
-		redBalanceField.setAccessible(true); // since the field is private
-		redBalanceField.set(gamete, request.redInitialAmount);
-
-		return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 	}
 }

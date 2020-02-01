@@ -12,27 +12,24 @@ import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 
 public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
-	public GameteCreationTransactionRun(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException, IllegalTransactionRequestException {
+	public GameteCreationTransactionRun(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
 			this.classLoader = classLoader;
-			this.response = computeResponse();
+
+			if (request.initialAmount.signum() < 0)
+				throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
+
+			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
+			Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+			// we set the balance field of the gamete
+			classLoader.setBalanceOf(gamete, request.initialAmount);
+
+			this.response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t, "cannot complete the transaction");
 		}
-	}
-
-	private GameteCreationTransactionResponse computeResponse() throws Exception {
-		if (request.initialAmount.signum() < 0)
-			throw new IllegalTransactionRequestException("The gamete must be initialized with a non-negative amount of coins");
-
-		// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-		Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-		// we set the balance field of the gamete
-		classLoader.setBalanceOf(gamete, request.initialAmount);
-
-		return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 	}
 }

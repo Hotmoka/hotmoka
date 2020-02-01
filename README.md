@@ -1,2 +1,2 @@
-# Takamaka
+# HotMoka
 
