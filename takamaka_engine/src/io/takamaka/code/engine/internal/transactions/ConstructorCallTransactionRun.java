@@ -3,7 +3,6 @@ package io.takamaka.code.engine.internal.transactions;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.math.BigInteger;
 import java.util.Optional;
 
 import io.hotmoka.beans.TransactionException;
@@ -110,8 +109,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU()).subtract(gasConsumedForRAM()).subtract(gasConsumedForStorage());
-				this.response = new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty);
+				this.response = new ConstructorCallTransactionFailedResponse(wrapAsTransactionException(t, "failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 		catch (Throwable t) {

@@ -29,6 +29,11 @@ import io.takamaka.code.engine.OutOfGasError;
 public abstract class NonInitialTransactionRun<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractTransactionRun<Request, Response> {
 
 	/**
+	 * The gas initially provided for the transaction.
+	 */
+	private final BigInteger initialGas;
+
+	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
 	 */
 	private BigInteger gas;
@@ -58,7 +63,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	protected NonInitialTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
-		this.gas = request.gas;
+		this.gas = this.initialGas = request.gas;
 	}
 
 	private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
@@ -211,5 +216,14 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 */
 	protected final BigInteger gasConsumedForStorage() {
 		return gasConsumedForStorage;
+	}
+
+	/**
+	 * Yields the gas that would be paid if the transaction fails.
+	 * 
+	 * @return the gas for penalty
+	 */
+	protected final BigInteger gasConsumedForPenalty() {
+		return initialGas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
 	}
 }

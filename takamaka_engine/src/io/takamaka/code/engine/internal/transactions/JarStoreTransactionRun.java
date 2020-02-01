@@ -11,7 +11,6 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.IllegalTransactionRequestException;
 import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
@@ -22,32 +21,20 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 	/**
 	 * The response computed at the end of the transaction.
 	 */
-	private JarStoreTransactionResponse response; // TODO: make final
+	private final JarStoreTransactionResponse response;
 
 	public JarStoreTransactionRun(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), this)) {
 			this.classLoader = classLoader;
+			Object deserializedCaller = deserializer.deserialize(request.caller);
+			checkIsExternallyOwned(deserializedCaller);
+			// we sell all gas first: what remains will be paid back at the end;
+			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
+			UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
 
-			Object deserializedCaller;
-			UpdateOfBalance balanceUpdateInCaseOfFailure;
-
-			try {
-				deserializedCaller = deserializer.deserialize(request.caller);
-				checkIsExternallyOwned(deserializedCaller);
-
-				// we sell all gas first: what remains will be paid back at the end;
-				// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-				balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
-			}
-			catch (IllegalTransactionRequestException e) {
-				throw e;
-			}
-			catch (Throwable t) {
-				throw new IllegalTransactionRequestException(t);
-			}
-
+			JarStoreTransactionResponse response;
 			try {
 				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 				chargeForStorage(sizeCalculator.sizeOf(request));
@@ -63,20 +50,25 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 				BigInteger balanceOfCaller = classLoader.getBalanceOf(deserializedCaller);
 				StorageReference storageReferenceOfDeserializedCaller = classLoader.getStorageReferenceOf(deserializedCaller);
 				UpdateOfBalance balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-				JarStoreTransactionResponse response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				chargeForStorage(sizeCalculator.sizeOf(response));
+				chargeForStorage(sizeCalculator.sizeOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage())));
 				balanceOfCaller = increaseBalance(deserializedCaller);
 				balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-				this.response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
-				// we do not pay back the gas
-				BigInteger gasConsumedForPenalty = request.gas.subtract(gasConsumedForCPU()).subtract(gasConsumedForStorage());
-				this.response = new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty);
+				try {
+					// we do not pay back the gas
+					response = new JarStoreTransactionFailedResponse(wrapAsTransactionException(t, "failed transaction"), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				}
+				catch (Throwable t2) {
+					throw wrapAsTransactionException(t, "cannot complete the transaction");
+				}
 			}
+
+			this.response = response;
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t, "cannot complete the transaction");
+			throw wrapAsIllegalTransactionRequestException(t);
 		}
 	}
 
