@@ -29,8 +29,8 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 /**

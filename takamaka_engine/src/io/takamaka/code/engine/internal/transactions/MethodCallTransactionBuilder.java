@@ -13,7 +13,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.NonWhiteListedCallException;
+import io.hotmoka.nodes.NonWhiteListedCallException;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class

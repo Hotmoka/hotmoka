@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.takamaka.code.engine.CodeExecutionException;
+import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
 class LegalExceptionHandler1 {

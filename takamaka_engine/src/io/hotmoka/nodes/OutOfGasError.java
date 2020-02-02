@@ -1,4 +1,4 @@
-package io.takamaka.code.engine;
+package io.hotmoka.nodes;
 
 /**
  * An exception thrown when a transaction has not enough gas

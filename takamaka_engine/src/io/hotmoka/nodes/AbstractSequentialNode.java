@@ -47,7 +47,6 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.engine.Transaction;
 
 /**
@@ -222,7 +221,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @param request the request of the transaction
 	 * @return the created object, if the constructor was successfully executed, without exception
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.takamaka.code.engine.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed.
@@ -256,7 +255,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.takamaka.code.engine.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
@@ -293,7 +292,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.takamaka.code.engine.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
 	 *                              If this occurs and the caller
 	 *                              has been identified, the blockchain will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
@@ -488,7 +487,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	/**
-	 * Calls the given callable. If if throws a {@link io.takamaka.code.engine.CodeExecutionException}, if throws it back
+	 * Calls the given callable. If if throws a {@link io.hotmoka.nodes.CodeExecutionException}, if throws it back
 	 * unchanged. Otherwise, it wraps the exception into into a {@link io.hotmoka.beans.TransactionException}.
 	 * 
 	 * @param what the callable

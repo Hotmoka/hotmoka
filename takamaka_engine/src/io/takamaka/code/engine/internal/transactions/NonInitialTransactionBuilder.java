@@ -18,7 +18,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.OutOfGasError;
+import io.hotmoka.nodes.OutOfGasError;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class

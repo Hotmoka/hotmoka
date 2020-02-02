@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.takamaka.code.engine.NonWhiteListedCallException;
+import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 

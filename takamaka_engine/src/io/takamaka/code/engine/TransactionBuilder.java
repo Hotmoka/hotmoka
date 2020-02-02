@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.OutOfGasError;
 
 /**
  * A creator of a transaction. It executes a request and builds the corresponding response.

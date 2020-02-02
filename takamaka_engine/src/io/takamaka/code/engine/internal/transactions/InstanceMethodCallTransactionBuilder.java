@@ -18,8 +18,8 @@ import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionBuilder<InstanceMethodCallTransactionRequest> {

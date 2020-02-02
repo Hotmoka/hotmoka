@@ -17,8 +17,8 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {

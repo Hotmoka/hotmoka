@@ -8,8 +8,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.takamaka.code.engine.NonWhiteListedCallException;
-import io.takamaka.code.engine.OutOfGasError;
+import io.hotmoka.nodes.NonWhiteListedCallException;
+import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.TransactionBuilder;
 
 /**
