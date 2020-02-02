@@ -27,10 +27,15 @@ public class RedGreenGameteCreationTransactionBuilder extends AbstractTransactio
 				throw new IllegalArgumentException("the gamete must be initialized with a non-negative amount of coins");
 
 			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
-			Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-			classLoader.setBalanceOf(gamete, request.initialAmount);
-			classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
-			this.response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
+			GameteThread thread = new GameteThread();
+			thread.start();
+			thread.join();
+			if (thread.exception != null)
+				throw thread.exception;
+
+			classLoader.setBalanceOf(thread.gamete, request.initialAmount);
+			classLoader.setRedBalanceOf(thread.gamete, request.redInitialAmount);
+			this.response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(thread.gamete)), classLoader.getStorageReferenceOf(thread.gamete));
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);
@@ -45,5 +50,16 @@ public class RedGreenGameteCreationTransactionBuilder extends AbstractTransactio
 	@Override
 	public final GameteCreationTransactionResponse getResponse() {
 		return response;
+	}
+
+	private class GameteThread extends TakamakaThread {
+		private Object gamete;
+
+		private GameteThread() {}
+
+		@Override
+		protected void body() throws Exception {
+			gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+		}
 	}
 }

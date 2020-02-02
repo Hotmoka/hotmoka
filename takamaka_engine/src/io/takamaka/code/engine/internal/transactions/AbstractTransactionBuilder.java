@@ -11,10 +11,8 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.Runtime;
 import io.takamaka.code.engine.TransactionBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
@@ -83,9 +81,6 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 
 	protected AbstractTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
 		try {
-			Runtime.init(this);
-			ClassType.clearCache();
-			FieldSignature.clearCache();
 			this.node = node;
 			this.current = current;
 			this.now = node.getNow();
@@ -215,5 +210,35 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	 */
 	protected final static TransactionException wrapAsTransactionException(Throwable t) {
 		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
+	}
+
+	/**
+	 * A thread that executes Takamaka code as part of this transaction.
+	 */
+	public abstract class TakamakaThread extends Thread {
+		protected TakamakaThread() {}
+
+		protected Throwable exception;
+
+		@Override
+		public final void run() {
+			try {
+				body();
+			}
+			catch (Throwable t) {
+				exception = t;
+			}
+		}
+
+		protected abstract void body() throws Exception;
+
+		/**
+		 * Yields the builder for which the transaction is executed.
+		 * 
+		 * @return the builder
+		 */
+		public TransactionBuilder getBuilder() {
+			return AbstractTransactionBuilder.this;
+		}
 	}
 }

@@ -42,8 +42,18 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 			this.classLoader = classLoader;
-			this.deserializedCaller = deserializer.deserialize(request.caller);
-			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+
+			// we perform deserialization in a thread, since enums passed as parameters
+			// would trigger the execution of their static initializer, which will charge gas
+			DeserializerThread deserializerThread = new DeserializerThread(request);
+			deserializerThread.start();
+			deserializerThread.join();
+			if (deserializerThread.exception != null)
+				throw deserializerThread.exception;
+
+			this.deserializedCaller = deserializerThread.deserializedCaller;
+			this.deserializedActuals = deserializerThread.deserializedActuals;
+
 			checkIsExternallyOwned(deserializedCaller);
 			// we sell all gas first: what remains will be paid back at the end;
 			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
@@ -64,29 +74,37 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 				boolean isVoidMethod = methodJVM.getReturnType() == void.class;
 				boolean isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
 
-				Object result = methodJVM.invoke(null, deserializedActuals);
-				if (isViewMethod && !onlyAffectedBalanceOfCaller(result))
-					throw new SideEffectsInViewMethodException(method);
-
-				if (isVoidMethod) {
-					chargeForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					increaseBalance(deserializedCaller);
-					response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
+				MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
+				thread.start();
+				thread.join();
+				if (thread.exception != null)
+					if (thread.exception instanceof InvocationTargetException) {
+						Throwable cause = thread.exception.getCause();
+						if (isCheckedForThrowsExceptions(cause, methodJVM)) {
+							chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) cause, updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+							increaseBalance(deserializedCaller);
+							response = new MethodCallTransactionExceptionResponse((Exception) cause, updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						}
+						else
+							throw cause;
+					}
+					else
+						throw thread.exception;
 				else {
-					chargeForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					increaseBalance(deserializedCaller);
-					response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					if (isViewMethod && !onlyAffectedBalanceOfCaller(thread.result))
+						throw new SideEffectsInViewMethodException(method);
+
+					if (isVoidMethod) {
+						chargeForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						increaseBalance(deserializedCaller);
+						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
+					else {
+						chargeForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						increaseBalance(deserializedCaller);
+						response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
 				}
-			}
-			catch (InvocationTargetException e) {
-				if (isCheckedForThrowsExceptions(e, methodJVM)) {
-					chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					increaseBalance(deserializedCaller);
-					response = new MethodCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
-				else
-					throw e.getCause();
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -118,5 +136,45 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 	@Override
 	protected final Stream<Object> getDeserializedActuals() {
 		return Stream.of(deserializedActuals);
+	}
+
+	private class DeserializerThread extends TakamakaThread {
+		private final StaticMethodCallTransactionRequest request;
+
+		/**
+		 * The deserialized caller.
+		 */
+		private Object deserializedCaller;
+
+		/**
+		 * The deserialized actual arguments of the call.
+		 */
+		private Object[] deserializedActuals;
+
+		private DeserializerThread(StaticMethodCallTransactionRequest request) {
+			this.request = request;
+		}
+
+		@Override
+		protected void body() throws Exception {
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+		}
+	}
+
+	private class MethodThread extends TakamakaThread {
+		private Object result;
+		private final Method methodJVM;
+		private final Object[] deserializedActuals;
+
+		private MethodThread(Method methodJVM, Object[] deserializedActuals) {
+			this.methodJVM = methodJVM;
+			this.deserializedActuals = deserializedActuals;
+		}
+
+		@Override
+		protected void body() throws Exception {
+			result = methodJVM.invoke(null, deserializedActuals); // no receiver
+		}
 	}
 }

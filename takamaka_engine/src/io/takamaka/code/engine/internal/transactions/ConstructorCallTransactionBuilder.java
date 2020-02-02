@@ -22,8 +22,9 @@ import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
-	private final CodeSignature constructor;
 	private final EngineClassLoader classLoader;
+
+	private final CodeSignature constructor;
 
 	/**
 	 * The deserialized caller.
@@ -47,8 +48,18 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 			this.classLoader = classLoader;
-			this.deserializedCaller = deserializer.deserialize(request.caller);
-			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+
+			// we perform deserialization in a thread, since enums passed as parameters
+			// would trigger the execution of their static initializer, which will charge gas
+			DeserializerThread deserializerThread = new DeserializerThread(request);
+			deserializerThread.start();
+			deserializerThread.join();
+			if (deserializerThread.exception != null)
+				throw deserializerThread.exception;
+
+			this.deserializedCaller = deserializerThread.deserializedCaller;
+			this.deserializedActuals = deserializerThread.deserializedActuals;
+
 			checkIsExternallyOwned(deserializedCaller);
 			// we sell all gas first: what remains will be paid back at the end;
 			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
@@ -81,21 +92,29 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 				if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
 					checkIsRedGreenExternallyOwned(deserializedCaller);
 
-				Object result = constructorJVM.newInstance(deserializedActuals);
-				chargeForStorage(new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				increaseBalance(deserializedCaller);
-				response = new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-			}
-			catch (InvocationTargetException e) {
-				if (isCheckedForThrowsExceptions(e, constructorJVM)) {
-					chargeForStorage(new ConstructorCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
+				thread.start();
+				thread.join();
+				if (thread.exception != null)
+					if (thread.exception instanceof InvocationTargetException) {
+						Throwable cause = thread.exception.getCause();
+						if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
+							chargeForStorage(new ConstructorCallTransactionExceptionResponse((Exception) cause, updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+							increaseBalance(deserializedCaller);
+							response = new ConstructorCallTransactionExceptionResponse((Exception) cause, updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
+						}
+						else
+							throw cause;
+					}
+					else
+						throw thread.exception;
+				else {
+					chargeForStorage(new ConstructorCallTransactionSuccessfulResponse
+						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					increaseBalance(deserializedCaller);
-					response = new ConstructorCallTransactionExceptionResponse((Exception) e.getCause(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
+					response = new ConstructorCallTransactionSuccessfulResponse
+						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
-				else
-					throw e.getCause();
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -197,5 +216,45 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	@Override
 	protected final Stream<Object> getDeserializedActuals() {
 		return Stream.of(deserializedActuals);
+	}
+
+	private class DeserializerThread extends TakamakaThread {
+		private final ConstructorCallTransactionRequest request;
+
+		/**
+		 * The deserialized caller.
+		 */
+		private Object deserializedCaller;
+
+		/**
+		 * The deserialized actual arguments of the call.
+		 */
+		private Object[] deserializedActuals;
+
+		private DeserializerThread(ConstructorCallTransactionRequest request) {
+			this.request = request;
+		}
+
+		@Override
+		protected void body() {
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+		}
+	}
+
+	private class ConstructorThread extends TakamakaThread {
+		private Object result;
+		private final Constructor<?> constructorJVM;
+		private final Object[] deserializedActuals;
+
+		private ConstructorThread(Constructor<?> constructorJVM, Object[] deserializedActuals) {
+			this.constructorJVM = constructorJVM;
+			this.deserializedActuals = deserializedActuals;
+		}
+
+		@Override
+		protected void body() throws Exception {
+			result = constructorJVM.newInstance(deserializedActuals);
+		}
 	}
 }

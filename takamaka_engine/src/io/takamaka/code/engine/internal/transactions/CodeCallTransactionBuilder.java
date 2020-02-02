@@ -158,20 +158,8 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 	 * @param executable the method or constructor whose execution has thrown the exception
 	 * @return the same exception, or its cause
 	 */
-	protected final static Throwable unwrapInvocationTargetException(InvocationTargetException e, Executable executable) {
-		return isChecked(e.getCause()) && hasAnnotation(executable, Constants.THROWS_EXCEPTIONS_NAME) ? e : e.getCause();
-	}
-
-	/**
-	 * Yields the same exception, if it is checked and the executable is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
-	 * Otherwise, yields its cause.
-	 * 
-	 * @param e the exception
-	 * @param executable the method or constructor whose execution has thrown the exception
-	 * @return the same exception, or its cause
-	 */
-	protected final static boolean isCheckedForThrowsExceptions(InvocationTargetException e, Executable executable) {
-		return isChecked(e.getCause()) && hasAnnotation(executable, Constants.THROWS_EXCEPTIONS_NAME);
+	protected final static boolean isCheckedForThrowsExceptions(Throwable cause, Executable executable) {
+		return isChecked(cause) && hasAnnotation(executable, Constants.THROWS_EXCEPTIONS_NAME);
 	}
 
 	private static boolean isChecked(Throwable t) {

@@ -10,6 +10,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.OutOfGasError;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 
 /**
  * A class that contains utility methods called by instrumented
@@ -20,17 +21,14 @@ import io.hotmoka.nodes.OutOfGasError;
 public abstract class Runtime {
 
 	/**
-	 * The blockchain used for the current transaction.
-	 */
-	private static TransactionBuilder run;
-
-	/**
-	 * Resets static data at the beginning of a transaction.
+	 * Transaction builders spawn a thread when they need to execute code that could
+	 * call into this class. This allows the execution of more transactions in parallel.
+	 * This method yields the transaction builder that is using the current thread.
 	 * 
-	 * @param run the blockchain used for the new transaction
+	 * @return the transaction builder that is using the current thread
 	 */
-	public static void init(TransactionBuilder run) {
-		Runtime.run = run;
+	private static TransactionBuilder getBuilder() {
+		return ((AbstractTransactionBuilder<?,?>.TakamakaThread) Thread.currentThread()).getBuilder();
 	}
 
 	/**
@@ -45,6 +43,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
+		TransactionBuilder run = getBuilder();
 		return run.deserializeLastLazyUpdateFor(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
@@ -60,6 +59,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
+		TransactionBuilder run = getBuilder();
 		return run.deserializeLastLazyUpdateForFinal(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
@@ -72,7 +72,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void entry(Object callee, Object caller) throws Throwable {
-		run.entry(callee, caller);
+		getBuilder().entry(callee, caller);
 	}
 
 	/**
@@ -85,7 +85,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		run.payableEntry(callee, caller, amount);
+		getBuilder().payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -100,7 +100,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		run.redPayableEntry(callee, caller, amount);
+		getBuilder().redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -113,7 +113,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
-		run.payableEntry(callee, caller, amount);
+		getBuilder().payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -128,7 +128,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		run.redPayableEntry(callee, caller, amount);
+		getBuilder().redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -141,7 +141,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
-		run.payableEntry(callee, caller, amount);
+		getBuilder().payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -156,7 +156,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		run.redPayableEntry(callee, caller, amount);
+		getBuilder().redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -165,7 +165,7 @@ public abstract class Runtime {
 	 * @param event the event
 	 */
 	public static void event(Object event) {
-		run.event(event);
+		getBuilder().event(event);
 	}
 
 	/**
@@ -181,7 +181,7 @@ public abstract class Runtime {
 	 * @throws Exception if the code runs into this exception
 	 */
 	public static <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		return run.withGas(amount, what);
+		return getBuilder().withGas(amount, what);
 	}
 
 	/**
@@ -190,7 +190,7 @@ public abstract class Runtime {
 	 * @return the time
 	 */
 	public static long now() {
-		return run.now();
+		return getBuilder().now();
 	}
 
 	/**
@@ -200,7 +200,7 @@ public abstract class Runtime {
 	 * @return the value of the field
 	 */
 	public static boolean inStorageOf(Object object) {
-		return run.getInStorageOf(object);
+		return getBuilder().getInStorageOf(object);
 	}
 
 	public static int compareStorageReferencesOf(Object o1, Object o2) {
@@ -210,8 +210,10 @@ public abstract class Runtime {
 			return -1;
 		else if (o2 == null)
 			return 1;
-		else
+		else {
+			TransactionBuilder run = getBuilder();
 			return run.getStorageReferenceOf(o1).compareTo(run.getStorageReferenceOf(o2));
+		}
 	}
 
 	/**
@@ -270,7 +272,7 @@ public abstract class Runtime {
 	 * @return the next storage reference
 	 */
 	public static Object getNextStorageReference() {
-		return run.getNextStorageReference();
+		return getBuilder().getNextStorageReference();
 	}
 
 	/**
@@ -279,7 +281,7 @@ public abstract class Runtime {
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
 	public static void chargeForRAM(BigInteger ram) {
-		run.chargeForRAM(ram);
+		getBuilder().chargeForRAM(ram);
 	}
 
 	/**
@@ -288,7 +290,7 @@ public abstract class Runtime {
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
 	public static void chargeForRAM(long ram) {
-		run.chargeForRAM(BigInteger.valueOf(ram));
+		getBuilder().chargeForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
@@ -297,7 +299,7 @@ public abstract class Runtime {
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
 	public static void chargeForRAM(int ram) {
-		run.chargeForRAM(BigInteger.valueOf(ram));
+		getBuilder().chargeForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
@@ -306,7 +308,7 @@ public abstract class Runtime {
 	 * @param cpu the amount of gas to consume
 	 */
 	public static void charge(long cpu) {
-		run.chargeForCPU(BigInteger.valueOf(cpu));
+		getBuilder().chargeForCPU(BigInteger.valueOf(cpu));
 	}
 
 	/**
@@ -315,146 +317,146 @@ public abstract class Runtime {
 	 * @param cpu the amount of gas to consume
 	 */
 	public static void charge(int cpu) {
-		run.chargeForCPU(BigInteger.valueOf(cpu));
+		getBuilder().chargeForCPU(BigInteger.valueOf(cpu));
 	}
 
 	/**
 	 * Charges one unit of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge1() {
-		run.chargeForCPU(BigInteger.ONE);
+		getBuilder().chargeForCPU(BigInteger.ONE);
 	}
 
 	/**
 	 * Charges two units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge2() {
-		run.chargeForCPU(BigInteger.valueOf(2L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(2L));
 	}
 
 	/**
 	 * Charges three units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge3() {
-		run.chargeForCPU(BigInteger.valueOf(3L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(3L));
 	}
 
 	/**
 	 * Charges four units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge4() {
-		run.chargeForCPU(BigInteger.valueOf(4L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(4L));
 	}
 
 	/**
 	 * Charges five units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge5() {
-		run.chargeForCPU(BigInteger.valueOf(5L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(5L));
 	}
 
 	/**
 	 * Charges six units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge6() {
-		run.chargeForCPU(BigInteger.valueOf(6L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(6L));
 	}
 
 	/**
 	 * Charges seven units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge7() {
-		run.chargeForCPU(BigInteger.valueOf(7L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(7L));
 	}
 
 	/**
 	 * Charges eight units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge8() {
-		run.chargeForCPU(BigInteger.valueOf(8L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(8L));
 	}
 
 	/**
 	 * Charges nine units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge9() {
-		run.chargeForCPU(BigInteger.valueOf(9L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(9L));
 	}
 
 	/**
 	 * Charges ten units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge10() {
-		run.chargeForCPU(BigInteger.valueOf(10L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(10L));
 	}
 
 	/**
 	 * Charges eleven units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge11() {
-		run.chargeForCPU(BigInteger.valueOf(11L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(11L));
 	}
 
 	/**
 	 * Charges twelve units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge12() {
-		run.chargeForCPU(BigInteger.valueOf(12L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(12L));
 	}
 
 	/**
 	 * Charges 13 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge13() {
-		run.chargeForCPU(BigInteger.valueOf(13L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(13L));
 	}
 
 	/**
 	 * Charges 14 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge14() {
-		run.chargeForCPU(BigInteger.valueOf(14L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(14L));
 	}
 
 	/**
 	 * Charges 15 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge15() {
-		run.chargeForCPU(BigInteger.valueOf(15L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(15L));
 	}
 
 	/**
 	 * Charges 16 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge16() {
-		run.chargeForCPU(BigInteger.valueOf(16L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(16L));
 	}
 
 	/**
 	 * Charges 17 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge17() {
-		run.chargeForCPU(BigInteger.valueOf(17L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(17L));
 	}
 
 	/**
 	 * Charges 18 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge18() {
-		run.chargeForCPU(BigInteger.valueOf(18L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(18L));
 	}
 
 	/**
 	 * Charges 19 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge19() {
-		run.chargeForCPU(BigInteger.valueOf(19L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(19L));
 	}
 
 	/**
 	 * Charges 20 units of gas for CPU usage for the current blockchain.
 	 */
 	public static void charge20() {
-		run.chargeForCPU(BigInteger.valueOf(20L));
+		getBuilder().chargeForCPU(BigInteger.valueOf(20L));
 	}
 }
