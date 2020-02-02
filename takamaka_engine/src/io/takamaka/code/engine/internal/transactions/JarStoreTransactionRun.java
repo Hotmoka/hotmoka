@@ -11,12 +11,12 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
 public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTransactionRequest, JarStoreTransactionResponse> {
-	private final EngineClassLoaderImpl classLoader;
+	private final EngineClassLoader classLoader;
 
 	/**
 	 * The response computed at the end of the transaction.
@@ -26,7 +26,7 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 	public JarStoreTransactionRun(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
-		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), this)) {
+		try (EngineClassLoader classLoader = new EngineClassLoader(request.getJar(), request.getDependencies(), this)) {
 			this.classLoader = classLoader;
 			Object deserializedCaller = deserializer.deserialize(request.caller);
 			checkIsExternallyOwned(deserializedCaller);
@@ -68,7 +68,7 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 	}
 
 	@Override
-	public final EngineClassLoaderImpl getClassLoader() {
+	public final EngineClassLoader getClassLoader() {
 		return classLoader;
 	}
 

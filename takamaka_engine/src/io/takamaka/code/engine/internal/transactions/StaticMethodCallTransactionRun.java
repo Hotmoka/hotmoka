@@ -17,10 +17,10 @@ import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.SideEffectsInViewMethodException;
-import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 
 public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<StaticMethodCallTransactionRequest> {
-	private final EngineClassLoaderImpl classLoader;
+	private final EngineClassLoader classLoader;
 
 	/**
 	 * The deserialized caller.
@@ -40,7 +40,7 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 	public StaticMethodCallTransactionRun(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
-		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
+		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 			this.classLoader = classLoader;
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
@@ -101,7 +101,7 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 	}
 
 	@Override
-	public final EngineClassLoaderImpl getClassLoader() {
+	public final EngineClassLoader getClassLoader() {
 		return classLoader;
 	}
 

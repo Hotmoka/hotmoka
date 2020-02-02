@@ -27,8 +27,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.EngineClassLoader;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -37,12 +36,12 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
  * A class loader used to access the definition of the classes
  * of Takamaka methods or constructors executed during a transaction.
  */
-public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLoader {
+public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
 	 * The HotMoka node for which deserialization is performed.
 	 */
-	private final AbstractTransactionRun<?,?> run;
+	private final TransactionRun run;
 
 	/**
 	 * The parent of this class loader;
@@ -117,7 +116,7 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 * @param classpath the class path
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoaderImpl(Classpath classpath, AbstractTransactionRun<?,?> run) throws Exception {
+	public EngineClassLoader(Classpath classpath, TransactionRun run) throws Exception {
 		this.run = run;
 		this.tempJarFile = null;
 		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), null));
@@ -153,7 +152,7 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 * @param dependencies the dependencies
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<Classpath> dependencies, AbstractTransactionRun<?,?> run) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, TransactionRun run) throws Exception {
 		this.tempJarFile = new TempJarFile(jar);
 
 		try {
@@ -220,8 +219,8 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 * @throws Exception if the request could not be found
 	 */
 	private TransactionRequest<?> getRequestAndCharge(TransactionReference transaction) throws Exception {
-		run.chargeForCPU(run.node.getGasCostModel().cpuCostForGettingRequestAt(transaction));
-		return run.node.getRequestAt(transaction);
+		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForGettingRequestAt(transaction));
+		return run.getNode().getRequestAt(transaction);
 	}
 
 	/**
@@ -232,8 +231,8 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 	 * @throws Exception if the response could not be found
 	 */
 	private TransactionResponse getResponseAndCharge(TransactionReference transaction) throws Exception {
-		run.chargeForCPU(run.node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		return run.node.getResponseAt(transaction);
+		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForGettingResponseAt(transaction));
+		return run.getNode().getResponseAt(transaction);
 	}
 
 	private List<URL> addURLs(Classpath classpath, List<URL> bag) throws Exception {
@@ -253,8 +252,8 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 			throw new IllegalArgumentException("classpath does not refer to a successful jar store transaction");
 
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
-		run.chargeForCPU(run.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
-		run.chargeForRAM(run.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
+		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
+		run.chargeForRAM(run.getNode().getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 
 		try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
 			Path classpathElement = Files.createTempFile("takamaka_", "@" + classpath.transaction + ".jar");
@@ -304,7 +303,13 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 			throw ioe;
 	}
 
-	@Override
+	/**
+	 * Yields the value of the {@code storageReference} field
+	 * of the given storage object in RAM.
+	 * 
+	 * @param object the object
+	 * @return the value of the field
+	 */
 	public final StorageReference getStorageReferenceOf(Object object) {
 		try {
 			return (StorageReference) storageReference.get(object);
@@ -314,7 +319,13 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Yields the value of the boolean {@code inStorage} field
+	 * of the given storage object in RAM.
+	 * 
+	 * @param object the object
+	 * @return the value of the field
+	 */
 	public final boolean getInStorageOf(Object object) {
 		try {
 			return (boolean) inStorage.get(object);
@@ -324,7 +335,12 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Yields the value of the {@code balance} field of the given contract in RAM.
+	 * 
+	 * @param object the contract
+	 * @return the value of the field
+	 */
 	public final BigInteger getBalanceOf(Object object) {
 		try {
 			return (BigInteger) balanceField.get(object);
@@ -334,7 +350,12 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Sets the value of the {@code balance} field of the given contract in RAM.
+	 * 
+	 * @param object the contract
+	 * @param value to value to set for the balance of the contract
+	 */
 	public final void setBalanceOf(Object object, BigInteger value) {
 		try {
 			balanceField.set(object, value);
@@ -344,7 +365,12 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Sets the value of the {@code balanceRed} field of the given contract in RAM.
+	 * 
+	 * @param object the contract
+	 * @param value to value to set for the red balance of the contract
+	 */
 	public final void setRedBalanceOf(Object object, BigInteger value) {
 		try {
 			redBalanceField.set(object, value);
@@ -354,7 +380,14 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Called at the beginning of the instrumentation of an entry method or constructor
+	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Contract.entry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 */
 	public final void entry(Object callee, Object caller) throws Throwable {
 		// we call the private method of contract
 		try {
@@ -369,7 +402,15 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
+	 */
 	public final void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
 		// we call the private method of contract
 		try {
@@ -384,7 +425,17 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 */
 	public final void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
 		// we call the private methods of contract
 		try {
@@ -410,7 +461,15 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
+	 */
 	public final void payableEntry(Object callee, Object caller, int amount) throws Throwable {
 		// we call the private method of contract
 		try {
@@ -425,7 +484,17 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 */
 	public final void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
 		// we call the private methods of contract
 		try {
@@ -451,7 +520,15 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
+	 */
 	public final void payableEntry(Object callee, Object caller, long amount) throws Throwable {
 		// we call the private method of contract
 		try {
@@ -466,7 +543,17 @@ public class EngineClassLoaderImpl implements EngineClassLoader, TakamakaClassLo
 		}
 	}
 
-	@Override
+	/**
+	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 */
 	public final void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
 		// we call the private methods of contract
 		try {

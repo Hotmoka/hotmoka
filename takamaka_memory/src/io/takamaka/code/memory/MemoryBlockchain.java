@@ -18,7 +18,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.nodes.AbstractSequentialNode;
-import io.takamaka.code.engine.SequentialTransactionReference;
+import io.hotmoka.nodes.SequentialTransactionReference;
 import io.takamaka.code.engine.Transaction;
 
 /**

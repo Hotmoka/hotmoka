@@ -1,8 +1,12 @@
 package io.takamaka.code.engine.internal.transactions;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
@@ -16,7 +20,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.TransactionRun;
 import io.takamaka.code.engine.internal.Deserializer;
-import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
@@ -76,14 +80,18 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 */
 	private final long now;
 
-	protected AbstractTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
-		Runtime.init(this);
-		ClassType.clearCache();
-		FieldSignature.clearCache();
-		this.node = node;
-		this.current = current;
+	/**
+	 * The counter for the next storage object created during this transaction.
+	 */
+	private BigInteger nextProgressive = BigInteger.ZERO;
 
+	protected AbstractTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
 		try {
+			Runtime.init(this);
+			ClassType.clearCache();
+			FieldSignature.clearCache();
+			this.node = node;
+			this.current = current;
 			this.now = node.getNow();
 		}
 		catch (Throwable t) {
@@ -91,18 +99,70 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		}
 	}
 
-	public abstract EngineClassLoaderImpl getClassLoader();
+	public abstract EngineClassLoader getClassLoader();
 
 	public abstract Response getResponse();
 
 	@Override
-	public final long now() {
-		return now;
+	public final Node getNode() {
+		return node;
 	}
 
 	@Override
-	public final TransactionReference getCurrentTransaction() {
-		return current;
+	public final StorageReference getStorageReferenceOf(Object object) {
+		return getClassLoader().getStorageReferenceOf(object);
+	}
+
+	@Override
+	public final boolean getInStorageOf(Object object) {
+		return getClassLoader().getInStorageOf(object);
+	}
+
+	@Override
+	public final void entry(Object callee, Object caller) throws Throwable {
+		getClassLoader().entry(callee, caller);
+	}
+
+	@Override
+	public final void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
+		getClassLoader().payableEntry(callee, caller, amount);
+	}
+
+	@Override
+	public final void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
+		getClassLoader().redPayableEntry(callee, caller, amount);
+	}
+
+	@Override
+	public final void payableEntry(Object callee, Object caller, int amount) throws Throwable {
+		getClassLoader().payableEntry(callee, caller, amount);
+	}
+
+	@Override
+	public final void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
+		getClassLoader().redPayableEntry(callee, caller, amount);
+	}
+
+	@Override
+	public final void payableEntry(Object callee, Object caller, long amount) throws Throwable {
+		getClassLoader().payableEntry(callee, caller, amount);
+	}
+
+	@Override
+	public final void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
+		getClassLoader().redPayableEntry(callee, caller, amount);
+	}
+
+	@Override
+	public final StorageReference getNextStorageReference() {
+		BigInteger result = nextProgressive;
+		nextProgressive = nextProgressive.add(BigInteger.ONE);
+		return StorageReference.mk(current, result);
+	}
+
+	@Override
+	public final long now() {
+		return now;
 	}
 
 	@Override
@@ -140,7 +200,24 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this::chargeForCPU).getValue());
 	}
 
-	/**
+	@Override
+	public final Stream<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException {
+		EngineClassLoader classLoader = getClassLoader();
+		Set<Field> bag = new HashSet<>();
+		Class<?> storage = classLoader.getStorage();
+
+		// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
+		for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
+			Stream.of(clazz.getDeclaredFields())
+			.filter(field -> !Modifier.isTransient(field.getModifiers())
+					&& !Modifier.isStatic(field.getModifiers())
+					&& classLoader.isEagerlyLoaded(field.getType()))
+			.forEach(bag::add);
+
+		return bag.stream();
+	}
+
+/**
 	 * Yields the events generated so far.
 	 * 
 	 * @return the events

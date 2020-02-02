@@ -11,7 +11,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.EngineClassLoader;
+import io.takamaka.code.engine.TransactionRun;
 
 /**
  * A node of the HotMoka network, that provides the storage
@@ -72,7 +72,7 @@ public interface Node {
 	 * @return the updates; these include the class tag update for the reference
 	 * @throws Exception if the updates cannot be found
 	 */
-	Stream<Update> getLastEagerUpdatesFor(StorageReference storageReference, Consumer<BigInteger> chargeForCPU, EngineClassLoader classLoader) throws Exception;
+	Stream<Update> getLastEagerUpdatesFor(StorageReference storageReference, Consumer<BigInteger> chargeForCPU, TransactionRun run) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given non-{@code final} field,

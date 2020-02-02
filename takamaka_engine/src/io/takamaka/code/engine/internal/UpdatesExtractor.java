@@ -36,7 +36,6 @@ import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 

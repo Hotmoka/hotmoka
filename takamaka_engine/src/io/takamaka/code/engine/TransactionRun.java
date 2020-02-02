@@ -1,23 +1,18 @@
 package io.takamaka.code.engine;
 
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.Node;
 
 /**
  * A creator of a transaction. It executes a request and builds the corresponding response.
  */
 public interface TransactionRun {
-
-	/**
-	 * Yields the reference to the transaction being executed.
-	 * 
-	 * @return the reference
-	 */
-	TransactionReference getCurrentTransaction();
 
 	/**
 	 * Yields the UTC time when the transaction is being run.
@@ -27,6 +22,120 @@ public interface TransactionRun {
 	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
 	 */
 	long now();
+
+	/**
+	 * Yields the next storage reference for the current transaction.
+	 * 
+	 * @return the next storage reference
+	 */
+	StorageReference getNextStorageReference();
+
+	/**
+	 * Yields the node for which the transaction is being run.
+	 * 
+	 * @return the node
+	 */
+	Node getNode();
+
+	/**
+	 * Yields the value of the {@code storageReference} field
+	 * of the given storage object in RAM.
+	 * 
+	 * @param object the object
+	 * @return the value of the field
+	 */
+	StorageReference getStorageReferenceOf(Object object);
+
+	/**
+	 * Yields the value of the boolean {@code inStorage} field
+	 * of the given storage object in RAM.
+	 * 
+	 * @param object the object
+	 * @return the value of the field
+	 */
+	boolean getInStorageOf(Object object);
+
+	/**
+	 * Called at the beginning of the instrumentation of an entry method or constructor
+	 * of a contract. It forwards the call to {@code io.takamaka.code.lang.Contract.entry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 */
+	void entry(Object callee, Object caller) throws Throwable;
+
+	/**
+	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
+	 */
+	void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable;
+
+	/**
+	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 */
+	void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable;
+
+	/**
+	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 */
+	void payableEntry(Object callee, Object caller, int amount) throws Throwable;
+
+	/**
+	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 */
+	void redPayableEntry(Object callee, Object caller, int amount) throws Throwable;
+
+	/**
+	 * Called at the beginning of the instrumentation of a payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.payableEntry()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
+	 */
+	void payableEntry(Object callee, Object caller, long amount) throws Throwable;
+
+	/**
+	 * Called at the beginning of the instrumentation of a red payable entry method or constructor.
+	 * It forwards the call to {@code io.takamaka.code.lang.Contract.entry()} and then to
+	 * {@code io.takamaka.code.lang.RedGreenContract.redPayable()}.
+	 * 
+	 * @param callee the contract whose entry is called
+	 * @param caller the caller of the entry
+	 * @param amount the amount of coins
+	 * @throws any possible exception thrown inside or {@code io.takamaka.code.lang.Contract.entry()}
+	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
+	 */
+	void redPayableEntry(Object callee, Object caller, long amount) throws Throwable;
 
 	/**
 	 * Takes note of the given event, emitted during this execution.
@@ -93,4 +202,14 @@ public interface TransactionRun {
 	 * @throws Exception if the look up fails
 	 */
 	Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception;
+
+	/**
+	 * Collects all eager fields of the given storage class, including those of its superclasses,
+	 * up to and excluding {@link io.takamaka.code.lang.Storage}.
+	 * 
+	 * @param className the name of the storage class
+	 * @return the eager fields
+	 * @throws ClassNotFoundException if some class could not be found
+	 */
+	Stream<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException;
 }

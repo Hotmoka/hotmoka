@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
@@ -48,9 +47,8 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.CodeExecutionException;
-import io.takamaka.code.engine.EngineClassLoader;
-import io.takamaka.code.engine.SequentialTransactionReference;
 import io.takamaka.code.engine.Transaction;
+import io.takamaka.code.engine.TransactionRun;
 
 /**
  * A generic implementation of a blockchain that extends immediately when
@@ -89,7 +87,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandBlockchainWith(Transaction<Request, Response> transaction) throws Exception;
 
 	@Override
-	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, EngineClassLoader classLoader) throws Exception {
+	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, TransactionRun run) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	
 		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);
@@ -109,7 +107,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 			throw new DeserializationError("No class tag found for " + reference);
 	
 		// we drop updates to non-final fields
-		Set<Field> eagerFields = collectEagerFieldsOf(classTag.get().className, classLoader);
+		Set<Field> eagerFields = run.collectEagerFieldsOf(classTag.get().className).collect(Collectors.toSet());
 		Iterator<Update> it = updates.iterator();
 		while (it.hasNext())
 			if (updatesNonFinalField(it.next(), eagerFields))
@@ -459,28 +457,6 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 			return ((ClassType) type).name.equals(fieldType.getName());
 		else
 			throw new IllegalStateException("unexpected storage type " + type);
-	}
-
-	/**
-	 * Collects all eager fields of the given storage class, including those of its superclasses,
-	 * up to and excluding {@link io.takamaka.code.lang.Storage}.
-	 * 
-	 * @param className the name of the storage class
-	 * @return the eager fields
-	 */
-	private static Set<Field> collectEagerFieldsOf(String className, EngineClassLoader classLoader) throws ClassNotFoundException {
-		Set<Field> bag = new HashSet<>();
-		Class<?> storage = classLoader.getStorage();
-
-		// fields added by instrumentation by Takamaka itself are not considered, since they are transient
-		for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
-			Stream.of(clazz.getDeclaredFields())
-			.filter(field -> !Modifier.isTransient(field.getModifiers())
-					&& !Modifier.isStatic(field.getModifiers())
-					&& classLoader.isEagerlyLoaded(field.getType()))
-			.forEach(bag::add);
-
-		return bag;
 	}
 
 	/**

@@ -7,10 +7,10 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 
 public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
-	private final EngineClassLoaderImpl classLoader;
+	private final EngineClassLoader classLoader;
 
 	/**
 	 * The response computed at the end of the transaction.
@@ -20,7 +20,7 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 	public GameteCreationTransactionRun(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
-		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
+		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 			this.classLoader = classLoader;
 
 			if (request.initialAmount.signum() < 0)
@@ -37,7 +37,7 @@ public class GameteCreationTransactionRun extends AbstractTransactionRun<GameteC
 	}
 
 	@Override
-	public final EngineClassLoaderImpl getClassLoader() {
+	public final EngineClassLoader getClassLoader() {
 		return classLoader;
 	}
 

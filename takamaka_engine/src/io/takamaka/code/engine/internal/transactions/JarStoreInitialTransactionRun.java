@@ -5,12 +5,12 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
 public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
-	private final EngineClassLoaderImpl classLoader;
+	private final EngineClassLoader classLoader;
 
 	/**
 	 * The response computed at the end of the transaction.
@@ -20,7 +20,7 @@ public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarSto
 	public JarStoreInitialTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
-		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), this)) {
+		try (EngineClassLoader classLoader = new EngineClassLoader(request.getJar(), request.getDependencies(), this)) {
 			this.classLoader = classLoader;
 			VerifiedJar verifiedJar = VerifiedJar.of(classLoader.jarPath(), classLoader, true);
 			InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, new GasCostModelAdapter(node.getGasCostModel()));
@@ -37,7 +37,7 @@ public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarSto
 	}
 
 	@Override
-	public final EngineClassLoaderImpl getClassLoader() {
+	public final EngineClassLoader getClassLoader() {
 		return classLoader;
 	}
 }

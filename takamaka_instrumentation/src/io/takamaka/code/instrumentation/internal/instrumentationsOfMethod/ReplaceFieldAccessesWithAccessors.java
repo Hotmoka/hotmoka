@@ -3,6 +3,7 @@ package io.takamaka.code.instrumentation.internal.instrumentationsOfMethod;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -17,6 +18,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
@@ -46,27 +48,17 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 	private boolean isAccessToLazilyLoadedFieldInStorageClass(InstructionHandle ih) {
 		Instruction instruction = ih.getInstruction();
 
-		if (instruction instanceof GETFIELD) {
+		if (instruction instanceof GETFIELD || instruction instanceof PUTFIELD) {
 			FieldInstruction fi = (FieldInstruction) instruction;
 			ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
 			// we do not consider field accesses added by instrumentation
-			return !receiverClassName.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)
+			return !receiverClassName.equals(Constants.STORAGE_NAME)
 				&& classLoader.isStorage(receiverClassName)
 				&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
-				&& !isTransient(receiverClassName, fi.getFieldName(cpg), fieldType);
-		}
-		else if (instruction instanceof PUTFIELD) {
-			FieldInstruction fi = (FieldInstruction) instruction;
-			ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
-			String receiverClassName = receiverType.getClassName();
-			Class<?> fieldType;
-			// we do not consider field accesses added by instrumentation
-			return !receiverClassName.equals(io.takamaka.code.constants.Constants.STORAGE_NAME)
-				&& classLoader.isStorage(receiverClassName)
-				&& classLoader.isLazilyLoaded(fieldType = verifiedClass.getJar().getBcelToClass().of(fi.getFieldType(cpg)))
-				&& !isTransientOrFinal(receiverClassName, fi.getFieldName(cpg), fieldType);
+				&& !modifiersSatisfy(receiverClassName, fi.getFieldName(cpg), fieldType,
+						instruction instanceof GETFIELD ? Modifier::isTransient : (modifiers -> Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers)));
 		}
 		else
 			return false;
@@ -92,20 +84,20 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 	}
 
 	/**
-	 * Determines if an instance field of a storage class is transient.
+	 * Determines if a storage class has a field with modifiers that satisfy the given condition.
 	 * 
 	 * @param className the class from which the field must be looked-up. This is guaranteed to be a storage class
 	 * @param fieldName the name of the field
 	 * @param fieldType the type of the field
+	 * @param condition the condition on the modifiers of the field
 	 * @return true if and only if that condition holds
 	 */
-	private boolean isTransient(String className, String fieldName, Class<?> fieldType) {
+	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) {
 		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
 			Class<?> clazz = classLoader.loadClass(className);
 			
 			do {
-				// these two fields are added by instrumentation hence not found by reflection:
-				// they are transient
+				// these two fields are added by instrumentation hence not found by reflection: they are transient
 				if (clazz == classLoader.getStorage() &&
 						(fieldName.equals(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(InstrumentationConstants.IN_STORAGE)))
 					return true;
@@ -115,47 +107,11 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 					.findFirst();
 
 				if (match.isPresent())
-					return Modifier.isTransient(match.get().getModifiers());
+					return condition.test(match.get().getModifiers());
 
 				clazz = clazz.getSuperclass();
 			}
-			while (clazz != classLoader.getStorage() && clazz != classLoader.getContract());
-
-			return false;
-		});
-	}
-
-	/**
-	 * Determines if an instance field of a storage class is transient or final.
-	 * 
-	 * @param className the class from which the field must be looked-up. This is guaranteed to be a storage class
-	 * @param fieldName the name of the field
-	 * @param fieldType the type of the field
-	 * @return true if and only if that condition holds
-	 */
-	private boolean isTransientOrFinal(String className, String fieldName, Class<?> fieldType) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Class<?> clazz = classLoader.loadClass(className);
-			
-			do {
-				// these two fields are added by instrumentation hence not found by reflection:
-				// they are transient
-				if (clazz == classLoader.getStorage() &&
-						(fieldName.equals(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(InstrumentationConstants.IN_STORAGE)))
-					return true;
-
-				Optional<Field> match = Stream.of(clazz.getDeclaredFields())
-					.filter(field -> field.getName().equals(fieldName) && fieldType == field.getType())
-					.findFirst();
-
-				if (match.isPresent()) {
-					int modifiers = match.get().getModifiers();
-					return Modifier.isTransient(modifiers) || Modifier.isFinal(modifiers);
-				}
-
-				clazz = clazz.getSuperclass();
-			}
-			while (clazz != classLoader.getStorage() && clazz != classLoader.getContract());
+			while (clazz != classLoader.getStorage());
 
 			return false;
 		});

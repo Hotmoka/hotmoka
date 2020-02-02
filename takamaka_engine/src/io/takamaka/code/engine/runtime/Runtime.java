@@ -8,11 +8,9 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.EngineClassLoader;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.OutOfGasError;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.TransactionRun;
 
 /**
  * A class that contains utility methods called by instrumented
@@ -25,21 +23,15 @@ public abstract class Runtime {
 	/**
 	 * The blockchain used for the current transaction.
 	 */
-	private static AbstractTransactionRun<?,?> run;
-
-	/**
-	 * The counter for the next storage object created during the current transaction.
-	 */
-	private static BigInteger nextProgressive;
+	private static TransactionRun run;
 
 	/**
 	 * Resets static data at the beginning of a transaction.
 	 * 
 	 * @param run the blockchain used for the new transaction
 	 */
-	public static void init(AbstractTransactionRun<?,?> run) {
+	public static void init(TransactionRun run) {
 		Runtime.run = run;
-		Runtime.nextProgressive = BigInteger.ZERO;
 	}
 
 	/**
@@ -54,7 +46,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return run.deserializeLastLazyUpdateFor(run.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return run.deserializeLastLazyUpdateFor(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -69,7 +61,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		return run.deserializeLastLazyUpdateForFinal(run.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return run.deserializeLastLazyUpdateForFinal(run.getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -81,7 +73,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void entry(Object callee, Object caller) throws Throwable {
-		run.getClassLoader().entry(callee, caller);
+		run.entry(callee, caller);
 	}
 
 	/**
@@ -94,7 +86,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		run.getClassLoader().payableEntry(callee, caller, amount);
+		run.payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -109,7 +101,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		run.getClassLoader().redPayableEntry(callee, caller, amount);
+		run.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -122,7 +114,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
-		run.getClassLoader().payableEntry(callee, caller, amount);
+		run.payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -137,7 +129,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		run.getClassLoader().redPayableEntry(callee, caller, amount);
+		run.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -150,7 +142,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
-		run.getClassLoader().payableEntry(callee, caller, amount);
+		run.payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -165,7 +157,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		run.getClassLoader().redPayableEntry(callee, caller, amount);
+		run.redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -209,7 +201,7 @@ public abstract class Runtime {
 	 * @return the value of the field
 	 */
 	public static boolean inStorageOf(Object object) {
-		return run.getClassLoader().getInStorageOf(object);
+		return run.getInStorageOf(object);
 	}
 
 	public static int compareStorageReferencesOf(Object o1, Object o2) {
@@ -219,10 +211,8 @@ public abstract class Runtime {
 			return -1;
 		else if (o2 == null)
 			return 1;
-		else {
-			EngineClassLoader classLoader = run.getClassLoader();
-			return classLoader.getStorageReferenceOf(o1).compareTo(classLoader.getStorageReferenceOf(o2));
-		}
+		else
+			return run.getStorageReferenceOf(o1).compareTo(run.getStorageReferenceOf(o2));
 	}
 
 	/**
@@ -276,25 +266,12 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Yields the next identifier that can be used for a new storage object
-	 * created during the execution of the current transaction. This identifier is unique
-	 * inside the transaction. This method will return distinct identifiers at each call.
-	 * 
-	 * @return the identifier
-	 */
-	private static BigInteger generateNextProgressive() {
-		BigInteger result = nextProgressive;
-		nextProgressive = nextProgressive.add(BigInteger.ONE);
-		return result;
-	}
-
-	/**
 	 * Yields the next storage reference for the current transaction.
 	 * 
 	 * @return the next storage reference
 	 */
 	public static Object getNextStorageReference() {
-		return StorageReference.mk(run.getCurrentTransaction(), generateNextProgressive());
+		return run.getNextStorageReference();
 	}
 
 	/**

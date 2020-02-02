@@ -19,11 +19,11 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.NonWhiteListedCallException;
-import io.takamaka.code.engine.internal.EngineClassLoaderImpl;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 
 public class ConstructorCallTransactionRun extends CodeCallTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
 	private final CodeSignature constructor;
-	private final EngineClassLoaderImpl classLoader;
+	private final EngineClassLoader classLoader;
 
 	/**
 	 * The deserialized caller.
@@ -45,7 +45,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 
 		this.constructor = request.constructor;
 
-		try (EngineClassLoaderImpl classLoader = new EngineClassLoaderImpl(request.classpath, this)) {
+		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 			this.classLoader = classLoader;
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
@@ -110,7 +110,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 	}
 
 	@Override
-	public final EngineClassLoaderImpl getClassLoader() {
+	public final EngineClassLoader getClassLoader() {
 		return classLoader;
 	}
 
