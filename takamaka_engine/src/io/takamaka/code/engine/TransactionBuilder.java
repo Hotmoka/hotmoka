@@ -1,9 +1,7 @@
 package io.takamaka.code.engine;
 
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -202,14 +200,4 @@ public interface TransactionBuilder {
 	 * @throws Exception if the look up fails
 	 */
 	Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception;
-
-	/**
-	 * Collects all eager fields of the given storage class, including those of its superclasses,
-	 * up to and excluding {@link io.takamaka.code.lang.Storage}.
-	 * 
-	 * @param className the name of the storage class
-	 * @return the eager fields
-	 * @throws ClassNotFoundException if some class could not be found
-	 */
-	Stream<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException;
 }

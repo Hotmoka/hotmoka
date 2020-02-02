@@ -1,12 +1,16 @@
 package io.takamaka.code.engine.internal;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,6 +37,7 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 import io.takamaka.code.verification.Dummy;
+import io.takamaka.code.verification.IncompleteClasspathError;
 
 /**
  * An implementation of an object that translates storage values into RAM values.
@@ -159,7 +164,7 @@ public class Deserializer {
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, run.node.getLastEagerUpdatesFor(reference, run::chargeForCPU, run));
+			return createStorageObject(reference, run.node.getLastEagerUpdatesFor(reference, run::chargeForCPU, this::collectEagerFieldsOf));
 		}
 		catch (DeserializationError e) {
 			throw e;
@@ -167,6 +172,27 @@ public class Deserializer {
 		catch (Exception e) {
 			throw new DeserializationError(e);
 		}
+	}
+
+	private Stream<Field> collectEagerFieldsOf(String className) {
+		EngineClassLoader classLoader = run.getClassLoader();
+		Set<Field> bag = new HashSet<>();
+		Class<?> storage = classLoader.getStorage();
+
+		try {
+		// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
+		for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
+			Stream.of(clazz.getDeclaredFields())
+			.filter(field -> !Modifier.isTransient(field.getModifiers())
+					&& !Modifier.isStatic(field.getModifiers())
+					&& classLoader.isEagerlyLoaded(field.getType()))
+			.forEach(bag::add);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IncompleteClasspathError(e);
+		}
+
+		return bag.stream();
 	}
 
 	/**

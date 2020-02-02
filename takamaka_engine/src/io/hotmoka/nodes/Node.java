@@ -1,7 +1,9 @@
 package io.hotmoka.nodes;
 
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.TransactionReference;
@@ -11,7 +13,6 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.TransactionBuilder;
 
 /**
  * A node of the HotMoka network, that provides the storage
@@ -68,11 +69,11 @@ public interface Node {
 	 * Yields the most recent eager updates for the given storage reference.
 	 * 
 	 * @param storageReference the storage reference
-	 * @param run the run that is building the transaction for which the updates are required
+	 * @param eagerFields a function that extracts the eager instance fields of a class, also inherited, given the name of the class
 	 * @return the updates; these include the class tag update for the reference
 	 * @throws Exception if the updates cannot be found
 	 */
-	Stream<Update> getLastEagerUpdatesFor(StorageReference storageReference, Consumer<BigInteger> chargeForCPU, TransactionBuilder run) throws Exception;
+	Stream<Update> getLastEagerUpdatesFor(StorageReference storageReference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given non-{@code final} field,
@@ -90,7 +91,7 @@ public interface Node {
 	 * Yields the most recent update for the given {@code final} field,
 	 * of lazy type, of the object with the given storage reference.
 	 * Its implementation can be identical to
-	 * that of {@link #getLastLazyUpdateToNonFinalFieldOf(StorageReference, FieldSignature, TransactionBuilder)},
+	 * that of {@link #getLastLazyUpdateToNonFinalFieldOf(StorageReference, FieldSignature, Consumer<BigInteger>)},
 	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
 	 * 
 	 * @param storageReference the storage reference

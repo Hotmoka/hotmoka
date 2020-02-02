@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,7 +49,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.engine.Transaction;
-import io.takamaka.code.engine.TransactionBuilder;
 
 /**
  * A generic implementation of a blockchain that extends immediately when
@@ -87,7 +87,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandBlockchainWith(Transaction<Request, Response> transaction) throws Exception;
 
 	@Override
-	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, TransactionBuilder run) throws Exception {
+	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	
 		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);
@@ -107,15 +107,15 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 			throw new DeserializationError("No class tag found for " + reference);
 	
 		// we drop updates to non-final fields
-		Set<Field> eagerFields = run.collectEagerFieldsOf(classTag.get().className).collect(Collectors.toSet());
+		Set<Field> allEagerFields = eagerFields.apply(classTag.get().className).collect(Collectors.toSet());
 		Iterator<Update> it = updates.iterator();
 		while (it.hasNext())
-			if (updatesNonFinalField(it.next(), eagerFields))
+			if (updatesNonFinalField(it.next(), allEagerFields))
 				it.remove();
 	
 		// the updates set contains the updates to eager final fields now:
 		// we must still collect the latest updates to the eager non-final fields
-		return collectEagerUpdatesFor(reference, updates, eagerFields.size(), chargeForCPU);
+		return collectEagerUpdatesFor(reference, updates, allEagerFields.size(), chargeForCPU);
 	}
 
 	@Override

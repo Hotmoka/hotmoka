@@ -1,12 +1,8 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
@@ -200,24 +196,7 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this::chargeForCPU).getValue());
 	}
 
-	@Override
-	public final Stream<Field> collectEagerFieldsOf(String className) throws ClassNotFoundException {
-		EngineClassLoader classLoader = getClassLoader();
-		Set<Field> bag = new HashSet<>();
-		Class<?> storage = classLoader.getStorage();
-
-		// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
-		for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
-			Stream.of(clazz.getDeclaredFields())
-			.filter(field -> !Modifier.isTransient(field.getModifiers())
-					&& !Modifier.isStatic(field.getModifiers())
-					&& classLoader.isEagerlyLoaded(field.getType()))
-			.forEach(bag::add);
-
-		return bag.stream();
-	}
-
-/**
+	/**
 	 * Yields the events generated so far.
 	 * 
 	 * @return the events
