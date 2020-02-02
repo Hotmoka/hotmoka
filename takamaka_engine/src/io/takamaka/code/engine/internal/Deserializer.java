@@ -31,7 +31,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 import io.takamaka.code.verification.Dummy;
 
 /**
@@ -42,7 +42,7 @@ public class Deserializer {
 	/**
 	 * The HotMoka node for which deserialization is performed.
 	 */
-	private final AbstractTransactionRun<?,?> run;
+	private final AbstractTransactionBuilder<?,?> run;
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -103,7 +103,7 @@ public class Deserializer {
 	 * @param run the blockchain for which deserialization is performed
 	 * @param a function that yields the last updates for the eager fields of a storage reference
 	 */
-	public Deserializer(AbstractTransactionRun<?,?> run) {
+	public Deserializer(AbstractTransactionBuilder<?,?> run) {
 		this.run = run;
 	}
 

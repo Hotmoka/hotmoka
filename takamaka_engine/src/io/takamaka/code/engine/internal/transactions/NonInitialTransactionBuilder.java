@@ -25,7 +25,7 @@ import io.takamaka.code.engine.OutOfGasError;
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-public abstract class NonInitialTransactionRun<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractTransactionRun<Request, Response> {
+public abstract class NonInitialTransactionBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractTransactionBuilder<Request, Response> {
 
 	/**
 	 * The gas initially provided for the transaction.
@@ -59,7 +59,7 @@ public abstract class NonInitialTransactionRun<Request extends NonInitialTransac
 	 */
 	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
 
-	protected NonInitialTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
+	protected NonInitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		this.gas = this.initialGas = request.gas;

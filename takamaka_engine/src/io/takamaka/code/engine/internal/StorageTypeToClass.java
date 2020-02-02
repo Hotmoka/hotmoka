@@ -3,7 +3,7 @@ package io.takamaka.code.engine.internal;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 
 /**
  * An object that translates storage types into their run-time class tag.
@@ -13,14 +13,14 @@ public class StorageTypeToClass {
 	/**
 	 * The blockchain for which the translation is performed.
 	 */
-	private final AbstractTransactionRun<?,?> run;
+	private final AbstractTransactionBuilder<?,?> run;
 
 	/**
 	 * Builds an object that translates storage types into their run-time class tag.
 	 * 
 	 * @param run the blockchain for which the translation is performed
 	 */
-	public StorageTypeToClass(AbstractTransactionRun<?,?> run) {
+	public StorageTypeToClass(AbstractTransactionBuilder<?,?> run) {
 		this.run = run;
 	}
 

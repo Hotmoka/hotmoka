@@ -16,7 +16,7 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 
 /**
  * An object that translates RAM values into storage values.
@@ -26,14 +26,14 @@ public class Serializer {
 	/**
 	 * The blockchain for which serialization is performed.
 	 */
-	private final AbstractTransactionRun<?,?> run;
+	private final AbstractTransactionBuilder<?,?> run;
 
 	/**
 	 * Builds an object that translates RAM values into storage values.
 	 * 
 	 * @param run the blockchain for which serialization is performed
 	 */
-	public Serializer(AbstractTransactionRun<?,?> run) {
+	public Serializer(AbstractTransactionBuilder<?,?> run) {
 		this.run = run;
 	}
 

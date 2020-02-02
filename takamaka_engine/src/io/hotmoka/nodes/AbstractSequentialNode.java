@@ -48,7 +48,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.CodeExecutionException;
 import io.takamaka.code.engine.Transaction;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.TransactionBuilder;
 
 /**
  * A generic implementation of a blockchain that extends immediately when
@@ -87,7 +87,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandBlockchainWith(Transaction<Request, Response> transaction) throws Exception;
 
 	@Override
-	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, TransactionRun run) throws Exception {
+	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, TransactionBuilder run) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	
 		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);

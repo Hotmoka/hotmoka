@@ -27,7 +27,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.TransactionBuilder;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -41,7 +41,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	/**
 	 * The HotMoka node for which deserialization is performed.
 	 */
-	private final TransactionRun run;
+	private final TransactionBuilder run;
 
 	/**
 	 * The parent of this class loader;
@@ -116,7 +116,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param classpath the class path
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, TransactionRun run) throws Exception {
+	public EngineClassLoader(Classpath classpath, TransactionBuilder run) throws Exception {
 		this.run = run;
 		this.tempJarFile = null;
 		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), null));
@@ -152,7 +152,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param dependencies the dependencies
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, TransactionRun run) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, TransactionBuilder run) throws Exception {
 		this.tempJarFile = new TempJarFile(jar);
 
 		try {

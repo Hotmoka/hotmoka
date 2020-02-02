@@ -32,16 +32,16 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-public abstract class CodeCallTransactionRun<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionRun<Request, Response> {
+public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionBuilder<Request, Response> {
 
-	protected CodeCallTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
+	protected CodeCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 	}
 
 	protected final void checkWhiteListingProofObligations(String methodName, Object value, Annotation[] annotations) {
 		Stream.of(annotations)
 		.map(Annotation::annotationType)
-		.map(CodeCallTransactionRun::getWhiteListingCheckFor)
+		.map(CodeCallTransactionBuilder::getWhiteListingCheckFor)
 		.filter(Optional::isPresent)
 		.map(Optional::get)
 		.forEachOrdered(checkMethod -> {

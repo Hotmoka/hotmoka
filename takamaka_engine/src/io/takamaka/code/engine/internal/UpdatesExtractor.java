@@ -36,7 +36,7 @@ import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 
 /**
@@ -44,7 +44,7 @@ import io.takamaka.code.instrumentation.InstrumentationConstants;
  */
 public class UpdatesExtractor {
 
-	private final AbstractTransactionRun<?,?> run;
+	private final AbstractTransactionBuilder<?,?> run;
 
 	/**
 	 * Builds an extractor of updates to the state reachable from some storage objects.
@@ -53,7 +53,7 @@ public class UpdatesExtractor {
 	 * @param objects the storage objects whose updates must be computed (for them and
 	 *                for the objects recursively reachable from them)
 	 */
-	public UpdatesExtractor(AbstractTransactionRun<?,?> run) {
+	public UpdatesExtractor(AbstractTransactionBuilder<?,?> run) {
 		this.run = run;
 	}
 

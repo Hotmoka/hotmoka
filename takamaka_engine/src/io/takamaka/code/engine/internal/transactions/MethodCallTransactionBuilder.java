@@ -20,14 +20,14 @@ import io.takamaka.code.engine.NonWhiteListedCallException;
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-public abstract class MethodCallTransactionRun<Request extends MethodCallTransactionRequest> extends CodeCallTransactionRun<Request, MethodCallTransactionResponse> {
+public abstract class MethodCallTransactionBuilder<Request extends MethodCallTransactionRequest> extends CodeCallTransactionBuilder<Request, MethodCallTransactionResponse> {
 
 	/**
 	 * The method that is being called.
 	 */
 	protected final MethodSignature method;
 
-	protected MethodCallTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
+	protected MethodCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		this.method = request.method;

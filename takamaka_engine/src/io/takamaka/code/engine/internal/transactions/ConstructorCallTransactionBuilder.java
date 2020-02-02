@@ -21,7 +21,7 @@ import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
-public class ConstructorCallTransactionRun extends CodeCallTransactionRun<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
+public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
 	private final CodeSignature constructor;
 	private final EngineClassLoader classLoader;
 
@@ -40,7 +40,7 @@ public class ConstructorCallTransactionRun extends CodeCallTransactionRun<Constr
 	 */
 	private final ConstructorCallTransactionResponse response;
 
-	public ConstructorCallTransactionRun(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public ConstructorCallTransactionBuilder(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		this.constructor = request.constructor;

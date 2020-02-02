@@ -12,7 +12,7 @@ import io.hotmoka.nodes.Node;
 /**
  * A creator of a transaction. It executes a request and builds the corresponding response.
  */
-public interface TransactionRun {
+public interface TransactionBuilder {
 
 	/**
 	 * Yields the UTC time when the transaction is being run.

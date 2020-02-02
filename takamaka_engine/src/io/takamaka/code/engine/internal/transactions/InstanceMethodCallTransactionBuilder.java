@@ -22,7 +22,7 @@ import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
-public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<InstanceMethodCallTransactionRequest> {
+public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionBuilder<InstanceMethodCallTransactionRequest> {
 
 	/**
 	 * The deserialized receiver the call.
@@ -46,7 +46,7 @@ public class InstanceMethodCallTransactionRun extends MethodCallTransactionRun<I
 	 */
 	private final MethodCallTransactionResponse response;
 
-	public InstanceMethodCallTransactionRun(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public InstanceMethodCallTransactionBuilder(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {

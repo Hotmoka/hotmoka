@@ -15,7 +15,7 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
-public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTransactionRequest, JarStoreTransactionResponse> {
+public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> {
 	private final EngineClassLoader classLoader;
 
 	/**
@@ -23,7 +23,7 @@ public class JarStoreTransactionRun extends NonInitialTransactionRun<JarStoreTra
 	 */
 	private final JarStoreTransactionResponse response;
 
-	public JarStoreTransactionRun(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public JarStoreTransactionBuilder(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.getJar(), request.getDependencies(), this)) {

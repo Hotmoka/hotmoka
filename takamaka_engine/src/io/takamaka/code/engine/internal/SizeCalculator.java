@@ -65,20 +65,20 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.GasCostModel;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionRun;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 
 /**
  * An object that knows about the size of objects when stored in blockchain.
  */
 public class SizeCalculator {
-	private final AbstractTransactionRun<?,?> run;
+	private final AbstractTransactionBuilder<?,?> run;
 
 	/**
 	 * Builds the size calculator.
 	 * 
 	 * @param gasCostModel the gas model to use for the calculations
 	 */
-	public SizeCalculator(AbstractTransactionRun<?,?> run) {
+	public SizeCalculator(AbstractTransactionBuilder<?,?> run) {
 		this.run = run;
 	}
 

@@ -9,7 +9,7 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
-public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
+public class JarStoreInitialTransactionBuilder extends AbstractTransactionBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 	private final EngineClassLoader classLoader;
 
 	/**
@@ -17,7 +17,7 @@ public class JarStoreInitialTransactionRun extends AbstractTransactionRun<JarSto
 	 */
 	private final JarStoreInitialTransactionResponse response;
 
-	public JarStoreInitialTransactionRun(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public JarStoreInitialTransactionBuilder(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.getJar(), request.getDependencies(), this)) {

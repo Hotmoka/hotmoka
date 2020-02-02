@@ -18,7 +18,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.TransactionBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.Serializer;
@@ -32,7 +32,7 @@ import io.takamaka.code.engine.runtime.Runtime;
  * and just implement the abstract template methods. The rest of code should work instead
  * as a generic layer for all blockchain implementations.
  */
-public abstract class AbstractTransactionRun<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionRun {
+public abstract class AbstractTransactionBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionBuilder {
 
 	/**
 	 * The HotMoka node that is running the transaction.
@@ -85,7 +85,7 @@ public abstract class AbstractTransactionRun<Request extends TransactionRequest<
 	 */
 	private BigInteger nextProgressive = BigInteger.ZERO;
 
-	protected AbstractTransactionRun(Request request, TransactionReference current, Node node) throws TransactionException {
+	protected AbstractTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
 		try {
 			Runtime.init(this);
 			ClassType.clearCache();

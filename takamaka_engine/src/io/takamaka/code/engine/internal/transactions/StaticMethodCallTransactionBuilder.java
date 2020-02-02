@@ -19,7 +19,7 @@ import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
-public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<StaticMethodCallTransactionRequest> {
+public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBuilder<StaticMethodCallTransactionRequest> {
 	private final EngineClassLoader classLoader;
 
 	/**
@@ -37,7 +37,7 @@ public class StaticMethodCallTransactionRun extends MethodCallTransactionRun<Sta
 	 */
 	private final MethodCallTransactionResponse response;
 
-	public StaticMethodCallTransactionRun(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public StaticMethodCallTransactionBuilder(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {

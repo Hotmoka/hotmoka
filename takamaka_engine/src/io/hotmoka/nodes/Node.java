@@ -11,7 +11,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.TransactionBuilder;
 
 /**
  * A node of the HotMoka network, that provides the storage
@@ -72,7 +72,7 @@ public interface Node {
 	 * @return the updates; these include the class tag update for the reference
 	 * @throws Exception if the updates cannot be found
 	 */
-	Stream<Update> getLastEagerUpdatesFor(StorageReference storageReference, Consumer<BigInteger> chargeForCPU, TransactionRun run) throws Exception;
+	Stream<Update> getLastEagerUpdatesFor(StorageReference storageReference, Consumer<BigInteger> chargeForCPU, TransactionBuilder run) throws Exception;
 
 	/**
 	 * Yields the most recent update for the given non-{@code final} field,
@@ -90,7 +90,7 @@ public interface Node {
 	 * Yields the most recent update for the given {@code final} field,
 	 * of lazy type, of the object with the given storage reference.
 	 * Its implementation can be identical to
-	 * that of {@link #getLastLazyUpdateToNonFinalFieldOf(StorageReference, FieldSignature, TransactionRun)},
+	 * that of {@link #getLastLazyUpdateToNonFinalFieldOf(StorageReference, FieldSignature, TransactionBuilder)},
 	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
 	 * 
 	 * @param storageReference the storage reference

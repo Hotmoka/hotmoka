@@ -10,7 +10,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.takamaka.code.engine.NonWhiteListedCallException;
 import io.takamaka.code.engine.OutOfGasError;
-import io.takamaka.code.engine.TransactionRun;
+import io.takamaka.code.engine.TransactionBuilder;
 
 /**
  * A class that contains utility methods called by instrumented
@@ -23,14 +23,14 @@ public abstract class Runtime {
 	/**
 	 * The blockchain used for the current transaction.
 	 */
-	private static TransactionRun run;
+	private static TransactionBuilder run;
 
 	/**
 	 * Resets static data at the beginning of a transaction.
 	 * 
 	 * @param run the blockchain used for the new transaction
 	 */
-	public static void init(TransactionRun run) {
+	public static void init(TransactionBuilder run) {
 		Runtime.run = run;
 	}
 

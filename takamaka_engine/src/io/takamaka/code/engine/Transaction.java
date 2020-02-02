@@ -18,13 +18,13 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.transactions.AbstractTransaction;
-import io.takamaka.code.engine.internal.transactions.ConstructorCallTransactionRun;
-import io.takamaka.code.engine.internal.transactions.GameteCreationTransactionRun;
-import io.takamaka.code.engine.internal.transactions.InstanceMethodCallTransactionRun;
-import io.takamaka.code.engine.internal.transactions.JarStoreInitialTransactionRun;
-import io.takamaka.code.engine.internal.transactions.JarStoreTransactionRun;
-import io.takamaka.code.engine.internal.transactions.RedGreenGameteCreationTransactionRun;
-import io.takamaka.code.engine.internal.transactions.StaticMethodCallTransactionRun;
+import io.takamaka.code.engine.internal.transactions.ConstructorCallTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.GameteCreationTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.InstanceMethodCallTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.JarStoreInitialTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.JarStoreTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.RedGreenGameteCreationTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.StaticMethodCallTransactionBuilder;
 
 /**
  * A transaction of HotMoka code: it is the execution of a
@@ -63,7 +63,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
 	static Transaction<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> mkFor(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		return new AbstractTransaction<>(request, new JarStoreInitialTransactionRun(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new JarStoreInitialTransactionBuilder(request, current, node).getResponse());
 	}
 
 	/**
@@ -79,7 +79,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
 	static Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		return new AbstractTransaction<>(request, new GameteCreationTransactionRun(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new GameteCreationTransactionBuilder(request, current, node).getResponse());
 	}
 
 	/**
@@ -95,7 +95,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
 	static Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		return new AbstractTransaction<>(request, new RedGreenGameteCreationTransactionRun(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new RedGreenGameteCreationTransactionBuilder(request, current, node).getResponse());
 	}
 
 	/**
@@ -109,7 +109,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
 	static Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> mkFor(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		return new AbstractTransaction<>(request, new JarStoreTransactionRun(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new JarStoreTransactionBuilder(request, current, node).getResponse());
 	}
 
 	/**
@@ -124,7 +124,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
 	static Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> mkFor(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		return new AbstractTransaction<>(request, new ConstructorCallTransactionRun(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new ConstructorCallTransactionBuilder(request, current, node).getResponse());
 	}
 
 	/**
@@ -139,7 +139,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
 	static Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		return new AbstractTransaction<>(request, new InstanceMethodCallTransactionRun(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new InstanceMethodCallTransactionBuilder(request, current, node).getResponse());
 	}
 
 	/**
@@ -154,6 +154,6 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
 	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		return new AbstractTransaction<>(request, new StaticMethodCallTransactionRun(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new StaticMethodCallTransactionBuilder(request, current, node).getResponse());
 	}
 }
