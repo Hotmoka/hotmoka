@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.runtime;
+package io.takamaka.code.engine;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -10,7 +10,6 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.OutOfGasError;
-import io.takamaka.code.engine.TransactionBuilder;
 
 /**
  * A class that contains utility methods called by instrumented

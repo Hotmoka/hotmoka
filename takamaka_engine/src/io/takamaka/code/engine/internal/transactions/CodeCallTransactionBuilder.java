@@ -23,7 +23,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.runtime.Runtime;
+import io.takamaka.code.engine.Runtime;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 

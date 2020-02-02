@@ -14,6 +14,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
+import io.takamaka.code.engine.Runtime;
 import io.takamaka.code.engine.TransactionBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
@@ -21,7 +22,6 @@ import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
-import io.takamaka.code.engine.runtime.Runtime;
 
 /**
  * A generic implementation of a blockchain. Specific implementations can subclass this class
