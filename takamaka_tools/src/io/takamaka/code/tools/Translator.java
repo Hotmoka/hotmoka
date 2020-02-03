@@ -17,7 +17,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import io.takamaka.code.instrumentation.GasCostModel;
+import io.hotmoka.nodes.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;

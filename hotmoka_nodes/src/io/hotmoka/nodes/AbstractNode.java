@@ -27,13 +27,13 @@ public abstract class AbstractNode implements Node {
 		String className = clazz.getName();
 		CodeSource src = clazz.getProtectionDomain().getCodeSource();
 		if (src == null)
-			throw new IllegalStateException("Cannot determine the jar of class " + className);
+			throw new IllegalStateException("cannot determine the jar of class " + className);
 		String classpath = src.getLocation().getPath();
 		if (!classpath.endsWith(".jar"))
-			throw new IllegalStateException("Unexpected class path " + classpath + " for class " + className);
+			throw new IllegalStateException("unexpected class path " + classpath + " for class " + className);
 		int start = classpath.lastIndexOf('@');
 		if (start < 0)
-			throw new IllegalStateException("Class path " + classpath + " misses @ separator");
+			throw new IllegalStateException("class path " + classpath + " misses @ separator");
 		return getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
 	}
 
@@ -58,6 +58,6 @@ public abstract class AbstractNode implements Node {
 			throw new DeserializationError(e);
 		}
 
-		throw new DeserializationError("Did not find the class tag for " + object);
+		throw new DeserializationError("no class tag found for " + object);
 	}
 }

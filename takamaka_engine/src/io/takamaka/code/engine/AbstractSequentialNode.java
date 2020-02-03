@@ -1,4 +1,4 @@
-package io.hotmoka.nodes;
+package io.takamaka.code.engine;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -47,7 +47,9 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.takamaka.code.engine.Transaction;
+import io.hotmoka.nodes.AbstractNode;
+import io.hotmoka.nodes.CodeExecutionException;
+import io.hotmoka.nodes.DeserializationError;
 
 /**
  * A generic implementation of a blockchain that extends immediately when

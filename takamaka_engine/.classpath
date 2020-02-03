@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_constants">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_instrumentation">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_verification">
+	<classpathentry combineaccessrules="false" kind="src" path="/hotmoka_beans">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
@@ -21,7 +11,22 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/hotmoka_beans">
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_verification">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_instrumentation">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/takamaka_constants">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/hotmoka_nodes">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
@@ -52,6 +57,11 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="/distribution/dist/io-hotmoka-beans-1.0.jar">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="/distribution/dist/io-hotmoka-nodes-1.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>

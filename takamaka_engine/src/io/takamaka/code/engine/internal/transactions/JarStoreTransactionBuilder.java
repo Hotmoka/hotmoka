@@ -44,7 +44,7 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 				chargeForRAM(node.getGasCostModel().ramCostForInstalling(jar.length));
 
 				VerifiedJar verifiedJar = VerifiedJar.of(classLoader.jarPath(), classLoader, false);
-				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, new GasCostModelAdapter(node.getGasCostModel()));
+				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, node.getGasCostModel());
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
 
 				BigInteger balanceOfCaller = classLoader.getBalanceOf(deserializedCaller);

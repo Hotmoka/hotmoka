@@ -35,8 +35,8 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ReturnInstruction;
 
+import io.hotmoka.nodes.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
-import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentedClass;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromBlockchain;

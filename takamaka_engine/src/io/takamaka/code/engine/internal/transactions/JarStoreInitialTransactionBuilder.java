@@ -23,7 +23,7 @@ public class JarStoreInitialTransactionBuilder extends AbstractTransactionBuilde
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.getJar(), request.getDependencies(), this)) {
 			this.classLoader = classLoader;
 			VerifiedJar verifiedJar = VerifiedJar.of(classLoader.jarPath(), classLoader, true);
-			InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, new GasCostModelAdapter(node.getGasCostModel()));
+			InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, node.getGasCostModel());
 			this.response = new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
 		}
 		catch (Throwable t) {

@@ -1,0 +1,50 @@
+<project name="hotmoka_nodes" default="dist" basedir=".">
+  <description>
+    Compiles the HotMoka nodes module
+  </description>
+
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist" location="../distribution/dist"/>
+  <property name="version" value="UNVERSIONED"/>
+
+  <target name="clean" description="clean up">
+	<delete dir="${build}"/>
+  </target>
+
+  <target name="init" depends="clean">
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init" description="compile">
+	<javac srcdir="${src}" destdir="${build}" source="9" target="9" includeantruntime="no">
+		<compilerarg value="-Xlint"/>
+		<modulepath path ="../distribution/mods"/>
+		<modulepath path ="../distribution/dist"/>
+    </javac>
+  </target>
+
+  <target name="compile Java 8" depends="init" description="compile into Java 8 code">
+	<javac srcdir="${src}" destdir="${build}" source="8" target="8" includeantruntime="no" excludes="module-info.java">
+		<!-- debug="true" debuglevel="lines,vars,source" includeantruntime="true" -->
+		<compilerarg value="-Xlint"/>
+	    <classpath>
+		   <fileset dir="../distribution/libs" includes="*.jar" />
+	       <fileset dir="../distribution/dist" includes="*.jar" />
+	  	</classpath>
+	</javac>
+  </target>
+
+  <target name="dist" depends="compile" description="generate the distribution">
+    <jar jarfile="${dist}/io-hotmoka-nodes-${version}.jar" basedir="${build}"/>
+  </target>
+
+  <target name="dist Java 8" depends="compile Java 8" description="generate the distribution">
+	<jar jarfile="${dist}/io-hotmoka-nodes-${version}.jar" basedir="${build}">
+		<manifest>
+			<attribute name="Automatic-Module-Name" value = "io.hotmoka.nodes" />
+		</manifest>
+  	</jar>
+  </target>
+
+</project>

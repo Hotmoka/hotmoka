@@ -1,4 +1,4 @@
-package io.hotmoka.nodes;
+package io.takamaka.code.engine;
 
 import io.hotmoka.beans.references.TransactionReference;
 

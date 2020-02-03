@@ -17,6 +17,7 @@
   <target name="dist" depends="init" description="generate the distribution">
   	<ant dir="../takamaka_constants" target="dist" />
   	<ant dir="../hotmoka_beans" target="dist" />
+  	<ant dir="../hotmoka_nodes" target="dist" />
   	<ant dir="../takamaka_whitelisting" target="dist" />
   	<ant dir="../takamaka_code" target="dist" />
   	<ant dir="../takamaka_verification" target="dist" />
@@ -29,6 +30,7 @@
   <target name="dist Java 8" depends="init" description="generate the distribution for Java 8">
   	<ant dir="../takamaka_constants" target="dist Java 8" />
   	<ant dir="../hotmoka_beans" target="dist Java 8" />
+  	<ant dir="../hotmoka_nodes" target="dist Java 8" />
   	<ant dir="../takamaka_whitelisting" target="dist Java 8" />
   	<ant dir="../takamaka_code" target="dist Java 8" />
   	<ant dir="../takamaka_verification" target="dist Java 8" />

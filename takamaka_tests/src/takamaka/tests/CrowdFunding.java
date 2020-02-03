@@ -33,8 +33,8 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.AbstractSequentialNode;
 import io.hotmoka.nodes.CodeExecutionException;
+import io.takamaka.code.engine.AbstractSequentialNode;
 import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
