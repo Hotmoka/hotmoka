@@ -1,13 +1,16 @@
-package io.takamaka.tests.ponzi;
+package io.takamaka.tests.wtsc2020;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.Entry;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
+import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageList;
 
 /**
@@ -42,5 +45,22 @@ public class SimplePyramid extends Contract {
 			investors.forEach(investor -> investor.receive(eachInvestorGets));
 			previousLayerSize *= 2;
 		}
+	}
+
+	public @View PayableContract mostFrequentInvestor() {
+		Map<PayableContract, Integer> frequencies = new HashMap<>();
+		int max = 0;
+		PayableContract result = null;
+		for (PayableContract investor: investors) {
+			frequencies.putIfAbsent(investor, 0);
+			int investments = frequencies.get(investor) + 1;
+			frequencies.put(investor, investments);
+			if (investments > max) {
+				max = investments;
+				result = investor;
+			}
+		}
+
+		return result;
 	}
 }

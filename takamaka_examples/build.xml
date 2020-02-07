@@ -39,6 +39,7 @@
   	<jar jarfile="${dist}/ponzi.jar" basedir="${build}" includes="io/takamaka/tests/ponzi/**"/>
   	<jar jarfile="${dist}/lambdas.jar" basedir="${build}" includes="io/takamaka/tests/lambdas/**"/>
   	<jar jarfile="${dist}/tictactoe.jar" basedir="${build}" includes="io/takamaka/tests/tictactoe/**"/>
+  	<jar jarfile="${dist}/wtsc2020.jar" basedir="${build}" includes="io/takamaka/tests/wtsc2020/**"/>
   	<jar jarfile="${dist}/illegalpackagename1.jar" basedir="${build}" includes="io/takamaka/code/illegalpackagename1/**"/>
   	<jar jarfile="${dist}/payablewithredpayable.jar" basedir="${build}" includes="io/takamaka/tests/errors/payablewithredpayable/**"/>
   	<jar jarfile="${dist}/payablewithoutentry1.jar" basedir="${build}" includes="io/takamaka/tests/errors/payablewithoutentry1/**"/>
