@@ -47,17 +47,41 @@ public class SimplePyramid extends Contract {
 		}
 	}
 
+	public @View String mostFrequentInvestorClass() {
+		Map<String, Integer> frequencies = new HashMap<>();
+		for (PayableContract investor: investors) {
+			String className = investor.getClass().getName();
+			frequencies.putIfAbsent(className, 0);
+			frequencies.put(className, frequencies.get(className) + 1);
+		}
+
+		int max = -1;
+		String result = null;
+		for (String candidate: frequencies.keySet()) {
+			int frequency = frequencies.get(candidate);
+			if (frequency > max) {
+				max = frequency;
+				result = candidate;
+			}
+		}
+
+		return result;
+	}
+
 	public @View PayableContract mostFrequentInvestor() {
 		Map<PayableContract, Integer> frequencies = new HashMap<>();
-		int max = 0;
-		PayableContract result = null;
 		for (PayableContract investor: investors) {
 			frequencies.putIfAbsent(investor, 0);
-			int investments = frequencies.get(investor) + 1;
-			frequencies.put(investor, investments);
-			if (investments > max) {
-				max = investments;
-				result = investor;
+			frequencies.put(investor, frequencies.get(investor) + 1);
+		}
+
+		int max = -1;
+		PayableContract result = null;
+		for (PayableContract candidate: frequencies.keySet()) {
+			int frequency = frequencies.get(candidate);
+			if (frequency > max) {
+				max = frequency;
+				result = candidate;
 			}
 		}
 

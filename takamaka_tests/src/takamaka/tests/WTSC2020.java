@@ -3,6 +3,7 @@
  */
 package takamaka.tests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
@@ -27,6 +28,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
 
@@ -48,6 +50,8 @@ class WTSC2020 extends TakamakaTest {
 	private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(ClassType.TEOA, "getBalance", ClassType.BIG_INTEGER);
 
 	private static final MethodSignature MOST_FREQUENT_INVESTOR = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestor", ClassType.PAYABLE_CONTRACT);
+
+	private static final MethodSignature MOST_FREQUENT_INVESTOR_CLASS = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestorClass", ClassType.STRING);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
@@ -112,6 +116,31 @@ class WTSC2020 extends TakamakaTest {
 
 		// the money is back!
 		assertTrue(balance0.value.compareTo(_20_000) > 0);
+	}
+
+	@Test @DisplayName("three investors then check most frequent investor class")
+	void mostFrequentInvestorClass() throws TransactionException, CodeExecutionException {
+		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
+		StorageReference pyramid = blockchain.addConstructorCallTransaction
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _10_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
+
+		// account(1) becomes the second investor
+		blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+
+		// account(2) becomes the third investor
+		blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(blockchain.account(2), _20_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+
+		// account(1) invests again and becomes the most frequent investor
+		blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+
+		// account(0) checks which is the most frequent investor class
+		StringValue result = (StringValue) blockchain.addInstanceMethodCallTransaction
+			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, classpath, MOST_FREQUENT_INVESTOR_CLASS, pyramid));
+
+		assertEquals(ClassType.TEOA.name, result.value);
 	}
 
 	@Disabled
