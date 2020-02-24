@@ -54,6 +54,8 @@ class WTSC2020 extends TakamakaTest {
 	private static final MethodSignature MOST_FREQUENT_INVESTOR_CLASS = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestorClass", ClassType.STRING);
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+	
+	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);
 
 	/**
 	 * The blockchain under test. This is recreated before each test.
@@ -68,7 +70,7 @@ class WTSC2020 extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// create a RAM simulation of a blockchain with 4 initial accounts
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _20_000, _20_000, _20_000, _20_000);
+		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _20_000_000, _20_000_000, _20_000_000, _20_000_000);
 
 		// store the jar of our test in blockchain
 		TransactionReference jar = blockchain.addJarStoreTransaction
@@ -93,7 +95,7 @@ class WTSC2020 extends TakamakaTest {
 			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, classpath, GET_BALANCE, blockchain.account(0)));
 
 		// no money back yet
-		assertTrue(balance0.value.compareTo(_10_000) <= 0);
+		assertTrue(balance0.value.compareTo(BigInteger.valueOf(19980000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
@@ -114,8 +116,9 @@ class WTSC2020 extends TakamakaTest {
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, classpath, GET_BALANCE, blockchain.account(0)));
 
+		System.out.println(balance0);
 		// the money is back!
-		assertTrue(balance0.value.compareTo(_20_000) > 0);
+		assertTrue(balance0.value.compareTo(BigInteger.valueOf(19990000)) > 0);
 	}
 
 	@Test @DisplayName("three investors then check most frequent investor class")

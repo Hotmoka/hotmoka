@@ -44,7 +44,7 @@ class Purchase extends TakamakaTest {
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000);
+	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000_000L);
 
 	/**
 	 * The blockchain under test. This is recreated before each test.
@@ -87,10 +87,10 @@ class Purchase extends TakamakaTest {
 		classpath = new Classpath(purchase, true);
 
 		seller = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(100_000_000)));
 
 		buyer = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(100_000_000)));
 	}
 
 	@Test @DisplayName("new Purchase(21)")

@@ -52,7 +52,7 @@ class CrowdFundingSimplified extends TakamakaTest {
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000);
+	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000_000L);
 
 	/**
 	 * The blockchain under test. This is recreated before each test.
@@ -108,10 +108,10 @@ class CrowdFundingSimplified extends TakamakaTest {
 			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA)));
 
 		funder1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10_000_000)));
 
 		funder2 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10000)));
+			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10_000_000)));
 
 		crowdFunding = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(gamete, _10_000, classpath, CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED));

@@ -88,6 +88,8 @@ class BlindAuction extends TakamakaTest {
 
 	private static final MethodSignature ADD = new VoidMethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
 
+	private static final BigInteger _10_000_000_000 = BigInteger.valueOf(10_000_000_000L);
+
 	private static final BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
 
 	/**
@@ -108,7 +110,7 @@ class BlindAuction extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		digest = MessageDigest.getInstance("SHA-256");
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
+		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
 
 		TransactionReference auctions = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _10_000_000, blockchain.takamakaBase,

@@ -78,7 +78,7 @@ class TicTacToe extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
-			_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L), BigInteger.valueOf(1_000_000L));
+			_1_000_000_000, BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
 
 		TransactionReference tictactoe = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _200_000, blockchain.takamakaBase,

@@ -65,9 +65,9 @@ class Basic extends TakamakaTest {
 
 	private static final MethodSignature TO_STRING = new NonVoidMethodSignature(ClassType.OBJECT, "toString", ClassType.STRING);
 
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000);
+	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 
 	/**
 	 * The blockchain under test. This is recreated before each test.
@@ -103,40 +103,40 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new InternationalTime(13,25,40).toString().equals(\"13:25:40\")")
 	void testToStringInternationTime() throws TransactionException, CodeExecutionException {
 		StorageReference internationalTime = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(master, _20_000, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
+			(new ConstructorCallTransactionRequest(master, _200_000, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40)));
 		assertEquals(new StringValue("13:25:40"),
-			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, TO_STRING, internationalTime)));
+			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, TO_STRING, internationalTime)));
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40)).toString().equals(\"wrapper(13:25:40,null,null,0)\")")
 	void testToStringWrapperInternationTime1() throws TransactionException, CodeExecutionException {
 		StorageReference internationalTime = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(master, _20_000, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
+			(new ConstructorCallTransactionRequest(master, _200_000, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40)));
 		StorageReference wrapper = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(master, _20_000, classpath, CONSTRUCTOR_WRAPPER_1,
+			(new ConstructorCallTransactionRequest(master, _200_000, classpath, CONSTRUCTOR_WRAPPER_1,
 			internationalTime));
 		assertEquals(new StringValue("wrapper(13:25:40,null,null,0)"),
-			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, TO_STRING, wrapper)));
+			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, TO_STRING, wrapper)));
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40),\"hello\",13011973,12345L).toString().equals(\"wrapper(13:25:40,hello,13011973,12345)\")")
 	void testToStringWrapperInternationTime2() throws TransactionException, CodeExecutionException {
 		StorageReference internationalTime = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(master, _20_000, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
+			(new ConstructorCallTransactionRequest(master, _200_000, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40)));
 		StorageReference wrapper = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(master, _20_000, classpath, CONSTRUCTOR_WRAPPER_2,
+			(new ConstructorCallTransactionRequest(master, _200_000, classpath, CONSTRUCTOR_WRAPPER_2,
 			internationalTime, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(13011973)), new LongValue(12345L)));
 		assertEquals(new StringValue("wrapper(13:25:40,hello,13011973,12345)"),
-			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, TO_STRING, wrapper)));
+			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, TO_STRING, wrapper)));
 	}
 
 	@Test @DisplayName("new Sub(1973)")
 	void callPayableConstructor() throws TransactionException, CodeExecutionException {
 		blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _20_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
+			(master, _200_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 	}
 
 	@Test @DisplayName("new Sub().m1() throws TransactionException since RequirementViolationException")
@@ -146,7 +146,7 @@ class Basic extends TakamakaTest {
 
 		try {
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m1"), sub));
+				(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m1"), sub));
 		}
 		catch (TransactionException e) {
 			if (e.getCause().getClass().getName().equals(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME) && e.getCause().getMessage().equals("An @Entry can only be called from a distinct contract object"))
@@ -164,52 +164,52 @@ class Basic extends TakamakaTest {
 			(master, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub")));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
-			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, SUB_MS, sub))
+			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, SUB_MS, sub))
 		);
 	}
 
 	@Test @DisplayName("Sub.ms()")
 	void callStaticAsStatic() throws CodeExecutionException, TransactionException {
-		blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(master, _20_000, classpath, SUB_MS));
+		blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(master, _200_000, classpath, SUB_MS));
 	}
 
 	@Test @DisplayName("Sub.m5() throws TransactionException since NoSuchMethodException")
 	void callInstanceAsStatic() throws CodeExecutionException, TransactionException {
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
-			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(master, _20_000, classpath, SUB_M5))
+			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(master, _200_000, classpath, SUB_M5))
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) without gas")
 	void callerHasNotEnoughFundsForGas() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _20_000, classpath, new ConstructorSignature(ClassType.EOA)));
+			(master, _200_000, classpath, new ConstructorSignature(ClassType.EOA)));
 
 		throwsTransactionException(() ->
 			blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)))
+				(new ConstructorCallTransactionRequest(eoa, _200_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)))
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas but without enough coins to pay the @Entry")
 	void callerHasNotEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _20_000, classpath, new ConstructorSignature(ClassType.EOA)));
+			(master, _200_000, classpath, new ConstructorSignature(ClassType.EOA)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(2000)));
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(200000)));
 
 		throwsTransactionExceptionWithCause(Constants.INSUFFICIENT_FUNDS_ERROR_NAME, () ->
 			blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)))
+				(new ConstructorCallTransactionRequest(eoa, _200_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)))
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
 	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _20_000, classpath, new ConstructorSignature(ClassType.EOA)));
+			(master, _200_000, classpath, new ConstructorSignature(ClassType.EOA)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
 		blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 	}
@@ -217,52 +217,52 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
 	void callInstanceMethod() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _20_000, classpath, new ConstructorSignature(ClassType.EOA)));
+			(master, _200_000, classpath, new ConstructorSignature(ClassType.EOA)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
 		StorageReference internationalTime = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(master, _20_000, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
+			(new ConstructorCallTransactionRequest(master, _200_000, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40)));
 		StorageReference sub = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "print", new ClassType("io.takamaka.tests.basicdependency.Time")), sub, internationalTime));
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "print", new ClassType("io.takamaka.tests.basicdependency.Time")), sub, internationalTime));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _20_000, classpath, new ConstructorSignature(ClassType.EOA)));
+			(master, _200_000, classpath, new ConstructorSignature(ClassType.EOA)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
 		StorageReference sub = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 		assertEquals(new StringValue("Sub.m4 receives 13 coins from an externally owned account with public balance"), blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4", ClassType.STRING, INT), sub, new IntValue(13))));
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4", ClassType.STRING, INT), sub, new IntValue(13))));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithLong() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _20_000, classpath, new ConstructorSignature(ClassType.EOA)));
+			(master, _200_000, classpath, new ConstructorSignature(ClassType.EOA)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(2000000)));
 		StorageReference sub = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(eoa, _20_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
+			(new ConstructorCallTransactionRequest(eoa, _200_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 		assertEquals(new StringValue("Sub.m4_1 receives 13 coins from an externally owned account with public balance"), blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4_1", ClassType.STRING, LONG), sub, new LongValue(13L))));
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4_1", ClassType.STRING, LONG), sub, new LongValue(13L))));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(master, _20_000, classpath, new ConstructorSignature(ClassType.EOA)));
+			(master, _200_000, classpath, new ConstructorSignature(ClassType.EOA)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000)));
 		StorageReference sub = blockchain.addConstructorCallTransaction
 			(new ConstructorCallTransactionRequest(eoa, _5_000, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973)));
 		assertEquals(new StringValue("Sub.m4_2 receives 13 coins from an externally owned account with public balance"), blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4_2", ClassType.STRING, ClassType.BIG_INTEGER),
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4_2", ClassType.STRING, ClassType.BIG_INTEGER),
 			sub, new BigIntegerValue(BigInteger.valueOf(13L)))));
 	}
 
@@ -381,10 +381,10 @@ class Basic extends TakamakaTest {
 	void listCreation() throws CodeExecutionException, TransactionException {
 		ClassType withList = new ClassType("io.takamaka.tests.basic.WithList");
 		StorageReference wl = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(master, _20_000, classpath, new ConstructorSignature(withList)));
+			(new ConstructorCallTransactionRequest(master, _200_000, classpath, new ConstructorSignature(withList)));
 		assertEquals(new StringValue("[hello,how,are,you]"),
 			blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new NonVoidMethodSignature(withList, "toString", ClassType.STRING),
+			(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, new NonVoidMethodSignature(withList, "toString", ClassType.STRING),
 			wl)));
 	}
 
@@ -392,11 +392,11 @@ class Basic extends TakamakaTest {
 	void deserializationError() throws CodeExecutionException, TransactionException {
 		ClassType withList = new ClassType("io.takamaka.tests.basic.WithList");
 		StorageReference wl = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(master, _20_000, classpath, new ConstructorSignature(withList)));
+			(new ConstructorCallTransactionRequest(master, _200_000, classpath, new ConstructorSignature(withList)));
 		
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(master, _20_000, classpath, new VoidMethodSignature(withList, "illegal"),
+				(new InstanceMethodCallTransactionRequest(master, _200_000, classpath, new VoidMethodSignature(withList, "illegal"),
 				wl))
 		);
 	}

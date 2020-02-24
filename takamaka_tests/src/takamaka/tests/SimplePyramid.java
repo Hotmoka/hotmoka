@@ -93,7 +93,7 @@ class SimplePyramid extends TakamakaTest {
 
 		for (int i = 0; i < 4; i++)
 			players[i] = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, _10_000, classpath, new ConstructorSignature(ClassType.TEOA, INT), new IntValue(20_000)));
+				(gamete, _10_000, classpath, new ConstructorSignature(ClassType.TEOA, INT), new IntValue(200_000)));
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")
@@ -104,7 +104,7 @@ class SimplePyramid extends TakamakaTest {
 			(new InstanceMethodCallTransactionRequest(players[1], _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(players[0], _10_000, classpath, GET_BALANCE, players[0]));
-		assertTrue(balance0.value.compareTo(_10_000) <= 0);
+		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
@@ -117,6 +117,6 @@ class SimplePyramid extends TakamakaTest {
 			(new InstanceMethodCallTransactionRequest(players[2], _20_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(players[0], _10_000, classpath, GET_BALANCE, players[0]));
-		assertTrue(balance0.value.compareTo(_20_000) > 0);
+		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) > 0);
 	}
 }

@@ -125,7 +125,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @return the cost
 	 */
 	private BigInteger toCoin(BigInteger gas) {
-		return gas.divide(BigInteger.valueOf(100));
+		return gas.divide(BigInteger.valueOf(1));
 	}
 
 	@Override

@@ -49,9 +49,9 @@ class RedGreenDistributor extends TakamakaTest {
 	void beforeEach() throws Exception {
 		blockchain = new InitializedRedGreenMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
 			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // green/red of first account
-			BigInteger.valueOf(1_000L), BigInteger.ZERO, // green/red of second account
-			BigInteger.valueOf(1_000L), BigInteger.ZERO, // green/red of third account
-			BigInteger.ZERO, BigInteger.valueOf(1_000L), // green/red of fourth account
+			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of second account
+			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of third account
+			BigInteger.ZERO, BigInteger.valueOf(100_000L), // green/red of fourth account
 			BigInteger.ZERO, BigInteger.ZERO  // green/red of fifth account
 		);
 
