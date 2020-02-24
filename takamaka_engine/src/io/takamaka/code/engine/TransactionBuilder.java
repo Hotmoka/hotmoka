@@ -3,6 +3,7 @@ package io.takamaka.code.engine;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
@@ -35,6 +36,16 @@ public interface TransactionBuilder {
 	 * @return the node
 	 */
 	Node getNode();
+
+	/**
+	 * Yields the transaction reference that installed the jar where the given class, accessible
+	 * during this run, is defined.
+	 * 
+	 * @param clazz the class, accessible during this run
+	 * @return the transaction reference
+	 * @throws IllegalStateException if the transaction reference cannot be determined
+	 */
+	TransactionReference transactionThatInstalledJarFor(Class<?> clazz);
 
 	/**
 	 * Yields the value of the {@code storageReference} field

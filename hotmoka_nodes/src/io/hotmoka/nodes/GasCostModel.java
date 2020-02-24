@@ -120,7 +120,7 @@ public interface GasCostModel {
 	/**
 	 * Yields the CPU gas cost of the execution of a memory allocation instruction.
 	 * This is a constant, that does not consider the size of the allocated
-	 * object. That size is charged instead in terms of RAM allocation.
+	 * object. That size is charged instead in terms of RAM allocation, through instrumentation code.
 	 * 
 	 * @return the cost
 	 */
@@ -213,15 +213,5 @@ public interface GasCostModel {
 	 * @param transaction the transaction reference
 	 * @return the cost
 	 */
-	//TODO: this should be dependent on the actual implementation of the reference
 	BigInteger storageCostOf(TransactionReference transaction);
-
-	/**
-	 * Provides the cost of a given amount of gas, in terms of coins.
-	 * For red/green contracts, this means the green coins.
-	 * 
-	 * @param gas the amount of gas
-	 * @return the cost in coins
-	 */
-	BigInteger toCoin(BigInteger gas);
 }

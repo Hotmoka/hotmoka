@@ -21,16 +21,6 @@ import io.hotmoka.beans.values.StorageReference;
 public interface Node {
 
 	/**
-	 * Yields the transaction reference that installed the jar
-	 * where the given class is defined.
-	 * 
-	 * @param clazz the class
-	 * @return the transaction reference
-	 * @throws IllegalStateException if the transaction reference cannot be determined
-	 */
-	TransactionReference transactionThatInstalledJarFor(Class<?> clazz);
-
-	/**
 	 * Yields the run-time class of the storage object with the given reference.
 	 * 
 	 * @param storageReference the storage reference of the object
@@ -69,6 +59,7 @@ public interface Node {
 	 * Yields the most recent eager updates for the given storage reference.
 	 * 
 	 * @param storageReference the storage reference
+	 * @param chargeForCPU a function called to charge CPU costs
 	 * @param eagerFields a function that extracts the eager instance fields of a class, also inherited, given the name of the class
 	 * @return the updates; these include the class tag update for the reference
 	 * @throws Exception if the updates cannot be found
@@ -81,7 +72,7 @@ public interface Node {
 	 * 
 	 * @param storageReference the storage reference
 	 * @param field the field whose update is being looked for
-	 * @param run the run that is building the transaction for which the updates are required
+	 * @param chargeForCPU a function called to charge CPU costs
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */
@@ -96,7 +87,7 @@ public interface Node {
 	 * 
 	 * @param storageReference the storage reference
 	 * @param field the field whose update is being looked for
-	 * @param run the run that is building the transaction for which the updates are required
+	 * @param chargeForCPU a function called to charge CPU costs
 	 * @return the update, if any
 	 * @throws Exception if the update could not be found
 	 */

@@ -3,7 +3,6 @@ package io.takamaka.code.memory;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -168,7 +167,7 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 	}
 
 	@Override
-	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws FileNotFoundException, IOException, ClassNotFoundException {
+	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws IOException, ClassNotFoundException {
 		Path request = getPathFor((MemoryTransactionReference) reference, REQUEST_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(request)))) {
 			return (TransactionRequest<?>) in.readObject();
@@ -176,7 +175,7 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 	}
 
 	@Override
-	public TransactionResponse getResponseAt(TransactionReference reference) throws Exception {
+	public TransactionResponse getResponseAt(TransactionReference reference) throws IOException, ClassNotFoundException {
 		Path response = getPathFor((MemoryTransactionReference) reference, RESPONSE_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
 			return (TransactionResponse) in.readObject();

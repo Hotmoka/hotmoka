@@ -118,6 +118,16 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 		chargeForStorage(sizeCalculator.sizeOf(response));
 	}
 
+	/**
+	 * Computes the cost of the given units of gas.
+	 * 
+	 * @param gas the units of gas
+	 * @return the cost
+	 */
+	private BigInteger toCoin(BigInteger gas) {
+		return gas.divide(BigInteger.valueOf(100));
+	}
+
 	@Override
 	public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
 		chargeForCPU(amount);
@@ -177,7 +187,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @throws IllegalStateException if the externally owned account does not have funds for buying the given amount of gas
 	 */
 	private BigInteger decreaseBalance(Object eoa, BigInteger gas) {
-		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(node.getGasCostModel().toCoin(gas));
+		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(toCoin(gas));
 		if (result.signum() < 0)
 			throw new IllegalStateException("caller has not enough funds to buy " + gas + " units of gas");
 
@@ -192,7 +202,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @return the balance of the contract after buying back the remaining gas
 	 */
 	protected final BigInteger increaseBalance(Object eoa) {
-		BigInteger result = getClassLoader().getBalanceOf(eoa).add(node.getGasCostModel().toCoin(gas));
+		BigInteger result = getClassLoader().getBalanceOf(eoa).add(toCoin(gas));
 		getClassLoader().setBalanceOf(eoa, result);
 		return result;
 	}

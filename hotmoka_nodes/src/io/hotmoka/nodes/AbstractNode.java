@@ -1,9 +1,7 @@
 package io.hotmoka.nodes;
 
-import java.security.CodeSource;
 import java.util.Optional;
 
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.updates.ClassTag;
@@ -20,21 +18,6 @@ public abstract class AbstractNode implements Node {
 	@Override
 	public GasCostModel getGasCostModel() {
 		return defaultGasCostModel;
-	}
-
-	@Override
-	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
-		String className = clazz.getName();
-		CodeSource src = clazz.getProtectionDomain().getCodeSource();
-		if (src == null)
-			throw new IllegalStateException("cannot determine the jar of class " + className);
-		String classpath = src.getLocation().getPath();
-		if (!classpath.endsWith(".jar"))
-			throw new IllegalStateException("unexpected class path " + classpath + " for class " + className);
-		int start = classpath.lastIndexOf('@');
-		if (start < 0)
-			throw new IllegalStateException("class path " + classpath + " misses @ separator");
-		return getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
 	}
 
 	@Override

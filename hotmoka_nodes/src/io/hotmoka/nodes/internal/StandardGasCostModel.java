@@ -136,9 +136,4 @@ public class StandardGasCostModel implements GasCostModel {
 	public BigInteger storageCostOf(TransactionReference transaction) {
 		return BigInteger.valueOf(storageCostPerSlot() * 4L);
 	}
-
-	@Override
-	public BigInteger toCoin(BigInteger gas) {
-		return gas.divide(BigInteger.valueOf(100));
-	}
 }

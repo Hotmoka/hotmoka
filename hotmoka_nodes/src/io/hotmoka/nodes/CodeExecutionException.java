@@ -5,9 +5,10 @@ import java.util.stream.Stream;
 /**
  * A wrapper of an exception that occurred during the execution of
  * a Takamaka constructor or method. It does not keep the
- * cause of the exception, since it will be created by another class loader
- * and my be a class that does not exist outside the Takamaka code.
- * It keeps just name, message and stack trace of the cause.
+ * cause of the exception, since it would be created by another class loader
+ * and might be a class that does not exist outside the Takamaka code.
+ * It keeps just name and message of the cause. Its stack trace is a copy
+ * of that of the cause.
  */
 @SuppressWarnings("serial")
 public class CodeExecutionException extends Exception {

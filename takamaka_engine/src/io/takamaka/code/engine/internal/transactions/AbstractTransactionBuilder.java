@@ -1,6 +1,7 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.math.BigInteger;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -97,6 +98,22 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	@Override
 	public final Node getNode() {
 		return node;
+	}
+
+	@Override
+	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
+		String className = clazz.getName();
+		CodeSource src = clazz.getProtectionDomain().getCodeSource();
+		if (src == null)
+			throw new IllegalStateException("cannot determine the jar of class " + className);
+		String classpath = src.getLocation().getPath();
+		if (!classpath.endsWith(".jar"))
+			throw new IllegalStateException("unexpected class path " + classpath + " for class " + className);
+		int start = classpath.lastIndexOf('@');
+		if (start < 0)
+			throw new IllegalStateException("class path " + classpath + " misses @ separator");
+
+		return node.getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
 	}
 
 	@Override
