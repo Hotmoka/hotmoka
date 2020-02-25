@@ -65,7 +65,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
 
 	protected NonInitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
-		super(request, current, node);
+		super(current, node);
 
 		this.gas = this.initialGas = request.gas;
 		this.gasPrice = request.gasPrice;
@@ -131,7 +131,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @return the cost
 	 */
 	private BigInteger toCoin(BigInteger gas) {
-		return gas.divide(BigInteger.valueOf(1));
+		return gas.multiply(gasPrice);
 	}
 
 	@Override

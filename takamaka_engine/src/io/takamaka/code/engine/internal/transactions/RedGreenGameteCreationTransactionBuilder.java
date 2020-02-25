@@ -18,7 +18,7 @@ public class RedGreenGameteCreationTransactionBuilder extends AbstractTransactio
 	private final GameteCreationTransactionResponse response;
 
 	public RedGreenGameteCreationTransactionBuilder(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		super(request, current, node);
+		super(current, node);
 
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 			this.classLoader = classLoader;

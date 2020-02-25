@@ -18,7 +18,7 @@ public class JarStoreInitialTransactionBuilder extends AbstractTransactionBuilde
 	private final JarStoreInitialTransactionResponse response;
 
 	public JarStoreInitialTransactionBuilder(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		super(request, current, node);
+		super(current, node);
 
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.getJar(), request.getDependencies(), this)) {
 			this.classLoader = classLoader;

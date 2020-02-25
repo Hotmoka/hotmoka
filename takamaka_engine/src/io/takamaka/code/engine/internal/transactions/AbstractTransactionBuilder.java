@@ -80,7 +80,7 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	 */
 	private BigInteger nextProgressive = BigInteger.ZERO;
 
-	protected AbstractTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
+	protected AbstractTransactionBuilder(TransactionReference current, Node node) throws TransactionException {
 		try {
 			this.node = node;
 			this.current = current;
