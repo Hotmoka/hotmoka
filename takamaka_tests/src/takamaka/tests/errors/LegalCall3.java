@@ -40,11 +40,11 @@ class LegalCall3 {
 	@Test @DisplayName("C.test() == false")
 	void callTest() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall3.jar")), blockchain.takamakaBase));
 
 		BooleanValue result = (BooleanValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-				(blockchain.account(0), _20_000, new Classpath(jar, true),
+				(blockchain.account(0), _20_000, BigInteger.ONE, new Classpath(jar, true),
 				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall3.C"), "test", BasicTypes.BOOLEAN)));
 
 		assertFalse(result.value);

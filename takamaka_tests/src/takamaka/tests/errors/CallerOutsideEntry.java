@@ -34,7 +34,7 @@ class CallerOutsideEntry extends TakamakaTest {
 	void installJar() {
 		throwsVerificationExceptionWithCause(CallerOutsideEntryError.class, () ->
 			blockchain.addJarStoreTransaction
-				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 				Files.readAllBytes(Paths.get("../takamaka_examples/dist/calleroutsideentry.jar")), blockchain.takamakaBase))
 		);
 	}

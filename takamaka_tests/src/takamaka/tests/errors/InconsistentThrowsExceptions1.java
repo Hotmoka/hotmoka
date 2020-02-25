@@ -34,7 +34,7 @@ class InconsistentThrowsExceptions1 extends TakamakaTest {
 	void installJar() {
 		throwsVerificationExceptionWithCause(InconsistentThrowsExceptionsError.class, () ->
 			blockchain.addJarStoreTransaction
-				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 				Files.readAllBytes(Paths.get("../takamaka_examples/dist/inconsistentthrowsexceptions1.jar")), blockchain.takamakaBase))
 		);
 	}

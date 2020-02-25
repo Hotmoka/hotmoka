@@ -74,7 +74,7 @@ class WTSC2020 extends TakamakaTest {
 
 		// store the jar of our test in blockchain
 		TransactionReference jar = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(3), _20_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(3), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/wtsc2020.jar")), blockchain.takamakaBase));
 
 		classpath = new Classpath(jar, true);
@@ -84,15 +84,15 @@ class WTSC2020 extends TakamakaTest {
 	void twoInvestors() throws TransactionException, CodeExecutionException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
 		StorageReference pyramid = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _10_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
 
 		// account(1) becomes the second investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 
 		// account(0) checks its balance
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, classpath, GET_BALANCE, blockchain.account(0)));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, BigInteger.ONE, classpath, GET_BALANCE, blockchain.account(0)));
 
 		// no money back yet
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(19980000)) <= 0);
@@ -102,19 +102,19 @@ class WTSC2020 extends TakamakaTest {
 	void threeInvestors() throws TransactionException, CodeExecutionException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
 		StorageReference pyramid = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _10_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
 
 		// account(1) becomes the second investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 
 		// account(2) becomes the third investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(2), _20_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(2), _20_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 
 		// account(0) checks its balance
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, classpath, GET_BALANCE, blockchain.account(0)));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, BigInteger.ONE, classpath, GET_BALANCE, blockchain.account(0)));
 
 		System.out.println(balance0);
 		// the money is back!
@@ -125,23 +125,23 @@ class WTSC2020 extends TakamakaTest {
 	void mostFrequentInvestorClass() throws TransactionException, CodeExecutionException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
 		StorageReference pyramid = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _10_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
 
 		// account(1) becomes the second investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 
 		// account(2) becomes the third investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(2), _20_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(2), _20_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 
 		// account(1) invests again and becomes the most frequent investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 
 		// account(0) checks which is the most frequent investor class
 		StringValue result = (StringValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, classpath, MOST_FREQUENT_INVESTOR_CLASS, pyramid));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, BigInteger.ONE, classpath, MOST_FREQUENT_INVESTOR_CLASS, pyramid));
 
 		assertEquals(ClassType.TEOA.name, result.value);
 	}
@@ -151,22 +151,22 @@ class WTSC2020 extends TakamakaTest {
 	void mostFrequentInvestor() throws TransactionException, CodeExecutionException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
 		StorageReference pyramid = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _10_000, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
 
 		// account(1) becomes the second investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 
 		// account(2) becomes the third investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(2), _20_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(2), _20_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 
 		// account(1) invests again and becomes the most frequent investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 
 		// account(0) checks who is the most frequent investor
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, classpath, MOST_FREQUENT_INVESTOR, pyramid));
+			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, BigInteger.ONE, classpath, MOST_FREQUENT_INVESTOR, pyramid));
 	}
 }

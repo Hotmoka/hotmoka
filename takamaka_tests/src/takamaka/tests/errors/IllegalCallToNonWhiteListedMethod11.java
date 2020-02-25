@@ -32,7 +32,7 @@ class IllegalCallToNonWhiteListedMethod11 extends TakamakaTest {
 	void testNonWhiteListedCall() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction
-				(new StaticMethodCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+				(new StaticMethodCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 				new NonVoidMethodSignature(System.class.getName(), "currentTimeMillis", BasicTypes.LONG)))
 		);
 	}

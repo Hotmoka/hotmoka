@@ -37,12 +37,12 @@ class IllegalCallToNonWhiteListedMethod12 extends TakamakaTest {
 	@Test @DisplayName("new ExternallyOwnedAccount().hashCode()")
 	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 			new ConstructorSignature(ClassType.EOA)));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+				(new InstanceMethodCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 				new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa))
 		);
 	}

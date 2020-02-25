@@ -35,7 +35,7 @@ class ConsistentEntry extends TakamakaTest {
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/consistententry.jar")), blockchain.takamakaBase));		
 	}
 }

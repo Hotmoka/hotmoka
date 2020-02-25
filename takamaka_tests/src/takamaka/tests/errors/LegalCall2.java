@@ -44,26 +44,26 @@ class LegalCall2 {
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall2.jar")), blockchain.takamakaBase));
 	}
 
 	@Test @DisplayName("new C().test(); toString() == \"53331\"")
 	void newTestToString() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall2.jar")), blockchain.takamakaBase));
 
 		Classpath classpath = new Classpath(jar, true);
 
 		StorageReference c = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(blockchain.account(0), _20_000, classpath, new ConstructorSignature(C)));
+			(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(C)));
 
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(blockchain.account(0), _20_000, classpath, new VoidMethodSignature(C, "test"), c));
+			(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c));
 
 		StringValue result = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(blockchain.account(0), _20_000, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c));
+			(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c));
 
 		assertEquals("53331", result.value);
 	}

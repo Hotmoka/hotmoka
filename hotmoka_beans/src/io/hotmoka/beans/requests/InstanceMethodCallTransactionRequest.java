@@ -26,13 +26,14 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param gas the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
 	 */
-	public InstanceMethodCallTransactionRequest(StorageReference caller, BigInteger gas, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		super(caller, gas, classpath, method, actuals);
+	public InstanceMethodCallTransactionRequest(StorageReference caller, BigInteger gas, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+		super(caller, gas, gasPrice, classpath, method, actuals);
 
 		this.receiver = receiver;
 	}

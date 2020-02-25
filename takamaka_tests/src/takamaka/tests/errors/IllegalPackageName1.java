@@ -34,7 +34,7 @@ class IllegalPackageName1 extends TakamakaTest {
 	void installJar() {
 		throwsVerificationExceptionWithCause(IllegalPackageNameError.class, () ->
 			blockchain.addJarStoreTransaction
-				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 				Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegalpackagename1.jar")), blockchain.takamakaBase))
 		);
 	}

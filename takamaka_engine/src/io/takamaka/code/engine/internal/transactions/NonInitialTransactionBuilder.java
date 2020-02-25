@@ -33,6 +33,11 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	private final BigInteger initialGas;
 
 	/**
+	 * The coins payed for each unit of gas consumed by the transaction.
+	 */
+	public final BigInteger gasPrice;
+
+	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
 	 */
 	private BigInteger gas;
@@ -63,6 +68,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 		super(request, current, node);
 
 		this.gas = this.initialGas = request.gas;
+		this.gasPrice = request.gasPrice;
 	}
 
 	private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {

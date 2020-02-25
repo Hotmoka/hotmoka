@@ -99,28 +99,28 @@ class CrowdFundingSimplified extends TakamakaTest {
 		gamete = blockchain.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaBase, ALL_FUNDS));
 
 		TransactionReference crowdfunding = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(gamete, _20_000, takamakaBase,
+			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/crowdfunding.jar")), takamakaBase));
 
 		classpath = new Classpath(crowdfunding, true);
 
 		beneficiary = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA)));
+			(gamete, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
 
 		funder1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10_000_000)));
+			(gamete, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10_000_000)));
 
 		funder2 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10_000_000)));
+			(gamete, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10_000_000)));
 
 		crowdFunding = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, classpath, CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED));
+			(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED));
 	}
 
 	@Test @DisplayName("new CrowdFundingSimplified().newCampaign(beneficiary, 50) != null")
 	void createCampaign() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
+			(new InstanceMethodCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath,
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
@@ -130,22 +130,22 @@ class CrowdFundingSimplified extends TakamakaTest {
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
+			(new InstanceMethodCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath,
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(funder1, _10_000, classpath,
+			(new InstanceMethodCallTransactionRequest(funder1, _10_000, BigInteger.ONE, classpath,
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(funder2, _10_000, classpath,
+			(new InstanceMethodCallTransactionRequest(funder2, _10_000, BigInteger.ONE, classpath,
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), campaign));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
+			(new InstanceMethodCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath,
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign));
 
@@ -155,22 +155,22 @@ class CrowdFundingSimplified extends TakamakaTest {
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
+			(new InstanceMethodCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath,
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L))));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(funder1, _10_000, classpath,
+			(new InstanceMethodCallTransactionRequest(funder1, _10_000, BigInteger.ONE, classpath,
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign));
 
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(funder2, _10_000, classpath,
+			(new InstanceMethodCallTransactionRequest(funder2, _10_000, BigInteger.ONE, classpath,
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), campaign));
 
 		BooleanValue reached = (BooleanValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _10_000, classpath,
+			(new InstanceMethodCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath,
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign));
 

@@ -56,7 +56,7 @@ class RedGreenDistributor extends TakamakaTest {
 		);
 
 		TransactionReference distributor = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/redgreendistributor.jar")), blockchain.takamakaBase));
 
 		classpath = new Classpath(distributor, true);
@@ -65,17 +65,18 @@ class RedGreenDistributor extends TakamakaTest {
 	@Test @DisplayName("new RedGreenDistributor()")
 	void createDistributor() throws TransactionException, CodeExecutionException {
 		blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath, new ConstructorSignature(DISTRIBUTOR)));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR)));
 	}
 
 	@Test @DisplayName("new RedGreenDistributor() then adds two payees without red, distributes 1000 green and their red balance is zero")
 	void createDistributorAndTwoPayees() throws TransactionException, CodeExecutionException {
 		StorageReference distributor = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath, new ConstructorSignature(DISTRIBUTOR)));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR)));
 
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(1),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
 			distributor
@@ -84,6 +85,7 @@ class RedGreenDistributor extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(2),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
 			distributor
@@ -92,6 +94,7 @@ class RedGreenDistributor extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new VoidMethodSignature(DISTRIBUTOR, "distributeGreen", ClassType.BIG_INTEGER),
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))));
@@ -99,6 +102,7 @@ class RedGreenDistributor extends TakamakaTest {
 		BigIntegerValue balanceRed1 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			blockchain.account(1)));
@@ -106,6 +110,7 @@ class RedGreenDistributor extends TakamakaTest {
 		BigIntegerValue balanceRed2 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			blockchain.account(2)));
@@ -117,11 +122,12 @@ class RedGreenDistributor extends TakamakaTest {
 	@Test @DisplayName("new RedGreenDistributor() then adds two payees without red, distributes 1000 red and their red balance is 500")
 	void createDistributorAndTwoPayeesThenDistributes1000Red() throws TransactionException, CodeExecutionException {
 		StorageReference distributor = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath, new ConstructorSignature(DISTRIBUTOR)));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR)));
 
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(1),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
 			distributor
@@ -130,6 +136,7 @@ class RedGreenDistributor extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(2),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
 			distributor
@@ -138,6 +145,7 @@ class RedGreenDistributor extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new VoidMethodSignature(DISTRIBUTOR, "distributeRed", ClassType.BIG_INTEGER),
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))));
@@ -145,6 +153,7 @@ class RedGreenDistributor extends TakamakaTest {
 		BigIntegerValue balanceRed1 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			blockchain.account(1)));
@@ -152,6 +161,7 @@ class RedGreenDistributor extends TakamakaTest {
 		BigIntegerValue balanceRed2 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new NonVoidMethodSignature(ClassType.TRGEOA, "getBalanceRed", ClassType.BIG_INTEGER),
 			blockchain.account(2)));
@@ -163,11 +173,12 @@ class RedGreenDistributor extends TakamakaTest {
 	@Test @DisplayName("distributeRed() cannot be called from an externally owned account that is not red/green")
 	void distributeRedCannotBeCalledFromNOnRedGreen() throws TransactionException, CodeExecutionException {
 		StorageReference distributor = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath, new ConstructorSignature(DISTRIBUTOR)));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR)));
 
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(1),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
 			distributor
@@ -176,6 +187,7 @@ class RedGreenDistributor extends TakamakaTest {
 		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 			blockchain.account(2),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
 			distributor
@@ -184,6 +196,7 @@ class RedGreenDistributor extends TakamakaTest {
 		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
 			blockchain.account(0),
 			_20_000,
+			BigInteger.ONE,
 			classpath,
 			new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER),
 			new BigIntegerValue(_20_000)));
@@ -192,6 +205,7 @@ class RedGreenDistributor extends TakamakaTest {
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				eoa,
 				_20_000,
+				BigInteger.ONE,
 				classpath,
 				new VoidMethodSignature(DISTRIBUTOR, "distributeRed", ClassType.BIG_INTEGER),
 				distributor, new BigIntegerValue(BigInteger.valueOf(1_000))))
@@ -201,12 +215,13 @@ class RedGreenDistributor extends TakamakaTest {
 	@Test @DisplayName("new RedGreenDistributor() then fails while adding a payee without green coins")
 	void createDistributorThenFailsByAddingPayeeWithoutGreen() throws TransactionException, CodeExecutionException {
 		StorageReference distributor = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath, new ConstructorSignature(DISTRIBUTOR)));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR)));
 
 		throwsTransactionException(() ->
 			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 				blockchain.account(3),
 				_20_000,
+				BigInteger.ONE,
 				classpath,
 				new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
 				distributor))

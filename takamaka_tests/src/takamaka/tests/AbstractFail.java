@@ -56,7 +56,7 @@ class AbstractFail extends TakamakaTest {
 			_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
 
 		TransactionReference abstractfail = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/abstractfail.jar")), blockchain.takamakaBase));
 
 		classpath = new Classpath(abstractfail, true);
@@ -67,14 +67,14 @@ class AbstractFail extends TakamakaTest {
 		throwsTransactionExceptionWithCause(InstantiationException.class, () ->
 			// cannot instantiate an abstract class
 			blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath, new ConstructorSignature(ABSTRACT_FAIL)))
+				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ABSTRACT_FAIL)))
 		);
 	}
 
 	@Test @DisplayName("new AbstractFailImpl()")
 	void createAbstractFailImpl() throws TransactionException, CodeExecutionException {
 		blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath,
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath,
 			new ConstructorSignature(ABSTRACT_FAIL_IMPL, BasicTypes.INT),
 			new IntValue(42)));
 	}
@@ -82,12 +82,12 @@ class AbstractFail extends TakamakaTest {
 	@Test @DisplayName("new AbstractFailImpl().method() yields an AbstractFailImpl")
 	void createAbstractFailImplThenCallAbstractMethod() throws TransactionException, CodeExecutionException {
 		StorageReference abstractfail = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath,
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath,
 			new ConstructorSignature(ABSTRACT_FAIL_IMPL, BasicTypes.INT),
 			new IntValue(42)));
 
 		StorageReference result = (StorageReference) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _20_000, classpath,
+			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath,
 			new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL),
 			abstractfail));
 

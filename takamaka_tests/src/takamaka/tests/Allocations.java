@@ -48,7 +48,7 @@ class Allocations extends TakamakaTest {
 			_1_000_000_000, BigInteger.valueOf(100_000L));
 
 		TransactionReference allocations = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000_000, BigInteger.ONE, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/allocations.jar")), blockchain.takamakaBase));
 
 		classpath = new Classpath(allocations, true);
@@ -57,6 +57,6 @@ class Allocations extends TakamakaTest {
 	@Test @DisplayName("new Allocations()")
 	void createAllocations() throws TransactionException, CodeExecutionException {
 		blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000_000, classpath, new ConstructorSignature(ALLOCATIONS)));
+			(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000_000, BigInteger.ONE, classpath, new ConstructorSignature(ALLOCATIONS)));
 	}
 }

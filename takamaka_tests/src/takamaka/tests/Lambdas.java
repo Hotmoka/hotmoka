@@ -77,7 +77,7 @@ class Lambdas extends TakamakaTest {
 		gamete = blockchain.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaBase, ALL_FUNDS));
 
 		TransactionReference lambdas = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(gamete, _100_000, takamakaBase,
+			(new JarStoreTransactionRequest(gamete, _100_000, BigInteger.ONE, takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/lambdas.jar")), takamakaBase));
 
 		classpath = new Classpath(lambdas, true);
@@ -86,51 +86,51 @@ class Lambdas extends TakamakaTest {
 	@Test @DisplayName("new Lambdas()")
 	void createLambdas() throws TransactionException, CodeExecutionException {
 		blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 	}
 
 	@Test @DisplayName("new Lambdas().invest(10)")
 	void createLambdasThenInvest10() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new VoidMethodSignature(LAMBDAS, "invest", ClassType.BIG_INTEGER),
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(LAMBDAS, "invest", ClassType.BIG_INTEGER),
 			lambdas, new BigIntegerValue(BigInteger.ONE)));
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithThis()")
 	void testLambdaWithThis() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new VoidMethodSignature(LAMBDAS, "testLambdaWithThis"),
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(LAMBDAS, "testLambdaWithThis"),
 			lambdas));
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithoutThis()")
 	void testLambdaWithoutThis() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThis"),
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThis"),
 			lambdas));
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithoutThisGetStatic()")
 	void testLambdaWithoutThisGetStatic() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThisGetStatic"),
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThisGetStatic"),
 			lambdas));
 	}
 
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntry()")
 	void testMethodReferenceToEntry() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		IntValue result = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntry", INT),
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntry", INT),
 			lambdas));
 
 		assertEquals(11, result.value);
@@ -139,20 +139,20 @@ class Lambdas extends TakamakaTest {
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntryOfOtherClass()")
 	void testMethodReferenceToEntryOfOtherClass() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new VoidMethodSignature(LAMBDAS, "testMethodReferenceToEntryOfOtherClass"),
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(LAMBDAS, "testMethodReferenceToEntryOfOtherClass"),
 			lambdas));
 	}
 
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntrySameContract()")
 	void testMethodReferenceToEntrySameContract() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+				(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT),
+				(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT),
 				lambdas))
 		);
 	}
@@ -160,9 +160,9 @@ class Lambdas extends TakamakaTest {
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntry()")
 	void testConstructorReferenceToEntry() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		IntValue result = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new NonVoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntry", INT),
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntry", INT),
 			lambdas));
 
 		assertEquals(11, result.value);
@@ -171,18 +171,18 @@ class Lambdas extends TakamakaTest {
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntryPopResult()")
 	void testConstructorReferenceToEntryPopResult() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath, new VoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntryPopResult"),
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntryPopResult"),
 			lambdas));
 	}
 
 	@Test @DisplayName("new Lambdas().whiteListChecks(13,1,1973)==7")
 	void testWhiteListChecks() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		IntValue result = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath,
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath,
 					new NonVoidMethodSignature(LAMBDAS, "whiteListChecks", INT, ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT),
 			lambdas, new BigIntegerValue(BigInteger.valueOf(13L)), new BigIntegerValue(BigInteger.valueOf(1L)), new BigIntegerValue(BigInteger.valueOf(1973L))));
 
@@ -192,9 +192,9 @@ class Lambdas extends TakamakaTest {
 	@Test @DisplayName("new Lambdas().concatenation(\"hello\", \"hi\", self, 1973L, 13)==\"\"")
 	void testConcatenation() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
+			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000)));
 		StringValue result = (StringValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, classpath,
+			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath,
 					new NonVoidMethodSignature(LAMBDAS, "concatenation", ClassType.STRING,
 					ClassType.STRING, ClassType.OBJECT, LAMBDAS, BasicTypes.LONG, INT),
 			lambdas,

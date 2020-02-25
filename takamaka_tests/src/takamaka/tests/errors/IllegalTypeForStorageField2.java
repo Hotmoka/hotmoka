@@ -42,13 +42,13 @@ class IllegalTypeForStorageField2 extends TakamakaTest {
 	@Test @DisplayName("store mutable enum into Object")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
-				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 				Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegaltypeforstoragefield2.jar")), blockchain.takamakaBase));
 		Classpath classpath = new Classpath(jar, true);
 
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, classpath,
+				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, classpath,
 				new ConstructorSignature("takamaka.tests.errors.illegaltypeforstoragefield2.C", ClassType.OBJECT),
 				new EnumValue("takamaka.tests.errors.illegaltypeforstoragefield2.MyEnum", "FIRST")))
 		);

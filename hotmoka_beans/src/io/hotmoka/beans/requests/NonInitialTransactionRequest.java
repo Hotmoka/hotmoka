@@ -22,6 +22,11 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	public final BigInteger gas;
 
 	/**
+	 * The coins payed for each unit of gas consumed by the transaction.
+	 */
+	public final BigInteger gasPrice;
+
+	/**
 	 * The class path that specifies where the {@code caller} should be interpreted.
 	 */
 	public final Classpath classpath;
@@ -31,11 +36,13 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param gas the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 */
-	protected NonInitialTransactionRequest(StorageReference caller, BigInteger gas, Classpath classpath) {
+	protected NonInitialTransactionRequest(StorageReference caller, BigInteger gas, BigInteger gasPrice, Classpath classpath) {
 		this.caller = caller;
 		this.gas = gas;
+		this.gasPrice = gasPrice;
 		this.classpath = classpath;
 	}
 }

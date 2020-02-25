@@ -38,12 +38,12 @@ class IllegalCallToNonWhiteListedMethod3 extends TakamakaTest {
 	@Test @DisplayName("C.foo()")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegalcalltononwhitelistedmethod3.jar")), blockchain.takamakaBase));		
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-				(blockchain.account(0), _20_000, new Classpath(jar, true),
+				(blockchain.account(0), _20_000, BigInteger.ONE, new Classpath(jar, true),
 				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.illegalcalltononwhitelistedmethod3.C"), "foo", ClassType.STRING)))
 		);
 	}

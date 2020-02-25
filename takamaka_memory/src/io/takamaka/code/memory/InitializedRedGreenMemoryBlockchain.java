@@ -75,9 +75,9 @@ public class InitializedRedGreenMemoryBlockchain extends MemoryBlockchain {
 		for (int i = 0; i < accounts.length; i++) {
 			// the constructor provides the green coins
 			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, takamakaBase, new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER), new BigIntegerValue(funds[i * 2])));
+				(gamete, gas, BigInteger.ZERO, takamakaBase, new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER), new BigIntegerValue(funds[i * 2])));
 			// then we add the red coins
-			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, gas, takamakaBase,
+			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, gas, BigInteger.ZERO, takamakaBase,
 				new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER),
 				this.accounts[i], new BigIntegerValue(funds[i * 2 + 1])));
 		}
