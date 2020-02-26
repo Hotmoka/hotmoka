@@ -27,7 +27,7 @@ import io.takamaka.code.engine.internal.transactions.RedGreenGameteCreationTrans
 import io.takamaka.code.engine.internal.transactions.StaticMethodCallTransactionBuilder;
 
 /**
- * A transaction of HotMoka code: it is the execution of a
+ * A transaction of a HotMoka node: it is the execution of a
  * request, that led to a response.
  *
  * @param <Request> the type of the request of this transaction
@@ -53,11 +53,10 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * Yields a transaction that installs a jar in the given node. This transaction can only occur during initialization
 	 * of the node. It has no caller and requires no gas. The goal is to install, in the
 	 * node, some basic jars that are likely needed as dependencies by future jars.
-	 * For instance, the jar containing the basic Takamaka classes. This method runs the transaction
-	 * specified by the request, after the given transaction reference.
+	 * For instance, the jar containing the basic Takamaka classes. This method runs the transaction specified by the request.
 	 * 
 	 * @param request the transaction request
-	 * @param current the reference to the transaction after which the new transaction must be executed
+	 * @param current the reference that will be used for the transaction
 	 * @param node the node that executes the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
@@ -70,10 +69,10 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * Yields a transaction that creates a gamete, that is, an externally owned contract with the given initial amount of coins.
 	 * This transaction can only occur during initialization of the node. It has
 	 * no caller and requires no gas. This method runs the transaction
-	 * specified by the request, after the given transaction reference, and yields the corresponding response.
+	 * specified by the request and yields the corresponding response.
 	 * 
 	 * @param request the transaction request
-	 * @param current the reference to the transaction after which the new transaction must be executed
+	 * @param current the reference that will be used for the transaction
 	 * @param node the node that executes the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
@@ -86,10 +85,10 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * Yields a transaction that creates a red/green gamete, that is, a red/green externally owned contract with the given initial amount of coins.
 	 * This transaction can only occur during initialization of the node. It has
 	 * no caller and requires no gas. This method runs the transaction
-	 * specified by the request, after the given transaction reference, and yields the corresponding transaction.
+	 * specified by the request and yields the corresponding transaction.
 	 * 
 	 * @param request the transaction request
-	 * @param current the reference to the transaction where this must be executed
+	 * @param current the reference that will be used for the transaction
 	 * @param node the node that executes the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
@@ -100,11 +99,10 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 
 	/**
 	 * Yields a transaction that installs a jar in this engine. The goal is to install a jar, with its dependencies.
-	 * This method runs the transaction specified by the request, after the given transaction reference, and yields
-	 * the corresponding transaction.
+	 * This method runs the transaction specified by the request and yields the corresponding transaction.
 	 * 
 	 * @param request the transaction request
-	 * @param current the reference to the transaction where this must be executed
+	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
@@ -115,11 +113,10 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	/**
 	 * Yields a transaction that calls a constructor of a class installed in the node.
 	 * The goal is to run the constructor and compute a reference to the freshly created object.
-	 * This method runs the transaction specified by the request, after the given transaction reference, and yields
-	 * the corresponding response.
+	 * This method runs the transaction specified by the request and yields the corresponding response.
 	 * 
 	 * @param request the transaction request
-	 * @param current the reference to the transaction after which this must be executed
+	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
@@ -130,11 +127,10 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	/**
 	 * Yields a transaction that calls an instance method of an object in the node.
 	 * The goal is to run the method and compute its returned value (if any).
-	 * This method runs the transaction specified by the request, after the given transaction reference, and yields
-	 * the corresponding response.
+	 * This method runs the transaction specified by the request and yields the corresponding response.
 	 * 
 	 * @param request the transaction request
-	 * @param current the reference to the transaction after which this must be executed
+	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */
@@ -143,13 +139,12 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	}
 
 	/**
-	 * Yields a transaction that calls a static method of an object in the node.
+	 * Yields a transaction that calls a static method.
 	 * The goal is to run the method and compute its returned value (if any).
-	 * This method runs the transaction specified by the request, after the given transaction reference, and yields
-	 * the corresponding response.
+	 * This method runs the transaction specified by the request and yields the corresponding response.
 	 * 
 	 * @param request the transaction request
-	 * @param current the reference to the transaction after which this must be executed
+	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
 	 * @throws TransactionException if the transaction could not be completed successfully
 	 */

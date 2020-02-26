@@ -121,7 +121,7 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 	}
 
 	@Override
-	protected <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandBlockchainWith(Transaction<Request, Response> transaction) throws Exception {
+	protected <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandStoreWith(Transaction<Request, Response> transaction) throws Exception {
 		MemoryTransactionReference next = (MemoryTransactionReference) getNextTransaction();
 		Path requestPath = getPathFor(next, REQUEST_NAME);
 		ensureDeleted(requestPath.getParent());

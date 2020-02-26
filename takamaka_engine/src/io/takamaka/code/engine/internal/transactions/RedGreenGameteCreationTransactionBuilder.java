@@ -9,7 +9,7 @@ import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
-public class RedGreenGameteCreationTransactionBuilder extends AbstractTransactionBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> {
+public class RedGreenGameteCreationTransactionBuilder extends InitialTransactionBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 	private final EngineClassLoader classLoader;
 
 	/**

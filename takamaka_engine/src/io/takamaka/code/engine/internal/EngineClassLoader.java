@@ -27,7 +27,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.TransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.TransactionBuilder;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -41,7 +41,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	/**
 	 * The HotMoka node for which deserialization is performed.
 	 */
-	private final TransactionBuilder run;
+	private final TransactionBuilder<?,?> builder;
 
 	/**
 	 * The parent of this class loader;
@@ -114,10 +114,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * Builds the class loader for the given class path and its dependencies.
 	 * 
 	 * @param classpath the class path
+	 * @param builder the builder of the transaction for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, TransactionBuilder run) throws Exception {
-		this.run = run;
+	public EngineClassLoader(Classpath classpath, TransactionBuilder<?,?> builder) throws Exception {
+		this.builder = builder;
 		this.tempJarFile = null;
 		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), null));
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
@@ -150,13 +151,14 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @param jar the jar
 	 * @param dependencies the dependencies
+	 * @param builder the builder of the transaction that uses the class loader
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, TransactionBuilder run) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, TransactionBuilder<?,?> builder) throws Exception {
 		this.tempJarFile = new TempJarFile(jar);
 
 		try {
-			this.run = run;
+			this.builder = builder;
 			this.parent = TakamakaClassLoader.of(collectURLs(dependencies, tempJarFile.toPath().toUri()));
 			Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 			this.entry = contract.getDeclaredMethod("entry", contract);
@@ -219,8 +221,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws Exception if the request could not be found
 	 */
 	private TransactionRequest<?> getRequestAndCharge(TransactionReference transaction) throws Exception {
-		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForGettingRequestAt(transaction));
-		return run.getNode().getRequestAt(transaction);
+		builder.chargeForCPU(builder.getNode().getGasCostModel().cpuCostForGettingRequestAt(transaction));
+		return builder.getNode().getRequestAt(transaction);
 	}
 
 	/**
@@ -231,8 +233,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws Exception if the response could not be found
 	 */
 	private TransactionResponse getResponseAndCharge(TransactionReference transaction) throws Exception {
-		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		return run.getNode().getResponseAt(transaction);
+		builder.chargeForCPU(builder.getNode().getGasCostModel().cpuCostForGettingResponseAt(transaction));
+		return builder.getNode().getResponseAt(transaction);
 	}
 
 	private List<URL> addURLs(Classpath classpath, List<URL> bag) throws Exception {
@@ -252,8 +254,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 			throw new IllegalArgumentException("classpath does not refer to a successful jar store transaction");
 
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
-		run.chargeForCPU(run.getNode().getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
-		run.chargeForRAM(run.getNode().getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
+		builder.chargeForCPU(builder.getNode().getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
+		builder.chargeForRAM(builder.getNode().getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 
 		try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
 			Path classpathElement = Files.createTempFile("takamaka_", "@" + classpath.transaction + ".jar");

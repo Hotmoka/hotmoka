@@ -35,7 +35,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	/**
 	 * The coins payed for each unit of gas consumed by the transaction.
 	 */
-	public final BigInteger gasPrice;
+	private final BigInteger gasPrice;
 
 	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
@@ -112,29 +112,6 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	@Override
-	public final void chargeForStorage(BigInteger amount) {
-		charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
-	}
-
-	protected final void chargeForStorage(Request request) {
-		chargeForStorage(sizeCalculator.sizeOf(request));
-	}
-
-	protected final void chargeForStorage(Response response) {
-		chargeForStorage(sizeCalculator.sizeOf(response));
-	}
-
-	/**
-	 * Computes the cost of the given units of gas.
-	 * 
-	 * @param gas the units of gas
-	 * @return the cost
-	 */
-	private BigInteger toCoin(BigInteger gas) {
-		return gas.multiply(gasPrice);
-	}
-
-	@Override
 	public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
 		chargeForCPU(amount);
 		oldGas.addFirst(gas);
@@ -150,6 +127,43 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
+	 * Decreases the available gas by the given amount, for storage allocation.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	private void chargeForStorage(BigInteger amount) {
+		charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
+	}
+
+	/**
+	 * Decreases the available gas for the given request, for storage allocation.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	protected final void chargeForStorage(Request request) {
+		chargeForStorage(sizeCalculator.sizeOf(request));
+	}
+
+	/**
+	 * Decreases the available gas for the given response, for storage allocation.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	protected final void chargeForStorage(Response response) {
+		chargeForStorage(sizeCalculator.sizeOf(response));
+	}
+
+	/**
+	 * Computes the cost of the given units of gas.
+	 * 
+	 * @param gas the units of gas
+	 * @return the cost
+	 */
+	private BigInteger toCoin(BigInteger gas) {
+		return gas.multiply(gasPrice);
+	}
+
+	/**
 	 * Checks if the caller of a transaction has enough money at least for paying the promised gas and the addition of a
 	 * failed transaction response to blockchain.
 	 * 
@@ -159,7 +173,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas and the addition
 	 *                               of a failed transaction response to blockchain
 	 */
-	public final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) {
+	protected final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) {
 		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
 		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getClassLoader().getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 

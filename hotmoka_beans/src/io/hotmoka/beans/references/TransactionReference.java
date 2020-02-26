@@ -7,7 +7,7 @@ import io.hotmoka.beans.annotations.Immutable;
 /**
  * A unique identifier for a transaction. This can be anything, from a
  * progressive number to a block/transaction pair to a database reference.
- * Each specific implementation of {@link io.takamaka.code.blockchain.Blockchain}
+ * Each specific implementation of {@link io.hotmoka.nodes.Node}
  * provides its implementation of this interface. The order of comparison
  * is arbitrary, as long as it is a total order.
  */

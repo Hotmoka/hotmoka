@@ -1,6 +1,5 @@
 package io.takamaka.code.engine;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
@@ -47,45 +46,42 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.DeserializationError;
 
 /**
- * A generic implementation of a blockchain that extends immediately when
- * a transaction request arrives. Specific implementations can subclass this class
- * and just implement the abstract template methods. The rest of code should work instead
- * as a generic layer for all blockchain implementations.
+ * A generic implementation of a sequential node, that executes transactions and adds
+ * updates to the store of the node. For a sequential node, transactions have a time ordering,
+ * so that it is possible to know which has been added before in the node.
+ * Specific implementations can subclass this class and just implement the abstract template methods.
  */
 public abstract class AbstractSequentialNode extends AbstractNode {
 
 	/**
-	 * Yields the reference to the transaction on top of the blockchain.
-	 * If there are more chains, this refers to the transaction in the longest chain.
+	 * Yields the reference to the transaction after which any new transaction will be executed.
 	 * 
 	 * @return the reference to the topmost transaction, if any. Yields {@code null} if
-	 *         the blockchain is empty
+	 *         the node has executed no transactions up to now
 	 */
 	protected abstract SequentialTransactionReference getTopmostTransactionReference();
 
 	/**
-	 * Yields the reference to the transaction that follows the topmost one.
-	 * If there are more chains, this refers to the transaction in the longest chain.
+	 * Yields the reference that must be used to refer to a new transaction
+	 * that follows the topmost one.
 	 * 
 	 * @return the reference to the next transaction
 	 */
 	protected abstract SequentialTransactionReference getNextTransaction();
 
 	/**
-	 * Expands the blockchain with a new topmost transaction. If there are more chains, this
-	 * method expands the longest chain.
+	 * Expands the store of this node with a new transaction, that is added after the topmost one and
+	 * becomes the new topmost transaction.
 	 * 
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
+	 * @param transaction the new transaction
 	 * @return the reference to the transaction that has been added
 	 * @throws Exception if the expansion cannot be completed
 	 */
-	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandBlockchainWith(Transaction<Request, Response> transaction) throws Exception;
+	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandStoreWith(Transaction<Request, Response> transaction) throws Exception;
 
 	@Override
 	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception {
@@ -116,13 +112,14 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	
 		// the updates set contains the updates to eager final fields now:
 		// we must still collect the latest updates to the eager non-final fields
-		return collectEagerUpdatesFor(reference, updates, allEagerFields.size(), chargeForCPU);
+		collectEagerUpdatesFor(reference, updates, allEagerFields.size(), chargeForCPU);
+
+		return updates.stream();
 	}
 
 	@Override
 	public UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
-		// goes back from the previous transaction;
-		// there is no reason to look before the transaction that created the object
+		// goes back from the previous transaction; there is no reason to look before the transaction that created the object
 		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
 			Optional<UpdateOfField> update = getLastUpdateFor(object, field, cursor, chargeForCPU);
 			if (update.isPresent())
@@ -134,80 +131,80 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 
 	@Override
 	public UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
-		// goes directly to the transaction that created the object
+		// accesses directly the transaction that created the object
 		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
 
 	/**
-	 * Expands this blockchain with a transaction that
-	 * installs a jar in this blockchain. This transaction can only occur during initialization
-	 * of the blockchain. It has no caller and requires no gas. The goal is to install, in the
-	 * blockchain, some basic jars that are likely needed as dependencies by future jars.
+	 * Expands the store of this node with a transaction that
+	 * installs a jar in it. This transaction can only occur during initialization
+	 * of the node. It has no caller and requires no gas. The goal is to install, in the
+	 * node, some basic jars that are likely needed as dependencies by future jars.
 	 * For instance, the jar containing the basic contract classes.
 	 * 
 	 * @param request the transaction request
-	 * @return the reference to the transaction that can be used to refer to this jar in a class path or as future dependency of other jars
-	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the blockchain is not expanded
+	 * @return the reference to the transaction that can be used to refer to the jar in a class path or as future dependency of other jars
+	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
 	 */
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			requireBlockchainNotYetInitialized();
-			return expandBlockchainWith(Transaction.mkFor(request, getNextTransaction(), this));
+			nodeIsNotYetInitialized();
+			return expandStoreWith(Transaction.mkFor(request, getNextTransaction(), this));
 		});
 	}
 
 	/**
-	 * Expands this blockchain with a transaction that creates a gamete, that is,
+	 * Expands the store of this node with a transaction that creates a gamete, that is,
 	 * an externally owned contract with the given initial amount of coins.
-	 * This transaction can only occur during initialization of the blockchain. It has
+	 * This transaction can only occur during initialization of the node. It has
 	 * no caller and requires no gas.
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the freshly created gamete
-	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the blockchain is not expanded
+	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
 	 */
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			requireBlockchainNotYetInitialized();
+			nodeIsNotYetInitialized();
 			Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
-			expandBlockchainWith(transaction);
+			expandStoreWith(transaction);
 			return transaction.getResponse().gamete;
 		});
 	}
 
 	/**
-	 * Expands this blockchain with a transaction that creates a red/green gamete, that is,
+	 * Expands the store of this blockchain with a transaction that creates a red/green gamete, that is,
 	 * a red/green externally owned contract with the given initial amount of coins.
-	 * This transaction can only occur during initialization of the blockchain. It has
+	 * This transaction can only occur during initialization of the node. It has
 	 * no caller and requires no gas.
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the freshly created gamete
-	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the blockchain is not expanded
+	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
 	 */
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			requireBlockchainNotYetInitialized();
+			nodeIsNotYetInitialized();
 			Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
-			expandBlockchainWith(transaction);
+			expandStoreWith(transaction);
 			return transaction.getResponse().gamete;
 		});
 	}
 
 	/**
-	 * Expands this blockchain with a transaction that installs a jar in it.
+	 * Expands the store of this blockchain with a transaction that installs a jar in it.
 	 * 
 	 * @param request the transaction request
-	 * @return the reference to the transaction, that can be used to refer to this jar in a class path or as future dependency of other jars
+	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	 * @throws TransactionException if the transaction could not be completed successfully. If this occurs and the caller
-	 *                              has been identified, the blockchain will still be expanded
-	 *                              with a transaction that charges all gas to the caller, but no jar will be installed.
-	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
+	 *                              has been identified, the node store will still be expanded
+	 *                              with a transaction that charges the gas limit to the caller, but no jar will be installed.
+	 *                              Otherwise, the transaction will be rejected and not added to this node's store
 	 */
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
-			TransactionReference transactionReference = expandBlockchainWith(transaction);
+			TransactionReference transactionReference = expandStoreWith(transaction);
 			JarStoreTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof JarStoreTransactionFailedResponse)
@@ -218,25 +215,24 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	/**
-	 * Expands this blockchain with a transaction that runs a constructor of a class.
+	 * Expands this node's store with a transaction that runs a constructor of a class.
 	 * 
 	 * @param request the request of the transaction
 	 * @return the created object, if the constructor was successfully executed, without exception
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
 	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	 *                              If this occurs and the caller
-	 *                              has been identified, the blockchain will still be expanded
-	 *                              with a transaction that charges all gas to the caller, but no constructor will be executed.
-	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
+	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
+	 *                              with a transaction that charges all gas limit to the caller, but no constructor will be executed.
+	 *                              Otherwise, the transaction will be rejected and not added to this node's store
 	 * @throws CodeExecutionException if the constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
+	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
 	 */
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
-			expandBlockchainWith(transaction);
+			expandStoreWith(transaction);
 			ConstructorCallTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof ConstructorCallTransactionFailedResponse)
@@ -251,27 +247,25 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	/**
-	 * Runs an instance method of an object in blockchain.
+	 * Runs an instance method of an object already in this node's store.
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
 	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	 *                              If this occurs and the caller
-	 *                              has been identified, the blockchain will still be expanded
+	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
 	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
-	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
+	 *                              Otherwise, the transaction will be rejected and not added to this node's store
 	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
+	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
-	 * @throws IllegalTransactionRequestException 
 	 */
 	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
-			expandBlockchainWith(transaction);
+			expandStoreWith(transaction);
 			MethodCallTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof MethodCallTransactionFailedResponse)
@@ -288,27 +282,26 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	/**
-	 * Expands this blockchain with a transaction that runs a static method of a class in blockchain.
+	 * Expands this node's store with a transaction that runs a static method of a class.
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionException if the transaction could not be completed successfully. This includes
 	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	 *                              If this occurs and the caller
-	 *                              has been identified, the blockchain will still be expanded
-	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
-	 *                              Otherwise, the transaction will be rejected and not added to this blockchain
+	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
+	 *                              with a transaction that charges all gas limit to the caller, but no method will be executed.
+	 *                              Otherwise, the transaction will be rejected and not added to this node's store
 	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
 	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	 *                                the transaction was successful, it has been added to this blockchain and the consumed gas gets charged to the caller.
+	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
 	 * @throws IllegalTransactionRequestException 
 	 */
 	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
-			expandBlockchainWith(transaction);
+			expandStoreWith(transaction);
 			MethodCallTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof MethodCallTransactionFailedResponse)
@@ -324,22 +317,29 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 		});
 	}
 
-	private void requireBlockchainNotYetInitialized() throws Exception {
+	/**
+	 * Checks if this node is still not fully initialized, so that further initial transactions can still
+	 * be executed. As soon as a non-initial transaction is run with this node, it is considered as initialized.
+	 * 
+	 * @throws Exception if this node is already initialized, or it is impossible to determine it
+	 */
+	private void nodeIsNotYetInitialized() throws Exception {
 		SequentialTransactionReference previous = getTopmostTransactionReference();
 		if (previous != null && !(getRequestAt(previous) instanceof InitialTransactionRequest))
-			throw new IllegalStateException("this blockchain is already initialized");
+			throw new IllegalStateException("this node is already initialized");
 	}
 
 	/**
-	 * Puts in the given set all the latest updates for the fields of eager type of the
+	 * Adds, to the given set, all the latest updates for the fields of eager type of the
 	 * object at the given storage reference.
 	 * 
 	 * @param object the storage reference
 	 * @param updates the set where the latest updates must be added
 	 * @param eagerFields the number of eager fields whose latest update needs to be found
+	 * @param chargeForCPU the code to run to charge gas for CPU execution
 	 * @throws Exception if the operation fails
 	 */
-	private Stream<Update> collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields, Consumer<BigInteger> chargeForCPU) throws Exception {
+	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields, Consumer<BigInteger> chargeForCPU) throws Exception {
 		// goes back from the transaction that precedes that being executed;
 		// there is no reason to look before the transaction that created the object;
 		// moreover, there is no reason to look beyond the total number of fields
@@ -347,8 +347,6 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); updates.size() <= eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
 			// adds the eager updates from the cursor, if any and if they are the latest
 			addEagerUpdatesFor(object, cursor, updates, chargeForCPU);
-
-		return updates.stream();
 	}
 
 	/**
@@ -356,9 +354,10 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * occurred during the execution of a given transaction.
 	 * 
 	 * @param object the reference of the object
-	 * @param transaction the transaction
+	 * @param transaction the reference to the transaction
 	 * @param updates the set where they must be added
-	 * @throws IOException if there is an error while accessing the disk
+	 * @param chargeForCPU the code to run to charge gas for CPU execution
+	 * @throws Exception if there is an error accessing the updates
 	 */
 	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates, Consumer<BigInteger> chargeForCPU) throws Exception {
 		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);
@@ -369,9 +368,10 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	/**
-	 * Yields the response that generated the given transaction.
+	 * Yields the response that generated the given transaction and charges for that operation.
 	 * 
 	 * @param transaction the reference to the transaction
+	 * @param chargeForCPU the code to run to charge gas for CPU execution
 	 * @return the response
 	 * @throws Exception if the response could not be found
 	 */
@@ -399,7 +399,8 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * @param object the reference of the object
 	 * @param field the field of the object
 	 * @param transaction the block where the update is being looked for
-	 * @return the update, if any. If the field of {@code reference} was not modified during
+	 * @param chargeForCPU the code to run to charge gas for CPU execution
+	 * @return the update, if any. If the field of {@code object} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction, Consumer<BigInteger> chargeForCPU) throws Exception {
@@ -434,7 +435,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	/**
-	 * Determines if the given field has the given type.
+	 * Determines if the given field has the given storage type.
 	 * 
 	 * @param field the field
 	 * @param type the type
@@ -481,7 +482,6 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * already an instance of that exception.
 	 * 
 	 * @param t the throwable to wrap
-	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
 	 * @return the wrapped or original exception
 	 */
 	private static TransactionException wrapAsTransactionException(Throwable t) {
@@ -490,7 +490,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 
 	/**
 	 * Calls the given callable. If if throws a {@link io.hotmoka.nodes.CodeExecutionException}, if throws it back
-	 * unchanged. Otherwise, it wraps the exception into into a {@link io.hotmoka.beans.TransactionException}.
+	 * unchanged. Otherwise, it wraps the exception into an {@link io.hotmoka.beans.TransactionException}.
 	 * 
 	 * @param what the callable
 	 * @return the result of the callable

@@ -6,8 +6,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.takamaka.code.engine.Transaction;
 
 /**
- * A transaction of HotMoka code: it is the execution of a
- * request, that led to a response.
+ * A transaction of a HotMoka node: it is the execution of a request, that led to a response.
  *
  * @param <Request> the type of the request of this transaction
  * @param <Response> the type of the response of this transaction

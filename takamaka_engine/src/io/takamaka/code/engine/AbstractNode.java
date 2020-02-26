@@ -1,4 +1,4 @@
-package io.hotmoka.nodes;
+package io.takamaka.code.engine;
 
 import java.util.Optional;
 
@@ -6,6 +6,9 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.DeserializationError;
+import io.hotmoka.nodes.GasCostModel;
+import io.hotmoka.nodes.Node;
 
 /**
  * A generic implementation of a HotMoka node. Specific implementations can subclass this class

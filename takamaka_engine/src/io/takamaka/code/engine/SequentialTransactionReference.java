@@ -3,8 +3,9 @@ package io.takamaka.code.engine;
 import io.hotmoka.beans.references.TransactionReference;
 
 /**
- * A transaction reference for a blockchain where transactions are executed
- * immediately and stacked sequentially.
+ * A transaction reference for a sequential node where transactions are executed
+ * and stacked sequentially. Hence it is possible to know which transaction reference
+ * is older than another.
  */
 public interface SequentialTransactionReference extends TransactionReference {
 
@@ -17,9 +18,9 @@ public interface SequentialTransactionReference extends TransactionReference {
 	SequentialTransactionReference getPrevious();
 
 	/**
-	 * Determines if this transaction reference precedes the other one in the blockchain.
+	 * Determines if this transaction reference precedes the other one in the node's store.
 	 * 
-	 * @param other the other blockchain reference
+	 * @param other the other transaction reference
 	 * @return true if and only if that condition holds
 	 */
 	boolean isOlderThan(TransactionReference other);

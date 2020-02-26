@@ -9,7 +9,7 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
-public class JarStoreInitialTransactionBuilder extends AbstractTransactionBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
+public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 	private final EngineClassLoader classLoader;
 
 	/**

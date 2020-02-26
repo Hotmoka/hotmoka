@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
@@ -14,28 +13,24 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.TransactionBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
 
 /**
- * A generic implementation of a blockchain. Specific implementations can subclass this class
- * and just implement the abstract template methods. The rest of code should work instead
- * as a generic layer for all blockchain implementations.
+ * A generic implementation of a creator of a transaction.
  */
-public abstract class AbstractTransactionBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionBuilder {
+public abstract class AbstractTransactionBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionBuilder<Request, Response> {
 
 	/**
-	 * The HotMoka node that is running the transaction.
+	 * The HotMoka node that is creating the transaction.
 	 */
 	public final Node node;
 
 	/**
-	 * The object that knows about the size of data once stored in blockchain.
+	 * The object that knows about the size of data once serialized.
 	 */
 	public final SizeCalculator sizeCalculator = new SizeCalculator(this);
 
@@ -55,7 +50,7 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
 
 	/**
-	 * The object that can be used to extract the updates to a set of storage objects
+	 * The object that can be used to extract the updates to a set of storage objects,
 	 * induced by the run of the transaction.
 	 */
 	public final UpdatesExtractor updatesExtractor = new UpdatesExtractor(this);
@@ -66,7 +61,7 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	private final List<Object> events = new ArrayList<>();
 
 	/**
-	 * The reference to the transaction where this must be executed.
+	 * The reference that must be used to refer to the created transaction.
 	 */
 	private final TransactionReference current;
 
@@ -80,6 +75,13 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	 */
 	private BigInteger nextProgressive = BigInteger.ZERO;
 
+	/**
+	 * Builds a transaction creator.
+	 * 
+	 * @param current the reference that must be used to refer to the created transaction
+	 * @param node the node that is creating the transaction
+	 * @throws TransactionException if the creator cannot be built
+	 */
 	protected AbstractTransactionBuilder(TransactionReference current, Node node) throws TransactionException {
 		try {
 			this.node = node;
@@ -90,10 +92,6 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 			throw wrapAsTransactionException(t);
 		}
 	}
-
-	public abstract EngineClassLoader getClassLoader();
-
-	public abstract Response getResponse();
 
 	@Override
 	public final Node getNode() {
@@ -117,51 +115,6 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	}
 
 	@Override
-	public final StorageReference getStorageReferenceOf(Object object) {
-		return getClassLoader().getStorageReferenceOf(object);
-	}
-
-	@Override
-	public final boolean getInStorageOf(Object object) {
-		return getClassLoader().getInStorageOf(object);
-	}
-
-	@Override
-	public final void entry(Object callee, Object caller) throws Throwable {
-		getClassLoader().entry(callee, caller);
-	}
-
-	@Override
-	public final void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		getClassLoader().payableEntry(callee, caller, amount);
-	}
-
-	@Override
-	public final void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		getClassLoader().redPayableEntry(callee, caller, amount);
-	}
-
-	@Override
-	public final void payableEntry(Object callee, Object caller, int amount) throws Throwable {
-		getClassLoader().payableEntry(callee, caller, amount);
-	}
-
-	@Override
-	public final void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		getClassLoader().redPayableEntry(callee, caller, amount);
-	}
-
-	@Override
-	public final void payableEntry(Object callee, Object caller, long amount) throws Throwable {
-		getClassLoader().payableEntry(callee, caller, amount);
-	}
-
-	@Override
-	public final void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		getClassLoader().redPayableEntry(callee, caller, amount);
-	}
-
-	@Override
 	public final StorageReference getNextStorageReference() {
 		BigInteger result = nextProgressive;
 		nextProgressive = nextProgressive.add(BigInteger.ONE);
@@ -179,23 +132,6 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 			throw new IllegalArgumentException("an event cannot be null");
 
 		events.add(event);
-	}
-
-	@Override
-	public void chargeForCPU(BigInteger amount) {
-	}
-
-	@Override
-	public void chargeForRAM(BigInteger amount) {
-	}
-
-	@Override
-	public void chargeForStorage(BigInteger amount) {
-	}
-
-	@Override
-	public <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		return what.call();
 	}
 
 	@Override
@@ -254,7 +190,7 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 		 * 
 		 * @return the builder
 		 */
-		public TransactionBuilder getBuilder() {
+		public final TransactionBuilder<?,?> getBuilder() {
 			return AbstractTransactionBuilder.this;
 		}
 	}

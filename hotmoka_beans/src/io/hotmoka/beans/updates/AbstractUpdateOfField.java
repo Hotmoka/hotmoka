@@ -32,7 +32,7 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	}
 
 	@Override
-	public FieldSignature getField() {
+	public final FieldSignature getField() {
 		return field;
 	}
 
