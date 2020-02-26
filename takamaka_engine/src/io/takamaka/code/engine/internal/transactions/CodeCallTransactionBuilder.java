@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -28,51 +27,77 @@ import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
 /**
- * A generic implementation of a blockchain. Specific implementations can subclass this class
- * and just implement the abstract template methods. The rest of code should work instead
- * as a generic layer for all blockchain implementations.
+ * The creator of a non-initial transaction that executes Takamaka code.
  */
 public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionBuilder<Request, Response> {
 
+	/**
+	 * Builds the transaction creator.
+	 * 
+	 * @param request the request of the transaction
+	 * @param current the reference that must be used to refer to the created transaction
+	 * @param node the node that is creating the transaction
+	 * @throws TransactionException if the creator cannot be built
+	 */
 	protected CodeCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 	}
 
+	/**
+	 * Checks run-time proof obligations for s given value. This is used to verify
+	 * that some white-listing annotations hold when a value is passed to a white-listed
+	 * method that requires some conditions on the passed value.
+	 * 
+	 * @param methodName the name of the method, into which the value is passed
+	 * @param value the value for which the obligation must be proved
+	 * @param annotations the annotations that specify what to check on the value
+	 */
 	protected final void checkWhiteListingProofObligations(String methodName, Object value, Annotation[] annotations) {
 		Stream.of(annotations)
-		.map(Annotation::annotationType)
-		.map(CodeCallTransactionBuilder::getWhiteListingCheckFor)
-		.filter(Optional::isPresent)
-		.map(Optional::get)
-		.forEachOrdered(checkMethod -> {
-			try {
-				// white-listing check methods are static
-				checkMethod.invoke(null, value, methodName);
-			}
-			catch (InvocationTargetException e) {
-				throw (NonWhiteListedCallException) e.getCause();
-			}
-			catch (IllegalAccessException | IllegalArgumentException e) {
-				throw new IllegalStateException("could not check white-listing proof-obligations for " + methodName, e);
-			}
-		});
+			.map(Annotation::annotationType)
+			.filter(annotationType -> annotationType.isAnnotationPresent(WhiteListingProofObligation.class))
+			.map(CodeCallTransactionBuilder::getWhiteListingCheckFor)
+			.forEachOrdered(checkMethod -> {
+				try {
+					// white-listing check methods are static
+					checkMethod.invoke(null, value, methodName);
+				}
+				catch (InvocationTargetException e) {
+					throw (NonWhiteListedCallException) e.getCause();
+				}
+				catch (IllegalAccessException | IllegalArgumentException e) {
+					throw new IllegalStateException("could not check white-listing proof-obligations for " + methodName, e);
+				}
+			});
 	}
 
-	private static Optional<Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
-		if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class)) {
-			String checkName = lowerInitial(annotationType.getSimpleName());
-			Optional<Method> checkMethod = Stream.of(Runtime.class.getDeclaredMethods())
-				.filter(method -> method.getName().equals(checkName)).findFirst();
+	/**
+	 * The methods declared in the {@link #io.takamaka.code.engine.Runtime} class.
+	 */
+	private final static Method[] methodsDeclaredInRunTime = Runtime.class.getDeclaredMethods();
 
-			if (!checkMethod.isPresent())
-				throw new IllegalStateException("unexpected white-list annotation " + annotationType.getSimpleName());
-
-			return checkMethod;
-		}
-
-		return Optional.empty();
+	/**
+	 * Yields the method of the {@link #io.takamaka.code.engine.Runtime} class that
+	 * implements the white-listing check for the given annotation type.
+	 * 
+	 * @param annotationType the annotation type
+	 * @return the method
+	 * @throws IllegalStateException if the check method cannot be found
+	 */
+	private static Method getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
+		String checkName = lowerInitial(annotationType.getSimpleName());
+		return Stream.of(methodsDeclaredInRunTime)
+			.filter(method -> method.getName().equals(checkName))
+			.findFirst()
+			.orElseThrow(() -> new IllegalStateException("unexpected white-list annotation " + annotationType.getSimpleName()));
 	}
 
+	/**
+	 * Yields the given string with its initial character in lower case.
+	 * 
+	 * @param name the string
+	 * @return a string identical to {@code name} but with the initial character in lower-case
+	 */
 	private static String lowerInitial(String name) {
 		return Character.toLowerCase(name.charAt(0)) + name.substring(1);
 	}

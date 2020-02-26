@@ -94,11 +94,6 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	}
 
 	@Override
-	public final Node getNode() {
-		return node;
-	}
-
-	@Override
 	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
 		String className = clazz.getName();
 		CodeSource src = clazz.getProtectionDomain().getCodeSource();

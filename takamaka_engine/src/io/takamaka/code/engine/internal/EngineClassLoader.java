@@ -27,7 +27,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.internal.transactions.TransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -41,7 +41,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	/**
 	 * The HotMoka node for which deserialization is performed.
 	 */
-	private final TransactionBuilder<?,?> builder;
+	private final AbstractTransactionBuilder<?,?> builder;
 
 	/**
 	 * The parent of this class loader;
@@ -117,7 +117,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param builder the builder of the transaction for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, TransactionBuilder<?,?> builder) throws Exception {
+	public EngineClassLoader(Classpath classpath, AbstractTransactionBuilder<?,?> builder) throws Exception {
 		this.builder = builder;
 		this.tempJarFile = null;
 		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), null));
@@ -154,7 +154,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param builder the builder of the transaction that uses the class loader
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, TransactionBuilder<?,?> builder) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, AbstractTransactionBuilder<?,?> builder) throws Exception {
 		this.tempJarFile = new TempJarFile(jar);
 
 		try {
@@ -221,8 +221,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws Exception if the request could not be found
 	 */
 	private TransactionRequest<?> getRequestAndCharge(TransactionReference transaction) throws Exception {
-		builder.chargeForCPU(builder.getNode().getGasCostModel().cpuCostForGettingRequestAt(transaction));
-		return builder.getNode().getRequestAt(transaction);
+		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingRequestAt(transaction));
+		return builder.node.getRequestAt(transaction);
 	}
 
 	/**
@@ -233,8 +233,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws Exception if the response could not be found
 	 */
 	private TransactionResponse getResponseAndCharge(TransactionReference transaction) throws Exception {
-		builder.chargeForCPU(builder.getNode().getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		return builder.getNode().getResponseAt(transaction);
+		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
+		return builder.node.getResponseAt(transaction);
 	}
 
 	private List<URL> addURLs(Classpath classpath, List<URL> bag) throws Exception {
@@ -254,8 +254,8 @@ public class EngineClassLoader implements TakamakaClassLoader {
 			throw new IllegalArgumentException("classpath does not refer to a successful jar store transaction");
 
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
-		builder.chargeForCPU(builder.getNode().getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
-		builder.chargeForRAM(builder.getNode().getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
+		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
+		builder.chargeForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 
 		try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
 			Path classpathElement = Files.createTempFile("takamaka_", "@" + classpath.transaction + ".jar");

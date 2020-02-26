@@ -8,7 +8,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
@@ -34,13 +33,6 @@ public interface TransactionBuilder<Request extends TransactionRequest<Response>
 	 * @return the next storage reference
 	 */
 	StorageReference getNextStorageReference();
-
-	/**
-	 * Yields the node for which the transaction is being run.
-	 * 
-	 * @return the node
-	 */
-	Node getNode();
 
 	/**
 	 * Yields the class loader used for the transaction being created.

@@ -21,9 +21,7 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
 
 /**
- * A generic implementation of a blockchain. Specific implementations can subclass this class
- * and just implement the abstract template methods. The rest of code should work instead
- * as a generic layer for all blockchain implementations.
+ * The creator of a non-initial transaction. Non-initial transactions consume gas.
  */
 public abstract class NonInitialTransactionBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractTransactionBuilder<Request, Response> {
 
@@ -64,6 +62,14 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 */
 	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
 
+	/**
+	 * Builds a non-initial transaction creator.
+	 * 
+	 * @param request the request of the transaction
+	 * @param current the reference that must be used to refer to the created transaction
+	 * @param node the node that is creating the transaction
+	 * @throws TransactionException if the creator cannot be built
+	 */
 	protected NonInitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(current, node);
 
@@ -71,6 +77,12 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 		this.gasPrice = request.gasPrice;
 	}
 
+	/**
+	 * Reduces the remaining amount of gas. It performs a task at the end.
+	 * 
+	 * @param amount the amount of gas to consume
+	 * @param forWhat the task performed at the end, for the amount of gas to consume
+	 */
 	private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
 		if (amount.signum() < 0)
 			throw new IllegalArgumentException("gas cannot increase");
@@ -138,7 +150,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	/**
 	 * Decreases the available gas for the given request, for storage allocation.
 	 * 
-	 * @param amount the amount of gas to consume
+	 * @param request the request
 	 */
 	protected final void chargeForStorage(Request request) {
 		chargeForStorage(sizeCalculator.sizeOf(request));
@@ -147,7 +159,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	/**
 	 * Decreases the available gas for the given response, for storage allocation.
 	 * 
-	 * @param amount the amount of gas to consume
+	 * @param response the response
 	 */
 	protected final void chargeForStorage(Response response) {
 		chargeForStorage(sizeCalculator.sizeOf(response));
@@ -157,9 +169,9 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * Computes the cost of the given units of gas.
 	 * 
 	 * @param gas the units of gas
-	 * @return the cost
+	 * @return the cost, as {@code gas} times {@code gasPrice}
 	 */
-	private BigInteger toCoin(BigInteger gas) {
+	private BigInteger costOf(BigInteger gas) {
 		return gas.multiply(gasPrice);
 	}
 
@@ -169,9 +181,9 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * 
 	 * @param request the request
 	 * @param deserializedCaller the caller
-	 * @return the update to the balance that would follow if the failed transaction request is added to the blockchain
+	 * @return the update to the balance that would follow if the failed transaction would be stored in the node
 	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas and the addition
-	 *                               of a failed transaction response to blockchain
+	 *                               of a failed transaction response to the node
 	 */
 	protected final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) {
 		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
@@ -183,6 +195,14 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 		return balanceUpdateInCaseOfFailure;
 	}
 
+	/**
+	 * Computes the minimal gas needed to run a given request. It accounts for
+	 * storing in the node the failed transaction response.
+	 * 
+	 * @param request the request
+	 * @param balanceUpdateInCaseOfFailure the update that must be stored in the node to account for the consumption of the all the gas
+	 * @return the minimal gas
+	 */
 	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request, UpdateOfBalance balanceUpdateInCaseOfFailure) {
 		// we create a response whose size over-approximates that of a response in case of failure of this request
 		BigInteger result = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOf(request));
@@ -207,7 +227,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @throws IllegalStateException if the externally owned account does not have funds for buying the given amount of gas
 	 */
 	private BigInteger decreaseBalance(Object eoa, BigInteger gas) {
-		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(toCoin(gas));
+		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(costOf(gas));
 		if (result.signum() < 0)
 			throw new IllegalStateException("caller has not enough funds to buy " + gas + " units of gas");
 
@@ -216,13 +236,13 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Buys back the remaining gas to the caller of this transaction.
+	 * Buys back the remaining gas to the caller of the given externally owned account.
 	 * 
 	 * @param eoa the externally owned account
 	 * @return the balance of the contract after buying back the remaining gas
 	 */
 	protected final BigInteger increaseBalance(Object eoa) {
-		BigInteger result = getClassLoader().getBalanceOf(eoa).add(toCoin(gas));
+		BigInteger result = getClassLoader().getBalanceOf(eoa).add(costOf(gas));
 		getClassLoader().setBalanceOf(eoa, result);
 		return result;
 	}
@@ -257,7 +277,8 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	/**
 	 * Yields the gas that would be paid if the transaction fails.
 	 * 
-	 * @return the gas for penalty
+	 * @return the gas for penalty, computed as the total initial gas minus
+	 *         the gas already consumed for PCU, for RAM and for storage
 	 */
 	protected final BigInteger gasConsumedForPenalty() {
 		return initialGas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
