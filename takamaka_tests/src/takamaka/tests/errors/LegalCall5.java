@@ -17,11 +17,9 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.memory.InitializedMemoryBlockchain;
-import takamaka.tests.TakamakaTest;
 
-class IllegalCallToNonWhiteListedMethod10 extends TakamakaTest {
+class LegalCall5 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -35,16 +33,21 @@ class IllegalCallToNonWhiteListedMethod10 extends TakamakaTest {
 		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
 	}
 
-	@Test @DisplayName("C.foo()")
+	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
+		blockchain.addJarStoreTransaction
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall5.jar")), blockchain.takamakaBase));
+	}
+
+	@Test @DisplayName("new C().foo()")
+	void newTestToString() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegalcalltononwhitelistedmethod10.jar")), blockchain.takamakaBase));		
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall5.jar")), blockchain.takamakaBase));
 
-		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-				(blockchain.account(0), _20_000, BigInteger.ONE, new Classpath(jar, true),
-				new VoidMethodSignature(new ClassType("io.takamaka.tests.errors.illegalcalltononwhitelistedmethod10.C"), "foo")))
-		);
+		blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
+			(blockchain.account(0), _20_000, BigInteger.ONE, new Classpath(jar, true),
+			new VoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall5.C"), "foo")));
 	}
 }

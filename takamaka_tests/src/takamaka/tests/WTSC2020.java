@@ -116,7 +116,6 @@ class WTSC2020 extends TakamakaTest {
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
 			(new InstanceMethodCallTransactionRequest(blockchain.account(0), _10_000, BigInteger.ONE, classpath, GET_BALANCE, blockchain.account(0)));
 
-		System.out.println(balance0);
 		// the money is back!
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(19990000)) > 0);
 	}

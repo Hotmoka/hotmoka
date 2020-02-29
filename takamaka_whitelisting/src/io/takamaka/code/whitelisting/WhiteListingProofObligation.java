@@ -15,4 +15,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.ANNOTATION_TYPE)
 @Documented
 public @interface WhiteListingProofObligation {
+
+	/**
+	 * Yields the class of the predicate that can be used to check
+	 * if a value satisfies this proof obligation.
+	 * 
+	 * @return the class of the predicate
+	 */
+	Class<? extends WhiteListingPredicate> check();
 }

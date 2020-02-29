@@ -15,6 +15,19 @@ import java.lang.annotation.Target;
 @Target(value={ ElementType.PARAMETER })
 @Inherited
 @Documented
-@WhiteListingProofObligation
+@WhiteListingProofObligation(check = MustBeFalse.Check.class)
 public @interface MustBeFalse {
+	
+	public class Check implements WhiteListingPredicate {
+
+		@Override
+		public boolean test(Object value) {
+			return ((Boolean) value).equals(Boolean.FALSE);
+		}
+
+		@Override
+		public String messageIfFailed(String methodName) {
+			return "the actual parameter of " + methodName + " must be false";
+		}
+	}
 }

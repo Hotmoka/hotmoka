@@ -7,7 +7,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,6 +29,7 @@ import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.LDC;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
@@ -48,6 +48,7 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
  */
 public class AddRuntimeChecksForWhiteListingProofObligations extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
+	private final static Type[] CHECK_WHITE_LISTING_PREDICATE_ARGS = new Type[] { Type.OBJECT, Type.CLASS, Type.STRING };
 
 	public AddRuntimeChecksForWhiteListingProofObligations(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
@@ -167,8 +168,9 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 				// we check if we can statically verify that the value redefines hashCode or toString
 				if (!redefinesHashCodeOrToString(argClass)) {
 					il.append(InstructionFactory.createDup(argType.getSize()));
+					il.append(new LDC(cpg.addClass(MustRedefineHashCodeOrToString.class.getAnnotation(WhiteListingProofObligation.class).check().getName())));
 					il.append(factory.createConstant("string concatenation"));
-					il.append(createInvokeForWhiteListingCheck(getWhiteListingCheckFor(MustRedefineHashCodeOrToString.class).get()));
+					il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
 					atLeastOneCheck = true;
 				}
 			}
@@ -231,7 +233,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		int par = 0;
 		Annotation[][] anns = model.getParameterAnnotations();
 
-		for (Class<?> arg : target.getParameterTypes()) {
+		for (Class<?> arg: target.getParameterTypes()) {
 			Type argType = Type.getType(arg);
 			args.add(argType);
 			il.append(InstructionFactory.createLoad(argType, index));
@@ -370,49 +372,56 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		int initialSize = il.getLength();
 
 		for (Annotation ann: annotations) {
-			Optional<java.lang.reflect.Method> checkMethod = getWhiteListingCheckFor(ann.annotationType());
-			if (checkMethod.isPresent())
-				// we check if the annotation could not be statically discharged
-				if (ih == null || key.charAt(annotationsCursor++) == '1') {
-					il.append(InstructionFactory.createDup(argType.getSize()));
-					il.append(factory.createConstant(methodName));
-					il.append(createInvokeForWhiteListingCheck(checkMethod.get()));
-				}
+			Class<? extends Annotation> annotationType = ann.annotationType();
+
+			// we only accept white-listing annotations from the white-listing module;
+			// this avoids the risk of users sending their white-listing annotations along
+			// with their code and implementing the check method in dangerous ways
+			if (annotationType.getPackage() == WhiteListingProofObligation.class.getPackage()) {
+				WhiteListingProofObligation wlpo = annotationType.getAnnotation(WhiteListingProofObligation.class);
+				if (wlpo != null)
+					// we check if the annotation could not be statically discharged
+					if (ih == null || key.charAt(annotationsCursor++) == '1') {
+						il.append(InstructionFactory.createDup(argType.getSize()));
+						boxIfNeeded(il, argType);
+						il.append(new LDC(cpg.addClass(wlpo.check().getName())));
+						il.append(factory.createConstant(methodName));
+						il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
+					}
+			}
 		}
 
 		return il.getLength() > initialSize;
 	}
 
-	private Optional<java.lang.reflect.Method> getWhiteListingCheckFor(Class<? extends Annotation> annotationType) {
-		if (annotationType.isAnnotationPresent(WhiteListingProofObligation.class)) {
-			String checkName = lowerInitial(annotationType.getSimpleName());
-			Optional<java.lang.reflect.Method> checkMethod = Stream.of(getClass().getDeclaredMethods())
-				.filter(method -> method.getName().equals(checkName)).findFirst();
+	/**
+	 * Creates code that boxes the given value, if primitive.
+	 * 
+	 * @param il the instruction list where boxing instructions can be added
+	 * @param type the type of the value
+	 */
+	private void boxIfNeeded(InstructionList il, Type type) {
+		String wrapperName;
 
-			if (!checkMethod.isPresent())
-				throw new IllegalStateException("unexpected white-list annotation " + annotationType.getSimpleName());
+		if (type == Type.INT)
+			wrapperName = "java.lang.Integer";
+		else if (type == Type.BOOLEAN)
+			wrapperName = "java.lang.Boolean";
+		else if (type == Type.CHAR)
+			wrapperName = "java.lang.Character";
+		else if (type == Type.SHORT)
+			wrapperName = "java.lang.Short";
+		else if (type == Type.LONG)
+			wrapperName = "java.lang.Long";
+		else if (type == Type.FLOAT)
+			wrapperName = "java.lang.Float";
+		else if (type == Type.DOUBLE)
+			wrapperName = "java.lang.Double";
+		else if (type == Type.BYTE)
+			wrapperName = "java.lang.Byte";
+		else
+			return;
 
-			return checkMethod;
-		}
-
-		return Optional.empty();
+		il.append(factory.createInvoke(wrapperName, "valueOf", new ObjectType(wrapperName), new Type[] { type }, Const.INVOKESTATIC));
 	}
-
-	private String lowerInitial(String name) {
-		return Character.toLowerCase(name.charAt(0)) + name.substring(1);
-	}
-
-	private InvokeInstruction createInvokeForWhiteListingCheck(java.lang.reflect.Method checkMethod) {
-		return factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, checkMethod.getName(), Type.VOID,
-			new Type[] { Type.getType(checkMethod.getParameterTypes()[0]), Type.STRING }, Const.INVOKESTATIC);
-	}
-
-	@SuppressWarnings("unused")
-	private void mustBeFalse(boolean value, String methodName) {}
-
-	@SuppressWarnings("unused")
-	private void mustRedefineHashCode(Object value, String methodName) {}
-
-	@SuppressWarnings("unused")
-	private void mustRedefineHashCodeOrToString(Object value, String methodName) {}
 }

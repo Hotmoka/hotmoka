@@ -157,11 +157,11 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	}
 
 	@Override
-	protected void scanPotentiallyAffectedObjects(Consumer<Object> add) {
-		super.scanPotentiallyAffectedObjects(add);
+	protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
+		super.scanPotentiallyAffectedObjects(consumer);
 
 		// the receiver is accessible from environment of the caller
-		add.accept(deserializedReceiver);
+		consumer.accept(deserializedReceiver);
 	}
 
 	@Override

@@ -1,10 +1,8 @@
 package io.takamaka.code.engine;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -12,11 +10,12 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 import io.takamaka.code.engine.internal.transactions.TransactionBuilder;
+import io.takamaka.code.whitelisting.WhiteListingPredicate;
 
 /**
  * A class that contains utility methods called by instrumented
- * Takamaka code stored in blockchain. This class is not installed in
- * blockchain, hence it is not visible to Takamaka programmers
+ * Takamaka code stored in a node. This class is not installed in
+ * the node, hence it is not visible to Takamaka programmers
  * and needn't obey to Takamaka code constraints.
  */
 public abstract class Runtime {
@@ -218,62 +217,40 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Called during verification and by instrumented code to check
-	 * the {@link io.takamaka.code.whitelisting.MustBeFalse} annotation. 
-	 * Its name must be the uncapitalized simple name of the annotation.
-	 * 
-	 * @param value the value
-	 * @param methodName the name of the method
-	 */
-	public static void mustBeFalse(boolean value, String methodName) {
-		if (value)
-			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must be false");
-	}
-
-	/**
-	 * Called during verification and by instrumented code to check
-	 * the {@link io.takamaka.code.whitelisting.MustRedefineHashCode} annotation. 
-	 * Its name must be the uncapitalized simple name of the annotation.
-	 * 
-	 * @param value the value
-	 * @param methodName the name of the method
-	 */
-	public static void mustRedefineHashCode(Object value, String methodName) {
-		if (value != null)
-			if (Stream.of(value.getClass().getMethods())
-				.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
-				.map(Method::getName)
-				.noneMatch("hashCode"::equals))
-				throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must redefine Object.hashCode()");
-	}
-
-	/**
-	 * Called during verification and by instrumented code to check
-	 * the {@link io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString} annotation. 
-	 * Its name must be the uncapitalized simple name of the annotation.
-	 * 
-	 * @param value the value
-	 * @param methodName the name of the method
-	 */
-	public static void mustRedefineHashCodeOrToString(Object value, String methodName) {
-		if (value != null && !redefinesHashCodeOrToString(value.getClass()))
-			throw new NonWhiteListedCallException("the actual parameter of " + methodName + " must redefine Object.hashCode() or Object.toString()");
-	}
-
-	private static boolean redefinesHashCodeOrToString(Class<?> clazz) {
-		return Stream.of(clazz.getMethods())
-			.filter(method -> !Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers()) && method.getDeclaringClass() != Object.class)
-			.map(Method::getName)
-			.anyMatch(name -> "hashCode".equals(name) || "toString".equals(name));
-	}
-
-	/**
 	 * Yields the next storage reference for the current transaction.
 	 * 
 	 * @return the next storage reference
 	 */
 	public static Object getNextStorageReference() {
 		return getBuilder().getNextStorageReference();
+	}
+
+	/**
+	 * Checks if the given white-listing predicate is satisfied by the given value.
+	 * 
+	 * @param value the value to check against the predicate
+	 * @param predicateClass the class of the predicate to check
+	 * @param methodName the name of the method or constructor to which {@code value} is passed as parameter
+	 */
+	public static void checkWhiteListingPredicate(Object value, Class<?> predicateClass, String methodName) {
+		WhiteListingPredicate predicate = createWhiteListingPredicateFrom(predicateClass);
+		if (!predicate.test(value))
+			throw new NonWhiteListedCallException(predicate.messageIfFailed(methodName));
+	}
+
+	/**
+	 * Yields an instance of the given white-listing predicate.
+	 * 
+	 * @param clazz the class of the predicate
+	 * @return an instance of that class
+	 */
+	private static WhiteListingPredicate createWhiteListingPredicateFrom(Class<?> clazz) {
+		try {
+			return (WhiteListingPredicate) clazz.getConstructor().newInstance();
+		}
+		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	/**
