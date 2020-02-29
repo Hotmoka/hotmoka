@@ -196,8 +196,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Computes the minimal gas needed to run a given request. It accounts for
-	 * storing in the node the failed transaction response.
+	 * Computes the minimal gas needed to run a given request. It accounts for storing in the node the failed transaction response.
 	 * 
 	 * @param request the request
 	 * @param balanceUpdateInCaseOfFailure the update that must be stored in the node to account for the consumption of the all the gas

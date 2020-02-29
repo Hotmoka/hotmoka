@@ -11,17 +11,17 @@ import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 public class StorageTypeToClass {
 
 	/**
-	 * The blockchain for which the translation is performed.
+	 * The builder of the transaction for which the translation is performed.
 	 */
-	private final AbstractTransactionBuilder<?,?> run;
+	private final AbstractTransactionBuilder<?,?> builder;
 
 	/**
 	 * Builds an object that translates storage types into their run-time class tag.
 	 * 
-	 * @param run the blockchain for which the translation is performed
+	 * @param builder the builder of the transaction for which the translation is performed
 	 */
-	public StorageTypeToClass(AbstractTransactionBuilder<?,?> run) {
-		this.run = run;
+	public StorageTypeToClass(AbstractTransactionBuilder<?,?> builder) {
+		this.builder = builder;
 	}
 
 	/**
@@ -46,7 +46,7 @@ public class StorageTypeToClass {
 			}
 		}
 		else if (type instanceof ClassType)
-			return run.getClassLoader().loadClass(((ClassType) type).name);
+			return builder.getClassLoader().loadClass(((ClassType) type).name);
 	
 		throw new IllegalArgumentException("unexpected storage type");
 	}

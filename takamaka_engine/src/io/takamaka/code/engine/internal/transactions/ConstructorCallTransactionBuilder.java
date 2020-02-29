@@ -21,9 +21,19 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
+/**
+ * The creator of a transaction that executes a constructor of Takamaka code.
+ */
 public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
+
+	/**
+	 * The class loader used for the transaction.
+	 */
 	private final EngineClassLoader classLoader;
 
+	/**
+	 * The constructor that is being called.
+	 */
 	private final CodeSignature constructor;
 
 	/**
@@ -32,7 +42,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	private final Object deserializedCaller;
 
 	/**
-	 * The deserialized actual arguments of the call.
+	 * The deserialized actual arguments of the constructor.
 	 */
 	private final Object[] deserializedActuals;
 
@@ -41,6 +51,14 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	 */
 	private final ConstructorCallTransactionResponse response;
 
+	/**
+	 * Builds the creator of a transaction that executes a constructor of Takamaka code.
+	 * 
+	 * @param request the request of the transaction
+	 * @param current the reference that must be used for the transaction
+	 * @param node the node that is running the transaction
+	 * @throws TransactionException if the transaction cannot be created
+	 */
 	public ConstructorCallTransactionBuilder(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
@@ -218,6 +236,11 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 		return Stream.of(deserializedActuals);
 	}
 
+	/**
+	 * The thread that deserializes the caller and the actual parameters.
+	 * This must be done inside a thread so that static initializers
+	 * are run with an associated {@code io.takamaka.code.engine.internal.Runtime} object.
+	 */
 	private class DeserializerThread extends TakamakaThread {
 		private final ConstructorCallTransactionRequest request;
 
@@ -242,6 +265,9 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 		}
 	}
 
+	/**
+	 * The thread that runs the constructor.
+	 */
 	private class ConstructorThread extends TakamakaThread {
 		private Object result;
 		private final Constructor<?> constructorJVM;

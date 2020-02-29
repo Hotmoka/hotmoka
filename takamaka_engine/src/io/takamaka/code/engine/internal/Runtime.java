@@ -1,4 +1,4 @@
-package io.takamaka.code.engine;
+package io.takamaka.code.engine.internal;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
@@ -15,7 +15,7 @@ import io.takamaka.code.whitelisting.WhiteListingPredicate;
 /**
  * A class that contains utility methods called by instrumented
  * Takamaka code stored in a node. This class is not installed in
- * the node, hence it is not visible to Takamaka programmers
+ * the node's store, hence it is not visible to Takamaka programmers
  * and needn't obey to Takamaka code constraints.
  */
 public abstract class Runtime {
@@ -32,11 +32,11 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Yields the last value assigned to the given lazy, non-{@code final} field of this storage object.
+	 * Yields the last value assigned to the given lazy, non-{@code final} field of the given storage object.
 	 * 
 	 * @param object the container of the field
-	 * @param definingClass the class of the field. This can only be the class of this storage object
-	 *                      of one of its superclasses
+	 * @param definingClass the class of the field. This can only be the class of {@code object}
+	 *                      or one of its superclasses
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
@@ -48,11 +48,11 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Yields the last value assigned to the given lazy, {@code final} field of this storage object.
+	 * Yields the last value assigned to the given lazy, {@code final} field of the given storage object.
 	 * 
 	 * @param object the container of the field
-	 * @param definingClass the class of the field. This can only be the class of this storage object
-	 *                      of one of its superclasses
+	 * @param definingClass the class of the field. This can only be the class of {@code object}
+	 *                      or one of its superclasses
 	 * @param name the name of the field
 	 * @param fieldClassName the name of the type of the field
 	 * @return the value of the field
@@ -176,7 +176,7 @@ public abstract class Runtime {
 	 * 
 	 * @param amount the amount of gas provided to the code
 	 * @param what the code to run
-	 * @return the result of the execution of the code
+	 * @return the result of the execution of {@code what}
 	 * @throws OutOfGasError if there is not enough gas
 	 * @throws Exception if the code runs into this exception
 	 */
@@ -194,7 +194,7 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Yields the value of field {@code inStorage} of the given storage object}.
+	 * Yields the value of field {@code inStorage} of the given storage object.
 	 * 
 	 * @param object the storage object
 	 * @return the value of the field
@@ -203,6 +203,14 @@ public abstract class Runtime {
 		return getBuilder().getClassLoader().getInStorageOf(object);
 	}
 
+	/**
+	 * Compares the storage references of the given two storage objects, according
+	 * to the natural ordering of storage references.
+	 * 
+	 * @param o1 the first storage object
+	 * @param o2 the second storage object
+	 * @return the result of the comparison
+	 */
 	public static int compareStorageReferencesOf(Object o1, Object o2) {
 		if (o1 == o2)
 			return 0;
@@ -211,13 +219,14 @@ public abstract class Runtime {
 		else if (o2 == null)
 			return 1;
 		else {
-			TransactionBuilder<?,?> builder = getBuilder();
-			return builder.getClassLoader().getStorageReferenceOf(o1).compareTo(builder.getClassLoader().getStorageReferenceOf(o2));
+			EngineClassLoader classLoader = getBuilder().getClassLoader();
+			return classLoader.getStorageReferenceOf(o1).compareTo(classLoader.getStorageReferenceOf(o2));
 		}
 	}
 
 	/**
 	 * Yields the next storage reference for the current transaction.
+	 * It can be used to refer to a newly created object.
 	 * 
 	 * @return the next storage reference
 	 */
@@ -232,21 +241,11 @@ public abstract class Runtime {
 	 * @param predicateClass the class of the predicate to check
 	 * @param methodName the name of the method or constructor to which {@code value} is passed as parameter
 	 */
-	public static void checkWhiteListingPredicate(Object value, Class<?> predicateClass, String methodName) {
-		WhiteListingPredicate predicate = createWhiteListingPredicateFrom(predicateClass);
-		if (!predicate.test(value))
-			throw new NonWhiteListedCallException(predicate.messageIfFailed(methodName));
-	}
-
-	/**
-	 * Yields an instance of the given white-listing predicate.
-	 * 
-	 * @param clazz the class of the predicate
-	 * @return an instance of that class
-	 */
-	private static WhiteListingPredicate createWhiteListingPredicateFrom(Class<?> clazz) {
+	public static void checkWhiteListingPredicate(Object value, Class<? extends WhiteListingPredicate> predicateClass, String methodName) {
 		try {
-			return (WhiteListingPredicate) clazz.getConstructor().newInstance();
+			WhiteListingPredicate predicate = predicateClass.getConstructor().newInstance();
+			if (!predicate.test(value))
+				throw new NonWhiteListedCallException(predicate.messageIfFailed(methodName));
 		}
 		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 			throw new IllegalStateException(e);
@@ -254,7 +253,7 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Charges the given amount of gas for RAM usage for the current blockchain.
+	 * Charges the given amount of gas for RAM usage for the current transaction.
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
@@ -263,7 +262,7 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Charges the given amount of gas for RAM usage for the current blockchain.
+	 * Charges the given amount of gas for RAM usage for the current transaction.
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
@@ -272,7 +271,7 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Charges the given amount of gas for RAM usage for the current blockchain.
+	 * Charges the given amount of gas for RAM usage for the current transaction.
 	 * 
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
@@ -281,7 +280,7 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Charges the given amount of gas for CPU usage for the current blockchain.
+	 * Charges the given amount of gas for CPU usage for the current transaction.
 	 * 
 	 * @param cpu the amount of gas to consume
 	 */
@@ -290,7 +289,7 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Charges the given amount of gas for CPU usage for the current blockchain.
+	 * Charges the given amount of gas for CPU usage for the current transaction.
 	 * 
 	 * @param cpu the amount of gas to consume
 	 */
@@ -299,140 +298,140 @@ public abstract class Runtime {
 	}
 
 	/**
-	 * Charges one unit of gas for CPU usage for the current blockchain.
+	 * Charges one unit of gas for CPU usage for the current transaction.
 	 */
 	public static void charge1() {
 		getBuilder().chargeForCPU(BigInteger.ONE);
 	}
 
 	/**
-	 * Charges two units of gas for CPU usage for the current blockchain.
+	 * Charges two units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge2() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(2L));
 	}
 
 	/**
-	 * Charges three units of gas for CPU usage for the current blockchain.
+	 * Charges three units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge3() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(3L));
 	}
 
 	/**
-	 * Charges four units of gas for CPU usage for the current blockchain.
+	 * Charges four units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge4() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(4L));
 	}
 
 	/**
-	 * Charges five units of gas for CPU usage for the current blockchain.
+	 * Charges five units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge5() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(5L));
 	}
 
 	/**
-	 * Charges six units of gas for CPU usage for the current blockchain.
+	 * Charges six units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge6() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(6L));
 	}
 
 	/**
-	 * Charges seven units of gas for CPU usage for the current blockchain.
+	 * Charges seven units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge7() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(7L));
 	}
 
 	/**
-	 * Charges eight units of gas for CPU usage for the current blockchain.
+	 * Charges eight units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge8() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(8L));
 	}
 
 	/**
-	 * Charges nine units of gas for CPU usage for the current blockchain.
+	 * Charges nine units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge9() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(9L));
 	}
 
 	/**
-	 * Charges ten units of gas for CPU usage for the current blockchain.
+	 * Charges ten units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge10() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(10L));
 	}
 
 	/**
-	 * Charges eleven units of gas for CPU usage for the current blockchain.
+	 * Charges eleven units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge11() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(11L));
 	}
 
 	/**
-	 * Charges twelve units of gas for CPU usage for the current blockchain.
+	 * Charges twelve units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge12() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(12L));
 	}
 
 	/**
-	 * Charges 13 units of gas for CPU usage for the current blockchain.
+	 * Charges 13 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge13() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(13L));
 	}
 
 	/**
-	 * Charges 14 units of gas for CPU usage for the current blockchain.
+	 * Charges 14 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge14() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(14L));
 	}
 
 	/**
-	 * Charges 15 units of gas for CPU usage for the current blockchain.
+	 * Charges 15 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge15() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(15L));
 	}
 
 	/**
-	 * Charges 16 units of gas for CPU usage for the current blockchain.
+	 * Charges 16 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge16() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(16L));
 	}
 
 	/**
-	 * Charges 17 units of gas for CPU usage for the current blockchain.
+	 * Charges 17 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge17() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(17L));
 	}
 
 	/**
-	 * Charges 18 units of gas for CPU usage for the current blockchain.
+	 * Charges 18 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge18() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(18L));
 	}
 
 	/**
-	 * Charges 19 units of gas for CPU usage for the current blockchain.
+	 * Charges 19 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge19() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(19L));
 	}
 
 	/**
-	 * Charges 20 units of gas for CPU usage for the current blockchain.
+	 * Charges 20 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge20() {
 		getBuilder().chargeForCPU(BigInteger.valueOf(20L));

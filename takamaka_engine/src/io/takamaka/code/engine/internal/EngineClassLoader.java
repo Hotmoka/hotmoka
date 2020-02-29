@@ -39,7 +39,7 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
 public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
-	 * The HotMoka node for which deserialization is performed.
+	 * The builder of the transaction for which deserialization is performed.
 	 */
 	private final AbstractTransactionBuilder<?,?> builder;
 
@@ -49,10 +49,13 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private final TakamakaClassLoader parent;
 
 	/**
-	 * The temporary files that hold the class path for a transaction.
+	 * The temporary files that hold the classpath for the transaction.
 	 */
 	private final List<Path> classpathElements = new ArrayList<>();
 
+	/**
+	 * The temporary file that holds a jar installed by a transaction, if any.
+	 */
 	private final TempJarFile tempJarFile;
 
 	/**
@@ -91,22 +94,22 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private final Method redPayableBigInteger;
 
 	/**
-	 * The field {@link io.takamaka.code.lang.Storage#storageReference}.
+	 * Field {@link io.takamaka.code.lang.Storage#storageReference}.
 	 */
 	private final Field storageReference;
 
 	/**
-	 * The field {@link io.takamaka.code.lang.Storage#inStorage}.
+	 * Field {@link io.takamaka.code.lang.Storage#inStorage}.
 	 */
 	private final Field inStorage;
 
 	/**
-	 * The field {@link io.takamaka.code.lang.Contract#balance}.
+	 * Field {@link io.takamaka.code.lang.Contract#balance}.
 	 */
 	private final Field balanceField;
 
 	/**
-	 * The field {@link io.takamaka.code.lang.RedGreenContract#redBalance}.
+	 * Field {@link io.takamaka.code.lang.RedGreenContract#redBalance}.
 	 */
 	private final Field redBalanceField;
 
@@ -151,7 +154,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @param jar the jar
 	 * @param dependencies the dependencies
-	 * @param builder the builder of the transaction that uses the class loader
+	 * @param builder the builder of the transaction for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
 	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, AbstractTransactionBuilder<?,?> builder) throws Exception {
@@ -200,6 +203,14 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		return tempJarFile.toPath();
 	}
 
+	/**
+	 * Yields the array of URL that refer to the components of the given classpaths.
+	 * 
+	 * @param classpaths the classpaths
+	 * @param start an initial URL, if any
+	 * @return the array of URLs
+	 * @throws Exception if some URL cannot be created
+	 */
 	private URL[] collectURLs(Stream<Classpath> classpaths, URI start) throws Exception {
 		List<URL> urls = new ArrayList<>();
 		if (start != null) {
@@ -208,13 +219,13 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
-			urls = addURLs(classpath, urls);
+			addURLs(classpath, urls);
 
 		return urls.toArray(new URL[urls.size()]);
 	}
 
 	/**
-	 * Yields the request that generated the given transaction.
+	 * Yields the request that generated the given transaction and charges gas for that operation.
 	 * 
 	 * @param transaction the reference to the transaction
 	 * @return the request
@@ -226,7 +237,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	/**
-	 * Yields the response that generated the given transaction.
+	 * Yields the response that generated the given transaction and charges gas for that operation.
 	 * 
 	 * @param transaction the reference to the transaction
 	 * @return the response
@@ -237,7 +248,14 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		return builder.node.getResponseAt(transaction);
 	}
 
-	private List<URL> addURLs(Classpath classpath, List<URL> bag) throws Exception {
+	/**
+	 * Expands the given list of URLs with the components of the given classpath.
+	 * 
+	 * @param classpath the classpath
+	 * @param bag the list of URLs
+	 * @throws Exception if some URL cannot be created
+	 */
+	private void addURLs(Classpath classpath, List<URL> bag) throws Exception {
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
 			TransactionRequest<?> request = getRequestAndCharge(classpath.transaction);
@@ -266,8 +284,6 @@ public class EngineClassLoader implements TakamakaClassLoader {
 			bag.add(uri.toURL());
 			classpathElements.add(Paths.get(uri));
 		}
-
-		return bag;
 	}
 
 	@Override
@@ -306,8 +322,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	/**
-	 * Yields the value of the {@code storageReference} field
-	 * of the given storage object in RAM.
+	 * Yields the value of the {@code storageReference} field of the given storage object in RAM.
 	 * 
 	 * @param object the object
 	 * @return the value of the field
@@ -322,8 +337,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	/**
-	 * Yields the value of the boolean {@code inStorage} field
-	 * of the given storage object in RAM.
+	 * Yields the value of the boolean {@code inStorage} field of the given storage object in RAM.
 	 * 
 	 * @param object the object
 	 * @return the value of the field
@@ -368,7 +382,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	/**
-	 * Sets the value of the {@code balanceRed} field of the given contract in RAM.
+	 * Sets the value of the {@code balanceRed} field of the given red/green contract in RAM.
 	 * 
 	 * @param object the contract
 	 * @param value to value to set for the red balance of the contract

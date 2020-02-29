@@ -13,6 +13,9 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
  * A creator of a transaction. It executes a request and builds the corresponding response.
+ * 
+ * @param <Request> the type of the request of the transaction
+ * @param <Response> the type of the response of the transaction
  */
 public interface TransactionBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> {
 

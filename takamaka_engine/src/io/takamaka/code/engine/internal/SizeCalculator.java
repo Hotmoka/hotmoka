@@ -68,28 +68,32 @@ import io.hotmoka.nodes.GasCostModel;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 
 /**
- * An object that knows about the size of objects when stored in blockchain.
+ * An object that knows about the size of objects when stored in the node's store.
  */
 public class SizeCalculator {
-	private final AbstractTransactionBuilder<?,?> run;
+
+	/**
+	 * The builder of the transaction for which this calculator works.
+	 */
+	private final AbstractTransactionBuilder<?,?> builder;
 
 	/**
 	 * Builds the size calculator.
 	 * 
-	 * @param gasCostModel the gas model to use for the calculations
+	 * @param builder the builder of the transaction for which this calculator works
 	 */
-	public SizeCalculator(AbstractTransactionBuilder<?,?> run) {
-		this.run = run;
+	public SizeCalculator(AbstractTransactionBuilder<?,?> builder) {
+		this.builder = builder;
 	}
 
 	/**
-	 * Yields the size of the given request, in terms of storage gas units consumed if it is stored in blockchain.
+	 * Yields the size of the given request, in terms of storage gas units consumed in store.
 	 * 
 	 * @param request the request
 	 * @return the size
 	 */
 	public BigInteger sizeOf(NonInitialTransactionRequest<?> request) {
-		GasCostModel gasCostModel = run.node.getGasCostModel();
+		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		if (request instanceof ConstructorCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
@@ -125,13 +129,13 @@ public class SizeCalculator {
 	}
 
 	/**
-	 * Yields the size of the given response, in terms of storage gas units consumed if it is stored in blockchain.
+	 * Yields the size of the given response, in terms of storage gas units consumed in store.
 	 * 
 	 * @param response the response
 	 * @return the size
 	 */
 	public BigInteger sizeOf(NonInitialTransactionResponse response) {
-		GasCostModel gasCostModel = run.node.getGasCostModel();
+		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot());
 
@@ -184,14 +188,13 @@ public class SizeCalculator {
 	}
 
 	/**
-	 * Yields the size of the given classpath, in terms of storage consumed if it is
-	 * stored in blockchain.
+	 * Yields the size of the given classpath, in terms of storage consumed in store.
 	 * 
 	 * @param classpath the classpath
 	 * @return the size
 	 */
 	public BigInteger sizeOf(Classpath classpath) {
-		GasCostModel gasCostModel = run.node.getGasCostModel();
+		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
 			.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()))
@@ -199,28 +202,26 @@ public class SizeCalculator {
 	}
 
 	/**
-	 * Yields the size of the given field, in terms of storage consumed if the field is
-	 * stored in blockchain.
+	 * Yields the size of the given field, in terms of storage consumed in store.
 	 * 
 	 * @param field the field
 	 * @return the size
 	 */
 	public BigInteger sizeOf(FieldSignature field) {
-		GasCostModel gasCostModel = run.node.getGasCostModel();
+		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(sizeOf(field.definingClass))
 			.add(gasCostModel.storageCostOf(field.name)).add(sizeOf(field.type));
 	}
 
 	/**
-	 * Yields the size of the given method or constructor, in terms of storage gas units consumed
-	 * if it is stored in blockchain.
+	 * Yields the size of the given method or constructor, in terms of storage gas units consumed in store.
 	 * 
 	 * @param methodOrConstructor the method or constructor
 	 * @return the size
 	 */
 	public BigInteger sizeOf(CodeSignature methodOrConstructor) {
-		GasCostModel gasCostModel = run.node.getGasCostModel();
+		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot())
 			.add(sizeOf(methodOrConstructor.definingClass))
@@ -239,13 +240,13 @@ public class SizeCalculator {
 	}
 
 	/**
-	 * Yields the size of the given type, in terms of storage gas units consumed if it is stored in blockchain.
+	 * Yields the size of the given type, in terms of storage gas units consumed in store.
 	 * 
 	 * @param type the type
 	 * @return the size
 	 */
 	public BigInteger sizeOf(StorageType type) {
-		GasCostModel gasCostModel = run.node.getGasCostModel();
+		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		if (type instanceof BasicTypes)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot());
@@ -258,13 +259,13 @@ public class SizeCalculator {
 
 
 	/**
-	 * Yields the size of the given value, in terms of storage gas units consumed if it is stored in blockchain.
+	 * Yields the size of the given value, in terms of storage gas units consumed in store.
 	 * 
 	 * @param value the value
 	 * @return the size
 	 */
 	public BigInteger sizeOf(StorageValue value) {
-		GasCostModel gasCostModel = run.node.getGasCostModel();
+		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot());
 		if (value instanceof BigIntegerValue)
@@ -290,13 +291,13 @@ public class SizeCalculator {
 	}
 
 	/**
-	 * Yields the size of the given update, in terms of storage gas units consumed if it is stored in blockchain.
+	 * Yields the size of the given update, in terms of storage gas units consumed in store.
 	 * 
 	 * @param update the update
 	 * @return the size
 	 */
 	public BigInteger sizeOf(Update update) {
-		GasCostModel gasCostModel = run.node.getGasCostModel();
+		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		BigInteger size = sizeOf(update.object);
 

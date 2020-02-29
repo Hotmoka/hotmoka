@@ -21,6 +21,9 @@ import io.takamaka.code.engine.internal.UpdatesExtractor;
 
 /**
  * A generic implementation of a creator of a transaction.
+ *
+ * @param <Request> the type of the request of the transaction
+ * @param <Response> the type of the response of the transaction
  */
 public abstract class AbstractTransactionBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionBuilder<Request, Response> {
 
@@ -66,12 +69,12 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	private final TransactionReference current;
 
 	/**
-	 * The time of execution of this transaction.
+	 * The time of execution of the transaction.
 	 */
 	private final long now;
 
 	/**
-	 * The counter for the next storage object created during this transaction.
+	 * The counter for the next storage object created during the transaction.
 	 */
 	private BigInteger nextProgressive = BigInteger.ZERO;
 
@@ -166,6 +169,9 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	public abstract class TakamakaThread extends Thread {
 		protected TakamakaThread() {}
 
+		/**
+		 * The exception that occurred during the transaction, if any.
+		 */
 		protected Throwable exception;
 
 		@Override

@@ -19,6 +19,9 @@ import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
+/**
+ * Builds the creator of a transaction that executes a static method of Takamaka code.
+ */
 public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBuilder<StaticMethodCallTransactionRequest> {
 	private final EngineClassLoader classLoader;
 
@@ -37,6 +40,14 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 	 */
 	private final MethodCallTransactionResponse response;
 
+	/**
+	 * Builds the creator of a transaction that executes a static method of Takamaka code.
+	 * 
+	 * @param request the request of the transaction
+	 * @param current the reference that must be used for the transaction
+	 * @param node the node that is running the transaction
+	 * @throws TransactionException if the transaction cannot be created
+	 */
 	public StaticMethodCallTransactionBuilder(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
@@ -138,6 +149,11 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 		return Stream.of(deserializedActuals);
 	}
 
+	/**
+	 * The thread that deserializes the caller, the receiver and the actual parameters.
+	 * This must be done inside a thread so that static initializers
+	 * are run with an associated {@code io.takamaka.code.engine.internal.Runtime} object.
+	 */
 	private class DeserializerThread extends TakamakaThread {
 		private final StaticMethodCallTransactionRequest request;
 
@@ -162,6 +178,9 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 		}
 	}
 
+	/**
+	 * The thread that runs the method.
+	 */
 	private class MethodThread extends TakamakaThread {
 		private Object result;
 		private final Method methodJVM;

@@ -44,21 +44,23 @@ import io.takamaka.code.instrumentation.InstrumentationConstants;
  */
 public class UpdatesExtractor {
 
-	private final AbstractTransactionBuilder<?,?> run;
+	/**
+	 * The builder of the transaction for which this extractor works.
+	 */
+	private final AbstractTransactionBuilder<?,?> builder;
 
 	/**
-	 * Builds an extractor of updates to the state reachable from some storage objects.
+	 * Builds an extractor of the updates to the state reachable from some storage objects.
 	 * 
-	 * @param run the blockchain for which the extraction is performed
-	 * @param objects the storage objects whose updates must be computed (for them and
-	 *                for the objects recursively reachable from them)
+	 * @param builder the builder of the transaction for which the extraction is performed
 	 */
-	public UpdatesExtractor(AbstractTransactionBuilder<?,?> run) {
-		this.run = run;
+	public UpdatesExtractor(AbstractTransactionBuilder<?,?> builder) {
+		this.builder = builder;
 	}
 
 	/**
-	 * Yields the updates extracted from the given storage objects.
+	 * Yields the updates extracted from the given storage objects and from the objects
+	 * reachable from them, recursively.
 	 * 
 	 * @param objects the storage objects whose updates must be computed (for them and
 	 *                for the objects recursively reachable from them)
@@ -68,9 +70,24 @@ public class UpdatesExtractor {
 		return new Processor(objects).updates.stream();
 	}
 
+	/**
+	 * Internal scope for extracting the updates to some objects.
+	 */
 	private class Processor {
+
+		/**
+		 * The class loader for the transaction that uses this extractor.
+		 */
 		private final EngineClassLoader classLoader;
+
+		/**
+		 * The set of objects to process. This gets expanded as soon as new objects are found to be reachable.
+		 */
 		private final List<Object> workingSet;
+
+		/**
+		 * The set of all objects processed so far. This is needed to avoid processing the same object twice.
+		 */
 		private final Set<StorageReference> seen = new HashSet<>();
 
 		/**
@@ -78,8 +95,15 @@ public class UpdatesExtractor {
 		 */
 		private final SortedSet<Update> updates = new TreeSet<>();
 
+		/**
+		 * Builds an internal scope to extract the updates to the given objects,
+		 * and those reachable from them, recursively.
+		 * 
+		 * @param objects the storage objects whose updates must be computed (for them and
+		 *                for the objects recursively reachable from them)
+		 */
 		private Processor(Stream<Object> objects) {
-			this.classLoader = run.getClassLoader();
+			this.classLoader = builder.getClassLoader();
 			this.workingSet = objects
 				.filter(object -> seen.add(classLoader.getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
@@ -92,17 +116,33 @@ public class UpdatesExtractor {
 			while (!workingSet.isEmpty());
 		}
 
+		/**
+		 * The internal scope to extract the updates to a given object.
+		 */
 		private class ExtractedUpdatesSingleObject {
+
+			/**
+			 * The reference of the object.
+			 */
 			private final StorageReference storageReference;
+
+			/**
+			 * True if and only if the object was already in storage.
+			 */
 			private final boolean inStorage;
 
+			/**
+			 * Builds the scope to extract the updates to a given object.
+			 * 
+			 * @param object the object
+			 */
 			private ExtractedUpdatesSingleObject(Object object) {
 				Class<?> clazz = object.getClass();
 				this.storageReference = classLoader.getStorageReferenceOf(object);
 				this.inStorage = classLoader.getInStorageOf(object);
 
 				if (!inStorage)
-					updates.add(new ClassTag(storageReference, clazz.getName(), run.transactionThatInstalledJarFor(clazz)));
+					updates.add(new ClassTag(storageReference, clazz.getName(), builder.transactionThatInstalledJarFor(clazz)));
 
 				while (clazz != classLoader.getStorage()) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);
@@ -111,8 +151,7 @@ public class UpdatesExtractor {
 			}
 
 			/**
-			 * Utility method called for update extraction to recur on the old value
-			 * of fields of reference type.
+			 * Utility method called for update extraction to recur on the old value of fields of reference type.
 			 * 
 			 * @param s the storage objects whose fields are considered
 			 */
@@ -131,7 +170,7 @@ public class UpdatesExtractor {
 			/**
 			 * Takes note that a field of lazy type has changed its value and consequently adds it to the set of updates.
 			 * 
-			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object of one of its superclasses
+			 * @param fieldDefiningClass the class of the field. This can only be the class of the storage object or one of its superclasses
 			 * @param fieldName the name of the field
 			 * @param fieldClassName the name of the type of the field
 			 * @param s the value set to the field
@@ -316,6 +355,12 @@ public class UpdatesExtractor {
 					updates.add(new UpdateOfEnumEager(storageReference, field, element.getClass().getName(), element.name()));
 			}
 
+			/**
+			 * Takes note of updates to the fields of the given object, defined in the given class.
+			 * 
+			 * @param clazz the class
+			 * @param object the object
+			 */
 			private void addUpdatesForFieldsDefinedInClass(Class<?> clazz, Object object) {
 				for (Field field: clazz.getDeclaredFields())
 					if (!isStaticOrTransient(field)) {
@@ -347,6 +392,12 @@ public class UpdatesExtractor {
 					}
 			}
 
+			/**
+			 * Takes note that a field has been updated to a new current value.
+			 * 
+			 * @param field the field
+			 * @param currentValue the current value of the field
+			 */
 			private void addUpdateFor(Field field, Object currentValue) {
 				Class<?> fieldType = field.getType();
 				String fieldDefiningClass = field.getDeclaringClass().getName();
@@ -380,6 +431,12 @@ public class UpdatesExtractor {
 					throw new IllegalStateException("unexpected field in storage object: " + fieldDefiningClass + '.' + fieldName);
 			}
 
+			/**
+			 * Determines if the given field is static or transient, hence its updates are not extracted.
+			 * 
+			 * @param field the field
+			 * @return true if and only if that condition holds
+			 */
 			private boolean isStaticOrTransient(Field field) {
 				int modifiers = field.getModifiers();
 				return Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers);

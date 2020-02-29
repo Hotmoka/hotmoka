@@ -24,33 +24,33 @@ import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 public class Serializer {
 
 	/**
-	 * The blockchain for which serialization is performed.
+	 * The builder of the transaction for which serialization is performed.
 	 */
-	private final AbstractTransactionBuilder<?,?> run;
+	private final AbstractTransactionBuilder<?,?> builder;
 
 	/**
 	 * Builds an object that translates RAM values into storage values.
 	 * 
-	 * @param run the blockchain for which serialization is performed
+	 * @param builder the builder of the transaction for which serialization is performed
 	 */
-	public Serializer(AbstractTransactionBuilder<?,?> run) {
-		this.run = run;
+	public Serializer(AbstractTransactionBuilder<?,?> builder) {
+		this.builder = builder;
 	}
 
 	/**
-	 * Yields the serialization of the given object, that is, yields its
-	 * representation in blockchain.
+	 * Yields the serialization of the given RAM object, that is, yields its
+	 * representation in the node's store.
 	 * 
 	 * @param object the object to serialize. This must be a storage object, a Java wrapper
 	 *               object for numerical types, an enumeration
 	 *               or a special Java object that is allowed
-	 *               in blockchain, such as a {@link java.lang.String} or {@link java.math.BigInteger}
+	 *               in store, such as a {@link java.lang.String} or {@link java.math.BigInteger}
 	 * @return the serialization of {@code object}, if any
-	 * @throws IllegalArgumentException if the type of {@code object} is not allowed in blockchain
+	 * @throws IllegalArgumentException if the type of {@code object} is not allowed in store
 	 */
 	public StorageValue serialize(Object object) throws IllegalArgumentException {
 		if (isStorage(object))
-			return run.getClassLoader().getStorageReferenceOf(object);
+			return builder.getClassLoader().getStorageReferenceOf(object);
 		else if (object instanceof BigInteger)
 			return new BigIntegerValue((BigInteger) object);
 		else if (object instanceof Boolean)
@@ -77,10 +77,10 @@ public class Serializer {
 			return NullValue.INSTANCE;
 		else
 			throw new IllegalArgumentException("an object of class " + object.getClass().getName()
-				+ " cannot be kept in blockchain since it does not implement " + Constants.STORAGE_NAME);
+				+ " cannot be kept in store since it does not implement " + Constants.STORAGE_NAME);
 	}
 
 	private boolean isStorage(Object object) {
-		return object != null && run.getClassLoader().getStorage().isAssignableFrom(object.getClass());
+		return object != null && builder.getClassLoader().getStorage().isAssignableFrom(object.getClass());
 	}
 }

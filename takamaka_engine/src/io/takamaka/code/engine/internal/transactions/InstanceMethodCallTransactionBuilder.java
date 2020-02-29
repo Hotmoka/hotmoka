@@ -22,6 +22,9 @@ import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
+/**
+ * Builds the creator of a transaction that executes an instance method of Takamaka code.
+ */
 public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionBuilder<InstanceMethodCallTransactionRequest> {
 
 	/**
@@ -29,6 +32,9 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	 */
 	private final Object deserializedReceiver;
 
+	/**
+	 * The class loader of the transaction.
+	 */
 	private final EngineClassLoader classLoader;
 
 	/**
@@ -46,6 +52,14 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	 */
 	private final MethodCallTransactionResponse response;
 
+	/**
+	 * Builds the creator of a transaction that executes an instance method of Takamaka code.
+	 * 
+	 * @param request the request of the transaction
+	 * @param current the reference that must be used for the transaction
+	 * @param node the node that is running the transaction
+	 * @throws TransactionException if the transaction cannot be created
+	 */
 	public InstanceMethodCallTransactionBuilder(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
@@ -217,6 +231,11 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 
+	/**
+	 * The thread that deserializes the caller, the receiver and the actual parameters.
+	 * This must be done inside a thread so that static initializers
+	 * are run with an associated {@code io.takamaka.code.engine.internal.Runtime} object.
+	 */
 	private class DeserializerThread extends TakamakaThread {
 		private final InstanceMethodCallTransactionRequest request;
 
@@ -247,6 +266,9 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 		}
 	}
 
+	/**
+	 * The thread that runs the method.
+	 */
 	private class MethodThread extends TakamakaThread {
 		private Object result;
 		private final Method methodJVM;

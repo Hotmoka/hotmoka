@@ -45,16 +45,14 @@ import io.takamaka.code.verification.IncompleteClasspathError;
 public class Deserializer {
 
 	/**
-	 * The HotMoka node for which deserialization is performed.
+	 * The builder of the transaction for which deserialization is performed.
 	 */
-	private final AbstractTransactionBuilder<?,?> run;
+	private final AbstractTransactionBuilder<?,?> builder;
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
 	 * repeated deserialization of the same storage reference yields the same object and can also
-	 * work as an efficiency measure. This is reset at each transaction since each transaction uses
-	 * a distinct class loader and each storage object keeps a reference to its class loader, as
-	 * always in Java.
+	 * work as an efficiency measure.
 	 */
 	private final Map<StorageReference, Object> cache = new HashMap<>();
 
@@ -84,8 +82,8 @@ public class Deserializer {
 							return field1.type.toString().compareTo(field2.type.toString());
 					}
 
-					Class<?> clazz1 = run.getClassLoader().loadClass(className1);
-					Class<?> clazz2 = run.getClassLoader().loadClass(className2);
+					Class<?> clazz1 = builder.getClassLoader().loadClass(className1);
+					Class<?> clazz2 = builder.getClassLoader().loadClass(className2);
 					if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
 						return -1;
 					else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
@@ -105,13 +103,18 @@ public class Deserializer {
 	/**
 	 * Builds an object that translates storage values into RAM values.
 	 * 
-	 * @param run the blockchain for which deserialization is performed
-	 * @param a function that yields the last updates for the eager fields of a storage reference
+	 * @param builder the builder of the transaction for which deserialization is performed
 	 */
-	public Deserializer(AbstractTransactionBuilder<?,?> run) {
-		this.run = run;
+	public Deserializer(AbstractTransactionBuilder<?,?> builder) {
+		this.builder = builder;
 	}
 
+	/**
+	 * Deserializes the given storage value into its RAM image.
+	 * 
+	 * @param value the storage value
+	 * @return the RAM image of {@code value}
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object deserialize(StorageValue value) {
 		if (value instanceof StorageReference)
@@ -136,17 +139,17 @@ public class Deserializer {
 		else if (value instanceof DoubleValue)
 			return ((DoubleValue) value).value;
 		else if (value instanceof StringValue)
-			// we clone the value, so that the alias behavior of values coming from outside the blockchain is fixed:
-			// two parameters of an entry are never alias when they come from outside the blockchain
+			// we clone the value, so that the alias behavior of values coming from outside the node is fixed:
+			// two parameters of an entry are never alias when they come from outside the node
 			return new String(((StringValue) value).value);
 		else if (value instanceof BigIntegerValue)
-			// we clone the value, so that the alias behavior of values coming from outside the blockchain is fixed
+			// we clone the value, so that the alias behavior of values coming from outside the node is fixed
 			return new BigInteger(value.toString());
 		else if (value instanceof EnumValue) {
 			EnumValue ev = (EnumValue) value;
 
 			try {
-				return Enum.valueOf((Class<? extends Enum>) run.getClassLoader().loadClass(ev.enumClassName), ev.name);
+				return Enum.valueOf((Class<? extends Enum>) builder.getClassLoader().loadClass(ev.enumClassName), ev.name);
 			}
 			catch (ClassNotFoundException e) {
 				throw new DeserializationError(e);
@@ -157,14 +160,14 @@ public class Deserializer {
 	}
 
 	/**
-	 * Deserializes the given storage reference from the blockchain.
+	 * Deserializes the given storage reference from the node's store.
 	 * 
 	 * @param reference the storage reference to deserialize
 	 * @return the resulting storage object
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, run.node.getLastEagerUpdatesFor(reference, run::chargeForCPU, this::collectEagerFieldsOf));
+			return createStorageObject(reference, builder.node.getLastEagerUpdatesFor(reference, builder::chargeForCPU, this::collectEagerFieldsOf));
 		}
 		catch (DeserializationError e) {
 			throw e;
@@ -174,19 +177,25 @@ public class Deserializer {
 		}
 	}
 
+	/**
+	 * Collect the instance fields of eager type in the given class or in its superclasses.
+	 * 
+	 * @param className the name of the class
+	 * @return the fields
+	 */
 	private Stream<Field> collectEagerFieldsOf(String className) {
-		EngineClassLoader classLoader = run.getClassLoader();
+		EngineClassLoader classLoader = builder.getClassLoader();
 		Set<Field> bag = new HashSet<>();
 		Class<?> storage = classLoader.getStorage();
 
 		try {
-		// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
-		for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
-			Stream.of(clazz.getDeclaredFields())
-			.filter(field -> !Modifier.isTransient(field.getModifiers())
-					&& !Modifier.isStatic(field.getModifiers())
-					&& classLoader.isEagerlyLoaded(field.getType()))
-			.forEach(bag::add);
+			// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
+			for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
+				Stream.of(clazz.getDeclaredFields())
+					.filter(field -> !Modifier.isTransient(field.getModifiers())
+						&& !Modifier.isStatic(field.getModifiers())
+						&& classLoader.isEagerlyLoaded(field.getType()))
+					.forEach(bag::add);
 		}
 		catch (ClassNotFoundException e) {
 			throw new IncompleteClasspathError(e);
@@ -198,7 +207,7 @@ public class Deserializer {
 	/**
 	 * Creates a storage object in RAM.
 	 * 
-	 * @param reference the blockchain reference of the object
+	 * @param reference the reference of the object inside the node's store
 	 * @param updates the eager updates of the object, including its class tag
 	 * @return the object
 	 * @throws DeserializationError if the object could not be created
@@ -219,15 +228,15 @@ public class Deserializer {
 					classTag = (ClassTag) update;
 				else {
 					UpdateOfField updateOfField = (UpdateOfField) update;
-					formals.add(run.storageTypeToClass.toClass(updateOfField.getField().type));
+					formals.add(builder.storageTypeToClass.toClass(updateOfField.getField().type));
 					actuals.add(deserialize(updateOfField.getValue()));
 				}
 	
 			if (classTag == null)
 				throw new DeserializationError("No class tag found for " + reference);
 
-			Class<?> clazz = run.getClassLoader().loadClass(classTag.className);
-			TransactionReference actual = run.transactionThatInstalledJarFor(clazz);
+			Class<?> clazz = builder.getClassLoader().loadClass(classTag.className);
+			TransactionReference actual = builder.transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
 				throw new DeserializationError("Class " + classTag.className + " was instantiated from jar at " + expected + " not from jar at " + actual);

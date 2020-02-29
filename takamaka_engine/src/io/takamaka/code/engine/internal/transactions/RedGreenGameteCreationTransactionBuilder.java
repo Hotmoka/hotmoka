@@ -9,7 +9,14 @@ import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
+/**
+ * The creator of a transaction that creates a red/green gamete.
+ */
 public class RedGreenGameteCreationTransactionBuilder extends InitialTransactionBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> {
+
+	/**
+	 * The class loader of the transaction.
+	 */
 	private final EngineClassLoader classLoader;
 
 	/**
@@ -17,6 +24,14 @@ public class RedGreenGameteCreationTransactionBuilder extends InitialTransaction
 	 */
 	private final GameteCreationTransactionResponse response;
 
+	/**
+	 * Builds the creator of a transaction that creates a red/green gamete.
+	 * 
+	 * @param request the request of the transaction
+	 * @param current the reference that must be used for the transaction
+	 * @param node the node that is running the transaction
+	 * @throws TransactionException if the transaction cannot be created
+	 */
 	public RedGreenGameteCreationTransactionBuilder(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(current, node);
 
@@ -52,6 +67,9 @@ public class RedGreenGameteCreationTransactionBuilder extends InitialTransaction
 		return response;
 	}
 
+	/**
+	 * The thread that runs the code that creates the gamete.
+	 */
 	private class GameteThread extends TakamakaThread {
 		private Object gamete;
 

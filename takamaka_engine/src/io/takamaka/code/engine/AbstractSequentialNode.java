@@ -58,7 +58,7 @@ import io.hotmoka.nodes.DeserializationError;
 public abstract class AbstractSequentialNode extends AbstractNode {
 
 	/**
-	 * Yields the reference to the transaction after which any new transaction will be executed.
+	 * Yields the reference to topmost transaction after which any new transaction will be executed.
 	 * 
 	 * @return the reference to the topmost transaction, if any. Yields {@code null} if
 	 *         the node has executed no transactions up to now
@@ -74,17 +74,19 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	protected abstract SequentialTransactionReference getNextTransaction();
 
 	/**
-	 * Expands the store of this node with a new transaction, that is added after the topmost one and
+	 * Expands the store of this node with a transaction, that is added after the topmost one and
 	 * becomes the new topmost transaction.
 	 * 
-	 * @param transaction the new transaction
+	 * @param <Request> the type of the request of the transaction
+	 * @param <Response> the type of the response of the transaction
+	 * @param transaction the transaction
 	 * @return the reference to the transaction that has been added
 	 * @throws Exception if the expansion cannot be completed
 	 */
 	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandStoreWith(Transaction<Request, Response> transaction) throws Exception;
 
 	@Override
-	public Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception {
+	public final Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	
 		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);
@@ -118,7 +120,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	@Override
-	public UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
+	public final UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
 		// goes back from the previous transaction; there is no reason to look before the transaction that created the object
 		for (SequentialTransactionReference cursor = getTopmostTransactionReference(); !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious()) {
 			Optional<UpdateOfField> update = getLastUpdateFor(object, field, cursor, chargeForCPU);
@@ -130,7 +132,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	@Override
-	public UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
+	public final UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
 		// accesses directly the transaction that created the object
 		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
@@ -148,7 +150,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 */
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			nodeIsNotYetInitialized();
+			requireNodeUninitialized();
 			return expandStoreWith(Transaction.mkFor(request, getNextTransaction(), this));
 		});
 	}
@@ -165,7 +167,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 */
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			nodeIsNotYetInitialized();
+			requireNodeUninitialized();
 			Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
 			return transaction.getResponse().gamete;
@@ -184,7 +186,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 */
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			nodeIsNotYetInitialized();
+			requireNodeUninitialized();
 			Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
 			return transaction.getResponse().gamete;
@@ -247,7 +249,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	/**
-	 * Runs an instance method of an object already in this node's store.
+	 * Expands this node's store with a transaction that runs an instance method of an object already in this node's store.
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
@@ -323,7 +325,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * 
 	 * @throws Exception if this node is already initialized, or it is impossible to determine it
 	 */
-	private void nodeIsNotYetInitialized() throws Exception {
+	private void requireNodeUninitialized() throws Exception {
 		SequentialTransactionReference previous = getTopmostTransactionReference();
 		if (previous != null && !(getRequestAt(previous) instanceof InitialTransactionRequest))
 			throw new IllegalStateException("this node is already initialized");
@@ -398,7 +400,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	 * 
 	 * @param object the reference of the object
 	 * @param field the field of the object
-	 * @param transaction the block where the update is being looked for
+	 * @param transaction the reference to the transaction
 	 * @param chargeForCPU the code to run to charge gas for CPU execution
 	 * @return the update, if any. If the field of {@code object} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
@@ -462,7 +464,7 @@ public abstract class AbstractSequentialNode extends AbstractNode {
 	}
 
 	/**
-	 * Calls the given callable. If if throws an exception, it wraps into into a {@link io.hotmoka.beans.TransactionException}.
+	 * Calls the given callable. If if throws an exception, it wraps it into an {@link io.hotmoka.beans.TransactionException}.
 	 * 
 	 * @param what the callable
 	 * @return the result of the callable

@@ -16,9 +16,10 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 
 /**
- * A generic implementation of a blockchain. Specific implementations can subclass this class
- * and just implement the abstract template methods. The rest of code should work instead
- * as a generic layer for all blockchain implementations.
+ * The creator of a transaction that executes a method of Takamaka code.
+ * 
+ * @param <Request> the type of the request of the transaction
+ * @param <Response> the type of the response of the transaction
  */
 public abstract class MethodCallTransactionBuilder<Request extends MethodCallTransactionRequest> extends CodeCallTransactionBuilder<Request, MethodCallTransactionResponse> {
 
@@ -27,6 +28,14 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	 */
 	protected final MethodSignature method;
 
+	/**
+	 * Builds the creator of a transaction that executes a method of Takamaka code.
+	 * 
+	 * @param request the request of the transaction
+	 * @param current the reference that must be used for the transaction
+	 * @param node the node that is running the transaction
+	 * @throws TransactionException if the transaction cannot be created
+	 */
 	protected MethodCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
@@ -67,8 +76,7 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	 * is white-listed and its white-listing proof-obligations hold.
 	 * 
 	 * @param executable the method
-	 * @param actuals the actual arguments passed to {@code executable}, including the
-	 *                receiver for instance methods
+	 * @param actuals the actual arguments passed to {@code executable}, including the receiver for instance methods
 	 * @throws ClassNotFoundException if some class could not be found during the check
 	 */
 	protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {

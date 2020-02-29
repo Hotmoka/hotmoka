@@ -15,7 +15,14 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
+/**
+ * Builds the creator of a transaction that installs a jar in the node.
+ */
 public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> {
+
+	/**
+	 * The class loader of the transaction.
+	 */
 	private final EngineClassLoader classLoader;
 
 	/**
@@ -23,6 +30,14 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 	 */
 	private final JarStoreTransactionResponse response;
 
+	/**
+	 * Builds the creator of a transaction that installs a jar in the node.
+	 * 
+	 * @param request the request of the transaction
+	 * @param current the reference that must be used for the transaction
+	 * @param node the node that is running the transaction
+	 * @throws TransactionException if the transaction cannot be created
+	 */
 	public JarStoreTransactionBuilder(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 

@@ -28,6 +28,9 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
 /**
  * The creator of a non-initial transaction that executes a method or constructor of Takamaka code.
+ * 
+ * @param <Request> the type of the request of the transaction
+ * @param <Response> the type of the response of the transaction
  */
 public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionBuilder<Request, Response> {
 
@@ -109,8 +112,8 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 
 	/**
 	 * Yields the classes of the formal arguments of the method or constructor, assuming that it is
-	 * and {@link io.takamaka.code.lang.Entry}. Entries are instrumented with the addition of a
-	 * trailing contract formal (the caller) and of a dummy type.
+	 * an {@link io.takamaka.code.lang.Entry}. Entries are instrumented with the addition of a
+	 * trailing contract formal argument (the caller) and of a dummy type.
 	 * 
 	 * @return the array of classes, in the same order as the formals
 	 * @throws ClassNotFoundException if some class cannot be found
@@ -225,7 +228,7 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 	protected abstract CodeSignature getMethodOrConstructor();
 
 	/**
-	 * Yields the caller of this transaction.
+	 * Yields the caller of the transaction.
 	 * 
 	 * @return the caller
 	 */
