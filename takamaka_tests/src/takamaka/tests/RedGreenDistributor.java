@@ -25,7 +25,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.InitializedRedGreenMemoryBlockchain;
+import io.takamaka.code.memory.RedGreenMemoryBlockchain;
 
 /**
  * A test for the remote purchase contract.
@@ -38,7 +38,7 @@ class RedGreenDistributor extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedRedGreenMemoryBlockchain blockchain;
+	private RedGreenMemoryBlockchain blockchain;
 
 	/**
 	 * The classpath of the classes being tested.
@@ -47,7 +47,7 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = InitializedRedGreenMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
+		blockchain = RedGreenMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
 			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // green/red of first account
 			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of second account
 			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of third account

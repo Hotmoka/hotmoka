@@ -30,7 +30,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the simple pyramid contract, used at the WTSC2020 workshop.
@@ -60,7 +60,7 @@ class WTSC2020 extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	/**
 	 * The classpath of the classes being tested.
@@ -70,7 +70,7 @@ class WTSC2020 extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// create a RAM simulation of a blockchain with 4 initial accounts
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _20_000_000, _20_000_000, _20_000_000, _20_000_000);
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _20_000_000, _20_000_000, _20_000_000, _20_000_000);
 
 		// store the jar of our test in blockchain
 		TransactionReference jar = blockchain.addJarStoreTransaction

@@ -23,7 +23,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.NonWhiteListedCallException;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the Java HashMap class.
@@ -40,7 +40,7 @@ class JavaCollections extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	/**
 	 * The classpath of the classes being tested.
@@ -49,7 +49,7 @@ class JavaCollections extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
 		TransactionReference collections = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _200_000, BigInteger.ONE, blockchain.takamakaCode(),
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/javacollections.jar")), blockchain.takamakaCode()));

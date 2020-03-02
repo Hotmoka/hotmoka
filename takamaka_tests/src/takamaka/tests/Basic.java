@@ -40,7 +40,7 @@ import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for basic storage and contract Takamaka classes.
@@ -72,7 +72,7 @@ class Basic extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	/**
 	 * The account that holds all funds.
@@ -86,7 +86,7 @@ class Basic extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
 		master = blockchain.account(0);
 
 		TransactionReference basicdependency = blockchain.addJarStoreTransaction

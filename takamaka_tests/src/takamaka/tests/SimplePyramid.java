@@ -3,7 +3,6 @@
  */
 package takamaka.tests;
 
-import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
@@ -18,9 +17,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
@@ -28,7 +25,6 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.memory.MemoryBlockchain;
@@ -52,17 +48,10 @@ class SimplePyramid extends TakamakaTest {
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
-
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
 	private MemoryBlockchain blockchain;
-
-	/**
-	 * The first object, that holds all funds initially.
-	 */
-	private StorageReference gamete;
 
 	/**
 	 * The four participants to the pyramid.
@@ -76,46 +65,41 @@ class SimplePyramid extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("chain"));
-
-		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest
-				(Files.readAllBytes(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"))));
-		Classpath takamakaBase = new Classpath(takamaka_base, false);  // true/false irrelevant here
-
-		gamete = blockchain.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaBase, ALL_FUNDS));
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
+				BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L));
+		players[0] = blockchain.account(0);
+		players[1] = blockchain.account(1);
+		players[2] = blockchain.account(2);
+		players[3] = blockchain.account(3);
 
 		TransactionReference ponzi = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/ponzi.jar")), takamakaBase));
+			(new JarStoreTransactionRequest(players[0], _20_000, BigInteger.ZERO, blockchain.takamakaCode(),
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/ponzi.jar")), blockchain.takamakaCode()));
 
 		classpath = new Classpath(ponzi, true);
-
-		for (int i = 0; i < 4; i++)
-			players[i] = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.TEOA, INT), new IntValue(200_000)));
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")
 	void twoInvestors() throws TransactionException, CodeExecutionException {
 		StorageReference pyramid = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(players[0], _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
+			(new ConstructorCallTransactionRequest(players[0], _10_000, BigInteger.ZERO, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[1], _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(players[1], _10_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[0], _10_000, BigInteger.ONE, classpath, GET_BALANCE, players[0]));
+			(new InstanceMethodCallTransactionRequest(players[0], _10_000, BigInteger.ZERO, classpath, GET_BALANCE, players[0]));
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
 	void threeInvestors() throws TransactionException, CodeExecutionException {
 		StorageReference pyramid = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(players[0], _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
+			(new ConstructorCallTransactionRequest(players[0], _10_000, BigInteger.ZERO, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[1], _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(players[1], _10_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[2], _20_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
+			(new InstanceMethodCallTransactionRequest(players[2], _20_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT));
 		BigIntegerValue balance0 = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(players[0], _10_000, BigInteger.ONE, classpath, GET_BALANCE, players[0]));
-		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) > 0);
+			(new InstanceMethodCallTransactionRequest(players[0], _10_000, BigInteger.ZERO, classpath, GET_BALANCE, players[0]));
+		assertTrue(balance0.value.compareTo(BigInteger.valueOf(201_000)) >= 0);
 	}
 }

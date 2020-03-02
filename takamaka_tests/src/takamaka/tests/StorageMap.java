@@ -8,7 +8,6 @@ import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Random;
 
@@ -18,11 +17,8 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -35,7 +31,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.hotmoka.nodes.SequentialNode;
 import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
@@ -60,7 +55,7 @@ class StorageMap extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private SequentialNode blockchain;
+	private MemoryBlockchain blockchain;
 
 	/**
 	 * The first object, that holds all funds initially.
@@ -74,12 +69,9 @@ class StorageMap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("chain"));
-
-		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"))));
-		classpath = new Classpath(takamaka_base, false);  // true/false irrelevant here
-
-		gamete = blockchain.addGameteCreationTransaction(new GameteCreationTransactionRequest(classpath, ALL_FUNDS));
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		classpath = blockchain.takamakaCode();
+		gamete = blockchain.account(0);
 	}
 
 	@Test @DisplayName("new StorageMap()")

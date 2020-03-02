@@ -27,7 +27,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the creation of classes with the same name but from different jars.
@@ -47,7 +47,7 @@ class ClassSwap extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	/**
 	 * The only account of the blockchain.
@@ -66,7 +66,7 @@ class ClassSwap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
 		gamete = blockchain.account(0);
 
 		TransactionReference c13 = blockchain.addJarStoreTransaction

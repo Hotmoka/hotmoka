@@ -17,7 +17,7 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 class LegalCall5 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
@@ -26,11 +26,11 @@ class LegalCall5 {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")

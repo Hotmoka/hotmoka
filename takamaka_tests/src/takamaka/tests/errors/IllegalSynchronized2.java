@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 import io.takamaka.code.verification.issues.IllegalSynchronizationError;
 import takamaka.tests.TakamakaTest;
 
@@ -26,11 +26,11 @@ class IllegalSynchronized2 extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")

@@ -17,9 +17,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -43,17 +41,10 @@ class Purchase extends TakamakaTest {
 
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
-	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000_000L);
-
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
 	private MemoryBlockchain blockchain;
-
-	/**
-	 * The first object, that holds all funds initially.
-	 */
-	private StorageReference gamete;
 
 	/**
 	 * The seller contract.
@@ -72,24 +63,16 @@ class Purchase extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("chain"));
-
-		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"))));
-		Classpath takamakaBase = new Classpath(takamaka_base, false);  // true/false irrelevant here
-
-		gamete = blockchain.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaBase, ALL_FUNDS));
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
+			BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
+		seller = blockchain.account(0);
+		buyer = blockchain.account(1);
 
 		TransactionReference purchase = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/purchase.jar")), takamakaBase));
+			(new JarStoreTransactionRequest(seller, _20_000, BigInteger.ONE, blockchain.takamakaCode(),
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/purchase.jar")), blockchain.takamakaCode()));
 
 		classpath = new Classpath(purchase, true);
-
-		seller = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(100_000_000)));
-
-		buyer = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(100_000_000)));
 	}
 
 	@Test @DisplayName("new Purchase(21)")

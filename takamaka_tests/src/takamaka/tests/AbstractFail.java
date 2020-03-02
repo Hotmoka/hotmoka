@@ -26,7 +26,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the remote purchase contract.
@@ -43,7 +43,7 @@ class AbstractFail extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	/**
 	 * The classpath of the classes being tested.
@@ -52,7 +52,7 @@ class AbstractFail extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
 			_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
 
 		TransactionReference abstractfail = blockchain.addJarStoreTransaction

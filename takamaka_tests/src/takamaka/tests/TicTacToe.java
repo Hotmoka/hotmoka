@@ -31,7 +31,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the remote purchase contract.
@@ -53,7 +53,7 @@ class TicTacToe extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	/**
 	 * The creator of the game.
@@ -77,7 +77,7 @@ class TicTacToe extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
 			_1_000_000_000, BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
 
 		TransactionReference tictactoe = blockchain.addJarStoreTransaction

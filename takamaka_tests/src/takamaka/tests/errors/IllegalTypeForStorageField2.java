@@ -22,7 +22,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.EnumValue;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 class IllegalTypeForStorageField2 extends TakamakaTest {
@@ -32,11 +32,11 @@ class IllegalTypeForStorageField2 extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
 	}
 
 	@Test @DisplayName("store mutable enum into Object")

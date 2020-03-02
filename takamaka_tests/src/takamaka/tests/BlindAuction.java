@@ -38,7 +38,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the blind auction contract.
@@ -95,7 +95,7 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private InitializedMemoryBlockchain blockchain;
+	private MemoryBlockchain blockchain;
 
 	/**
 	 * The classpath of the classes being tested.
@@ -110,7 +110,7 @@ class BlindAuction extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		digest = MessageDigest.getInstance("SHA-256");
-		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
 
 		TransactionReference auctions = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _10_000_000, BigInteger.ONE, blockchain.takamakaCode(),

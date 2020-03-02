@@ -21,9 +21,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -88,27 +86,18 @@ class CrowdFunding extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("chain"));
-
-		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"))));
-		Classpath takamakaBase = new Classpath(takamaka_base, false);  // true/false irrelevant here
-
-		gamete = blockchain.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaBase, ALL_FUNDS));
+		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS,
+				BigInteger.ZERO, BigInteger.valueOf(10_000_000L), BigInteger.valueOf(10_000_000L));
+		gamete = blockchain.account(0);
+		beneficiary = blockchain.account(1);
+		funder1 = blockchain.account(2);
+		funder2 = blockchain.account(3);
 
 		TransactionReference crowdfunding = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/crowdfunding.jar")), takamakaBase));
+			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, blockchain.takamakaCode(),
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/crowdfunding.jar")), blockchain.takamakaCode()));
 
 		classpath = new Classpath(crowdfunding, true);
-
-		beneficiary = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
-
-		funder1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10_000_000)));
-
-		funder2 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _10_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, INT), new IntValue(10_000_000)));
 
 		crowdFunding = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_CROWD_FUNDING));
