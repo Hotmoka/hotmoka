@@ -20,9 +20,9 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.EnumValue;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.memory.MemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 class IllegalTypeForStorageField2 extends TakamakaTest {

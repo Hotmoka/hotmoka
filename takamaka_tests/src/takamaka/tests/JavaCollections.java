@@ -21,9 +21,9 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.NonWhiteListedCallException;
-import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the Java HashMap class.

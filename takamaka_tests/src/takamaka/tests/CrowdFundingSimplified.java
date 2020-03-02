@@ -29,8 +29,8 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the simplified crowd funding contract.

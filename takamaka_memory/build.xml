@@ -1,6 +1,6 @@
 <project name="takamaka_memory" default="dist" basedir=".">
   <description>
-    Compiles the Takamaka memory module
+    Compiles the HotMoka memory module
   </description>
 
   <property name="src" location="src"/>
@@ -35,13 +35,13 @@
   </target>
 
   <target name="dist" depends="compile" description="generate the distribution">
-    <jar jarfile="${dist}/io-takamaka-code-memory-${version}.jar" basedir="${build}"/>
+    <jar jarfile="${dist}/io-hotmoka-memory-${version}.jar" basedir="${build}"/>
   </target>
 
   <target name="dist Java 8" depends="compile Java 8" description="generate the distribution">
-	<jar jarfile="${dist}/io-takamaka-code-memory-${version}.jar" basedir="${build}">
+	<jar jarfile="${dist}/io-hotmoka-memory-${version}.jar" basedir="${build}">
 		<manifest>
-			<attribute name="Automatic-Module-Name" value = "io.takamaka.code.memory" />
+			<attribute name="Automatic-Module-Name" value = "io.hotmoka.memory" />
 		</manifest>
   	</jar>
   </target>

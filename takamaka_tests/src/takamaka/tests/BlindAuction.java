@@ -36,9 +36,9 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the blind auction contract.

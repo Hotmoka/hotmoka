@@ -30,9 +30,9 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for a class that uses lambda expressions referring to entries.

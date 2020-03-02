@@ -23,8 +23,8 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.MemoryBlockchain;
 
 class LegalCall4 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);

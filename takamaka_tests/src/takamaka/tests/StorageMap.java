@@ -30,8 +30,8 @@ import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the storage map Takamaka class.

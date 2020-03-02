@@ -25,8 +25,8 @@ import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * A test for the remote purchase contract.

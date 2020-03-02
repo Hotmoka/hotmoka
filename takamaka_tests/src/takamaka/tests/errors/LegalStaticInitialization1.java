@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.MemoryBlockchain;
 
 class LegalStaticInitialization1 {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);

@@ -1,4 +1,4 @@
-package io.takamaka.code.memory.internal;
+package io.hotmoka.memory.internal;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -12,8 +12,8 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -33,7 +33,7 @@ public class MemoryBlockchainImpl extends AbstractMemoryBlockchain implements Me
 	 * Builds a blockchain in disk memory and initializes user accounts with the given initial funds.
 	 * 
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
-	 *                         installed in blockchain and will be available later as {@link io.takamaka.code.memory.MemoryBlockchain#takamakaCode}
+	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
 	 * @param funds the initial funds of the accounts that are created
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails

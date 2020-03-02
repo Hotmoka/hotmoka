@@ -1,4 +1,4 @@
-package io.takamaka.code.memory.internal;
+package io.hotmoka.memory.internal;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -13,8 +13,8 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.memory.RedGreenMemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.memory.RedGreenMemoryBlockchain;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -33,7 +33,7 @@ public class RedGreenMemoryBlockchainImpl extends AbstractMemoryBlockchain imple
 	 * Builds a blockchain in disk memory and initializes user accounts with the given initial funds.
 	 * 
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
-	 *                         installed in blockchain and will be available later as {@link io.takamaka.code.memory.RedGreenMemoryBlockchain#takamakaCode()}
+	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.RedGreenMemoryBlockchain#takamakaCode()}
 	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
 	 *              initial funds of each account (green before red)
 	 * @throws IOException if a disk error occurs

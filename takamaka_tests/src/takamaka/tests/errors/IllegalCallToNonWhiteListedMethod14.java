@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.NonWhiteListedCallException;
-import io.takamaka.code.memory.MemoryBlockchain;
 import takamaka.tests.TakamakaTest;
 
 class IllegalCallToNonWhiteListedMethod14 extends TakamakaTest {

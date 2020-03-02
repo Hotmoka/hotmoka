@@ -12,7 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.takamaka.code.memory.MemoryBlockchain;
+import io.hotmoka.memory.MemoryBlockchain;
 import io.takamaka.code.verification.issues.IllegalCallToEntryError;
 import takamaka.tests.TakamakaTest;
 
