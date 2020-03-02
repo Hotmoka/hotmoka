@@ -25,14 +25,14 @@ class IllegalCallToNonWhiteListedMethod14 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
 	}
 
 	@Test @DisplayName("new Random()")
 	void testNonWhiteListedCall() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
+				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				new ConstructorSignature(Random.class.getName())))
 		);
 	}

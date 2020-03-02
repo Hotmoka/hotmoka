@@ -1,16 +1,17 @@
-package io.takamaka.code.memory;
+package io.takamaka.code.memory.internal;
 
 import java.math.BigInteger;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.takamaka.code.engine.SequentialTransactionReference;
+import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
  * In the disk memory representation of a blockchain, a transaction can be
  * uniquely identified by a pair block/transaction inside the block. A progressive
  * identifier would also be fine.
  */
-final class MemoryTransactionReference implements SequentialTransactionReference {
+class MemoryTransactionReference implements SequentialTransactionReference {
 
 	private static final long serialVersionUID = 5911713300386882185L;
 
@@ -81,12 +82,25 @@ final class MemoryTransactionReference implements SequentialTransactionReference
 			return new MemoryTransactionReference(blockNumber, (short) (transactionNumber - 1));
 	}
 
+	@Override
+	public int compareTo(TransactionReference other) {
+		// this transaction reference is created by the memory blockchain only, that
+		// generates only this kind of transaction references. Hence this cast must succeed
+		MemoryTransactionReference otherAsTR = (MemoryTransactionReference) other;
+	
+		int diff = blockNumber.compareTo(otherAsTR.blockNumber);
+		if (diff != 0)
+			return diff;
+		else
+			return transactionNumber - otherAsTR.transactionNumber;
+	}
+
 	/**
 	 * Yields the reference to the transaction that follows this one.
 	 * 
 	 * @return the next transaction reference
 	 */
-	protected MemoryTransactionReference getNext() {
+	MemoryTransactionReference getNext() {
 		if (isLastInBlock())
 			return new MemoryTransactionReference(blockNumber.add(BigInteger.ONE), (short) 0);
 		else
@@ -98,20 +112,7 @@ final class MemoryTransactionReference implements SequentialTransactionReference
 	 * 
 	 * @return true if and only if this transaction is the last in its block
 	 */
-	protected boolean isLastInBlock() {
+	boolean isLastInBlock() {
 		return transactionNumber + 1 == MemoryBlockchain.TRANSACTIONS_PER_BLOCK;
-	}
-
-	@Override
-	public int compareTo(TransactionReference other) {
-		// this transaction reference is created by the memory blockchain only, that
-		// generates only this kind of transaction references. Hence this cast must succeed
-		MemoryTransactionReference otherAsTR = (MemoryTransactionReference) other;
-
-		int diff = blockNumber.compareTo(otherAsTR.blockNumber);
-		if (diff != 0)
-			return diff;
-		else
-			return transactionNumber - otherAsTR.transactionNumber;
 	}
 }

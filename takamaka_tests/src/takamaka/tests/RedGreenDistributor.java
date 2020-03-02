@@ -47,7 +47,7 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedRedGreenMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
+		blockchain = InitializedRedGreenMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"),
 			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // green/red of first account
 			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of second account
 			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of third account
@@ -56,8 +56,8 @@ class RedGreenDistributor extends TakamakaTest {
 		);
 
 		TransactionReference distributor = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/redgreendistributor.jar")), blockchain.takamakaBase));
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/redgreendistributor.jar")), blockchain.takamakaCode()));
 
 		classpath = new Classpath(distributor, true);
 	}

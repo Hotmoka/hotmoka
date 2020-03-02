@@ -32,18 +32,18 @@ public class IllegalCallToNonWhiteListedMethod13 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
 	}
 
 	@Test @DisplayName("call with argument that does not redefine hashCode")
 	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException {
 		StorageReference eoa = blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
+				(new ConstructorCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				new ConstructorSignature(ClassType.EOA)));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			blockchain.addStaticMethodCallTransaction
-				(new StaticMethodCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
+				(new StaticMethodCallTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				new VoidMethodSignature(IllegalCallToNonWhiteListedMethod13.class.getName(), "callee", ClassType.OBJECT),
 				eoa))
 		);

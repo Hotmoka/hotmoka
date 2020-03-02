@@ -66,16 +66,16 @@ class ClassSwap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
 		gamete = blockchain.account(0);
 
 		TransactionReference c13 = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("jars/c13.jar")), blockchain.takamakaBase));
+			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, blockchain.takamakaCode(),
+			Files.readAllBytes(Paths.get("jars/c13.jar")), blockchain.takamakaCode()));
 
 		TransactionReference c17 = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("jars/c17.jar")), blockchain.takamakaBase));
+			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, blockchain.takamakaCode(),
+			Files.readAllBytes(Paths.get("jars/c17.jar")), blockchain.takamakaCode()));
 
 		classpathC13 = new Classpath(c13, true);
 		classpathC17 = new Classpath(c17, true);

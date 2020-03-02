@@ -36,14 +36,14 @@ class IllegalTypeForStorageField2 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
 	}
 
 	@Test @DisplayName("store mutable enum into Object")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
-				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
-				Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegaltypeforstoragefield2.jar")), blockchain.takamakaBase));
+				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
+				Files.readAllBytes(Paths.get("../takamaka_examples/dist/illegaltypeforstoragefield2.jar")), blockchain.takamakaCode()));
 		Classpath classpath = new Classpath(jar, true);
 
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->

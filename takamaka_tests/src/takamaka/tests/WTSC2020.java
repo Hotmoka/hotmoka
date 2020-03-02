@@ -70,12 +70,12 @@ class WTSC2020 extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// create a RAM simulation of a blockchain with 4 initial accounts
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _20_000_000, _20_000_000, _20_000_000, _20_000_000);
+		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _20_000_000, _20_000_000, _20_000_000, _20_000_000);
 
 		// store the jar of our test in blockchain
 		TransactionReference jar = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(3), _20_000, BigInteger.ONE, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/wtsc2020.jar")), blockchain.takamakaBase));
+			(new JarStoreTransactionRequest(blockchain.account(3), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/wtsc2020.jar")), blockchain.takamakaCode()));
 
 		classpath = new Classpath(jar, true);
 	}

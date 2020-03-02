@@ -34,7 +34,6 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.engine.AbstractSequentialNode;
 import io.takamaka.code.memory.MemoryBlockchain;
 
 /**
@@ -55,7 +54,7 @@ class CrowdFunding extends TakamakaTest {
 	/**
 	 * The blockchain under test. This is recreated before each test.
 	 */
-	private AbstractSequentialNode blockchain;
+	private MemoryBlockchain blockchain;
 
 	/**
 	 * The first object, that holds all funds initially.
@@ -89,7 +88,7 @@ class CrowdFunding extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new MemoryBlockchain(Paths.get("chain"));
+		blockchain = MemoryBlockchain.of(Paths.get("chain"));
 
 		TransactionReference takamaka_base = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"))));
 		Classpath takamakaBase = new Classpath(takamaka_base, false);  // true/false irrelevant here

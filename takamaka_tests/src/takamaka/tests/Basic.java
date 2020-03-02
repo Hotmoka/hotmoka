@@ -86,15 +86,15 @@ class Basic extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), ALL_FUNDS);
 		master = blockchain.account(0);
 
 		TransactionReference basicdependency = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(master, BigInteger.valueOf(10000), BigInteger.ONE, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/basicdependency.jar")), blockchain.takamakaBase));
+			(new JarStoreTransactionRequest(master, BigInteger.valueOf(10000), BigInteger.ONE, blockchain.takamakaCode(),
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/basicdependency.jar")), blockchain.takamakaCode()));
 
 		TransactionReference basic = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(master, BigInteger.valueOf(10000), BigInteger.ONE, blockchain.takamakaBase,
+			(new JarStoreTransactionRequest(master, BigInteger.valueOf(10000), BigInteger.ONE, blockchain.takamakaCode(),
 			Files.readAllBytes(Paths.get("../takamaka_examples/dist/basic.jar")), new Classpath(basicdependency, true))); // true relevant here
 
 		classpath = new Classpath(basic, true);

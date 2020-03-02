@@ -34,14 +34,14 @@ class LegalCall3 {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
 	}
 
 	@Test @DisplayName("C.test() == false")
 	void callTest() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall3.jar")), blockchain.takamakaBase));
+			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
+			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall3.jar")), blockchain.takamakaCode()));
 
 		BooleanValue result = (BooleanValue) blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
 				(blockchain.account(0), _20_000, BigInteger.ONE, new Classpath(jar, true),

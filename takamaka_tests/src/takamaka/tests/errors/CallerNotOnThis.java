@@ -27,15 +27,15 @@ class CallerNotOnThis extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = new InitializedMemoryBlockchain(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = InitializedMemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationExceptionWithCause(CallerNotOnThisError.class, () ->
 			blockchain.addJarStoreTransaction
-				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaBase,
-				Files.readAllBytes(Paths.get("../takamaka_examples/dist/callernotonthis.jar")), blockchain.takamakaBase))
+				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
+				Files.readAllBytes(Paths.get("../takamaka_examples/dist/callernotonthis.jar")), blockchain.takamakaCode()))
 		);
 	}
 }
