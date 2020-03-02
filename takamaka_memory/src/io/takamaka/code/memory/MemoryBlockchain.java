@@ -7,11 +7,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.TimeZone;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -24,6 +29,7 @@ import io.takamaka.code.engine.Transaction;
  * An implementation of a blockchain that stores transactions in a directory
  * on disk memory. It is only meant for experimentation and testing. It is not
  * really a blockchain, since there is no peer-to-peer network, nor mining.
+ * Updates are stored inside the blocks, rather than in an external database.
  */
 public class MemoryBlockchain extends AbstractSequentialNode {
 
@@ -63,7 +69,7 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 	protected final static short TRANSACTIONS_PER_BLOCK = 5;
 
 	/**
-	 * The root path where transaction are stored.
+	 * The root path where the blocks are stored.
 	 */
 	private final Path root;
 
@@ -82,18 +88,15 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 	public MemoryBlockchain(Path root) throws IOException {
 		ensureDeleted(root);  // cleans the directory where the blockchain lives
 		Files.createDirectories(root);
-
 		this.root = root;
-
 		createHeaderOfBlock(BigInteger.ZERO);
 	}
 
 	@Override
 	public long getNow() throws Exception {
-		// we access the block header where the transaction would occur
-		MemoryTransactionReference previous = topmost;
-		if (previous != null) {
-			MemoryTransactionReference next = previous.getNext();
+		// we access the block header where the transaction would be added
+		if (topmost != null) {
+			MemoryTransactionReference next = topmost.getNext();
 			Path headerPath = getPathInBlockFor(next.blockNumber, HEADER_NAME);
 			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(headerPath)))) {
 				MemoryBlockHeader header = (MemoryBlockHeader) in.readObject();
@@ -101,7 +104,7 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 			}
 		}
 		else
-			// the first transaction does not use the time anyway
+			// the first transaction does not use the time anyway, since it can only be the installation of a jar
 			return 0L;
 	}
 
@@ -124,8 +127,9 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 	protected <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandStoreWith(Transaction<Request, Response> transaction) throws Exception {
 		MemoryTransactionReference next = (MemoryTransactionReference) getNextTransaction();
 		Path requestPath = getPathFor(next, REQUEST_NAME);
-		ensureDeleted(requestPath.getParent());
-		Files.createDirectories(requestPath.getParent());
+		Path parent = requestPath.getParent();
+		ensureDeleted(parent);
+		Files.createDirectories(parent);
 
 		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(requestPath)))) {
 			os.writeObject(transaction.getRequest());
@@ -150,12 +154,18 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 		return next;
 	}
 
+	/**
+	 * Creates the header of the given block.
+	 * 
+	 * @param blockNumber the number of the block
+	 * @throws IOException if the header cannot be created
+	 */
 	private void createHeaderOfBlock(BigInteger blockNumber) throws IOException {
 		Path headerPath = getPathInBlockFor(blockNumber, HEADER_NAME);
 		ensureDeleted(headerPath.getParent());
 		Files.createDirectories(headerPath.getParent());
 
-		MemoryBlockHeader header = new MemoryBlockHeader(System.currentTimeMillis());
+		MemoryBlockHeader header = new MemoryBlockHeader();
 
 		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(headerPath)))) {
 			os.writeObject(header);
@@ -215,5 +225,36 @@ public class MemoryBlockchain extends AbstractSequentialNode {
 				.sorted(Comparator.reverseOrder())
 				.map(Path::toFile)
 				.forEach(File::delete);
+	}
+
+	/**
+	 * The header of a block. It contains the time that must be used
+	 * as {@code now} by the transactions that will be added to the block.
+	 */
+	private static class MemoryBlockHeader implements Serializable {
+		private static final long serialVersionUID = 6163345302977772036L;
+		private final static DateFormat formatter;
+
+		static {
+			formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
+			formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+		}
+
+		/**
+		 * The time of creation of the block, as returned by {@link java.lang.System#currentTimeMillis()}.
+		 */
+		private final long time;
+
+		/**
+		 * Builds block header.
+		 */
+		private MemoryBlockHeader() {
+			this.time = System.currentTimeMillis();
+		}
+
+		@Override
+		public String toString() {
+			return "block creation time: " + time + " [" + formatter.format(new Date(time)) + " UTC]";
+		}
 	}
 }
