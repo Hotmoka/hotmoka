@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.internal;
+package io.takamaka.code.engine.internal.runtime;
 
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
@@ -8,6 +8,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.OutOfGasError;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 import io.takamaka.code.engine.internal.transactions.TransactionBuilder;
 import io.takamaka.code.whitelisting.WhiteListingPredicate;
@@ -16,7 +17,9 @@ import io.takamaka.code.whitelisting.WhiteListingPredicate;
  * A class that contains utility methods called by instrumented
  * Takamaka code stored in a node. This class is not installed in
  * the node's store, hence it is not visible to Takamaka programmers
- * and needn't obey to Takamaka code constraints.
+ * and needn't obey to Takamaka code constraints. It is only visible
+ * at run time, since its package is opened by the module-info descriptor
+ * of this module.
  */
 public abstract class Runtime {
 

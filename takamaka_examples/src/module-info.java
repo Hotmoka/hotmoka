@@ -1,3 +1,3 @@
-module io.takamaka.code.instrumentation {
+module io.takamaka.examples {
 	requires io.takamaka.code;
 }

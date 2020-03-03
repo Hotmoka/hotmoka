@@ -8,9 +8,9 @@ import static io.takamaka.code.verification.VerifiedClass.FORBIDDEN_PREFIX;
 public interface InstrumentationConstants {
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.engine.Runtime}.
+	 * The name of the class type for {@link io.takamaka.code.engine.internal.runtime.Runtime}.
 	 */
-	public final static String RUNTIME_NAME = "io.takamaka.code.engine.internal.Runtime";
+	public final static String RUNTIME_NAME = "io.takamaka.code.engine.internal.runtime.Runtime";
 
 	/**
 	 * The name of the instrumented field of storage objects that holds their storage reference.
