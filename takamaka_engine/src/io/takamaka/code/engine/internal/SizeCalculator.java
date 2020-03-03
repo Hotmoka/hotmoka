@@ -92,36 +92,36 @@ public class SizeCalculator {
 	 * @param request the request
 	 * @return the size
 	 */
-	public BigInteger sizeOf(NonInitialTransactionRequest<?> request) {
+	public BigInteger sizeOfRequest(NonInitialTransactionRequest<?> request) {
 		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		if (request instanceof ConstructorCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(sizeOf(request.caller))
-				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
-				.add(((ConstructorCallTransactionRequest) request).actuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
+				.add(sizeOfValue(request.caller))
+				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOfClasspath(request.classpath))
+				.add(((ConstructorCallTransactionRequest) request).actuals().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
 		else if (request instanceof InstanceMethodCallTransactionRequest) {
 			InstanceMethodCallTransactionRequest instanceMethodCallTransactionRequest = (InstanceMethodCallTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(sizeOf(request.caller))
-				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
-				.add(sizeOf(instanceMethodCallTransactionRequest.method))
-				.add(sizeOf(instanceMethodCallTransactionRequest.receiver))
-				.add(instanceMethodCallTransactionRequest.actuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
+				.add(sizeOfValue(request.caller))
+				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOfClasspath(request.classpath))
+				.add(sizeOfCodeSignature(instanceMethodCallTransactionRequest.method))
+				.add(sizeOfValue(instanceMethodCallTransactionRequest.receiver))
+				.add(instanceMethodCallTransactionRequest.actuals().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
 		}
 		else if (request instanceof StaticMethodCallTransactionRequest) {
 			StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = (StaticMethodCallTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(sizeOf(request.caller))
-				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
-				.add(sizeOf(staticMethodCallTransactionRequest.method))
-				.add(staticMethodCallTransactionRequest.actuals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
+				.add(sizeOfValue(request.caller))
+				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOfClasspath(request.classpath))
+				.add(sizeOfCodeSignature(staticMethodCallTransactionRequest.method))
+				.add(staticMethodCallTransactionRequest.actuals().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
 		}
 		else if (request instanceof JarStoreTransactionRequest) {
 			JarStoreTransactionRequest jarStoreTransactionRequest = (JarStoreTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(sizeOf(request.caller)).add(gasCostModel.storageCostOf(request.gas)).add(sizeOf(request.classpath))
-				.add(jarStoreTransactionRequest.getDependencies().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add))
+				.add(sizeOfValue(request.caller)).add(gasCostModel.storageCostOf(request.gas)).add(sizeOfClasspath(request.classpath))
+				.add(jarStoreTransactionRequest.getDependencies().map(this::sizeOfClasspath).reduce(BigInteger.ZERO, BigInteger::add))
 				.add(gasCostModel.storageCostOfJar(jarStoreTransactionRequest.getJarLength()));
 		}
 		else
@@ -134,7 +134,7 @@ public class SizeCalculator {
 	 * @param response the response
 	 * @return the size
 	 */
-	public BigInteger sizeOf(NonInitialTransactionResponse response) {
+	public BigInteger sizeOfResponse(NonInitialTransactionResponse response) {
 		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot());
@@ -148,18 +148,18 @@ public class SizeCalculator {
 		}
 
 		if (response instanceof TransactionResponseWithUpdates)
-			size = size.add(((TransactionResponseWithUpdates) response).getUpdates().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
+			size = size.add(((TransactionResponseWithUpdates) response).getUpdates().map(this::sizeOfUpdate).reduce(BigInteger.ZERO, BigInteger::add));
 
 		if (response instanceof TransactionResponseFailed)
 			size = size.add(gasCostModel.storageCostOf(((TransactionResponseFailed) response).gasConsumedForPenalty()));
 
 		if (response instanceof TransactionResponseWithEvents)
-			size = size.add(((TransactionResponseWithEvents) response).getEvents().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
+			size = size.add(((TransactionResponseWithEvents) response).getEvents().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
 
 		if (response instanceof ConstructorCallTransactionSuccessfulResponse)
-			return size.add(sizeOf(((ConstructorCallTransactionSuccessfulResponse) response).newObject));
+			return size.add(sizeOfValue(((ConstructorCallTransactionSuccessfulResponse) response).newObject));
 		else if (response instanceof MethodCallTransactionSuccessfulResponse)
-			return size.add(sizeOf(((MethodCallTransactionSuccessfulResponse) response).result));
+			return size.add(sizeOfValue(((MethodCallTransactionSuccessfulResponse) response).result));
 		else if (response instanceof JarStoreTransactionSuccessfulResponse)
 			return size.add(gasCostModel.storageCostOfJar(((JarStoreTransactionSuccessfulResponse) response).getInstrumentedJarLength()));
 		else if (response instanceof ConstructorCallTransactionExceptionResponse) {
@@ -193,7 +193,7 @@ public class SizeCalculator {
 	 * @param classpath the classpath
 	 * @return the size
 	 */
-	public BigInteger sizeOf(Classpath classpath) {
+	public BigInteger sizeOfClasspath(Classpath classpath) {
 		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
@@ -207,11 +207,11 @@ public class SizeCalculator {
 	 * @param field the field
 	 * @return the size
 	 */
-	public BigInteger sizeOf(FieldSignature field) {
+	public BigInteger sizeOfFieldSignature(FieldSignature field) {
 		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(sizeOf(field.definingClass))
-			.add(gasCostModel.storageCostOf(field.name)).add(sizeOf(field.type));
+		return BigInteger.valueOf(gasCostModel.storageCostPerSlot()).add(sizeOfType(field.definingClass))
+			.add(gasCostModel.storageCostOf(field.name)).add(sizeOfType(field.type));
 	}
 
 	/**
@@ -220,12 +220,12 @@ public class SizeCalculator {
 	 * @param methodOrConstructor the method or constructor
 	 * @return the size
 	 */
-	public BigInteger sizeOf(CodeSignature methodOrConstructor) {
+	public BigInteger sizeOfCodeSignature(CodeSignature methodOrConstructor) {
 		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot())
-			.add(sizeOf(methodOrConstructor.definingClass))
-			.add(methodOrConstructor.formals().map(this::sizeOf).reduce(BigInteger.ZERO, BigInteger::add));
+			.add(sizeOfType(methodOrConstructor.definingClass))
+			.add(methodOrConstructor.formals().map(this::sizeOfType).reduce(BigInteger.ZERO, BigInteger::add));
 
 		if (methodOrConstructor instanceof ConstructorSignature)
 			return size;
@@ -233,7 +233,7 @@ public class SizeCalculator {
 			return size.add(gasCostModel.storageCostOf(((VoidMethodSignature) methodOrConstructor).methodName));
 		else if (methodOrConstructor instanceof NonVoidMethodSignature) {
 			NonVoidMethodSignature method = (NonVoidMethodSignature) methodOrConstructor;
-			return size.add(gasCostModel.storageCostOf(method.methodName)).add(sizeOf(method.returnType));
+			return size.add(gasCostModel.storageCostOf(method.methodName)).add(sizeOfType(method.returnType));
 		}
 		else
 			throw new IllegalArgumentException("unexpected code signature");
@@ -245,7 +245,7 @@ public class SizeCalculator {
 	 * @param type the type
 	 * @return the size
 	 */
-	public BigInteger sizeOf(StorageType type) {
+	public BigInteger sizeOfType(StorageType type) {
 		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		if (type instanceof BasicTypes)
@@ -264,7 +264,7 @@ public class SizeCalculator {
 	 * @param value the value
 	 * @return the size
 	 */
-	public BigInteger sizeOf(StorageValue value) {
+	public BigInteger sizeOfValue(StorageValue value) {
 		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
 		BigInteger size = BigInteger.valueOf(gasCostModel.storageCostPerSlot());
@@ -296,10 +296,10 @@ public class SizeCalculator {
 	 * @param update the update
 	 * @return the size
 	 */
-	public BigInteger sizeOf(Update update) {
+	public BigInteger sizeOfUpdate(Update update) {
 		GasCostModel gasCostModel = builder.node.getGasCostModel();
 
-		BigInteger size = sizeOf(update.object);
+		BigInteger size = sizeOfValue(update.object);
 
 		if (update instanceof ClassTag) {
 			ClassTag ct = (ClassTag) update;
@@ -310,7 +310,7 @@ public class SizeCalculator {
 		else if (update instanceof UpdateOfRedBalance)
 			return size.add(gasCostModel.storageCostOf(((UpdateOfRedBalance) update).balanceRed));
 
-		size = size.add(sizeOf(((AbstractUpdateOfField) update).field));
+		size = size.add(sizeOfFieldSignature(((AbstractUpdateOfField) update).field));
 		if (update instanceof UpdateOfBigInteger)
 			return size.add(gasCostModel.storageCostOf(((UpdateOfBigInteger) update).value));
 		else if (update instanceof UpdateOfBoolean || update instanceof UpdateOfByte ||
@@ -331,7 +331,7 @@ public class SizeCalculator {
 		else if (update instanceof UpdateOfString)
 			return size.add(gasCostModel.storageCostOf(((UpdateOfString) update).value));
 		else if (update instanceof UpdateOfStorage)
-			return size.add(sizeOf(((UpdateOfStorage) update).value));
+			return size.add(sizeOfValue(((UpdateOfStorage) update).value));
 		else
 			throw new IllegalArgumentException("unexpected update");
 	}

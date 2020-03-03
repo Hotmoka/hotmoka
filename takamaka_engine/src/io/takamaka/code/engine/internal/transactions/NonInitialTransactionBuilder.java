@@ -153,7 +153,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @param request the request
 	 */
 	protected final void chargeForStorage(Request request) {
-		chargeForStorage(sizeCalculator.sizeOf(request));
+		chargeForStorage(sizeCalculator.sizeOfRequest(request));
 	}
 
 	/**
@@ -162,7 +162,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @param response the response
 	 */
 	protected final void chargeForStorage(Response response) {
-		chargeForStorage(sizeCalculator.sizeOf(response));
+		chargeForStorage(sizeCalculator.sizeOfResponse(response));
 	}
 
 	/**
@@ -204,15 +204,15 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 */
 	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request, UpdateOfBalance balanceUpdateInCaseOfFailure) {
 		// we create a response whose size over-approximates that of a response in case of failure of this request
-		BigInteger result = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOf(request));
+		BigInteger result = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOfRequest(request));
 		if (request instanceof ConstructorCallTransactionRequest)
-			return result.add(sizeCalculator.sizeOf(new ConstructorCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else if (request instanceof InstanceMethodCallTransactionRequest)
-			return result.add(sizeCalculator.sizeOf(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else if (request instanceof StaticMethodCallTransactionRequest)
-			return result.add(sizeCalculator.sizeOf(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else if (request instanceof JarStoreTransactionRequest)
-			return result.add(sizeCalculator.sizeOf(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOfResponse(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
 		else
 			throw new IllegalStateException("unexpected transaction request");
 	}
