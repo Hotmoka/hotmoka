@@ -3,7 +3,6 @@ package io.hotmoka.memory.internal;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.memory.MemoryBlockchain;
 import io.takamaka.code.engine.SequentialTransactionReference;
 
 /**
@@ -77,7 +76,7 @@ class MemoryTransactionReference implements SequentialTransactionReference {
 			if (blockNumber.signum() == 0)
 				return null;
 			else
-				return new MemoryTransactionReference(blockNumber.subtract(BigInteger.ONE), (short) (MemoryBlockchain.TRANSACTIONS_PER_BLOCK - 1));
+				return new MemoryTransactionReference(blockNumber.subtract(BigInteger.ONE), (short) (AbstractMemoryBlockchain.TRANSACTIONS_PER_BLOCK - 1));
 		else
 			return new MemoryTransactionReference(blockNumber, (short) (transactionNumber - 1));
 	}
@@ -113,6 +112,6 @@ class MemoryTransactionReference implements SequentialTransactionReference {
 	 * @return true if and only if this transaction is the last in its block
 	 */
 	boolean isLastInBlock() {
-		return transactionNumber + 1 == MemoryBlockchain.TRANSACTIONS_PER_BLOCK;
+		return transactionNumber + 1 == AbstractMemoryBlockchain.TRANSACTIONS_PER_BLOCK;
 	}
 }

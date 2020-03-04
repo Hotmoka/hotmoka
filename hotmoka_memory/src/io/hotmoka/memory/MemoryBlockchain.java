@@ -35,11 +35,6 @@ public interface MemoryBlockchain extends SequentialNode {
 	}
 
 	/**
-	 * The number of transactions that fit inside a block.
-	 */
-	final static int TRANSACTIONS_PER_BLOCK = 5;
-
-	/**
 	 * Yields the reference, in the blockchain, where the base Takamaka classes have been installed.
 	 */
 	Classpath takamakaCode();

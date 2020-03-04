@@ -67,6 +67,11 @@ public abstract class AbstractMemoryBlockchain extends AbstractSequentialNode {
 	private final static Path RESPONSE_TXT_NAME = Paths.get("response.txt");
 
 	/**
+	 * The number of transactions that fit inside a block.
+	 */
+	public final static int TRANSACTIONS_PER_BLOCK = 5;
+
+	/**
 	 * The root path where the blocks are stored.
 	 */
 	private final Path root;
