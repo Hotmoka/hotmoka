@@ -1,5 +1,3 @@
-[TOC]
-
 # Takamaka: Smart Contracts in Java
 
 Takamaka is a Java framework for writing smart contracts.
@@ -1470,7 +1468,7 @@ means reducing the size of the blockchain. Hence, the withdrawing pattern is bot
 useless in Takamaka and more expensive than paying back previous contracts
 immediately.
 
-## Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
+### Running the Gradual Ponzi Contract <a name="running-the-gradual-ponzi-contract"></a>
 
 Let us play with the `GradualPonzi` contract. Go to the
 `ponzi` Eclipse project and copy `GradualPonzi.java` inside
@@ -1881,7 +1879,7 @@ public @View String toString() {
 }
 ```
 
-## A More Realistic Tic-Tac-Toe Contract <a name="a-more-realistic-tic-tac-toe-contract"></a>
+### A More Realistic Tic-Tac-Toe Contract <a name="a-more-realistic-tic-tac-toe-contract"></a>
 
 The `TicTacToe.java` code implements the rules of a tic-tac-toe game, but has
 a couple of drawbacks that make it still incomplete. Namely:
@@ -2046,7 +2044,7 @@ public class TicTacToe extends Contract {
 > 209/10*9=20*9=180.
 > ```
 
-## Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
+### Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
 
 Let us play with the `TicTacToe` contract. First of all, we need a jar
 that contains the compiled code of the contract. For that, as already
@@ -2256,7 +2254,7 @@ and of the first player `0.3#0` are updated,
 as well as that of the contract `1.1#0`, that is emptied of all money and
 reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
 
-## Specialized Storage Array Classes <a name="specialized-storage-array-classes">
+### Specialized Storage Array Classes <a name="specialized-storage-array-classes">
 
 The `StorageArray` class is very general, as it can be used to hold
 any type of storage values. Since it uses generics,
@@ -2301,7 +2299,7 @@ There are sibling classes for different, fixed sizes, such as
 `Bytes64` and `MutableBytes8`. For a full description of the methods
 of these classes and interfaces, we refer to their JavaDoc.
 
-# Storage Maps <a name="storage_maps"></a>
+## Storage Maps <a name="storage_maps"></a>
 
 Maps are dynamic associations of objects to objects. They are useful
 for programming smart contracts, as their extensive use in Solidity proves.
@@ -2339,7 +2337,7 @@ same, as an ordered stream; method `Stream<Entry<K, V>> stream()` yields the
 ordered stream of the entries (ie., key/value pairs) of a map.
 Compare this with Solidity, where maps do not know the set of their keys.
 
-## A Blind Auction Contract <a name="a-blind-auction-contract"></a>
+### A Blind Auction Contract <a name="a-blind-auction-contract"></a>
 
 This section exemplifies the use of class `StorageMap` with a smart
 contract that implements a _blind auction_. That contract allows
@@ -2691,7 +2689,7 @@ If there is a winner, it sends the highest bid to the beneficiary.
 Note the use of methods `onlyBefore()` and `onlyAfter()` to guarantee
 that some methods are only run at the right moment.
 
-## Events <a name="events">
+### Events <a name="events">
 
 The code of the blind auction contract contains some lines that generate
 _events_, such as:
@@ -2751,7 +2749,7 @@ public class AuctionEnd extends Event {
 }
 ```
 
-## Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
+### Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
 
 Let us play with the `BlindAuction` contract. As in the previous examples,
 we need a jar
