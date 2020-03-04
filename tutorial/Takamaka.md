@@ -3272,7 +3272,7 @@ Takamaka verifies the following static constraints:
 > The choice of allowing, inside a storage type, fields of type
 > `java.lang.Object` can be surprising. After all, any reference value can be
 > stored in such a field, which requires to verify, at run time, if the field
-> actually contain a storage value or not (see the dynamic checks, below).
+> actually contains a storage value or not (see the dynamic checks, below).
 > The reason for this choice is to allow generic storage types, such as
 > `StorageMap<K,V>`, whose values are storage values as long as `K` and `V`
 > are replaced with storage types. Since Java implements generics by erasure,
@@ -3338,7 +3338,7 @@ Takamaka verifies the following static constraints:
 > `this.counter` could be incremented, and the invariant is lost.
 > The contract will remain in blockchain in an inconsistent state,
 > for ever. The situation would be worse if an `OutOfGasError` would
-> be caught: the caller might chooce the exact amount of gas needed to
+> be caught: the caller might provide exactly the amount of gas needed to
 > reach the `flagAsInList()` call, and leave the contract in an inconsistent
 > state. Checked exceptions, instead, are explicitly checked by the
 > compiler, which should ring a bell in the head of the programmer.
@@ -3367,7 +3367,7 @@ Takamaka verifies the following static constraints:
 20. if a method is annotated as `@ThrowsException` and is overridden by another method,
     then the latter is annotated as `@ThrowsException` as well;  
 21. classes installed in blockchain are not in packages `java.*`, `javax.*`
-    or `io.takamaka.code.*`; packages strating iwth `it.takamaka.code.*` are
+    or `io.takamaka.code.*`; packages starting with `it.takamaka.code.*` are
     however allowed during blockchain initialization;
 
 > The goal of the previous constraints is to make it impossible to change
@@ -3459,18 +3459,8 @@ instrumented  jars  mods
 family.jar  family_wrong.jar  io-takamaka-code-1.0.jar
 
 ./mods:
-ls -R
-.:
-instrumented  jars  mods
-
-./instrumented:
-
-./jars:
-family.jar  family_wrong.jar  io-takamaka-code-1.0.jar
-
-./mods:
-bcel-6.2.jar         io-takamaka-code-instrumentation-1.0.jar  io-takamaka-code-verification-1.0.jar  it-univr-bcel-1.1.jar
-commons-cli-1.4.jar  io-takamaka-code-tools-1.0.jar            io-takamaka-code-whitelisting-1.0.jar
+bcel-6.2.jar         io-hotmoka-beans-1.0.jar  io-takamaka-code-constants-1.0.jar        io-takamaka-code-tools-1.0.jar         io-takamaka-code-whitelisting-1.0.jar
+commons-cli-1.4.jar  io-hotmoka-nodes-1.0.jar  io-takamaka-code-instrumentation-1.0.jar  io-takamaka-code-verification-1.0.jar  it-univr-bcel-1.1.jar
 ```
 The jars in `jars` are those that we will verify and instrument.
 `io-takamaka-code-1.0.jar` is needed as dependency of the others.
