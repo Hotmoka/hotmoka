@@ -121,12 +121,12 @@ public class Person {
 
   @Override
   public String toString() {
-    return name +" (" + day + "/" + month + "/" + year + ")";
+    return name + " (" + day + "/" + month + "/" + year + ")";
   }
 }
 ```
 
-This is plain old Java class and should not need any comment. Compile it
+This is a plain old Java class and should not need any comment. Compile it
 (this should be automatic in Eclipse, if the Project &rarr; Build Automatically
 option is set), create a folder `dist` and export there the project in jar format,
 with name `family.jar` (click on the
@@ -153,12 +153,12 @@ Let us hence create another Eclipse Java 9 (or later) project, that will start
 a local simulation of a blockchain node, actually working over the disk memory
 of our local machine. That blockchain simulation in memory requires other jars of Takamaka.
 Create then another Eclipse project named `blockchain`, add a `mods` folder and
-include five Takamaka jars into `mods`, together with
+include eight Takamaka and HotMoka jars into `mods`, together with
 the BCEL jar that Takamaka uses for code instrumentation
 and the jar that Takamaka uses for recomputing bytecode stack maps after code instrumentation.
 Create a `lib` folder and add `io-takamaka-code-1.0.jar` inside it: these base classes are
 needed for developing Takamaka code (as shown before) and will be installed in blockchain
-and referenced through the classpath of our running code.
+and used by our running code.
 Add the content of `mods` to the module path. Do not add instead the content of `lib`
 to the module path, nor to the class path.
 The result should look like the following:
@@ -170,7 +170,7 @@ Create a `module-info.java` inside `src`, containing:
 
 ```java
 module io.takamaka.tests {
-  requires io.takamaka.code.memory;
+  requires io.hotmoka.memory;
 }
 ```
 
@@ -185,14 +185,15 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 
-import io.takamaka.code.blockchain.CodeExecutionException;
-import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.CodeExecutionException;
 
 public class Main {
+  private final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
+
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/io-takamaka-code-1.0.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _200_000, _200_000);
   }
 }
 ```
@@ -200,13 +201,14 @@ public class Main {
 As you can see, this class simply creates an instance of the blockchain on disk memory.
 It requires to initialize that blockchain, by installing the base classes for Takamaka,
 that we had previously put inside `lib`, and by creating two accounts, funded with
-100,000 and 200,000 units of coin, respectively. We will use later such accounts
+200,000 units of coin each. We will use later such accounts
 to run blockchain transactions. They will be available as `blockchain.account(0)`
 and `blockchain.account(1)`, respectively.
 
-So, what is the constructor of `InitializedMemoryBlockchain` doing here? Basically, it is
+So, what is the static method `MemoryBlockchain.of()` doing here? Basically, it is
 initializing a directory, named `chain`, and it is running a few initial transactions
-that lead to the creation of two accounts. You can see the result if you run class
+that install `lib/io-takamaka-code-1.0.jar` in blockchain and then
+create two accounts. You can see the result if you run class
 `io.takamaka.tests.family.Main`, refresh the `blockchain` project (click on it and push the F5 key)
 and inspect the `chain` directory that should have appeared:
 
