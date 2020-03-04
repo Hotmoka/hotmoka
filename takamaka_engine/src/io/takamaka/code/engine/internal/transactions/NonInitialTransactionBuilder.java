@@ -73,7 +73,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	protected NonInitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
 		super(current, node);
 
-		this.gas = this.initialGas = request.gas;
+		this.gas = this.initialGas = request.gasLimit;
 		this.gasPrice = request.gasPrice;
 	}
 
@@ -186,7 +186,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 *                               of a failed transaction response to the node
 	 */
 	protected final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) {
-		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gas);
+		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gasLimit);
 		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getClassLoader().getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
 
 		if (gas.compareTo(minimalGasForRunning(request, balanceUpdateInCaseOfFailure)) < 0)

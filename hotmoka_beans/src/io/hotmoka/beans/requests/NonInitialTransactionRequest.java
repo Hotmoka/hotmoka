@@ -19,7 +19,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	/**
 	 * The gas provided to the transaction.
 	 */
-	public final BigInteger gas;
+	public final BigInteger gasLimit;
 
 	/**
 	 * The coins payed for each unit of gas consumed by the transaction.
@@ -35,13 +35,13 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
-	 * @param gas the maximal amount of gas that can be consumed by the transaction
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 */
-	protected NonInitialTransactionRequest(StorageReference caller, BigInteger gas, BigInteger gasPrice, Classpath classpath) {
+	protected NonInitialTransactionRequest(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath) {
 		this.caller = caller;
-		this.gas = gas;
+		this.gasLimit = gasLimit;
 		this.gasPrice = gasPrice;
 		this.classpath = classpath;
 	}

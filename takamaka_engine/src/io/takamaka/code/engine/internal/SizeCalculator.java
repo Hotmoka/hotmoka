@@ -98,13 +98,13 @@ public class SizeCalculator {
 		if (request instanceof ConstructorCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOfValue(request.caller))
-				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOfClasspath(request.classpath))
+				.add(gasCostModel.storageCostOf(request.gasLimit)).add(sizeOfClasspath(request.classpath))
 				.add(((ConstructorCallTransactionRequest) request).actuals().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
 		else if (request instanceof InstanceMethodCallTransactionRequest) {
 			InstanceMethodCallTransactionRequest instanceMethodCallTransactionRequest = (InstanceMethodCallTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOfValue(request.caller))
-				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOfClasspath(request.classpath))
+				.add(gasCostModel.storageCostOf(request.gasLimit)).add(sizeOfClasspath(request.classpath))
 				.add(sizeOfCodeSignature(instanceMethodCallTransactionRequest.method))
 				.add(sizeOfValue(instanceMethodCallTransactionRequest.receiver))
 				.add(instanceMethodCallTransactionRequest.actuals().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
@@ -113,14 +113,14 @@ public class SizeCalculator {
 			StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = (StaticMethodCallTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOfValue(request.caller))
-				.add(gasCostModel.storageCostOf(request.gas)).add(sizeOfClasspath(request.classpath))
+				.add(gasCostModel.storageCostOf(request.gasLimit)).add(sizeOfClasspath(request.classpath))
 				.add(sizeOfCodeSignature(staticMethodCallTransactionRequest.method))
 				.add(staticMethodCallTransactionRequest.actuals().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
 		}
 		else if (request instanceof JarStoreTransactionRequest) {
 			JarStoreTransactionRequest jarStoreTransactionRequest = (JarStoreTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(sizeOfValue(request.caller)).add(gasCostModel.storageCostOf(request.gas)).add(sizeOfClasspath(request.classpath))
+				.add(sizeOfValue(request.caller)).add(gasCostModel.storageCostOf(request.gasLimit)).add(sizeOfClasspath(request.classpath))
 				.add(jarStoreTransactionRequest.getDependencies().map(this::sizeOfClasspath).reduce(BigInteger.ZERO, BigInteger::add))
 				.add(gasCostModel.storageCostOfJar(jarStoreTransactionRequest.getJarLength()));
 		}

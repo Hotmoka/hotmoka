@@ -27,14 +27,14 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
-	 * @param gas the maximal amount of gas that can be consumed by the transaction
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param constructor the constructor that must be called
 	 * @param actuals the actual arguments passed to the constructor
 	 */
-	public ConstructorCallTransactionRequest(StorageReference caller, BigInteger gas, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) {
-		super(caller, gas, gasPrice, classpath, actuals);
+	public ConstructorCallTransactionRequest(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) {
+		super(caller, gasLimit, gasPrice, classpath, actuals);
 
 		this.constructor = constructor;
 	}
@@ -43,7 +43,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	public String toString() {
         return getClass().getSimpleName() + ":\n"
         	+ "  caller: " + caller + "\n"
-        	+ "  gas: " + gas + "\n"
+        	+ "  gas limit: " + gasLimit + "\n"
         	+ "  gas price: " + gasPrice + "\n"
         	+ "  class path: " + classpath + "\n"
 			+ "  constructor: " + constructor + "\n"
