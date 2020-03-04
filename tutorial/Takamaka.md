@@ -810,7 +810,7 @@ Contracts are allowed to hold and transfer money to other contracts. Hence,
 traditionally, smart contracts are divided into those that hold money
 but have no code (*externally owned accounts*), and those that,
 instead, contain code (*smart contracts*).
-The formers are typically controlled by an external agent (a wallet,
+The formers are typically controlled by an external agent (a wallet or
 a human) while the latters are typically controlled by their code.
 Takamaka implements both alternatives as instances of the abstract library class
 `io.takamaka.code.lang.Contract` (inside `io-takamaka-code-1.0.jar`). That class extends
@@ -874,15 +874,14 @@ public class SimplePonzi extends Contract {
 ```
 
 > This code is only a starting point of our discussion, not yet functional.
-> The real final version of this contract will appear at
-> the end of this section.
+> The real final version of this contract will appear at the end of this section.
 
 Look at the code of `SimplePonzi.java` above. The contract has a single
 method, named `invest`. This method lets a new `investor` invest
 a given `amount` of coins. This amount must be at least 10% more than
-the current investment. The expression `amount.compareTo(minimumInvestment) > 0`
+the current investment. The expression `amount.compareTo(minimumInvestment) >= 0`
 is a comparison between two Java `BigInteger`s and should be read as the
-more familiar `amount > minimumInvestment`: the latter cannot be
+more familiar `amount >= minimumInvestment`: the latter cannot be
 written in this form, since Java does not allow comparison operators
 to work on reference types.
 The static method `io.takamaka.code.lang.Takamaka.require()` can be used to require
@@ -1027,7 +1026,7 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 The `SimplePonzi.java` class is not ready yet. Namely, investors have to pay
 an always increasing amount of money to replace the current investor.
 However, this one never gets the previous investment back, plus the 10% award
-(at least). Money keeps flowing inside the `SimplePonzi` contract and remain
+(at least). Money keeps flowing inside the `SimplePonzi` contract and remains
 stuck there, forever. The code needs an apparently simple change: just add a single line
 before the update of the new current investor. That line should send
 `amount` units of coin back to `currentInvestor`, before it gets replaced:
@@ -1059,7 +1058,8 @@ This limitation is a deliberate design choice of Takamaka.
 > can be called for sending money to a contract. A problem with Solidity's approach
 > is that the balance of a contract is not fully controlled by its
 > payable methods, since money can always flow in through the fallback
-> function. This led to software bugs, when a contract found itself
+> function (and others, more surprising ways).
+> This led to software bugs, when a contract found itself
 > richer then expected, which violated some (wrong) invariants about
 > its state. For more information, see Antonopoulos and Wood,
 > *Mastering Ethereum*, page 181 (*Unexpected Ether*), 2019, O'Reilly Media, Inc.
@@ -1125,7 +1125,8 @@ How much is *large* actually large enough? Well, it depends on the
 current investment. But that information is kept inside the contract
 and there is no easy way to access it from outside.
 An investor can only try with something that looks large enough,
-running a transaction that might end up in two negative scenarios:
+running a transaction that might end up in two scenarios,
+both undesirable:
 
 1. the amount invested was actually large enough, but larger than needed: the investor
    invested more than required in the Ponzi scheme, risking that no one
@@ -1158,7 +1159,7 @@ side-effects. The balance reduction is, indeed, the only
 side-effect of that call! In cases like this, Takamaka allows one to
 specify that a method is expected to have no side-effects on the visible
 state of the blockchain, but for the change of the balance of the caller.
-This is possible through the `View` annotation. Import that
+This is possible through the `@View` annotation. Import that
 class in the Java source and edit the declaration of `getCurrentInvestment()`
 as follows:
 
