@@ -241,23 +241,26 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import io.takamaka.code.blockchain.CodeExecutionException;
-import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.CodeExecutionException;
 
 public class Main {
+  private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+  private final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
+
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/io-takamaka-code-1.0.jar"), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _200_000, _200_000);
 
     TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
-      BigInteger.valueOf(100_000L), // gas provided to the transaction
-      blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
+      _100_000, // gas provided to the transaction
+      BigInteger.ONE, // gas price
+      blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
       Files.readAllBytes(Paths.get("../family/dist/family.jar")), // bytes containing the jar to install
-      blockchain.takamakaBase // dependency
+      blockchain.takamakaCode() // dependency
     ));
   }
 }
@@ -269,8 +272,9 @@ is to install a jar inside the blockchain. The jar is provided as a sequence of 
 `family` project is in the same Eclipse workspace as `blockchain`). This transaction, as any
 Takamaka transaction, must be payed. The payer is specified as `blockchain.account(0)`, that is,
 the first of the two accounts created at the moment of creation of the blockchain.
-It is specified that the transaction can cost up to 100,000 units of gas. The transaction request
-specifies that its class path is `blockchain.takamakaBase`: this is the reference to a jar
+It is specified that the transaction can cost up to 100,000 units of gas and that gas can be sold
+at one coin per unit of gas. The transaction request
+specifies that its class path is `blockchain.takamakaCode()`: this is the reference to a jar
 installed in the blockchain at its creation time and containing `io-takamaka-code-1.0.jar`, that is,
 the basic classes of Takamaka. Finally, the request specifies that `family.jar` has only
 a single dependency: `io-takamaka-code-1.0.jar`. This means that when, below, we will refer to
@@ -287,10 +291,11 @@ coded in the `Main` class. Namely, its textual representation `request.txt` is:
 ```
 JarStoreTransactionRequest:
   caller: 0.2#0
-  gas: 100000
+  gas limit: 100000
+  gas price: 1
   class path: 0.0 non recursively resolved
   dependencies: [0.0 non recursively resolved]
-  jar: 504b0304140008080800416f934f000000000000000000000000140004004d4554412d494e462f4d414e49464553542e4d46...
+  jar: 504b03041400080808004a97934f000000000000000000000000140004004d4554412d494e462f4d414e49464553542e4d46...
 ```
 
 The interesting point here is that objects, such as the caller account
@@ -306,15 +311,15 @@ the transaction:
 
 ```
 JarStoreTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 252
-  gas consumed for RAM allocation: 992
-  gas consumed for storage consumption: 1011
+  gas consumed for CPU execution: 148
+  gas consumed for RAM allocation: 522
+  gas consumed for storage consumption: 1113
   updates:
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99977>
-  instrumented jar: 504b0304140008080800ef70934f00000000000000000000000025000400696f2f74616b616d616b612f74657374732f66616d...
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198218>
+  instrumented jar: 504b0304140008080800b77a645000000000000000000000000025000400696f2f74616b616d616b612f74657374732f66616d696c7...
 ```
 
-The first bits of information tells us that the transaction costed some units of gas, split between
+The first bits of information tell us that the transaction costed some units of gas, split between
 CPU, RAM and blockchain storage space. We had accepted to spend up to
 100,000 units of gas, hence the transaction could complete correctly. The response reports also the hexadecimal representation
 of a jar, which is named _instrumented_. This is because what gets installed in blockchain is not exactly the jar sent
@@ -322,7 +327,7 @@ with the transaction request, but an instrumentation of that, which adds feature
 For instance, the instrumented code will charge gas during its execution. Finally, the response reports _updates_. These are
 state changes occurred during the execution of the transaction. In order terms, updates are the side-effects of the transaction,
 i.e., the fields of the objects modified by the transaction. In this case, the balance of the payer of the transaction
-`0.2#0` has been reduced to 99,977, since it payed for the gas (we initially funded that account with 100,000 units of coin).
+`0.2#0` has been reduced to 198,218, since it payed for the gas (we initially funded that account with 200,000 units of coin).
 
 > The actual amount of gas consumed by this transaction, the bytes of the jars and the final balance of the payer might change in future versions of Takamaka.
 
@@ -348,25 +353,25 @@ new `Person` object into blockchain. For that, modify the `io.takamaka.tests.fam
 ```java
 package io.takamaka.tests.family;
 
-import static io.takamaka.code.blockchain.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.BasicTypes.INT;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import io.takamaka.code.blockchain.Classpath;
-import io.takamaka.code.blockchain.CodeExecutionException;
-import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.StorageReference;
-import io.takamaka.code.blockchain.values.StringValue;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.CodeExecutionException;
 
 public class Main {
   private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -374,15 +379,15 @@ public class Main {
   private final static ClassType PERSON = new ClassType("io.takamaka.tests.family.Person");
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/io-takamaka-code-1.0.jar"), _100_000, _200_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _200_000, _200_000);
 
     TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
-      blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
+      BigInteger.ONE, // gas price
+      blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
       Files.readAllBytes(Paths.get("../family/dist/family.jar")), // bytes containing the jar to install
-      blockchain.takamakaBase // dependency
+      blockchain.takamakaCode() // dependency
     ));
 
     Classpath classpath = new Classpath(family, true);
@@ -390,7 +395,8 @@ public class Main {
     StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
-      classpath, // reference to family.jar and its dependency takamaka_base.jar
+      BigInteger.ONE, // gas price
+      classpath, // reference to family.jar and its dependency io-takamaka-code-1.0.jar
       new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT), // constructor Person(String,int,int,int)
       new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879) // actual arguments
     ));
@@ -404,22 +410,19 @@ a constructor. Again, we use `blockchain.account(0)` to pay for the transaction 
 The class path includes `family.jar` and its dependency `io-takamaka-code-1.0.jar`, although the latter
 is not used yet. The signature of the constructor specifies that we are referring to the second
 constructor of `Person`, the one that assumes `null` as parents. Finally, the actual parameters
-are provided; they must be instances of the `io.takamaka.blockchain.values.StorageValue` interface.
+are provided; they must be instances of the `io.hotmoka.beans.values.StorageValue` interface.
 
 Let us run the `Main` class. The result is disappointing:
 
 ```
-Exception in thread "main" io.takamaka.code.blockchain.TransactionException: Failed transaction
-	at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.wrapAsTransactionException(Unknown Source)
-	at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.lambda$runConstructorCallTransaction$8(Unknown Source)
-	at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.wrapInCaseOfException(Unknown Source)
-	at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractBlockchain.runConstructorCallTransaction(Unknown Source)
-	at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractSequentialBlockchain.lambda$addConstructorCallTransaction$8(Unknown Source)
-	at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractSequentialBlockchain.wrapWithCodeInCaseOfException(Unknown Source)
-	at io.takamaka.code.blockchain/io.takamaka.code.blockchain.AbstractSequentialBlockchain.addConstructorCallTransaction(Unknown Source)
+xception in thread "main" io.hotmoka.beans.TransactionException: java.lang.IllegalArgumentException: an object of class io.takamaka.tests.family.Person cannot be kept in store since it does not implement io.takamaka.code.lang.Storage
+	at io.takamaka.code.engine/io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder.wrapAsTransactionException(Unknown Source)
+	at io.takamaka.code.engine/io.takamaka.code.engine.internal.transactions.ConstructorCallTransactionBuilder.<init>(Unknown Source)
+	at io.takamaka.code.engine/io.takamaka.code.engine.Transaction.mkFor(Unknown Source)
+	at io.takamaka.code.engine/io.takamaka.code.engine.AbstractSequentialNode.lambda$addConstructorCallTransaction$8(Unknown Source)
+	at io.takamaka.code.engine/io.takamaka.code.engine.AbstractSequentialNode.wrapWithCodeInCaseOfException(Unknown Source)
+	at io.takamaka.code.engine/io.takamaka.code.engine.AbstractSequentialNode.addConstructorCallTransaction(Unknown Source)
 	at io.takamaka.tests/io.takamaka.tests.family.Main.main(Main.java:42)
-Caused by: java.lang.IllegalArgumentException: an object of class io.takamaka.tests.family.Person cannot be kept in blockchain since it does not implement io.takamaka.code.lang.Storage
-	at io.takamaka.code.blockchain/io.takamaka.code.blockchain.values.StorageValue.serialize(Unknown Source)
 ```
 
 > The exact shape and line numbers of this exception trace might change in future versions of Takamaka.
@@ -431,12 +434,12 @@ a `response.txt` that contains the (disappointing) outcome:
 
 ```
 ConstructorCallTransactionFailedResponse:
-  gas consumed for CPU execution: 301
-  gas consumed for RAM allocation: 657
-  gas consumed for storage consumption: 213
-  gas consumed for penalty: 98829
+  gas consumed for CPU execution: 205
+  gas consumed for RAM allocation: 519
+  gas consumed for storage consumption: 203
+  gas consumed for penalty: 99073
   updates:
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|98977>
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|98218>
 ```
 
 Note that the transaction costed a lot: all 100,000 gas units have been consumed! This is a sort
@@ -445,8 +448,8 @@ discourage potential denial-of-service attacks, when a huge number of failing tr
 at a blockchain. At least, this attack will cost a lot.
 
 But we still have not understood why the transaction failed. The reason is in the exception
-message: `an object of class io.takamaka.tests.family.Person cannot be kept in blockchain since it does not implement io.takamaka.code.lang.Storage`.
-Takamaka rerquires
+message: `an object of class io.takamaka.tests.family.Person cannot be kept in store since it does not implement io.takamaka.code.lang.Storage`.
+Takamaka requires
 that all objects stored in blockchain extends the `io.takamaka.code.lang.Storage` class. That superclass
 provides all the machinery needed in order to keep track of updates to such objects.
 
@@ -455,8 +458,7 @@ provides all the machinery needed in order to keep track of updates to such obje
 > Takamaka code, both instances of your classes and instances of library classes
 > from the `java.*` hierarchy, for instance. What Takamaka does require, instead, is that objects
 > _that must be kept in blockchain_ do extend `io.takamaka.code.lang.Storage`. This
-> must be the
-> case, for instance, for objects created by the constructor invoked through the
+> must be the case, for instance, for objects created by the constructor invoked through the
 > `addConstructorCallTransaction()` method.
 
 Let us modify the `io.takamaka.tests.family.Person.java` source code then:
@@ -491,11 +493,11 @@ complete without exception. Refresh the `chain/b1/t0` directory and look at the
 ```
 ConstructorCallTransactionSuccessfulResponse:
   gas consumed for CPU execution: 206
-  gas consumed for RAM allocation: 528
-  gas consumed for storage consumption: 948
+  gas consumed for RAM allocation: 530
+  gas consumed for storage consumption: 1288
   updates:
     <1.0#0.class|io.takamaka.tests.family.Person|@0.4>
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|98976>
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|196050>
     <1.0#0|io.takamaka.tests.family.Person.day:int|14>
     <1.0#0|io.takamaka.tests.family.Person.month:int|4>
     <1.0#0|io.takamaka.tests.family.Person.year:int|1879>
@@ -531,7 +533,7 @@ and its fields are initialized as required:
 The account that payed for the transaction sees its balance decrease:
 
 ```
-<0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|98976>
+<0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|196050>
 ```
 
 These triples are called _updates_, since they describe how the blockchain was
@@ -570,28 +572,28 @@ The code is the following now:
 ```java
 package io.takamaka.tests.family;
 
-import static io.takamaka.code.blockchain.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.BasicTypes.INT;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import io.takamaka.code.blockchain.Classpath;
-import io.takamaka.code.blockchain.CodeExecutionException;
-import io.takamaka.code.blockchain.TransactionException;
-import io.takamaka.code.blockchain.TransactionReference;
-import io.takamaka.code.blockchain.requests.ConstructorCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.blockchain.requests.JarStoreTransactionRequest;
-import io.takamaka.code.blockchain.signatures.ConstructorSignature;
-import io.takamaka.code.blockchain.signatures.NonVoidMethodSignature;
-import io.takamaka.code.blockchain.types.ClassType;
-import io.takamaka.code.blockchain.values.IntValue;
-import io.takamaka.code.blockchain.values.StorageReference;
-import io.takamaka.code.blockchain.values.StorageValue;
-import io.takamaka.code.blockchain.values.StringValue;
-import io.takamaka.code.memory.InitializedMemoryBlockchain;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.CodeExecutionException;
 
 public class Main {
   private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -599,15 +601,15 @@ public class Main {
   private final static ClassType PERSON = new ClassType("io.takamaka.tests.family.Person");
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    InitializedMemoryBlockchain blockchain = new InitializedMemoryBlockchain
-      (Paths.get("lib/io-takamaka-code-1.0.jar"), _100_000, _200_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _200_000, _200_000);
 
     TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
-      blockchain.takamakaBase, // reference to a jar in the blockchain that includes the basic Takamaka classes
+      BigInteger.ONE, // gas price
+      blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
       Files.readAllBytes(Paths.get("../family/dist/family.jar")), // bytes containing the jar to install
-      blockchain.takamakaBase // dependency
+      blockchain.takamakaCode() // dependency
     ));
 
     Classpath classpath = new Classpath(family, true);
@@ -615,7 +617,8 @@ public class Main {
     StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
-      classpath, // reference to family.jar and its dependency takamaka_base.jar
+      BigInteger.ONE, // gas price
+      classpath, // reference to family.jar and its dependency io-takamaka-code-1.0.jar
       new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT), // constructor Person(String,int,int,int)
       new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879) // actual arguments
     ));
@@ -623,7 +626,8 @@ public class Main {
     StorageValue s = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
       blockchain.account(1), // this account pays for the transaction
       _100_000, // gas provided to the transaction
-      classpath, // reference tofamily.jar and its dependency takamaka_base.jar
+      BigInteger.ONE, // gas price
+      classpath, // reference tofamily.jar and its dependency io-takamaka-code-1.0.jar
       new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING), // method String Person.toString()
       albert // receiver of toString()
     ));
@@ -653,22 +657,23 @@ requested:
 ```
 InstanceMethodCallTransactionRequest:
   caller: 0.3#0
-  gas: 100000
+  gas limit: 100000
+  gas price: 1
   class path: 0.4 recursively revolved
   method: java.lang.String io.takamaka.tests.family.Person.toString()
-  receiver: 1.0#0
   actuals:
+  receiver: 1.0#0
 ```
 
 while the `response.txt` file reports the outcome of the transaction:
 
 ```
 MethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 281
-  gas consumed for RAM allocation: 620
-  gas consumed for storage consumption: 325
+  gas consumed for CPU execution: 282
+  gas consumed for RAM allocation: 622
+  gas consumed for storage consumption: 419
   updates:
-    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|199000>
+    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198677>
   returned value: Albert Einstein (14/4/1879)
   events:
 ```
@@ -678,7 +683,7 @@ that has been updated to pay for the consumed gas.
 
 > This `response.txt` could be surprising: by looking at the code
 > of method `toString()` of `Person`, you can see that it computes a string
-> concatenation `name +" (" + day + "/" + month + "/" + year + ")"`. As any
+> concatenation `name + " (" + day + "/" + month + "/" + year + ")"`. As any
 > Java programnmer knows, that is just syntactical sugar for a very
 > complex sequence of operations, involving the construction of a
 > `java.lang.StringBuilder` and its repeated update through a sequence of
@@ -698,8 +703,8 @@ clarification. First of all, note that the signature of the method to
 call is resolved and the resolved method is then invoked. If
 such resolved method is not found (for instance, if we tried to call `tostring` instead
 of `toString`), then `addInstanceMethodCallTransaction()` would end up in
-a failed transaction. Moreover, the usual resolution mechanism of Java methods is
-applied. If, for instance, we called
+a failed transaction. Moreover, the usual resolution mechanism of Java methods applies.
+If, for instance, we called
 `new NonVoidMethodSignature(ClassType.OBJECT, "toString", ClassType.STRING)`
 instead of
 `new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING)`,
@@ -716,7 +721,8 @@ then we could call it and pass 2019 as its argument, by writing:
 blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
   blockchain.account(1), // this account pays for the transaction
   _100_000, // gas provided to the transaction
-  classpath, // reference to family.jar and its dependency takamaka_base.jar
+  BigInteger.ONE, // gas price
+  classpath, // reference to family.jar and its dependency io-takamaka-code-1.0.jar
   new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING, INT), // method String Person.toString(int)
   albert, // receiver of toString(int)
   new IntValue(2019) // actual argument(s)
@@ -724,13 +730,12 @@ blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionReq
 ```
 
 where we have added the formal argument `INT`
-(that is, `io.takamaka.code.blockchain.types.BasicTypes.INT`)
+(that is, `io.hotmoka.beans.types.BasicTypes.INT`)
 and the actual argument `new IntValue(2019)`.
 
 Method `addInstanceMethodCallTransaction()` cannot be used to call a static
 method. For that, use `addStaticMethodCallTransaction()` instead, that accepts
-a request similar to that for `addInstanceMethodCallTransaction()`, but without
-a receiver.
+a request similar to that for `addInstanceMethodCallTransaction()`, but without a receiver.
 
 ## Storage Types and Constraints on Storage Classes <a name="storage-types"></a>
 
