@@ -1,3 +1,5 @@
+[TOC]
+
 # Takamaka: Smart Contracts in Java
 
 Takamaka is a Java framework for writing smart contracts.
@@ -5,7 +7,6 @@ This tutorial explains how Takamaka code is written and
 executed in blockchain.
 
 # Table of Contents
-[TOC]
 1. [Introduction](#introduction)
 2. [A First Takamaka Program](#first-program)
     - [Create a Test Blockchain](#memory-blockchain)
