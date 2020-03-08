@@ -1,0 +1,7 @@
+JarStoreTransactionFailedResponse:
+  gas consumed for CPU execution: 134
+  gas consumed for RAM allocation: 491
+  gas consumed for storage consumption: 572
+  gas consumed for penalty: 18803
+  updates:
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|999980000>

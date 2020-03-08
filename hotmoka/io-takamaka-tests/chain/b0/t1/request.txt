@@ -1,0 +1,3 @@
+GameteCreationTransactionRequest:
+  class path: 0.0 non recursively resolved
+  initialAmount: 1000000000

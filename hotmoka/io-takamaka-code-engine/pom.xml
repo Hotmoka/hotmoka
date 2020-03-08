@@ -1,0 +1,48 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>io-takamaka-code-engine</artifactId>
+  <packaging>jar</packaging>
+  <name>io-takamaka-code-engine</name>
+
+  <parent>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>parent</artifactId>
+    <version>1.0</version>
+  </parent>
+
+  <dependencies>
+	<dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-takamaka-code-constants</artifactId>
+        <version>1.0</version>
+    </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-takamaka-code-whitelisting</artifactId>
+        <version>1.0</version>
+    </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-takamaka-code-verification</artifactId>
+        <version>1.0</version>
+    </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-takamaka-code-instrumentation</artifactId>
+        <version>1.0</version>
+    </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-hotmoka-nodes</artifactId>
+        <version>1.0</version>
+    </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-hotmoka-beans</artifactId>
+        <version>1.0</version>
+    </dependency>
+  </dependencies>
+
+</project>

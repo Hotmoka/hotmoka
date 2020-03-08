@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.hotmoka</groupId>
+    <artifactId>parent</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0</version>
+    <name>HotMoka Project</name>
+
+    <modules>
+      <module>it-univr-bcel</module>
+      <module>io-takamaka-code</module>
+      <module>io-takamaka-code-constants</module>
+      <module>io-takamaka-code-whitelisting</module>
+      <module>io-takamaka-code-verification</module>
+      <module>io-hotmoka-beans</module>
+      <module>io-hotmoka-nodes</module>
+      <module>io-takamaka-code-instrumentation</module>
+      <module>io-takamaka-code-engine</module>
+      <module>io-takamaka-code-tools</module>
+      <module>io-hotmoka-memory</module>
+      <module>io-takamaka-examples</module>
+      <module>io-takamaka-tests</module>
+  </modules>
+
+    <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <maven.compiler.source>9</maven.compiler.source>
+      <maven.compiler.target>9</maven.compiler.target>
+      <failOnMissingWebXml>false</failOnMissingWebXml>
+    </properties>
+
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+		  <version>3.8.1</version>
+		  <configuration>
+		    <release>9</release>
+		  </configuration>
+        </plugin>
+        <plugin>
+		  <artifactId>maven-surefire-plugin</artifactId>
+		  <version>2.22.2</version>
+		</plugin>
+		<plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>2.22.0</version>
+        </plugin>
+      </plugins>
+    </build>
+
+    <dependencies>
+	  <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>5.4.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.platform</groupId>
+        <artifactId>junit-platform-commons</artifactId>
+        <version>1.5.2</version>
+      </dependency>
+    </dependencies>
+
+</project>

@@ -1,0 +1,8 @@
+ConstructorCallTransactionRequest:
+  caller: 0.1#0
+  gas limit: 10000
+  gas price: 0
+  class path: 0.0 non recursively resolved
+  constructor: io.takamaka.code.lang.TestExternallyOwnedAccount(java.math.BigInteger)
+  actuals:
+    1000000000

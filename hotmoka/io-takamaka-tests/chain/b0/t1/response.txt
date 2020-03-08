@@ -1,0 +1,5 @@
+GameteCreationTransactionResponse:
+  gamete: 0.1#0
+  updates:
+    <0.1#0.class|io.takamaka.code.lang.ExternallyOwnedAccount|@0.0>
+    <0.1#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|1000000000>

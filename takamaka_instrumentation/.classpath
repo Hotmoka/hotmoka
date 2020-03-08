@@ -46,12 +46,12 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/distribution/mods/it-univr-bcel-1.1.jar">
+	<classpathentry kind="lib" path="/distribution/dist/io-hotmoka-nodes-1.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/distribution/dist/io-hotmoka-nodes-1.0.jar">
+	<classpathentry kind="lib" path="/distribution/mods/it-univr-bcel-1.1.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
