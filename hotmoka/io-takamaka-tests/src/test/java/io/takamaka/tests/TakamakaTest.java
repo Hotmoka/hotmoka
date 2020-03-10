@@ -2,13 +2,33 @@ package io.takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.memory.RedGreenMemoryBlockchain;
+import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.verification.VerificationException;
 import io.takamaka.code.verification.issues.Issue;
 
 public abstract class TakamakaTest {
 	public interface TestBody {
 		public void run() throws Exception;
+	}
+
+	protected static MemoryBlockchain mkMemoryBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
+		return MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+	}
+
+	protected static RedGreenMemoryBlockchain mkRedGreenMemoryBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
+		return RedGreenMemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+	}
+
+	protected static byte[] bytesOf(String fileName) throws IOException {
+		return Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-" + fileName));
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {

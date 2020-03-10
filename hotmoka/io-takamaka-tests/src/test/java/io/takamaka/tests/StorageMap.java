@@ -8,7 +8,6 @@ import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.nio.file.Paths;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -69,7 +68,7 @@ class StorageMap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = mkMemoryBlockchain(ALL_FUNDS);
 		classpath = blockchain.takamakaCode();
 		gamete = blockchain.account(0);
 	}

@@ -6,8 +6,6 @@ package io.takamaka.tests;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +29,7 @@ import io.takamaka.code.constants.Constants;
 /**
  * A test for the remote purchase contract.
  */
-class Purchase extends TakamakaTest {
+class RemotePurchase extends TakamakaTest {
 
 	private static final BigInteger _10_000 = BigInteger.valueOf(10000);
 
@@ -63,14 +61,13 @@ class Purchase extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"),
-			BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
+		blockchain = mkMemoryBlockchain(BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
 		seller = blockchain.account(0);
 		buyer = blockchain.account(1);
 
 		TransactionReference purchase = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(seller, _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-purchase.jar")), blockchain.takamakaCode()));
+			bytesOf("remotepurchase.jar"), blockchain.takamakaCode()));
 
 		classpath = new Classpath(purchase, true);
 	}

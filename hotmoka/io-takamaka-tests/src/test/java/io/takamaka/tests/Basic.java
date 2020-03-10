@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,16 +84,16 @@ class Basic extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = mkMemoryBlockchain(ALL_FUNDS);
 		master = blockchain.account(0);
 
 		TransactionReference basicdependency = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(master, BigInteger.valueOf(10000), BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-basicdependency.jar")), blockchain.takamakaCode()));
+			bytesOf("basicdependency.jar"), blockchain.takamakaCode()));
 
 		TransactionReference basic = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(master, BigInteger.valueOf(10000), BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-basic.jar")), new Classpath(basicdependency, true))); // true relevant here
+			bytesOf("basic.jar"), new Classpath(basicdependency, true))); // true relevant here
 
 		classpath = new Classpath(basic, true);
 	}

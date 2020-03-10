@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -70,12 +68,12 @@ class WTSC2020 extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// create a RAM simulation of a blockchain with 4 initial accounts
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _20_000_000, _20_000_000, _20_000_000, _20_000_000);
+		blockchain = mkMemoryBlockchain(_20_000_000, _20_000_000, _20_000_000, _20_000_000);
 
 		// store the jar of our test in blockchain
 		TransactionReference jar = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(3), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-wtsc2020.jar")), blockchain.takamakaCode()));
+			bytesOf("wtsc2020.jar"), blockchain.takamakaCode()));
 
 		classpath = new Classpath(jar, true);
 	}

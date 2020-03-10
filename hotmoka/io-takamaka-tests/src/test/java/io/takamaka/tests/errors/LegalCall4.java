@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,8 +23,9 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
+import io.takamaka.tests.TakamakaTest;
 
-class LegalCall4 {
+class LegalCall4 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 	private static final ClassType C = new ClassType("io.takamaka.tests.errors.legalcall4.C");
@@ -38,21 +37,21 @@ class LegalCall4 {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = mkMemoryBlockchain(_1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall4.jar")), blockchain.takamakaCode()));
+			bytesOf("legalcall4.jar"), blockchain.takamakaCode()));
 	}
 
 	@Test @DisplayName("new C().test(); toString() == \"33531\"")
 	void newTestToString() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall4.jar")), blockchain.takamakaCode()));
+			 bytesOf("legalcall4.jar"), blockchain.takamakaCode()));
 
 		Classpath classpath = new Classpath(jar, true);
 

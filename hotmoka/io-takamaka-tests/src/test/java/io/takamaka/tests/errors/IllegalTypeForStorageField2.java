@@ -5,8 +5,6 @@ package io.takamaka.tests.errors;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,14 +34,14 @@ class IllegalTypeForStorageField2 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = mkMemoryBlockchain(_1_000_000_000);
 	}
 
 	@Test @DisplayName("store mutable enum into Object")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		TransactionReference jar = blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-				Files.readAllBytes(Paths.get("../io-takamaka-examples/target/illegaltypeforstoragefield2.jar")), blockchain.takamakaCode()));
+				bytesOf("illegaltypeforstoragefield2.jar"), blockchain.takamakaCode()));
 		Classpath classpath = new Classpath(jar, true);
 
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->

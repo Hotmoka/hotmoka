@@ -6,8 +6,6 @@ package io.takamaka.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,12 +50,11 @@ class AbstractFail extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"),
-			_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
+		blockchain = mkMemoryBlockchain(_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
 
 		TransactionReference abstractfail = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-abstractfail.jar")), blockchain.takamakaCode()));
+			bytesOf("abstractfail.jar"), blockchain.takamakaCode()));
 
 		classpath = new Classpath(abstractfail, true);
 	}

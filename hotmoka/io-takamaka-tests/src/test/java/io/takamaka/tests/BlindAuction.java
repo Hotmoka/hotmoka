@@ -9,8 +9,6 @@ import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
@@ -110,11 +108,11 @@ class BlindAuction extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		digest = MessageDigest.getInstance("SHA-256");
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
+		blockchain = mkMemoryBlockchain(_10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
 
 		TransactionReference auctions = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _10_000_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-auction.jar")), blockchain.takamakaCode()));
+			bytesOf("auction.jar"), blockchain.takamakaCode()));
 
 		classpath = new Classpath(auctions, true);
 	}

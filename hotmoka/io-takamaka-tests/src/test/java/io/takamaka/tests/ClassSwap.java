@@ -66,7 +66,7 @@ class ClassSwap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = mkMemoryBlockchain(ALL_FUNDS);
 		gamete = blockchain.account(0);
 
 		TransactionReference c13 = blockchain.addJarStoreTransaction

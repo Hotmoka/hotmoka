@@ -1,7 +1,6 @@
 package io.takamaka.tests.errors;
 
 import java.math.BigInteger;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +30,7 @@ class IllegalCallToNonWhiteListedMethod12 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = mkMemoryBlockchain(_1_000_000_000);
 	}
 
 	@Test @DisplayName("new ExternallyOwnedAccount().hashCode()")

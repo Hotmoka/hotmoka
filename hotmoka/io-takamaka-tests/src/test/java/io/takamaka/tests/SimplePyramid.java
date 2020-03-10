@@ -6,8 +6,6 @@ package io.takamaka.tests;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -65,8 +63,7 @@ class SimplePyramid extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"),
-				BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L));
+		blockchain = mkMemoryBlockchain(BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L), BigInteger.valueOf(200_000L));
 		players[0] = blockchain.account(0);
 		players[1] = blockchain.account(1);
 		players[2] = blockchain.account(2);
@@ -74,7 +71,7 @@ class SimplePyramid extends TakamakaTest {
 
 		TransactionReference ponzi = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(players[0], _20_000, BigInteger.ZERO, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-ponzi.jar")), blockchain.takamakaCode()));
+			bytesOf("ponzi.jar"), blockchain.takamakaCode()));
 
 		classpath = new Classpath(ponzi, true);
 	}

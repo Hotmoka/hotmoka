@@ -7,8 +7,6 @@ import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -66,12 +64,12 @@ class Lambdas extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = mkMemoryBlockchain(ALL_FUNDS);
 		gamete = blockchain.account(0);
 
 		TransactionReference lambdas = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(gamete, _100_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-lambdas.jar")), blockchain.takamakaCode()));
+			bytesOf("lambdas.jar"), blockchain.takamakaCode()));
 
 		classpath = new Classpath(lambdas, true);
 	}

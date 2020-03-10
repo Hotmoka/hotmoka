@@ -2,8 +2,6 @@ package io.takamaka.tests.errors;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,8 +11,9 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
+import io.takamaka.tests.TakamakaTest;
 
-class LegalCall1 {
+class LegalCall1 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -25,13 +24,13 @@ class LegalCall1 {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../distribution/dist/io-takamaka-code-1.0.jar"), _1_000_000_000);
+		blockchain = mkMemoryBlockchain(_1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../takamaka_examples/dist/legalcall1.jar")), blockchain.takamakaCode()));		
+			bytesOf("legalcall1.jar"), blockchain.takamakaCode()));		
 	}
 }

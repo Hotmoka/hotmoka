@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -86,8 +84,7 @@ class CrowdFundingSimplified extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"),
-			ALL_FUNDS, BigInteger.ZERO, BigInteger.valueOf(10_000_000L), BigInteger.valueOf(10_000_000L));
+		blockchain = mkMemoryBlockchain(ALL_FUNDS, BigInteger.ZERO, BigInteger.valueOf(10_000_000L), BigInteger.valueOf(10_000_000L));
 		gamete = blockchain.account(0);
 		beneficiary = blockchain.account(1);
 		funder1 = blockchain.account(2);
@@ -95,7 +92,7 @@ class CrowdFundingSimplified extends TakamakaTest {
 
 		TransactionReference crowdfunding = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-crowdfunding.jar")), blockchain.takamakaCode()));
+			bytesOf("crowdfunding.jar"), blockchain.takamakaCode()));
 
 		classpath = new Classpath(crowdfunding, true);
 

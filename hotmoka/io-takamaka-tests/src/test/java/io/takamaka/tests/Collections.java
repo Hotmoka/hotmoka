@@ -10,8 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -68,12 +66,12 @@ class Collections extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), ALL_FUNDS);
+		blockchain = mkMemoryBlockchain(ALL_FUNDS);
 		gamete = blockchain.account(0);
 
 		TransactionReference collections = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(gamete, _5_000_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-collections.jar")), blockchain.takamakaCode()));
+			bytesOf("collections.jar"), blockchain.takamakaCode()));
 
 		classpath = new Classpath(collections, true);
 	}
