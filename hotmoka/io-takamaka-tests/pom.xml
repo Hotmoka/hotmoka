@@ -43,16 +43,18 @@
         <artifactId>io-hotmoka-memory</artifactId>
         <version>1.0</version>
     </dependency>
-	<dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>5.4.0</version>
-    </dependency>
-    <dependency>
-        <groupId>org.junit.platform</groupId>
-        <artifactId>junit-platform-commons</artifactId>
-        <version>1.5.2</version>
-    </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>3.0.0-M1</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

@@ -1,4 +1,4 @@
-module io.takamaka.tests {
+open module io.takamaka.tests {
 	requires io.hotmoka.beans;
 	requires io.hotmoka.nodes;
 	requires io.hotmoka.memory;
