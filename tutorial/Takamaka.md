@@ -84,7 +84,7 @@ mvn install
 
 All tests should pass and all projects should be successfully installed:
 
-`
+```
 [INFO] Reactor Summary for HotMoka Project 1.0:
 [INFO] 
 [INFO] HotMoka Project .................................... SUCCESS [  0.670 s]
@@ -106,18 +106,20 @@ All tests should pass and all projects should be successfully installed:
 [INFO] Total time:  05:24 min
 [INFO] Finished at: 2020-03-11T18:05:26+01:00
 [INFO] ------------------------------------------------------------------------
-`
+```
 
 > It is well possible to import the projects inside the Eclipse IDE. For that,
 > use the File->Import->Existing Maven Projects menu item amd import
-> the parent `io.hotmoka` project. This should create its submodule projects
-> as well inside Eclipse. You should see this inside Eclipse's project explorer:
+> the parent `io.hotmoka` project. This should create, inside Eclipse, 
+> also its submodule projects. You should see this inside Eclipse's project explorer:
 >
 > ![The Eclipse projects of Hotmoka](pics/projects.png "The Eclipse projects of Hotmoka")
 >
 > You can compile, package, test and install the Hotmoka jars inside
 > Eclipse itself, by right-clicking on the `parent` project and selecting
-> `Run As` and then the `Mavel install` target. 
+> `Run As` and then the `Mavel install` target. You can also run the tests inside
+> the Eclipse JUnit runner, by right clicking on the `io-takamaka-tests` subproject
+> and selecting `Run As` and then the `JUnit Test` target.
 
 # A First Takamaka Program <a name="first-program"></a>
 
