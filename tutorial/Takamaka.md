@@ -6,20 +6,21 @@ executed in blockchain.
 
 # Table of Contents
 1. [Introduction](#introduction)
-2. [A First Takamaka Program](#first-program)
+2. [Installation](#installation)
+3. [A First Takamaka Program](#first-program)
     - [Create a Test Blockchain](#memory-blockchain)
     - [A Transaction that Stores a Jar in Blockchain](#jar-transaction)
     - [A Transaction that Invokes a Constructor](#constructor-transaction)
     - [A Transaction that Invokes a Method](#method-transaction)
     - [Storage Types and Constraints on Storage Classes](#storage-types)
-3. [The Notion of Smart Contract](#smart-contracts)
+4. [The Notion of Smart Contract](#smart-contracts)
     - [A Simple Ponzi Scheme Contract](#simple-ponzi)
     - [The `@Entry` and `@Payable` Annotations](#entry-payable)
     - [Payable Contracts](#payable-contracts)
     - [The `@View` Annotation](#view)
     - [The Hierarchy of Contracts](#hierarchy-contracts)
     - [Red/Green Contracts](#red-green-contracts)
-4. [Utility Classes](#utility-classes)
+5. [Utility Classes](#utility-classes)
     - [Storage Lists](#storage-lists)
         - [A Gradual Ponzi Contract](#a-gradual-ponzi-contract)
         - [A Note on Re-entrancy](#a-note-on-re-entrancy)
@@ -33,7 +34,7 @@ executed in blockchain.
         - [A Blind Auction Contract](#a-blind-auction-contract)
         - [Events](#events)
         - [Running the Blind Auction Contract](#running-the-blind-auction-contract)
-5. [Code Verification](#code-verification)
+6. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
     - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
@@ -47,6 +48,9 @@ to deal with the storage of objects in blockchain: this is completely
 transparent to them. This makes Takamaka completely different from other
 attempts at using Java for writing smart contracts, where programmers
 must use specific method calls to persist data on blockchain.
+Takamaka is included in the Hotmoka project, a framework
+for collaborating nodes, whose goal is to unify the programming
+model of blockchain and internet of things.
 
 Writing smart contracts in Java entails that programmers
 do not have to learn yet another programming language.
@@ -58,6 +62,62 @@ expressions.
 There are, of course, limitations to the kind of code that can
 be run inside a blockchain. The most important limitation is
 deterministic behavior, as we will see later.
+
+# Installation <a name="installation">
+
+Takamaka is part of the Hotmoka project. The compiled jars
+of the Hotmoka and Takamaka projects are not yet available
+on a public repository such as maven central. Hence, the simplest
+way for using Takamaka is to clone and install the Hotmoka project inside
+your local Maven repository. For that, clone the Hotmoka project:
+
+```shell
+git clone git@github.com:spoto/hotmoka.git
+```
+
+then `cd` to the `hotmoka` directory and
+compile, package, test and install the Hotmoka jars:
+
+```shell
+mvn install
+```
+
+All tests should pass and all projects should be successfully installed:
+
+`
+[INFO] Reactor Summary for HotMoka Project 1.0:
+[INFO] 
+[INFO] HotMoka Project .................................... SUCCESS [  0.670 s]
+[INFO] io-takamaka-code ................................... SUCCESS [  2.705 s]
+[INFO] io-takamaka-code-constants ......................... SUCCESS [  0.119 s]
+[INFO] io-takamaka-code-whitelisting ...................... SUCCESS [  0.141 s]
+[INFO] io-takamaka-code-verification ...................... SUCCESS [  0.206 s]
+[INFO] io-hotmoka-beans ................................... SUCCESS [  0.260 s]
+[INFO] io-hotmoka-nodes ................................... SUCCESS [  0.149 s]
+[INFO] io-takamaka-code-instrumentation ................... SUCCESS [  0.219 s]
+[INFO] io-takamaka-code-engine ............................ SUCCESS [  0.138 s]
+[INFO] io-takamaka-code-tools ............................. SUCCESS [  0.146 s]
+[INFO] io-hotmoka-memory .................................. SUCCESS [  0.130 s]
+[INFO] io-takamaka-examples ............................... SUCCESS [  2.050 s]
+[INFO] io-takamaka-tests .................................. SUCCESS [05:17 min]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  05:24 min
+[INFO] Finished at: 2020-03-11T18:05:26+01:00
+[INFO] ------------------------------------------------------------------------
+`
+
+> It is well possible to import the projects inside the Eclipse IDE. For that,
+> use the File->Import->Existing Maven Projects menu item amd import
+> the parent `io.hotmoka` project. This should create its submodule projects
+> as well inside Eclipse. You should see this inside Eclipse's project explorer:
+>
+> ![The Eclipse projects of Hotmoka](pics/projects.png "The Eclipse projects of Hotmoka")
+>
+> You can compile, package, test and install the Hotmoka jars inside
+> Eclipse itself, by right-clicking on the `parent` project and selecting
+> `Run As` and then the `Mavel install` target. 
 
 # A First Takamaka Program <a name="first-program"></a>
 
