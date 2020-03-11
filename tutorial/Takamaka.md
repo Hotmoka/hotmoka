@@ -109,7 +109,7 @@ All tests should pass and all projects should be successfully installed:
 ```
 
 > It is well possible to import the projects inside the Eclipse IDE. For that,
-> use the File->Import->Existing Maven Projects menu item amd import
+> use the File->Import->Existing Maven Projects menu item and import
 > the parent `io.hotmoka` project. This should create, inside Eclipse, 
 > also its submodule projects. You should see this inside Eclipse's project explorer:
 >
