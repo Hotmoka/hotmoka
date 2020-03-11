@@ -108,9 +108,12 @@ All tests should pass and all projects should be successfully installed:
 [INFO] ------------------------------------------------------------------------
 ```
 
-> It is well possible to import the projects inside the Eclipse IDE. For that,
+> If you want to see and edit the Hotmoka project, it is well possible
+> to import it inside the Eclipse IDE. This is not needed, instead, for
+> running the examples in the next sections. If you want to install the
+> Hotmoka project inside Eclipse,
 > use the File->Import->Existing Maven Projects menu item and import
-> the Maven project contained in the `hotmoka` directory cloned from
+> the Maven project contained in the `hotmoka` directory that you cloned from
 > GitHub. This should create, inside Eclipse, 
 > also its submodule projects. You should see this inside Eclipse's project explorer:
 >
