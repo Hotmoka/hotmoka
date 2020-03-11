@@ -9,7 +9,6 @@
     <name>HotMoka Project</name>
 
     <modules>
-      <module>it-univr-bcel</module>
       <module>io-takamaka-code</module>
       <module>io-takamaka-code-constants</module>
       <module>io-takamaka-code-whitelisting</module>
