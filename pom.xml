@@ -21,7 +21,7 @@
       <module>io-hotmoka-memory</module>
       <module>io-takamaka-examples</module>
       <module>io-takamaka-tests</module>
-  </modules>
+    </modules>
 
     <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
