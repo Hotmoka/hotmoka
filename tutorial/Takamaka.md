@@ -112,7 +112,7 @@ All tests should pass and all projects should be successfully installed:
 > to import it inside the Eclipse IDE. This is not needed, instead, for
 > running the examples in the next sections. If you want to install the
 > Hotmoka project inside Eclipse,
-> use the File->Import->Existing Maven Projects menu item and import
+> use the File &rarr; Import &rarr; Existing Maven Projects menu item and import
 > the Maven project contained in the `hotmoka` directory that you cloned from
 > GitHub. This should create, inside Eclipse, 
 > also its submodule projects. You should see this inside Eclipse's project explorer:
@@ -139,17 +139,50 @@ and use in blockchain. Namely, we will learn how to create an object
 of the class that will persist in blockchain and how we can later
 call the `toString()` method on that instance in blockchain.
 
-Let us hence create an Eclipse Java 9 (or later) project `family`. Add
-a `mods` folder inside it and copy there the jar that contains the
-Takamaka base development classes.
-Add it to the module path. The result should look
-similar to the following:
+Let us hence create a Maven project `family` inside Eclipse.
+If you have installed the Hotmoka project, the Hotmoka and Takamaka
+jars have been installed inside your local Maven repository, hence it is
+possible to refer to them in the `pom.xml` of our project,
+that should look as follows:
+
+```
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>family</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>9</maven.compiler.source>
+    <maven.compiler.target>9</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
+
+</project>
+```
+
+As you can see, we are importing the dependency `io-takamaka-code.jar`,
+that contains the Takamaka base development classes.
+Be sure to use Java 9 or later, by setting the right version in the
+build path of the project, if needed. The result should look
+similar to the following, in Eclipse:
 
 ![The `family` Eclipse project](pics/family.png "The family Eclipse project")
 
-Create a `module-info.java` file inside `src`, to state that this project depends
-on the module containing the runtime classes of Takamaka, needed for
-development:
+Create a `module-info.java` file inside `src/main/java`, to state that this project depends
+on the module containing the runtime classes of Takamaka, needed for development:
 
 ```java
 module family {
@@ -157,9 +190,8 @@ module family {
 }
 ```
 
-Create a package `io.takamaka.tests.family` inside `src`. Inside that package,
-create a Java source `Person.java`, by copying and pasting
-the following code:
+Create a package `io.takamaka.tests.family` inside `src/main/java`. Inside that package,
+create a Java source `Person.java`, by copying and pasting the following code:
 
 ```java
 package io.takamaka.tests.family;
@@ -192,18 +224,23 @@ public class Person {
 }
 ```
 
-This is a plain old Java class and should not need any comment. Compile it
-(this should be automatic in Eclipse, if the Project &rarr; Build Automatically
-option is set), create a folder `dist` and export there the project in jar format,
-with name `family.jar` (click on the
-`family` project, then right-click on the project, select Export &rarr; Java &rarr; Jar File
-and choose the `dist` folder and the `family.jar` name). Only the compiled
+This is a plain old Java class and should not need any comment.
+
+Package the project into a jar, by running the following shell command inside
+the directory of the project:
+
+```shell
+mvn package
+```
+
+A `family-0.0.1-SNAPSHOT.jar` file should appear inside the `target` directory.
+Only the compiled
 class files will be relevant: Takamaka will ignore source files, manifest
-and any resources in the jar, including the
-`io-takamaka-code-1.0-jar` library; the same compiled
+and any resources in the jar; the same compiled
 `module-info.class` is irrelevant in the jar.
-Therefore, you needn't add such files to the jar. The result should
-look as the following:
+All such files can be removed from the jar, to reduce the gas cost of their
+installation in blockchain, but we do not care about this optimization here.
+The result should look as the following:
 
 ![The `family` Eclipse project, exported in jar](pics/family_jar.png "The family Eclipse project, exported in jar")
 
