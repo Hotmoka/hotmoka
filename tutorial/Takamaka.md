@@ -558,7 +558,7 @@ public class Main {
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
-      classpath, // reference to family.jar and its dependency io-takamaka-code-1.0.jar
+      classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
       new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT), // constructor Person(String,int,int,int)
       new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879) // actual arguments
     ));
@@ -731,7 +731,7 @@ using `albert` as _receiver_ of `toString()`.
 The code is the following now:
 
 ```java
-package io.takamaka.tests.family;
+ackage io.takamaka.tests.family;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
 
@@ -762,14 +762,14 @@ public class Main {
   private final static ClassType PERSON = new ClassType("io.takamaka.tests.family.Person");
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _200_000, _200_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _200_000, _200_000);
 
     TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
       blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
-      Files.readAllBytes(Paths.get("../family/dist/family.jar")), // bytes containing the jar to install
+      Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar")), // bytes containing the jar to install
       blockchain.takamakaCode() // dependency
     ));
 
@@ -779,7 +779,7 @@ public class Main {
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
-      classpath, // reference to family.jar and its dependency io-takamaka-code-1.0.jar
+      classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
       new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT), // constructor Person(String,int,int,int)
       new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879) // actual arguments
     ));
@@ -788,7 +788,7 @@ public class Main {
       blockchain.account(1), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
-      classpath, // reference tofamily.jar and its dependency io-takamaka-code-1.0.jar
+      classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
       new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING), // method String Person.toString()
       albert // receiver of toString()
     ));
@@ -831,10 +831,10 @@ while the `response.txt` file reports the outcome of the transaction:
 ```
 MethodCallTransactionSuccessfulResponse:
   gas consumed for CPU execution: 282
-  gas consumed for RAM allocation: 622
+  gas consumed for RAM allocation: 620
   gas consumed for storage consumption: 419
   updates:
-    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198677>
+    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198679>
   returned value: Albert Einstein (14/4/1879)
   events:
 ```
@@ -883,7 +883,7 @@ blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionReq
   blockchain.account(1), // this account pays for the transaction
   _100_000, // gas provided to the transaction
   BigInteger.ONE, // gas price
-  classpath, // reference to family.jar and its dependency io-takamaka-code-1.0.jar
+  classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
   new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING, INT), // method String Person.toString(int)
   albert, // receiver of toString(int)
   new IntValue(2019) // actual argument(s)
