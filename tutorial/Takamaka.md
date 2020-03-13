@@ -1937,7 +1937,7 @@ module tictactoe {
 ```
 
 Create package `io.takamaka.tests.tictactoe` inside `src` and add
-the following `SimplePonzi.java` source inside that package:
+the following `TicTacToe.java` source inside that package:
 
 ```java
 package io.takamaka.tests.tictactoe;
@@ -2601,7 +2601,7 @@ checks if the result matches the hash provided at bidding time.
 If not, the bid is considered invalid. Bidders can even place fake offers
 on purpose, in order to confuse other bidders.
 
-A Takamaka smart contract that implements
+The following is a Takamaka contract that implements
 a blind auction is shown below. Since each bidder may place more bids and since such bids
 must be kept in storage until reveal time, this code uses a map
 from bidders to lists of bids. This smart contract has been inspired
@@ -2995,17 +2995,53 @@ public class AuctionEnd extends Event {
 
 ### Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
 
-Let us play with the `BlindAuction` contract. As in the previous examples,
-we need a jar
-that contains the compiled code of the contract. For that, as already
-done previously, you can for
-instance create a new Eclipse Java 9 (or later) project `auction`, add the `mods` and
-`dist` folders inside it, copy `io-takamaka-code-1.0.jar`
-inside `mods` and add it to the module path.
-Then create a package `io.takamaka.tests.auction` and copy
-inside it the code of `BlindAuction.java`, `AuctionEnd.java` and
-`BidIncrease.java` above. Then export the compiled
-code as a jar inside `dist` as `auction.jar`.
+Let us play with the `BlindAuction` contract.
+Create in Eclipse a new Maven Java 9 (or later) project named `auction`.
+You can do this by duplicating the project `family` (make sure to store
+the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi`, `tictactoe` and
+`blockchain`). Use the following `pom.xml`:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>auction</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>9</maven.compiler.source>
+    <maven.compiler.target>9</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
+
+</project>
+```
+
+and the following `module-info.java`:
+
+```java
+module auction {
+  requires io.takamaka.code;
+}
+```
+
+Create package `io.takamaka.tests.auction` inside `src` and add
+the above `BlindAuction.java`, `BidIncrease.java`
+and `AuctionEnd.java` sources inside that package.
+Go inside the `auction` project and
+run `mvn package`. A file `auction-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 
 Go now to the `blockchain` Eclipse project and create a new
 `io.takamaka.tests.auction` package inside `src`. Add the following
@@ -3089,13 +3125,13 @@ public class Main {
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
     // create a blockchain with four accounts
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
     StorageReference beneficiary = blockchain.account(0);
 
     // install the auction jar in blockchain
     TransactionReference auctionJar = blockchain.addJarStoreTransaction
 	  (new JarStoreTransactionRequest(beneficiary, _100_000, BigInteger.ONE, blockchain.takamakaCode(),
-	  Files.readAllBytes(Paths.get("../auction/dist/auction.jar")), blockchain.takamakaCode()));
+	  Files.readAllBytes(Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar")), blockchain.takamakaCode()));
 
     Classpath classpath = new Classpath(auctionJar, true);
 
@@ -3278,7 +3314,7 @@ that will simplify the call to methods and constructors later.
 The `main` method creates a `blockchain` with four accounts
 
 ```java
-MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
+MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
 ```
 
 and installs the `auction.jar` archive in it:
@@ -3286,7 +3322,7 @@ and installs the `auction.jar` archive in it:
 ```java
 TransactionReference auctionJar = blockchain.addJarStoreTransaction
   (new JarStoreTransactionRequest(beneficiary, _100_000, BigInteger.ONE, blockchain.takamakaCode(),
-  Files.readAllBytes(Paths.get("../auction/dist/auction.jar")), blockchain.takamakaCode()));
+  Files.readAllBytes(Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar")), blockchain.takamakaCode()));
 ```
 
 A method-local class `BidToReveal` is used to keep track of the bids placed
