@@ -387,13 +387,13 @@ for now. Later, when we will run our own transactions, we will see these files i
 
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
-Let us consider the `blockchain` project. The `Person` class is not in its build path
-nor in its class path at run time.
-If we want to call the constructor of `Person`, that class must somehow be in the class path.
-In order to put `Person` in the class path, we must install
-`family.jar` inside the blockchain, so that we can later refer to it and call
+Let us consider the `blockchain` project. The `Person` class of the `family` project
+is not in its build path nor in its class or module path at run time.
+If we want to call the constructor of `Person`, that class must somehow be accessible.
+In order to make `Person` accessible, we must install
+`family-0.0.1-SNAPSHOT.jar` inside the blockchain, so that we can later refer to it and call
 the constructor of `Person`. Let us hence modify the `io.takamaka.tests.family.Main.java`
-file in order to run a transaction that installs `family.jar` inside the blockchain:
+file in order to run a transaction that installs that jar inside the blockchain:
 
 ```java
 package io.takamaka.tests.family;
@@ -414,14 +414,14 @@ public class Main {
   private final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _200_000, _200_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _200_000, _200_000);
 
     TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
       blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
-      Files.readAllBytes(Paths.get("../family/dist/family.jar")), // bytes containing the jar to install
+      Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar")), // bytes containing the jar to install
       blockchain.takamakaCode() // dependency
     ));
   }
@@ -430,17 +430,17 @@ public class Main {
 
 The `addJarStoreTransaction()` method expands the blockchain with a new transaction, whose goal
 is to install a jar inside the blockchain. The jar is provided as a sequence of bytes
-(`Files.readAllBytes(Paths.get("../family/dist/family.jar"))`, assuming that the
-`family` project is in the same Eclipse workspace as `blockchain`). This transaction, as any
+(`Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar"))`, assuming that the
+`family` project is a sibling of the project `blockchain`). This transaction, as any
 Takamaka transaction, must be payed. The payer is specified as `blockchain.account(0)`, that is,
 the first of the two accounts created at the moment of creation of the blockchain.
 It is specified that the transaction can cost up to 100,000 units of gas and that gas can be sold
 at one coin per unit of gas. The transaction request
 specifies that its class path is `blockchain.takamakaCode()`: this is the reference to a jar
 installed in the blockchain at its creation time and containing `io-takamaka-code-1.0.jar`, that is,
-the basic classes of Takamaka. Finally, the request specifies that `family.jar` has only
+the basic classes of Takamaka. Finally, the request specifies that `family-0.0.1-SNAPSHOT.jar` has only
 a single dependency: `io-takamaka-code-1.0.jar`. This means that when, below, we will refer to
-`family` in a class path, this will indirectly include its dependency `io-takamaka-code-1.0.jar`.
+`family-0.0.1-SNAPSHOT.jar` in a class path, this will indirectly include its dependency `io-takamaka-code-1.0.jar`.
 
 Run the `Main` class again, refresh the `blockchain` project and see that the `chain` directory
 is one transaction longer now:
@@ -457,7 +457,7 @@ JarStoreTransactionRequest:
   gas price: 1
   class path: 0.0 non recursively resolved
   dependencies: [0.0 non recursively resolved]
-  jar: 504b03041400080808004a97934f000000000000000000000000140004004d4554412d494e462f4d414e49464553542e4d46...
+  jar: 504b0304140008080800e8946c50000000000000000000000000140004004d4554412d494e462f4d414e4946455
 ```
 
 The interesting point here is that objects, such as the caller account
@@ -473,12 +473,12 @@ the transaction:
 
 ```
 JarStoreTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 148
-  gas consumed for RAM allocation: 522
-  gas consumed for storage consumption: 1113
+  gas consumed for CPU execution: 152
+  gas consumed for RAM allocation: 555
+  gas consumed for storage consumption: 1471
   updates:
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198218>
-  instrumented jar: 504b0304140008080800b77a645000000000000000000000000025000400696f2f74616b616d616b612f74657374732f66616d696c7...
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|197822>
+  instrumented jar: 504b030414000808080020826d5000000000000000000000000025000400696f2f74616b616d616b
 ```
 
 The first bits of information tell us that the transaction costed some units of gas, split between
@@ -489,7 +489,7 @@ with the transaction request, but an instrumentation of that, which adds feature
 For instance, the instrumented code will charge gas during its execution. Finally, the response reports _updates_. These are
 state changes occurred during the execution of the transaction. In order terms, updates are the side-effects of the transaction,
 i.e., the fields of the objects modified by the transaction. In this case, the balance of the payer of the transaction
-`0.2#0` has been reduced to 198,218, since it payed for the gas (we initially funded that account with 200,000 units of coin).
+`0.2#0` has been reduced to 197,822, since it payed for the gas (we initially funded that account with 200,000 units of coin).
 
 > The actual amount of gas consumed by this transaction, the bytes of the jars and the final balance of the payer might change in future versions of Takamaka.
 
@@ -506,7 +506,7 @@ Classpath classpath = new Classpath(family, true);
 The `true` flag at the end means that this class path includes the dependencies of `family`. If you look
 at the code above, where `family` was defined, you see that this means that the class path will include
 also the dependency `io-takamaka-code-1.0.jar`. If `false` would be used instead, the class path would only include
-the classes in `family.jar`, which would be a problem when we will use, very soon, some support classes that
+the classes in `family-0.0.1-SNAPSHOT.jar`, which would be a problem when we will use, very soon, some support classes that
 Takamaka provides, in `io-takamaka-code-1.0.jar`, to simplify the life of developers.
 
 Clarified which class path to use, let us trigger a transaction that runs the constructor and adds the brand
@@ -541,14 +541,14 @@ public class Main {
   private final static ClassType PERSON = new ClassType("io.takamaka.tests.family.Person");
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _200_000, _200_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _200_000, _200_000);
 
     TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
       blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
-      Files.readAllBytes(Paths.get("../family/dist/family.jar")), // bytes containing the jar to install
+      Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar")), // bytes containing the jar to install
       blockchain.takamakaCode() // dependency
     ));
 
@@ -558,7 +558,7 @@ public class Main {
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
-      classpath, // reference to family.jar and its dependency io-takamaka-code-1.0.jar
+      classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
       new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT), // constructor Person(String,int,int,int)
       new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879) // actual arguments
     ));
@@ -569,7 +569,7 @@ public class Main {
 The `addConstructorCallTransaction()` method expands the blockchain with a new transaction that calls
 a constructor. Again, we use `blockchain.account(0)` to pay for the transaction and we provide
 100,000 units of gas, which should be enough for a constructor that just initializes a few fields.
-The class path includes `family.jar` and its dependency `io-takamaka-code-1.0.jar`, although the latter
+The class path includes `family-0.0.1-SNAPSHOT.jar` and its dependency `io-takamaka-code-1.0.jar`, although the latter
 is not used yet. The signature of the constructor specifies that we are referring to the second
 constructor of `Person`, the one that assumes `null` as parents. Finally, the actual parameters
 are provided; they must be instances of the `io.hotmoka.beans.values.StorageValue` interface.
@@ -597,11 +597,11 @@ a `response.txt` that contains the (disappointing) outcome:
 ```
 ConstructorCallTransactionFailedResponse:
   gas consumed for CPU execution: 205
-  gas consumed for RAM allocation: 519
+  gas consumed for RAM allocation: 517
   gas consumed for storage consumption: 203
-  gas consumed for penalty: 99073
+  gas consumed for penalty: 99075
   updates:
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|98218>
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|97822>
 ```
 
 Note that the transaction costed a lot: all 100,000 gas units have been consumed! This is a sort
@@ -639,13 +639,12 @@ public class Person extends Storage {
 > of a class be stored in blockchain. There is no explicit method to call to keep track
 > of updates to such objects: Takamaka will automatically deal with the updates.
 
-Regenerate `family.jar`, since class `Person` has changed, and export it again as
-`dist/family.jar`, inside the `family` Eclipse project (some versions of Eclipse
-require to delete the previous `dist/family.jar` before exporting a new version).
+Regenerate `family-0.0.1-SNAPSHOT.jar`, by running `mvn install` again,
+since class `Person` has changed.
 Run again the `io.takamaka.tests.family.Main` class.
 
 > We can use the `io.takamaka.code.lang.Storage` class and we can run the resulting compiled code
-> since that class is inside `io-takamaka-code-1.0.jar`, which has been included in the
+> since that class is inside `io-takamaka-code-1.0.jar`, which has been included, in blockchain, in the
 > class path as a dependency of `family.jar`.
 
 This time, the execution should
@@ -655,11 +654,11 @@ complete without exception. Refresh the `chain/b1/t0` directory and look at the
 ```
 ConstructorCallTransactionSuccessfulResponse:
   gas consumed for CPU execution: 206
-  gas consumed for RAM allocation: 530
+  gas consumed for RAM allocation: 528
   gas consumed for storage consumption: 1288
   updates:
     <1.0#0.class|io.takamaka.tests.family.Person|@0.4>
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|196050>
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|195750>
     <1.0#0|io.takamaka.tests.family.Person.day:int|14>
     <1.0#0|io.takamaka.tests.family.Person.month:int|4>
     <1.0#0|io.takamaka.tests.family.Person.year:int|1879>
@@ -695,7 +694,7 @@ and its fields are initialized as required:
 The account that payed for the transaction sees its balance decrease:
 
 ```
-<0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|196050>
+<0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|195750>
 ```
 
 These triples are called _updates_, since they describe how the blockchain was
@@ -704,7 +703,7 @@ updated to cope with the creation of a new object.
 So where is this new `Person` object, actually? Well, it exists in blockchain only.
 It did exist in RAM during the execution of the constructor. But, at the end
 of the constructor,
-it was deallocated from RAM and serialized in blockchain, as a set of updates.
+it was deallocated from RAM and serialized in blockchain, as the above set of updates.
 Its storage reference `1.0#0` has been returned to the caller of
 `addConstructorCallTransaction()`:
 
@@ -732,7 +731,7 @@ using `albert` as _receiver_ of `toString()`.
 The code is the following now:
 
 ```java
-package io.takamaka.tests.family;
+ackage io.takamaka.tests.family;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
 
@@ -763,14 +762,14 @@ public class Main {
   private final static ClassType PERSON = new ClassType("io.takamaka.tests.family.Person");
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _200_000, _200_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _200_000, _200_000);
 
     TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
       blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
-      Files.readAllBytes(Paths.get("../family/dist/family.jar")), // bytes containing the jar to install
+      Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar")), // bytes containing the jar to install
       blockchain.takamakaCode() // dependency
     ));
 
@@ -780,7 +779,7 @@ public class Main {
       blockchain.account(0), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
-      classpath, // reference to family.jar and its dependency io-takamaka-code-1.0.jar
+      classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
       new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT), // constructor Person(String,int,int,int)
       new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879) // actual arguments
     ));
@@ -789,7 +788,7 @@ public class Main {
       blockchain.account(1), // this account pays for the transaction
       _100_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
-      classpath, // reference tofamily.jar and its dependency io-takamaka-code-1.0.jar
+      classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
       new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING), // method String Person.toString()
       albert // receiver of toString()
     ));
@@ -832,10 +831,10 @@ while the `response.txt` file reports the outcome of the transaction:
 ```
 MethodCallTransactionSuccessfulResponse:
   gas consumed for CPU execution: 282
-  gas consumed for RAM allocation: 622
+  gas consumed for RAM allocation: 620
   gas consumed for storage consumption: 419
   updates:
-    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198677>
+    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198679>
   returned value: Albert Einstein (14/4/1879)
   events:
 ```
@@ -884,7 +883,7 @@ blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionReq
   blockchain.account(1), // this account pays for the transaction
   _100_000, // gas provided to the transaction
   BigInteger.ONE, // gas price
-  classpath, // reference to family.jar and its dependency io-takamaka-code-1.0.jar
+  classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
   new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING, INT), // method String Person.toString(int)
   albert, // receiver of toString(int)
   new IntValue(2019) // actual argument(s)
@@ -994,10 +993,40 @@ the meaning of each language feature of Takamaka.
 
 ## A Simple Ponzi Scheme Contract <a name="simple-ponzi"></a>
 
-Create a new `ponzi` Java 9 (or later) project in Eclipse. Create folders `mods`
-and `dist` inside the project. Put `io-takamaka-code-1.0.jar`
-inside `mods` and add it to the module path of `ponzi`. Create
-the following module descriptor inside `src`:
+Create in Eclipse a new Maven Java 9 (or later) project named `ponzi`.
+You can do this by duplicating the project `family` (make sure to store
+the project inside the `hotmoka` directory, as a sibling of `family` and
+`blockchain`). Use the following `pom.xml`:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>ponzi</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>9</maven.compiler.source>
+    <maven.compiler.target>9</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+  </properties>
+
+  <dependencies>
+	<dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
+
+</project>
+```
+
+and the following `module-info.java`:
 
 ```java
 module ponzi {
@@ -1310,7 +1339,7 @@ public BigInteger getCurrentInvestment() {
 }
 ```
 
-This solution is pefectly fine but can be improved. Written this way,
+This solution is perfectly fine but can be improved. Written this way,
 an investor that wants to call `getCurrentInvestment()` must run a
 blockchain transaction through the `addInstanceMethodCallTransaction()`
 method of the blockchain, creating a new transaction that ends up in
