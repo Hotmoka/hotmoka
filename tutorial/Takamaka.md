@@ -283,8 +283,21 @@ Use the following `pom.xml` for this project:
     <failOnMissingWebXml>false</failOnMissingWebXml>
   </properties>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+	<configuration>
+	  <release>9</release>
+	</configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
-	<dependency>
+    <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-memory</artifactId>
       <version>1.0</version>
@@ -295,7 +308,7 @@ Use the following `pom.xml` for this project:
 ```
 
 It specifies as dependency the `io-hotmoka-memory` module, that contains
-the disk memory simulation of a blockchain. It has been installed when we packages
+the disk memory simulation of a blockchain. It has been installed when we packaged
 the Hotmoka project, before.
 
 Leave directory `src/test/java` empty, by deleting its content, if not already empty.
@@ -338,7 +351,9 @@ public class Main {
 
 As you can see, this class simply creates an instance of the blockchain on disk memory.
 It requires to initialize that blockchain, by installing the base classes for Takamaka,
-that we had previously put inside `lib`, and by creating two accounts, funded with
+that we had previously packaged inside the project `io-takamaka-code`
+(this is why we put this new projevct inside the directory of the Hotmoka project).
+This class then creates two accounts, funded with
 200,000 units of coin each. We will use later such accounts
 to run blockchain transactions. They will be available as `blockchain.account(0)`
 and `blockchain.account(1)`, respectively.
@@ -351,12 +366,6 @@ mvn package
 ```
 
 A `blockchain-0.0.1-SNAPSHOT.jar` file should appear inside the `target` directory.
-
-Right-click on the `blockchain` project and configure the module-path
-of the project so that it includes its Maven dependencies and its same
-packaged jar. Note that the class-path is empty:
-
-![The build-path of the blockchain Eclipse project](pics/blockchain_buildpath.png "The build-path of the blockchain Eclipse project")
 
 So, what is the static method `MemoryBlockchain.of()` doing here? Basically, it is
 initializing a directory, named `chain`, and it is running a few initial transactions
