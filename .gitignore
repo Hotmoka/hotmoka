@@ -1,11 +1,8 @@
 .metadata/
 .recommenders/
 RemoteSystemsTempFiles/
-takamaka_examples/dist/
-takamaka_examples/build/
-takamaka_examples/bin
-takamaka_tests/bin/
-takamaka_tests/chain/
+blockchain/
+family/
 *.aux
 *.bbl
 *.blg
