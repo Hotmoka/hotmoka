@@ -4,6 +4,8 @@ RemoteSystemsTempFiles/
 blockchain/
 family/
 ponzi/
+auction/
+tictactoe/
 *.aux
 *.bbl
 *.blg
