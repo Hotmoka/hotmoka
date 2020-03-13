@@ -3,6 +3,7 @@
 RemoteSystemsTempFiles/
 blockchain/
 family/
+ponzi/
 *.aux
 *.bbl
 *.blg
