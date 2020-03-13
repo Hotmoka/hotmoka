@@ -139,7 +139,13 @@ and use in blockchain. Namely, we will learn how to create an object
 of the class that will persist in blockchain and how we can later
 call the `toString()` method on that instance in blockchain.
 
-Let us hence create a Maven project `family` inside Eclipse.
+Let us hence create a Maven project `family` inside Eclipse,
+in the same directory where the `hotmoka` project was cloned.
+
+> The reason to use that same directory is only to simplify
+> cross-access to the compile jars, without using machine-dependent
+> absolute paths to the local Maven repository.
+
 If you have installed the Hotmoka project, the Hotmoka and Takamaka
 jars have been installed inside your local Maven repository, hence it is
 possible to refer to them in the `pom.xml` of our project,
@@ -252,27 +258,56 @@ blockchain node.
 
 > Future versions of this document will show how to use a test network, instead of running a local simulation of a node.
 
-Let us hence create another Eclipse Java 9 (or later) project, that will start
+Let us hence create another Eclipse Maven project
+`blockchain`, in the same directory where the `hotmoka` project was cloned.
+Specify Java 9 (or later) in its build path.
+This project will start
 a local simulation of a blockchain node, actually working over the disk memory
-of our local machine. That blockchain simulation in memory requires other jars of Takamaka.
-Create then another Eclipse project named `blockchain`, add a `mods` folder and
-include eight Takamaka and HotMoka jars into `mods`, together with
-the BCEL jar that Takamaka uses for code instrumentation
-and the jar that Takamaka uses for recomputing bytecode stack maps after code instrumentation.
-Create a `lib` folder and add `io-takamaka-code-1.0.jar` inside it: these base classes are
-needed for developing Takamaka code (as shown before) and will be installed in blockchain
-and used by our running code.
-Add the content of `mods` to the module path. Do not add instead the content of `lib`
-to the module path, nor to the class path.
+of our local machine. That blockchain simulation in memory requires other jars of Hotmoka and Takamaka.
+Use the following `pom.xml` for this project:
+
+```
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.hotmoka</groupId>
+  <artifactId>blockchain</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>9</maven.compiler.source>
+    <maven.compiler.target>9</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+  </properties>
+
+  <dependencies>
+	<dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-memory</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
+
+</project>
+```
+
+It specifies as dependency the `io-hotmoka-memory` module, that contains
+the disk memory simulation of a blockchain. It has been installed when we packages
+the Hotmoka project, before.
+
+Leave directory `src/test/java` empty, by deleting its content, if not already empty.
+
 The result should look like the following:
 
 ![The `blockchain` Eclipse project](pics/blockchain1.png "The blockchain Eclipse project")
 
-Let us write a main class that starts the blockchain in disk memory.
-Create a `module-info.java` inside `src`, containing:
+Create a `module-info.java` inside `src/main/java`, containing:
 
 ```java
-module io.takamaka.tests {
+module blockchain {
   requires io.hotmoka.memory;
 }
 ```
@@ -296,7 +331,7 @@ public class Main {
   private final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _200_000, _200_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _200_000, _200_000);
   }
 }
 ```
@@ -308,9 +343,24 @@ that we had previously put inside `lib`, and by creating two accounts, funded wi
 to run blockchain transactions. They will be available as `blockchain.account(0)`
 and `blockchain.account(1)`, respectively.
 
+Package the project into a jar, by running the following shell command inside
+the directory of the project:
+
+```shell
+mvn package
+```
+
+A `blockchain-0.0.1-SNAPSHOT.jar` file should appear inside the `target` directory.
+
+Right-click on the `blockchain` project and configure the module-path
+of the project so that it includes its Maven dependencies and its same
+packaged jar. Note that the class-path is empty:
+
+![The build-path of the blockchain Eclipse project](pics/blockchain_buildpath.png "The build-path of the blockchain Eclipse project")
+
 So, what is the static method `MemoryBlockchain.of()` doing here? Basically, it is
 initializing a directory, named `chain`, and it is running a few initial transactions
-that install `lib/io-takamaka-code-1.0.jar` in blockchain and then
+that install `io-takamaka-code-1.0.jar` in blockchain and then
 create two accounts. You can see the result if you run class
 `io.takamaka.tests.family.Main`, refresh the `blockchain` project (click on it and push the F5 key)
 and inspect the `chain` directory that should have appeared:
