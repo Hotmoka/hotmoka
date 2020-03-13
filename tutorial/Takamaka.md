@@ -151,7 +151,7 @@ jars have been installed inside your local Maven repository, hence it is
 possible to refer to them in the `pom.xml` of our project,
 that should look as follows:
 
-```
+```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -266,7 +266,7 @@ a local simulation of a blockchain node, actually working over the disk memory
 of our local machine. That blockchain simulation in memory requires other jars of Hotmoka and Takamaka.
 Use the following `pom.xml` for this project:
 
-```
+```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -1016,7 +1016,7 @@ the project inside the `hotmoka` directory, as a sibling of `family` and
   </properties>
 
   <dependencies>
-	<dependency>
+    <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
       <version>1.0</version>
@@ -1672,13 +1672,13 @@ immediately.
 Let us play with the `GradualPonzi` contract. Go to the
 `ponzi` Eclipse project and copy `GradualPonzi.java` inside
 package `io.takamaka.tests.ponzi`.
-Then export the compiled code in jar format inside `dist`,
-as `ponzi.jar`.
+Then run, inside that project, the command `mvn install`.
+A file `ponzi-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 
 Go now to the `blockchain` project and create a package `io.takamaka.tests.ponzi`
 inside that project. Copy the following code as `Main.java`. Its goal is to
 
-1. install `ponzi.jar` in blockchain
+1. install `ponzi-0.0.1-SNAPSHOT.jar` in blockchain
 2. let a first player create an instance of `GradualPonzi` in blockchain
    and become the first investor of the contract
 3. let two more players invest, in sequence, in the `GradualPonzi` contract
@@ -1717,7 +1717,7 @@ public class Main {
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
     // creation of a test blockchain in memory with three accounts
-	MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _1_000_000, _1_000_000, _1_000_000);
+	MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _1_000_000, _1_000_000, _1_000_000);
 
     StorageReference player1 = blockchain.account(0);
     StorageReference player2 = blockchain.account(1);
@@ -1729,7 +1729,7 @@ public class Main {
       _20_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
       blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
-      Files.readAllBytes(Paths.get("../ponzi/dist/ponzi.jar")), // bytes containing the jar to install
+      Files.readAllBytes(Paths.get("../ponzi/target/ponzi-0.0.1-SNAPSHOT.jar")), // bytes containing the jar to install
       blockchain.takamakaCode()));
 
     Classpath classpath = new Classpath(ponzi, true);
@@ -1805,13 +1805,13 @@ the third player invests 1500 coins: `b1/t3/response.txt`:
 ```
 VoidMethodCallTransactionSuccessfulResponse:
   gas consumed for CPU execution: 1077
-  gas consumed for RAM allocation: 1265
+  gas consumed for RAM allocation: 1263
   gas consumed for storage consumption: 1533
   updates:
     <1.3#0.class|io.takamaka.code.util.StorageList$Node|@0.0>
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|995659>
-    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|996141>
-    <0.4#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|994625>
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|995365>
+    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|996143>
+    <0.4#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|994627>
     <1.1#1|io.takamaka.code.util.StorageList.size:int|3>
     <1.1#1|io.takamaka.code.util.StorageList.last:io.takamaka.code.util.StorageList$Node|1.3#0>
     <1.2#0|io.takamaka.code.util.StorageList$Node.next:io.takamaka.code.util.StorageList$Node|1.3#0>
@@ -1895,7 +1895,49 @@ a monodimensional array of nine tiles, distributed as follows:
 which can be implemented as a `StorageArray<Tile>`. There will be functions
 for translating the conceptual representation into the internal one.
 
-This leads to the following contract:
+Create hence in Eclipse a new Maven Java 9 (or later) project named `tictactoe`.
+You can do this by duplicating the project `family` (make sure to store
+the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi` and
+`blockchain`). Use the following `pom.xml`:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>tictactoe</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>9</maven.compiler.source>
+    <maven.compiler.target>9</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
+
+</project>
+```
+
+and the following `module-info.java`:
+
+```java
+module tictactoe {
+  requires io.takamaka.code;
+}
+```
+
+Create package `io.takamaka.tests.tictactoe` inside `src` and add
+the following `TicTacToe.java` source inside that package:
 
 ```java
 package io.takamaka.tests.tictactoe;
@@ -2093,7 +2135,9 @@ a couple of drawbacks that make it still incomplete. Namely:
 2. if the game ends in a draw, money gets stuck in the `TicTacToe` contract
    instance, for ever and ever.
 
-We provide here an improved version of the `TicTacToe` contract, that solves
+Copy hence the following improved version of the `TicTacToe` contract,
+inside package `io.takamaka.tests.tictactoe` of the `tictactoe` project.
+It solves
 both problems at once. The policy is very simple: we impose a minimum
 bet, in order to avoid free games; if a winner emerges,
 then we forward him only 90% of the jackpot; the remaing 10% goes to the
@@ -2248,22 +2292,16 @@ public class TicTacToe extends Contract {
 
 ### Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
 
-Let us play with the `TicTacToe` contract. First of all, we need a jar
-that contains the compiled code of the contract. For that, as already
-done previously, you can for
-instance create a new Eclipse Java 9 (or later) project `tictactoe`, add the `mods` and
-`dist` folders inside it, copy `io-takamaka-code-1.0.jar`
-inside `mods` and add it to the module path.
-Then create a package `io.takamaka.tests.tictactoe` and copy
-inside it the code of `TicTacToe.java` above. Then export the compiled
-code inside `dist` as a jar `tictactoe.jar`.
+Let us play with the `TicTacToe` contract. Go inside the `tictactoe` project
+and run the `mvn install` command. A file
+`tictactoe-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 
 In the `blokchain` project that we have already created, add a package
 `io.takamaka.tests.tictactoe` and, inside it, create a `Main.java` class
 that contains the following code. It creates a test blockchain in
 disk memory and runs a few transactions to:
 
-1. install `tictactoe.jar` in blockchain
+1. install `tictactoe-0.0.1-SNAPSHOT.jar` in blockchain
 2. create an instance of `TicTacToe` in blockchain
 3. let two players play, alternately, until the first player wins
 4. call `toString()` on the `TicTacToe` contract and print the result
@@ -2312,7 +2350,7 @@ public class Main {
 
   public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
     // creation of a test blockchain in memory with three accounts
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _100_000, _1_000_000, _1_000_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _100_000, _1_000_000, _1_000_000);
 
     StorageReference creator = blockchain.account(0);
     StorageReference player1 = blockchain.account(1);
@@ -2324,7 +2362,7 @@ public class Main {
       _50_000, // gas provided to the transaction
       BigInteger.ONE, // gas price
       blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
-      Files.readAllBytes(Paths.get("../tictactoe/dist/tictactoe.jar")), // bytes containing the jar to install
+      Files.readAllBytes(Paths.get("../tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar")), // bytes containing the jar to install
       blockchain.takamakaCode()
     ));
 
@@ -2448,11 +2486,11 @@ It is interesting to have a look at the response of the transaction
 ```
 VoidMethodCallTransactionSuccessfulResponse:
   gas consumed for CPU execution: 3857
-  gas consumed for RAM allocation: 2813
+  gas consumed for RAM allocation: 2811
   gas consumed for storage consumption: 866
   updates:
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|71384>
-    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|978481>
+    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|71082>
+    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|978487>
     <1.1#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|0>
     <1.1#0|io.takamaka.tests.tictactoe.TicTacToe.gameOver:boolean|true>
     <1.1#8|io.takamaka.code.util.StorageArray$Node.value:java.lang.Object|io.takamaka.tests.tictactoe.TicTacToe$Tile.CROSS>
@@ -2563,7 +2601,7 @@ checks if the result matches the hash provided at bidding time.
 If not, the bid is considered invalid. Bidders can even place fake offers
 on purpose, in order to confuse other bidders.
 
-A Takamaka smart contract that implements
+The following is a Takamaka contract that implements
 a blind auction is shown below. Since each bidder may place more bids and since such bids
 must be kept in storage until reveal time, this code uses a map
 from bidders to lists of bids. This smart contract has been inspired
@@ -2957,17 +2995,53 @@ public class AuctionEnd extends Event {
 
 ### Running the Blind Auction Contract <a name="running-the-blind-auction-contract"></a>
 
-Let us play with the `BlindAuction` contract. As in the previous examples,
-we need a jar
-that contains the compiled code of the contract. For that, as already
-done previously, you can for
-instance create a new Eclipse Java 9 (or later) project `auction`, add the `mods` and
-`dist` folders inside it, copy `io-takamaka-code-1.0.jar`
-inside `mods` and add it to the module path.
-Then create a package `io.takamaka.tests.auction` and copy
-inside it the code of `BlindAuction.java`, `AuctionEnd.java` and
-`BidIncrease.java` above. Then export the compiled
-code as a jar inside `dist` as `auction.jar`.
+Let us play with the `BlindAuction` contract.
+Create in Eclipse a new Maven Java 9 (or later) project named `auction`.
+You can do this by duplicating the project `family` (make sure to store
+the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi`, `tictactoe` and
+`blockchain`). Use the following `pom.xml`:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>auction</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>9</maven.compiler.source>
+    <maven.compiler.target>9</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
+
+</project>
+```
+
+and the following `module-info.java`:
+
+```java
+module auction {
+  requires io.takamaka.code;
+}
+```
+
+Create package `io.takamaka.tests.auction` inside `src` and add
+the above `BlindAuction.java`, `BidIncrease.java`
+and `AuctionEnd.java` sources inside that package.
+Go inside the `auction` project and
+run `mvn package`. A file `auction-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 
 Go now to the `blockchain` Eclipse project and create a new
 `io.takamaka.tests.auction` package inside `src`. Add the following
@@ -3051,13 +3125,13 @@ public class Main {
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
     // create a blockchain with four accounts
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
+    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
     StorageReference beneficiary = blockchain.account(0);
 
     // install the auction jar in blockchain
     TransactionReference auctionJar = blockchain.addJarStoreTransaction
 	  (new JarStoreTransactionRequest(beneficiary, _100_000, BigInteger.ONE, blockchain.takamakaCode(),
-	  Files.readAllBytes(Paths.get("../auction/dist/auction.jar")), blockchain.takamakaCode()));
+	  Files.readAllBytes(Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar")), blockchain.takamakaCode()));
 
     Classpath classpath = new Classpath(auctionJar, true);
 
@@ -3240,7 +3314,7 @@ that will simplify the call to methods and constructors later.
 The `main` method creates a `blockchain` with four accounts
 
 ```java
-MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("lib/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
+MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
 ```
 
 and installs the `auction.jar` archive in it:
@@ -3248,7 +3322,7 @@ and installs the `auction.jar` archive in it:
 ```java
 TransactionReference auctionJar = blockchain.addJarStoreTransaction
   (new JarStoreTransactionRequest(beneficiary, _100_000, BigInteger.ONE, blockchain.takamakaCode(),
-  Files.readAllBytes(Paths.get("../auction/dist/auction.jar")), blockchain.takamakaCode()));
+  Files.readAllBytes(Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar")), blockchain.takamakaCode()));
 ```
 
 A method-local class `BidToReveal` is used to keep track of the bids placed
