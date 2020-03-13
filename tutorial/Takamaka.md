@@ -352,7 +352,7 @@ public class Main {
 As you can see, this class simply creates an instance of the blockchain on disk memory.
 It requires to initialize that blockchain, by installing the base classes for Takamaka,
 that we had previously packaged inside the project `io-takamaka-code`
-(this is why we put this new projevct inside the directory of the Hotmoka project).
+(this is why we put this new project inside the directory of the Hotmoka project).
 This class then creates two accounts, funded with
 200,000 units of coin each. We will use later such accounts
 to run blockchain transactions. They will be available as `blockchain.account(0)`
