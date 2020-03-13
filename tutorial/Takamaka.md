@@ -993,10 +993,40 @@ the meaning of each language feature of Takamaka.
 
 ## A Simple Ponzi Scheme Contract <a name="simple-ponzi"></a>
 
-Create a new `ponzi` Java 9 (or later) project in Eclipse. Create folders `mods`
-and `dist` inside the project. Put `io-takamaka-code-1.0.jar`
-inside `mods` and add it to the module path of `ponzi`. Create
-the following module descriptor inside `src`:
+Create in Eclipse a new Maven Java 9 (or later) project named `ponzi`.
+You can do this by duplicating the project `family` (make sure to store
+the project inside the `hotmoka` directory, as a sibling of `family` and
+`blockchain`). Use the following `pom.xml`:
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.hotmoka</groupId>
+  <artifactId>ponzi</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>9</maven.compiler.source>
+    <maven.compiler.target>9</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+  </properties>
+
+  <dependencies>
+	<dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
+
+</project>
+```
+
+and the following `module-info.java`:
 
 ```java
 module ponzi {
@@ -1309,7 +1339,7 @@ public BigInteger getCurrentInvestment() {
 }
 ```
 
-This solution is pefectly fine but can be improved. Written this way,
+This solution is perfectly fine but can be improved. Written this way,
 an investor that wants to call `getCurrentInvestment()` must run a
 blockchain transaction through the `addInstanceMethodCallTransaction()`
 method of the blockchain, creating a new transaction that ends up in
