@@ -151,7 +151,7 @@ jars have been installed inside your local Maven repository, hence it is
 possible to refer to them in the `pom.xml` of our project,
 that should look as follows:
 
-```
+```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -266,7 +266,7 @@ a local simulation of a blockchain node, actually working over the disk memory
 of our local machine. That blockchain simulation in memory requires other jars of Hotmoka and Takamaka.
 Use the following `pom.xml` for this project:
 
-```
+```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -1016,7 +1016,7 @@ the project inside the `hotmoka` directory, as a sibling of `family` and
   </properties>
 
   <dependencies>
-	<dependency>
+    <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
       <version>1.0</version>
