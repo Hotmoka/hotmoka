@@ -3737,7 +3737,7 @@ io-takamaka-code-constants-1.0.jar  it-univr-bcel-1.1.0.jar
 ```
 
 You can find the above files in the `target` directories of their respective Eclipse
-projects, or in the local Maven repository (typically, under `~/.m2/`.
+projects, or in the local Maven repository (typically, under `~/.m2/`).
 
 The jars in `jars` are those that we will verify and instrument.
 `io-takamaka-code-1.0.jar` is needed as dependency of the others.
