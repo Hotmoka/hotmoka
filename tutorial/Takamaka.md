@@ -3662,7 +3662,7 @@ Takamaka verifies the following static constraints:
 
 > This condition is needed since other call-site resolvers could call any
 > method, depending on their algorithmic implementation, actually
-> side-stepping the white-listing constraint imposed by Takamaka.
+> side-stepping the white-listing constraints imposed by Takamaka.
 > Java compilers currently do not generate other call-site resolvers.
 
 24. there are no native methods;
@@ -3697,7 +3697,7 @@ Takamaka verifies the following dynamic constraints:
 ## Command-Line Verification and Instrumentation <a name="command-line-verification-and-instrumentation"></a>
 
 If a jar being installed in blockchain does not satisfy the static
-constraints verified by Takamaka, the installation transaction fails with
+constraints that Takamaka requires, the installation transaction fails with
 a verification exception, no jar is actually installed but the gas of the
 caller gets consumed. Hence it is not practical to realize that a
 static constraint does not hold only by trying to install a jar in blockchain.
@@ -3707,8 +3707,13 @@ possible by using a utility that performs the same identical jar
 verification that would be executed when the jar is
 installed in blockchain.
 
+> This section shows how to use this utility
+> from command-line. It is also possible to run it from inside Eclipse,
+> by creating run configurations. You have examples inside the
+> `launch_configurations` folder of the `io-takamaka-code-tools` project.
+
 Create then a directory with three subdirectories: `mods` will contain
-all libraries needed to run the utility; `jars` will contain the
+all modules needed to run the utility; `jars` will contain the
 jars that we want to verify and instrument; and `instrumented` will be
 populated with the instrumented jars that pass verification without errors.
 Initially, the three directories will be as below:
@@ -3721,16 +3726,23 @@ instrumented  jars  mods
 ./instrumented:
 
 ./jars:
-family.jar  family_wrong.jar  io-takamaka-code-1.0.jar
+family-0.0.1-SNAPSHOT.jar  family_wrong-0.0.1-SNAPSHOT.jar  io-takamaka-code-1.0.jar
 
 ./mods:
-bcel-6.2.jar         io-hotmoka-beans-1.0.jar  io-takamaka-code-constants-1.0.jar        io-takamaka-code-tools-1.0.jar         io-takamaka-code-whitelisting-1.0.jar
-commons-cli-1.4.jar  io-hotmoka-nodes-1.0.jar  io-takamaka-code-instrumentation-1.0.jar  io-takamaka-code-verification-1.0.jar  it-univr-bcel-1.1.jar
+bcel-6.2.jar                        io-takamaka-code-instrumentation-1.0.jar
+commons-cli-1.4.jar                 io-takamaka-code-tools-1.0.jar
+io-hotmoka-beans-1.0.jar            io-takamaka-code-verification-1.0.jar
+io-hotmoka-nodes-1.0.jar            io-takamaka-code-whitelisting-1.0.jar
+io-takamaka-code-constants-1.0.jar  it-univr-bcel-1.1.0.jar
 ```
+
+You can find the above files in the `target` directories of their respective Eclipse
+projects, or in the local Maven repository (typically, under `~/.m2/`).
+
 The jars in `jars` are those that we will verify and instrument.
 `io-takamaka-code-1.0.jar` is needed as dependency of the others.
-`family.jar` is the second example of this tutorial, where a class
-`Person` extends `Storage` correctly. Instead, `family_wrong.jar` contains
+`family-0.0.1-SNAPSHOT.jar` is the second example of this tutorial, where a class
+`Person` extends `Storage` correctly. Instead, `family_wrong-0.0.1-SNAPSHOT.jar` contains
 a wrong version of that example, where there are three errors:
 
 ```java
@@ -3767,6 +3779,9 @@ public class Person extends Storage {
   }
 }
 ```
+It is possible to generate the above jar by simply modifying the `Person` class in
+the `family` project and them repackaging with `mvn package`.
+
 We can run the utility without parameters, just to discover its syntax:
 ```shell
 $ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier
@@ -3797,22 +3812,22 @@ $ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools
 The `Translator` utility verified and instrumented the jar, storing it at the end
 inside the `instrumented` directory.
 
-Let us verify and instrument `family.jar` now. It uses classes from `io-takamaka-code-1.0.jar`,
+Let us verify and instrument `family-0.0.1-SNAPSHOT.jar` now. It uses classes from `io-takamaka-code-1.0.jar`,
 hence it depends on it. We specify this with the `-lib` option, that must
 refer to an already instrumented jar:
 ```shell
-$ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Translator -lib jars/io-takamaka-code-1.0.jar -app jars/family.jar -o instrumented/family.jar
+$ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Translator -lib jars/io-takamaka-code-1.0.jar -app jars/family-0.0.1-SNAPSHOT.jar -o instrumented/family-0.0.1-SNAPSHOT.jar
 ```
-Verification succeeds this time as well, and an instrumented `family.jar` is added to the
+Verification succeeds this time as well, and an instrumented `family-0.0.1-SNAPSHOT.jar` is added to the
 `instrumented` directory. Note that we have not used the `-init` switch this time, since we
 wanted to simulate the verification as it would occur after blockchain initialization,
 when users add their jars to blockchain.
 
-Let us verify the `family_wrong.jar` archive now, that
+Let us verify the `family_wrong-0.0.1-SNAPSHOT.jar` archive now, that
 (we know) contains three errors. This time, verification will fail and the errors will
 be print on screen:
 ```shell
-$ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier -lib jars/io-takamaka-code-1.0.jar -app jars/family_wrong.jar
+$ java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier -lib jars/io-takamaka-code-1.0.jar -app jars/family_wrong-0.0.1-SNAPSHOT.jar
 io/takamaka/tests/family/Person.java field parents: type not allowed for a field of a storage class
 io/takamaka/tests/family/Person.java method <init>: @Entry can only be applied to constructors or instance methods of a contract
 io/takamaka/tests/family/Person.java:29: static fields cannot be updated
@@ -3821,7 +3836,7 @@ Verification failed because of errors
 
 The same failure occurs with the `Translator` utility, that will not generate the instrumented jar:
 ```shell
-java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Translator -lib jars/io-takamaka-code-1.0.jar -app jars/family_wrong.jar -o instrumented/family_wrong.jar
+java --module-path mods --module io.takamaka.code.tools/io.takamaka.code.tools.Translator -lib jars/io-takamaka-code-1.0.jar -app jars/family_wrong-0.0.1-SNAPSHOT.jar -o instrumented/family_wrong-0.0.1-SNAPSHOT.jar
 io/takamaka/tests/family/Person.java field parents: type not allowed for a field of a storage class
 io/takamaka/tests/family/Person.java method <init>: @Entry can only be applied to constructors or instance methods of a contract
 io/takamaka/tests/family/Person.java:29: static fields cannot be updated
