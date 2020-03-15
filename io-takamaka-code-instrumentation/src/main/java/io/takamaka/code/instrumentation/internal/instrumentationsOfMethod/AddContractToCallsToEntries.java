@@ -101,7 +101,7 @@ public class AddContractToCallsToEntries extends InstrumentedClassImpl.Builder.M
 	private boolean isCallToEntry(Instruction instruction) {
 		if (instruction instanceof INVOKEDYNAMIC)
 			return bootstrapMethodsThatWillRequireExtraThis
-				.contains(verifiedClass.getBootstraps().getBootstrapFor((INVOKEDYNAMIC) instruction));
+				.contains(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
 		else if (instruction instanceof InvokeInstruction) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
 			ReferenceType receiver = invoke.getReferenceType(cpg);

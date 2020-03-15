@@ -51,7 +51,8 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	VerifiedJar getJar();
 
 	/**
-	 * Yields the utility object that knows about the bootstraps of this class.
+	 * Yields a deep copy of the utility object that knows about the bootstraps of this class.
+	 * It yields a deep copy since it is a modifiable object.
 	 * 
 	 * @return the utility object
 	 */

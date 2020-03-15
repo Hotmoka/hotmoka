@@ -69,6 +69,24 @@ public class BootstrapsImpl implements Bootstraps {
 		collectBootstrapsLeadingToEntries(methods);
 	}
 
+	/**
+	 * Creates a deep clone of the given bootstrap methods.
+	 * 
+	 * @param original the object to clone
+	 */
+	BootstrapsImpl(BootstrapsImpl original) {
+		this.verifiedClass = original.verifiedClass;
+		this.cpg = original.cpg;
+		this.bootstrapMethods = new BootstrapMethod[original.bootstrapMethods.length];
+		for (int pos = 0; pos < original.bootstrapMethods.length; pos++) {
+			BootstrapMethod clone = this.bootstrapMethods[pos] = original.bootstrapMethods[pos].copy();
+			// the array of arguments is shared by copy(), hence we clone it explicitly
+			clone.setBootstrapArguments(original.bootstrapMethods[pos].getBootstrapArguments().clone());
+			if (original.bootstrapMethodsLeadingToEntries.contains(original.bootstrapMethods[pos]))
+				this.bootstrapMethodsLeadingToEntries.add(clone);
+		}
+	}
+
 	@Override
 	public boolean lambdaIsEntry(BootstrapMethod bootstrap) {
 		if (bootstrap.getNumBootstrapArguments() == 3) {

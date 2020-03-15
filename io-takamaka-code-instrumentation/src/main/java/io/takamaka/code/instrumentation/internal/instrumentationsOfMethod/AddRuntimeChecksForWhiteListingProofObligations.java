@@ -37,7 +37,6 @@ import org.apache.bcel.generic.Type;
 
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
-import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
@@ -209,14 +208,13 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	 */
 	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
 		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
-		Bootstraps classBootstraps = verifiedClass.getBootstraps();
 		InstructionList il = new InstructionList();
 		List<Type> args = new ArrayList<>();
-		BootstrapMethod bootstrap = classBootstraps.getBootstrapFor(invokedynamic);
+		BootstrapMethod bootstrap = bootstraps.getBootstrapFor(invokedynamic);
 		int[] bootstrapArgs = bootstrap.getBootstrapArguments();
 		ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(bootstrapArgs[1]);
 		int invokeKind = mh.getReferenceKind();
-		Executable target = classBootstraps.getTargetOf(bootstrap).get();
+		Executable target = bootstraps.getTargetOf(bootstrap).get();
 		Class<?> receiverClass = target.getDeclaringClass();
 		if (receiverClass.isArray())
 			receiverClass = Object.class;
@@ -281,7 +279,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 	}
 
 	private boolean isCallToConcatenationMetaFactory(INVOKEDYNAMIC invokedynamic) {
-		BootstrapMethod bootstrap = verifiedClass.getBootstraps().getBootstrapFor(invokedynamic);
+		BootstrapMethod bootstrap = bootstraps.getBootstrapFor(invokedynamic);
 		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
 		ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 		Constant constant2 = cpg.getConstant(mh.getReferenceIndex());

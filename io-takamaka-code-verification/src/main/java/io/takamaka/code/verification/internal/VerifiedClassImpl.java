@@ -140,7 +140,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 
 	@Override
 	public Bootstraps getBootstraps() {
-		return bootstraps;
+		return new BootstrapsImpl(bootstraps);
 	}
 
 	@Override

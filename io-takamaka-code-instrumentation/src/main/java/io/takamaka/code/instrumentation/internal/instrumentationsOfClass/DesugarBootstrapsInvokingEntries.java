@@ -38,11 +38,11 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 
 	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) {
 		builder.super();
-		verifiedClass.getBootstraps().getBootstrapsLeadingToEntries().forEach(this::desugarBootstrapCallingEntry);
+		bootstraps.getBootstrapsLeadingToEntries().forEach(this::desugarBootstrapCallingEntry);
 	}
 
 	private void desugarBootstrapCallingEntry(BootstrapMethod bootstrap) {
-		if (verifiedClass.getBootstraps().lambdaIsEntry(bootstrap))
+		if (bootstraps.lambdaIsEntry(bootstrap))
 			desugarLambdaEntry(bootstrap);
 		else
 			desugarLambdaCallingEntry(bootstrap);

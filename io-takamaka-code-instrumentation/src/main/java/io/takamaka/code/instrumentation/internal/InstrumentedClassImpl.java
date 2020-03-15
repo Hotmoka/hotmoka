@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -18,6 +19,7 @@ import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
+import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.Method;
@@ -49,6 +51,7 @@ import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.AddRun
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.takamaka.code.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfEntries;
+import io.takamaka.code.verification.Bootstraps;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.verification.VerifiedClass;
@@ -129,6 +132,11 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private final ConstantPoolGen cpg;
 
 		/**
+		 * The utility that knows about the bootstrap methods of the class being instrumented.
+		 */
+		private final Bootstraps bootstraps;
+
+		/**
 		 * The object that can be used to build complex instructions.
 		 */
 		private final InstructionFactory factory;
@@ -192,6 +200,8 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) {
 			this.verifiedClass = clazz;
 			this.classGen = new ClassGen(clazz.toJavaClass());
+			this.bootstraps = verifiedClass.getBootstraps();
+			setBootstraps();
 			this.gasCostModel = gasCostModel;
 			this.classLoader = clazz.getJar().getClassLoader();
 			this.cpg = classGen.getConstantPool();
@@ -207,6 +217,24 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			methodLevelInstrumentations();
 			classLevelInstrumentations();
 			replaceMethods();
+		}
+
+		/**
+		 * Sets the bootstrap description of the class to the clone that
+		 * has been created in the constructor.
+		 */
+		private void setBootstraps() {
+			Optional<BootstrapMethods> bootstraps = Stream.of(classGen.getAttributes())
+				.filter(attribute -> attribute instanceof BootstrapMethods)
+				.map(attribute -> (BootstrapMethods) attribute)
+				.findFirst();
+
+			if (bootstraps.isPresent()) {
+				classGen.removeAttribute(bootstraps.get());
+				BootstrapMethods newAttribute = new BootstrapMethods(bootstraps.get());
+				newAttribute.setBootstrapMethods(this.bootstraps.getBootstraps().toArray(BootstrapMethod[]::new));
+				classGen.addAttribute(newAttribute);
+			}
 		}
 
 		/**
@@ -258,6 +286,11 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			 * The constant pool of the class being instrumented.
 			 */
 			protected final ConstantPoolGen cpg = Builder.this.cpg;
+
+			/**
+			 * The utility that knows about the bootstrap methods of the class being instrumented.
+			 */
+			protected final Bootstraps bootstraps = Builder.this.bootstraps;
 
 			/**
 			 * The object that can be used to build complex instructions.
