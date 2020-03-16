@@ -51,6 +51,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>loop</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>loop</classifier>
+              <includes><include>io/takamaka/tests/loop/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>allocations</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>allocations</classifier>
               <includes><include>io/takamaka/tests/allocations/**</include></includes>
