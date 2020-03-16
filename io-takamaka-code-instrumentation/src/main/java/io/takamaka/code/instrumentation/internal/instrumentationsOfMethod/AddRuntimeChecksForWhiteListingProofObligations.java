@@ -39,7 +39,7 @@ import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
 import io.takamaka.code.whitelisting.MustBeFalse;
-import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
+import io.takamaka.code.whitelisting.HasDeterministicTerminatingToString;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
 /**
@@ -167,7 +167,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 				// we check if we can statically verify that the value redefines hashCode or toString
 				if (!redefinesHashCodeOrToString(argClass)) {
 					il.append(InstructionFactory.createDup(argType.getSize()));
-					il.append(new LDC(cpg.addClass(MustRedefineHashCodeOrToString.class.getAnnotation(WhiteListingProofObligation.class).check().getName())));
+					il.append(new LDC(cpg.addClass(HasDeterministicTerminatingToString.class.getAnnotation(WhiteListingProofObligation.class).check().getName())));
 					il.append(factory.createConstant("string concatenation"));
 					il.append(factory.createInvoke(InstrumentationConstants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
 					atLeastOneCheck = true;

@@ -1,4 +1,4 @@
-package io.takamaka.tests.loop;
+package io.takamaka.tests.errors.loop;
 
 import java.util.ArrayList;
 import java.util.List;

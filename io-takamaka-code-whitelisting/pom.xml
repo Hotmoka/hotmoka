@@ -12,4 +12,12 @@
     <version>1.0</version>
   </parent>
 
+  <dependencies>
+	<dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-takamaka-code-constants</artifactId>
+        <version>1.0</version>
+    </dependency>
+  </dependencies>
+
 </project>

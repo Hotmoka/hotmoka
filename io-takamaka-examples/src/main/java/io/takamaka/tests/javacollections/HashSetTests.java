@@ -17,7 +17,7 @@ public class HashSetTests {
 			set.add(key);
 
 		Set<Object> copy = new HashSet<>(set);
-		return copy.toString();
+		return toString(copy);
 	}
 
 	public static @View String testToString2() {
@@ -27,7 +27,7 @@ public class HashSetTests {
 			set.add(key);
 
 		Set<Object> copy = new HashSet<>(set);
-		return copy.toString();
+		return toString(copy);
 	}
 
 	public static @View String testToString3() {
@@ -37,6 +37,20 @@ public class HashSetTests {
 			set.add(key);
 
 		Set<Object> copy = new HashSet<>(set);
-		return copy.toString();
+		return toString(copy);
+	}
+
+	private static String toString(Set<? extends Object> objects) {
+		// we cannot call toString() directly on strings, since its run-time
+		// white-listing condition requires that its receiver must be an object
+		// that can be held in store, hence not a Set
+		String result = "";
+		for (Object s: objects)
+			if (result.isEmpty())
+				result += s.toString();
+			else
+				result += ", " + s.toString();
+
+		return "[" + result + "]";
 	}
 }

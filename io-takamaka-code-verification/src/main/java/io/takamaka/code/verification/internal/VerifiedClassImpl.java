@@ -66,7 +66,6 @@ import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsIs
 import io.takamaka.code.verification.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
 import io.takamaka.code.verification.issues.Issue;
 import io.takamaka.code.whitelisting.MustRedefineHashCode;
-import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
 
 /**
  * A class that passed the static Takamaka verification tests.
@@ -188,8 +187,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 
 	/**
 	 * If the given invoke instruction is an {@code invokespecial} and the given model
-	 * is annotated with {@link takamaka.lang.MustRedefineHashCode} or with
-	 * {@link takamaka.lang.MustRedefineHashCodeOrToString}, checks if the model
+	 * is annotated with {@link takamaka.lang.MustRedefineHashCode}, checks if the model
 	 * resolved target of the invoke is not in {@code java.lang.Object}. This check
 	 * is important in order to forbid calls such as super.hashCode() to the hashCode()
 	 * method of Object, that would be non-deterministic.
@@ -201,8 +199,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Optional<? extends Executable> model) {
 		if (invoke instanceof INVOKESPECIAL &&
 			model.isPresent() &&
-			(model.get().isAnnotationPresent(MustRedefineHashCode.class) ||
-			 model.get().isAnnotationPresent(MustRedefineHashCodeOrToString.class)) &&
+			model.get().isAnnotationPresent(MustRedefineHashCode.class) &&
 			resolver.resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
 			return Optional.empty();
 		else

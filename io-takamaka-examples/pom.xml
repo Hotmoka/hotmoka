@@ -53,7 +53,7 @@
 
 		  <execution><id>loop</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>loop</classifier>
-              <includes><include>io/takamaka/tests/loop/**</include></includes>
+              <includes><include>io/takamaka/tests/errors/loop/**</include></includes>
             </configuration>
           </execution>
 

@@ -1,6 +1,6 @@
 package io.takamaka.code.whitelisting.internal.database.java.lang;
 
-import io.takamaka.code.whitelisting.MustRedefineHashCodeOrToString;
+import io.takamaka.code.whitelisting.HasDeterministicTerminatingToString;
 
 public abstract class StringBuilder {
 
@@ -20,6 +20,6 @@ public abstract class StringBuilder {
 	public abstract java.lang.StringBuilder append(float f);
 	public abstract java.lang.StringBuilder append(double d);
 	public abstract java.lang.StringBuilder append(java.lang.String s);
-	public abstract java.lang.StringBuilder append(@MustRedefineHashCodeOrToString java.lang.Object o);
+	public abstract java.lang.StringBuilder append(@HasDeterministicTerminatingToString java.lang.Object o);
 	public abstract java.lang.String toString();
 }
