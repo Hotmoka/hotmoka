@@ -51,9 +51,21 @@
             </configuration>
           </execution>
 
-		  <execution><id>loop</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>loop</classifier>
-              <includes><include>io/takamaka/tests/errors/loop/**</include></includes>
+		  <execution><id>loop1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>loop1</classifier>
+              <includes><include>io/takamaka/tests/errors/loop1/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>loop2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>loop2</classifier>
+              <includes><include>io/takamaka/tests/errors/loop2/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>loop3</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>loop3</classifier>
+              <includes><include>io/takamaka/tests/errors/loop3/**</include></includes>
             </configuration>
           </execution>
 

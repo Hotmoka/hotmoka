@@ -17,9 +17,10 @@ import io.takamaka.code.constants.Constants;
  * States that an argument of a method or constructor of a white-listed
  * method has a {@code toString()} implementation that is deterministic and
  * terminating. It checks that the value of the argument
- * can be held in storage, hence an extension
+ * can be held in storage, hence is an extension
  * of {@link io.takamaka.code.lang.Storage} or {@link java.lang.String}
- * or {@link java.math.BigInteger}, or is an object that redefines {@code toString)}
+ * or {@link java.math.BigInteger} or an enumeration,
+ * or is an object that redefines {@code toString)}
  * or {@code hashCode()} in a Takamaka class in blockchain (hence not in the Java library).
  * This annotation can also be applied
  * to a method, in which case it refers to the receiver of the method.

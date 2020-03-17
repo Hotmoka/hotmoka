@@ -6,6 +6,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,9 +17,11 @@ import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
+import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
+import org.apache.bcel.classfile.Utility;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.ICONST;
 import org.apache.bcel.generic.INVOKEDYNAMIC;
@@ -38,8 +41,8 @@ import org.apache.bcel.generic.Type;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.ThrowIncompleteClasspathError;
-import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.HasDeterministicTerminatingToString;
+import io.takamaka.code.whitelisting.MustBeFalse;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
 /**
@@ -210,21 +213,32 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
 		InstructionList il = new InstructionList();
 		List<Type> args = new ArrayList<>();
+		List<Type> argsWithoutReceiver = new ArrayList<>();
 		BootstrapMethod bootstrap = bootstraps.getBootstrapFor(invokedynamic);
 		int[] bootstrapArgs = bootstrap.getBootstrapArguments();
 		ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(bootstrapArgs[1]);
+		ConstantUtf8 descriptor = (ConstantUtf8) cpg.getConstant(((ConstantMethodType) cpg.getConstant(bootstrapArgs[2])).getDescriptorIndex());
 		int invokeKind = mh.getReferenceKind();
 		Executable target = bootstraps.getTargetOf(bootstrap).get();
-		Class<?> receiverClass = target.getDeclaringClass();
-		if (receiverClass.isArray())
-			receiverClass = Object.class;
-		Type receiver = Type.getType(receiverClass);
+
+		ObjectType receiver;
+		if (invokeKind == Const.REF_invokeStatic)
+			receiver = (ObjectType) Type.getType(target.getDeclaringClass());
+		else
+			receiver = (ObjectType) Type.getArgumentTypes(descriptor.getBytes())[0];
+
 		Type verifierReturnType = target instanceof Constructor<?> ? Type.VOID : Type.getType(((java.lang.reflect.Method) target).getReturnType());
 		int index = 0;
 
 		if (!Modifier.isStatic(target.getModifiers())) {
 			il.append(InstructionFactory.createLoad(receiver, index));
 			index += receiver.getSize();
+
+			if (receiver instanceof ObjectType)
+				args.add(receiver);
+			else
+				args.add(ObjectType.OBJECT);
+
 			addWhiteListingChecksFor(null, model.getAnnotations(), receiver, il, target.getName(), null, -1);
 		}
 
@@ -234,16 +248,20 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends Instrumente
 		for (Class<?> arg: target.getParameterTypes()) {
 			Type argType = Type.getType(arg);
 			args.add(argType);
+			argsWithoutReceiver.add(argType);
 			il.append(InstructionFactory.createLoad(argType, index));
 			index += argType.getSize();
 			addWhiteListingChecksFor(null, anns[par], argType, il, target.getName(), null, -1);
 			par++;
 		}
 
-		Type[] argsAsArray = args.toArray(new Type[args.size()]);
-		il.append(factory.createInvoke(receiverClass.getName(), target.getName(), verifierReturnType, argsAsArray,
+		Type[] argsWithoutReceiverAsArray = argsWithoutReceiver.toArray(new Type[argsWithoutReceiver.size()]);
+
+		il.append(factory.createInvoke(receiver.getClassName(), target.getName(), verifierReturnType, argsWithoutReceiverAsArray,
 				invokeCorrespondingToBootstrapInvocationType(invokeKind)));
 		il.append(InstructionFactory.createReturn(verifierReturnType));
+
+		Type[] argsAsArray = args.toArray(new Type[args.size()]);
 
 		MethodGen addedVerifier = new MethodGen(PRIVATE_SYNTHETIC_STATIC, verifierReturnType, argsAsArray, null, verifierName, className, il, cpg);
 		addMethod(addedVerifier, false);

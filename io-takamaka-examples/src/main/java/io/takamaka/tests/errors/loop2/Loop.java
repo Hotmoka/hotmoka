@@ -1,4 +1,4 @@
-package io.takamaka.tests.errors.loop;
+package io.takamaka.tests.errors.loop2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +14,6 @@ public class Loop {
 		List<Object> ll = new ArrayList<>();
 		ll.add(l);
 		l.add(ll);
-		l.toString(); // infinite loop!
+		l.equals(ll); // this diverges
 	}
 }

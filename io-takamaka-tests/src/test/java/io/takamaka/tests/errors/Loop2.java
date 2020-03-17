@@ -18,7 +18,7 @@ import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.tests.TakamakaTest;
 
-class Loop extends TakamakaTest {
+class Loop2 extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
@@ -36,17 +36,17 @@ class Loop extends TakamakaTest {
 	void installJar() throws TransactionException, IOException {
 		blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			bytesOf("loop.jar"), blockchain.takamakaCode()));
+			bytesOf("loop2.jar"), blockchain.takamakaCode()));
 	}
 
 	@Test @DisplayName("install jar then call to Loop.loop() fails")
 	void callLoop() throws TransactionException, IOException, CodeExecutionException {
 		TransactionReference loop = blockchain.addJarStoreTransaction
 			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			bytesOf("loop.jar"), blockchain.takamakaCode()));
+			bytesOf("loop2.jar"), blockchain.takamakaCode()));
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
 			blockchain.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest
-				(blockchain.account(0), _20_000, BigInteger.ONE, new Classpath(loop, true), new VoidMethodSignature("io.takamaka.tests.errors.loop.Loop", "loop"))));
+				(blockchain.account(0), _20_000, BigInteger.ONE, new Classpath(loop, true), new VoidMethodSignature("io.takamaka.tests.errors.loop2.Loop", "loop"))));
 	}
 }

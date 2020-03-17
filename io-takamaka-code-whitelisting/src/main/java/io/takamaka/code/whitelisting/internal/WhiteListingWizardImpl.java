@@ -81,6 +81,10 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 			// of a superclass that is white-listed. Hence we check that possibility
 			if (!Modifier.isStatic(method.getModifiers()) && !Modifier.isPrivate(method.getModifiers())) {
 				Class<?> superclass = declaringClass.getSuperclass();
+				// all interfaces extend Object
+				if (superclass == null && declaringClass.isInterface())
+					superclass = Object.class;
+
 				if (superclass != null) {
 					Optional<Method> overridden = classLoader.resolveMethod(superclass, method.getName(), method.getParameterTypes(), method.getReturnType());
 					if (overridden.isPresent()) {

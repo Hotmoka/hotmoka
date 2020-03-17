@@ -65,7 +65,7 @@ import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsCo
 import io.takamaka.code.verification.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
 import io.takamaka.code.verification.issues.Issue;
-import io.takamaka.code.whitelisting.MustRedefineHashCode;
+import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
 /**
  * A class that passed the static Takamaka verification tests.
@@ -187,9 +187,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 
 	/**
 	 * If the given invoke instruction is an {@code invokespecial} and the given model
-	 * is annotated with {@link takamaka.lang.MustRedefineHashCode}, checks if the model
-	 * resolved target of the invoke is not in {@code java.lang.Object}. This check
-	 * is important in order to forbid calls such as super.hashCode() to the hashCode()
+	 * has a white-listing annotation on its receiver, checks if the model
+	 * of the resolved target of the invoke is still in the code installed in blockchain.
+	 * This check is important in order to forbid calls such as super.hashCode() to the hashCode()
 	 * method of Object, that would be non-deterministic.
 	 * 
 	 * @param invoke the invoke instruction
@@ -199,11 +199,23 @@ public class VerifiedClassImpl implements VerifiedClass {
 	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Optional<? extends Executable> model) {
 		if (invoke instanceof INVOKESPECIAL &&
 			model.isPresent() &&
-			model.get().isAnnotationPresent(MustRedefineHashCode.class) &&
+			hasWhiteListingProofObligationOnReceiver(model.get()) &&
 			resolver.resolvedExecutableFor(invoke).get().getDeclaringClass() == Object.class)
 			return Optional.empty();
 		else
 			return model;
+	}
+
+	/**
+	 * Determines if the given method or constructor has a white-listing proof obligation
+	 * on its receiver.
+	 * 
+	 * @param executable the method or constructor
+	 * @return true if and only if that condition holds
+	 */
+	private static boolean hasWhiteListingProofObligationOnReceiver(Executable executable) {
+		return Stream.of(executable.getAnnotations())
+			.anyMatch(annotation -> annotation.annotationType().getAnnotation(WhiteListingProofObligation.class) != null);
 	}
 
 	/**
