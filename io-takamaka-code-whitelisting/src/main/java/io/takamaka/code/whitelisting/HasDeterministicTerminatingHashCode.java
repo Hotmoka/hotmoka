@@ -1,13 +1,15 @@
 package io.takamaka.code.whitelisting;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -30,25 +32,47 @@ public @interface HasDeterministicTerminatingHashCode {
 	public class Check implements WhiteListingPredicate {
 
 		@Override
-		public boolean test(Object value) {
-			return value == null || value instanceof String || value instanceof BigInteger || value instanceof Enum<?>
-				|| hashCodeIsInBlockchainCode(value.getClass());
+		public boolean test(Object value, WhiteListingWizard wizard) {
+			return value == null || hashCodelsIsDeterministicAndTerminating(value.getClass(), wizard);
 		}
 
-		private boolean hashCodeIsInBlockchainCode(Class<? extends Object> clazz) {
+		private static boolean hashCodelsIsDeterministicAndTerminating(Class<?> clazz, WhiteListingWizard wizard) {
+			Optional<Method> hashCode = getHashCodeFor(clazz);
+			return hashCode.isPresent() && isInWhiteListingDatabaseWithoutProofObligations(hashCode.get(), wizard);
+		}
+
+		private static boolean isInWhiteListingDatabaseWithoutProofObligations(Method method, WhiteListingWizard wizard) {
+			try {
+				Optional<Method> model = wizard.whiteListingModelOf(method);
+				return model.isPresent() && hasNoProofObligations(model.get());
+			}
+			catch (ClassNotFoundException e) {
+				return false;
+			}
+		}
+
+		private static boolean hasNoProofObligations(Method model) {
+			return Stream.concat(Stream.of(model.getAnnotations()), Stream.of(model.getParameterAnnotations()).flatMap(Stream::of))
+					.map(Annotation::annotationType)
+					.map(Class::getAnnotations)
+					.flatMap(Stream::of)
+					.noneMatch(annotation -> annotation instanceof WhiteListingProofObligation);
+		}
+
+		private static Optional<Method> getHashCodeFor(Class<?> clazz) {
 			return Stream.of(clazz.getMethods())
-				.anyMatch(method -> !Modifier.isAbstract(method.getModifiers())
+				.filter(method -> !Modifier.isAbstract(method.getModifiers())
 					&& Modifier.isPublic(method.getModifiers())
 					&& !Modifier.isStatic(method.getModifiers())
 					&& method.getParameters().length == 0
 					&& "hashCode".equals(method.getName())
-					&& method.getReturnType() == int.class
-					&& method.getDeclaringClass().getClassLoader() instanceof ResolvingClassLoader);
+					&& method.getReturnType() == int.class)
+				.findFirst();
 		}
 
 		@Override
 		public String messageIfFailed(String methodName) {
-			return "the actual parameter of " + methodName + " must be a String, a BigInteger or must redefine hashCode() in blockchain code";
+			return "cannot prove that hashCode() on this object is deterministic and terminating";
 		}
 	}
 }

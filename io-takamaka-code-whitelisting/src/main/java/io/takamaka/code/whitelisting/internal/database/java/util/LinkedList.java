@@ -1,6 +1,6 @@
 package io.takamaka.code.whitelisting.internal.database.java.util;
 
-import io.takamaka.code.whitelisting.MustRedefineHashCode;
+import io.takamaka.code.whitelisting.HasDeterministicTerminatingEqualsAndHashCode;
 
 public abstract class LinkedList<E> {
 	public LinkedList() {}
@@ -9,6 +9,6 @@ public abstract class LinkedList<E> {
 	public abstract E getLast();
 	public abstract E removeFirst();
 	public abstract E removeLast();
-	public abstract void addFirst(@MustRedefineHashCode E e);
-	public abstract void addLast(@MustRedefineHashCode E e);
+	public abstract void addFirst(@HasDeterministicTerminatingEqualsAndHashCode E e);
+	public abstract void addLast(@HasDeterministicTerminatingEqualsAndHashCode E e);
 }

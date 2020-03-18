@@ -1,7 +1,7 @@
 package io.takamaka.code.whitelisting.internal.database.java.lang;
 
-public interface Byte {
-	java.lang.Byte valueOf(byte b);
+public interface Float {
+	java.lang.Float valueOf(float f);
 	boolean equals(java.lang.Object other);
 	int hashCode();
 	java.lang.String toString();

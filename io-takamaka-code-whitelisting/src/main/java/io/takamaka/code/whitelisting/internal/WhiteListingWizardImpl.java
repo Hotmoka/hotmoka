@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 
-import io.takamaka.code.whitelisting.WhiteListed;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
 
 /**
@@ -36,10 +35,6 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 		// then it comes from blockchain and the field is white-listed
 		if (field.getDeclaringClass().getClassLoader() == classLoader)
 			return Optional.of(field);
-		// otherwise, since fields cannot be redefined in Java, either is the field explicitly
-		// annotated as white-listed, or it is not white-listed
-		else if (field.isAnnotationPresent(WhiteListed.class))
-			return Optional.of(field);
 		else
 			return fieldInWhiteListedLibraryFor(field);
 	}
@@ -52,10 +47,6 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 
 		if (declaringClass.getClassLoader() == classLoader)
 			return Optional.of(constructor);
-		// otherwise, since constructors cannot be redefined in Java, either is the constructor explicitly
-		// annotated as white-listed, or it is not white-listed
-		else if (constructor.isAnnotationPresent(WhiteListed.class))
-			return Optional.of(constructor);
 		else
 			return constructorInWhiteListedLibraryFor((Constructor<?>) constructor);
 	}
@@ -67,9 +58,6 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 		Class<?> declaringClass = method.getDeclaringClass();
 
 		if (declaringClass.getClassLoader() == classLoader)
-			return Optional.of(method);
-		// otherwise, either the method is explicitly annotated as white-listed
-		else if (method.isAnnotationPresent(WhiteListed.class))
 			return Optional.of(method);
 		else {
 			// or we check in the possibly overridden methods

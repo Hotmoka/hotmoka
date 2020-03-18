@@ -247,7 +247,7 @@ public abstract class Runtime {
 	public static void checkWhiteListingPredicate(Object value, Class<? extends WhiteListingPredicate> predicateClass, String methodName) {
 		try {
 			WhiteListingPredicate predicate = predicateClass.getConstructor().newInstance();
-			if (!predicate.test(value))
+			if (!predicate.test(value, getBuilder().getClassLoader().getWhiteListingWizard()))
 				throw new NonWhiteListedCallException(predicate.messageIfFailed(methodName));
 		}
 		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {

@@ -17,7 +17,6 @@ import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.whitelisting.HasDeterministicTerminatingHashCode;
-import io.takamaka.code.whitelisting.WhiteListed;
 import io.takamaka.tests.TakamakaTest;
 
 public class IllegalCallToNonWhiteListedMethod13 extends TakamakaTest {
@@ -48,5 +47,5 @@ public class IllegalCallToNonWhiteListedMethod13 extends TakamakaTest {
 		);
 	}
 
-	public static @WhiteListed void callee(@HasDeterministicTerminatingHashCode Object o) {}
+	public static void callee(@HasDeterministicTerminatingHashCode Object o) {}
 }

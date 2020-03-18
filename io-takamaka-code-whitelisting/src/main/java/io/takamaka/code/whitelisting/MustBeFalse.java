@@ -21,7 +21,7 @@ public @interface MustBeFalse {
 	public class Check implements WhiteListingPredicate {
 
 		@Override
-		public boolean test(Object value) {
+		public boolean test(Object value, WhiteListingWizard wizard) {
 			return ((Boolean) value).equals(Boolean.FALSE);
 		}
 

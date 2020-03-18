@@ -1,5 +1,6 @@
 package io.takamaka.code.whitelisting;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -8,10 +9,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
+import java.util.Optional;
 import java.util.stream.Stream;
-
-import io.takamaka.code.constants.Constants;
 
 /**
  * States that an argument of a method or constructor of a white-listed
@@ -35,57 +34,69 @@ public @interface HasDeterministicTerminatingToString {
 	public class Check implements WhiteListingPredicate {
 
 		@Override
-		public boolean test(Object value) {
-			return value == null || value instanceof String || value instanceof BigInteger || value instanceof Enum<?>
-				|| isStorage(value.getClass()) || toStringIsInBlockchainCode(value.getClass()) || toStringIsInObjectAndHashCodeIsInBlockchainCode(value.getClass());
+		public boolean test(Object value, WhiteListingWizard wizard) {
+			return value == null || toStringlsIsDeterministicAndTerminating(value.getClass(), wizard);
 		}
 
-		private boolean toStringIsInObjectAndHashCodeIsInBlockchainCode(Class<? extends Object> clazz) {
+		private static boolean toStringlsIsDeterministicAndTerminating(Class<?> clazz, WhiteListingWizard wizard) {
+			Optional<Method> toString = getToStringFor(clazz);
+			return toString.isPresent() &&
+					(isInWhiteListingDatabaseWithoutProofObligations(toString.get(), wizard)
+					|| toStringIsInObjectAndHashCodeIsDeterministicAndTerminating(toString.get(), clazz, wizard));
+		}
+
+		private static boolean isInWhiteListingDatabaseWithoutProofObligations(Method method, WhiteListingWizard wizard) {
 			try {
-				Method toString = clazz.getMethod("toString");
-				if (toString.getDeclaringClass() != Object.class)
-					return false;
+				Optional<Method> model = wizard.whiteListingModelOf(method);
+				return model.isPresent() && hasNoProofObligations(model.get());
 			}
-			catch (Exception e) {
+			catch (ClassNotFoundException e) {
 				return false;
 			}
-
-			return Stream.of(clazz.getMethods())
-				.anyMatch(method -> !Modifier.isAbstract(method.getModifiers())
-					&& Modifier.isPublic(method.getModifiers())
-					&& !Modifier.isStatic(method.getModifiers())
-					&& method.getParameters().length == 0
-					&& "hashCode".equals(method.getName())
-					&& method.getReturnType() == int.class
-					&& method.getDeclaringClass().getClassLoader() instanceof ResolvingClassLoader);
 		}
 
-		private boolean toStringIsInBlockchainCode(Class<? extends Object> clazz) {
+		private static boolean hasNoProofObligations(Method model) {
+			return Stream.concat(Stream.of(model.getAnnotations()), Stream.of(model.getParameterAnnotations()).flatMap(Stream::of))
+					.map(Annotation::annotationType)
+					.map(Class::getAnnotations)
+					.flatMap(Stream::of)
+					.noneMatch(annotation -> annotation instanceof WhiteListingProofObligation);
+		}
+
+		private static Optional<Method> getToStringFor(Class<?> clazz) {
 			return Stream.of(clazz.getMethods())
-				.anyMatch(method -> !Modifier.isAbstract(method.getModifiers())
+				.filter(method -> !Modifier.isAbstract(method.getModifiers())
 					&& Modifier.isPublic(method.getModifiers())
 					&& !Modifier.isStatic(method.getModifiers())
 					&& method.getParameters().length == 0
 					&& "toString".equals(method.getName())
-					&& method.getReturnType() == String.class
-					&& method.getDeclaringClass().getClassLoader() instanceof ResolvingClassLoader);
+					&& method.getReturnType() == String.class)
+				.findFirst();
 		}
 
-		private boolean isStorage(Class<? extends Object> clazz) {
-			do {
-				if (clazz.getName().equals(Constants.STORAGE_NAME))
-					return true;
+		private static Optional<Method> getHashCodeFor(Class<?> clazz) {
+			return Stream.of(clazz.getMethods())
+				.filter(method -> !Modifier.isAbstract(method.getModifiers())
+					&& Modifier.isPublic(method.getModifiers())
+					&& !Modifier.isStatic(method.getModifiers())
+					&& method.getParameters().length == 0
+					&& "hashCode".equals(method.getName())
+					&& method.getReturnType() == int.class)
+				.findFirst();
+		}
 
-				clazz = clazz.getSuperclass();
+		private static boolean toStringIsInObjectAndHashCodeIsDeterministicAndTerminating(Method toString, Class<?> clazz, WhiteListingWizard wizard) {
+			if (toString.getDeclaringClass() == Object.class) {
+				Optional<Method> hashCode = getHashCodeFor(clazz);
+				return hashCode.isPresent() && isInWhiteListingDatabaseWithoutProofObligations(hashCode.get(), wizard);
 			}
-			while (clazz != null);
-
-			return false;
+			else
+				return false;
 		}
 
 		@Override
 		public String messageIfFailed(String methodName) {
-			return "the actual parameter of " + methodName + " must be a value that can be held in storage or redefine toString() or hashCode() in blockchain code";
+			return "cannot prove that toString() on this object is deterministic and terminating";
 		}
 	}
 }

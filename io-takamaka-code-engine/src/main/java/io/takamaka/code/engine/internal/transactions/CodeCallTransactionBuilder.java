@@ -63,7 +63,7 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 			.filter(Objects::nonNull)
 			.map(WhiteListingProofObligation::check)
 			.map(CodeCallTransactionBuilder::createWhiteListingPredicateFrom)
-			.filter(predicate -> !predicate.test(value))
+			.filter(predicate -> !predicate.test(value, getClassLoader().getWhiteListingWizard()))
 			.map(predicate -> predicate.messageIfFailed(methodName))
 			.map(NonWhiteListedCallException::new)
 			.findFirst()
