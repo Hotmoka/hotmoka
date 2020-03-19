@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import io.takamaka.code.whitelisting.internal.ResolvingClassLoaderImpl;
 
@@ -16,14 +16,24 @@ import io.takamaka.code.whitelisting.internal.ResolvingClassLoaderImpl;
 public interface ResolvingClassLoader extends AutoCloseable {
 
 	/**
-	 * Yields an implementation of this interface that loads classes from the given URLs.
+	 * Yields an implementation of this interface that loads classes from the given jars, provided as byte arrays.
 	 * 
-	 * @param origins the urls that make up the class path
+	 * @param jars the jars, as byte arrays
+	 * @param jarNames the names of the jars
 	 * @return the class loader
 	 */
-	static ResolvingClassLoader of(URL[] origins) {
-		return new ResolvingClassLoaderImpl(origins);
+	static ResolvingClassLoader of(Stream<byte[]> jars, Stream<String> jarNames) {
+		return new ResolvingClassLoaderImpl(jars, jarNames);
 	}
+
+	/**
+	 * Yields the name of the jar from where the given class was loaded.
+	 * It works for non-system classes only.
+	 * 
+	 * @param clazz the class
+	 * @return the name of the jar
+	 */
+	String getJarNameOf(Class<?> clazz);
 
 	/**
 	 * Yields the Java class loader used internally by this class loader.

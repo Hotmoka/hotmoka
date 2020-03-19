@@ -1,20 +1,11 @@
 package io.takamaka.code.engine.internal;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -47,16 +38,6 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * The parent of this class loader;
 	 */
 	private final TakamakaClassLoader parent;
-
-	/**
-	 * The temporary files that hold the classpath for the transaction.
-	 */
-	private final List<Path> classpathElements = new ArrayList<>();
-
-	/**
-	 * The temporary file that holds a jar installed by a transaction, if any.
-	 */
-	private final TempJarFile tempJarFile;
 
 	/**
 	 * Method {@link io.takamaka.code.lang.Contract#entry(io.takamaka.code.lang.Contract)}.
@@ -122,8 +103,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 */
 	public EngineClassLoader(Classpath classpath, AbstractTransactionBuilder<?,?> builder) throws Exception {
 		this.builder = builder;
-		this.tempJarFile = null;
-		this.parent = TakamakaClassLoader.of(collectURLs(Stream.of(classpath), null));
+		this.parent = mkTakamakaClassLoader(Stream.of(classpath), null, null);
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -153,75 +133,60 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * Builds the class loader for the given jar and its dependencies.
 	 * 
 	 * @param jar the jar
+	 * @param transaction the transaction that is installing the given jar in the node
 	 * @param dependencies the dependencies
 	 * @param builder the builder of the transaction for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, AbstractTransactionBuilder<?,?> builder) throws Exception {
-		this.tempJarFile = new TempJarFile(jar);
-
-		try {
-			this.builder = builder;
-			this.parent = TakamakaClassLoader.of(collectURLs(dependencies, tempJarFile.toPath().toUri()));
-			Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
-			this.entry = contract.getDeclaredMethod("entry", contract);
-			this.entry.setAccessible(true); // it was private
-			this.payableEntryInt = contract.getDeclaredMethod("payableEntry", contract, int.class);
-			this.payableEntryInt.setAccessible(true); // it was private
-			this.payableEntryLong = contract.getDeclaredMethod("payableEntry", contract, long.class);
-			this.payableEntryLong.setAccessible(true); // it was private
-			this.payableEntryBigInteger = contract.getDeclaredMethod("payableEntry", contract, BigInteger.class);
-			this.payableEntryBigInteger.setAccessible(true); // it was private
-			this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
-			this.redPayableInt.setAccessible(true); // it was private
-			this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
-			this.redPayableLong.setAccessible(true); // it was private
-			this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
-			this.redPayableBigInteger.setAccessible(true); // it was private
-			this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
-			this.redBalanceField.setAccessible(true); // it was private
-			this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
-			this.storageReference.setAccessible(true); // it was private
-			this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
-			this.inStorage.setAccessible(true); // it was private
-			this.balanceField = contract.getDeclaredField("balance");
-			this.balanceField.setAccessible(true); // it was private
-		}
-		catch (Throwable t) {
-			tempJarFile.close();
-			throw t;
-		}
+	public EngineClassLoader(byte[] jar, TransactionReference transaction, Stream<Classpath> dependencies, AbstractTransactionBuilder<?,?> builder) throws Exception {
+		this.builder = builder;
+		this.parent = mkTakamakaClassLoader(dependencies, jar, "takamaka@" + transaction.toString() + ".jar");
+		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
+		this.entry = contract.getDeclaredMethod("entry", contract);
+		this.entry.setAccessible(true); // it was private
+		this.payableEntryInt = contract.getDeclaredMethod("payableEntry", contract, int.class);
+		this.payableEntryInt.setAccessible(true); // it was private
+		this.payableEntryLong = contract.getDeclaredMethod("payableEntry", contract, long.class);
+		this.payableEntryLong.setAccessible(true); // it was private
+		this.payableEntryBigInteger = contract.getDeclaredMethod("payableEntry", contract, BigInteger.class);
+		this.payableEntryBigInteger.setAccessible(true); // it was private
+		this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
+		this.redPayableInt.setAccessible(true); // it was private
+		this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
+		this.redPayableLong.setAccessible(true); // it was private
+		this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
+		this.redPayableBigInteger.setAccessible(true); // it was private
+		this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
+		this.redBalanceField.setAccessible(true); // it was private
+		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
+		this.storageReference.setAccessible(true); // it was private
+		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
+		this.inStorage.setAccessible(true); // it was private
+		this.balanceField = contract.getDeclaredField("balance");
+		this.balanceField.setAccessible(true); // it was private
 	}
 
 	/**
-	 * Yields the path of the jar temporary file that contains the
-	 * jar being installed in the node, if any.
-	 * 
-	 * @return the path
-	 */
-	public final Path jarPath() {
-		return tempJarFile.toPath();
-	}
-
-	/**
-	 * Yields the array of URL that refer to the components of the given classpaths.
+	 * Yields the stream of jars (as byte arrays) that refer to the components of the given classpaths.
 	 * 
 	 * @param classpaths the classpaths
-	 * @param start an initial URL, if any
-	 * @return the array of URLs
-	 * @throws Exception if some URL cannot be created
+	 * @param start an initial jar, if any
+	 * @param startName the name that must be used for {@code start}, if any
+	 * @return the jars
+	 * @throws Exception if some jar cannot be accessed
 	 */
-	private URL[] collectURLs(Stream<Classpath> classpaths, URI start) throws Exception {
-		List<URL> urls = new ArrayList<>();
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, String startName) throws Exception {
+		List<byte[]> jars = new ArrayList<>();
+		List<String> jarNames = new ArrayList<>();
 		if (start != null) {
-			urls.add(start.toURL());
-			classpathElements.add(Paths.get(start));
+			jars.add(start);
+			jarNames.add(startName);
 		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
-			addURLs(classpath, urls);
+			addJars(classpath, jars, jarNames);
 
-		return urls.toArray(new URL[urls.size()]);
+		return TakamakaClassLoader.of(jars.stream(), jarNames.stream());
 	}
 
 	/**
@@ -249,13 +214,15 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	/**
-	 * Expands the given list of URLs with the components of the given classpath.
+	 * Expands the given list of jars with the components of the given classpath.
 	 * 
 	 * @param classpath the classpath
-	 * @param bag the list of URLs
-	 * @throws Exception if some URL cannot be created
+	 * @param jars the list where the jars will be added
+	 * @param jarNames the list where the names of the jars will be added; the {@code toString()} of the transaction
+	 *                 is used as name of the jar that it installed
+	 * @throws Exception if some jar cannot be accessed
 	 */
-	private void addURLs(Classpath classpath, List<URL> bag) throws Exception {
+	private void addJars(Classpath classpath, List<byte[]> jars, List<String> jarNames) throws Exception {
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
 			TransactionRequest<?> request = getRequestAndCharge(classpath.transaction);
@@ -264,7 +231,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 			Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-				addURLs(dependency, bag);
+				addJars(dependency, jars, jarNames);
 		}
 
 		TransactionResponse response = getResponseAndCharge(classpath.transaction);
@@ -274,51 +241,31 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
 		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
 		builder.chargeForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
-
-		try (InputStream is = new BufferedInputStream(new ByteArrayInputStream(instrumentedJarBytes))) {
-			Path classpathElement = Files.createTempFile("takamaka_", "@" + classpath.transaction + ".jar");
-			Files.copy(is, classpathElement, StandardCopyOption.REPLACE_EXISTING);
-
-			// we add, for class loading, the jar containing the instrumented code
-			URI uri = classpathElement.toFile().toURI();
-			bag.add(uri.toURL());
-			classpathElements.add(Paths.get(uri));
-		}
+		jars.add(instrumentedJarBytes);
+		jarNames.add("takamaka@" + classpath.transaction.toString() + ".jar");
 	}
 
 	@Override
 	public void close() throws IOException {
-		IOException ioe = null;
+		parent.close();
+	}
 
-		// we delete all paths elements that were used to build this class loader
-		for (Path classpathElement: classpathElements)
-			try {
-				Files.deleteIfExists(classpathElement);
-			}
-			catch (IOException e) {
-				if (ioe == null)
-					ioe = e;
-			}
+	/**
+	 * Yields the transaction reference that installed the jar where the given class is defined.
+	 * 
+	 * @param clazz the class, accessible during the created transaction
+	 * @return the transaction reference
+	 * @throws IllegalStateException if the transaction reference cannot be determined
+	 */
+	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
+		String jarName = getJarNameOf(clazz);
+		if (!jarName.endsWith(".jar"))
+			throw new IllegalStateException("unexpected class path " + jarName + " for class " + clazz.getName());
+		int start = jarName.lastIndexOf('@');
+		if (start < 0)
+			throw new IllegalStateException("class path " + jarName + " misses @ separator");
 
-		if (tempJarFile != null)
-			try {
-				tempJarFile.close();
-			}
-			catch (IOException e) {
-				if (ioe == null)
-					ioe = e;
-			}
-
-		try {
-			parent.close();
-		}
-		catch (IOException e) {
-			if (ioe == null)
-				ioe = e;
-		}
-
-		if (ioe != null)
-			throw ioe;
+		return builder.node.getTransactionReferenceFor(jarName.substring(start + 1, jarName.length() - 4));
 	}
 
 	/**
@@ -703,5 +650,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	@Override
 	public ClassLoader getJavaClassLoader() {
 		return parent.getJavaClassLoader();
+	}
+
+	@Override
+	public String getJarNameOf(Class<?> clazz) {
+		return parent.getJarNameOf(clazz);
 	}
 }

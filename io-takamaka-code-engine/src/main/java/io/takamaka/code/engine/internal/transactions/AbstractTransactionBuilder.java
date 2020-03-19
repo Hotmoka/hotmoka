@@ -1,7 +1,6 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.math.BigInteger;
-import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -59,14 +58,14 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	public final UpdatesExtractor updatesExtractor = new UpdatesExtractor(this);
 
 	/**
-	 * The events accumulated during the transaction.
-	 */
-	private final List<Object> events = new ArrayList<>();
-
-	/**
 	 * The reference that must be used to refer to the created transaction.
 	 */
 	private final TransactionReference current;
+
+	/**
+	 * The events accumulated during the transaction.
+	 */
+	private final List<Object> events = new ArrayList<>();
 
 	/**
 	 * The time of execution of the transaction.
@@ -94,22 +93,6 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);
 		}
-	}
-
-	@Override
-	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
-		String className = clazz.getName();
-		CodeSource src = clazz.getProtectionDomain().getCodeSource();
-		if (src == null)
-			throw new IllegalStateException("cannot determine the jar of class " + className);
-		String classpath = src.getLocation().getPath();
-		if (!classpath.endsWith(".jar"))
-			throw new IllegalStateException("unexpected class path " + classpath + " for class " + className);
-		int start = classpath.lastIndexOf('@');
-		if (start < 0)
-			throw new IllegalStateException("class path " + classpath + " misses @ separator");
-
-		return node.getTransactionReferenceFor(classpath.substring(start + 1, classpath.length() - 4));
 	}
 
 	@Override

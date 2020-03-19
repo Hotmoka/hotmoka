@@ -1,15 +1,15 @@
 package io.takamaka.code.verification.internal;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.bcel.classfile.ClassParser;
 
@@ -58,14 +58,14 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * might fail if at least a class did not verify. In that case, the issues generated
 	 * during verification will contain at least an error.
 	 * 
-	 * @param origin the jar file to verify
+	 * @param origin the jar file to verify, given as an array of bytes
 	 * @param classLoader the class loader that can be used to resolve the classes of the program,
 	 *                    including those of {@code origin}
 	 * @param duringInitialization true if and only if verification occurs during
 	 *                             blockchain initialization
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 */
-	public VerifiedJarImpl(Path origin, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
+	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
 		this.classLoader = classLoader;
 
 		new Initializer(origin, duringInitialization);
@@ -115,11 +115,6 @@ public class VerifiedJarImpl implements VerifiedJar {
 	private class Initializer {
 
 		/**
-		 * The jar file to instrument.
-		 */
-		private final JarFile originalJar;
-
-		/**
 		 * True if and only if the code instrumentation occurs during.
 		 * blockchain initialization.
 		 */
@@ -127,23 +122,21 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private final boolean duringInitialization;
 
 		/**
-		 * Performs the instrumentation of the given jar file into another jar file.
+		 * Performs the verification of the given jar file into another jar file.
 		 * 
-		 * @param origin the jar file to instrument
-		 * @param duringInitialization true if and only if the instrumentation is performed during blockchain initialization
+		 * @param origin the jar file to verify, as an array of bytes
+		 * @param duringInitialization true if and only if the verification is performed during blockchain initialization
 		 */
-		private Initializer(Path origin, boolean duringInitialization) throws IOException {
+		private Initializer(byte[] origin, boolean duringInitialization) throws IOException {
 			this.duringInitialization = duringInitialization;
 
 			// parsing and verification of the class files
-			try (JarFile originalJar = this.originalJar = new JarFile(origin.toFile())) {
+			try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(origin))) {
 				// we cannot proceed in parallel since the BCEL library is not thread-safe
-				originalJar.stream()
-					.filter(entry -> entry.getName().endsWith(".class") && !entry.getName().equals("module-info.class"))
-					.map(this::buildVerifiedClass)
-					.filter(Optional::isPresent) // we only consider classes that did verify
-					.map(Optional::get)
-					.forEach(classes::add);
+				ZipEntry entry;
+    			while ((entry = zis.getNextEntry()) != null)
+    				if (entry.getName().endsWith(".class") && !entry.getName().equals("module-info.class"))
+    					buildVerifiedClass(entry, zis).ifPresent(classes::add);
 			}
 			catch (UncheckedIOException e) {
 				throw e.getCause();
@@ -154,10 +147,11 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * Yields a verified BCEL class from the given entry of the jar file.
 		 * 
 		 * @param entry the entry
+		 * @param input the stream of the jar in the entry
 		 * @return the BCEL class, if the class for {@code entry} did verify
 		 */
-		private Optional<VerifiedClass> buildVerifiedClass(JarEntry entry) {
-			try (InputStream input = originalJar.getInputStream(entry)) {
+		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) {
+			try {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
 				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, issues::add, duringInitialization));
 			}

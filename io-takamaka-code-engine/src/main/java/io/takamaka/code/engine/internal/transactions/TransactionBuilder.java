@@ -3,7 +3,6 @@ package io.takamaka.code.engine.internal.transactions;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -50,15 +49,6 @@ public interface TransactionBuilder<Request extends TransactionRequest<Response>
 	 * @return the response
 	 */
 	Response getResponse();
-
-	/**
-	 * Yields the transaction reference that installed the jar where the given class is defined.
-	 * 
-	 * @param clazz the class, accessible during the created transaction
-	 * @return the transaction reference
-	 * @throws IllegalStateException if the transaction reference cannot be determined
-	 */
-	TransactionReference transactionThatInstalledJarFor(Class<?> clazz);
 
 	/**
 	 * Takes note of the given event, emitted during this execution.

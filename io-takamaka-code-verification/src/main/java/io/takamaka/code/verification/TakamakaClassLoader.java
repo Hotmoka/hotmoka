@@ -1,6 +1,6 @@
 package io.takamaka.code.verification;
 
-import java.net.URL;
+import java.util.stream.Stream;
 
 import io.takamaka.code.verification.internal.TakamakaClassLoaderImpl;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
@@ -11,10 +11,13 @@ import io.takamaka.code.whitelisting.ResolvingClassLoader;
 public interface TakamakaClassLoader extends ResolvingClassLoader {
 
 	/**
-	 * Builds a class loader with the given URLs.
+	 * Builds a class loader with the given jars, given as byte arrays.
+	 * 
+	 * @param jars the jars
+	 * @param jarNames the names that must be used for the {@code jars}
 	 */
-	static TakamakaClassLoader of(URL[] urls) {
-		return new TakamakaClassLoaderImpl(urls);
+	static TakamakaClassLoader of(Stream<byte[]> jars, Stream<String> jarNames) {
+		return new TakamakaClassLoaderImpl(jars, jarNames);
 	}
 
 	/**

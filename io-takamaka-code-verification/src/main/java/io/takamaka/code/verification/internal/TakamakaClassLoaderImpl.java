@@ -5,8 +5,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.net.URL;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.apache.bcel.Repository;
 import org.apache.bcel.util.ClassLoaderRepository;
@@ -54,14 +54,17 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	public final Class<?> storage;
 
 	/**
-	 * Builds a class loader with the given URLs.
+	 * Builds a class loader for the given jars, given as arrays of bytes.
+	 * 
+	 * @param jars the jars
+	 * @param jarNames the names of the jars
 	 */
-	public TakamakaClassLoaderImpl(URL[] urls) {
+	public TakamakaClassLoaderImpl(Stream<byte[]> jars, Stream<String> jarNames) {
 		// we set the BCEL repository so that it matches the class path made up of the jar to
 		// instrument and its dependencies. This is important since class instrumentation will use
 		// the repository to infer least common supertypes during type inference, hence the
 		// whole hierarchy of classes must be available to BCEL through its repository
-		this.parent = ResolvingClassLoader.of(urls);
+		this.parent = ResolvingClassLoader.of(jars, jarNames);
 		Repository.setRepository(new ClassLoaderRepository(getJavaClassLoader()));
 
 		try {
@@ -75,6 +78,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 			throw new IncompleteClasspathError(e);
 		}
 	}
+
 
 	@Override
 	public final boolean isStorage(String className) {
@@ -188,5 +192,10 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public ClassLoader getJavaClassLoader() {
 		return parent.getJavaClassLoader();
+	}
+
+	@Override
+	public String getJarNameOf(Class<?> clazz) {
+		return parent.getJarNameOf(clazz);
 	}
 }

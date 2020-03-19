@@ -1,7 +1,6 @@
 package io.takamaka.code.verification;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -18,15 +17,15 @@ public interface VerifiedJar {
 	 * might fail if at least a class did not verify. In that case, the issues generated
 	 * during verification will contain at least an error.
 	 * 
-	 * @param origin the jar file to verify
+	 * @param jar the jar file to verify, given as an array of bytes
 	 * @param classLoader the class loader that can be used to resolve the classes of the program,
 	 *                    including those of {@code origin}
 	 * @param duringInitialization true if and only if verification occurs during
 	 *                             blockchain initialization
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 */
-	static VerifiedJar of(Path origin, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
-		return new VerifiedJarImpl(origin, classLoader, duringInitialization);
+	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
+		return new VerifiedJarImpl(jar, classLoader, duringInitialization);
 	}
 
 	/**

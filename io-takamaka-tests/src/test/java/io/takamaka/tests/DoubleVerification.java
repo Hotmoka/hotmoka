@@ -1,10 +1,10 @@
 package io.takamaka.tests;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,9 +21,13 @@ class DoubleVerification {
 	@Test
 	void verifyTwice() throws IOException {
 		Path origin = Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-lambdas.jar");
-		URL classpath = new File("../io-takamaka-code/target/io-takamaka-code-1.0.jar").toURI().toURL();
-    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(new URL[] { classpath, origin.toUri().toURL() });
-    	VerifiedJar.of(origin, classLoader, false);
-    	VerifiedJar.of(origin, classLoader, false);
+		Path classpath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar");
+		byte[] bytesOfOrigin = Files.readAllBytes(origin);
+		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
+    	TakamakaClassLoader classLoader = TakamakaClassLoader.of
+    		(Stream.of(bytesOfClasspath, bytesOfOrigin),
+			Stream.of("", "")); // names are irrelevant if we do not execute the code);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, false);
+    	VerifiedJar.of(bytesOfOrigin, classLoader, false);
 	}
 }

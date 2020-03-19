@@ -1,13 +1,20 @@
 package io.takamaka.code.whitelisting.internal;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -15,7 +22,7 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
 /**
  * A sealed implementation of a {@link io.takamaka.code.whitelisting.ResolvingClassLoader}.
  */
-public class ResolvingClassLoaderImpl extends URLClassLoader implements ResolvingClassLoader {
+public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingClassLoader {
 
 	/**
 	 * An object that knows about methods that can be called from Takamaka code
@@ -24,15 +31,123 @@ public class ResolvingClassLoaderImpl extends URLClassLoader implements Resolvin
 	private WhiteListingWizard whiteListingWizard = new WhiteListingWizardImpl(this);
 
 	/**
-	 * Builds a class loader with the given URLs.
-	 * 
-	 * @param urls the urls that make up the class path
+	 * The jars of the classpath of this class loader.
 	 */
-	public ResolvingClassLoaderImpl(URL[] urls) {
-		super(urls, ClassLoader.getSystemClassLoader());
+	private final byte[][] jars;
+
+	/**
+	 * The names of the jars of the classpath of this class loader.
+	 */
+	private final String[] jarNames;
+
+	/**
+	 * The name of each class loaded from with this class loader.
+	 */
+	private final ConcurrentMap<String, String> jarNameOf = new ConcurrentHashMap<>();
+
+	/**
+	 * Builds a class loader with the given jars.
+	 * 
+	 * @param jars the jars, as arrays of bytes
+	 * @param jarNames the names of the jars
+	 */
+	public ResolvingClassLoaderImpl(Stream<byte[]> jars, Stream<String> jarNames) {
+		super(ClassLoader.getSystemClassLoader());
+
+		this.jars = jars.toArray(byte[][]::new);
+		this.jarNames = jarNames.toArray(String[]::new);
 	}
 
 	@Override
+    public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        Class<?> clazz = findLoadedClass(name);
+        if (clazz == null) {
+        	try {
+        		clazz = super.loadClass(name, resolve);
+        	}
+        	catch (ClassNotFoundException cnfe) {
+        		try {
+        			InputStream in = getResourceAsStream(name.replace('.', '/') + ".class");
+        			if (in != null)
+        				try {
+        					ByteArrayOutputStream out = new ByteArrayOutputStream();
+        					in.transferTo(out);
+        					byte[] bytes = out.toByteArray();
+        					clazz = defineClass(name, bytes, 0, bytes.length);
+        					if (resolve)
+        						resolveClass(clazz);
+        				}
+	        			finally {
+	        				try {
+	        					in.close();
+	        				}
+	        				catch (IOException e) {
+	        					// ignore me
+	        				}
+        			}
+        		}
+        		catch (Exception e) {
+        		}
+        	}
+        }
+
+        if (clazz == null)
+        	throw new ClassNotFoundException(name);
+
+        return clazz;
+    }
+
+    @Override
+    public InputStream getResourceAsStream(String name) {
+    	InputStream result = super.getResourceAsStream(name);
+    	if (result != null)
+    		return result;
+
+    	boolean found = false;
+    	int pos = 0;
+    	for (byte[] jar: jars) {
+            ZipInputStream jis = null;
+
+            try {
+            	jis = new ZipInputStream(new ByteArrayInputStream(jar));
+    			ZipEntry entry;
+    			while ((entry = jis.getNextEntry()) != null)
+    				if (entry.getName().equals(name)) {
+    					found = true;
+    					jarNameOf.put(name, jarNames[pos]);
+    					return jis;
+    				}
+
+    			pos++;
+            }
+    		catch (IOException e) {
+    			throw new UncheckedIOException(e);
+    		}
+            finally {
+                // Only close the stream if the entry could not be found
+                if (jis != null && !found)
+                    try {
+                        jis.close();
+                    }
+                    catch (IOException e) {
+                        // ignore me
+                    }
+            }
+    	}
+
+    	return null;
+    }
+
+    @Override
+    public void close() throws IOException {
+    }
+
+    @Override
+    public String getJarNameOf(Class<?> clazz) {
+    	return jarNameOf.get(clazz.getName().replace('.', '/') + ".class");
+    }
+
+    @Override
 	public ClassLoader getJavaClassLoader() {
 		return this;
 	}

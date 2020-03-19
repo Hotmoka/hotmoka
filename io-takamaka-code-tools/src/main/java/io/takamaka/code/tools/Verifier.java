@@ -1,8 +1,7 @@
 package io.takamaka.code.tools;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -43,15 +42,20 @@ public class Verifier {
 
 	    	for (String appJarName: appJarNames) {
 		    	Path origin = Paths.get(appJarName);
+		    	byte[] bytesOfOrigin = Files.readAllBytes(origin);
 
-		    	List<URL> urls = new ArrayList<>();
-		    	urls.add(origin.toUri().toURL());
+		    	List<byte[]> jars = new ArrayList<>();
+		    	List<String> jarNames = new ArrayList<>();
+		    	jars.add(bytesOfOrigin);
+		    	jarNames.add(appJarName);
 		    	if (libJarNames != null)
-		    		for (String lib: libJarNames)
-		    			urls.add(new File(lib).toURI().toURL());
+		    		for (String lib: libJarNames) {
+		    			jars.add(Files.readAllBytes(Paths.get(lib)));
+		    			jarNames.add(lib);
+		    		}
 
-		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(urls.toArray(new URL[urls.size()]));
-		    	VerifiedJar verifiedJar = VerifiedJar.of(origin, classLoader, duringInitialization);
+		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), jarNames.stream());
+		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, duringInitialization);
 		    	verifiedJar.issues().forEach(System.err::println);
 		    	if (verifiedJar.hasErrors())
 		    		System.err.println("Verification failed because of errors");

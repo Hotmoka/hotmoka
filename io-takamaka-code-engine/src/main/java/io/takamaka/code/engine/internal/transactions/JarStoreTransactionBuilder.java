@@ -34,14 +34,15 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 	 * Builds the creator of a transaction that installs a jar in the node.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used for the transaction
+	 * @param transaction the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionException if the transaction cannot be created
 	 */
-	public JarStoreTransactionBuilder(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
-		super(request, current, node);
+	public JarStoreTransactionBuilder(JarStoreTransactionRequest request, TransactionReference transaction, Node node) throws TransactionException {
+		super(request, transaction, node);
 
-		try (EngineClassLoader classLoader = new EngineClassLoader(request.getJar(), request.getDependencies(), this)) {
+		byte[] jar = request.getJar();
+		try (EngineClassLoader classLoader = new EngineClassLoader(jar, transaction, request.getDependencies(), this)) {
 			this.classLoader = classLoader;
 			Object deserializedCaller = deserializer.deserialize(request.caller);
 			checkIsExternallyOwned(deserializedCaller);
@@ -53,12 +54,10 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 			try {
 				chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 				chargeForStorage(request);
-
-				byte[] jar = request.getJar();
 				chargeForCPU(node.getGasCostModel().cpuCostForInstallingJar(jar.length));
 				chargeForRAM(node.getGasCostModel().ramCostForInstalling(jar.length));
 
-				VerifiedJar verifiedJar = VerifiedJar.of(classLoader.jarPath(), classLoader, false);
+				VerifiedJar verifiedJar = VerifiedJar.of(jar, classLoader, false);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, node.getGasCostModel());
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
 
