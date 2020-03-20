@@ -46,17 +46,17 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The number of bids placed by the players.
 	 */
-	private static final int NUM_BIDS = 80;
+	private static final int NUM_BIDS = 30;
 
 	/**
 	 * The bidding time of the experiments (in milliseconds).
 	 */
-	private static final int BIDDING_TIME = 40_000;
+	private static final int BIDDING_TIME = 60_000;
 
 	/**
 	 * The reveal time of the experiments (in millisecond).
 	 */
-	private static final int REVEAL_TIME = 60_000;
+	private static final int REVEAL_TIME = 40_000;
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
