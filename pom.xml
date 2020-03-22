@@ -6,7 +6,7 @@
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
-    <name>HotMoka Project</name>
+    <name>Hotmoka Project</name>
 
     <modules>
       <module>io-takamaka-code</module>
