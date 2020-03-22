@@ -49,34 +49,34 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void echo(RequestEcho req, StreamObserver<ResponseEcho> responseObserver) {
-    	System.out.println("echo start");
+    	System.out.print("[echo");
         ResponseEcho resp = ResponseEcho.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("echo end");
+        System.out.print("]");
     }
 
     @Override
     public void info(RequestInfo req, StreamObserver<ResponseInfo> responseObserver) {
-    	System.out.println("info start");
+    	System.out.print("[info");
         ResponseInfo resp = ResponseInfo.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("info end");
+        System.out.print("]");
     }
 
     @Override
     public void setOption(RequestSetOption req, StreamObserver<ResponseSetOption> responseObserver) {
-    	System.out.println("setOption start");
+    	System.out.print("[setOption");
         ResponseSetOption resp = ResponseSetOption.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("setOption end");
+        System.out.print("]");
     }
 
     @Override
     public void checkTx(RequestCheckTx req, StreamObserver<ResponseCheckTx> responseObserver) {
-    	System.out.println("checkTx start");
+    	System.out.print("[checkTx");
         ByteString tx = req.getTx();
         int code = validate(tx);
         ResponseCheckTx resp = ResponseCheckTx.newBuilder()
@@ -85,32 +85,32 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("checkTx end");
+        System.out.print("]");
     }
 
     @Override
     public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
-    	System.out.println("initChain start");
+    	System.out.print("[initChain");
         ResponseInitChain resp = ResponseInitChain.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("initChain end");
+        System.out.print("]");
     }
 
     @Override
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
-    	System.out.println("beginBlock start");
+    	System.out.print("[beginBlock");
         txn = env.beginTransaction();
         store = env.openStore("store", StoreConfig.WITHOUT_DUPLICATES, txn);
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("beginBlock end");
+        System.out.print("]");
     }
 
     @Override
     public void deliverTx(RequestDeliverTx req, StreamObserver<ResponseDeliverTx> responseObserver) {
-    	System.out.println("deliverTx start");
+    	System.out.print("[deliverTx");
         ByteString tx = req.getTx();
         int code = validate(tx);
 
@@ -131,33 +131,33 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("deliverTx end");
+        System.out.print("]");
     }
 
     @Override
     public void endBlock(RequestEndBlock req, StreamObserver<ResponseEndBlock> responseObserver) {
-    	System.out.println("endBlock start");
+    	System.out.print("[endBlock");
         ResponseEndBlock resp = ResponseEndBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("endBlock end");
+        System.out.print("]");
     }
 
     @Override
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
-    	System.out.println("commit start");
+    	System.out.print("[commit");
         txn.commit();
         ResponseCommit resp = ResponseCommit.newBuilder()
                 .setData(ByteString.copyFrom(new byte[8]))
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("commit end");
+        System.out.print("]");
     }
 
     @Override
     public void query(RequestQuery req, StreamObserver<ResponseQuery> responseObserver) {
-    	System.out.println("query start");
+    	System.out.print("[query");
         byte[] k = req.getData().toByteArray();
         byte[] v = getPersistedValue(k);
         Builder builder = ResponseQuery.newBuilder();
@@ -171,16 +171,16 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         }
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
-        System.out.println("query end");
+        System.out.print("]");
     }
 
     @Override
     public void flush(RequestFlush request, StreamObserver<ResponseFlush> responseObserver) {
-    	System.out.println("flush start");
+    	System.out.print("[flush");
     	ResponseFlush resp = ResponseFlush.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-    	System.out.println("flush end");
+    	System.out.print("]");
     }
 
     private int validate(ByteString tx) {

@@ -19,6 +19,7 @@
       <module>io-takamaka-code-engine</module>
       <module>io-takamaka-code-tools</module>
       <module>io-hotmoka-memory</module>
+      <module>io-hotmoka-tendermint</module>
       <module>io-takamaka-examples</module>
       <module>io-takamaka-tests</module>
     </modules>
