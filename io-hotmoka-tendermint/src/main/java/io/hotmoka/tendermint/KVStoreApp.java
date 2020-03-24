@@ -3,7 +3,6 @@ package io.hotmoka.tendermint;
 import com.google.protobuf.ByteString;
 
 import io.grpc.stub.StreamObserver;
-import io.hotmoka.tendermint.Automaton.State;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.env.Environment;
@@ -39,12 +38,9 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     private final Environment env;
     private Transaction txn = null;
     private Store store = null;
-    private final Automaton automaton;
-    private int counter = 0;
     
     KVStoreApp(Environment env) {
         this.env = env;
-        automaton = new Automaton();
     }
 
     @Override
@@ -53,7 +49,7 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseEcho resp = ResponseEcho.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        System.out.println("]");
     }
 
     @Override
@@ -62,7 +58,7 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseInfo resp = ResponseInfo.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        System.out.println("]");
     }
 
     @Override
@@ -71,7 +67,7 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseSetOption resp = ResponseSetOption.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        System.out.println("]");
     }
 
     @Override
@@ -81,11 +77,11 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         int code = validate(tx);
         ResponseCheckTx resp = ResponseCheckTx.newBuilder()
                 .setCode(code)
-                .setGasWanted(1)
+                //.setGasWanted(1)
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        System.out.println("]");
     }
 
     @Override
@@ -94,18 +90,18 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseInitChain resp = ResponseInitChain.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        System.out.println("]");
     }
 
     @Override
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
-    	System.out.print("[beginBlock");
+    	//System.out.print("[beginBlock");
         txn = env.beginTransaction();
         store = env.openStore("store", StoreConfig.WITHOUT_DUPLICATES, txn);
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        //System.out.print("]");
     }
 
     @Override
@@ -115,15 +111,12 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         int code = validate(tx);
 
         if (code == 0) {
-        	char c = tx.toStringUtf8().charAt(0);
-        	State preState = automaton.getCurrentState();
-        	automaton.process(c);
-        	State postState = automaton.getCurrentState();
-        	String infoToStore = "Input: '" + c + "', PreState: " + preState + ", PostState: " + postState;
-        	ArrayByteIterable value = new ArrayByteIterable(infoToStore.getBytes());
-        	ArrayByteIterable key = new ArrayByteIterable((counter+"").getBytes());
-            store.put(txn, key , value);
-            counter++;
+        	String s = tx.toStringUtf8();
+        	int separator = s.indexOf('=');
+        	// the transaction is validated, hence there is an =, not at the beginning, followed by a number
+        	String name = s.substring(0, separator);
+        	String value = s.substring(separator + 1);
+        	store.put(txn, new ArrayByteIterable(name.getBytes()), new ArrayByteIterable(value.getBytes()));
         }
 
         ResponseDeliverTx resp = ResponseDeliverTx.newBuilder()
@@ -131,47 +124,48 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        System.out.println("]");
     }
 
     @Override
     public void endBlock(RequestEndBlock req, StreamObserver<ResponseEndBlock> responseObserver) {
-    	System.out.print("[endBlock");
+    	//System.out.print("[endBlock");
         ResponseEndBlock resp = ResponseEndBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        //System.out.print("]");
     }
 
     @Override
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
-    	System.out.print("[commit");
+    	//System.out.print("[commit");
         txn.commit();
         ResponseCommit resp = ResponseCommit.newBuilder()
-                .setData(ByteString.copyFrom(new byte[8]))
+                .setData(ByteString.copyFrom(new byte[8])) // hash of the Merkle root of the application state
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        //System.out.print("]");
     }
 
     @Override
     public void query(RequestQuery req, StreamObserver<ResponseQuery> responseObserver) {
     	System.out.print("[query");
         byte[] k = req.getData().toByteArray();
+        req.getHeight();
         byte[] v = getPersistedValue(k);
         Builder builder = ResponseQuery.newBuilder();
-        if (v == null) {
+        if (v == null)
             builder.setLog("does not exist");
-        }
         else {
             builder.setLog("exists");
             builder.setKey(ByteString.copyFrom(k));
             builder.setValue(ByteString.copyFrom(v));
         }
-        responseObserver.onNext(builder.build());
+        ResponseQuery resp = builder.build();
+        responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.print("]");
+        System.out.println("]");
     }
 
     @Override
@@ -180,12 +174,25 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	ResponseFlush resp = ResponseFlush.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-    	System.out.print("]");
+    	System.out.println("]");
     }
 
-    private int validate(ByteString tx) {
-    	// check if tx is a single character and if c == [A-Z]
-    	return tx.toStringUtf8().length() == 1 && tx.toStringUtf8().charAt(0) >= 'A' && tx.toStringUtf8().charAt(0) <= 'Z' ? 0 : -1 ;
+    private static int validate(ByteString tx) {
+    	// check if tx is a single character in [A-Z]
+    	String s = tx.toStringUtf8();
+    	int separator = s.indexOf('=');
+    	if (separator <= 0) // it must contain but not start with =
+    		return 1;
+    	else { // there is an =, hence after it there must be an integer
+    		String value = s.substring(separator + 1);
+    		try {
+    			Integer.parseInt(value);
+    			return 0;
+    		}
+    		catch (NumberFormatException e) {
+    			return 2; // there is no integer after =
+    		}
+    	}
     }
 
     private byte[] getPersistedValue(byte[] k) {
