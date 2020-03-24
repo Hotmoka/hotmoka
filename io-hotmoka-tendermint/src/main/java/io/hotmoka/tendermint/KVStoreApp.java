@@ -2,6 +2,7 @@ package io.hotmoka.tendermint;
 
 import com.google.protobuf.ByteString;
 
+import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
