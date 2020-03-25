@@ -24,7 +24,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.takamaka.code.engine.AbstractSequentialNode;
+import io.takamaka.code.engine.AbstractSynchronousNode;
 import io.takamaka.code.engine.SequentialTransactionReference;
 import io.takamaka.code.engine.Transaction;
 
@@ -34,7 +34,7 @@ import io.takamaka.code.engine.Transaction;
  * really a blockchain, since there is no peer-to-peer network, nor mining.
  * Updates are stored inside the blocks, rather than in an external database.
  */
-public abstract class AbstractMemoryBlockchain extends AbstractSequentialNode {
+public abstract class AbstractMemoryBlockchain extends AbstractSynchronousNode {
 
 	/**
 	 * The name used for the file containing the serialized header of a block.

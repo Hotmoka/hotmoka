@@ -9,7 +9,7 @@ import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.hotmoka.nodes.SequentialNode;
+import io.hotmoka.nodes.SynchronousNode;
 
 /**
  * An implementation of a blockchain that stores, sequentially, transactions in a directory
@@ -18,7 +18,7 @@ import io.hotmoka.nodes.SequentialNode;
  * Updates are stored inside the blocks, rather than in an external database.
  * It provides support for the creation of a given number of initial accounts.
  */
-public interface MemoryBlockchain extends SequentialNode {
+public interface MemoryBlockchain extends SynchronousNode {
 
 	/**
 	 * Yields a blockchain in disk memory and initializes user accounts with the given initial funds.

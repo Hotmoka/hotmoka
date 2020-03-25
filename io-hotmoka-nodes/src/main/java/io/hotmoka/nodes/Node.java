@@ -6,7 +6,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -107,4 +111,41 @@ public interface Node {
 	 * @return the gas cost model
 	 */
 	GasCostModel getGasCostModel();
+
+	/**
+	 * Expands the store of this node with a transaction that
+	 * installs a jar in it. This transaction can only occur during initialization
+	 * of the node. It has no caller and requires no gas. The goal is to install, in the
+	 * node, some basic jars that are likely needed as dependencies by future jars.
+	 * For instance, the jar containing the basic contract classes.
+	 * 
+	 * @param request the transaction request
+	 * @return the reference to the transaction that can be used to refer to the jar in a class path or as future dependency of other jars
+	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
+	 */
+	TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException;
+
+	/**
+	 * Expands the store of this node with a transaction that creates a gamete, that is,
+	 * an externally owned contract with the given initial amount of coins.
+	 * This transaction can only occur during initialization of the node. It has
+	 * no caller and requires no gas.
+	 * 
+	 * @param request the transaction request
+	 * @return the reference to the freshly created gamete
+	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
+	 */
+	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException;
+
+	/**
+	 * Expands the store of this blockchain with a transaction that creates a red/green gamete, that is,
+	 * a red/green externally owned contract with the given initial amount of coins.
+	 * This transaction can only occur during initialization of the node. It has
+	 * no caller and requires no gas.
+	 * 
+	 * @param request the transaction request
+	 * @return the reference to the freshly created gamete
+	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
+	 */
+	StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException;
 }

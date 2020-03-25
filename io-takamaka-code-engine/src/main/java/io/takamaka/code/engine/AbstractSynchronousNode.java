@@ -48,15 +48,16 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.nodes.SequentialNode;
+import io.hotmoka.nodes.SynchronousNode;
 
 /**
- * A generic implementation of a sequential node, that executes transactions and adds
- * updates to the store of the node. For a sequential node, transactions have a time ordering,
+ * A generic implementation of a synchronous node, that executes transactions, adds
+ * updates to the store of the node and yields the response of the transactions.
+ * For a synchronous node, transactions have a time ordering,
  * so that it is possible to know which has been added before in the node.
- * Specific implementations can subclass this class and just implement the abstract template methods.
+ * Specific implementations can subclass this class and implement the abstract template methods.
  */
-public abstract class AbstractSequentialNode extends AbstractNode implements SequentialNode {
+public abstract class AbstractSynchronousNode extends AbstractNode implements SynchronousNode {
 
 	/**
 	 * Yields the reference to topmost transaction after which any new transaction will be executed.
@@ -399,17 +400,6 @@ public abstract class AbstractSequentialNode extends AbstractNode implements Seq
 	}
 
 	/**
-	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
-	 * already an instance of that exception.
-	 * 
-	 * @param t the throwable to wrap
-	 * @return the wrapped or original exception
-	 */
-	private static TransactionException wrapAsTransactionException(Throwable t) {
-		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
-	}
-
-	/**
 	 * Calls the given callable. If if throws a {@link io.hotmoka.nodes.CodeExecutionException}, if throws it back
 	 * unchanged. Otherwise, it wraps the exception into an {@link io.hotmoka.beans.TransactionException}.
 	 * 
@@ -428,5 +418,16 @@ public abstract class AbstractSequentialNode extends AbstractNode implements Seq
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);
 		}
+	}
+
+	/**
+	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
+	 * already an instance of that exception.
+	 * 
+	 * @param t the throwable to wrap
+	 * @return the wrapped or original exception
+	 */
+	private static TransactionException wrapAsTransactionException(Throwable t) {
+		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
 	}
 }
