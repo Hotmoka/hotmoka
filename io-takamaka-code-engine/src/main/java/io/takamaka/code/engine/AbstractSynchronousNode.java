@@ -16,7 +16,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -35,6 +34,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -60,6 +60,11 @@ import io.hotmoka.nodes.SynchronousNode;
 public abstract class AbstractSynchronousNode extends AbstractNode implements SynchronousNode {
 
 	/**
+	 * True if at least a non-initial transaction has been already executed on this node.
+	 */
+	private boolean initialized;
+
+	/**
 	 * Yields the reference to topmost transaction after which any new transaction will be executed.
 	 * 
 	 * @return the reference to the topmost transaction, if any. Yields {@code null} if
@@ -76,6 +81,15 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 	protected abstract SequentialTransactionReference getNextTransaction();
 
 	/**
+	 * Yields the response of the transaction with the given reference.
+	 * 
+	 * @param transactionReference the reference to the transaction
+	 * @return the response
+	 * @throws Exception if the response could not be found
+	 */
+	protected abstract TransactionResponse getResponseAt(TransactionReference transactionReference) throws Exception;
+
+	/**
 	 * Expands the store of this node with a transaction, that is added after the topmost one and
 	 * becomes the new topmost transaction.
 	 * 
@@ -86,6 +100,39 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 	 * @throws Exception if the expansion cannot be completed
 	 */
 	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandStoreWith(Transaction<Request, Response> transaction) throws Exception;
+
+	@Override
+	public final String getClassNameOf(StorageReference object) {
+		try {
+			TransactionResponse response = getResponseAt(object.transaction);
+			if (response instanceof TransactionResponseWithUpdates) {
+				Optional<ClassTag> classTag = ((TransactionResponseWithUpdates) response).getUpdates()
+					.filter(update -> update instanceof ClassTag)
+					.map(update -> (ClassTag) update)
+					.findFirst();
+
+				if (classTag.isPresent())
+					return classTag.get().className;
+			}
+		}
+		catch (DeserializationError e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new DeserializationError(e);
+		}
+
+		throw new DeserializationError("no class tag found for " + object);
+	}
+
+	@Override
+	public final TransactionResponseWithInstrumentedJar getJarStoreResponseAt(TransactionReference transactionReference) throws Exception {
+		TransactionResponse response = getResponseAt(transactionReference);
+		if (response instanceof TransactionResponseWithInstrumentedJar)
+			return (TransactionResponseWithInstrumentedJar) response;
+		else
+			throw new IllegalArgumentException("the transaction does not contain a jar store response");
+	}
 
 	@Override
 	public final Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception {
@@ -172,6 +219,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 		return wrapInCaseOfException(() -> {
 			Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			TransactionReference transactionReference = expandStoreWith(transaction);
+			initialized = true;
 			JarStoreTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof JarStoreTransactionFailedResponse)
@@ -186,6 +234,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
+			initialized = true;
 			ConstructorCallTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof ConstructorCallTransactionFailedResponse)
@@ -204,6 +253,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
+			initialized = true;
 			MethodCallTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof MethodCallTransactionFailedResponse)
@@ -224,6 +274,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 		return wrapWithCodeInCaseOfException(() -> {
 			Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
+			initialized = true;
 			MethodCallTransactionResponse response = transaction.getResponse();
 
 			if (response instanceof MethodCallTransactionFailedResponse)
@@ -243,11 +294,10 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 	 * Checks if this node is still not fully initialized, so that further initial transactions can still
 	 * be executed. As soon as a non-initial transaction is run with this node, it is considered as initialized.
 	 * 
-	 * @throws Exception if this node is already initialized, or it is impossible to determine it
+	 * @throws IllegalStateException if this node is already initialized
 	 */
-	private void requireNodeUninitialized() throws Exception {
-		SequentialTransactionReference previous = getTopmostTransactionReference();
-		if (previous != null && !(getRequestAt(previous) instanceof InitialTransactionRequest))
+	private void requireNodeUninitialized() throws IllegalStateException {
+		if (initialized)
 			throw new IllegalStateException("this node is already initialized");
 	}
 

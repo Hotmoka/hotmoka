@@ -67,7 +67,7 @@ public interface GasCostModel {
 	int ramCostOfActivationSlot();
 
 	/**
-	 * Yields the RAM gas cost for installing in blockchain a jar consisting of the given bytes.
+	 * Yields the RAM gas cost for installing in store a jar consisting of the given bytes.
 	 * 
 	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
@@ -75,7 +75,7 @@ public interface GasCostModel {
 	BigInteger ramCostForInstalling(int numBytes);
 
 	/**
-	 * Yields the RAM gas cost for loading from blockchain a jar consisting of the given bytes.
+	 * Yields the RAM gas cost for loading from store a jar consisting of the given bytes.
 	 * 
 	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
@@ -135,7 +135,7 @@ public interface GasCostModel {
 	int cpuCostOfInstruction();
 
 	/**
-	 * Yields the CPU gas cost for installing in blockchain a jar consisting of the given bytes.
+	 * Yields the CPU gas cost for installing in store a jar consisting of the given bytes.
 	 * 
 	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
@@ -143,7 +143,7 @@ public interface GasCostModel {
 	BigInteger cpuCostForInstallingJar(int numBytes);
 
 	/**
-	 * Yields the CPU gas cost for loading from blockchain a jar consisting of the given bytes.
+	 * Yields the CPU gas cost for loading from store a jar consisting of the given bytes.
 	 * 
 	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
@@ -158,15 +158,15 @@ public interface GasCostModel {
 	BigInteger cpuBaseTransactionCost();
 
 	/**
-	 * Yields the CPU gas cost for accessing from blockchain the request at the given transaction.
+	 * Yields the CPU gas cost for accessing from store the dependencies of the given jar store transaction.
 	 * 
-	 * @param transaction the transaction
+	 * @param transaction the jar store transaction
 	 * @return the cost
 	 */
-	BigInteger cpuCostForGettingRequestAt(TransactionReference transaction);
+	BigInteger cpuCostForGettingDependenciesAt(TransactionReference transaction);
 
 	/**
-	 * Yields the CPU gas cost for accessing from blockchain the response at the given transaction.
+	 * Yields the CPU gas cost for accessing from store the response at the given transaction.
 	 * 
 	 * @param transaction the transaction
 	 * @return the cost
@@ -200,7 +200,7 @@ public interface GasCostModel {
 	BigInteger storageCostOf(String value);
 
 	/**
-	 * Yields the storage gas cost for installing in blockchain a jar consisting of the given bytes.
+	 * Yields the storage gas cost for installing in store a jar consisting of the given bytes.
 	 * 
 	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
@@ -208,7 +208,7 @@ public interface GasCostModel {
 	BigInteger storageCostOfJar(int numBytes);
 
 	/**
-	 * Yields the storage gas cost for the given transaction reference, if stored in blockchain.
+	 * Yields the storage gas cost for the given transaction reference, if stored in store.
 	 * 
 	 * @param transaction the transaction reference
 	 * @return the cost

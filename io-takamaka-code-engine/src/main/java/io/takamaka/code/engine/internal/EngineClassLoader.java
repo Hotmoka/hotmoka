@@ -13,8 +13,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
-import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
@@ -190,30 +188,6 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	/**
-	 * Yields the request that generated the given transaction and charges gas for that operation.
-	 * 
-	 * @param transaction the reference to the transaction
-	 * @return the request
-	 * @throws Exception if the request could not be found
-	 */
-	private TransactionRequest<?> getRequestAndCharge(TransactionReference transaction) throws Exception {
-		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingRequestAt(transaction));
-		return builder.node.getRequestAt(transaction);
-	}
-
-	/**
-	 * Yields the response that generated the given transaction and charges gas for that operation.
-	 * 
-	 * @param transaction the reference to the transaction
-	 * @return the response
-	 * @throws Exception if the response could not be found
-	 */
-	private TransactionResponse getResponseAndCharge(TransactionReference transaction) throws Exception {
-		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		return builder.node.getResponseAt(transaction);
-	}
-
-	/**
 	 * Expands the given list of jars with the components of the given classpath.
 	 * 
 	 * @param classpath the classpath
@@ -225,16 +199,14 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private void addJars(Classpath classpath, List<byte[]> jars, List<String> jarNames) throws Exception {
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
-			TransactionRequest<?> request = getRequestAndCharge(classpath.transaction);
-			if (!(request instanceof AbstractJarStoreTransactionRequest))
-				throw new IllegalArgumentException("classpath does not refer to a jar store transaction");
-
-			Stream<Classpath> dependencies = ((AbstractJarStoreTransactionRequest) request).getDependencies();
+			builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingDependenciesAt(classpath.transaction));
+			Stream<Classpath> dependencies = builder.node.getDependenciesOfJarStoreTransactionAt(classpath.transaction);
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
 				addJars(dependency, jars, jarNames);
 		}
 
-		TransactionResponse response = getResponseAndCharge(classpath.transaction);
+		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingResponseAt(classpath.transaction));
+		TransactionResponse response = builder.node.getJarStoreResponseAt(classpath.transaction);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalArgumentException("classpath does not refer to a successful jar store transaction");
 
@@ -242,7 +214,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
 		builder.chargeForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 		jars.add(instrumentedJarBytes);
-		jarNames.add("takamaka@" + classpath.transaction.toString() + ".jar");
+		jarNames.add("takamaka@" + classpath.transaction + ".jar");
 	}
 
 	@Override

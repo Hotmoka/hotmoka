@@ -17,10 +17,12 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -192,10 +194,14 @@ public abstract class AbstractMemoryBlockchain extends AbstractSynchronousNode {
 	}
 
 	@Override
-	public TransactionRequest<?> getRequestAt(TransactionReference reference) throws IOException, ClassNotFoundException {
-		Path request = getPathFor((MemoryTransactionReference) reference, REQUEST_NAME);
-		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(request)))) {
-			return (TransactionRequest<?>) in.readObject();
+	public Stream<Classpath> getDependenciesOfJarStoreTransactionAt(TransactionReference reference) throws IOException, ClassNotFoundException {
+		Path path = getPathFor((MemoryTransactionReference) reference, REQUEST_NAME);
+		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
+			TransactionRequest<?> request = (TransactionRequest<?>) in.readObject();
+			if (!(request instanceof AbstractJarStoreTransactionRequest))
+				throw new IllegalArgumentException("the transaction does not contain a jar store request");
+
+			return ((AbstractJarStoreTransactionRequest) request).getDependencies();
 		}
 	}
 
