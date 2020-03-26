@@ -66,6 +66,9 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 			this.classLoader = classLoader;
 
+			if (request.method.formals().count() != request.actuals().count())
+				throw new TransactionException("argument count mismatch between formals and actuals");
+
 			// we perform deserialization in a thread, since enums passed as parameters
 			// would trigger the execution of their static initializer, which will charge gas
 			DeserializerThread deserializerThread = new DeserializerThread(request);
@@ -106,9 +109,7 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 					}
 				}
 
-				if (Modifier.isStatic(methodJVM.getModifiers()))
-					throw new NoSuchMethodException("cannot call a static method");
-
+				validateTarget(methodJVM);
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				boolean isVoidMethod = methodJVM.getReturnType() == void.class;
@@ -158,6 +159,17 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);
 		}
+	}
+
+	/**
+	 * Checks that the called method respects the expected constraints.
+	 * 
+	 * @param methodJVM the method
+	 * @throws NoSuchMethodException if the constraints are not satisfied
+	 */
+	protected void validateTarget(Method methodJVM) throws NoSuchMethodException {
+		if (Modifier.isStatic(methodJVM.getModifiers()))
+			throw new NoSuchMethodException("cannot call a static method");
 	}
 
 	@Override

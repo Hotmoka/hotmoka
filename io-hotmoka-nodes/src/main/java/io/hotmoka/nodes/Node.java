@@ -10,13 +10,16 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 
 /**
  * A node of the HotMoka network, that provides the storage
@@ -148,4 +151,30 @@ public interface Node {
 	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
 	 */
 	StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException;
+
+	/**
+	 * Runs an instance {@code @@View} method of an object already in this node's store.
+	 * The node's store is not expanded, since the execution of the method has no side-effects.
+	 * 
+	 * @param request the transaction request
+	 * @return the result of the call, if the method was successfully executed, without exception
+	 * @throws TransactionException if the transaction could not be completed successfully. This includes
+	 *                              {@linkplain io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s
+	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
+	 *                                failed with a checked exception. In all other cases, a {@linkplain io.hotmoka.beans.TransactionException} is thrown
+	 */
+	StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
+
+	/**
+	 * Runs a static {@code @@View} method of a class in this node.
+	 * The node's store is not expanded, since the execution of the method has no side-effects.
+	 * 
+	 * @param request the transaction request
+	 * @return the result of the call, if the method was successfully executed, without exception
+	 * @throws TransactionException if the transaction could not be completed successfully. This includes
+	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s
+	 * @throws CodeExecutionException if the method is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions} and its execution
+	 *                                failed with a checked exception. In all other cases, a {@linkplain io.hotmoka.beans.TransactionException} is thrown
+	 */
+	StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
 }

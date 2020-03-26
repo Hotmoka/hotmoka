@@ -23,6 +23,10 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
  * Builds the creator of a transaction that executes a static method of Takamaka code.
  */
 public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBuilder<StaticMethodCallTransactionRequest> {
+
+	/**
+	 * The class loader of the transaction.
+	 */
 	private final EngineClassLoader classLoader;
 
 	/**
@@ -54,6 +58,9 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
 			this.classLoader = classLoader;
 
+			if (request.method.formals().count() != request.actuals().count())
+				throw new TransactionException("argument count mismatch between formals and actuals");
+
 			// we perform deserialization in a thread, since enums passed as parameters
 			// would trigger the execution of their static initializer, which will charge gas
 			DeserializerThread deserializerThread = new DeserializerThread(request);
@@ -77,8 +84,7 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 			try {
 				methodJVM = getMethod();
 
-				if (!Modifier.isStatic(methodJVM.getModifiers()))
-					throw new NoSuchMethodException("cannot call an instance method");
+				validateTarget(methodJVM);
 
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
@@ -127,6 +133,17 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 		catch (Throwable t) {
 			throw wrapAsTransactionException(t);
 		}
+	}
+
+	/**
+	 * Checks that the called method respects the expected constraints.
+	 * 
+	 * @param methodJVM the method
+	 * @throws NoSuchMethodException if the constraints are not satisfied
+	 */
+	protected void validateTarget(Method methodJVM) throws NoSuchMethodException {
+		if (!Modifier.isStatic(methodJVM.getModifiers()))
+			throw new NoSuchMethodException("cannot call an instance method");
 	}
 
 	@Override

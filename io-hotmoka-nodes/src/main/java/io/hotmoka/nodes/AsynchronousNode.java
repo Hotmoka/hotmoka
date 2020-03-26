@@ -2,12 +2,11 @@ package io.hotmoka.nodes;
 
 import java.util.Optional;
 
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.TransactionResponse;
 
 /**
  * An asynchronous node, that receives transactions, eventually runs them and adds
@@ -74,11 +73,11 @@ public interface AsynchronousNode extends Node {
 	void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request);
 
 	/**
-	 * Yields the response that was generated for the given request. If the request has been posted but
-	 * not yet executed, then the optional result is empty.
+	 * Yields the reference to the transaction that was generated for the request with the given hash.
+	 * If the request has been posted but not yet executed, then the optional result is empty.
 	 * 
-	 * @param request the request
-	 * @return the response, if any
+	 * @param hash the hash generated for the request whose outcome is peeked
+	 * @return the reference to the transaction
 	 */
-	<Request extends TransactionRequest<Response>, Response extends TransactionResponse> Optional<Response> peekResponseAt(Request request);
+	//Optional<TransactionReference> peekTransactionReferenceFor(String hash);
 }

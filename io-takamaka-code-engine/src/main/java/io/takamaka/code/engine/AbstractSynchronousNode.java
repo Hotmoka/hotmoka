@@ -290,6 +290,42 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 		});
 	}
 
+	@Override
+	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
+		return wrapWithCodeInCaseOfException(() -> {
+			MethodCallTransactionResponse response = Transaction.mkForView(request, getNextTransaction(), this).getResponse();
+
+			if (response instanceof MethodCallTransactionFailedResponse)
+				throw ((MethodCallTransactionFailedResponse) response).cause;
+			else if (response instanceof MethodCallTransactionExceptionResponse) {
+				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
+				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.getStackTrace());
+			}
+			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
+				return null;
+			else
+				return ((MethodCallTransactionSuccessfulResponse) response).result;
+		});
+	}
+
+	@Override
+	public final StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
+		return wrapWithCodeInCaseOfException(() -> {
+			MethodCallTransactionResponse response = Transaction.mkForView(request, getNextTransaction(), this).getResponse();
+
+			if (response instanceof MethodCallTransactionFailedResponse)
+				throw ((MethodCallTransactionFailedResponse) response).cause;
+			else if (response instanceof MethodCallTransactionExceptionResponse) {
+				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
+				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.getStackTrace());
+			}
+			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
+				return null;
+			else
+				return ((MethodCallTransactionSuccessfulResponse) response).result;
+		});
+	}
+
 	/**
 	 * Checks if this node is still not fully initialized, so that further initial transactions can still
 	 * be executed. As soon as a non-initial transaction is run with this node, it is considered as initialized.

@@ -591,6 +591,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>view</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>view</classifier>
+              <includes><include>io/takamaka/tests/errors/view/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>errors</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>errors</classifier>
               <includes><include>io/takamaka/code/illegalpackagename1/**</include><include>io/takamaka/tests/errors/**</include></includes>

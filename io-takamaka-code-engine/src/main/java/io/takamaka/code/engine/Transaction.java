@@ -21,10 +21,12 @@ import io.takamaka.code.engine.internal.transactions.AbstractTransaction;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallTransactionBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationTransactionBuilder;
 import io.takamaka.code.engine.internal.transactions.InstanceMethodCallTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.InstanceViewMethodCallTransactionBuilder;
 import io.takamaka.code.engine.internal.transactions.JarStoreInitialTransactionBuilder;
 import io.takamaka.code.engine.internal.transactions.JarStoreTransactionBuilder;
 import io.takamaka.code.engine.internal.transactions.RedGreenGameteCreationTransactionBuilder;
 import io.takamaka.code.engine.internal.transactions.StaticMethodCallTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.StaticViewMethodCallTransactionBuilder;
 
 /**
  * A transaction of a HotMoka node: it is the execution of a
@@ -150,5 +152,35 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 */
 	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new StaticMethodCallTransactionBuilder(request, current, node).getResponse());
+	}
+
+	/**
+	 * Yields a transaction that calls an instance method of an object in the node.
+	 * The goal is to run the method and compute its returned value (if any).
+	 * The method is checked to be annotated as {@linkplain io.hotmoka.code.lang.View}.
+	 * This method runs the transaction specified by the request and yields the corresponding response.
+	 * 
+	 * @param request the transaction request
+	 * @param current the reference that will be used for the transaction
+	 * @return the transaction
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	static Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> mkForView(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+		return new AbstractTransaction<>(request, new InstanceViewMethodCallTransactionBuilder(request, current, node).getResponse());
+	}
+
+	/**
+	 * Yields a transaction that calls a static method.
+	 * The goal is to run the method and compute its returned value (if any).
+	 * The method is checked to be annotated as {@linkplain io.hotmoka.code.lang.View}.
+	 * This method runs the transaction specified by the request and yields the corresponding response.
+	 * 
+	 * @param request the transaction request
+	 * @param current the reference that will be used for the transaction
+	 * @return the transaction
+	 * @throws TransactionException if the transaction could not be completed successfully
+	 */
+	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkForView(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+		return new AbstractTransaction<>(request, new StaticViewMethodCallTransactionBuilder(request, current, node).getResponse());
 	}
 }

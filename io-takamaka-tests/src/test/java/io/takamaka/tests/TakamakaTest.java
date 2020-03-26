@@ -36,6 +36,9 @@ public abstract class TakamakaTest {
 			what.run();
 		}
 		catch (TransactionException e) {
+			if (e.getCause() == null)
+				fail("wrong cause: expected " + expected.getName() + " but got null");
+
 			Class<? extends Throwable> actual = e.getCause().getClass();
 			if (expected.isAssignableFrom(actual))
 				return;
@@ -55,6 +58,9 @@ public abstract class TakamakaTest {
 			what.run();
 		}
 		catch (TransactionException e) {
+			if (e.getCause() == null)
+				fail("wrong cause: expected " + expected + " but got null");
+
 			Class<? extends Throwable> actual = e.getCause().getClass();
 			if (actual.getName().equals(expected))
 				return;
