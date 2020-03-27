@@ -1,15 +1,27 @@
-package io.hotmoka.tendermint;
+package io.hotmoka.tendermint.internal;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.math.BigInteger;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.nodes.Node;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.env.Environment;
+import jetbrains.exodus.env.Environments;
 import jetbrains.exodus.env.Store;
 import jetbrains.exodus.env.StoreConfig;
 import jetbrains.exodus.env.Transaction;
 import types.ABCIApplicationGrpc;
+import types.Types.Header;
 import types.Types.RequestBeginBlock;
 import types.Types.RequestCheckTx;
 import types.Types.RequestCommit;
@@ -34,14 +46,31 @@ import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
 
-class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
+class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCloseable {
+	private final Node node;
     private final Environment env;
-    private Transaction txn = null;
-    private Store store = null;
-    
-    KVStoreApp(Environment env) {
-        this.env = env;
+    private Transaction txn;
+    private Store store;
+
+    /**
+     * The transaction reference that can be used for the next transaction that will be delivered.
+     */
+    private TendermintTransactionReference next;
+
+    /**
+    * The current time of the blockchain, set at the time of creation of each block.
+    */
+    private long now;
+
+    ABCI(Node node) {
+    	this.node = node;
+        this.env = Environments.newInstance("tmp/storage");
     }
+
+    @Override
+    public void close() {
+    	env.close();
+	}
 
     @Override
     public void echo(RequestEcho req, StreamObserver<ResponseEcho> responseObserver) {
@@ -74,6 +103,20 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     public void checkTx(RequestCheckTx req, StreamObserver<ResponseCheckTx> responseObserver) {
     	System.out.print("[checkTx");
         ByteString tx = req.getTx();
+
+        Object data;
+        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
+        	data = ois.readObject();
+        }
+        catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
         int code = validate(tx);
         ResponseCheckTx resp = ResponseCheckTx.newBuilder()
                 .setCode(code)
@@ -87,6 +130,8 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
     public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
     	System.out.print("[initChain");
+    	Timestamp time = req.getTime();
+		long millis = time.getSeconds() * 1000L + time.getNanos() / 1000L;
         ResponseInitChain resp = ResponseInitChain.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
@@ -98,6 +143,8 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	//System.out.print("[beginBlock");
         txn = env.beginTransaction();
         store = env.openStore("store", StoreConfig.WITHOUT_DUPLICATES, txn);
+        Header header = req.getHeader();
+        next = new TendermintTransactionReference(BigInteger.valueOf(header.getHeight()), (short) 0);
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
@@ -111,13 +158,35 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         int code = validate(tx);
 
         if (code == 0) {
-        	String s = tx.toStringUtf8();
+        	Object data;
+            try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
+            	data = ois.readObject();
+            	if (data instanceof JarStoreInitialTransactionRequest) {
+            		JarStoreInitialTransactionRequest request = (JarStoreInitialTransactionRequest) data;
+            		JarStoreInitialTransactionResponse response = io.takamaka.code.engine.Transaction.mkFor(request, next, node).getResponse();
+            		System.out.println(response);
+            	}
+            }
+            catch (ClassNotFoundException e) {
+            	code = 1;
+    		}
+            catch (IOException e) {
+            	code = 1;
+    		}
+            catch (TransactionException e) {
+            	e.printStackTrace();
+				code = 2;
+			}
+        	
+            /*String s = tx.toStringUtf8();
         	int separator = s.indexOf('=');
         	// the transaction is validated, hence there is an =, not at the beginning, followed by a number
         	String name = s.substring(0, separator);
         	String value = s.substring(separator + 1);
-        	store.put(txn, new ArrayByteIterable(name.getBytes()), new ArrayByteIterable(value.getBytes()));
+        	store.put(txn, new ArrayByteIterable(name.getBytes()), new ArrayByteIterable(value.getBytes()));*/
         }
+
+        next = new TendermintTransactionReference(next.blockNumber, next.transactionNumber + 1);
 
         ResponseDeliverTx resp = ResponseDeliverTx.newBuilder()
                 .setCode(code)
@@ -177,22 +246,18 @@ class KVStoreApp extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	System.out.println("]");
     }
 
-    private static int validate(ByteString tx) {
-    	// check if tx is a single character in [A-Z]
-    	String s = tx.toStringUtf8();
-    	int separator = s.indexOf('=');
-    	if (separator <= 0) // it must contain but not start with =
-    		return 1;
-    	else { // there is an =, hence after it there must be an integer
-    		String value = s.substring(separator + 1);
-    		try {
-    			Integer.parseInt(value);
-    			return 0;
-    		}
-    		catch (NumberFormatException e) {
-    			return 2; // there is no integer after =
-    		}
-    	}
+    /**
+     * Yields the current time of the blockchain, set at the time of
+     * creation of each block.
+     * 
+     * @return the current time
+     */
+    long getNow() {
+		return now;
+	}
+
+	private static int validate(ByteString tx) {
+    	return 0;
     }
 
     private byte[] getPersistedValue(byte[] k) {

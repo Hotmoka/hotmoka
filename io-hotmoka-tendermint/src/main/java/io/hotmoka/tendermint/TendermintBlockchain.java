@@ -2,6 +2,7 @@ package io.hotmoka.tendermint;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URL;
 import java.nio.file.Path;
 
 import io.hotmoka.beans.TransactionException;
@@ -18,11 +19,12 @@ import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
  * Updates are stored inside the blocks, rather than in an external database.
  * It provides support for the creation of a given number of initial accounts.
  */
-public interface TendermintBlockchain extends AsynchronousNode {
+public interface TendermintBlockchain extends AsynchronousNode, AutoCloseable {
 
 	/**
 	 * Yields a blockchain in disk memory and initializes user accounts with the given initial funds.
 	 * 
+	 * @param tendermint the URL of the Tendermint process. For instance: {@code http://localhost:26657}
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode()}
 	 * @param funds the initial funds of the accounts that are created
@@ -30,8 +32,8 @@ public interface TendermintBlockchain extends AsynchronousNode {
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
 	 */
-	static TendermintBlockchain of(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
-		return new TendermintBlockchainImpl(takamakaCodePath, funds);
+	static TendermintBlockchain of(URL tendermint, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+		return new TendermintBlockchainImpl(tendermint, takamakaCodePath, funds);
 	}
 
 	/**
