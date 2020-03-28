@@ -13,8 +13,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
@@ -206,11 +204,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		}
 
 		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingResponseAt(classpath.transaction));
-		TransactionResponse response = builder.node.getJarStoreResponseAt(classpath.transaction);
-		if (!(response instanceof TransactionResponseWithInstrumentedJar))
-			throw new IllegalArgumentException("classpath does not refer to a successful jar store transaction");
-
-		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
+		byte[] instrumentedJarBytes = builder.node.getInstrumentedJarAt(classpath.transaction);
 		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
 		builder.chargeForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 		jars.add(instrumentedJarBytes);

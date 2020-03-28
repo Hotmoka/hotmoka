@@ -126,10 +126,10 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 	}
 
 	@Override
-	public final TransactionResponseWithInstrumentedJar getJarStoreResponseAt(TransactionReference transactionReference) throws Exception {
+	public final byte[] getInstrumentedJarAt(TransactionReference transactionReference) throws Exception {
 		TransactionResponse response = getResponseAt(transactionReference);
 		if (response instanceof TransactionResponseWithInstrumentedJar)
-			return (TransactionResponseWithInstrumentedJar) response;
+			return ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
 		else
 			throw new IllegalArgumentException("the transaction does not contain a jar store response");
 	}

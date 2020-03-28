@@ -18,8 +18,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import com.google.gson.Gson;
-
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.hotmoka.beans.TransactionException;
@@ -32,7 +30,6 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -69,6 +66,8 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 
 	private final ABCI abci;
 
+	final State state;
+
 	/**
 	 * The maximal number of connection attempts to the Tendermint URL.
 	 */
@@ -88,6 +87,7 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	public TendermintBlockchainImpl(URL tendermint, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
 		this.tendermint = tendermint;
 		this.abci = new ABCI(this);
+    	this.state = new State();
 		this.server = ServerBuilder.forPort(26658)
 				.addService(abci)
 				.build();
@@ -144,8 +144,8 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	@Override
 	public void close() throws InterruptedException {
     	server.shutdown();
-    	abci.close();
     	server.awaitTermination();
+    	state.close();
 	}
 
 	@Override
@@ -201,10 +201,8 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	}
 
 	@Override
-	public TransactionResponseWithInstrumentedJar getJarStoreResponseAt(TransactionReference transactionReference)
-			throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public byte[] getInstrumentedJarAt(TransactionReference transactionReference) throws Exception {
+		return state.getInstrumentedJarAt(transactionReference);
 	}
 
 	@Override
@@ -257,7 +255,7 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 
 			try (OutputStream os = con.getOutputStream()) {
 			    byte[] input = jsonTendermintRequest.getBytes("utf-8");
-			    os.write(input, 0, input.length);           
+			    os.write(input, 0, input.length);
 			}
 
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"))) {

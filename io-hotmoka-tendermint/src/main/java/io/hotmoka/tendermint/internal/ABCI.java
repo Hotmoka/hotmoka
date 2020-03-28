@@ -12,14 +12,6 @@ import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.nodes.Node;
-import jetbrains.exodus.ArrayByteIterable;
-import jetbrains.exodus.ByteIterable;
-import jetbrains.exodus.env.Environment;
-import jetbrains.exodus.env.Environments;
-import jetbrains.exodus.env.Store;
-import jetbrains.exodus.env.StoreConfig;
-import jetbrains.exodus.env.Transaction;
 import types.ABCIApplicationGrpc;
 import types.Types.Header;
 import types.Types.RequestBeginBlock;
@@ -46,11 +38,8 @@ import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
 
-class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCloseable {
-	private final Node node;
-    private final Environment env;
-    private Transaction txn;
-    private Store store;
+class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
+	private final TendermintBlockchainImpl node;
 
     /**
      * The transaction reference that can be used for the next transaction that will be delivered.
@@ -62,15 +51,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCl
     */
     private long now;
 
-    ABCI(Node node) {
+    ABCI(TendermintBlockchainImpl node) {
     	this.node = node;
-        this.env = Environments.newInstance("tmp/storage");
     }
-
-    @Override
-    public void close() {
-    	env.close();
-	}
 
     @Override
     public void echo(RequestEcho req, StreamObserver<ResponseEcho> responseObserver) {
@@ -130,8 +113,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCl
     @Override
     public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
     	System.out.print("[initChain");
-    	Timestamp time = req.getTime();
-		long millis = time.getSeconds() * 1000L + time.getNanos() / 1000L;
         ResponseInitChain resp = ResponseInitChain.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
@@ -141,10 +122,11 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCl
     @Override
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
     	//System.out.print("[beginBlock");
-        txn = env.beginTransaction();
-        store = env.openStore("store", StoreConfig.WITHOUT_DUPLICATES, txn);
+    	node.state.beginTransaction();
         Header header = req.getHeader();
         next = new TendermintTransactionReference(BigInteger.valueOf(header.getHeight()), (short) 0);
+    	Timestamp time = header.getTime();
+    	now = time.getSeconds() * 1000L + time.getNanos() / 1000L;
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
@@ -164,7 +146,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCl
             	if (data instanceof JarStoreInitialTransactionRequest) {
             		JarStoreInitialTransactionRequest request = (JarStoreInitialTransactionRequest) data;
             		JarStoreInitialTransactionResponse response = io.takamaka.code.engine.Transaction.mkFor(request, next, node).getResponse();
-            		System.out.println(response);
+            		node.state.keepJar(next, response);
             	}
             }
             catch (ClassNotFoundException e) {
@@ -177,13 +159,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCl
             	e.printStackTrace();
 				code = 2;
 			}
-        	
-            /*String s = tx.toStringUtf8();
-        	int separator = s.indexOf('=');
-        	// the transaction is validated, hence there is an =, not at the beginning, followed by a number
-        	String name = s.substring(0, separator);
-        	String value = s.substring(separator + 1);
-        	store.put(txn, new ArrayByteIterable(name.getBytes()), new ArrayByteIterable(value.getBytes()));*/
         }
 
         next = new TendermintTransactionReference(next.blockNumber, next.transactionNumber + 1);
@@ -208,7 +183,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCl
     @Override
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
     	//System.out.print("[commit");
-        txn.commit();
+    	node.state.commitTransaction();
         ResponseCommit resp = ResponseCommit.newBuilder()
                 .setData(ByteString.copyFrom(new byte[8])) // hash of the Merkle root of the application state
                 .build();
@@ -220,17 +195,16 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCl
     @Override
     public void query(RequestQuery req, StreamObserver<ResponseQuery> responseObserver) {
     	System.out.print("[query");
-        byte[] k = req.getData().toByteArray();
-        req.getHeight();
-        byte[] v = getPersistedValue(k);
+        /*byte[] k = req.getData().toByteArray();
+        byte[] v = getPersistedValue(k);*/
         Builder builder = ResponseQuery.newBuilder();
-        if (v == null)
+        /*if (v == null)
             builder.setLog("does not exist");
-        else {
+        else {*/
             builder.setLog("exists");
-            builder.setKey(ByteString.copyFrom(k));
-            builder.setValue(ByteString.copyFrom(v));
-        }
+            //builder.setKey(ByteString.copyFrom(k));
+            //builder.setValue(ByteString.copyFrom(v));
+        //}
         ResponseQuery resp = builder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
@@ -258,16 +232,5 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase implements AutoCl
 
 	private static int validate(ByteString tx) {
     	return 0;
-    }
-
-    private byte[] getPersistedValue(byte[] k) {
-        return env.computeInReadonlyTransaction(txn -> {
-            Store store = env.openStore("store", StoreConfig.WITHOUT_DUPLICATES, txn);
-            ByteIterable byteIterable = store.get(txn, new ArrayByteIterable(k));
-            if (byteIterable == null)
-                return null;
-
-            return byteIterable.getBytesUnsafe();
-        });
     }
 }
