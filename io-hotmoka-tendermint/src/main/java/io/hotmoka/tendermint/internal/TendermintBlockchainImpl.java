@@ -1,19 +1,11 @@
 package io.hotmoka.tendermint.internal;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -48,9 +40,9 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 public class TendermintBlockchainImpl implements TendermintBlockchain {
 
 	/**
-	 * The URL of the Tendermint process. For instance http://localhost:26657.
+	 * A proxy to the Tendermint process.
 	 */
-	private final URL tendermint;
+	private final Tendermint tendermint;
 
 	/**
 	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
@@ -69,14 +61,9 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	final State state;
 
 	/**
-	 * The maximal number of connection attempts to the Tendermint URL.
-	 */
-	private final static int MAX_CONNECTION_ATTEMPTS = 10;
-
-	/**
 	 * Builds a blockchain in disk memory and initializes user accounts with the given initial funds.
 	 * 
-	 * @param tendermint the URL of the Tendermint process. For instance: {@code http://localhost:26657}
+	 * @param urlOfTendermint the URL of the Tendermint process. For instance: {@code http://localhost:26657}
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
 	 * @param funds the initial funds of the accounts that are created
@@ -84,13 +71,11 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
 	 */
-	public TendermintBlockchainImpl(URL tendermint, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
-		this.tendermint = tendermint;
+	public TendermintBlockchainImpl(URL urlOfTendermint, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+		this.tendermint = new Tendermint(urlOfTendermint);
 		this.abci = new ABCI(this);
     	this.state = new State();
-		this.server = ServerBuilder.forPort(26658)
-				.addService(abci)
-				.build();
+		this.server = ServerBuilder.forPort(26658).addService(abci).build();
 		this.server.start();
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -102,7 +87,7 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 			}
 		}));
 
-		connectToTendermint();
+		tendermint.ping();
 
 		TransactionReference support = addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath)));
 		this.takamakaCode = new Classpath(support, false);
@@ -118,27 +103,6 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 		for (int i = 0; i < accounts.length; i++) {}
 		/*this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(gamete, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i])));*/
-	}
-
-	private void connectToTendermint() throws IOException {
-		for (int reconnections = 1; reconnections <= MAX_CONNECTION_ATTEMPTS; reconnections++) {
-			try {
-				HttpURLConnection con = (HttpURLConnection)tendermint.openConnection();
-				con.connect();
-				return;
-			}
-			catch (ConnectException e) {
-				System.out.println("Error while connecting to Tendermint process at " + tendermint + ": " + e.getMessage());
-				System.out.println("I will try to reconnect in 10 seconds... (" + reconnections + "/10)");
-
-				try {
-					Thread.sleep(10000);
-				}
-				catch (InterruptedException e2) {}
-			}
-		}
-
-		throw new IOException("Cannot connect to Tendermint process at " + tendermint + ". Tried " + MAX_CONNECTION_ATTEMPTS + " times");
 	}
 
 	@Override
@@ -239,33 +203,8 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	@Override
 	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		try {
-			HttpURLConnection con = (HttpURLConnection)tendermint.openConnection();
-			con.setRequestMethod("POST");
-			con.setRequestProperty("Content-Type", "application/json; utf-8");
-			con.setRequestProperty("Accept", "application/json");
-			con.setDoOutput(true);
-
-			String base64EncodedHotmokaRequest;
-			try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-				oos.writeObject(request);
-				base64EncodedHotmokaRequest = Base64.getEncoder().encodeToString(baos.toByteArray());
-			}
-
-	        String jsonTendermintRequest = "{\"method\": \"broadcast_tx_commit\", \"params\": {\"tx\": \"" + base64EncodedHotmokaRequest + "\"}}";
-
-			try (OutputStream os = con.getOutputStream()) {
-			    byte[] input = jsonTendermintRequest.getBytes("utf-8");
-			    os.write(input, 0, input.length);
-			}
-
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"))) {
-				StringBuilder response = new StringBuilder();
-				String responseLine;
-				while ((responseLine = br.readLine()) != null)
-					response.append(responseLine.trim());
-
-				System.out.println(response);
-			}
+			String response = tendermint.broadcastTxCommit(request);
+			System.out.println(response);
 		}
 		catch (Exception e) {
 			throw new TransactionException(e);
