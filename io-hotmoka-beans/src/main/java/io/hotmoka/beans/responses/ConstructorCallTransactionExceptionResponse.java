@@ -41,10 +41,9 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	public final String messageOfCause;
 
 	/**
-	 * The stack trace of the cause exception. This is not serialized, hence
-	 * it is null if the object has been deserialized.
+	 * The program point where the exception occurred.
 	 */
-	private final transient StackTraceElement[] stackTrace;
+	public final String where;
 
 	/**
 	 * Builds the transaction response.
@@ -63,16 +62,10 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 		this.events = events.toArray(StorageReference[]::new);
 		this.classNameOfCause = exception.getClass().getName();
 		this.messageOfCause = exception.getMessage();
-		this.stackTrace = exception.getStackTrace();
-	}
 
-	/**
-	 * Yields the stack trace of the cause exception.
-	 * 
-	 * @return the stack trace
-	 */
-	public final Stream<StackTraceElement> getStackTrace() {
-		return Stream.of(stackTrace);
+		StackTraceElement[] stackTrace = exception.getStackTrace();
+		this.where = (stackTrace != null && stackTrace.length > 0) ?
+			stackTrace[0].getFileName() + ":" + stackTrace[0].getLineNumber() : "<unknown line>";
 	}
 
 	@Override

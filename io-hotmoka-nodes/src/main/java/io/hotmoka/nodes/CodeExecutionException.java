@@ -1,7 +1,5 @@
 package io.hotmoka.nodes;
 
-import java.util.stream.Stream;
-
 /**
  * A wrapper of an exception that occurred during the execution of
  * a Takamaka constructor or method. It does not keep the
@@ -24,20 +22,23 @@ public class CodeExecutionException extends Exception {
 	public final String messageOfCause;
 
 	/**
+	 * A description of the place of the exception.
+	 */
+	public final String where;
+
+	/**
 	 * Builds an exception that occurred during the execution of a Takamaka constructor or method.
 	 * 
 	 * @param message the message of the exception
 	 * @param classNameOfCause the name of the class of the cause of the exception
 	 * @param messageOfCause the message of the cause of the exception
-	 * @param stackTrace the stack trace of the cause of the exception
+	 * @param where a description of the program point of the exception
 	 */
-	public CodeExecutionException(String message, String classNameOfCause, String messageOfCause, Stream<StackTraceElement> stackTrace) {
-		super(message + ' ' + classNameOfCause + (messageOfCause == null ? ":" : (": " + messageOfCause + ":")));
+	public CodeExecutionException(String message, String classNameOfCause, String messageOfCause, String where) {
+		super(message + ' ' + classNameOfCause + (messageOfCause == null ? "" : (": " + messageOfCause)) + "@" + where);
 
 		this.classNameOfCause = classNameOfCause;
 		this.messageOfCause = messageOfCause;
-
-		// we use the stack trace of the code that threw the exception
-		setStackTrace(stackTrace.toArray(StackTraceElement[]::new));
+		this.where = where;
 	}
 }

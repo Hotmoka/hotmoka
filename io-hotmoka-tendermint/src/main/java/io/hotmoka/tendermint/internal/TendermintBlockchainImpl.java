@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -32,6 +33,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.tendermint.TendermintBlockchain;
+import types.Types.ResponseDeliverTx;
 
 /**
  * An implementation of a blockchain integrated over the Tendermint generic
@@ -202,15 +204,11 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 
 	@Override
 	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
-		try {
-			String response = tendermint.broadcastTxCommit(request);
-			System.out.println(response);
-		}
-		catch (Exception e) {
-			throw new TransactionException(e);
-		}
-
-		return null;
+		return wrapInCaseOfException(() -> {
+			String response = tendermint.broadcastTxSync(request);
+			System.out.println("cosa esce da Tendermint: " + response);
+			return null;
+		});
 	}
 
 	@Override
@@ -239,5 +237,53 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 			throws TransactionException, CodeExecutionException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	/**
+	 * Calls the given callable. If if throws an exception, it wraps it into an {@link io.hotmoka.beans.TransactionException}.
+	 * 
+	 * @param what the callable
+	 * @return the result of the callable
+	 * @throws TransactionException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
+		try {
+			return what.call();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t);
+		}
+	}
+
+	/**
+	 * Calls the given callable. If if throws a {@link io.hotmoka.nodes.CodeExecutionException}, if throws it back
+	 * unchanged. Otherwise, it wraps the exception into an {@link io.hotmoka.beans.TransactionException}.
+	 * 
+	 * @param what the callable
+	 * @return the result of the callable
+	 * @throws CodeExecutionException the unwrapped exception
+	 * @throws TransactionException the wrapped exception
+	 */
+	private static <T> T wrapWithCodeInCaseOfException(Callable<T> what) throws TransactionException, CodeExecutionException {
+		try {
+			return what.call();
+		}
+		catch (CodeExecutionException e) {
+			throw e;
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionException(t);
+		}
+	}
+
+	/**
+	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
+	 * already an instance of that exception.
+	 * 
+	 * @param t the throwable to wrap
+	 * @return the wrapped or original exception
+	 */
+	private static TransactionException wrapAsTransactionException(Throwable t) {
+		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
 	}
 }

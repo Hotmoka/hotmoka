@@ -76,6 +76,21 @@ class Tendermint {
 	}
 
 	/**
+	 * Sends the given {@code request} to the Tendermint process, inside
+	 * a {@code broadcast_tx_sync} transaction.
+	 * 
+	 * @param request the request to send
+	 * @return the response of Tendermint
+	 * @throws IOException if the connection couldn't be opened or the request could not be sent
+	 */
+	String broadcastTxSync(TransactionRequest<?> request) throws IOException {
+		String base64EncodedHotmokaRequest = base64EncodedSerializationOf(request);
+		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_sync\", \"params\": {\"tx\": \"" + base64EncodedHotmokaRequest + "\"}}";
+
+		return postToTendermint(jsonTendermintRequest);
+	}
+
+	/**
 	 * Sends posts the given request to the Tendermint process and yields the response.
 	 * 
 	 * @param jsonTendermintRequest the request to post, in JSON format

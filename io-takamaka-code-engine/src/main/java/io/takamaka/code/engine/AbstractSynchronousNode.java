@@ -241,7 +241,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 				throw ((ConstructorCallTransactionFailedResponse) response).cause;
 			else if (response instanceof ConstructorCallTransactionExceptionResponse) {
 				ConstructorCallTransactionExceptionResponse ccter = (ConstructorCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", ccter.classNameOfCause, ccter.messageOfCause, ccter.getStackTrace());
+				throw new CodeExecutionException("constructor threw", ccter.classNameOfCause, ccter.messageOfCause, ccter.where);
 			}
 			else
 				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject;
@@ -260,7 +260,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 				throw ((MethodCallTransactionFailedResponse) response).cause;
 			else if (response instanceof MethodCallTransactionExceptionResponse) {
 				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.getStackTrace());
+				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
 			}
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
@@ -281,7 +281,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 				throw ((MethodCallTransactionFailedResponse) response).cause;
 			else if (response instanceof MethodCallTransactionExceptionResponse) {
 				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.getStackTrace());
+				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
 			}
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
@@ -299,7 +299,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 				throw ((MethodCallTransactionFailedResponse) response).cause;
 			else if (response instanceof MethodCallTransactionExceptionResponse) {
 				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.getStackTrace());
+				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
 			}
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;
@@ -317,7 +317,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 				throw ((MethodCallTransactionFailedResponse) response).cause;
 			else if (response instanceof MethodCallTransactionExceptionResponse) {
 				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.getStackTrace());
+				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
 			}
 			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
 				return null;

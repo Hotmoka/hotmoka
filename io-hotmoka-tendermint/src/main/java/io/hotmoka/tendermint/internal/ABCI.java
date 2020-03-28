@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
+import java.util.Base64;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -166,6 +167,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseDeliverTx resp = ResponseDeliverTx.newBuilder()
                 .setCode(code)
                 .build();
+
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
         System.out.println("]");
