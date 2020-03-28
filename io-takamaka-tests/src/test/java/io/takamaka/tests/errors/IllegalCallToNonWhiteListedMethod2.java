@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.takamaka.code.verification.issues.IllegalCallToNonWhiteListedMethodError;
 import io.takamaka.tests.TakamakaTest;
 
 class IllegalCallToNonWhiteListedMethod2 extends TakamakaTest {
@@ -27,7 +26,7 @@ class IllegalCallToNonWhiteListedMethod2 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() {
-		throwsVerificationExceptionWithCause(IllegalCallToNonWhiteListedMethodError.class, () ->
+		throwsVerificationException(() ->
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				bytesOf("illegalcalltononwhitelistedmethod2.jar"), blockchain.takamakaCode()))

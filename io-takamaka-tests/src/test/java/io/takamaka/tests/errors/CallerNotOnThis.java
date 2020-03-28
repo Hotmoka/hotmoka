@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.takamaka.code.verification.issues.CallerNotOnThisError;
 import io.takamaka.tests.TakamakaTest;
 
 class CallerNotOnThis extends TakamakaTest {
@@ -30,7 +29,7 @@ class CallerNotOnThis extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() {
-		throwsVerificationExceptionWithCause(CallerNotOnThisError.class, () ->
+		throwsVerificationException(() ->
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				bytesOf("callernotonthis.jar"), blockchain.takamakaCode()))

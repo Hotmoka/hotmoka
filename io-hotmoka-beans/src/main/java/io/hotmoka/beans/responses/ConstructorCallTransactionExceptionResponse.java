@@ -41,7 +41,7 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	public final String messageOfCause;
 
 	/**
-	 * The program point where the exception occurred.
+	 * The program point where the cause exception occurred.
 	 */
 	public final String where;
 

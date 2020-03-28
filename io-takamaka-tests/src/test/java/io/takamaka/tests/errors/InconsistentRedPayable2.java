@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.takamaka.code.verification.issues.InconsistentRedPayableError;
 import io.takamaka.tests.TakamakaTest;
 
 class InconsistentRedPayable2 extends TakamakaTest {
@@ -30,7 +29,7 @@ class InconsistentRedPayable2 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() {
-		throwsVerificationExceptionWithCause(InconsistentRedPayableError.class, () ->
+		throwsVerificationException(() ->
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				bytesOf("inconsistentredpayable2.jar"), blockchain.takamakaCode()))

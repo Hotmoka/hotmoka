@@ -2,10 +2,7 @@ package io.hotmoka.beans.responses;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 
 /**
@@ -17,15 +14,19 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	private static final long serialVersionUID = -8888957484092351352L;
 
 	/**
-	 * The exception that justifies why the transaction failed. This is not reported
-	 * in the serialization of this response.
-	 */
-	public final transient TransactionException cause;
-
-	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.
 	 */
 	private final BigInteger gasConsumedForPenalty;
+
+	/**
+	 * The fully-qualified class name of the cause exception.
+	 */
+	public final String classNameOfCause;
+
+	/**
+	 * The message of the cause exception. This might be {@code null}.
+	 */
+	public final String messageOfCause;
 
 	/**
 	 * Builds the transaction response.
@@ -37,10 +38,11 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
-	public JarStoreTransactionFailedResponse(TransactionException cause, UpdateOfBalance callerBalanceUpdate, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+	public JarStoreTransactionFailedResponse(Throwable cause, UpdateOfBalance callerBalanceUpdate, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(callerBalanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
-		this.cause = cause;
+		this.classNameOfCause = cause == null ? "<unknown exception>" : cause.getClass().getName();
+		this.messageOfCause = cause == null ? "<unknown message>" : cause.getMessage();
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
 	}
 
@@ -52,5 +54,11 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	@Override
 	public BigInteger gasConsumedForPenalty() {
 		return gasConsumedForPenalty;
+	}
+
+	@Override
+	public String toString() {
+        return super.toString()
+        	+ "\n  cause: " + classNameOfCause + ":" + messageOfCause;
 	}
 }

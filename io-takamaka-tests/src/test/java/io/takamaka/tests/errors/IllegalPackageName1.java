@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.takamaka.code.verification.issues.IllegalPackageNameError;
 import io.takamaka.tests.TakamakaTest;
 
 class IllegalPackageName1 extends TakamakaTest {
@@ -30,7 +29,7 @@ class IllegalPackageName1 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() {
-		throwsVerificationExceptionWithCause(IllegalPackageNameError.class, () ->
+		throwsVerificationException(() ->
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				bytesOf("illegalpackagename1.jar"), blockchain.takamakaCode()))

@@ -71,7 +71,7 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas
-				response = new JarStoreTransactionFailedResponse(wrapAsTransactionException(t), balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				response = new JarStoreTransactionFailedResponse(t, balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 
 			this.response = response;

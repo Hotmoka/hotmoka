@@ -14,7 +14,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.verification.issues.IllegalTypeForStorageFieldError;
 import io.takamaka.tests.TakamakaTest;
 
 class IllegalTypeForStorageField1 extends TakamakaTest {
@@ -33,7 +32,7 @@ class IllegalTypeForStorageField1 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
-		throwsVerificationExceptionWithCause(IllegalTypeForStorageFieldError.class, () ->
+		throwsVerificationException(() ->
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				bytesOf("illegaltypeforstoragefield1.jar"), blockchain.takamakaCode()))

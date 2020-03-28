@@ -222,8 +222,10 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 			initialized = true;
 			JarStoreTransactionResponse response = transaction.getResponse();
 
-			if (response instanceof JarStoreTransactionFailedResponse)
-				throw ((JarStoreTransactionFailedResponse) response).cause;
+			if (response instanceof JarStoreTransactionFailedResponse) {
+				JarStoreTransactionFailedResponse jstr = (JarStoreTransactionFailedResponse) response;
+				throw new TransactionException(jstr.classNameOfCause + ": " + jstr.messageOfCause);
+			}
 			else
 				return transactionReference;
 		});
@@ -237,8 +239,10 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 			initialized = true;
 			ConstructorCallTransactionResponse response = transaction.getResponse();
 
-			if (response instanceof ConstructorCallTransactionFailedResponse)
-				throw ((ConstructorCallTransactionFailedResponse) response).cause;
+			if (response instanceof ConstructorCallTransactionFailedResponse) {
+				ConstructorCallTransactionFailedResponse cctfr = (ConstructorCallTransactionFailedResponse) response;
+				throw new TransactionException(cctfr.classNameOfCause + ": " + cctfr.messageOfCause);
+			}
 			else if (response instanceof ConstructorCallTransactionExceptionResponse) {
 				ConstructorCallTransactionExceptionResponse ccter = (ConstructorCallTransactionExceptionResponse) response;
 				throw new CodeExecutionException("constructor threw", ccter.classNameOfCause, ccter.messageOfCause, ccter.where);
@@ -256,8 +260,10 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 			initialized = true;
 			MethodCallTransactionResponse response = transaction.getResponse();
 
-			if (response instanceof MethodCallTransactionFailedResponse)
-				throw ((MethodCallTransactionFailedResponse) response).cause;
+			if (response instanceof MethodCallTransactionFailedResponse) {
+				MethodCallTransactionFailedResponse mctfr = (MethodCallTransactionFailedResponse) response;
+				throw new TransactionException(mctfr.classNameOfCause + ": " + mctfr.messageOfCause);
+			}
 			else if (response instanceof MethodCallTransactionExceptionResponse) {
 				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
 				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
@@ -277,8 +283,10 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 			initialized = true;
 			MethodCallTransactionResponse response = transaction.getResponse();
 
-			if (response instanceof MethodCallTransactionFailedResponse)
-				throw ((MethodCallTransactionFailedResponse) response).cause;
+			if (response instanceof MethodCallTransactionFailedResponse) {
+				MethodCallTransactionFailedResponse mctfr = (MethodCallTransactionFailedResponse) response;
+				throw new TransactionException(mctfr.classNameOfCause + ": " + mctfr.messageOfCause);
+			}
 			else if (response instanceof MethodCallTransactionExceptionResponse) {
 				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
 				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
@@ -295,8 +303,10 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 		return wrapWithCodeInCaseOfException(() -> {
 			MethodCallTransactionResponse response = Transaction.mkForView(request, getNextTransaction(), this).getResponse();
 
-			if (response instanceof MethodCallTransactionFailedResponse)
-				throw ((MethodCallTransactionFailedResponse) response).cause;
+			if (response instanceof MethodCallTransactionFailedResponse) {
+				MethodCallTransactionFailedResponse mctfr = (MethodCallTransactionFailedResponse) response;
+				throw new TransactionException(mctfr.classNameOfCause + ": " + mctfr.messageOfCause);
+			}
 			else if (response instanceof MethodCallTransactionExceptionResponse) {
 				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
 				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
@@ -313,8 +323,10 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 		return wrapWithCodeInCaseOfException(() -> {
 			MethodCallTransactionResponse response = Transaction.mkForView(request, getNextTransaction(), this).getResponse();
 
-			if (response instanceof MethodCallTransactionFailedResponse)
-				throw ((MethodCallTransactionFailedResponse) response).cause;
+			if (response instanceof MethodCallTransactionFailedResponse) {
+				MethodCallTransactionFailedResponse mctfr = (MethodCallTransactionFailedResponse) response;
+				throw new TransactionException(mctfr.classNameOfCause + ": " + mctfr.messageOfCause);
+			}
 			else if (response instanceof MethodCallTransactionExceptionResponse) {
 				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
 				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);

@@ -33,7 +33,6 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.tendermint.TendermintBlockchain;
-import types.Types.ResponseDeliverTx;
 
 /**
  * An implementation of a blockchain integrated over the Tendermint generic

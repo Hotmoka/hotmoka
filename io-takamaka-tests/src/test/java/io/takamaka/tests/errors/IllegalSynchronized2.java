@@ -14,7 +14,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
-import io.takamaka.code.verification.issues.IllegalSynchronizationError;
 import io.takamaka.tests.TakamakaTest;
 
 class IllegalSynchronized2 extends TakamakaTest {
@@ -33,7 +32,7 @@ class IllegalSynchronized2 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
-		throwsVerificationExceptionWithCause(IllegalSynchronizationError.class, () ->
+		throwsVerificationException(() ->
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				bytesOf("illegalsynchronized2.jar"), blockchain.takamakaCode()))

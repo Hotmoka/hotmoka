@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.takamaka.code.verification.issues.UncheckedExceptionHandlerError;
 import io.takamaka.tests.TakamakaTest;
 
 class IllegalExceptionHandler4 extends TakamakaTest {
@@ -30,7 +29,7 @@ class IllegalExceptionHandler4 extends TakamakaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() {
-		throwsVerificationExceptionWithCause(UncheckedExceptionHandlerError.class, () ->
+		throwsVerificationException(() ->
 			blockchain.addJarStoreTransaction
 				(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
 				bytesOf("illegalexceptionhandler4.jar"), blockchain.takamakaCode()))

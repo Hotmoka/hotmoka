@@ -12,7 +12,6 @@ import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.RedGreenMemoryBlockchain;
 import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.verification.VerificationException;
-import io.takamaka.code.verification.issues.Issue;
 
 public abstract class TakamakaTest {
 	public interface TestBody {
@@ -36,15 +35,10 @@ public abstract class TakamakaTest {
 			what.run();
 		}
 		catch (TransactionException e) {
-			if (e.getCause() == null)
-				fail("wrong cause: expected " + expected.getName() + " but got null");
-
-			Class<? extends Throwable> actual = e.getCause().getClass();
-			if (expected.isAssignableFrom(actual))
+			if (e.getMessage().startsWith(expected.getName()))
 				return;
 
-			e.printStackTrace();
-			fail("wrong cause: expected " + expected.getName() + " but got " + actual.getName());
+			fail("wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
 		}
 		catch (Exception e) {
 			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
@@ -58,14 +52,10 @@ public abstract class TakamakaTest {
 			what.run();
 		}
 		catch (TransactionException e) {
-			if (e.getCause() == null)
-				fail("wrong cause: expected " + expected + " but got null");
-
-			Class<? extends Throwable> actual = e.getCause().getClass();
-			if (actual.getName().equals(expected))
+			if (e.getMessage().startsWith(expected))
 				return;
 
-			fail("wrong cause: expected " + expected + " but got " + actual.getName());
+			fail("wrong cause: expected " + expected + " but got " + e.getMessage());
 		}
 		catch (Exception e) {
 			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
@@ -88,26 +78,7 @@ public abstract class TakamakaTest {
 		fail("no exception: expected " + TransactionException.class.getName());
 	}	
 
-	protected static void throwsVerificationExceptionWithCause(Class<? extends Issue> expected, TestBody what) {
-		try {
-			what.run();
-		}
-		catch (TransactionException e) {
-			Throwable cause = e.getCause();
-			if (cause instanceof VerificationException) {
-				Class<? extends io.takamaka.code.verification.issues.Error> actual = ((VerificationException) cause).getError().getClass();
-				if (expected.isAssignableFrom(actual))
-					return;
-
-				fail("wrong issue: expected " + expected.getName() + " but got " + actual.getName());
-			}
-
-			fail("wrong cause: expected " + VerificationException.class.getName() + " but got " + cause.getClass().getName());
-		}
-		catch (Exception e) {
-			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
-		}
-
-		fail("no exception: expected " + VerificationException.class.getName());
+	protected static void throwsVerificationException(TestBody what) {
+		throwsTransactionExceptionWithCause(VerificationException.class, what);
 	}
 }
