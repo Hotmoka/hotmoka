@@ -19,7 +19,12 @@ import jetbrains.exodus.env.Transaction;
 class State implements AutoCloseable {
 	private final Environment env;
     private Transaction txn;
-    private Store store;
+    private Store responses;
+
+    /**
+     * The name of the store where responses of transactions are kept.
+     */
+    private final static String RESPONSES = "responses";
 
     State() {
     	this.env = Environments.newInstance("tmp/storage");
@@ -37,7 +42,7 @@ class State implements AutoCloseable {
      */
 	void beginTransaction() {
 		txn = env.beginTransaction();
-        store = env.openStore("store", StoreConfig.WITHOUT_DUPLICATES, txn);
+        responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
 	}
 
 	/**
@@ -54,7 +59,7 @@ class State implements AutoCloseable {
 	 * @param response the response of the jar installation request
 	 */
 	void keepJar(TransactionReference transactionReference, TransactionResponseWithInstrumentedJar response) {
-		store.put(txn, new ArrayByteIterable(transactionReference.toString().getBytes()), new ArrayByteIterable(response.getInstrumentedJar()));
+		responses.put(txn, new ArrayByteIterable(transactionReference.toString().getBytes()), new ArrayByteIterable(response.getInstrumentedJar()));
 	}
 
 	/**
@@ -66,8 +71,8 @@ class State implements AutoCloseable {
 	 */
 	byte[] getInstrumentedJarAt(TransactionReference transactionReference) {
 		return env.computeInReadonlyTransaction(txn -> {
-			Store store = env.openStore("store", StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable jar = store.get(txn, new ArrayByteIterable(transactionReference.toString().getBytes()));
+			Store responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
+			ByteIterable jar = responses.get(txn, new ArrayByteIterable(transactionReference.toString().getBytes()));
 			if (jar == null)
 				throw new IllegalArgumentException("the transaction does not contain a jar store response");
 

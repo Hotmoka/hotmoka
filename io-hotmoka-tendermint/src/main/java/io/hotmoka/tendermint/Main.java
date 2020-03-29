@@ -25,6 +25,7 @@ public class Main {
 			Thread.sleep(100_000);
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			System.out.println("stop Tendermint, then shut down this process");
 			Thread.sleep(100_000);
 		}

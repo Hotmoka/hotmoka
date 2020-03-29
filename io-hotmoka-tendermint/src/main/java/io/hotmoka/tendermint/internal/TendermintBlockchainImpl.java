@@ -1,15 +1,20 @@
 package io.hotmoka.tendermint.internal;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import com.google.gson.Gson;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -33,6 +38,9 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
+import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
+import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
 
 /**
  * An implementation of a blockchain integrated over the Tendermint generic
@@ -58,6 +66,16 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	private final Server server;
 
 	private final ABCI abci;
+
+	/**
+	 * An object for JSON manipulation.
+	 */
+	private final Gson gson = new Gson();
+
+	/**
+	 * True if and only if this blockchain is initialized.
+	 */
+	private boolean initialized;
 
 	final State state;
 
@@ -90,13 +108,14 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 
 		tendermint.ping();
 
-		TransactionReference support = addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath)));
-		this.takamakaCode = new Classpath(support, false);
+		this.takamakaCode = new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
 
 		// we compute the total amount of funds needed to create the accounts
 		BigInteger sum = Stream.of(funds).reduce(BigInteger.ZERO, BigInteger::add);
 
 		StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
+
+		initialized = true;
 
 		// let us create the accounts
 		this.accounts = new StorageReference[funds.length];
@@ -204,10 +223,44 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	@Override
 	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			String response = tendermint.broadcastTxSync(request);
-			System.out.println("cosa esce da Tendermint: " + response);
-			return null;
+			requireNodeUninitialized();
+			String response = tendermint.broadcastTxCommit(request);
+			String hashOfResponse = extractHashFrom(response);
+			TendermintTopLevelResult tendermintResult = tendermint.poll(hashOfResponse);
+
+			TendermintTxResult tx_result = tendermintResult.tx_result;
+			if (tx_result == null)
+				throw new IllegalStateException("no result for transaction " + hashOfResponse);
+
+			String data = tx_result.data;
+			if (data == null)
+				throw new TransactionException("no transaction reference found iun data field of Tendermint transaction");
+
+			Object dataAsObject = base64DeserializationOf(data);
+			if (!(dataAsObject instanceof String))
+				throw new TransactionException("no transaction reference found iun data field of Tendermint transaction");
+
+			return new TendermintTransactionReference((String) dataAsObject);
 		});
+	}
+
+	private String extractHashFrom(String response) {
+		TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
+
+		String error = parsedResponse.error;
+		if (error != null && !error.isEmpty())
+			throw new IllegalStateException("Tendermint transaction failed: " + error);
+
+		TendermintTopLevelResult result = parsedResponse.result;
+
+		if (result == null)
+			throw new IllegalStateException("missing result in Tendermint response");
+
+		String hash = result.hash;
+		if (hash == null)
+			throw new IllegalStateException("missing hash in Tendermint response");
+
+		return hash;
 	}
 
 	@Override
@@ -236,6 +289,17 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 			throws TransactionException, CodeExecutionException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	/**
+	 * Checks if this node is still not fully initialized, so that further initial transactions can still
+	 * be executed. As soon as a non-initial transaction is run with this node, it is considered as initialized.
+	 * 
+	 * @throws IllegalStateException if this node is already initialized
+	 */
+	private void requireNodeUninitialized() throws IllegalStateException {
+		if (initialized)
+			throw new IllegalStateException("this node is already initialized");
 	}
 
 	/**
@@ -284,5 +348,11 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	 */
 	private static TransactionException wrapAsTransactionException(Throwable t) {
 		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
+	}
+
+	private static Object base64DeserializationOf(String s) throws IOException, ClassNotFoundException {
+		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.getDecoder().decode(s)))) {
+			return ois.readObject();
+		}
 	}
 }

@@ -1,8 +1,11 @@
 package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Base64;
 
@@ -138,16 +141,17 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     public void deliverTx(RequestDeliverTx req, StreamObserver<ResponseDeliverTx> responseObserver) {
     	System.out.print("[deliverTx");
         ByteString tx = req.getTx();
+        ByteString transactionReference = null;
         int code = validate(tx);
 
         if (code == 0) {
-        	Object data;
             try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-            	data = ois.readObject();
-            	if (data instanceof JarStoreInitialTransactionRequest) {
-            		JarStoreInitialTransactionRequest request = (JarStoreInitialTransactionRequest) data;
+            	Object hotmokaRequest = ois.readObject();
+            	if (hotmokaRequest instanceof JarStoreInitialTransactionRequest) {
+            		JarStoreInitialTransactionRequest request = (JarStoreInitialTransactionRequest) hotmokaRequest;
             		JarStoreInitialTransactionResponse response = io.takamaka.code.engine.Transaction.mkFor(request, next, node).getResponse();
             		node.state.keepJar(next, response);
+            		transactionReference = byteStringSerializationOf(next.toString());
             	}
             }
             catch (ClassNotFoundException e) {
@@ -162,11 +166,12 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 			}
         }
 
-        next = new TendermintTransactionReference(next.blockNumber, next.transactionNumber + 1);
-
         ResponseDeliverTx resp = ResponseDeliverTx.newBuilder()
                 .setCode(code)
+                .setData(transactionReference)
                 .build();
+
+        next = new TendermintTransactionReference(next.blockNumber, next.transactionNumber + 1);
 
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
@@ -235,4 +240,18 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	private static int validate(ByteString tx) {
     	return 0;
     }
+
+	/**
+	 * Serializes the given object into a byte string.
+	 * 
+	 * @param object the object
+	 * @return the serialization of {@code object}
+	 * @throws IOException if serialization fails
+	 */
+	private static ByteString byteStringSerializationOf(Serializable object) throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			oos.writeObject(object);
+			return ByteString.copyFrom(baos.toByteArray());
+		}
+	}
 }
