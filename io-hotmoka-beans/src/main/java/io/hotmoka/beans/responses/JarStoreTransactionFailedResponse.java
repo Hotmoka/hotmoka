@@ -2,7 +2,9 @@ package io.hotmoka.beans.responses;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 
 /**
@@ -57,8 +59,23 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	}
 
 	@Override
+	public String getClassNameOfCause() {
+		return classNameOfCause;
+	}
+
+	@Override
+	public String getMessageOfCause() {
+		return messageOfCause;
+	}
+
+	@Override
 	public String toString() {
         return super.toString()
         	+ "\n  cause: " + classNameOfCause + ":" + messageOfCause;
+	}
+
+	@Override
+	public TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException {
+		throw new TransactionException(classNameOfCause + ": " + messageOfCause);
 	}
 }

@@ -1,5 +1,6 @@
 package io.hotmoka.nodes;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;

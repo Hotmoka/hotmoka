@@ -4,9 +4,8 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -84,5 +83,10 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 			return super.toString() + "\n  throws: " + classNameOfCause + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));
 		else
 			return super.toString() + "\n  throws: " + classNameOfCause + ":" + messageOfCause + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));
+	}
+
+	@Override
+	public StorageReference getOutcome() throws CodeExecutionException {
+		throw new CodeExecutionException("constructor threw", classNameOfCause, messageOfCause, where);
 	}
 }

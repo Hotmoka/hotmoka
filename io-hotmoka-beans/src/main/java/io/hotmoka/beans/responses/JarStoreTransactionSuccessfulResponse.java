@@ -2,7 +2,9 @@ package io.hotmoka.beans.responses;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.updates.UpdateOfBalance;
@@ -52,5 +54,11 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
             sb.append(String.format("%02x", b));
 
         return super.toString() + "\n  instrumented jar: " + sb.toString();
+	}
+
+	@Override
+	public TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException {
+		// the outcome is the reference to the transaction where this response has been executed
+		return transactionReference;
 	}
 }

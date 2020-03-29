@@ -5,10 +5,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 
 /**
  * A response for a successful transaction that calls a method
@@ -59,5 +58,10 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	@Override
 	public Stream<Update> getUpdates() {
 		return Stream.of(updates);
+	}
+
+	@Override
+	public StorageValue getOutcome() {
+		return null; // a void method has no result
 	}
 }

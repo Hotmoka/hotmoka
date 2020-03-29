@@ -141,7 +141,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractSynchronousNode {
 	}
 
 	@Override
-	protected <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandStoreWith(Transaction<Request, Response> transaction) throws Exception {
+	protected <Request extends TransactionRequest<Response>, Response extends TransactionResponse> void expandStoreWith(Transaction<Request, Response> transaction) throws Exception {
 		MemoryTransactionReference next = (MemoryTransactionReference) getNextTransaction();
 		Path requestPath = getPathFor(next, REQUEST_NAME);
 		Path parent = requestPath.getParent();
@@ -167,8 +167,6 @@ public abstract class AbstractMemoryBlockchain extends AbstractSynchronousNode {
 		topmost = next;
 		if (next.isLastInBlock())
 			createHeaderOfBlock(next.blockNumber.add(BigInteger.ONE));
-
-		return next;
 	}
 
 	/**

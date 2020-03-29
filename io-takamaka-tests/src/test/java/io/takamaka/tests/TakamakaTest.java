@@ -7,10 +7,10 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.RedGreenMemoryBlockchain;
-import io.hotmoka.nodes.CodeExecutionException;
 import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {

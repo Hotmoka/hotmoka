@@ -2,12 +2,10 @@ package io.hotmoka.beans.responses;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.responses.TransactionResponse;
-
 /**
  * A response for a transaction that might have consumed gas.
  */
-public interface TransactionResponseWithGas extends TransactionResponse {
+public interface TransactionResponseWithGas {
 
 	/**
 	 * Yields the amount of gas that the transaction consumed for CPU execution.

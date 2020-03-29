@@ -4,9 +4,6 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithGas;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.updates.Update;
 
 /**

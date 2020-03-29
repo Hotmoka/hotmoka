@@ -4,12 +4,16 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
 
 /**
  * A response for a transaction that should install a jar in the blockchain.
+ * 
+ * @param <Outcome> the type of the outcome of the execution having this response
  */
 @Immutable
 public abstract class JarStoreTransactionResponse implements NonInitialTransactionResponse, TransactionResponseWithGas, TransactionResponseWithUpdates {
@@ -87,4 +91,13 @@ public abstract class JarStoreTransactionResponse implements NonInitialTransacti
 	public BigInteger gasConsumedForStorage() {
 		return gasConsumedForStorage;
 	}
+
+	/**
+	 * Yields the outcome of the execution having this response, performed
+	 * at the given transaction reference.
+	 * 
+	 * @param transactionReference the transaction reference
+	 * @return the outcome
+	 */
+	public abstract TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException;
 }

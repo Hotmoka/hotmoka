@@ -3,9 +3,11 @@ package io.hotmoka.beans.responses;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A response for a failed transaction that should have called a constructor
@@ -71,8 +73,23 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	}
 
 	@Override
+	public String getClassNameOfCause() {
+		return classNameOfCause;
+	}
+
+	@Override
+	public String getMessageOfCause() {
+		return messageOfCause;
+	}
+
+	@Override
 	public String toString() {
         return super.toString()
         	+ "\n  cause: " + classNameOfCause + ":" + messageOfCause;
+	}
+
+	@Override
+	public StorageReference getOutcome() throws TransactionException {
+		throw new TransactionException(classNameOfCause + ": " + messageOfCause);
 	}
 }

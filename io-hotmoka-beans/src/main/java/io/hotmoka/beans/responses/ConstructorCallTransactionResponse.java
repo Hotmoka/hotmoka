@@ -2,7 +2,10 @@ package io.hotmoka.beans.responses;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A response for a transaction that should call a constructor of a storage class in blockchain.
@@ -21,4 +24,11 @@ public abstract class ConstructorCallTransactionResponse extends CodeExecutionTr
 	public ConstructorCallTransactionResponse(BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
+
+	/**
+	 * Yields the outcome of the execution having this response.
+	 * 
+	 * @return the outcome
+	 */
+	public abstract StorageReference getOutcome() throws TransactionException, CodeExecutionException;
 }

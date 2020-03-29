@@ -19,4 +19,14 @@ public interface TransactionResponseFailed extends TransactionResponseWithGas, T
 	 * @return the amount of gas
 	 */
 	BigInteger gasConsumedForPenalty();
+
+	/**
+	 * Yields the fully-qualified class name of the cause exception.
+	 */
+	String getClassNameOfCause();
+
+	/**
+	 * Yields the message of the cause exception. This might be {@code null}.
+	 */
+	String getMessageOfCause();
 }

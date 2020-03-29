@@ -5,8 +5,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -69,5 +67,10 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	@Override
 	public Stream<StorageReference> getEvents() {
 		return Stream.of(events);
+	}
+
+	@Override
+	public StorageValue getOutcome() {
+		return result;
 	}
 }

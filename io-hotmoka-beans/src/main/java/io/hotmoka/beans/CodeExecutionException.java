@@ -1,4 +1,4 @@
-package io.hotmoka.nodes;
+package io.hotmoka.beans;
 
 /**
  * A wrapper of an exception that occurred during the execution of

@@ -5,8 +5,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -68,5 +66,10 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	@Override
 	public Stream<StorageReference> getEvents() {
 		return Stream.of(events);
+	}
+
+	@Override
+	public StorageReference getOutcome() {
+		return newObject;
 	}
 }

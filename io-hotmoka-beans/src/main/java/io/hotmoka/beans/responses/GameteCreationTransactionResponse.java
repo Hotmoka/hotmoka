@@ -4,8 +4,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.InitialTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -48,5 +46,14 @@ public class GameteCreationTransactionResponse implements InitialTransactionResp
         return getClass().getSimpleName() + ":\n"
         	+ "  gamete: " + gamete + "\n"
        		+ "  updates:\n" + getUpdates().map(Update::toString).collect(Collectors.joining("\n    ", "    ", ""));
+	}
+
+	/**
+	 * Yields the outcome of the execution having this response.
+	 * 
+	 * @return the outcome
+	 */
+	public StorageReference getOutcome() {
+		return gamete;
 	}
 }

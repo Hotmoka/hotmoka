@@ -150,8 +150,12 @@ public class SizeCalculator {
 		if (response instanceof TransactionResponseWithUpdates)
 			size = size.add(((TransactionResponseWithUpdates) response).getUpdates().map(this::sizeOfUpdate).reduce(BigInteger.ZERO, BigInteger::add));
 
-		if (response instanceof TransactionResponseFailed)
-			size = size.add(gasCostModel.storageCostOf(((TransactionResponseFailed) response).gasConsumedForPenalty()));
+		if (response instanceof TransactionResponseFailed) {
+			TransactionResponseFailed trf = (TransactionResponseFailed) response;
+			size = size.add(gasCostModel.storageCostOf(trf.gasConsumedForPenalty()))
+				.add(gasCostModel.storageCostOf(trf.getClassNameOfCause()))
+				.add(gasCostModel.storageCostOf(trf.getMessageOfCause()));
+		}			
 
 		if (response instanceof TransactionResponseWithEvents)
 			size = size.add(((TransactionResponseWithEvents) response).getEvents().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));

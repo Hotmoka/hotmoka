@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
@@ -35,7 +36,6 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;

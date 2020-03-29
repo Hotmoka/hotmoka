@@ -1,11 +1,9 @@
 package io.hotmoka.beans.responses;
 
-import io.hotmoka.beans.responses.TransactionResponse;
-
 /**
  * A response for a transaction that successfully installed a jar in the blockchain.
  */
-public interface TransactionResponseWithInstrumentedJar extends TransactionResponse {
+public interface TransactionResponseWithInstrumentedJar {
 
 	/**
 	 * Yields the bytes of the installed jar.

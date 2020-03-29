@@ -4,11 +4,11 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 
 /**
  * A response for a successful transaction that calls a method in blockchain.
@@ -84,5 +84,10 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 			return super.toString() + "\n  throws: " + classNameOfCause + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));
 		else
 			return super.toString() + "\n  throws: " + classNameOfCause + ":" + messageOfCause + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));
+	}
+
+	@Override
+	public StorageValue getOutcome() throws CodeExecutionException {
+		throw new CodeExecutionException("method threw", classNameOfCause, messageOfCause, where);
 	}
 }

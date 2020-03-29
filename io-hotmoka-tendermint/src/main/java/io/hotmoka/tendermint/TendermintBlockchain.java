@@ -5,11 +5,11 @@ import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Path;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.AsynchronousNode;
-import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
 
 /**

@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -13,7 +14,6 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.nodes.CodeExecutionException;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory

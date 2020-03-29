@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
@@ -30,7 +31,6 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.tendermint.TendermintBlockchain;
 
@@ -255,7 +255,7 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	}
 
 	/**
-	 * Calls the given callable. If if throws a {@link io.hotmoka.nodes.CodeExecutionException}, if throws it back
+	 * Calls the given callable. If if throws a {@link io.hotmoka.beans.CodeExecutionException}, if throws it back
 	 * unchanged. Otherwise, it wraps the exception into an {@link io.hotmoka.beans.TransactionException}.
 	 * 
 	 * @param what the callable

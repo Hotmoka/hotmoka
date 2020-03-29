@@ -1,8 +1,7 @@
 package io.hotmoka.beans.responses;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.responses.InitialTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
+import io.hotmoka.beans.references.TransactionReference;
 
 /**
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
@@ -43,5 +42,17 @@ public class JarStoreInitialTransactionResponse implements InitialTransactionRes
             sb.append(String.format("%02x", b));
 
         return getClass().getSimpleName() + ":\n  instrumented jar: " + sb.toString();
+	}
+
+	/**
+	 * Yields the outcome of the execution having this response, performed
+	 * at the given transaction reference.
+	 * 
+	 * @param transactionReference the transaction reference
+	 * @return the outcome
+	 */
+	public TransactionReference getOutcomeAt(TransactionReference transactionReference) {
+		// the result of installing a jar in a node is the reference to the transaction that installed the jar
+		return transactionReference;
 	}
 }

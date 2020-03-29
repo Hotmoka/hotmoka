@@ -12,6 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -22,21 +23,14 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
-import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -46,7 +40,6 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.nodes.CodeExecutionException;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.SynchronousNode;
 
@@ -96,10 +89,9 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 	 * @param <Request> the type of the request of the transaction
 	 * @param <Response> the type of the response of the transaction
 	 * @param transaction the transaction
-	 * @return the reference to the transaction that has been added
 	 * @throws Exception if the expansion cannot be completed
 	 */
-	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> TransactionReference expandStoreWith(Transaction<Request, Response> transaction) throws Exception;
+	protected abstract <Request extends TransactionRequest<Response>, Response extends TransactionResponse> void expandStoreWith(Transaction<Request, Response> transaction) throws Exception;
 
 	@Override
 	public final String getClassNameOf(StorageReference object) {
@@ -190,7 +182,10 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			requireNodeUninitialized();
-			return expandStoreWith(Transaction.mkFor(request, getNextTransaction(), this));
+			TransactionReference transactionReference = getNextTransaction();
+			Transaction<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> transaction = Transaction.mkFor(request, transactionReference, this);
+			expandStoreWith(transaction);
+			return transaction.getResponse().getOutcomeAt(transactionReference);
 		});
 	}
 
@@ -200,7 +195,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 			requireNodeUninitialized();
 			Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
-			return transaction.getResponse().gamete;
+			return transaction.getResponse().getOutcome();
 		});
 	}
 
@@ -210,24 +205,18 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 			requireNodeUninitialized();
 			Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
-			return transaction.getResponse().gamete;
+			return transaction.getResponse().getOutcome();
 		});
 	}
 
 	@Override
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
-			Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
-			TransactionReference transactionReference = expandStoreWith(transaction);
+			TransactionReference transactionReference = getNextTransaction();
+			Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> transaction = Transaction.mkFor(request, transactionReference, this);
+			expandStoreWith(transaction);
 			initialized = true;
-			JarStoreTransactionResponse response = transaction.getResponse();
-
-			if (response instanceof JarStoreTransactionFailedResponse) {
-				JarStoreTransactionFailedResponse jstr = (JarStoreTransactionFailedResponse) response;
-				throw new TransactionException(jstr.classNameOfCause + ": " + jstr.messageOfCause);
-			}
-			else
-				return transactionReference;
+			return transaction.getResponse().getOutcomeAt(transactionReference);
 		});
 	}
 
@@ -237,18 +226,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 			Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
 			initialized = true;
-			ConstructorCallTransactionResponse response = transaction.getResponse();
-
-			if (response instanceof ConstructorCallTransactionFailedResponse) {
-				ConstructorCallTransactionFailedResponse cctfr = (ConstructorCallTransactionFailedResponse) response;
-				throw new TransactionException(cctfr.classNameOfCause + ": " + cctfr.messageOfCause);
-			}
-			else if (response instanceof ConstructorCallTransactionExceptionResponse) {
-				ConstructorCallTransactionExceptionResponse ccter = (ConstructorCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", ccter.classNameOfCause, ccter.messageOfCause, ccter.where);
-			}
-			else
-				return ((ConstructorCallTransactionSuccessfulResponse) response).newObject;
+			return transaction.getResponse().getOutcome();
 		});
 	}
 
@@ -258,20 +236,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 			Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
 			initialized = true;
-			MethodCallTransactionResponse response = transaction.getResponse();
-
-			if (response instanceof MethodCallTransactionFailedResponse) {
-				MethodCallTransactionFailedResponse mctfr = (MethodCallTransactionFailedResponse) response;
-				throw new TransactionException(mctfr.classNameOfCause + ": " + mctfr.messageOfCause);
-			}
-			else if (response instanceof MethodCallTransactionExceptionResponse) {
-				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
-			}
-			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
-				return null;
-			else
-				return ((MethodCallTransactionSuccessfulResponse) response).result;
+			return transaction.getResponse().getOutcome();
 		});
 	}
 
@@ -281,61 +246,18 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 			Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 			expandStoreWith(transaction);
 			initialized = true;
-			MethodCallTransactionResponse response = transaction.getResponse();
-
-			if (response instanceof MethodCallTransactionFailedResponse) {
-				MethodCallTransactionFailedResponse mctfr = (MethodCallTransactionFailedResponse) response;
-				throw new TransactionException(mctfr.classNameOfCause + ": " + mctfr.messageOfCause);
-			}
-			else if (response instanceof MethodCallTransactionExceptionResponse) {
-				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
-			}
-			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
-				return null;
-			else
-				return ((MethodCallTransactionSuccessfulResponse) response).result;
+			return transaction.getResponse().getOutcome();
 		});
 	}
 
 	@Override
 	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = Transaction.mkForView(request, getNextTransaction(), this).getResponse();
-
-			if (response instanceof MethodCallTransactionFailedResponse) {
-				MethodCallTransactionFailedResponse mctfr = (MethodCallTransactionFailedResponse) response;
-				throw new TransactionException(mctfr.classNameOfCause + ": " + mctfr.messageOfCause);
-			}
-			else if (response instanceof MethodCallTransactionExceptionResponse) {
-				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
-			}
-			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
-				return null;
-			else
-				return ((MethodCallTransactionSuccessfulResponse) response).result;
-		});
+		return wrapWithCodeInCaseOfException(() -> Transaction.mkForView(request, getNextTransaction(), this).getResponse().getOutcome());
 	}
 
 	@Override
 	public final StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> {
-			MethodCallTransactionResponse response = Transaction.mkForView(request, getNextTransaction(), this).getResponse();
-
-			if (response instanceof MethodCallTransactionFailedResponse) {
-				MethodCallTransactionFailedResponse mctfr = (MethodCallTransactionFailedResponse) response;
-				throw new TransactionException(mctfr.classNameOfCause + ": " + mctfr.messageOfCause);
-			}
-			else if (response instanceof MethodCallTransactionExceptionResponse) {
-				MethodCallTransactionExceptionResponse mcter = (MethodCallTransactionExceptionResponse) response;
-				throw new CodeExecutionException("constructor threw", mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
-			}
-			else if (response instanceof VoidMethodCallTransactionSuccessfulResponse)
-				return null;
-			else
-				return ((MethodCallTransactionSuccessfulResponse) response).result;
-		});
+		return wrapWithCodeInCaseOfException(() -> Transaction.mkForView(request, getNextTransaction(), this).getResponse().getOutcome());
 	}
 
 	/**
@@ -498,7 +420,7 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 	}
 
 	/**
-	 * Calls the given callable. If if throws a {@link io.hotmoka.nodes.CodeExecutionException}, if throws it back
+	 * Calls the given callable. If if throws a {@link io.hotmoka.beans.CodeExecutionException}, if throws it back
 	 * unchanged. Otherwise, it wraps the exception into an {@link io.hotmoka.beans.TransactionException}.
 	 * 
 	 * @param what the callable
