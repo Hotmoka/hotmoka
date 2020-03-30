@@ -150,7 +150,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
             	if (hotmokaRequest instanceof JarStoreInitialTransactionRequest) {
             		JarStoreInitialTransactionRequest request = (JarStoreInitialTransactionRequest) hotmokaRequest;
             		JarStoreInitialTransactionResponse response = io.takamaka.code.engine.Transaction.mkFor(request, next, node).getResponse();
-            		node.state.keepJar(next, response);
+            		node.state.putDependenciesOf(next, request);
+            		node.state.putResponseOf(next, response);
             		transactionReference = byteStringSerializationOf(next.toString());
             	}
             }

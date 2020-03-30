@@ -13,6 +13,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
@@ -195,6 +197,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws Exception if some jar cannot be accessed
 	 */
 	private void addJars(Classpath classpath, List<byte[]> jars, List<String> jarNames) throws Exception {
+		TransactionResponse response = builder.node.getResponseAt(classpath.transaction);
+		if (!(response instanceof TransactionResponseWithInstrumentedJar))
+			throw new IllegalStateException("expected a jar store response at " + classpath.transaction);
+
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
 			builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingDependenciesAt(classpath.transaction));
@@ -204,7 +210,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		}
 
 		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingResponseAt(classpath.transaction));
-		byte[] instrumentedJarBytes = builder.node.getInstrumentedJarAt(classpath.transaction);
+		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
 		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
 		builder.chargeForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 		jars.add(instrumentedJarBytes);

@@ -9,6 +9,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -29,6 +30,7 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -109,6 +111,7 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 		tendermint.ping();
 
 		this.takamakaCode = new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
+		System.out.println("takamakaCode = " + takamakaCode);
 
 		// we compute the total amount of funds needed to create the accounts
 		BigInteger sum = Stream.of(funds).reduce(BigInteger.ZERO, BigInteger::add);
@@ -178,15 +181,21 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	}
 
 	@Override
-	public Stream<Classpath> getDependenciesOfJarStoreTransactionAt(TransactionReference transactionReference)
-			throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public TransactionResponse getResponseAt(TransactionReference transactionReference) throws Exception {
+		Optional<TransactionResponse> response = state.getResponseOf(transactionReference);
+		if (response.isPresent())
+			return response.get();
+		else
+			throw new IllegalStateException("cannot find no response for transaction " + transactionReference);
 	}
 
 	@Override
-	public byte[] getInstrumentedJarAt(TransactionReference transactionReference) throws Exception {
-		return state.getInstrumentedJarAt(transactionReference);
+	public Stream<Classpath> getDependenciesOfJarStoreTransactionAt(TransactionReference transactionReference) throws Exception {
+		Optional<Stream<Classpath>> dependencies = state.getDependenciesOf(transactionReference);
+		if (dependencies.isPresent())
+			return dependencies.get();
+		else
+			throw new IllegalStateException("cannot find no jar store dependencies for transaction " + transactionReference);
 	}
 
 	@Override
@@ -225,42 +234,9 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 		return wrapInCaseOfException(() -> {
 			requireNodeUninitialized();
 			String response = tendermint.broadcastTxCommit(request);
-			String hashOfResponse = extractHashFrom(response);
-			TendermintTopLevelResult tendermintResult = tendermint.poll(hashOfResponse);
-
-			TendermintTxResult tx_result = tendermintResult.tx_result;
-			if (tx_result == null)
-				throw new IllegalStateException("no result for transaction " + hashOfResponse);
-
-			String data = tx_result.data;
-			if (data == null)
-				throw new TransactionException("no transaction reference found iun data field of Tendermint transaction");
-
-			Object dataAsObject = base64DeserializationOf(data);
-			if (!(dataAsObject instanceof String))
-				throw new TransactionException("no transaction reference found iun data field of Tendermint transaction");
-
-			return new TendermintTransactionReference((String) dataAsObject);
+			String hash = extractHashFromBroadcastTxResponse(response);
+			return extractTransactionReferenceFromTendermintResult(hash);
 		});
-	}
-
-	private String extractHashFrom(String response) {
-		TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
-
-		String error = parsedResponse.error;
-		if (error != null && !error.isEmpty())
-			throw new IllegalStateException("Tendermint transaction failed: " + error);
-
-		TendermintTopLevelResult result = parsedResponse.result;
-
-		if (result == null)
-			throw new IllegalStateException("missing result in Tendermint response");
-
-		String hash = result.hash;
-		if (hash == null)
-			throw new IllegalStateException("missing hash in Tendermint response");
-
-		return hash;
 	}
 
 	@Override
@@ -289,6 +265,53 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 			throws TransactionException, CodeExecutionException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	/**
+	 * Pools Tendermint for the result of a Tendermint transaction with the given hash.
+	 * When it is available, parse its result looking for the {@code data}
+	 * field, that should contained the reference of the Hotmoka transaction
+	 * executed for that Tendermint transaction.
+	 *  
+	 * @param hash the hash of the Tendermint transaction
+	 * @return the reference to the Hotmoka transaction
+	 * @throws Exception if the transaction reference cannot be found
+	 */
+	private TransactionReference extractTransactionReferenceFromTendermintResult(String hash) throws Exception {
+		TendermintTopLevelResult tendermintResult = tendermint.poll(hash);
+	
+		TendermintTxResult tx_result = tendermintResult.tx_result;
+		if (tx_result == null)
+			throw new TransactionException("no result for transaction " + hash);
+	
+		String data = tx_result.data;
+		if (data == null)
+			throw new TransactionException("no transaction reference found in data field of Tendermint transaction");
+	
+		Object dataAsObject = base64DeserializationOf(data);
+		if (!(dataAsObject instanceof String))
+			throw new TransactionException("no transaction reference found in data field of Tendermint transaction");
+	
+		return new TendermintTransactionReference((String) dataAsObject);
+	}
+
+	private String extractHashFromBroadcastTxResponse(String response) {
+		TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
+	
+		String error = parsedResponse.error;
+		if (error != null && !error.isEmpty())
+			throw new IllegalStateException("Tendermint transaction failed: " + error);
+	
+		TendermintTopLevelResult result = parsedResponse.result;
+	
+		if (result == null)
+			throw new IllegalStateException("missing result in Tendermint response");
+	
+		String hash = result.hash;
+		if (hash == null)
+			throw new IllegalStateException("missing hash in Tendermint response");
+	
+		return hash;
 	}
 
 	/**

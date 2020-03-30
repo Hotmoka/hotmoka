@@ -29,7 +29,6 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -74,15 +73,6 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 	protected abstract SequentialTransactionReference getNextTransaction();
 
 	/**
-	 * Yields the response of the transaction with the given reference.
-	 * 
-	 * @param transactionReference the reference to the transaction
-	 * @return the response
-	 * @throws Exception if the response could not be found
-	 */
-	protected abstract TransactionResponse getResponseAt(TransactionReference transactionReference) throws Exception;
-
-	/**
 	 * Expands the store of this node with a transaction, that is added after the topmost one and
 	 * becomes the new topmost transaction.
 	 * 
@@ -115,15 +105,6 @@ public abstract class AbstractSynchronousNode extends AbstractNode implements Sy
 		}
 
 		throw new DeserializationError("no class tag found for " + object);
-	}
-
-	@Override
-	public final byte[] getInstrumentedJarAt(TransactionReference transactionReference) throws Exception {
-		TransactionResponse response = getResponseAt(transactionReference);
-		if (response instanceof TransactionResponseWithInstrumentedJar)
-			return ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
-		else
-			throw new IllegalArgumentException("the transaction does not contain a jar store response");
 	}
 
 	@Override
