@@ -7,15 +7,18 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.Base64;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.takamaka.code.engine.Transaction;
 import types.ABCIApplicationGrpc;
 import types.Types.Header;
 import types.Types.RequestBeginBlock;
@@ -141,39 +144,45 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     public void deliverTx(RequestDeliverTx req, StreamObserver<ResponseDeliverTx> responseObserver) {
     	System.out.print("[deliverTx");
         ByteString tx = req.getTx();
-        ByteString transactionReference = null;
-        int code = validate(tx);
 
+        ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
+
+        int code = validate(tx);
         if (code == 0) {
             try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
             	Object hotmokaRequest = ois.readObject();
+
             	if (hotmokaRequest instanceof JarStoreInitialTransactionRequest) {
             		JarStoreInitialTransactionRequest request = (JarStoreInitialTransactionRequest) hotmokaRequest;
-            		JarStoreInitialTransactionResponse response = io.takamaka.code.engine.Transaction.mkFor(request, next, node).getResponse();
+            		JarStoreInitialTransactionResponse response = Transaction.mkFor(request, next, node).getResponse();
             		node.state.putDependenciesOf(next, request);
             		node.state.putResponseOf(next, response);
-            		transactionReference = byteStringSerializationOf(next.toString());
             	}
-            }
-            catch (ClassNotFoundException e) {
-            	code = 1;
-    		}
-            catch (IOException e) {
-            	code = 1;
-    		}
-            catch (TransactionException e) {
-            	e.printStackTrace();
-				code = 2;
-			}
-        }
+            	else if (hotmokaRequest instanceof GameteCreationTransactionRequest)
+            		node.state.putResponseOf(next, Transaction.mkFor((GameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse());
+            	else if (hotmokaRequest instanceof RedGreenGameteCreationTransactionRequest)
+            		node.state.putResponseOf(next, Transaction.mkFor((RedGreenGameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse());
+            	else if (hotmokaRequest instanceof ConstructorCallTransactionRequest)
+            		node.state.putResponseOf(next, Transaction.mkFor((ConstructorCallTransactionRequest) hotmokaRequest, next, node).getResponse());
 
-        ResponseDeliverTx resp = ResponseDeliverTx.newBuilder()
-                .setCode(code)
-                .setData(transactionReference)
-                .build();
+            	responseBuilder.setCode(0);
+            	responseBuilder.setData(byteStringSerializationOf(next.toString()));
+            }
+            catch (TransactionException e) {
+            	responseBuilder.setCode(1);
+            	responseBuilder.setInfo(e.toString());
+			}
+            catch (Throwable t) {
+            	responseBuilder.setCode(2);
+            	responseBuilder.setInfo(t.toString());
+    		}
+        }
+        else
+        	responseBuilder.setCode(code);
 
         next = new TendermintTransactionReference(next.blockNumber, next.transactionNumber + 1);
 
+        ResponseDeliverTx resp = responseBuilder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
         System.out.println("]");

@@ -30,12 +30,15 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.GasCostModel;
@@ -117,15 +120,20 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 		BigInteger sum = Stream.of(funds).reduce(BigInteger.ZERO, BigInteger::add);
 
 		StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
+		System.out.println("gamete = " + gamete);
 
 		initialized = true;
 
 		// let us create the accounts
 		this.accounts = new StorageReference[funds.length];
 		ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
-		for (int i = 0; i < accounts.length; i++) {}
-		/*this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i])));*/
+		BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
+		for (int i = 0; i < accounts.length; i++) {
+			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+				(gamete, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i])));
+
+			System.out.println("account #" + i + ": " + accounts[i]);
+		}
 	}
 
 	@Override
@@ -240,15 +248,53 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	}
 
 	@Override
-	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request)
-			throws TransactionException {
+	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			requireNodeUninitialized();
+			String response = tendermint.broadcastTxCommit(request);
+			String hash = extractHashFromBroadcastTxResponse(response);
+			TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
+			return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
+		});
+	}
+
+	@Override
+	public StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException {
+		return wrapInCaseOfException(() -> {
+			requireNodeUninitialized();
+			String response = tendermint.broadcastTxCommit(request);
+			String hash = extractHashFromBroadcastTxResponse(response);
+			TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
+			return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
+		});
+	}
+
+	@Override
+	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request)
-			throws TransactionException {
+	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
+		return wrapInCaseOfException(() -> {
+			String response = tendermint.broadcastTxCommit(request);
+			String hash = extractHashFromBroadcastTxResponse(response);
+			TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
+			return ((ConstructorCallTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
+		});
+	}
+
+	@Override
+	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request)
+			throws TransactionException, CodeExecutionException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request)
+			throws TransactionException, CodeExecutionException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -286,11 +332,13 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	
 		String data = tx_result.data;
 		if (data == null)
-			throw new TransactionException("no transaction reference found in data field of Tendermint transaction");
+			throw new TransactionException("no Hotmoka transaction reference found in data field of Tendermint transaction " + hash
+				+ "(" + tx_result.info + ")");
 	
 		Object dataAsObject = base64DeserializationOf(data);
 		if (!(dataAsObject instanceof String))
-			throw new TransactionException("no transaction reference found in data field of Tendermint transaction");
+			throw new TransactionException("no Hotmoka transaction reference found in data field of Tendermint transaction " + hash
+				+ "(" + tx_result.info + ")");
 	
 		return new TendermintTransactionReference((String) dataAsObject);
 	}
