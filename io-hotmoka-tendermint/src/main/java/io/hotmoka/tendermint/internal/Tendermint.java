@@ -32,7 +32,7 @@ class Tendermint {
 	/**
 	 * The maximal number of polling attempts, while waiting for the result of a posted transaction.
 	 */
-	private final static int MAX_POLLING_ATTEMPTS = 10;
+	private final static int MAX_POLLING_ATTEMPTS = 100;
 
 	/**
 	 * The delay between the first two polling attempts, while waiting for the result of a posted transaction.
@@ -106,6 +106,21 @@ class Tendermint {
 	String broadcastTxSync(TransactionRequest<?> request) throws IOException {
 		String base64EncodedHotmokaRequest = base64EncodedSerializationOf(request);
 		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_sync\", \"params\": {\"tx\": \"" + base64EncodedHotmokaRequest + "\"}}";
+
+		return postToTendermint(jsonTendermintRequest);
+	}
+
+	/**
+	 * Sends the given {@code request} to the Tendermint process, inside
+	 * a {@code broadcast_tx_async} Tendermint request.
+	 * 
+	 * @param request the request to send
+	 * @return the response of Tendermint
+	 * @throws IOException if the connection couldn't be opened or the request could not be sent
+	 */
+	String broadcastTxAsync(TransactionRequest<?> request) throws IOException {
+		String base64EncodedHotmokaRequest = base64EncodedSerializationOf(request);
+		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + base64EncodedHotmokaRequest + "\"}}";
 
 		return postToTendermint(jsonTendermintRequest);
 	}

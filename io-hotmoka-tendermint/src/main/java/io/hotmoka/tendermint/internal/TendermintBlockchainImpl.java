@@ -195,7 +195,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected TransactionReference addJarStoreInitialTransactionInternal(JarStoreInitialTransactionRequest request) throws Exception {
-		String response = tendermint.broadcastTxCommit(request);
+		String response = tendermint.broadcastTxAsync(request);
 		String hash = extractHashFromBroadcastTxResponse(response);
 		TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
 		return ((JarStoreInitialTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcomeAt(transactionReference);
@@ -203,7 +203,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected StorageReference addGameteCreationTransactionInternal(GameteCreationTransactionRequest request) throws Exception {
-		String response = tendermint.broadcastTxCommit(request);
+		String response = tendermint.broadcastTxAsync(request);
 		String hash = extractHashFromBroadcastTxResponse(response);
 		TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
 		return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
@@ -211,7 +211,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected StorageReference addRedGreenGameteCreationTransactionInternal(RedGreenGameteCreationTransactionRequest request) throws Exception {
-		String response = tendermint.broadcastTxCommit(request);
+		String response = tendermint.broadcastTxAsync(request);
 		String hash = extractHashFromBroadcastTxResponse(response);
 		TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
 		return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
@@ -225,7 +225,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected StorageReference addConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
-		String response = tendermint.broadcastTxCommit(request);
+		String response = tendermint.broadcastTxAsync(request);
 		String hash = extractHashFromBroadcastTxResponse(response);
 		TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
 		return ((ConstructorCallTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
