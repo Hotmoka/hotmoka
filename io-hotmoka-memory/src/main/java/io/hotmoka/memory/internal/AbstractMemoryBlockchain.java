@@ -14,8 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.stream.Stream;
 
@@ -23,11 +25,23 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.takamaka.code.engine.AbstractSynchronousNode;
-import io.takamaka.code.engine.SequentialTransactionReference;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
+import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.Transaction;
 
 /**
@@ -36,7 +50,7 @@ import io.takamaka.code.engine.Transaction;
  * really a blockchain, since there is no peer-to-peer network, nor mining.
  * Updates are stored inside the blocks, rather than in an external database.
  */
-public abstract class AbstractMemoryBlockchain extends AbstractSynchronousNode {
+public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	/**
 	 * The name used for the file containing the serialized header of a block.
@@ -125,14 +139,14 @@ public abstract class AbstractMemoryBlockchain extends AbstractSynchronousNode {
 			return 0L;
 	}
 
-	@Override
-	protected SequentialTransactionReference getNextTransaction() {
+	/**
+	 * Yields the reference that must be used to refer to a new transaction
+	 * that follows the topmost one.
+	 * 
+	 * @return the reference to the next transaction
+	 */
+	private TransactionReference getNextTransaction() {
 		return topmost == null ? new MemoryTransactionReference(BigInteger.ZERO, (short) 0) : topmost.getNext();
-	}
-
-	@Override
-	protected SequentialTransactionReference getTopmostTransactionReference() {
-		return topmost;
 	}
 
 	@Override
@@ -141,7 +155,87 @@ public abstract class AbstractMemoryBlockchain extends AbstractSynchronousNode {
 	}
 
 	@Override
-	protected <Request extends TransactionRequest<Response>, Response extends TransactionResponse> void expandStoreWith(Transaction<Request, Response> transaction) throws Exception {
+	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
+		List<TransactionReference> history = new ArrayList<>();
+		TransactionReference whenCreated = object.transaction;
+		if (topmost != null)
+			for (MemoryTransactionReference cursor = topmost; !cursor.isOlderThan(whenCreated); cursor = cursor.getPrevious())
+				history.add(cursor);
+
+		return history.stream();
+	}
+
+	@Override
+	protected TransactionReference addJarStoreInitialTransactionInternal(JarStoreInitialTransactionRequest request) throws Exception {
+		TransactionReference transactionReference = getNextTransaction();
+		Transaction<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> transaction = Transaction.mkFor(request, transactionReference, this);
+		expandStoreWith(transaction);
+		return transaction.getResponse().getOutcomeAt(transactionReference);
+	}
+
+	@Override
+	protected StorageReference addGameteCreationTransactionInternal(GameteCreationTransactionRequest request) throws Exception {
+		Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+		expandStoreWith(transaction);
+		return transaction.getResponse().getOutcome();
+	}
+
+	@Override
+	protected StorageReference addRedGreenGameteCreationTransactionInternal(RedGreenGameteCreationTransactionRequest request) throws Exception {
+		Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+		expandStoreWith(transaction);
+		return transaction.getResponse().getOutcome();
+	}
+
+	@Override
+	protected TransactionReference addJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
+		TransactionReference transactionReference = getNextTransaction();
+		Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> transaction = Transaction.mkFor(request, transactionReference, this);
+		expandStoreWith(transaction);
+		return transaction.getResponse().getOutcomeAt(transactionReference);
+	}
+
+	@Override
+	protected StorageReference addConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
+		Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+		expandStoreWith(transaction);
+		return transaction.getResponse().getOutcome();
+	}
+
+	@Override
+	protected StorageValue addInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
+		Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+		expandStoreWith(transaction);
+		return transaction.getResponse().getOutcome();
+	}
+
+	@Override
+	protected StorageValue addStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
+		Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+		expandStoreWith(transaction);
+		return transaction.getResponse().getOutcome();
+	}
+
+	@Override
+	protected StorageValue runViewInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
+		return Transaction.mkForView(request, getNextTransaction(), this).getResponse().getOutcome();
+	}
+
+	@Override
+	protected StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
+		return Transaction.mkForView(request, getNextTransaction(), this).getResponse().getOutcome();
+	}
+
+	/**
+	 * Expands the store of this node with a transaction, that is added after the topmost one and
+	 * becomes the new topmost transaction.
+	 * 
+	 * @param <Request> the type of the request of the transaction
+	 * @param <Response> the type of the response of the transaction
+	 * @param transaction the transaction
+	 * @throws Exception if the expansion cannot be completed
+	 */
+	private <Request extends TransactionRequest<Response>, Response extends TransactionResponse> void expandStoreWith(Transaction<Request, Response> transaction) throws Exception {
 		MemoryTransactionReference next = (MemoryTransactionReference) getNextTransaction();
 		Path requestPath = getPathFor(next, REQUEST_NAME);
 		Path parent = requestPath.getParent();

@@ -3,14 +3,13 @@ package io.hotmoka.memory.internal;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.references.TransactionReference;
-import io.takamaka.code.engine.SequentialTransactionReference;
 
 /**
  * In the disk memory representation of a blockchain, a transaction can be
  * uniquely identified by a pair block/transaction inside the block. A progressive
  * identifier would also be fine.
  */
-class MemoryTransactionReference implements SequentialTransactionReference {
+class MemoryTransactionReference implements TransactionReference {
 
 	private static final long serialVersionUID = 5911713300386882185L;
 
@@ -48,8 +47,7 @@ class MemoryTransactionReference implements SequentialTransactionReference {
 		this.transactionNumber = Short.parseShort(toString.substring(dot + 1), 16);
 	}
 
-	@Override
-	public boolean isOlderThan(TransactionReference other) {
+	boolean isOlderThan(TransactionReference other) {
 		return compareTo(other) < 0;
 	}
 
@@ -70,8 +68,7 @@ class MemoryTransactionReference implements SequentialTransactionReference {
 		return blockNumber.toString(16) + "." + Integer.toHexString(transactionNumber);
 	}
 
-	@Override
-	public MemoryTransactionReference getPrevious() {
+	MemoryTransactionReference getPrevious() {
 		if (transactionNumber == 0)
 			if (blockNumber.signum() == 0)
 				return null;

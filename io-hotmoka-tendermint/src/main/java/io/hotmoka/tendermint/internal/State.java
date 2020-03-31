@@ -6,13 +6,18 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.values.StorageReference;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.env.Environment;
@@ -32,6 +37,7 @@ class State implements AutoCloseable {
     private Transaction txn;
     private Store responses;
     private Store dependencies;
+    private Store history;
 
     /**
      * The name of the store where responses of transactions are kept.
@@ -42,6 +48,13 @@ class State implements AutoCloseable {
      * The name of the store where the dependencies of installed jars are kept.
      */
     private final static String DEPENDENCIES = "dependencies";
+
+    /**
+     * The name of the store that keeps, for each storage reference, the list of
+     * transaction references where that storage reference has been modified,
+     * from youngest to oldest.
+     */
+    private final static String HISTORY = "history";
 
     State() {
     	this.env = Environments.newInstance("tmp/storage");
@@ -61,6 +74,7 @@ class State implements AutoCloseable {
 		txn = env.beginTransaction();
         responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
         dependencies = env.openStore(DEPENDENCIES, StoreConfig.WITHOUT_DUPLICATES, txn);
+        history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
 	}
 
 	/**
@@ -78,7 +92,20 @@ class State implements AutoCloseable {
 	 * @throws IOException if the response cannot be saved in state
 	 */
 	void putResponseOf(TransactionReference transactionReference, TransactionResponse response) throws IOException {
-		responses.put(txn, transactionReferenceAsKey(transactionReference), byteArraySerializationOf(response));
+		responses.put(txn, compactByteArraySerializationOf(transactionReference), byteArraySerializationOf(response));
+	}
+
+	void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws IOException {
+		// we collect the storage references that have been updates; for each of them,
+		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
+		// in front of such lists and store back the updated lists, replacing the old ones
+		response.getUpdates()
+			.map(Update::getObject)
+			.distinct()
+			.collect(Collectors.toMap
+				(State::byteArraySerializationOf,
+				object -> byteArraySerializationOf(getExpandedHistoryOf(object, transactionReference).toArray(TransactionReference[]::new))))
+			.forEach((key, value) -> history.put(txn, key, value));
 	}
 
 	/**
@@ -89,7 +116,7 @@ class State implements AutoCloseable {
 	 * @throws IOException if the request cannot be saved in state
 	 */
 	void putDependenciesOf(TransactionReference transactionReference, AbstractJarStoreTransactionRequest request) throws IOException {
-		dependencies.put(txn, transactionReferenceAsKey(transactionReference), byteArraySerializationOf(request.getDependencies().toArray(Classpath[]::new)));
+		dependencies.put(txn, compactByteArraySerializationOf(transactionReference), byteArraySerializationOf(request.getDependencies().toArray(Classpath[]::new)));
 	}
 
 	/**
@@ -101,7 +128,7 @@ class State implements AutoCloseable {
 	Optional<TransactionResponse> getResponseOf(TransactionReference transactionReference) {
 		return env.computeInReadonlyTransaction(txn -> {
 			Store responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable response = responses.get(txn, transactionReferenceAsKey(transactionReference));
+			ByteIterable response = responses.get(txn, compactByteArraySerializationOf(transactionReference));
 			if (response == null)
 				return Optional.empty();
 	
@@ -114,6 +141,11 @@ class State implements AutoCloseable {
 		});
 	}
 
+	Optional<Stream<TransactionReference>> getHistoryOf(StorageReference object) {
+		ByteIterable old = history.get(txn, byteArraySerializationOf(object));
+		return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
+	}
+
 	/**
 	 * Yields the dependencies of the jar installed by a jar store transaction request having the given reference.
 	 * 
@@ -123,7 +155,7 @@ class State implements AutoCloseable {
 	Optional<Stream<Classpath>> getDependenciesOf(TransactionReference transactionReference) {
 		return env.computeInReadonlyTransaction(txn -> {
 			Store dependencies = env.openStore(DEPENDENCIES, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable response = dependencies.get(txn, transactionReferenceAsKey(transactionReference));
+			ByteIterable response = dependencies.get(txn, compactByteArraySerializationOf(transactionReference));
 			if (response == null)
 				return Optional.empty();
 
@@ -136,14 +168,19 @@ class State implements AutoCloseable {
 		});
 	}
 
+	private Stream<TransactionReference> getExpandedHistoryOf(StorageReference object, TransactionReference first) {
+		Optional<Stream<TransactionReference>> history = getHistoryOf(object);
+		return history.isPresent() ? Stream.concat(Stream.of(first), history.get()) : Stream.of(first);
+	}
+
 	/**
 	 * Yields the serialization of the given transaction reference into a byte array, that can be
-	 * used as key for a store.
+	 * used in a store. This is more compact than the standard byte array serialization.
 	 * 
 	 * @param transactionReference the transaction reference
 	 * @return the byte array
 	 */
-	private static ArrayByteIterable transactionReferenceAsKey(TransactionReference transactionReference) {
+	private static ArrayByteIterable compactByteArraySerializationOf(TransactionReference transactionReference) {
 		// the serialization of the toString() is shorter than the serialization of the transaction reference object
 		return new ArrayByteIterable(transactionReference.toString().getBytes());
 	}
@@ -153,18 +190,27 @@ class State implements AutoCloseable {
 	 * 
 	 * @param object the object
 	 * @return the serialization of {@code object}
-	 * @throws IOException if serialization fails
+	 * @throws UncheckedIOException if serialization fails
 	 */
-	private static ArrayByteIterable byteArraySerializationOf(Serializable object) throws IOException {
+	private static ArrayByteIterable byteArraySerializationOf(Serializable object) throws UncheckedIOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
 			oos.writeObject(object);
 			return new ArrayByteIterable(baos.toByteArray());
 		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
-	private static Object deserializationOf(ByteIterable bytes) throws IOException, ClassNotFoundException {
+	private static Object deserializationOf(ByteIterable bytes) throws UncheckedIOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe()))) {
 			return ois.readObject();
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 }

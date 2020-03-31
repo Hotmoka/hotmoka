@@ -3,16 +3,12 @@ package io.hotmoka.tendermint.internal;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
@@ -32,26 +28,25 @@ import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
+import io.hotmoka.tendermint.internal.beans.TxError;
+import io.takamaka.code.engine.AbstractNode;
 
 /**
  * An implementation of a blockchain integrated over the Tendermint generic
  * blockchain engine. It provides support for the creation of a given number of initial accounts.
  */
-public class TendermintBlockchainImpl implements TendermintBlockchain {
+public class TendermintBlockchainImpl extends AbstractNode implements TendermintBlockchain {
 
 	/**
 	 * A proxy to the Tendermint process.
@@ -76,11 +71,6 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	 * An object for JSON manipulation.
 	 */
 	private final Gson gson = new Gson();
-
-	/**
-	 * True if and only if this blockchain is initialized.
-	 */
-	private boolean initialized;
 
 	final State state;
 
@@ -121,8 +111,6 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 
 		StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
 		System.out.println("gamete = " + gamete);
-
-		initialized = true;
 
 		// let us create the accounts
 		this.accounts = new StorageReference[funds.length];
@@ -178,12 +166,6 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	}
 
 	@Override
-	public String getClassNameOf(StorageReference storageReference) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public TransactionReference getTransactionReferenceFor(String toString) {
 		return new TendermintTransactionReference(toString);
 	}
@@ -207,110 +189,75 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	}
 
 	@Override
-	public Stream<Update> getLastEagerUpdatesFor(StorageReference storageReference, Consumer<BigInteger> chargeForCPU,
-			Function<String, Stream<Field>> eagerFields) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference storageReference, FieldSignature field,
-			Consumer<BigInteger> chargeForCPU) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference storageReference, FieldSignature field,
-			Consumer<BigInteger> chargeForCPU) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public long getNow() throws Exception {
 		return abci.getNow();
 	}
 
 	@Override
-	public GasCostModel getGasCostModel() {
-		return GasCostModel.standard();
+	protected TransactionReference addJarStoreInitialTransactionInternal(JarStoreInitialTransactionRequest request) throws Exception {
+		String response = tendermint.broadcastTxCommit(request);
+		String hash = extractHashFromBroadcastTxResponse(response);
+		TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
+		return ((JarStoreInitialTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcomeAt(transactionReference);
 	}
 
 	@Override
-	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			requireNodeUninitialized();
-			String response = tendermint.broadcastTxCommit(request);
-			String hash = extractHashFromBroadcastTxResponse(response);
-			return extractTransactionReferenceFromTendermintResult(hash);
-		});
+	protected StorageReference addGameteCreationTransactionInternal(GameteCreationTransactionRequest request) throws Exception {
+		String response = tendermint.broadcastTxCommit(request);
+		String hash = extractHashFromBroadcastTxResponse(response);
+		TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
+		return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
 	}
 
 	@Override
-	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			requireNodeUninitialized();
-			String response = tendermint.broadcastTxCommit(request);
-			String hash = extractHashFromBroadcastTxResponse(response);
-			TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
-			return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
-		});
+	protected StorageReference addRedGreenGameteCreationTransactionInternal(RedGreenGameteCreationTransactionRequest request) throws Exception {
+		String response = tendermint.broadcastTxCommit(request);
+		String hash = extractHashFromBroadcastTxResponse(response);
+		TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
+		return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
 	}
 
 	@Override
-	public StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
-			requireNodeUninitialized();
-			String response = tendermint.broadcastTxCommit(request);
-			String hash = extractHashFromBroadcastTxResponse(response);
-			TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
-			return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
-		});
-	}
-
-	@Override
-	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
+	protected TransactionReference addJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapInCaseOfException(() -> {
-			String response = tendermint.broadcastTxCommit(request);
-			String hash = extractHashFromBroadcastTxResponse(response);
-			TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
-			return ((ConstructorCallTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
-		});
+	protected StorageReference addConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
+		String response = tendermint.broadcastTxCommit(request);
+		String hash = extractHashFromBroadcastTxResponse(response);
+		TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
+		return ((ConstructorCallTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
 	}
 
 	@Override
-	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request)
-			throws TransactionException, CodeExecutionException {
+	protected StorageValue addInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request)
-			throws TransactionException, CodeExecutionException {
+	protected StorageValue addStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request)
-			throws TransactionException, CodeExecutionException {
+	protected StorageValue runViewInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
+		//TODO
+		return null;
+	}
+
+	@Override
+	protected StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request)
-			throws TransactionException, CodeExecutionException {
-		// TODO Auto-generated method stub
-		return null;
+	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
+		return state.getHistoryOf(object).get();
 	}
 
 	/**
@@ -346,9 +293,9 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 	private String extractHashFromBroadcastTxResponse(String response) {
 		TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
 	
-		String error = parsedResponse.error;
-		if (error != null && !error.isEmpty())
-			throw new IllegalStateException("Tendermint transaction failed: " + error);
+		TxError error = parsedResponse.error;
+		if (error != null)
+			throw new IllegalStateException("Tendermint transaction failed: " + error.message + ": " + error.data);
 	
 		TendermintTopLevelResult result = parsedResponse.result;
 	
@@ -360,65 +307,6 @@ public class TendermintBlockchainImpl implements TendermintBlockchain {
 			throw new IllegalStateException("missing hash in Tendermint response");
 	
 		return hash;
-	}
-
-	/**
-	 * Checks if this node is still not fully initialized, so that further initial transactions can still
-	 * be executed. As soon as a non-initial transaction is run with this node, it is considered as initialized.
-	 * 
-	 * @throws IllegalStateException if this node is already initialized
-	 */
-	private void requireNodeUninitialized() throws IllegalStateException {
-		if (initialized)
-			throw new IllegalStateException("this node is already initialized");
-	}
-
-	/**
-	 * Calls the given callable. If if throws an exception, it wraps it into an {@link io.hotmoka.beans.TransactionException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws TransactionException the wrapped exception
-	 */
-	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
-		try {
-			return what.call();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
-		}
-	}
-
-	/**
-	 * Calls the given callable. If if throws a {@link io.hotmoka.beans.CodeExecutionException}, if throws it back
-	 * unchanged. Otherwise, it wraps the exception into an {@link io.hotmoka.beans.TransactionException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws CodeExecutionException the unwrapped exception
-	 * @throws TransactionException the wrapped exception
-	 */
-	private static <T> T wrapWithCodeInCaseOfException(Callable<T> what) throws TransactionException, CodeExecutionException {
-		try {
-			return what.call();
-		}
-		catch (CodeExecutionException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
-		}
-	}
-
-	/**
-	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
-	 * already an instance of that exception.
-	 * 
-	 * @param t the throwable to wrap
-	 * @return the wrapped or original exception
-	 */
-	private static TransactionException wrapAsTransactionException(Throwable t) {
-		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
 	}
 
 	private static Object base64DeserializationOf(String s) throws IOException, ClassNotFoundException {

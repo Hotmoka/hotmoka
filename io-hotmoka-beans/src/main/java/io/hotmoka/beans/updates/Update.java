@@ -29,6 +29,15 @@ public abstract class Update implements Serializable, Comparable<Update> {
 		this.object = object;
 	}
 
+	/**
+	 * Yields the storage reference of the object whose field is modified.
+	 * 
+	 * @return the storage reference
+	 */
+	public final StorageReference getObject() {
+		return object;
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof Update && ((Update) other).object.equals(object);

@@ -13,11 +13,14 @@ import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.takamaka.code.engine.Transaction;
 import types.ABCIApplicationGrpc;
 import types.Types.Header;
@@ -150,20 +153,27 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         int code = validate(tx);
         if (code == 0) {
             try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-            	Object hotmokaRequest = ois.readObject();
+            	TransactionRequest<?> hotmokaRequest = (TransactionRequest<?>) ois.readObject();
+            	TransactionResponse hotmokaResponse = null;
 
-            	if (hotmokaRequest instanceof JarStoreInitialTransactionRequest) {
-            		JarStoreInitialTransactionRequest request = (JarStoreInitialTransactionRequest) hotmokaRequest;
-            		JarStoreInitialTransactionResponse response = Transaction.mkFor(request, next, node).getResponse();
-            		node.state.putDependenciesOf(next, request);
-            		node.state.putResponseOf(next, response);
-            	}
+            	if (hotmokaRequest instanceof JarStoreInitialTransactionRequest)
+            		hotmokaResponse = Transaction.mkFor((JarStoreInitialTransactionRequest) hotmokaRequest, next, node).getResponse();
             	else if (hotmokaRequest instanceof GameteCreationTransactionRequest)
-            		node.state.putResponseOf(next, Transaction.mkFor((GameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse());
+            		hotmokaResponse = Transaction.mkFor((GameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse();
             	else if (hotmokaRequest instanceof RedGreenGameteCreationTransactionRequest)
-            		node.state.putResponseOf(next, Transaction.mkFor((RedGreenGameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse());
+            		hotmokaResponse = Transaction.mkFor((RedGreenGameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse();
             	else if (hotmokaRequest instanceof ConstructorCallTransactionRequest)
-            		node.state.putResponseOf(next, Transaction.mkFor((ConstructorCallTransactionRequest) hotmokaRequest, next, node).getResponse());
+            		hotmokaResponse = Transaction.mkFor((ConstructorCallTransactionRequest) hotmokaRequest, next, node).getResponse();
+            	else
+            		throw new TransactionException("unexpected transaction request of class " + hotmokaRequest.getClass().getName());
+
+            	if (hotmokaRequest instanceof AbstractJarStoreTransactionRequest)
+            		node.state.putDependenciesOf(next, (AbstractJarStoreTransactionRequest) hotmokaRequest);
+
+            	if (hotmokaResponse instanceof TransactionResponseWithUpdates)
+            		node.state.expandHistoryWith(next, (TransactionResponseWithUpdates) hotmokaResponse);
+
+            	node.state.putResponseOf(next, hotmokaResponse);
 
             	responseBuilder.setCode(0);
             	responseBuilder.setData(byteStringSerializationOf(next.toString()));

@@ -19,12 +19,15 @@ public class Main {
 		*/
 		
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of
-				(new URL("http://localhost:26657"), Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), BigInteger.valueOf(200_000))) {
+				(new URL("http://localhost:26657"), Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000))) {
 
 			System.out.println("stop Tendermint, then shut down this process");
 			Thread.sleep(100_000);
 		}
-		catch (Exception e) {
+		catch (Throwable e) {
+			while (e.getCause() != null)
+				e = e.getCause();
+
 			e.printStackTrace();
 			System.out.println("stop Tendermint, then shut down this process");
 			Thread.sleep(100_000);
