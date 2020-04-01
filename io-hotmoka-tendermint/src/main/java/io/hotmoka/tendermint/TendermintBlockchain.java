@@ -40,6 +40,21 @@ public interface TendermintBlockchain extends AsynchronousNode, SynchronousNode,
 	}
 
 	/**
+	 * Yields a Tendermint blockchain and initializes it with the information already
+	 * existing at its configuration directory. This method can be used to
+	 * recover a blockchain already created in the past, with all its information.
+	 * A Tendermint blockchain must have been already successfully created at
+	 * its configuration directory.
+	 * 
+	 * @param config the configuration of the blockchain
+	 * @throws IOException if a disk error occurs
+	 * @throws InterruptedException if the Java process has been interrupted while starting Tendermint
+	 */
+	static TendermintBlockchain of(Config config) throws IOException, InterruptedException {
+		return new TendermintBlockchainImpl(config);
+	}
+
+	/**
 	 * Yields the reference, in the blockchain, where the base Takamaka classes have been installed.
 	 */
 	Classpath takamakaCode();

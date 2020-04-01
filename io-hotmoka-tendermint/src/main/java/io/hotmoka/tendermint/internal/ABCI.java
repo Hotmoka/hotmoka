@@ -213,7 +213,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	node.state.commitTransaction();
     	System.out.println("commit #" + node.state.getNumberOfCommits());
         ResponseCommit resp = ResponseCommit.newBuilder()
-                .setData(ByteString.copyFrom(new byte[8])) // hash of the Merkle root of the application state
+                //.setData(ByteString.copyFrom(new byte[8])) // hash of the Merkle root of the application state
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();

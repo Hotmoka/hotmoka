@@ -75,11 +75,28 @@ class Tendermint implements AutoCloseable {
 	 */
 	Tendermint(Config config, boolean reset) throws IOException, InterruptedException {
 		this.config = config;
-		if (reset)
-			Runtime.getRuntime().exec("tendermint init --home " + config.dir + "/blocks").waitFor();
 
-		this.process = Runtime.getRuntime().exec("tendermint node --home " + config.dir + "/blocks --abci grpc --proxy_app tcp://localhost:" + config.abciPort); // process remains in background
+		if (reset)
+			if (run("tendermint init --home " + config.dir + "/blocks").waitFor() != 0)
+				throw new IOException("Tendermint initialization failed");
+
+		this.process = run("tendermint node --home " + config.dir + "/blocks --abci grpc --proxy_app tcp://localhost:" + config.abciPort); // process remains in background
+
 		ping();
+	}
+
+	/**
+	 * Runs the given command.
+	 * 
+	 * @param command the command to run, as if in a shell
+	 * @return the process into which the command is running
+	 * @throws IOException if the command cannot be run
+	 */
+	private static Process run(String command) throws IOException {
+		if (System.getProperty("os.name").startsWith("Windows"))
+			command = "cmd.exe /c " + command;
+
+		return Runtime.getRuntime().exec(command);
 	}
 
 	@Override

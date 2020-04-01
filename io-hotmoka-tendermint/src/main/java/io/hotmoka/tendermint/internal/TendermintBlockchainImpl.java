@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.Optional;
@@ -88,7 +89,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
-	 * @throws InterruptedException if the Java process has been interrupted while starting the Tendermint process
+	 * @throws InterruptedException if the Java process has been interrupted while starting Tendermint
 	 */
 	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, InterruptedException {
 		this.abci = new ABCI(this);
@@ -103,6 +104,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			addShutdownHook();
 
 			this.takamakaCode = new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
+			state.putTakamakaCode(takamakaCode);
 			System.out.println("takamakaCode = " + takamakaCode);
 
 			// we compute the total amount of funds needed to create the accounts
@@ -116,11 +118,51 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
 			BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
 			for (int i = 0; i < accounts.length; i++) {
-				this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-						(gamete, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i])));
+				state.addAccount(this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+						(gamete, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i]))));
 
 				System.out.println("account #" + i + ": " + accounts[i]);
 			}
+		}
+		catch (Exception e) {
+			try {
+				deleteDir(config.dir); // do not leave zombies behind
+				close();
+			}
+			catch (Exception e2) {}
+
+			throw e;
+		}
+	}
+
+	/**
+	 * Builds a Tendermint blockchain and initializes it with the information already
+	 * existing at its configuration directory. This constructor can be used to
+	 * recover a blockchain already created in the past, with all its information.
+	 * A Tendermint blockchain must have been already successfully created at
+	 * its configuration directory.
+	 * 
+	 * @param config the configuration of the blockchain
+	 * @throws IOException if a disk error occurs
+	 * @throws InterruptedException if the Java process has been interrupted while starting Tendermint
+	 */
+	public TendermintBlockchainImpl(Config config) throws IOException, InterruptedException {
+		this.abci = new ABCI(this);
+
+		try {
+			this.state = new State(config.dir + "/state");
+			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
+			this.server.start();
+			this.tendermint = new Tendermint(config, false);
+
+			addShutdownHook();
+
+			this.takamakaCode = state.getTakamakaCode().get();
+			System.out.println("takamakaCode = " + takamakaCode);
+
+			// let us create the accounts
+			this.accounts = state.getAccounts().toArray(StorageReference[]::new);
+			System.out.println("accounts: " + Arrays.toString(accounts));
 		}
 		catch (Exception e) {
 			try {

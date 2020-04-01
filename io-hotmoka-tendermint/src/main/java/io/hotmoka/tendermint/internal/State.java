@@ -64,10 +64,24 @@ class State implements AutoCloseable {
     private final static String INFO = "info";
 
     /**
+     * The key used inside the {@code INFO} store to keep the transaction reference
+     * that installed the Takamaka base classes in blockchain.
+     */
+    private final static ByteIterable TAKAMAKA_CODE = ArrayByteIterable.fromByte((byte) 0);
+
+    /**
+     * The key used inside the {@code INFO} store to keep the storage references
+     * of the initial accounts in blockchain, created in the constructor of
+     * {@linkplain io.hotmoka.tendermint.internal.TendermintBlockchainImpl}.
+     * This is an array of storage references, from the first account to the last account.
+     */
+    private final static ByteIterable ACCOUNTS = ArrayByteIterable.fromByte((byte) 1);
+
+    /**
      * The key used inside the {@code INFO} store to keep the number of
      * commits executed with this state.
      */
-    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 0);
+    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 2);
 
     /**
      * Creates a state that gets persisted inside the given directory.
@@ -148,6 +162,25 @@ class State implements AutoCloseable {
 	}
 
 	/**
+	 * Puts in state the classpath of the transaction that installed the Takamaka
+	 * base classes in blockchain.
+	 * 
+	 * @param takamakaCode the classpath
+	 */
+	void putTakamakaCode(Classpath takamakaCode) {
+		env.executeInTransaction(txn -> info.put(txn, TAKAMAKA_CODE, byteArraySerializationOf(takamakaCode)));
+	}
+
+	/**
+	 * Puts in state the storage reference to a new initial account.
+	 * 
+	 * @param account the storage reference of the account to add
+	 */
+	void addAccount(StorageReference account) {
+		env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, byteArraySerializationOf(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new))));
+	}
+
+	/**
 	 * Yields the result of a transaction having the given reference.
 	 * 
 	 * @param transactionReference the reference of the transaction
@@ -188,6 +221,32 @@ class State implements AutoCloseable {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable count = info.get(txn, COMMIT_COUNT);
 			return count == null ? 0L : (long) deserializationOf(count);
+		});
+	}
+
+	/**
+	 * Yields the classpath of the Takamaka base classes in blockchain.
+	 * 
+	 * @return the classpath
+	 */
+	Optional<Classpath> getTakamakaCode() {
+		return env.computeInReadonlyTransaction(txn -> {
+			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+			ByteIterable takamakaCode = info.get(txn, TAKAMAKA_CODE);
+			return takamakaCode == null ? Optional.empty() : Optional.of((Classpath) deserializationOf(takamakaCode));
+		});
+	}
+
+	/**
+	 * Yields the initial accounts.
+	 * 
+	 * @return the accounts, as an ordered stream from the first to the last account
+	 */
+	Stream<StorageReference> getAccounts() {
+		return env.computeInReadonlyTransaction(txn -> {
+			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+			ByteIterable accounts = info.get(txn, ACCOUNTS);
+			return accounts == null ? Stream.empty() : Stream.of((StorageReference[]) deserializationOf(accounts));
 		});
 	}
 
