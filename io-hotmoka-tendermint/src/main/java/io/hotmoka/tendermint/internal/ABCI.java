@@ -67,17 +67,17 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void echo(RequestEcho req, StreamObserver<ResponseEcho> responseObserver) {
-    	System.out.print("[echo");
         ResponseEcho resp = ResponseEcho.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("]");
     }
 
     @Override
     public void info(RequestInfo req, StreamObserver<ResponseInfo> responseObserver) {
     	System.out.print("[info");
-        ResponseInfo resp = ResponseInfo.newBuilder().build();
+        ResponseInfo resp = ResponseInfo.newBuilder()
+        		//.setLastBlockAppHash(ByteString.copyFrom(new byte[8])) // LastBlockAppHash
+        		.setLastBlockHeight(node.state.getNumberOfCommits()).build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
         System.out.println("]");
@@ -211,6 +211,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
     	//System.out.print("[commit");
     	node.state.commitTransaction();
+    	System.out.println("commit #" + node.state.getNumberOfCommits());
         ResponseCommit resp = ResponseCommit.newBuilder()
                 .setData(ByteString.copyFrom(new byte[8])) // hash of the Merkle root of the application state
                 .build();
@@ -240,11 +241,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void flush(RequestFlush request, StreamObserver<ResponseFlush> responseObserver) {
-    	System.out.print("[flush");
     	ResponseFlush resp = ResponseFlush.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-    	System.out.println("]");
     }
 
     /**

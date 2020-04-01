@@ -1,13 +1,14 @@
 package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -35,6 +36,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
@@ -75,60 +77,73 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	final State state;
 
 	/**
-	 * Builds a blockchain in disk memory and initializes user accounts with the given initial funds.
+	 * Builds a Tendermint blockchain and initializes user accounts with the given initial funds.
+	 * This constructor spawns the Tendermint process on localhost and connects it to an ABCI application
+	 * for handling its transactions. The blockchain gets deleted if it existed already at the given directory.
 	 * 
-	 * @param urlOfTendermint the URL of the Tendermint process. For instance: {@code http://localhost:26657}
+	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
 	 * @param funds the initial funds of the accounts that are created
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws InterruptedException if the Java process has been interrupted while starting the Tendermint process
 	 */
-	public TendermintBlockchainImpl(URL urlOfTendermint, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
-		this.tendermint = new Tendermint(urlOfTendermint);
+	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, InterruptedException {
 		this.abci = new ABCI(this);
-    	this.state = new State();
-		this.server = ServerBuilder.forPort(26658).addService(abci).build();
-		this.server.start();
+		deleteDir(config.dir);
 
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+		try {
+			this.state = new State(config.dir + "/state");
+			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
+			this.server.start();
+			this.tendermint = new Tendermint(config, true);
+
+			addShutdownHook();
+
+			this.takamakaCode = new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
+			System.out.println("takamakaCode = " + takamakaCode);
+
+			// we compute the total amount of funds needed to create the accounts
+			BigInteger sum = Stream.of(funds).reduce(BigInteger.ZERO, BigInteger::add);
+
+			StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
+			System.out.println("gamete = " + gamete);
+
+			// let us create the accounts
+			this.accounts = new StorageReference[funds.length];
+			ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
+			BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
+			for (int i = 0; i < accounts.length; i++) {
+				this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+						(gamete, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i])));
+
+				System.out.println("account #" + i + ": " + accounts[i]);
+			}
+		}
+		catch (Exception e) {
 			try {
 				close();
 			}
-			catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}));
+			catch (Exception e2) {}
 
-		tendermint.ping();
-
-		this.takamakaCode = new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
-		System.out.println("takamakaCode = " + takamakaCode);
-
-		// we compute the total amount of funds needed to create the accounts
-		BigInteger sum = Stream.of(funds).reduce(BigInteger.ZERO, BigInteger::add);
-
-		StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
-		System.out.println("gamete = " + gamete);
-
-		// let us create the accounts
-		this.accounts = new StorageReference[funds.length];
-		ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
-		BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
-		for (int i = 0; i < accounts.length; i++) {
-			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i])));
-
-			System.out.println("account #" + i + ": " + accounts[i]);
+			throw e;
 		}
 	}
 
 	@Override
 	public void close() throws InterruptedException {
-    	server.shutdown();
-    	server.awaitTermination();
-    	state.close();
+		if (tendermint != null)
+			tendermint.close();
+
+		if (server != null && !server.isShutdown()) {
+			server.shutdown();
+			server.awaitTermination();
+		}
+
+		if (state != null)
+			state.close();
 	}
 
 	@Override
@@ -258,6 +273,31 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	@Override
 	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
 		return state.getHistoryOf(object).get();
+	}
+
+	/**
+	 * Deletes the given directory, recursively.
+	 * 
+	 * @param dir the directory to delete
+	 * @throws IOException if the directory or some of its subdirectories cannot be deleted
+	 */
+	private static void deleteDir(Path dir) throws IOException {
+		if (Files.exists(dir))
+		Files.walk(dir)
+			.sorted(Comparator.reverseOrder())
+			.map(Path::toFile)
+			.forEach(File::delete);
+	}
+
+	private void addShutdownHook() {
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			try {
+				close();
+			}
+			catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}));
 	}
 
 	/**

@@ -38,6 +38,7 @@ class State implements AutoCloseable {
     private Store responses;
     private Store dependencies;
     private Store history;
+    private Store info;
 
     /**
      * The name of the store where responses of transactions are kept.
@@ -56,8 +57,33 @@ class State implements AutoCloseable {
      */
     private final static String HISTORY = "history";
 
-    State() {
-    	this.env = Environments.newInstance("tmp/storage");
+    /**
+     * The name of the store that keeps information about the state, for
+     * instance the height of the last processed block.
+     */
+    private final static String INFO = "info";
+
+    /**
+     * The key used inside the {@code INFO} store to keep the number of
+     * commits executed with this state.
+     */
+    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 0);
+
+    /**
+     * Creates a state that gets persisted inside the given directory.
+     * 
+     * @param dir the directory where the state is persisted
+     */
+    State(String dir) {
+    	this.env = Environments.newInstance(dir);
+
+    	// we enforce that all stores are created
+    	env.executeInTransaction(txn -> {
+    		env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
+            env.openStore(DEPENDENCIES, StoreConfig.WITHOUT_DUPLICATES, txn);
+            env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
+            env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+		});
     }
 
     @Override
@@ -75,12 +101,14 @@ class State implements AutoCloseable {
         responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
         dependencies = env.openStore(DEPENDENCIES, StoreConfig.WITHOUT_DUPLICATES, txn);
         history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
+        info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 	}
 
 	/**
 	 * Commits all updates during the current transaction.
 	 */
 	void commitTransaction() {
+		increaseNumberOfCommits();
 		txn.commit();
 	}
 
@@ -129,21 +157,16 @@ class State implements AutoCloseable {
 		return env.computeInReadonlyTransaction(txn -> {
 			Store responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable response = responses.get(txn, compactByteArraySerializationOf(transactionReference));
-			if (response == null)
-				return Optional.empty();
-	
-			try {
-				return Optional.of((TransactionResponse) deserializationOf(response));
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+			return response == null ? Optional.empty() : Optional.of((TransactionResponse) deserializationOf(response));
 		});
 	}
 
 	Optional<Stream<TransactionReference>> getHistoryOf(StorageReference object) {
-		ByteIterable old = history.get(txn, byteArraySerializationOf(object));
-		return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
+		return env.computeInReadonlyTransaction(txn -> {
+			Store history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
+			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
+			return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
+		});
 	}
 
 	/**
@@ -156,16 +179,20 @@ class State implements AutoCloseable {
 		return env.computeInReadonlyTransaction(txn -> {
 			Store dependencies = env.openStore(DEPENDENCIES, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable response = dependencies.get(txn, compactByteArraySerializationOf(transactionReference));
-			if (response == null)
-				return Optional.empty();
-
-			try {
-				return Optional.of(Stream.of((Classpath[]) deserializationOf(response)));
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+			return response == null ? Optional.empty() : Optional.of(Stream.of((Classpath[]) deserializationOf(response)));
 		});
+	}
+
+	long getNumberOfCommits() {
+		return env.computeInReadonlyTransaction(txn -> {
+			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+			ByteIterable count = info.get(txn, COMMIT_COUNT);
+			return count == null ? 0L : (long) deserializationOf(count);
+		});
+	}
+
+	private void increaseNumberOfCommits() {
+		info.put(txn, COMMIT_COUNT, byteArraySerializationOf(getNumberOfCommits() + 1));
 	}
 
 	private Stream<TransactionReference> getExpandedHistoryOf(StorageReference object, TransactionReference first) {

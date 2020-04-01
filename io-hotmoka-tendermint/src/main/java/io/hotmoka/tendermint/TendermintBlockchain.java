@@ -2,7 +2,6 @@ package io.hotmoka.tendermint;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.URL;
 import java.nio.file.Path;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -23,18 +22,21 @@ import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
 public interface TendermintBlockchain extends AsynchronousNode, SynchronousNode, AutoCloseable {
 
 	/**
-	 * Yields a blockchain in disk memory and initializes user accounts with the given initial funds.
+	 * Yields a Tendermint blockchain and initializes user accounts with the given initial funds.
+	 * This method spawns the Tendermint process on localhost and connects it to an ABCI application
+	 * for handling its transactions. The blockchain gets deleted if it existed already at the given directory.
 	 * 
-	 * @param urlOfTendermint the URL of the Tendermint process. For instance: {@code http://localhost:26657}
+	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
-	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode()}
+	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
 	 * @param funds the initial funds of the accounts that are created
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws InterruptedException if the Java process has been interrupted while starting the Tendermint process
 	 */
-	static TendermintBlockchain of(URL urlOfTendermint, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
-		return new TendermintBlockchainImpl(urlOfTendermint, takamakaCodePath, funds);
+	static TendermintBlockchain of(Config config, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, InterruptedException {
+		return new TendermintBlockchainImpl(config, takamakaCodePath, funds);
 	}
 
 	/**

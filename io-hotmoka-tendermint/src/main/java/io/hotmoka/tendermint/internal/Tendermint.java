@@ -9,12 +9,14 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Base64;
 
 import com.google.gson.Gson;
 
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResponse;
 
@@ -22,12 +24,18 @@ import io.hotmoka.tendermint.internal.beans.TendermintTxResponse;
  * A proxy object that connects to the Tendermint process, sends transactions to it
  * and gets responses from it.
  */
-class Tendermint {
+class Tendermint implements AutoCloseable {
 
 	/**
-	 * The maximal number of connection attempts to the Tendermint URL during ping,
+	 * The maximal number of connection attempts to the Tendermint process during ping,
 	 */
-	private final static int MAX_CONNECTION_ATTEMPTS = 10;
+	private final static int MAX_PING_ATTEMPTS = 10;
+
+	/**
+	 * The delay of the first ping attempt of the Tendermint process.
+	 * This delay is then increased by 30% at each subsequent attempt.
+	 */
+	private final static int PING_DELAY = 1_000;
 
 	/**
 	 * The maximal number of polling attempts, while waiting for the result of a posted transaction.
@@ -35,15 +43,15 @@ class Tendermint {
 	private final static int MAX_POLLING_ATTEMPTS = 100;
 
 	/**
-	 * The delay between the first two polling attempts, while waiting for the result of a posted transaction.
+	 * The delay of two subsequent polling attempts, while waiting for the result of a posted transaction.
 	 * This delay is then increased by 30% at each subsequent attempt.
 	 */
 	private final static int POLLING_DELAY = 100;
 
 	/**
-	 * The URL of the Tendermint process. For instance: {@code http://localhost:26657}.
+	 * The configuration of the blockchain.
 	 */
-	private final URL url;
+	private final Config config;
 
 	/**
 	 * An object for JSON manipulation.
@@ -51,33 +59,32 @@ class Tendermint {
 	private final Gson gson = new Gson();
 
 	/**
-	 * Creates a proxy to a Tendermint process.
-	 * 
-	 * @param url the URL of the Tendermint process. For instance: {@code http://localhost:26657}
+	 * The Tendermint process;
 	 */
-	Tendermint(URL url) {
-		this.url = url;
+	private final Process process;
+
+	/**
+	 * Spawns the Tendermint process and creates a proxy to it.
+	 * It assumes that the {@code tendermint} command can be executed
+	 * from the command path.
+	 * 
+	 * @param config the configuration of the blockchain
+	 * @param reset true if and only if the blockchain must be initialized
+	 * @throws IOException if the Tendermint process cannot be spawned
+	 * @throws InterruptedException if the Tendermint process is interrupted while resetting its state
+	 */
+	Tendermint(Config config, boolean reset) throws IOException, InterruptedException {
+		this.config = config;
+		if (reset)
+			Runtime.getRuntime().exec("tendermint init --home " + config.dir + "/blocks").waitFor();
+
+		this.process = Runtime.getRuntime().exec("tendermint node --home " + config.dir + "/blocks --abci grpc --proxy_app tcp://localhost:" + config.abciPort); // process remains in background
+		ping();
 	}
 
-	void ping() throws IOException {
-		for (int reconnections = 1; reconnections <= MAX_CONNECTION_ATTEMPTS; reconnections++) {
-			try {
-				HttpURLConnection con = (HttpURLConnection) url.openConnection();
-				con.connect();
-				return;
-			}
-			catch (ConnectException e) {
-				System.out.println("Error while connecting to Tendermint process at " + url + ": " + e.getMessage());
-				System.out.println("I will try to reconnect in 10 seconds... (" + reconnections + "/10)");
-
-				try {
-					Thread.sleep(10000);
-				}
-				catch (InterruptedException e2) {}
-			}
-		}
-
-		throw new IOException("Cannot connect to Tendermint process at " + url + ". Tried " + MAX_CONNECTION_ATTEMPTS + " times");
+	@Override
+	public void close() {
+		process.destroy();
 	}
 
 	/**
@@ -141,21 +148,6 @@ class Tendermint {
 	}
 
 	/**
-	 * Transforms a hexadecimal string into a byte array.
-	 * 
-	 * @param s the string
-	 * @return the byte array
-	 */
-	public static byte[] hexStringToByteArray(String s) {
-	    int len = s.length();
-	    byte[] data = new byte[len / 2];
-	    for (int i = 0; i < len; i += 2)
-	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i+1), 16));
-
-	    return data;
-	}
-
-	/**
 	 * Pools Tendermint until a transaction with the given hash has been successfully committed.
 	 * 
 	 * @param hash the hash of the transaction to look for
@@ -181,6 +173,60 @@ class Tendermint {
 		}
 
 		throw new IOException("cannot find transaction " + hash);
+	}
+
+	/**
+	 * Waits until the Tendermint process responds to ping.
+	 * It gives up after {@MAX_CONNECTION_ATTEMPTS}, with an exception.
+	 * 
+	 * @throws IOException if it is not possible to connect to the Tendermint process
+	 */
+	private void ping() throws IOException {
+		int delay = PING_DELAY;
+	
+		for (int reconnections = 1; reconnections <= MAX_PING_ATTEMPTS; reconnections++) {
+			try {
+				Thread.sleep(delay);
+			}
+			catch (InterruptedException e2) {}
+	
+			try {
+				HttpURLConnection con = (HttpURLConnection) url().openConnection();
+				con.connect();
+				return;
+			}
+			catch (ConnectException e) {
+				// we increase the delay, for next attempt
+				delay = (130 * delay) / 100;
+			}
+		}
+	
+		throw new IOException("Cannot connect to Tendermint process at " + url() + ". Tried " + MAX_PING_ATTEMPTS + " times");
+	}
+
+	/**
+	 * Transforms a hexadecimal string into a byte array.
+	 * 
+	 * @param s the string
+	 * @return the byte array
+	 */
+	private static byte[] hexStringToByteArray(String s) {
+	    int len = s.length();
+	    byte[] data = new byte[len / 2];
+	    for (int i = 0; i < len; i += 2)
+	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i+1), 16));
+	
+	    return data;
+	}
+
+	/**
+	 * Yields the URL of the Tendermint process.
+	 * 
+	 * @return the URL
+	 * @throws MalformedURLException if the URL is not well formed
+	 */
+	private URL url() throws MalformedURLException {
+		return new URL("http://localhost:" + config.tendermintPort);
 	}
 
 	/**
@@ -235,7 +281,7 @@ class Tendermint {
 	 * @throws IOException if the connection cannot be opened
 	 */
 	private HttpURLConnection openPostConnectionToTendermint() throws IOException {
-		HttpURLConnection con = (HttpURLConnection) url.openConnection();
+		HttpURLConnection con = (HttpURLConnection) url().openConnection();
 		con.setRequestMethod("POST");
 		con.setRequestProperty("Content-Type", "application/json; utf-8");
 		con.setRequestProperty("Accept", "application/json");
