@@ -6,6 +6,11 @@ package io.takamaka.code.constants;
 public interface Constants {
 
 	/**
+	 * The name of the interface type for {@link io.takamaka.code.lang.Account}.
+	 */
+	public final static String ACCOUNT_NAME = "io.takamaka.code.lang.Account";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
 	 */
 	public final static String EOA_NAME = "io.takamaka.code.lang.ExternallyOwnedAccount";

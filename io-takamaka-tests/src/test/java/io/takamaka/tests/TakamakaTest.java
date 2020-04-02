@@ -17,12 +17,16 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.RedGreenMemoryBlockchain;
 import io.hotmoka.nodes.NodeWithAccounts;
 import io.hotmoka.nodes.SynchronousNode;
+import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
@@ -60,8 +64,10 @@ public abstract class TakamakaTest {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, byte[] jar, Classpath... dependencies) throws TransactionException {
-		if (node instanceof SynchronousNode)
-			return ((SynchronousNode) node).addJarStoreTransaction(new JarStoreTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, jar, dependencies));
+		if (node instanceof SynchronousNode) {
+			BigInteger nonce = getNonceOf(caller, gasLimit, gasPrice, classpath);
+			return ((SynchronousNode) node).addJarStoreTransaction(new JarStoreTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, jar, dependencies));
+		}
 		else
 			throw new IllegalStateException("can only call addJarStoreTransaction() on a synchronous node");
 	}
@@ -70,8 +76,10 @@ public abstract class TakamakaTest {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		if (node instanceof SynchronousNode)
-			return ((SynchronousNode) node).addConstructorCallTransaction(new ConstructorCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, constructor, actuals));
+		if (node instanceof SynchronousNode) {
+			BigInteger nonce = getNonceOf(caller, gasLimit, gasPrice, classpath);
+			return ((SynchronousNode) node).addConstructorCallTransaction(new ConstructorCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, constructor, actuals));
+		}
 		else
 			throw new IllegalStateException("can only call addConstructorCallTransaction() on a synchronous node");
 	}
@@ -80,8 +88,10 @@ public abstract class TakamakaTest {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		if (node instanceof SynchronousNode)
-			return ((SynchronousNode) node).addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		if (node instanceof SynchronousNode) {
+			BigInteger nonce = getNonceOf(caller, gasLimit, gasPrice, classpath);
+			return ((SynchronousNode) node).addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		}
 		else
 			throw new IllegalStateException("can only call addInstanceMethodCallTransaction() on a synchronous node");
 	}
@@ -90,8 +100,10 @@ public abstract class TakamakaTest {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
-		if (node instanceof SynchronousNode)
-			return ((SynchronousNode) node).addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, actuals));
+		if (node instanceof SynchronousNode) {
+			BigInteger nonce = getNonceOf(caller, gasLimit, gasPrice, classpath);
+			return ((SynchronousNode) node).addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, actuals));
+		}
 		else
 			throw new IllegalStateException("can only call addStaticMethodCallTransaction() on a synchronous node");
 	}
@@ -164,5 +176,25 @@ public abstract class TakamakaTest {
 
 	protected static void throwsVerificationException(TestBody what) {
 		throwsTransactionExceptionWithCause(VerificationException.class, what);
+	}
+
+	/**
+	 * Gets the nonce of the given account. It calls the {@code Account.nonce()} method.
+	 * 
+	 * @param account the account
+	 * @param gasLimit the gas limit allowed to be spent
+	 * @param gasPrice the cost of the unit of gas
+	 * @param classpath the path where the execution must be performed
+	 * @return the nonce
+	 * @throws TransactionException if the nonce cannot be found
+	 */
+	private BigInteger getNonceOf(StorageReference account, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath) throws TransactionException {
+		try {
+			return ((BigIntegerValue) node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(account, BigInteger.ZERO, gasLimit, gasPrice, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+		}
+		catch (Exception e) {
+			throw new TransactionException("cannot compute the nonce of " + account);
+		}
 	}
 }

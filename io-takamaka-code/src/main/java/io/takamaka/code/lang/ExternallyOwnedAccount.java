@@ -5,7 +5,16 @@ import java.math.BigInteger;
 /**
  * A contract that can be used to pay for a transaction.
  */
-public class ExternallyOwnedAccount extends PayableContract {
+public class ExternallyOwnedAccount extends PayableContract implements Account {
+
+	/**
+	 * The current nonce of this account. If this account is used for paying
+	 * a transaction, the nonce in the request of the transaction must match
+	 * this value, otherwise the transaction will be rejected.
+	 * This value will be incremented at the end of any transaction
+	 * (also for unsuccessful transactions).
+	 */
+	private BigInteger nonce = BigInteger.ZERO;
 
 	/**
 	 * Creates an externally owned contract with no funds.
@@ -39,5 +48,10 @@ public class ExternallyOwnedAccount extends PayableContract {
 	@Override
 	public String toString() {
 		return "an externally owned account";
+	}
+
+	@Override
+	public @View BigInteger nonce() {
+		return nonce;
 	}
 }
