@@ -43,11 +43,6 @@ import io.hotmoka.nodes.SynchronousNode;
  */
 public abstract class AbstractNode implements SynchronousNode {
 
-	/**
-	 * True if at least a non-initial transaction has been already executed on this node.
-	 */
-	private boolean initialized;
-
 	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
 
 	@Override
@@ -67,6 +62,18 @@ public abstract class AbstractNode implements SynchronousNode {
 	 *         (from newest to oldest)
 	 */
 	protected abstract Stream<TransactionReference> getHistoryOf(StorageReference object);
+
+	/**
+	 * Determines if this node allows to execute initial transactions.
+	 * 
+	 * @return true if and only if this node doesn't allow any initial transaction anymore
+	 */
+	protected abstract boolean isInitialized();
+
+	/**
+	 * Takes note that this node doesn't allow any initial transaction anymore.
+	 */
+	protected abstract void markAsInitialized();
 
 	@Override
 	public final String getClassNameOf(StorageReference object) {
@@ -211,7 +218,7 @@ public abstract class AbstractNode implements SynchronousNode {
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
 		return wrapInCaseOfException(() -> {
 			TransactionReference transaction = addJarStoreTransactionInternal(request);
-			initialized = true;
+			markAsInitialized();
 			return transaction;
 		});
 	}
@@ -233,7 +240,7 @@ public abstract class AbstractNode implements SynchronousNode {
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
 			StorageReference newObject = addConstructorCallTransactionInternal(request);
-			initialized = true;
+			markAsInitialized();
 			return newObject;
 		});
 	}
@@ -260,7 +267,7 @@ public abstract class AbstractNode implements SynchronousNode {
 	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
 			StorageValue result = addInstanceMethodCallTransactionInternal(request);
-			initialized = true;
+			markAsInitialized();
 			return result;
 		});
 	}
@@ -288,7 +295,7 @@ public abstract class AbstractNode implements SynchronousNode {
 	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
 		return wrapWithCodeInCaseOfException(() -> {
 			StorageValue result = addStaticMethodCallTransactionInternal(request);
-			initialized = true;
+			markAsInitialized();
 			return result;
 		});
 	}
@@ -357,7 +364,7 @@ public abstract class AbstractNode implements SynchronousNode {
 	 * @throws IllegalStateException if this node is already initialized
 	 */
 	private void requireNodeUninitialized() throws IllegalStateException {
-		if (initialized)
+		if (isInitialized())
 			throw new IllegalStateException("this node is already initialized");
 	}
 

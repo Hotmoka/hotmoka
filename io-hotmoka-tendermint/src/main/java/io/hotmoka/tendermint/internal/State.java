@@ -84,6 +84,11 @@ class State implements AutoCloseable {
     private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 2);
 
     /**
+     * The key used inside the {@code INFO} store to know if the blockchain is initialized.
+     */
+    private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 3);
+
+    /**
      * Creates a state that gets persisted inside the given directory.
      * 
      * @param dir the directory where the state is persisted
@@ -181,6 +186,13 @@ class State implements AutoCloseable {
 	}
 
 	/**
+	 * Sets the initialized property in this state.
+	 */
+	void markAsInitialized() {
+		env.executeInTransaction(txn -> info.put(txn, INITIALIZED, ByteIterable.EMPTY));
+	}
+
+	/**
 	 * Yields the result of a transaction having the given reference.
 	 * 
 	 * @param transactionReference the reference of the transaction
@@ -247,6 +259,18 @@ class State implements AutoCloseable {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable accounts = info.get(txn, ACCOUNTS);
 			return accounts == null ? Stream.empty() : Stream.of((StorageReference[]) deserializationOf(accounts));
+		});
+	}
+
+	/**
+	 * Yields the initialized property from this state.
+	 * 
+	 * @return true if and only if {@code markAsInitialized()} has been already called
+	 */
+	boolean isInitialized() {
+		return env.computeInReadonlyTransaction(txn -> {
+			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+			return info.get(txn, INITIALIZED) != null;
 		});
 	}
 

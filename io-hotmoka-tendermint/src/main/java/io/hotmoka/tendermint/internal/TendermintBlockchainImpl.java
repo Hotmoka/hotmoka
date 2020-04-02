@@ -58,13 +58,21 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	/**
 	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
+	 * This is copy of the information in the state, for efficiency.
 	 */
 	private final Classpath takamakaCode;
 
 	/**
 	 * The accounts created during initialization.
+	 * This is copy of the information in the state, for efficiency.
 	 */
 	private final StorageReference[] accounts;
+
+	/**
+	 * True if and only if this node doesn't accept initial transactions anymore.
+	 * This is copy of the information in the state, for efficiency.
+	 */
+	private boolean initialized;
 
 	private final Server server;
 
@@ -75,6 +83,9 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 */
 	private final Gson gson = new Gson();
 
+	/**
+	 * The state where blockchain data is persisted.
+	 */
 	final State state;
 
 	/**
@@ -123,6 +134,8 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 				System.out.println("account #" + i + ": " + accounts[i]);
 			}
+
+			System.out.println("is initialized: " + initialized);
 		}
 		catch (Exception e) {
 			try {
@@ -160,9 +173,13 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			this.takamakaCode = state.getTakamakaCode().get();
 			System.out.println("takamakaCode = " + takamakaCode);
 
+			this.initialized = state.isInitialized();
+
 			// let us create the accounts
 			this.accounts = state.getAccounts().toArray(StorageReference[]::new);
 			System.out.println("accounts: " + Arrays.toString(accounts));
+
+			System.out.println("is initialized: " + initialized);
 		}
 		catch (Exception e) {
 			try {
@@ -315,6 +332,17 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	@Override
 	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
 		return state.getHistoryOf(object).get();
+	}
+
+	@Override
+	protected boolean isInitialized() {
+		return initialized;
+	}
+
+	@Override
+	protected void markAsInitialized() {
+		state.markAsInitialized();
+		initialized = true;
 	}
 
 	/**

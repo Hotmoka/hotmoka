@@ -104,6 +104,11 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	private MemoryTransactionReference topmost;
 
 	/**
+	 * True if and only if this node doesn't allow initial transactions anymore.
+	 */
+	private boolean initialized;
+
+	/**
 	 * Builds a blockchain that stores transaction in disk memory.
 	 * 
 	 * @param root the directory where blocks and transactions must be stored.
@@ -163,6 +168,17 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 				history.add(cursor);
 
 		return history.stream();
+	}
+
+
+	@Override
+	protected boolean isInitialized() {
+		return initialized;
+	}
+
+	@Override
+	protected void markAsInitialized() {
+		initialized = true;
 	}
 
 	@Override
