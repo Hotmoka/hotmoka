@@ -17,8 +17,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -30,7 +28,6 @@ import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.memory.MemoryBlockchain;
 
 /**
  * A test for the storage map Takamaka class.
@@ -52,11 +49,6 @@ class StorageMap extends TakamakaTest {
 	private static final StorageValue TWO = new BigIntegerValue(BigInteger.valueOf(2L));
 
 	/**
-	 * The blockchain under test. This is recreated before each test.
-	 */
-	private MemoryBlockchain blockchain;
-
-	/**
 	 * The first object, that holds all funds initially.
 	 */
 	private StorageReference gamete;
@@ -68,162 +60,116 @@ class StorageMap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = mkMemoryBlockchain(ALL_FUNDS);
-		classpath = blockchain.takamakaCode();
-		gamete = blockchain.account(0);
+		mkMemoryBlockchain(ALL_FUNDS);
+		classpath = takamakaCode();
+		gamete = account(0);
 	}
 
 	@Test @DisplayName("new StorageMap()")
 	void constructionSucceeds() throws TransactionException, CodeExecutionException {
-		blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
+		addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 	}
 
 	@Test @DisplayName("new StorageMap().size() == 0")
 	void sizeIsInitially0() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
-
-		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);
 
 		assertEquals(new IntValue(0), size);
 	}
 
 	@Test @DisplayName("new StorageMap().isEmpty() == true")
 	void mapIsInitiallyEmpty() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
-
-		BooleanValue size = (BooleanValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "isEmpty", BOOLEAN), map));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		BooleanValue size = (BooleanValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "isEmpty", BOOLEAN), map);
 
 		assertEquals(BooleanValue.TRUE, size);
 	}
 
 	@Test @DisplayName("new StorageMap().put(k,v) then get(k) yields v")
 	void putThenGet() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
-
-		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
-
-		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-				map, eoa, ONE));
-
-		BigIntegerValue get = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map, eoa, ONE);
+		BigIntegerValue get = (BigIntegerValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa);
 
 		assertEquals(ONE, get);
 	}
 
 	@Test @DisplayName("new StorageMap().put(k1,v) then get(k2) yields null")
 	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
-
-		StorageReference eoa1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
-
-		StorageReference eoa2 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
-
-		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-				map, eoa1, ONE));
-
-		StorageValue get = (StorageValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa2));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		StorageReference eoa1 = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		StorageReference eoa2 = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map, eoa1, ONE);
+		StorageValue get = (StorageValue) addInstanceMethodCallTransaction
+			(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa2);
 
 		assertEquals(NullValue.INSTANCE, get);
 	}
 
 	@Test @DisplayName("new StorageMap().put(k1,v) then get(k2, _default) yields _default")
 	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
-
-		StorageReference eoa1 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
-
-		StorageReference eoa2 = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
-
-		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-				map, eoa1, ONE));
-
-		StorageValue get = (StorageValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT),
-				map, eoa2, TWO));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		StorageReference eoa1 = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		StorageReference eoa2 = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map, eoa1, ONE);
+		StorageValue get = (StorageValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT), map, eoa2, TWO);
 
 		assertEquals(TWO, get);
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys then size is 100")
 	void put100RandomThenSize() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		Random random = new Random();
 		for (int i = 0; i < 100; i++) {
-			StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
-
-			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
+			StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+			addInstanceMethodCallTransaction
+				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 		}
 
-		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
+		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);
 
 		assertEquals(100, size.value);
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 times the same key then size is 1")
 	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
-
-		StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 
 		Random random = new Random();
 		for (int i = 0; i < 100; i++)
-			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
+			addInstanceMethodCallTransaction
+				(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
-		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
+		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);
 
 		assertEquals(1, size.value);
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 times equal string keys then size is 1")
 	void put100TimesEqualStringThenSize() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		Random random = new Random();
 		for (int i = 0; i < 100; i++)
-			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
+			addInstanceMethodCallTransaction
+				(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+					map, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
-		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
+		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);
 
 		assertEquals(1, size.value);
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 random BigInteger keys then min key is correct")
 	void min() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		Random random = new Random();
 		BigInteger min = null;
@@ -232,63 +178,50 @@ class StorageMap extends TakamakaTest {
 			if (min == null || bi.compareTo(min) < 0)
 				min = bi;
 
-			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, new BigIntegerValue(bi), new StringValue("hello")));
+			addInstanceMethodCallTransaction
+				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+					map, new BigIntegerValue(bi), new StringValue("hello"));
 		}
 
-		BigIntegerValue result = (BigIntegerValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "min", ClassType.OBJECT),
-			map));
+		BigIntegerValue result = (BigIntegerValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "min", ClassType.OBJECT), map);
 
 		assertEquals(min, result.value);
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys then remove the last then size is 99")
 	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		StorageReference eoa;
 		Random random = new Random();
 		int i = 0;
 		do {
-			eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
-
-			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
+			eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+			addInstanceMethodCallTransaction
+				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 		}
 		while (++i < 100);
 
-		blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "remove", ClassType.OBJECT),
-			map, eoa));
-
-		IntValue size = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map));
+		addInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "remove", ClassType.OBJECT), map, eoa);
+		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);
 
 		assertEquals(99, size.value);
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys and checks contains after each put")
 	void put100RandomEachTimeCheckCOntains() throws TransactionException, CodeExecutionException {
-		StorageReference map = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP));
+		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		Random random = new Random();
 		for (int i = 0; i < 100; i++) {
-			StorageReference eoa = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, _100_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA)));
+			StorageReference eoa = addConstructorCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 
-			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong()))));
+			addInstanceMethodCallTransaction
+				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
-			BooleanValue contains = (BooleanValue) blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "contains", BOOLEAN, ClassType.OBJECT),
-				map, eoa));
+			BooleanValue contains = (BooleanValue) addInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "contains", BOOLEAN, ClassType.OBJECT), map, eoa);
 
 			assertEquals(true, contains.value);
 		}

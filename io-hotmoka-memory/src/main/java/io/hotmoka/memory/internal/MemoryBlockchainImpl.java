@@ -51,9 +51,10 @@ public class MemoryBlockchainImpl extends AbstractMemoryBlockchain implements Me
 		this.accounts = new StorageReference[funds.length];
 		ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
 		BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
-		for (int i = 0; i < accounts.length; i++)
+		BigInteger nonce = BigInteger.ZERO;
+		for (int i = 0; i < accounts.length; i++, nonce = nonce.add(BigInteger.ONE))
 			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i])));
+				(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i])));
 	}
 
 	@Override

@@ -19,13 +19,14 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
 	 */
-	public StaticMethodCallTransactionRequest(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageValue... actuals) {
-		super(caller, gasLimit, gasPrice, classpath, method, actuals);
+	public StaticMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageValue... actuals) {
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 	}
 }

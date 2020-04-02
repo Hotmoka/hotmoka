@@ -6,10 +6,8 @@ import java.nio.file.Path;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
-import io.hotmoka.nodes.SynchronousNode;
+import io.hotmoka.nodes.NodeWithAccounts;
 
 /**
  * An implementation of a blockchain that stores, sequentially, transactions in a directory
@@ -18,7 +16,7 @@ import io.hotmoka.nodes.SynchronousNode;
  * Updates are stored inside the blocks, rather than in an external database.
  * It provides support for the creation of a given number of initial accounts.
  */
-public interface MemoryBlockchain extends SynchronousNode {
+public interface MemoryBlockchain extends NodeWithAccounts {
 
 	/**
 	 * Yields a blockchain in disk memory and initializes user accounts with the given initial funds.
@@ -33,17 +31,4 @@ public interface MemoryBlockchain extends SynchronousNode {
 	static MemoryBlockchain of(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
 		return new MemoryBlockchainImpl(takamakaCodePath, funds);
 	}
-
-	/**
-	 * Yields the reference, in the blockchain, where the base Takamaka classes have been installed.
-	 */
-	Classpath takamakaCode();
-
-	/**
-	 * Yields the {@code i}th account.
-	 * 
-	 * @param i the account number
-	 * @return the reference to the account, in blockchain. This is a {@link #io.takamaka.code.lang.TestExternallyOwnedAccount}}
-	 */
-	StorageReference account(int i);
 }

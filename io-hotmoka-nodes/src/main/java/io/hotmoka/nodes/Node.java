@@ -23,7 +23,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 
 /**
- * A node of the HotMoka network, that provides the storage
+ * A node of the Hotmoka network, that provides the storage
  * facilities for the execution of Takamaka code.
  */
 public interface Node {

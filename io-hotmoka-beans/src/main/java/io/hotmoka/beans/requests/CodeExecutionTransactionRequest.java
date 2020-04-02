@@ -22,13 +22,14 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param actuals the actual arguments passed to the method
 	 */
-	protected CodeExecutionTransactionRequest(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, StorageValue... actuals) {
-		super(caller, gasLimit, gasPrice, classpath);
+	protected CodeExecutionTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, StorageValue... actuals) {
+		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.actuals = actuals;
 	}

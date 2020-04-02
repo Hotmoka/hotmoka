@@ -22,9 +22,6 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -35,7 +32,6 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.memory.MemoryBlockchain;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -91,11 +87,6 @@ class BlindAuction extends TakamakaTest {
 	private static final BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
 
 	/**
-	 * The blockchain under test. This is recreated before each test.
-	 */
-	private MemoryBlockchain blockchain;
-
-	/**
 	 * The classpath of the classes being tested.
 	 */
 	private Classpath classpath;
@@ -108,19 +99,18 @@ class BlindAuction extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		digest = MessageDigest.getInstance("SHA-256");
-		blockchain = mkMemoryBlockchain(_10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
+		mkMemoryBlockchain(_10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
 
-		TransactionReference auctions = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _10_000_000, BigInteger.ONE, blockchain.takamakaCode(),
-			bytesOf("auction.jar"), blockchain.takamakaCode()));
+		TransactionReference auctions = addJarStoreTransaction
+			(account(0), _10_000_000, BigInteger.ONE, takamakaCode(), bytesOf("auction.jar"), takamakaCode());
 
 		classpath = new Classpath(auctions, true);
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time")
 	void bids() throws TransactionException, CodeExecutionException {
-		StorageReference auction = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _100_000, BigInteger.ONE,classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
+		StorageReference auction = addConstructorCallTransaction
+			(account(0), _100_000, BigInteger.ONE,classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME));
 
 		Random random = new Random();
 		for (int i = 1; i <= NUM_BIDS; i++) {
@@ -131,15 +121,14 @@ class BlindAuction extends TakamakaTest {
 			byte[] salt = new byte[32];
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-        	blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(blockchain.account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
+			addInstanceMethodCallTransaction(account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32);
 		}
 	}
 
 	@Test @DisplayName("three players put bids but bidding time expires")
 	void biddingTimeExpires() throws TransactionException, CodeExecutionException {
-		StorageReference auction = blockchain.addConstructorCallTransaction
-				(new ConstructorCallTransactionRequest(blockchain.account(0), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME)));
+		StorageReference auction = addConstructorCallTransaction
+			(account(0), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 		{
@@ -152,8 +141,7 @@ class BlindAuction extends TakamakaTest {
 				byte[] salt = new byte[32];
 				random.nextBytes(salt);
 				StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-				blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-						(blockchain.account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
+				addInstanceMethodCallTransaction(account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32);
 				sleep(1000);
 			}
 		});
@@ -177,16 +165,16 @@ class BlindAuction extends TakamakaTest {
 		}
 
 		private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException {
-			return blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-        		(blockchain.account(player), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), createBytes32(player, salt)));
+			return addConstructorCallTransaction
+        		(account(player), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), createBytes32(player, salt));
 		}
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time then reveal")
 	void bidsThenReveal() throws TransactionException, CodeExecutionException {
 		long start = System.currentTimeMillis();
-		StorageReference auction = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(0), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
+		StorageReference auction = addConstructorCallTransaction
+			(account(0), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME));
 
 		List<BidToReveal> bids = new ArrayList<>();
 
@@ -206,7 +194,7 @@ class BlindAuction extends TakamakaTest {
 			if (!fake && deposit.compareTo(value) >= 0)
         		if (expectedWinner == null || value.compareTo(maxBid) > 0) {
         			maxBid = value;
-        			expectedWinner = blockchain.account(player);
+        			expectedWinner = account(player);
         		}
         		else if (value.equals(maxBid))
         			// we do not allow ex aequos, since the winner would depend on the fastest player to reveal
@@ -214,8 +202,7 @@ class BlindAuction extends TakamakaTest {
 
 			// we store the explicit bid in memory, not yet in blockchain, since it would be visible there
 			bids.add(new BidToReveal(player, value, fake, salt));
-        	blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(blockchain.account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
+			addInstanceMethodCallTransaction(account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32);
 
         	i++;
 		}
@@ -225,24 +212,21 @@ class BlindAuction extends TakamakaTest {
 		// we create a storage list for each of the players
 		StorageReference[] lists = {
 			null, // unused, since player 0 is the beneficiary
-			blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(1), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST)),
-			blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(2), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST)),
-			blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(3), _100_000, BigInteger.ONE,classpath, CONSTRUCTOR_STORAGE_LIST))
+			addConstructorCallTransaction(account(1), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST),
+			addConstructorCallTransaction(account(2), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST),
+			addConstructorCallTransaction(account(3), _100_000, BigInteger.ONE,classpath, CONSTRUCTOR_STORAGE_LIST)
 		};
 
 		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over
 		for (BidToReveal bid: bids)
-			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(blockchain.account(bid.player), _100_000, BigInteger.ONE, classpath, ADD, lists[bid.player], bid.intoBlockchain()));
+			addInstanceMethodCallTransaction(account(bid.player), _100_000, BigInteger.ONE, classpath, ADD, lists[bid.player], bid.intoBlockchain());
 
 		for (int player = 1; player <= 3; player++)
-			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(blockchain.account(player), _10_000_000, BigInteger.ONE, classpath, REVEAL, auction, lists[player]));
+			addInstanceMethodCallTransaction(account(player), _10_000_000, BigInteger.ONE, classpath, REVEAL, auction, lists[player]);
 
 		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
 
-		StorageReference winner = (StorageReference) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(blockchain.account(0), _100_000, BigInteger.ONE, classpath, AUCTION_END, auction));
+		StorageReference winner = (StorageReference) addInstanceMethodCallTransaction(account(0), _100_000, BigInteger.ONE, classpath, AUCTION_END, auction);
 
 		assertEquals(expectedWinner, winner);
 	}
@@ -252,8 +236,7 @@ class BlindAuction extends TakamakaTest {
 			//System.out.println(System.currentTimeMillis() - start);
 			sleep(100);
 			// we need to perform dummy transactions, otherwise the blockchain time does not progress
-			blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(blockchain.account(0), _100_000, BigInteger.ONE, classpath, GET_BALANCE, blockchain.account(0)));
+			addInstanceMethodCallTransaction(account(0), _100_000, BigInteger.ONE, classpath, GET_BALANCE, account(0));
 		}
 	}
 
@@ -267,8 +250,8 @@ class BlindAuction extends TakamakaTest {
 	}
 
 	private StorageReference createBytes32(int player, byte[] hash) throws TransactionException, CodeExecutionException {
-		return blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(blockchain.account(player), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_BYTES32,
+		return addConstructorCallTransaction
+			(account(player), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_BYTES32,
 				new ByteValue(hash[0]), new ByteValue(hash[1]), new ByteValue(hash[2]), new ByteValue(hash[3]),
 				new ByteValue(hash[4]), new ByteValue(hash[5]), new ByteValue(hash[6]), new ByteValue(hash[7]),
 				new ByteValue(hash[8]), new ByteValue(hash[9]), new ByteValue(hash[10]), new ByteValue(hash[11]),
@@ -276,7 +259,7 @@ class BlindAuction extends TakamakaTest {
 				new ByteValue(hash[16]), new ByteValue(hash[17]), new ByteValue(hash[18]), new ByteValue(hash[19]),
 				new ByteValue(hash[20]), new ByteValue(hash[21]), new ByteValue(hash[22]), new ByteValue(hash[23]),
 				new ByteValue(hash[24]), new ByteValue(hash[25]), new ByteValue(hash[26]), new ByteValue(hash[27]),
-				new ByteValue(hash[28]), new ByteValue(hash[29]), new ByteValue(hash[30]), new ByteValue(hash[31])));
+				new ByteValue(hash[28]), new ByteValue(hash[29]), new ByteValue(hash[30]), new ByteValue(hash[31]));
 	}
 
 	private static void sleep(long milliseconds) {

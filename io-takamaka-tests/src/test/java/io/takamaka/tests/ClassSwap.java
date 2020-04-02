@@ -17,16 +17,12 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.DeserializationError;
 
 /**
@@ -45,14 +41,9 @@ class ClassSwap extends TakamakaTest {
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000);
 
 	/**
-	 * The blockchain under test. This is recreated before each test.
-	 */
-	private MemoryBlockchain blockchain;
-
-	/**
 	 * The only account of the blockchain.
 	 */
-	private StorageReference gamete;
+	private StorageReference account;
 
 	/**
 	 * The classpath for the class C whose method get() yields 13.
@@ -66,16 +57,14 @@ class ClassSwap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = mkMemoryBlockchain(ALL_FUNDS);
-		gamete = blockchain.account(0);
+		mkMemoryBlockchain(ALL_FUNDS);
+		account = account(0);
 
-		TransactionReference c13 = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("jars/c13.jar")), blockchain.takamakaCode()));
+		TransactionReference c13 = addJarStoreTransaction
+			(account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode());
 
-		TransactionReference c17 = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(gamete, _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			Files.readAllBytes(Paths.get("jars/c17.jar")), blockchain.takamakaCode()));
+		TransactionReference c17 = addJarStoreTransaction
+			(account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c17.jar")), takamakaCode());
 
 		classpathC13 = new Classpath(c13, true);
 		classpathC17 = new Classpath(c17, true);
@@ -83,35 +72,27 @@ class ClassSwap extends TakamakaTest {
 
 	@Test @DisplayName("c13 new/get works in its classpath")
 	void testC13() throws TransactionException, CodeExecutionException {
-		StorageReference c13 = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C));
-
-		IntValue get = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpathC13, GET, c13));
+		StorageReference c13 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
+		IntValue get = (IntValue) addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, GET, c13);
 
 		assertSame(13, get.value);
 	}
 
 	@Test @DisplayName("c17 new/get works in its classpath")
 	void testC17() throws TransactionException, CodeExecutionException {
-		StorageReference c17 = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C));
-
-		IntValue get = (IntValue) blockchain.addInstanceMethodCallTransaction
-			(new InstanceMethodCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpathC17, GET, c17));
+		StorageReference c17 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
+		IntValue get = (IntValue) addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, GET, c17);
 
 		assertSame(17, get.value);
 	}
 
 	@Test @DisplayName("c13 new/get fails if classpath changed")
 	void testC13SwapC17() throws TransactionException, CodeExecutionException {
-		StorageReference c13 = blockchain.addConstructorCallTransaction
-			(new ConstructorCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C));
+		StorageReference c13 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 
 		// the following call should fail since c13 was created from another jar
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
-			blockchain.addInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(gamete, _10_000, BigInteger.ONE, classpathC17, GET, c13))
+			addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, GET, c13)
 		);
 	}
 }

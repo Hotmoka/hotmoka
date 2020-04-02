@@ -57,14 +57,19 @@ public class RedGreenMemoryBlockchainImpl extends AbstractMemoryBlockchain imple
 		// let us create the accounts
 		this.accounts = new StorageReference[funds.length / 2];
 		BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
+		BigInteger nonce = BigInteger.ZERO;
 		for (int i = 0; i < accounts.length; i++) {
 			// the constructor provides the green coins
 			this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, gas, BigInteger.ZERO, takamakaCode(), new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER), new BigIntegerValue(funds[i * 2])));
+				(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(), new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER), new BigIntegerValue(funds[i * 2])));
+			nonce = nonce.add(BigInteger.ONE);
+
 			// then we add the red coins
-			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, gas, BigInteger.ZERO, takamakaCode(),
+			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(),
 				new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER),
 				this.accounts[i], new BigIntegerValue(funds[i * 2 + 1])));
+
+			nonce = nonce.add(BigInteger.ONE);
 		}
 	}
 

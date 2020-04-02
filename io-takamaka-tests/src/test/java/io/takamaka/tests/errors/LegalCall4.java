@@ -13,16 +13,12 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.memory.MemoryBlockchain;
 import io.takamaka.tests.TakamakaTest;
 
 class LegalCall4 extends TakamakaTest {
@@ -30,39 +26,24 @@ class LegalCall4 extends TakamakaTest {
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 	private static final ClassType C = new ClassType("io.takamaka.tests.errors.legalcall4.C");
 
-	/**
-	 * The blockchain under test. This is recreated before each test.
-	 */
-	private MemoryBlockchain blockchain;
-
 	@BeforeEach
 	void beforeEach() throws Exception {
-		blockchain = mkMemoryBlockchain(_1_000_000_000);
+		mkMemoryBlockchain(_1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
-		blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			bytesOf("legalcall4.jar"), blockchain.takamakaCode()));
+		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall4.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("new C().test(); toString() == \"33531\"")
 	void newTestToString() throws TransactionException, CodeExecutionException, IOException {
-		TransactionReference jar = blockchain.addJarStoreTransaction
-			(new JarStoreTransactionRequest(blockchain.account(0), _20_000, BigInteger.ONE, blockchain.takamakaCode(),
-			 bytesOf("legalcall4.jar"), blockchain.takamakaCode()));
-
+		TransactionReference jar = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall4.jar"), takamakaCode());
 		Classpath classpath = new Classpath(jar, true);
 
-		StorageReference c = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(C)));
-
-		blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c));
-
-		StringValue result = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(blockchain.account(0), _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c));
+		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(C));
+		addInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c);
+		StringValue result = (StringValue) addInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c);
 
 		assertEquals("33531", result.value);
 	}

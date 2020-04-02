@@ -13,8 +13,6 @@ import io.hotmoka.beans.values.StorageValue;
 /**
  * A synchronous node, that executes transactions, adds
  * updates to the store of the node and yields the response of the transactions.
- * For a synchronous node, transactions have a time ordering,
- * so that it is possible to know which has been added before in the node.
  */
 public interface SynchronousNode extends Node {
 

@@ -32,17 +32,24 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	public final Classpath classpath;
 
 	/**
+	 * The nonce used for transaction ordering and to forbid transaction replay.
+	 */
+	public final BigInteger nonce;
+
+	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 */
-	protected NonInitialTransactionRequest(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath) {
+	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath) {
 		this.caller = caller;
 		this.gasLimit = gasLimit;
 		this.gasPrice = gasPrice;
 		this.classpath = classpath;
+		this.nonce = nonce;
 	}
 }
