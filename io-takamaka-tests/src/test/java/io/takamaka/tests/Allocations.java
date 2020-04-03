@@ -34,7 +34,7 @@ class Allocations extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(_1_000_000_000, BigInteger.valueOf(100_000L));
+		mkBlockchain(_1_000_000_000, BigInteger.valueOf(100_000L));
 
 		TransactionReference allocations = addJarStoreTransaction
 			(account(0), _20_000_000, BigInteger.ONE, takamakaCode(), bytesOf("allocations.jar"), takamakaCode());

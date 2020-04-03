@@ -52,4 +52,14 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		this.classpath = classpath;
 		this.nonce = nonce;
 	}
+
+	@Override
+	public String toString() {
+        return getClass().getSimpleName() + ":\n"
+        	+ "  caller: " + caller + "\n"
+        	+ "  nonce: " + nonce + "\n"
+        	+ "  gas limit: " + gasLimit + "\n"
+        	+ "  gas price: " + gasPrice + "\n"
+        	+ "  class path: " + classpath;
+	}
 }

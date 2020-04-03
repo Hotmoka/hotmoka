@@ -22,7 +22,7 @@ public class IllegalCallToNonWhiteListedMethod13 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(_1_000_000_000);
+		mkBlockchain(_1_000_000_000);
 	}
 
 	@Test @DisplayName("call with argument with non-deterministic hashCode()")

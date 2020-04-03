@@ -52,7 +52,7 @@ class RemotePurchase extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
+		mkBlockchain(BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
 		seller = account(0);
 		buyer = account(1);
 

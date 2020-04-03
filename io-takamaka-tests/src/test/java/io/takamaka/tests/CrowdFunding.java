@@ -75,7 +75,7 @@ class CrowdFunding extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(ALL_FUNDS, BigInteger.ZERO, BigInteger.valueOf(10_000_000L), BigInteger.valueOf(10_000_000L));
+		mkBlockchain(ALL_FUNDS, BigInteger.ZERO, BigInteger.valueOf(10_000_000L), BigInteger.valueOf(10_000_000L));
 		gamete = account(0);
 		beneficiary = account(1);
 		funder1 = account(2);

@@ -55,7 +55,7 @@ class Lambdas extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(ALL_FUNDS);
+		mkBlockchain(ALL_FUNDS);
 		gamete = account(0);
 
 		TransactionReference lambdas = addJarStoreTransaction(gamete, _100_000, BigInteger.ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode());

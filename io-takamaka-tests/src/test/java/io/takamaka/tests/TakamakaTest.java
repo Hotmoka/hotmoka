@@ -40,6 +40,14 @@ public abstract class TakamakaTest {
 		public void run() throws Exception;
 	}
 
+	/**
+	 * Change in order to specify the default blockchain to use in tests, when not
+	 * explicitly required otherwise.
+	 */
+	protected final void mkBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
+		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+	}
+
 	protected final void mkMemoryBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
 		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}

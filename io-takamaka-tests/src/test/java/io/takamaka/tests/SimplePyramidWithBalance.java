@@ -58,7 +58,7 @@ class SimplePyramidWithBalance extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(_200_000, _200_000, _200_000, _200_000);
+		mkBlockchain(_200_000, _200_000, _200_000, _200_000);
 		players[0] = account(0);
 		players[1] = account(1);
 		players[2] = account(2);

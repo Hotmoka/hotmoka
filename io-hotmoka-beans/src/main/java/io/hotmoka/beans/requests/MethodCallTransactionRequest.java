@@ -41,11 +41,7 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 
 	@Override
 	public String toString() {
-        return getClass().getSimpleName() + ":\n"
-        	+ "  caller: " + caller + "\n"
-        	+ "  gas limit: " + gasLimit + "\n"
-        	+ "  gas price: " + gasPrice + "\n"
-        	+ "  class path: " + classpath + "\n"
+        return super.toString() + "\n"
 			+ "  method: " + method + "\n"
 			+ "  actuals:\n" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "    ", ""));
 	}

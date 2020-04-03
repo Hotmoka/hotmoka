@@ -41,7 +41,7 @@ class AbstractFail extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
+		mkBlockchain(_1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
 
 		TransactionReference abstractfail = addJarStoreTransaction
 			(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("abstractfail.jar"), takamakaCode());

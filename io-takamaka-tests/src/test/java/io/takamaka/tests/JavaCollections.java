@@ -39,7 +39,7 @@ class JavaCollections extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(ALL_FUNDS);
+		mkBlockchain(ALL_FUNDS);
 		TransactionReference collections = addJarStoreTransaction
 			(account(0), _200_000, BigInteger.ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
 

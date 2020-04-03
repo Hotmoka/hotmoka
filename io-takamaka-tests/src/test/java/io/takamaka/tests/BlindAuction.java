@@ -99,7 +99,7 @@ class BlindAuction extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		digest = MessageDigest.getInstance("SHA-256");
-		mkMemoryBlockchain(_10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
+		mkBlockchain(_10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
 
 		TransactionReference auctions = addJarStoreTransaction
 			(account(0), _10_000_000, BigInteger.ONE, takamakaCode(), bytesOf("auction.jar"), takamakaCode());

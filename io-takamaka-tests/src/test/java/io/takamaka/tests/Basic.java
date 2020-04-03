@@ -74,7 +74,7 @@ class Basic extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(ALL_FUNDS);
+		mkBlockchain(ALL_FUNDS);
 		master = account(0);
 
 		TransactionReference basicdependency = addJarStoreTransaction

@@ -56,7 +56,7 @@ class Collections extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(ALL_FUNDS);
+		mkBlockchain(ALL_FUNDS);
 		gamete = account(0);
 
 		TransactionReference collections = addJarStoreTransaction

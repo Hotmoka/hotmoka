@@ -57,7 +57,7 @@ class ClassSwap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkMemoryBlockchain(ALL_FUNDS);
+		mkBlockchain(ALL_FUNDS);
 		account = account(0);
 
 		TransactionReference c13 = addJarStoreTransaction

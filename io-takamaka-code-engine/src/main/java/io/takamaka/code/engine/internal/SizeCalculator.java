@@ -30,7 +30,6 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.updates.AbstractUpdateOfField;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBalance;
@@ -41,10 +40,13 @@ import io.hotmoka.beans.updates.UpdateOfChar;
 import io.hotmoka.beans.updates.UpdateOfDouble;
 import io.hotmoka.beans.updates.UpdateOfEnumEager;
 import io.hotmoka.beans.updates.UpdateOfEnumLazy;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfFloat;
 import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfLong;
+import io.hotmoka.beans.updates.UpdateOfNonce;
 import io.hotmoka.beans.updates.UpdateOfRedBalance;
+import io.hotmoka.beans.updates.UpdateOfRedGreenNonce;
 import io.hotmoka.beans.updates.UpdateOfShort;
 import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
@@ -313,8 +315,12 @@ public class SizeCalculator {
 			return size.add(gasCostModel.storageCostOf(((UpdateOfBalance) update).balance));
 		else if (update instanceof UpdateOfRedBalance)
 			return size.add(gasCostModel.storageCostOf(((UpdateOfRedBalance) update).balanceRed));
+		else if (update instanceof UpdateOfNonce)
+			return size.add(gasCostModel.storageCostOf(((UpdateOfNonce) update).nonce));
+		else if (update instanceof UpdateOfRedGreenNonce)
+			return size.add(gasCostModel.storageCostOf(((UpdateOfRedGreenNonce) update).nonce));
 
-		size = size.add(sizeOfFieldSignature(((AbstractUpdateOfField) update).field));
+		size = size.add(sizeOfFieldSignature(((UpdateOfField) update).getField()));
 		if (update instanceof UpdateOfBigInteger)
 			return size.add(gasCostModel.storageCostOf(((UpdateOfBigInteger) update).value));
 		else if (update instanceof UpdateOfBoolean || update instanceof UpdateOfByte ||
@@ -337,6 +343,6 @@ public class SizeCalculator {
 		else if (update instanceof UpdateOfStorage)
 			return size.add(sizeOfValue(((UpdateOfStorage) update).value));
 		else
-			throw new IllegalArgumentException("unexpected update");
+			throw new IllegalArgumentException("unexpected update of class " + update.getClass().getName());
 	}
 }

@@ -84,11 +84,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
         for (byte b: jar)
             sb.append(String.format("%02x", b));
 
-        return getClass().getSimpleName() + ":\n"
-        	+ "  caller: " + caller + "\n"
-        	+ "  gas limit: " + gasLimit + "\n"
-        	+ "  gas price: " + gasPrice + "\n"
-        	+ "  class path: " + classpath + "\n"
+        return super.toString() + "\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb.toString();
 	}
