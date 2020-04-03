@@ -107,6 +107,9 @@ class State implements AutoCloseable {
 
     @Override
 	public void close() {
+    	if (txn != null && !txn.isFinished())
+    		txn.abort(); // blockchain closed with non-committed transaction; they will be dropped
+
     	env.close();
 	}
 

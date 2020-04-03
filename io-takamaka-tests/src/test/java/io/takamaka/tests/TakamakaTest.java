@@ -7,6 +7,8 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.junit.jupiter.api.AfterEach;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
@@ -26,6 +28,8 @@ import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.RedGreenMemoryBlockchain;
 import io.hotmoka.nodes.NodeWithAccounts;
 import io.hotmoka.nodes.SynchronousNode;
+import io.hotmoka.tendermint.Config;
+import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.VerificationException;
 
@@ -45,7 +49,24 @@ public abstract class TakamakaTest {
 	 * explicitly required otherwise.
 	 */
 	protected final void mkBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
+		/*Config config = new Config(Paths.get("chain"), 26657, 26658);
+
+		try (TendermintBlockchain node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins)) {
+			this.node = node;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}*/
 		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+	}
+
+	@AfterEach
+	void afterEach() {
+		/*try {
+			Thread.sleep(2000);
+		}
+		catch (InterruptedException e) {
+		}*/
 	}
 
 	protected final void mkMemoryBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {

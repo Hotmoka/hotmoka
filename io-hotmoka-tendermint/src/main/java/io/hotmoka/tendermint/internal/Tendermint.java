@@ -29,7 +29,7 @@ class Tendermint implements AutoCloseable {
 	/**
 	 * The maximal number of connection attempts to the Tendermint process during ping,
 	 */
-	private final static int MAX_PING_ATTEMPTS = 10;
+	private final static int MAX_PING_ATTEMPTS = 20;
 
 	/**
 	 * The delay of the first ping attempt of the Tendermint process.

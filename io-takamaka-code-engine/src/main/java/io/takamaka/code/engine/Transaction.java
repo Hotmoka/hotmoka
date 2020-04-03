@@ -61,7 +61,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param current the reference that will be used for the transaction
 	 * @param node the node that executes the transaction
 	 * @return the transaction
-	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws TransactionException if an internal error occurred (not in the smart contract)
 	 */
 	static Transaction<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> mkFor(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new JarStoreInitialTransactionBuilder(request, current, node).getResponse());
@@ -77,7 +77,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param current the reference that will be used for the transaction
 	 * @param node the node that executes the transaction
 	 * @return the transaction
-	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws TransactionException if an internal error occurred (not in the smart contract)
 	 */
 	static Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new GameteCreationTransactionBuilder(request, current, node).getResponse());
@@ -93,7 +93,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param current the reference that will be used for the transaction
 	 * @param node the node that executes the transaction
 	 * @return the transaction
-	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws TransactionException if an internal error occurred (not in the smart contract)
 	 */
 	static Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new RedGreenGameteCreationTransactionBuilder(request, current, node).getResponse());
@@ -106,7 +106,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param request the transaction request
 	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
-	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws TransactionException if an internal error occurred (not in the smart contract)
 	 */
 	static Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> mkFor(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new JarStoreTransactionBuilder(request, current, node).getResponse());
@@ -120,7 +120,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param request the transaction request
 	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
-	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws TransactionException if an internal error occurred (not in the smart contract)
 	 */
 	static Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> mkFor(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new ConstructorCallTransactionBuilder(request, current, node).getResponse());
@@ -134,7 +134,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param request the transaction request
 	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
-	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws TransactionException if an internal error occurred (not in the smart contract)
 	 */
 	static Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new InstanceMethodCallTransactionBuilder(request, current, node).getResponse());
@@ -148,7 +148,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param request the transaction request
 	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
-	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws TransactionException if an internal error occurred (not in the smart contract)
 	 */
 	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new StaticMethodCallTransactionBuilder(request, current, node).getResponse());
@@ -163,7 +163,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param request the transaction request
 	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
-	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws TransactionException if an internal error occurred (not in the smart contract)
 	 */
 	static Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> mkForView(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new InstanceViewMethodCallTransactionBuilder(request, current, node).getResponse());
@@ -178,7 +178,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @param request the transaction request
 	 * @param current the reference that will be used for the transaction
 	 * @return the transaction
-	 * @throws TransactionException if the transaction could not be completed successfully
+	 * @throws TransactionException if an internal error occurred (not in the smart contract)
 	 */
 	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkForView(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		return new AbstractTransaction<>(request, new StaticViewMethodCallTransactionBuilder(request, current, node).getResponse());
