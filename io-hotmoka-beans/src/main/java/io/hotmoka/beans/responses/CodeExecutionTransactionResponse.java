@@ -2,6 +2,7 @@ package io.hotmoka.beans.responses;
 
 import java.math.BigInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.updates.Update;
@@ -12,6 +13,11 @@ import io.hotmoka.beans.updates.Update;
 @Immutable
 public abstract class CodeExecutionTransactionResponse implements NonInitialTransactionResponse, TransactionResponseWithGas, TransactionResponseWithUpdates {
 	private static final long serialVersionUID = -2880123766185847031L;
+
+	/**
+	 * The updates resulting from the execution of the transaction.
+	 */
+	private final Update[] updates;
 
 	/**
 	 * The amount of gas consumed by the transaction for CPU execution.
@@ -31,11 +37,13 @@ public abstract class CodeExecutionTransactionResponse implements NonInitialTran
 	/**
 	 * Builds the transaction response.
 	 * 
+	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public CodeExecutionTransactionResponse(BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	public CodeExecutionTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		this.updates = updates.toArray(Update[]::new);
 		this.gasConsumedForCPU = gasConsumedForCPU;
 		this.gasConsumedForRAM = gasConsumedForRAM;
 		this.gasConsumedForStorage = gasConsumedForStorage;
@@ -56,6 +64,11 @@ public abstract class CodeExecutionTransactionResponse implements NonInitialTran
 		return "  gas consumed for CPU execution: " + gasConsumedForCPU + "\n"
 			+ "  gas consumed for RAM allocation: " + gasConsumedForRAM + "\n"
 	        + "  gas consumed for storage consumption: " + gasConsumedForStorage + "\n";
+	}
+
+	@Override
+	public final Stream<Update> getUpdates() {
+		return Stream.of(updates);
 	}
 
 	@Override

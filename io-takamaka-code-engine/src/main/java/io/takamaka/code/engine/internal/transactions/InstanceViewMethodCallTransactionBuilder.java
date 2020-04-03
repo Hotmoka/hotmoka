@@ -1,10 +1,12 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
 
@@ -33,5 +35,15 @@ public class InstanceViewMethodCallTransactionBuilder extends InstanceMethodCall
 
 		if (!hasAnnotation(methodJVM, Constants.VIEW_NAME))
 			throw new NoSuchMethodException("cannot call a method not annotated as @View");
+	}
+
+	@Override
+	protected final void nonceOfCallerMustBe(BigInteger nonce) {
+		// we disable the check, since the nonce is not checked in view transactions
+	}
+
+	@Override
+	protected void setNonceAfter(NonInitialTransactionRequest<?> request) {
+		// we disable the nonce increment for view transactions
 	}
 }

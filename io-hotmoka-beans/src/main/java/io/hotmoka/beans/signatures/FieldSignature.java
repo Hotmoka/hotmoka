@@ -17,14 +17,24 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	private static final long serialVersionUID = -233403674197930650L;
 
 	/**
-	 * The field that holds the balance in externally owned accounts.
+	 * The field that holds the balance in contracts.
 	 */
 	public final static FieldSignature BALANCE_FIELD = new FieldSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
 
 	/**
-	 * The field that holds the red balance in red/green externally owned accounts.
+	 * The field that holds the red balance in red/green contracts.
 	 */
 	public final static FieldSignature RED_BALANCE_FIELD = new FieldSignature(ClassType.RGCONTRACT, "balanceRed", ClassType.BIG_INTEGER);
+
+	/**
+	 * The field that holds the nonce in externally owned accounts.
+	 */
+	public final static FieldSignature EOA_NONCE_FIELD = new FieldSignature(ClassType.EOA, "nonce", ClassType.BIG_INTEGER);
+
+	/**
+	 * The field that holds the nonce in red/green externally owned accounts.
+	 */
+	public final static FieldSignature RGEOA_NONCE_FIELD = new FieldSignature(ClassType.RGEOA, "nonce", ClassType.BIG_INTEGER);
 
 	/**
 	 * The class of the field.

@@ -12,6 +12,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 
@@ -65,8 +66,10 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	 * @return true if and only if that condition holds
 	 */
 	protected final boolean onlyAffectedBalanceOfCaller(Object result) {
+		StorageReference caller = getClassLoader().getStorageReferenceOf(getDeserializedCaller());
+
 		return updates(result).allMatch
-			(update -> update.object.equals(getClassLoader().getStorageReferenceOf(getDeserializedCaller()))
+			(update -> update.object.equals(caller)
 						&& update instanceof UpdateOfField
 						&& ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD));
 	}
@@ -79,14 +82,19 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	 * @param actuals the actual arguments passed to {@code executable}, including the receiver for instance methods
 	 * @throws ClassNotFoundException if some class could not be found during the check
 	 */
-	protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
+	protected void ensureWhiteListingOf(Method executable) throws ClassNotFoundException {
 		Optional<Method> model = getClassLoader().getWhiteListingWizard().whiteListingModelOf(executable);
 		if (!model.isPresent())
 			throw new NonWhiteListedCallException("illegal call to non-white-listed method " + method.definingClass.name + "." + method.methodName);
 
 		Annotation[][] anns = model.get().getParameterAnnotations();
-		for (int pos = 0; pos < anns.length; pos++)
-			checkWhiteListingProofObligations(model.get().getName(), actuals[pos], anns[pos]);
+		Object[] actuals = getDeserializedActuals().toArray();
+		String methodName = model.get().getName();
+
+		// we check actuals.length since it might be smaller than actuals.length
+		// when calling instrumented @Entry methods
+		for (int pos = 0; pos < actuals.length; pos++)
+			checkWhiteListingProofObligations(methodName, actuals[pos], anns[pos]);
 	}
 
 	@Override

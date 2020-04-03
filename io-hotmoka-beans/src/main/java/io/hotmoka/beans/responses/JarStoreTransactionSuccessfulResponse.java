@@ -1,13 +1,12 @@
 package io.hotmoka.beans.responses;
 
 import java.math.BigInteger;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
-import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.updates.Update;
 
 /**
  * A response for a successful transaction that installs a jar in a blockchain.
@@ -26,13 +25,13 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	 * Builds the transaction response.
 	 * 
 	 * @param instrumentedJar the bytes of the jar to install, instrumented
-	 * @param callerBalanceUpdate the update of balance of the caller of the transaction, for paying for the transaction
+	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, UpdateOfBalance callerBalanceUpdate, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(callerBalanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.instrumentedJar = instrumentedJar.clone();
 	}

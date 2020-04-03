@@ -73,6 +73,16 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private final Method redPayableBigInteger;
 
 	/**
+	 * Field {@link io.takamaka.code.lang.ExternallyOwnedAccount#nonce}.
+	 */
+	private final Field externallyOwnedAccountNonce;
+
+	/**
+	 * Field {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount#nonce}.
+	 */
+	private final Field redGreenExternallyOwnedAccountNonce;
+
+	/**
 	 * Field {@link io.takamaka.code.lang.Storage#storageReference}.
 	 */
 	private final Field storageReference;
@@ -119,6 +129,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		this.redPayableBigInteger.setAccessible(true); // it was private
 		this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
 		this.redBalanceField.setAccessible(true); // it was private
+		this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
+		this.externallyOwnedAccountNonce.setAccessible(true); // it was private
+		this.redGreenExternallyOwnedAccountNonce = getRedGreenExternallyOwnedAccount().getDeclaredField("nonce");
+		this.redGreenExternallyOwnedAccountNonce.setAccessible(true); // it was private
 		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 		this.storageReference.setAccessible(true); // it was private
 		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
@@ -156,6 +170,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		this.redPayableBigInteger.setAccessible(true); // it was private
 		this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
 		this.redBalanceField.setAccessible(true); // it was private
+		this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
+		this.externallyOwnedAccountNonce.setAccessible(true); // it was private
+		this.redGreenExternallyOwnedAccountNonce = getRedGreenExternallyOwnedAccount().getDeclaredField("nonce");
+		this.redGreenExternallyOwnedAccountNonce.setAccessible(true); // it was private
 		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 		this.storageReference.setAccessible(true); // it was private
 		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
@@ -271,6 +289,28 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	/**
+	 * Yields the value of the {@code nonce} field of the given account in RAM.
+	 * 
+	 * @param object the account
+	 * @return the value of the field
+	 */
+	public final BigInteger getNonceOf(Object object) {
+		Class<? extends Object> clazz = object.getClass();
+
+		try {
+			if (getExternallyOwnedAccount().isAssignableFrom(clazz))
+				return (BigInteger) externallyOwnedAccountNonce.get(object);
+			else if (getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+				return (BigInteger) redGreenExternallyOwnedAccountNonce.get(object);
+			else
+				throw new IllegalArgumentException("unknown account class " + clazz);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot read the nonce of an account of class " + clazz.getName());
+		}
+	}
+
+	/**
 	 * Yields the value of the {@code balance} field of the given contract in RAM.
 	 * 
 	 * @param object the contract
@@ -297,6 +337,28 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		}
 		catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new IllegalStateException("cannot write the balance field of a contract object of class " + object.getClass().getName());
+		}
+	}
+
+	/**
+	 * Sets the value of the {@code nonce} field of the given account in RAM.
+	 * 
+	 * @param object the account
+	 * @param value to value to set for the nonce of the account
+	 */
+	public final void setNonceOf(Object object, BigInteger value) {
+		Class<? extends Object> clazz = object.getClass();
+
+		try {
+			if (getExternallyOwnedAccount().isAssignableFrom(clazz))
+				externallyOwnedAccountNonce.set(object, value);
+			else if (getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+				redGreenExternallyOwnedAccountNonce.set(object, value);
+			else
+				throw new IllegalArgumentException("unknown account class " + clazz);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot write the nonce field of an account object of class " + clazz.getName());
 		}
 	}
 

@@ -8,7 +8,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.updates.UpdateOfBalance;
 
 /**
  * A response for a transaction that should install a jar in the blockchain.
@@ -21,9 +20,9 @@ public abstract class JarStoreTransactionResponse implements NonInitialTransacti
 	private static final long serialVersionUID = -8888957484092351352L;
 
 	/**
-	 * The update of balance of the caller of the transaction, for paying for the transaction.
+	 * The updates resulting from the execution of the transaction.
 	 */
-	private final UpdateOfBalance callerBalanceUpdate;
+	private final Update[] updates;
 
 	/**
 	 * The amount of gas consumed by the transaction for CPU execution.
@@ -43,13 +42,13 @@ public abstract class JarStoreTransactionResponse implements NonInitialTransacti
 	/**
 	 * Builds the transaction response.
 	 *
-	 * @param callerBalanceUpdate the update of balance of the caller of the transaction, for paying for the transaction
+	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionResponse(UpdateOfBalance callerBalanceUpdate, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		this.callerBalanceUpdate = callerBalanceUpdate;
+	public JarStoreTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		this.updates = updates.toArray(Update[]::new);
 		this.gasConsumedForCPU = gasConsumedForCPU;
 		this.gasConsumedForRAM = gasConsumedForRAM;
 		this.gasConsumedForStorage = gasConsumedForStorage;
@@ -57,7 +56,7 @@ public abstract class JarStoreTransactionResponse implements NonInitialTransacti
 
 	@Override
 	public final Stream<Update> getUpdates() {
-		return Stream.of(callerBalanceUpdate);
+		return Stream.of(updates);
 	}
 
 	@Override

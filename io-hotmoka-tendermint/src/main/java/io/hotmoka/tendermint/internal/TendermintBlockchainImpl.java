@@ -127,7 +127,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			// let us create the accounts
 			this.accounts = new StorageReference[funds.length];
 			ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
-			BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
+			BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
 			BigInteger nonce = BigInteger.ZERO;
 			for (int i = 0; i < accounts.length; i++, nonce = nonce.add(BigInteger.ONE)) {
 				state.addAccount(this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest

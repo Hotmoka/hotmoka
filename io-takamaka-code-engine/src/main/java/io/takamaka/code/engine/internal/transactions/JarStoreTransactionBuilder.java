@@ -1,15 +1,11 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import java.math.BigInteger;
-
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.beans.updates.UpdateOfBalance;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
@@ -26,9 +22,15 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 	private final EngineClassLoader classLoader;
 
 	/**
+	 * The deserialized caller.
+	 */
+	private final Object deserializedCaller;
+
+	/**
 	 * The response computed at the end of the transaction.
 	 */
 	private final JarStoreTransactionResponse response;
+
 
 	/**
 	 * Builds the creator of a transaction that installs a jar in the node.
@@ -44,11 +46,13 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 		byte[] jar = request.getJar();
 		try (EngineClassLoader classLoader = new EngineClassLoader(jar, transaction, request.getDependencies(), this)) {
 			this.classLoader = classLoader;
-			Object deserializedCaller = deserializer.deserialize(request.caller);
-			checkIsExternallyOwned(deserializedCaller);
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			callerMustBeAnExternallyOwnedAccount();
+			nonceOfCallerMustBe(request.nonce);
+
 			// we sell all gas first: what remains will be paid back at the end;
 			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-			UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
+			chargeToCallerMinimalGasFor(request);
 
 			JarStoreTransactionResponse response;
 			try {
@@ -61,17 +65,15 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, node.getGasCostModel());
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
 
-				BigInteger balanceOfCaller = classLoader.getBalanceOf(deserializedCaller);
-				StorageReference storageReferenceOfDeserializedCaller = classLoader.getStorageReferenceOf(deserializedCaller);
-				UpdateOfBalance balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-				chargeForStorage(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				balanceOfCaller = increaseBalance(deserializedCaller);
-				balanceUpdate = new UpdateOfBalance(storageReferenceOfDeserializedCaller, balanceOfCaller);
-				response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, balanceUpdate, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				chargeForStorage(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				payBackRemainingGas();
+				setNonceAfter(request);
+				response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
+				setNonceAfter(request);
 				// we do not pay back the gas
-				response = new JarStoreTransactionFailedResponse(t, balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				response = new JarStoreTransactionFailedResponse(t, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 
 			this.response = response;
@@ -89,5 +91,10 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 	@Override
 	public final JarStoreTransactionResponse getResponse() {
 		return response;
+	}
+
+	@Override
+	protected Object getDeserializedCaller() {
+		return deserializedCaller;
 	}
 }

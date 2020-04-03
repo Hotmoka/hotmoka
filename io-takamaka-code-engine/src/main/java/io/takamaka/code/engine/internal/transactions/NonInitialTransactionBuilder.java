@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -16,7 +17,10 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
 
@@ -78,6 +82,13 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
+	 * Yields the caller of the transaction.
+	 * 
+	 * @return the caller
+	 */
+	protected abstract Object getDeserializedCaller();
+
+	/**
 	 * Reduces the remaining amount of gas. It performs a task at the end.
 	 * 
 	 * @param amount the amount of gas to consume
@@ -101,16 +112,27 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Checks if the given object is an externally owned account or subclass.
+	 * Checks if the caller is an externally owned account or subclass.
 	 * 
-	 * @param object the object to check
-	 * @throws IllegalArgumentException if the object is not an externally owned account
+	 * @throws IllegalArgumentException if the caller is not an externally owned account
 	 */
-	protected final void checkIsExternallyOwned(Object object) {
-		Class<? extends Object> clazz = object.getClass();
+	protected final void callerMustBeAnExternallyOwnedAccount() {
+		Class<? extends Object> clazz = getDeserializedCaller().getClass();
 		if (!getClassLoader().getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalArgumentException("only an externally owned account can start a transaction");
+	}
+
+	/**
+	 * Checks if the caller has the given nonce.
+	 * 
+	 * @param the nonce
+	 * @throws IllegalArgumentException if the nonce of the caller is not equal to {@code nonce}
+	 */
+	protected void nonceOfCallerMustBe(BigInteger nonce) {
+		BigInteger expected = getClassLoader().getNonceOf(getDeserializedCaller());
+		if (!expected.equals(nonce))
+			throw new IllegalArgumentException("incorrect nonce: the request reports " + nonce + " but the account contains " + expected);
 	}
 
 	@Override
@@ -176,43 +198,52 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Checks if the caller of a transaction has enough money at least for paying the promised gas and the addition of a
+	 * Charges to the caller of a transaction the money to pay for the promised gas and the addition of a
 	 * failed transaction response to blockchain.
 	 * 
 	 * @param request the request
-	 * @param deserializedCaller the caller
-	 * @return the update to the balance that would follow if the failed transaction would be stored in the node
 	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas and the addition
 	 *                               of a failed transaction response to the node
 	 */
-	protected final UpdateOfBalance checkMinimalGas(NonInitialTransactionRequest<?> request, Object deserializedCaller) {
-		BigInteger decreasedBalanceOfCaller = decreaseBalance(deserializedCaller, request.gasLimit);
-		UpdateOfBalance balanceUpdateInCaseOfFailure = new UpdateOfBalance(getClassLoader().getStorageReferenceOf(deserializedCaller), decreasedBalanceOfCaller);
-
-		if (gas.compareTo(minimalGasForRunning(request, balanceUpdateInCaseOfFailure)) < 0)
+	protected final void chargeToCallerMinimalGasFor(NonInitialTransactionRequest<?> request) {
+		decreaseBalance(getDeserializedCaller(), request.gasLimit);
+		if (gas.compareTo(minimalGasForRunning(request)) < 0)
 			throw new IllegalStateException("not enough gas to start the transaction");
+	}
 
-		return balanceUpdateInCaseOfFailure;
+	/**
+	 * Collects all updates to the balance or nonce of the caller of the transaction.
+	 * 
+	 * @return the updates
+	 */
+	protected final Stream<Update> updatesToBalanceOrNonceOfCaller() {
+		Object caller = getDeserializedCaller();
+		StorageReference storageReferenceOfCaller = getClassLoader().getStorageReferenceOf(caller);
+		return updatesExtractor.extractUpdatesFrom(Stream.of(caller))
+			.filter(update -> update.object.equals(storageReferenceOfCaller))
+			.filter(update -> update instanceof UpdateOfField)
+			.filter(update -> ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
+					|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
+					|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD));
 	}
 
 	/**
 	 * Computes the minimal gas needed to run a given request. It accounts for storing in the node the failed transaction response.
 	 * 
 	 * @param request the request
-	 * @param balanceUpdateInCaseOfFailure the update that must be stored in the node to account for the consumption of the all the gas
 	 * @return the minimal gas
 	 */
-	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request, UpdateOfBalance balanceUpdateInCaseOfFailure) {
+	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request) {
 		// we create a response whose size over-approximates that of a response in case of failure of this request
 		BigInteger result = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOfRequest(request));
 		if (request instanceof ConstructorCallTransactionRequest)
-			return result.add(sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas)));
 		else if (request instanceof InstanceMethodCallTransactionRequest)
-			return result.add(sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas)));
 		else if (request instanceof StaticMethodCallTransactionRequest)
-			return result.add(sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas)));
 		else if (request instanceof JarStoreTransactionRequest)
-			return result.add(sizeCalculator.sizeOfResponse(new JarStoreTransactionFailedResponse(null, balanceUpdateInCaseOfFailure, gas, gas, gas, gas)));
+			return result.add(sizeCalculator.sizeOfResponse(new JarStoreTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas)));
 		else
 			throw new IllegalStateException("unexpected transaction request");
 	}
@@ -225,25 +256,29 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @return the balance of the contract after paying the given amount of gas
 	 * @throws IllegalStateException if the externally owned account does not have funds for buying the given amount of gas
 	 */
-	private BigInteger decreaseBalance(Object eoa, BigInteger gas) {
+	private void decreaseBalance(Object eoa, BigInteger gas) {
 		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(costOf(gas));
 		if (result.signum() < 0)
 			throw new IllegalStateException("caller has not enough funds to buy " + gas + " units of gas");
 
 		getClassLoader().setBalanceOf(eoa, result);
-		return result;
 	}
 
 	/**
-	 * Buys back the remaining gas to the caller of the given externally owned account.
-	 * 
-	 * @param eoa the externally owned account
-	 * @return the balance of the contract after buying back the remaining gas
+	 * Buys back the remaining gas to the caller of the transaction.
 	 */
-	protected final BigInteger increaseBalance(Object eoa) {
-		BigInteger result = getClassLoader().getBalanceOf(eoa).add(costOf(gas));
-		getClassLoader().setBalanceOf(eoa, result);
-		return result;
+	protected final void payBackRemainingGas() {
+		Object eoa = getDeserializedCaller();
+		getClassLoader().setBalanceOf(eoa, getClassLoader().getBalanceOf(eoa).add(costOf(gas)));
+	}
+
+	/**
+	 * Sets the nonce of the caller after the given transaction.
+	 * 
+	 * @param request the request. The nonce of the caller will become one more than that of this request
+	 */
+	protected void setNonceAfter(NonInitialTransactionRequest<?> request) {
+		getClassLoader().setNonceOf(getDeserializedCaller(), request.nonce.add(BigInteger.ONE));
 	}
 
 	/**

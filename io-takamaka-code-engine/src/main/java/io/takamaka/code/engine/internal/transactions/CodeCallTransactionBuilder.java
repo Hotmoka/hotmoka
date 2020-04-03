@@ -86,13 +86,12 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 	}
 
 	/**
-	 * Checks if the given object is a red/green externally owned account or subclass.
+	 * Checks that the caller of the transaction is a red/green externally owned account or subclass.
 	 * 
-	 * @param object the object to check
 	 * @throws IllegalArgumentException if the object is not a red/green externally owned account
 	 */
-	protected final void checkIsRedGreenExternallyOwned(Object object) {
-		if (!getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(object.getClass()))
+	protected final void callerMustBeARedGreenExternallyOwnedAccount() {
+		if (!getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(getDeserializedCaller().getClass()))
 			throw new IllegalArgumentException("only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}
 
@@ -226,13 +225,6 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 	 * @return the method or constructor that is being called
 	 */
 	protected abstract CodeSignature getMethodOrConstructor();
-
-	/**
-	 * Yields the caller of the transaction.
-	 * 
-	 * @return the caller
-	 */
-	protected abstract Object getDeserializedCaller();
 
 	/**
 	 * Yields the actual arguments of the call.

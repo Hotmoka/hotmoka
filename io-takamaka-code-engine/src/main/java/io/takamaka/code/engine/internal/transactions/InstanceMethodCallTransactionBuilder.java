@@ -16,7 +16,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.updates.UpdateOfBalance;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
@@ -81,14 +80,16 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 			this.deserializedReceiver = deserializerThread.deserializedReceiver;
 			this.deserializedActuals = deserializerThread.deserializedActuals;
 
-			checkIsExternallyOwned(deserializedCaller);
+			callerMustBeAnExternallyOwnedAccount();
+			nonceOfCallerMustBe(request.nonce);
+			
 			// we sell all gas first: what remains will be paid back at the end;
 			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-			UpdateOfBalance balanceUpdateInCaseOfFailure = checkMinimalGas(request, deserializedCaller);
+			chargeToCallerMinimalGasFor(request);
 			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 			chargeForStorage(request);
-			MethodCallTransactionResponse response = null;
-			Method methodJVM = null;
+			MethodCallTransactionResponse response;
+			Method methodJVM;
 
 			try {
 				Object[] deserializedActuals;
@@ -110,12 +111,12 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 				}
 
 				validateTarget(methodJVM);
-				ensureWhiteListingOf(methodJVM, deserializedActuals);
+				ensureWhiteListingOf(methodJVM);
 
 				boolean isVoidMethod = methodJVM.getReturnType() == void.class;
 				boolean isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
 				if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
-					checkIsRedGreenExternallyOwned(deserializedCaller);
+					callerMustBeARedGreenExternallyOwnedAccount();
 
 				MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
 				thread.start();
@@ -125,7 +126,8 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 						Throwable cause = thread.exception.getCause();
 						if (isCheckedForThrowsExceptions(cause, methodJVM)) {
 							chargeForStorage(new MethodCallTransactionExceptionResponse((Exception) cause, updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-							increaseBalance(deserializedCaller);
+							payBackRemainingGas();
+							setNonceAfter(request);
 							response = new MethodCallTransactionExceptionResponse((Exception) cause, updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 						}
 						else
@@ -139,19 +141,22 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 
 					if (isVoidMethod) {
 						chargeForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						increaseBalance(deserializedCaller);
+						payBackRemainingGas();
+						setNonceAfter(request);
 						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else {
 						chargeForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						increaseBalance(deserializedCaller);
+						payBackRemainingGas();
+						setNonceAfter(request);
 						response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 				}
 			}
 			catch (Throwable t) {
+				setNonceAfter(request);
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				response = new MethodCallTransactionFailedResponse(t, balanceUpdateInCaseOfFailure, gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				response = new MethodCallTransactionFailedResponse(t, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 
 			this.response = response;
@@ -191,8 +196,8 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	}
 
 	@Override
-	protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
-		super.ensureWhiteListingOf(executable, actuals);
+	protected void ensureWhiteListingOf(Method executable) throws ClassNotFoundException {
+		super.ensureWhiteListingOf(executable);
 
 		// we check the annotations on the receiver as well
 		Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);

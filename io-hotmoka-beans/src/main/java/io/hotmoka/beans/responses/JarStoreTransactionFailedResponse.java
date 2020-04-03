@@ -1,11 +1,12 @@
 package io.hotmoka.beans.responses;
 
 import java.math.BigInteger;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.updates.UpdateOfBalance;
+import io.hotmoka.beans.updates.Update;
 
 /**
  * A response for a failed transaction that should have installed a jar in the blockchain.
@@ -34,14 +35,15 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	 * Builds the transaction response.
 	 * 
 	 * @param cause the exception that justifies why the transaction failed
+	 * @param updates the updates resulting from the execution of the transaction
 	 * @param callerBalanceUpdate the update of balance of the caller of the transaction, for paying for the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
-	public JarStoreTransactionFailedResponse(Throwable cause, UpdateOfBalance callerBalanceUpdate, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
-		super(callerBalanceUpdate, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public JarStoreTransactionFailedResponse(Throwable cause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.classNameOfCause = cause == null ? "<unknown exception>" : cause.getClass().getName();
 		this.messageOfCause = cause == null ? "<unknown message>" : cause.getMessage();
