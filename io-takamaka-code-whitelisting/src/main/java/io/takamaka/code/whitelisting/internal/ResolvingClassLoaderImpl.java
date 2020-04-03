@@ -139,10 +139,6 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     }
 
     @Override
-    public void close() throws IOException {
-    }
-
-    @Override
     public String getJarNameOf(Class<?> clazz) {
     	return jarNameOf.get(clazz.getName().replace('.', '/') + ".class");
     }

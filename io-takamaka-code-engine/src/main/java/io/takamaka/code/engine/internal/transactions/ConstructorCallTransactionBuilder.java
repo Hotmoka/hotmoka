@@ -63,8 +63,8 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 
 		this.constructor = request.constructor;
 
-		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
-			this.classLoader = classLoader;
+		try {
+			this.classLoader = new EngineClassLoader(request.classpath, this);
 
 			if (request.constructor.formals().count() != request.actuals().count())
 				throw new TransactionException("argument count mismatch between formals and actuals");
@@ -81,7 +81,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 			this.deserializedActuals = deserializerThread.deserializedActuals;
 
 			callerMustBeAnExternallyOwnedAccount();
-			nonceOfCallerMustBe(request.nonce);
+			nonceOfCallerMustMatch(request);
 
 			// we sell all gas first: what remains will be paid back at the end;
 			// if the caller has not enough to pay for the whole gas, the transaction won't be executed

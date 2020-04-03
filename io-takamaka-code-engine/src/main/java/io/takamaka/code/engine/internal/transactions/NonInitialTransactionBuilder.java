@@ -124,15 +124,15 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Checks if the caller has the given nonce.
+	 * Checks if the caller has the same nonce has the given request.
 	 * 
-	 * @param the nonce
-	 * @throws IllegalArgumentException if the nonce of the caller is not equal to {@code nonce}
+	 * @param request the request
+	 * @throws IllegalArgumentException if the nonce of the caller is not equal to that in {@code request}
 	 */
-	protected void nonceOfCallerMustBe(BigInteger nonce) {
+	protected void nonceOfCallerMustMatch(NonInitialTransactionRequest<?> request) {
 		BigInteger expected = getClassLoader().getNonceOf(getDeserializedCaller());
-		if (!expected.equals(nonce))
-			throw new IllegalArgumentException("incorrect nonce: the request reports " + nonce + " but the account contains " + expected);
+		if (!expected.equals(request.nonce))
+			throw new IllegalArgumentException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
 	}
 
 	@Override

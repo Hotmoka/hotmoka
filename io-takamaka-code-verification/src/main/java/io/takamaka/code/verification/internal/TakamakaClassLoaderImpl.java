@@ -1,6 +1,5 @@
 package io.takamaka.code.verification.internal;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -137,11 +136,6 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 
 	public final WhiteListingWizard getWhiteListingWizard() {
 		return parent.getWhiteListingWizard();
-	}
-
-	@Override
-	public void close() throws IOException {
-		parent.close();
 	}
 
 	@Override

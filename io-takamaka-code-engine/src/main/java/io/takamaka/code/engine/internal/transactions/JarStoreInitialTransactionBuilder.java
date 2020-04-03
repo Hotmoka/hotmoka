@@ -36,10 +36,10 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 		super(current, node);
 
 		byte[] jar = request.getJar();
-		try (EngineClassLoader classLoader = new EngineClassLoader(jar, current, request.getDependencies(), this)) {
-			this.classLoader = classLoader;
-			VerifiedJar verifiedJar = VerifiedJar.of(jar, classLoader, true);
-			InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, node.getGasCostModel());
+
+		try {
+			this.classLoader = new EngineClassLoader(jar, current, request.getDependencies(), this);
+			InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(jar, classLoader, true), node.getGasCostModel());
 			this.response = new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
 		}
 		catch (Throwable t) {

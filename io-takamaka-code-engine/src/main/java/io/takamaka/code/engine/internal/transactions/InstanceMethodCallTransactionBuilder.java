@@ -62,8 +62,8 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	public InstanceMethodCallTransactionBuilder(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(request, current, node);
 
-		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
-			this.classLoader = classLoader;
+		try {
+			this.classLoader = new EngineClassLoader(request.classpath, this);
 
 			if (request.method.formals().count() != request.actuals().count())
 				throw new TransactionException("argument count mismatch between formals and actuals");
@@ -81,7 +81,7 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 			this.deserializedActuals = deserializerThread.deserializedActuals;
 
 			callerMustBeAnExternallyOwnedAccount();
-			nonceOfCallerMustBe(request.nonce);
+			nonceOfCallerMustMatch(request);
 			
 			// we sell all gas first: what remains will be paid back at the end;
 			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
@@ -89,10 +89,10 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
 			chargeForStorage(request);
 			MethodCallTransactionResponse response;
-			Method methodJVM;
 
 			try {
 				Object[] deserializedActuals;
+				Method methodJVM;
 
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided

@@ -44,11 +44,11 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 		super(request, transaction, node);
 
 		byte[] jar = request.getJar();
-		try (EngineClassLoader classLoader = new EngineClassLoader(jar, transaction, request.getDependencies(), this)) {
-			this.classLoader = classLoader;
+		try {
+			this.classLoader = new EngineClassLoader(jar, transaction, request.getDependencies(), this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeAnExternallyOwnedAccount();
-			nonceOfCallerMustBe(request.nonce);
+			nonceOfCallerMustMatch(request);
 
 			// we sell all gas first: what remains will be paid back at the end;
 			// if the caller has not enough to pay for the whole gas, the transaction won't be executed

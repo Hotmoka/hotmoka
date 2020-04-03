@@ -35,8 +35,8 @@ public class RedGreenGameteCreationTransactionBuilder extends InitialTransaction
 	public RedGreenGameteCreationTransactionBuilder(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
 		super(current, node);
 
-		try (EngineClassLoader classLoader = new EngineClassLoader(request.classpath, this)) {
-			this.classLoader = classLoader;
+		try {
+			this.classLoader = new EngineClassLoader(request.classpath, this);
 
 			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
 				throw new IllegalArgumentException("the gamete must be initialized with a non-negative amount of coins");

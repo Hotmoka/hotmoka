@@ -1,6 +1,5 @@
 package io.takamaka.code.engine.internal;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -233,11 +232,6 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		builder.chargeForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 		jars.add(instrumentedJarBytes);
 		jarNames.add("takamaka@" + classpath.transaction + ".jar");
-	}
-
-	@Override
-	public void close() throws IOException {
-		parent.close();
 	}
 
 	/**

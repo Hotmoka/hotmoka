@@ -1,7 +1,6 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.lang.reflect.Method;
-import java.math.BigInteger;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -38,7 +37,7 @@ public class InstanceViewMethodCallTransactionBuilder extends InstanceMethodCall
 	}
 
 	@Override
-	protected final void nonceOfCallerMustBe(BigInteger nonce) {
+	protected final void nonceOfCallerMustMatch(NonInitialTransactionRequest<?> request) {
 		// we disable the check, since the nonce is not checked in view transactions
 	}
 

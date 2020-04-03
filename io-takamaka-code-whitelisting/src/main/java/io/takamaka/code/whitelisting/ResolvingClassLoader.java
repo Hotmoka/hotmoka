@@ -1,6 +1,5 @@
 package io.takamaka.code.whitelisting;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -13,7 +12,7 @@ import io.takamaka.code.whitelisting.internal.ResolvingClassLoaderImpl;
  * A class loader that implements resolution methods for fields, constructors and methods,
  * according to Java's resolution rules.
  */
-public interface ResolvingClassLoader extends AutoCloseable {
+public interface ResolvingClassLoader {
 
 	/**
 	 * Yields an implementation of this interface that loads classes from the given jars, provided as byte arrays.
@@ -50,9 +49,6 @@ public interface ResolvingClassLoader extends AutoCloseable {
 	 * @throws ClassNotFoundException if the class cannot be found with this class loader
 	 */
 	Class<?> loadClass(String className) throws ClassNotFoundException;
-
-	@Override
-	void close() throws IOException; // refined exception type
 
 	/**
 	 * Yields a white-listing wizard that uses this class loader to load classes.
