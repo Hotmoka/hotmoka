@@ -20,6 +20,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
+import jetbrains.exodus.ExodusException;
 import jetbrains.exodus.env.Environment;
 import jetbrains.exodus.env.Environments;
 import jetbrains.exodus.env.Store;
@@ -110,7 +111,12 @@ class State implements AutoCloseable {
     	if (txn != null && !txn.isFinished())
     		txn.abort(); // blockchain closed with non-committed transaction; they will be dropped
 
-    	env.close();
+    	try {
+    		env.close();
+    	}
+    	catch (ExodusException e) {
+    		// this seems a big in Exodus: jetbrains.exodus.ExodusException: Finish all transactions before closing database environment
+    	}
 	}
 
     /**

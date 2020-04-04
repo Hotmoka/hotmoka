@@ -144,6 +144,11 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 			return 0L;
 	}
 
+	@Override
+	public void close() {
+		// nothing to close
+	}
+
 	/**
 	 * Yields the reference that must be used to refer to a new transaction
 	 * that follows the topmost one.

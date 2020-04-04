@@ -13,6 +13,7 @@ import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -220,7 +221,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
     	//System.out.print("[commit");
     	node.state.commitTransaction();
-    	System.out.println("commit #" + node.state.getNumberOfCommits());
         ResponseCommit resp = ResponseCommit.newBuilder()
                 //.setData(ByteString.copyFrom(new byte[8])) // hash of the Merkle root of the application state
                 .build();
@@ -281,5 +281,14 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 			oos.writeObject(object);
 			return ByteString.copyFrom(baos.toByteArray());
 		}
+	}
+
+    /**
+     * Yields the transaction reference that can be used for the next transaction that will be delivered.
+     * 
+     * @return the transaction reference
+     */
+	TransactionReference getNextTransaction() {
+		return next;
 	}
 }

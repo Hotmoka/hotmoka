@@ -7,5 +7,4 @@ open module io.takamaka.tests {
 	requires io.takamaka.code.whitelisting;
 	requires org.junit.jupiter.api;
 	requires io.takamaka.code.instrumentation;
-	requires io.hotmoka.tendermint;
 }

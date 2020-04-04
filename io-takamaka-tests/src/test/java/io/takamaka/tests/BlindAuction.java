@@ -214,7 +214,7 @@ class BlindAuction extends TakamakaTest {
 			null, // unused, since player 0 is the beneficiary
 			addConstructorCallTransaction(account(1), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST),
 			addConstructorCallTransaction(account(2), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST),
-			addConstructorCallTransaction(account(3), _100_000, BigInteger.ONE,classpath, CONSTRUCTOR_STORAGE_LIST)
+			addConstructorCallTransaction(account(3), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST)
 		};
 
 		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over

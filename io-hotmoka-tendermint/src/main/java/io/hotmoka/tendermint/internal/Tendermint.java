@@ -100,8 +100,9 @@ class Tendermint implements AutoCloseable {
 	}
 
 	@Override
-	public void close() {
+	public void close() throws InterruptedException {
 		process.destroy();
+		process.waitFor();
 	}
 
 	/**
@@ -208,8 +209,10 @@ class Tendermint implements AutoCloseable {
 			catch (InterruptedException e2) {}
 	
 			try {
-				HttpURLConnection con = (HttpURLConnection) url().openConnection();
-				con.connect();
+				HttpURLConnection connection = openPostConnectionToTendermint();
+				try (OutputStream os = connection.getOutputStream()) {
+				}
+
 				return;
 			}
 			catch (ConnectException e) {
@@ -285,10 +288,27 @@ class Tendermint implements AutoCloseable {
 	 * @throws IOException if the request cannot be written
 	 */
 	private static void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException {
-		try (OutputStream os = connection.getOutputStream()) {
-		    byte[] input = jsonTendermintRequest.getBytes("utf-8");
-		    os.write(input, 0, input.length);
+		int delay = PING_DELAY;
+		for (int i = 0; i < MAX_PING_ATTEMPTS; i++) {
+			try (OutputStream os = connection.getOutputStream()) {
+				byte[] input = jsonTendermintRequest.getBytes("utf-8");
+				os.write(input, 0, input.length);
+				return;
+			}
+			catch (ConnectException e) {
+				// not sure why this happens, randomly. It seems that the connection
+				// to the Tendermint process is flaky
+				try {
+					Thread.sleep(delay);
+				}
+				catch (InterruptedException e1) {
+				}
+
+				delay = delay * 130 / 100;
+			}
 		}
+
+		throw new IOException("Cannot write into Tendermint's connection. Tried " + MAX_PING_ATTEMPTS + " times");
 	}
 
 	/**

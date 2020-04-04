@@ -20,7 +20,7 @@ import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
  * Updates are stored inside the blocks, rather than in an external database.
  * It provides support for the creation of a given number of initial accounts.
  */
-public interface TendermintBlockchain extends AsynchronousNode, SynchronousNode, NodeWithAccounts, AutoCloseable {
+public interface TendermintBlockchain extends AsynchronousNode, SynchronousNode, NodeWithAccounts {
 
 	/**
 	 * Yields a Tendermint blockchain and initializes user accounts with the given initial funds.

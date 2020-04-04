@@ -48,25 +48,15 @@ public abstract class TakamakaTest {
 	 * Change in order to specify the default blockchain to use in tests, when not
 	 * explicitly required otherwise.
 	 */
-	protected final void mkBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
-		/*Config config = new Config(Paths.get("chain"), 26657, 26658);
-
-		try (TendermintBlockchain node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins)) {
-			this.node = node;
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}*/
+	protected final void mkBlockchain(BigInteger... coins) throws Exception {
+		//Config config = new Config(Paths.get("chain"), 26657, 26658);
+		//node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
 	@AfterEach
-	void afterEach() {
-		/*try {
-			Thread.sleep(2000);
-		}
-		catch (InterruptedException e) {
-		}*/
+	void afterEach() throws Exception {
+		node.close();
 	}
 
 	protected final void mkMemoryBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
