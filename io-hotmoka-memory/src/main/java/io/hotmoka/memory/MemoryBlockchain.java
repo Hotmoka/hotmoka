@@ -32,4 +32,21 @@ public interface MemoryBlockchain extends NodeWithAccounts, SynchronousNode {
 	static MemoryBlockchain of(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
 		return new MemoryBlockchainImpl(takamakaCodePath, funds);
 	}
+
+	/**
+	 * Yields a blockchain in disk memory and initializes red/green user accounts with the given initial funds.
+	 * The only different with respect to {@linkplain #of(Path, BigInteger...)} is that the initial
+	 * account are red/green externally owned accounts.
+	 * 
+	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
+	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.RedGreenMemoryBlockchain#takamakaCode()}
+	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
+	 *              initial funds of each account (green before red)
+	 * @throws IOException if a disk error occurs
+	 * @throws TransactionException if some transaction for initialization fails
+	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 */
+	static MemoryBlockchain ofRedGreen(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+		return new MemoryBlockchainImpl(takamakaCodePath, true, funds);
+	}
 }

@@ -25,7 +25,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.memory.RedGreenMemoryBlockchain;
 import io.hotmoka.nodes.NodeWithAccounts;
 import io.hotmoka.nodes.SynchronousNode;
 import io.hotmoka.tendermint.Config;
@@ -59,12 +58,10 @@ public abstract class TakamakaTest {
 		node.close();
 	}
 
-	protected final void mkMemoryBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
-		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
-	}
-
-	protected final void mkRedGreenMemoryBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
-		node = RedGreenMemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+	protected final void mkRedGreenBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
+		//Config config = new Config(Paths.get("chain"), 26657, 26658);
+		//node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
 	protected final Classpath takamakaCode() {

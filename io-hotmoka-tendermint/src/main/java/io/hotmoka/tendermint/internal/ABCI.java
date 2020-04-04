@@ -162,10 +162,10 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
             	if (hotmokaRequest instanceof JarStoreInitialTransactionRequest)
             		hotmokaResponse = Transaction.mkFor((JarStoreInitialTransactionRequest) hotmokaRequest, next, node).getResponse();
-            	else if (hotmokaRequest instanceof GameteCreationTransactionRequest)
-            		hotmokaResponse = Transaction.mkFor((GameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse();
             	else if (hotmokaRequest instanceof RedGreenGameteCreationTransactionRequest)
             		hotmokaResponse = Transaction.mkFor((RedGreenGameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse();
+            	else if (hotmokaRequest instanceof GameteCreationTransactionRequest)
+            		hotmokaResponse = Transaction.mkFor((GameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse();
             	else if (hotmokaRequest instanceof JarStoreTransactionRequest)
             		hotmokaResponse = Transaction.mkFor((JarStoreTransactionRequest) hotmokaRequest, next, node).getResponse();
             	else if (hotmokaRequest instanceof ConstructorCallTransactionRequest)

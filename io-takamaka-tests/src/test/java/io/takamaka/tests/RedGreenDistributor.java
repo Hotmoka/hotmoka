@@ -36,7 +36,7 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkRedGreenMemoryBlockchain(
+		mkRedGreenBlockchain(
 			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // green/red of first account
 			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of second account
 			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of third account

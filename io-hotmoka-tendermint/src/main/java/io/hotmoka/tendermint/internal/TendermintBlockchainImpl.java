@@ -35,6 +35,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -139,6 +140,81 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			}
 
 			System.out.println("is initialized: " + initialized);
+		}
+		catch (Exception e) {
+			try {
+				deleteDir(config.dir); // do not leave zombies behind
+				close();
+			}
+			catch (Exception e2) {}
+
+			if (e instanceof TransactionException)
+				throw (TransactionException) e;
+			else if (e instanceof CodeExecutionException)
+				throw (CodeExecutionException) e;
+			else
+				throw new TransactionException(e);
+		}
+	}
+
+	/**
+	 * Builds a Tendermint blockchain and initializes red/green user accounts with the given initial funds.
+	 * 
+	 * @param config the configuration of the blockchain
+	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
+	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
+	 * @param redGreen unused; only meant to distinguish the signature of this constructor from that of the previous one
+	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
+	 *              initial funds of each account (green before red)
+	 * @throws IOException if a disk error occurs
+	 * @throws TransactionException if some transaction for initialization fails
+	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 */
+	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, boolean redGreen, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+		this.abci = new ABCI(this);
+		deleteDir(config.dir);
+
+		try {
+			this.state = new State(config.dir + "/state");
+			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
+			this.server.start();
+			this.tendermint = new Tendermint(config, true);
+
+			addShutdownHook();
+
+			this.takamakaCode = new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
+			state.putTakamakaCode(takamakaCode);
+
+			// we compute the total amount of funds needed to create the accounts
+			BigInteger green = BigInteger.ZERO;
+			for (int pos = 0; pos < funds.length; pos += 2)
+				green = green.add(funds[pos]);
+
+			BigInteger red = BigInteger.ZERO;
+			for (int pos = 1; pos < funds.length; pos += 2)
+				red = red.add(funds[pos]);
+
+			StorageReference gamete = addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode(), green, red));
+
+			// let us create the accounts
+			this.accounts = new StorageReference[funds.length / 2];
+			BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
+			BigInteger nonce = BigInteger.ZERO;
+			ConstructorSignature constructor = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER);
+			VoidMethodSignature receiveRed = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
+
+			for (int i = 0; i < accounts.length; i++) {
+				// the constructor provides the green coins
+				state.addAccount(this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+					(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i * 2]))));
+				nonce = nonce.add(BigInteger.ONE);
+
+				// then we add the red coins
+				addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(),
+					receiveRed, accounts[i], new BigIntegerValue(funds[i * 2 + 1])));
+
+				nonce = nonce.add(BigInteger.ONE);
+			}
 		}
 		catch (Exception e) {
 			try {
