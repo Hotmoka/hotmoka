@@ -78,13 +78,13 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void info(RequestInfo req, StreamObserver<ResponseInfo> responseObserver) {
-    	System.out.print("[info");
+    	//System.out.print("[info");
         ResponseInfo resp = ResponseInfo.newBuilder()
         		//.setLastBlockAppHash(ByteString.copyFrom(new byte[8])) // LastBlockAppHash
         		.setLastBlockHeight(node.state.getNumberOfCommits()).build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("]");
+        //System.out.println("]");
     }
 
     @Override
@@ -98,7 +98,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void checkTx(RequestCheckTx req, StreamObserver<ResponseCheckTx> responseObserver) {
-    	System.out.print("[checkTx");
+    	//System.out.print("[checkTx");
         ByteString tx = req.getTx();
 
         Object data;
@@ -121,16 +121,16 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("]");
+        //System.out.println("]");
     }
 
     @Override
     public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
-    	System.out.print("[initChain");
+    	//System.out.print("[initChain");
         ResponseInitChain resp = ResponseInitChain.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("]");
+        //System.out.println("]");
     }
 
     @Override
@@ -149,9 +149,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void deliverTx(RequestDeliverTx req, StreamObserver<ResponseDeliverTx> responseObserver) {
-    	System.out.print("[deliverTx");
         ByteString tx = req.getTx();
-
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
         int code = validate(tx);
@@ -189,8 +187,12 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
             	responseBuilder.setData(byteStringSerializationOf(next.toString()));
             }
             catch (TransactionException e) {
+            	Throwable t = e;
+            	while (t instanceof TransactionException && t.getCause() != null)
+            		t = t.getCause();
+
             	responseBuilder.setCode(1);
-            	responseBuilder.setInfo(e.toString());
+            	responseBuilder.setInfo(t.toString());
 			}
             catch (Throwable t) {
             	responseBuilder.setCode(2);
@@ -205,7 +207,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseDeliverTx resp = responseBuilder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("]");
     }
 
     @Override

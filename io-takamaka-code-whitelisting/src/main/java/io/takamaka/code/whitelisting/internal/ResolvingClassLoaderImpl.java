@@ -61,7 +61,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	@Override
     public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         Class<?> clazz = findLoadedClass(name);
-        if (clazz == null) {
+        if (clazz == null)
         	try {
         		clazz = super.loadClass(name, resolve);
         	}
@@ -84,12 +84,11 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	        				catch (IOException e) {
 	        					// ignore me
 	        				}
-        			}
+	        			}
         		}
         		catch (Exception e) {
         		}
         	}
-        }
 
         if (clazz == null)
         	throw new ClassNotFoundException(name);

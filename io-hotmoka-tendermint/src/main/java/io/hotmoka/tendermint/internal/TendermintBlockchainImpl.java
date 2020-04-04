@@ -7,7 +7,6 @@ import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.stream.Stream;
@@ -119,27 +118,20 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 			this.takamakaCode = new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
 			state.putTakamakaCode(takamakaCode);
-			System.out.println("takamakaCode = " + takamakaCode);
 
 			// we compute the total amount of funds needed to create the accounts
 			BigInteger sum = Stream.of(funds).reduce(BigInteger.ZERO, BigInteger::add);
 
 			StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
-			System.out.println("gamete = " + gamete);
 
 			// let us create the accounts
 			this.accounts = new StorageReference[funds.length];
 			ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
 			BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
 			BigInteger nonce = BigInteger.ZERO;
-			for (int i = 0; i < accounts.length; i++, nonce = nonce.add(BigInteger.ONE)) {
+			for (int i = 0; i < accounts.length; i++, nonce = nonce.add(BigInteger.ONE))
 				state.addAccount(this.accounts[i] = addConstructorCallTransaction(new ConstructorCallTransactionRequest
 					(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i]))));
-
-				System.out.println("account #" + i + ": " + accounts[i]);
-			}
-
-			System.out.println("is initialized: " + initialized);
 		}
 		catch (Exception e) {
 			try {
@@ -255,15 +247,8 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			addShutdownHook();
 
 			this.takamakaCode = state.getTakamakaCode().get();
-			System.out.println("takamakaCode = " + takamakaCode);
-
 			this.initialized = state.isInitialized();
-
-			// let us create the accounts
 			this.accounts = state.getAccounts().toArray(StorageReference[]::new);
-			System.out.println("accounts: " + Arrays.toString(accounts));
-
-			System.out.println("is initialized: " + initialized);
 		}
 		catch (Exception e) {
 			try {
@@ -466,13 +451,11 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	
 		String data = tx_result.data;
 		if (data == null)
-			throw new TransactionException("no Hotmoka transaction reference found in data field of Tendermint transaction " + hash
-				+ "(" + tx_result.info + ")");
-	
+			throw new TransactionException(tx_result.info);
+
 		Object dataAsObject = base64DeserializationOf(data);
 		if (!(dataAsObject instanceof String))
-			throw new TransactionException("no Hotmoka transaction reference found in data field of Tendermint transaction " + hash
-				+ "(" + tx_result.info + ")");
+			throw new TransactionException("no Hotmoka transaction reference found in data field of Tendermint transaction");
 	
 		return new TendermintTransactionReference((String) dataAsObject);
 	}
