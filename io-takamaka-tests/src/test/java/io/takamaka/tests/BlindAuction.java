@@ -32,6 +32,7 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -42,7 +43,7 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The number of bids placed by the players.
 	 */
-	private static final int NUM_BIDS = 30;
+	private static final int NUM_BIDS = 10;
 
 	/**
 	 * The bidding time of the experiments (in milliseconds).
@@ -52,7 +53,7 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The reveal time of the experiments (in millisecond).
 	 */
-	private static final int REVEAL_TIME = 40_000;
+	private static final int REVEAL_TIME = 80_000;
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
@@ -108,7 +109,7 @@ class BlindAuction extends TakamakaTest {
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time")
-	void bids() throws TransactionException, CodeExecutionException {
+	void bids() throws TransactionException, CodeExecutionException, Exception {
 		StorageReference auction = addConstructorCallTransaction
 			(account(0), _100_000, BigInteger.ONE,classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME));
 
@@ -226,7 +227,8 @@ class BlindAuction extends TakamakaTest {
 
 		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
 
-		StorageReference winner = (StorageReference) addInstanceMethodCallTransaction(account(0), _100_000, BigInteger.ONE, classpath, AUCTION_END, auction);
+		// the winner can be a StorageReference but also a NullValue, if all bids were fake
+		StorageValue winner = addInstanceMethodCallTransaction(account(0), _100_000, BigInteger.ONE, classpath, AUCTION_END, auction);
 
 		assertEquals(expectedWinner, winner);
 	}

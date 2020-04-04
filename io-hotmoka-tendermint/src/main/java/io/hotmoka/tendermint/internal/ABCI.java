@@ -140,7 +140,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         Header header = req.getHeader();
         next = new TendermintTransactionReference(BigInteger.valueOf(header.getHeight()), (short) 0);
     	Timestamp time = header.getTime();
-    	now = time.getSeconds() * 1000L + time.getNanos() / 1000L;
+    	now = time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L;
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
