@@ -35,8 +35,13 @@ import jetbrains.exodus.env.Transaction;
  */
 class State implements AutoCloseable {
 	private final Environment env;
-    private Transaction txn;
-    private Store responses;
+
+	/**
+	 * The transaction that contains all changes from begin of block to commit of block.
+	 */
+	private Transaction txn;
+
+	private Store responses;
     private Store dependencies;
     private Store history;
     private Store info;
@@ -208,6 +213,12 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponseOf(TransactionReference transactionReference) {
+		//TODO
+		if (txn != null && !txn.isFinished()) {
+			ByteIterable response = responses.get(txn, compactByteArraySerializationOf(transactionReference));
+			return response == null ? Optional.empty() : Optional.of((TransactionResponse) deserializationOf(response));
+		}
+
 		return env.computeInReadonlyTransaction(txn -> {
 			Store responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable response = responses.get(txn, compactByteArraySerializationOf(transactionReference));
@@ -216,6 +227,11 @@ class State implements AutoCloseable {
 	}
 
 	Optional<Stream<TransactionReference>> getHistoryOf(StorageReference object) {
+		if (txn != null && !txn.isFinished()) {
+			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
+			return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
+		}
+
 		return env.computeInReadonlyTransaction(txn -> {
 			Store history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
@@ -238,6 +254,11 @@ class State implements AutoCloseable {
 	}
 
 	long getNumberOfCommits() {
+		if (txn != null && !txn.isFinished()) {
+			ByteIterable count = info.get(txn, COMMIT_COUNT);
+			return count == null ? 0L : (long) deserializationOf(count);
+		}
+
 		return env.computeInReadonlyTransaction(txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable count = info.get(txn, COMMIT_COUNT);
@@ -287,9 +308,9 @@ class State implements AutoCloseable {
 		info.put(txn, COMMIT_COUNT, byteArraySerializationOf(getNumberOfCommits() + 1));
 	}
 
-	private Stream<TransactionReference> getExpandedHistoryOf(StorageReference object, TransactionReference first) {
+	private Stream<TransactionReference> getExpandedHistoryOf(StorageReference object, TransactionReference addedFirst) {
 		Optional<Stream<TransactionReference>> history = getHistoryOf(object);
-		return history.isPresent() ? Stream.concat(Stream.of(first), history.get()) : Stream.of(first);
+		return history.isPresent() ? Stream.concat(Stream.of(addedFirst), history.get()) : Stream.of(addedFirst);
 	}
 
 	/**

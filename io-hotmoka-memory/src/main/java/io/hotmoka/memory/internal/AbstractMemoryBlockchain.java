@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
@@ -245,6 +246,35 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	@Override
 	protected StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
 		return Transaction.mkForView(request, getNextTransaction(), this).getResponse().getOutcome();
+	}
+
+	@Override
+	protected void postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
+		TransactionReference transactionReference = getNextTransaction();
+		Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> transaction = Transaction.mkFor(request, transactionReference, this);
+		expandStoreWith(transaction);
+		transaction.getResponse().getOutcomeAt(transactionReference);
+	}
+
+	@Override
+	protected void postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
+		Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+		expandStoreWith(transaction);
+		transaction.getResponse().getOutcome();
+	}
+
+	@Override
+	protected void postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
+		Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+		expandStoreWith(transaction);
+		transaction.getResponse().getOutcome();
+	}
+
+	@Override
+	protected void postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
+		Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
+		expandStoreWith(transaction);
+		transaction.getResponse().getOutcome();
 	}
 
 	/**

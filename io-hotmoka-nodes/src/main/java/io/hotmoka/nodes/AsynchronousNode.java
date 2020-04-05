@@ -1,6 +1,7 @@
 package io.hotmoka.nodes;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -21,8 +22,9 @@ public interface AsynchronousNode extends Node {
 	 * Otherwise, the transaction will be rejected and not added to this node's store.
 	 * 
 	 * @param request the transaction request
+	 * @throws TransactionException if an error prevented the transaction from being posted
 	 */
-	void postJarStoreTransaction(JarStoreTransactionRequest request);
+	void postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException ;
 
 	/**
 	 * Posts a transaction that runs a constructor of a class in this node.
@@ -37,8 +39,9 @@ public interface AsynchronousNode extends Node {
 	 * and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the request of the transaction
+	 * @throws TransactionException if an error prevented the transaction from being posted
 	 */
-	void postConstructorCallTransaction(ConstructorCallTransactionRequest request);
+	void postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException;
 
 	/**
 	 * Posts a transaction that runs an instance method of an object already in this node's store.
@@ -52,8 +55,9 @@ public interface AsynchronousNode extends Node {
 	 * the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the transaction request
+	 * @throws TransactionException if an error prevented the transaction from being posted
 	 */
-	void postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request);
+	void postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException;
 
 	/**
 	 * Posts a request that runs a static method of a class in this node.
@@ -67,8 +71,9 @@ public interface AsynchronousNode extends Node {
 	 * the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the transaction request
+	 * @throws TransactionException if an error prevented the transaction from being posted
 	 */
-	void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request);
+	void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException;
 
 	/**
 	 * Yields the reference to the transaction that was generated for the request with the given hash.

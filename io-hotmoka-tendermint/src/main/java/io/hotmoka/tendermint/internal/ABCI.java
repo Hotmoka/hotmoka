@@ -147,9 +147,13 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         //System.out.print("]");
     }
 
+    //private long deliverTxTime;
+
     @Override
     public void deliverTx(RequestDeliverTx req, StreamObserver<ResponseDeliverTx> responseObserver) {
         ByteString tx = req.getTx();
+        //System.out.print("[deliverTx ");
+        //long start = System.currentTimeMillis();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
         int code = validate(tx);
@@ -207,6 +211,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ResponseDeliverTx resp = responseBuilder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
+        //deliverTxTime += (System.currentTimeMillis() - start);
+        //System.out.println(deliverTxTime + "]");
     }
 
     @Override

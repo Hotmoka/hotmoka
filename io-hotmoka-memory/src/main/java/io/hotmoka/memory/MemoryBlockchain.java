@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
+import io.hotmoka.nodes.AsynchronousNode;
 import io.hotmoka.nodes.NodeWithAccounts;
 import io.hotmoka.nodes.SynchronousNode;
 
@@ -17,7 +18,7 @@ import io.hotmoka.nodes.SynchronousNode;
  * Updates are stored inside the blocks, rather than in an external database.
  * It provides support for the creation of a given number of initial accounts.
  */
-public interface MemoryBlockchain extends NodeWithAccounts, SynchronousNode {
+public interface MemoryBlockchain extends NodeWithAccounts, SynchronousNode, AsynchronousNode {
 
 	/**
 	 * Yields a blockchain in disk memory and initializes user accounts with the given initial funds.

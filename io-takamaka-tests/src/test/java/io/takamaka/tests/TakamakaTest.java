@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 
@@ -25,6 +27,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.AsynchronousNode;
 import io.hotmoka.nodes.NodeWithAccounts;
 import io.hotmoka.nodes.SynchronousNode;
 import io.hotmoka.tendermint.Config;
@@ -38,6 +41,11 @@ public abstract class TakamakaTest {
 	 * The node under test. This is recreated before each test.
 	 */
 	private NodeWithAccounts node;
+
+	/**
+	 * The nonce of each externally owned account used in the test.
+	 */
+	private Map<StorageReference, BigInteger> nonces = new HashMap<>();
 
 	public interface TestBody {
 		public void run() throws Exception;
@@ -53,15 +61,15 @@ public abstract class TakamakaTest {
 		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
-	@AfterEach
-	void afterEach() throws Exception {
-		node.close();
-	}
-
 	protected final void mkRedGreenBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
 		//Config config = new Config(Paths.get("chain"), 26657, 26658);
 		//node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+	}
+
+	@AfterEach
+	void afterEach() throws Exception {
+		node.close();
 	}
 
 	protected final Classpath takamakaCode() {
@@ -138,6 +146,18 @@ public abstract class TakamakaTest {
 		return node.runViewStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
+	/**
+	 * Takes care of computing the next nonce.
+	 */
+	protected final void postInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+		if (node instanceof AsynchronousNode) {
+			BigInteger nonce = getNonceOf(caller, gasLimit, gasPrice, classpath);
+			((AsynchronousNode) node).postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		}
+		else
+			throw new IllegalStateException("can only call postInstanceMethodCallTransaction() on an asynchronous node");
+	}
+
 	protected static byte[] bytesOf(String fileName) throws IOException {
 		return Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-" + fileName));
 	}
@@ -206,8 +226,16 @@ public abstract class TakamakaTest {
 	 */
 	private BigInteger getNonceOf(StorageReference account, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath) throws TransactionException {
 		try {
-			return ((BigIntegerValue) node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(account, BigInteger.ZERO, gasLimit, gasPrice, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+			BigInteger nonce = nonces.get(account);
+			if (nonce != null)
+				nonce = nonce.add(BigInteger.ONE);
+			else
+				// we ask the account
+				nonce = ((BigIntegerValue) node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(account, BigInteger.ZERO, gasLimit, gasPrice, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+
+			nonces.put(account, nonce);
+			return nonce;
 		}
 		catch (Exception e) {
 			throw new TransactionException("cannot compute the nonce of " + account);

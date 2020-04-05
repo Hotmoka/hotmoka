@@ -108,12 +108,12 @@ class StorageMap extends TakamakaTest {
 		assertEquals(NullValue.INSTANCE, get);
 	}
 
-	@Test @DisplayName("new StorageMap().put(k1,v) then get(k2, _default) yields _default")
+	@Test @DisplayName("new StorageMap().put(k1,v) then get(k2, _default) yields default")
 	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException {
 		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		StorageReference eoa1 = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 		StorageReference eoa2 = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map, eoa1, ONE);
+		postInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map, eoa1, ONE);
 		StorageValue get = (StorageValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT), map, eoa2, TWO);
 
 		assertEquals(TWO, get);
@@ -124,11 +124,11 @@ class StorageMap extends TakamakaTest {
 		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		Random random = new Random();
+		VoidMethodSignature put = new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT);
 		for (int i = 0; i < 100; i++) {
 			StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-			addInstanceMethodCallTransaction
-				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
+			postInstanceMethodCallTransaction
+				(gamete, _100_000, BigInteger.ONE, classpath, put, map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 		}
 
 		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);

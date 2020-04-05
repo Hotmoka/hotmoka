@@ -285,27 +285,23 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	public void postJarStoreTransaction(JarStoreTransactionRequest request) {
-		// TODO Auto-generated method stub
-		
+	protected void postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
+		postInTendermintTransaction(request);
 	}
 
 	@Override
-	public void postConstructorCallTransaction(ConstructorCallTransactionRequest request) {
-		// TODO Auto-generated method stub
-		
+	protected void postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
+		postInTendermintTransaction(request);
 	}
 
 	@Override
-	public void postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) {
-		// TODO Auto-generated method stub
-		
+	protected void postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
+		postInTendermintTransaction(request);
 	}
 
 	@Override
-	public void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) {
-		// TODO Auto-generated method stub
-		
+	protected void postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
+		postInTendermintTransaction(request);
 	}
 
 	@Override
@@ -331,10 +327,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	private TransactionReference executeInTendermintTransaction(TransactionRequest<?> request) throws Exception {
-		String response = tendermint.broadcastTxAsync(request);
-		String hash = extractHashFromBroadcastTxResponse(response);
-		TransactionReference transactionReference = extractTransactionReferenceFromTendermintResult(hash);
-		return transactionReference;
+		String hash = postInTendermintTransaction(request);
+		return extractTransactionReferenceFromTendermintResult(hash);
+	}
+
+	private String postInTendermintTransaction(TransactionRequest<?> request) throws IOException {
+		return extractHashFromBroadcastTxResponse(tendermint.broadcastTxAsync(request));
 	}
 
 	@Override
@@ -426,7 +424,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			try {
 				close();
 			}
-			catch (InterruptedException e) {
+			catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}));
