@@ -112,7 +112,7 @@ class RedGreenDistributor extends TakamakaTest {
 	void createDistributorAndTwoPayeesThenDistributes1000Red() throws TransactionException, CodeExecutionException {
 		StorageReference distributor = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR));
 
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			account(1),
 			_20_000,
 			BigInteger.ONE,
@@ -121,7 +121,7 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor
 		);
 
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			account(2),
 			_20_000,
 			BigInteger.ONE,
@@ -130,7 +130,7 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor
 		);
 
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			account(0),
 			_20_000,
 			BigInteger.ONE,
@@ -165,7 +165,7 @@ class RedGreenDistributor extends TakamakaTest {
 	void distributeRedCannotBeCalledFromNOnRedGreen() throws TransactionException, CodeExecutionException {
 		StorageReference distributor = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR));
 
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			account(1),
 			_20_000,
 			BigInteger.ONE,
@@ -174,7 +174,7 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor
 		);
 
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			account(2),
 			_20_000,
 			BigInteger.ONE,

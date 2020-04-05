@@ -31,6 +31,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.constants.Constants;
@@ -43,17 +44,17 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The number of bids placed by the players.
 	 */
-	private static final int NUM_BIDS = 10;
+	private static final int NUM_BIDS = 20;
 
 	/**
 	 * The bidding time of the experiments (in milliseconds).
 	 */
-	private static final int BIDDING_TIME = 60_000;
+	private static final int BIDDING_TIME = 40_000;
 
 	/**
 	 * The reveal time of the experiments (in millisecond).
 	 */
-	private static final int REVEAL_TIME = 80_000;
+	private static final int REVEAL_TIME = 60_000;
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
@@ -122,7 +123,7 @@ class BlindAuction extends TakamakaTest {
 			byte[] salt = new byte[32];
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-			addInstanceMethodCallTransaction(account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32);
+			postInstanceMethodCallTransaction(account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32);
 		}
 	}
 
@@ -143,7 +144,7 @@ class BlindAuction extends TakamakaTest {
 				random.nextBytes(salt);
 				StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
 				addInstanceMethodCallTransaction(account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32);
-				sleep(1000);
+				sleep(2000);
 			}
 		});
 	}
@@ -203,7 +204,7 @@ class BlindAuction extends TakamakaTest {
 
 			// we store the explicit bid in memory, not yet in blockchain, since it would be visible there
 			bids.add(new BidToReveal(player, value, fake, salt));
-			addInstanceMethodCallTransaction(account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32);
+			postInstanceMethodCallTransaction(account(player), _100_000, BigInteger.ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32);
 
         	i++;
 		}
@@ -220,22 +221,23 @@ class BlindAuction extends TakamakaTest {
 
 		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over
 		for (BidToReveal bid: bids)
-			addInstanceMethodCallTransaction(account(bid.player), _100_000, BigInteger.ONE, classpath, ADD, lists[bid.player], bid.intoBlockchain());
+			postInstanceMethodCallTransaction(account(bid.player), _100_000, BigInteger.ONE, classpath, ADD, lists[bid.player], bid.intoBlockchain());
 
 		for (int player = 1; player <= 3; player++)
-			addInstanceMethodCallTransaction(account(player), _10_000_000, BigInteger.ONE, classpath, REVEAL, auction, lists[player]);
+			postInstanceMethodCallTransaction(account(player), _10_000_000, BigInteger.ONE, classpath, REVEAL, auction, lists[player]);
 
 		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
 
 		// the winner can be a StorageReference but also a NullValue, if all bids were fake
 		StorageValue winner = addInstanceMethodCallTransaction(account(0), _100_000, BigInteger.ONE, classpath, AUCTION_END, auction);
+		if (winner instanceof NullValue)
+			winner = null;
 
 		assertEquals(expectedWinner, winner);
 	}
 
 	private void waitUntil(long duration, long start) throws TransactionException, CodeExecutionException {
 		while (System.currentTimeMillis() - start < duration) {
-			//System.out.println(System.currentTimeMillis() - start);
 			sleep(100);
 			// we need to perform dummy transactions, otherwise the blockchain time does not progress
 			addInstanceMethodCallTransaction(account(0), _100_000, BigInteger.ONE, classpath, GET_BALANCE, account(0));

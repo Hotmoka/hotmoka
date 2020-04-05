@@ -84,7 +84,7 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("new TicTacToe() then first player plays")
 	void crossPlays() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1, 
 			_200_000,
 			BigInteger.ONE,
@@ -107,7 +107,7 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("new TicTacToe(), first player plays, second player plays same position")
 	void bothPlaySamePosition() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1, 
 			_200_000,
 			BigInteger.ONE,
@@ -133,7 +133,7 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("new TicTacToe(), same player plays twice")
 	void samePlayerPlaysTwice() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1, 
 			_200_000,
 			BigInteger.ONE,
@@ -159,7 +159,7 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("new TicTacToe(), second player bets too little")
 	void circleBetsTooLittle() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1,
 			_200_000,
 			BigInteger.ONE,
@@ -185,7 +185,7 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("first player wins")
 	void crossWins() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1, 
 			_200_000,
 			BigInteger.ONE,
@@ -194,7 +194,7 @@ class TicTacToe extends TakamakaTest {
 			ticTacToe,
 			new LongValue(100L),
 			_1, _1);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player2,
 			_200_000,
 			BigInteger.ONE,
@@ -203,7 +203,7 @@ class TicTacToe extends TakamakaTest {
 			ticTacToe,
 			new LongValue(100L),
 			_2, _1);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1, 
 			_200_000,
 			BigInteger.ONE,
@@ -212,7 +212,7 @@ class TicTacToe extends TakamakaTest {
 			ticTacToe,
 			new LongValue(0L),
 			_1, _2);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player2,
 			_200_000,
 			BigInteger.ONE,
@@ -221,7 +221,7 @@ class TicTacToe extends TakamakaTest {
 			ticTacToe,
 			new LongValue(0L),
 			_2, _2);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1, 
 			_200_000,
 			BigInteger.ONE,
@@ -246,7 +246,7 @@ class TicTacToe extends TakamakaTest {
 	@Test @DisplayName("first player wins but second continues to play")
 	void crossWinsButCircleContinues() throws TransactionException, CodeExecutionException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1, 
 			_200_000,
 			BigInteger.ONE,
@@ -255,7 +255,7 @@ class TicTacToe extends TakamakaTest {
 			ticTacToe,
 			new LongValue(100L),
 			_1, _1);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player2,
 			_200_000,
 			BigInteger.ONE,
@@ -264,7 +264,7 @@ class TicTacToe extends TakamakaTest {
 			ticTacToe,
 			new LongValue(100L),
 			_2, _1);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1, 
 			_200_000,
 			BigInteger.ONE,
@@ -273,7 +273,7 @@ class TicTacToe extends TakamakaTest {
 			ticTacToe,
 			new LongValue(0L),
 			_1, _2);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player2,
 			_200_000,
 			BigInteger.ONE,
@@ -282,7 +282,7 @@ class TicTacToe extends TakamakaTest {
 			ticTacToe,
 			new LongValue(0L),
 			_2, _2);
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			player1, 
 			_200_000,
 			BigInteger.ONE,

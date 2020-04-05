@@ -228,10 +228,12 @@ class State implements AutoCloseable {
 
 	Optional<Stream<TransactionReference>> getHistoryOf(StorageReference object) {
 		if (txn != null && !txn.isFinished()) {
+			// we also consider not yet committed transactions
 			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
 			return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
 		}
 
+		// the transaction might be missing if this method is called as part of a view transaction that occurs after a commit
 		return env.computeInReadonlyTransaction(txn -> {
 			Store history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable old = history.get(txn, byteArraySerializationOf(object));

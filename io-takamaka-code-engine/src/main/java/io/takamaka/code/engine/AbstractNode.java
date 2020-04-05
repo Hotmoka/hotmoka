@@ -58,6 +58,8 @@ public abstract class AbstractNode implements SynchronousNode, AsynchronousNode 
 	 * given object, in reverse chronological order (from newest to oldest).
 	 * This stream is an over-approximation, hence it might also contain transactions
 	 * that did not affect the object, but it must include all that did it.
+	 * If the node has some form of commit, this history must include also
+	 * transactions executed but not yet committed.
 	 * 
 	 * @param object the object whose update history must be looked for
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
@@ -470,7 +472,6 @@ public abstract class AbstractNode implements SynchronousNode, AsynchronousNode 
 				return;
 	}
 
-	//for (SequentialTransactionReference cursor = getTopmostTransactionReference(); updates.size() <= eagerFields && !cursor.isOlderThan(object.transaction); cursor = cursor.getPrevious())
 	/**
 	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
 	 * occurred during the execution of a given transaction.

@@ -71,8 +71,8 @@ class SimplePyramidWithBalance extends TakamakaTest {
 	@Test @DisplayName("two investors do not get investment back yet")
 	void twoInvestors() throws TransactionException, CodeExecutionException {
 		StorageReference pyramid = addConstructorCallTransaction(players[0], _50_000, BigInteger.ZERO, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(players[1], _50_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(players[0], _50_000, BigInteger.ZERO, classpath, WITHDRAW, pyramid);
+		postInstanceMethodCallTransaction(players[1], _50_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(players[0], _50_000, BigInteger.ZERO, classpath, WITHDRAW, pyramid);
 		BigIntegerValue balance0 = (BigIntegerValue) addInstanceMethodCallTransaction(players[0], _50_000, BigInteger.ZERO, classpath, GET_BALANCE, players[0]);
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
@@ -80,9 +80,9 @@ class SimplePyramidWithBalance extends TakamakaTest {
 	@Test @DisplayName("with three investors the first gets its investment back")
 	void threeInvestors() throws TransactionException, CodeExecutionException {
 		StorageReference pyramid = addConstructorCallTransaction(players[0], _50_000, BigInteger.ZERO, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(players[1], _50_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(players[2], _50_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(players[0], _50_000, BigInteger.ZERO, classpath, WITHDRAW, pyramid);
+		postInstanceMethodCallTransaction(players[1], _50_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(players[2], _50_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(players[0], _50_000, BigInteger.ZERO, classpath, WITHDRAW, pyramid);
 		BigIntegerValue balance0 = (BigIntegerValue) addInstanceMethodCallTransaction(players[0], _50_000, BigInteger.ZERO, classpath, GET_BALANCE, players[0]);
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(201_000)) > 0);
 	}

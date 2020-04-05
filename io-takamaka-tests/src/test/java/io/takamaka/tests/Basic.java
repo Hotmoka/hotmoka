@@ -182,14 +182,14 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
 	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
 		addConstructorCallTransaction(eoa, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
 	void callInstanceMethod() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
 		StorageReference internationalTime = addConstructorCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40));
@@ -202,7 +202,7 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
 		StorageReference sub = addConstructorCallTransaction
 			(eoa, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4 receives 13 coins from an externally owned account with public balance"), addInstanceMethodCallTransaction
@@ -212,7 +212,7 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithLong() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(2000000));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(2000000));
 		StorageReference sub = addConstructorCallTransaction
 			(eoa, _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4_1 receives 13 coins from an externally owned account with public balance"),
@@ -223,7 +223,7 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException {
 		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
 		StorageReference sub = addConstructorCallTransaction(eoa, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4_2 receives 13 coins from an externally owned account with public balance"),
 			addInstanceMethodCallTransaction

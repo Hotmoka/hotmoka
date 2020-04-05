@@ -76,7 +76,7 @@ class Storage extends TakamakaTest {
 	@Test @DisplayName("new SimpleStorage().set(13) then get() == 13")
 	void set13ThenGet13() throws TransactionException, CodeExecutionException {
 		StorageReference storage = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_STORAGE);
-		addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13));
+		postInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13));
 		IntValue value = (IntValue) addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
 		assertEquals(value.value, 13);
 	}
@@ -84,8 +84,8 @@ class Storage extends TakamakaTest {
 	@Test @DisplayName("new SimpleStorage().set(13) then set(17) then get() == 17")
 	void set13set17ThenGet17() throws TransactionException, CodeExecutionException {
 		StorageReference storage = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_STORAGE);
-		addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13));
-		addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(17));
+		postInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13));
+		postInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(17));
 		IntValue value = (IntValue) addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
 		assertEquals(value.value, 17);
 	}
