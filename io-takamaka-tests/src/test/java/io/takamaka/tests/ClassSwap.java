@@ -23,6 +23,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.AsynchronousNode.JarStoreFuture;
 import io.hotmoka.nodes.DeserializationError;
 
 /**
@@ -60,13 +61,13 @@ class ClassSwap extends TakamakaTest {
 		mkBlockchain(ALL_FUNDS);
 		account = account(0);
 
-		TransactionReference c13 = addJarStoreTransaction
+		JarStoreFuture c13 = postJarStoreTransaction
 			(account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode());
 
 		TransactionReference c17 = addJarStoreTransaction
 			(account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c17.jar")), takamakaCode());
 
-		classpathC13 = new Classpath(c13, true);
+		classpathC13 = new Classpath(c13.get(), true);
 		classpathC17 = new Classpath(c17, true);
 	}
 

@@ -29,6 +29,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.AsynchronousNode;
 import io.hotmoka.nodes.AsynchronousNode.CodeExecutionFuture;
+import io.hotmoka.nodes.AsynchronousNode.JarStoreFuture;
 import io.hotmoka.nodes.NodeWithAccounts;
 import io.hotmoka.nodes.SynchronousNode;
 import io.hotmoka.tendermint.Config;
@@ -147,10 +148,19 @@ public abstract class TakamakaTest {
 		return node.runViewStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
+	protected final JarStoreFuture postJarStoreTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, byte[] jar, Classpath... dependencies) throws TransactionException {
+		if (node instanceof AsynchronousNode) {
+			BigInteger nonce = getNonceOf(caller, classpath);
+			return ((AsynchronousNode) node).postJarStoreTransaction(new JarStoreTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, jar, dependencies));
+		}
+		else
+			throw new IllegalStateException("can only call postJarStoreTransaction() on an asynchronous node");
+	}
+
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	protected final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException {
 		if (node instanceof AsynchronousNode) {
 			BigInteger nonce = getNonceOf(caller, classpath);
 			return ((AsynchronousNode) node).postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals));
@@ -162,7 +172,7 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	protected final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException {
 		if (node instanceof AsynchronousNode) {
 			BigInteger nonce = getNonceOf(caller, classpath);
 			return ((AsynchronousNode) node).postConstructorCallTransaction(new ConstructorCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, constructor, actuals));

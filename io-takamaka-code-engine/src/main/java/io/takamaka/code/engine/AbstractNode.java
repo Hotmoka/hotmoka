@@ -362,8 +362,8 @@ public abstract class AbstractNode implements SynchronousNode, AsynchronousNode 
 	protected abstract StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception;	
 
 	@Override
-	public final void postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
-		wrapInCaseOfException(() -> postJarStoreTransactionInternal(request));
+	public final JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
+		return wrapInCaseOfException(() -> postJarStoreTransactionInternal(request));
 	}
 
 	/**
@@ -376,7 +376,7 @@ public abstract class AbstractNode implements SynchronousNode, AsynchronousNode 
 	 * @param request the transaction request
 	 * @throws Exception if an error prevented the transaction from being posted
 	 */
-	protected abstract void postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception;
+	protected abstract JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception;
 
 	@Override
 	public final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException {

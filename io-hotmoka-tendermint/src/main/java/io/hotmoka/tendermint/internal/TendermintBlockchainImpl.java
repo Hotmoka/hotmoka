@@ -306,11 +306,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	protected void postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
-		postInTendermintTransaction(request);
-	}
-
-	@Override
 	protected void postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
 		postInTendermintTransaction(request);
 	}
@@ -398,6 +393,41 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	protected StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
 		// this is executed in the node itself, not sent to Tendermint
 		return Transaction.mkForView(request, abci.getNextTransaction(), this).getResponse().getOutcome();
+	}
+
+	@Override
+	protected JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
+		String hash = postInTendermintTransaction(request);
+
+		return new JarStoreFuture() {
+			private JarStoreTransactionResponse response;
+			private TransactionReference transactionReference;
+
+			@Override
+			public TransactionReference get() throws TransactionException {
+				if (response == null) {
+					transactionReference = extractTransactionReferenceFromTendermintResult(hash);
+					response = (JarStoreTransactionResponse) state.getResponseOf(transactionReference).get();
+				}
+	
+				return response.getOutcomeAt(transactionReference);
+			}
+
+			@Override
+			public TransactionReference get(long timeout, TimeUnit unit) throws TransactionException, TimeoutException {
+				if (response == null) {
+					transactionReference = extractTransactionReferenceFromTendermintResult(hash);
+					response = (JarStoreTransactionResponse) state.getResponseOf(transactionReference).get();
+				}
+
+				return response.getOutcomeAt(transactionReference);
+			}
+
+			@Override
+			public String id() {
+				return hash;
+			}
+		};
 	}
 
 	@Override

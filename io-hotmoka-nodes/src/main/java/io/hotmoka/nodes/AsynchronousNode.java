@@ -28,9 +28,10 @@ public interface AsynchronousNode extends Node {
 	 * Otherwise, the transaction will be rejected and not added to this node's store.
 	 * 
 	 * @param request the transaction request
+	 * @return the future holding the reference to the transaction where the jar has been installed
 	 * @throws TransactionException if an error prevented the transaction from being posted
 	 */
-	void postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException ;
+	JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException ;
 
 	/**
 	 * Posts a transaction that runs a constructor of a class in this node.
@@ -136,7 +137,7 @@ public interface AsynchronousNode extends Node {
 	/**
 	 * The future of a transaction that stores a jar in blockchain.
 	 */
-	interface JasStoreFuture {
+	interface JarStoreFuture {
 
 		/**
 	     * Waits if necessary for the transaction to complete, and then retrieves its result.

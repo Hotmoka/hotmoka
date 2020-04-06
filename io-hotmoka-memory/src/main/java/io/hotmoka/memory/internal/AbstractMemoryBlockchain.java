@@ -256,11 +256,32 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	protected void postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
+	protected JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
 		TransactionReference transactionReference = getNextTransaction();
 		Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> transaction = Transaction.mkFor(request, transactionReference, this);
 		expandStoreWith(transaction);
-		transaction.getResponse().getOutcomeAt(transactionReference);
+		JarStoreTransactionResponse response = transaction.getResponse();
+
+		String hash = String.valueOf(id);
+		id = id.add(BigInteger.ONE);
+
+		return new JarStoreFuture() {
+
+			@Override
+			public TransactionReference get() throws TransactionException {
+				return response.getOutcomeAt(transactionReference);
+			}
+
+			@Override
+			public TransactionReference get(long timeout, TimeUnit unit) throws TransactionException, TimeoutException {
+				return response.getOutcomeAt(transactionReference);
+			}
+
+			@Override
+			public String id() {
+				return hash;
+			}
+		};
 	}
 
 	@Override

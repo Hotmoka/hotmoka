@@ -6,8 +6,11 @@ package io.takamaka.tests;
 import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -89,22 +92,22 @@ class StorageMap extends TakamakaTest {
 
 	@Test @DisplayName("new StorageMap().put(k,v) then get(k) yields v")
 	void putThenGet() throws TransactionException, CodeExecutionException {
-		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		postInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map, eoa, ONE);
-		BigIntegerValue get = (BigIntegerValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa);
+		postInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa, ONE);
+		BigIntegerValue get = (BigIntegerValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa);
 
 		assertEquals(ONE, get);
 	}
 
 	@Test @DisplayName("new StorageMap().put(k1,v) then get(k2) yields null")
 	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException {
-		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
-		StorageReference eoa1 = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		StorageReference eoa2 = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		postInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map, eoa1, ONE);
+		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		CodeExecutionFuture<StorageReference> eoa1 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		CodeExecutionFuture<StorageReference> eoa2 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		postInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa1.get(), ONE);
 		StorageValue get = (StorageValue) addInstanceMethodCallTransaction
-			(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map, eoa2);
+			(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa2.get());
 
 		assertEquals(NullValue.INSTANCE, get);
 	}
@@ -124,13 +127,15 @@ class StorageMap extends TakamakaTest {
 	void put100RandomThenSize() throws TransactionException, CodeExecutionException {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
+		CodeExecutionFuture<?> accounts[] = new CodeExecutionFuture<?>[100];
+		for (int i = 0; i < 100; i++)
+			accounts[i] = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+
 		Random random = new Random();
 		VoidMethodSignature put = new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT);
-		for (int i = 0; i < 100; i++) {
-			StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		for (int i = 0; i < 100; i++)
 			postInstanceMethodCallTransaction
-				(gamete, _100_000, BigInteger.ONE, classpath, put, map.get(), eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
-		}
+				(gamete, _100_000, BigInteger.ONE, classpath, put, map.get(), accounts[i].get(), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map.get());
 
@@ -139,16 +144,16 @@ class StorageMap extends TakamakaTest {
 
 	@Test @DisplayName("new StorageMap() put 100 times the same key then size is 1")
 	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException {
-		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 
 		Random random = new Random();
 		for (int i = 0; i < 100; i++)
 			postInstanceMethodCallTransaction
 				(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
+					map.get(), eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
-		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);
+		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map.get());
 
 		assertEquals(1, size.value);
 	}
@@ -191,40 +196,47 @@ class StorageMap extends TakamakaTest {
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys then remove the last then size is 99")
 	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException {
-		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
-		StorageReference eoa;
+		CodeExecutionFuture<?> accounts[] = new CodeExecutionFuture<?>[100];
+		for (int i = 0; i < 100; i++)
+			accounts[i] = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+
 		Random random = new Random();
 		int i = 0;
 		do {
-			eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 			postInstanceMethodCallTransaction
 				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
+					map.get(), accounts[i].get(), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 		}
 		while (++i < 100);
 
-		postInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "remove", ClassType.OBJECT), map, eoa);
-		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);
+		postInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "remove", ClassType.OBJECT), map.get(), accounts[random.nextInt(100)].get());
+		IntValue size = (IntValue) addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map.get());
 
 		assertEquals(99, size.value);
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys and checks contains after each put")
 	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException {
-		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
+
+		CodeExecutionFuture<?> accounts[] = new CodeExecutionFuture<?>[100];
+		for (int i = 0; i < 100; i++)
+			accounts[i] = postConstructorCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+
+		List<CodeExecutionFuture<?>> results = new ArrayList<>();
 
 		Random random = new Random();
 		for (int i = 0; i < 100; i++) {
-			StorageReference eoa = addConstructorCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-
 			postInstanceMethodCallTransaction
 				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
+					map.get(), accounts[i].get(), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
-			BooleanValue contains = (BooleanValue) addInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "contains", BOOLEAN, ClassType.OBJECT), map, eoa);
-
-			assertEquals(true, contains.value);
+			results.add(postInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "contains", BOOLEAN, ClassType.OBJECT), map.get(), accounts[i].get()));
 		}
+
+		for (CodeExecutionFuture<?> result: results)
+			assertTrue(((BooleanValue) result.get()).value);
 	}
 }

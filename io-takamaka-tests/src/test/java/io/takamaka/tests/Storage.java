@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -54,30 +53,28 @@ class Storage extends TakamakaTest {
 	void beforeEach() throws Exception {
 		mkBlockchain(ALL_FUNDS);
 		gamete = account(0);
-
-		TransactionReference storage = addJarStoreTransaction(gamete, _20_000, BigInteger.ONE, takamakaCode(), bytesOf("storage.jar"), takamakaCode());
-		classpath = new Classpath(storage, true);
+		classpath = new Classpath(addJarStoreTransaction(gamete, _20_000, BigInteger.ONE, takamakaCode(), bytesOf("storage.jar"), takamakaCode()), true);
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() is an int")
 	void neverInitializedStorageYieldsInt() throws TransactionException, CodeExecutionException {
 		StorageReference storage = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_STORAGE);
-		StorageValue value = addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
+		StorageValue value = runViewInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
 		assertTrue(value instanceof IntValue);
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() == 0")
 	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException {
 		StorageReference storage = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_STORAGE);
-		IntValue value = (IntValue) addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
+		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
 		assertEquals(value.value, 0);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then get() == 13")
 	void set13ThenGet13() throws TransactionException, CodeExecutionException {
 		StorageReference storage = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_STORAGE);
-		postInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13));
-		IntValue value = (IntValue) addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
+		addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13));
+		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
 		assertEquals(value.value, 13);
 	}
 
@@ -85,8 +82,8 @@ class Storage extends TakamakaTest {
 	void set13set17ThenGet17() throws TransactionException, CodeExecutionException {
 		StorageReference storage = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_STORAGE);
 		postInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(13));
-		postInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(17));
-		IntValue value = (IntValue) addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
+		addInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE_STORAGE, "set", INT), storage, new IntValue(17));
+		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT), storage);
 		assertEquals(value.value, 17);
 	}
 }
