@@ -20,6 +20,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.AsynchronousNode.CodeExecutionFuture;
 
 /**
  * A test for the remote purchase contract.
@@ -59,7 +60,7 @@ class RedGreenDistributor extends TakamakaTest {
 	void createDistributorAndTwoPayees() throws TransactionException, CodeExecutionException {
 		StorageReference distributor = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR));
 
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			account(1),
 			_20_000,
 			BigInteger.ONE,
@@ -68,7 +69,7 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor
 		);
 
-		addInstanceMethodCallTransaction(
+		postInstanceMethodCallTransaction(
 			account(2),
 			_20_000,
 			BigInteger.ONE,
@@ -86,7 +87,7 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
 		);
 
-		BigIntegerValue balanceRed1 = (BigIntegerValue) addInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed1 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
 			account(0),
 			_20_000,
 			BigInteger.ONE,
@@ -95,7 +96,7 @@ class RedGreenDistributor extends TakamakaTest {
 			account(1)
 		);
 
-		BigIntegerValue balanceRed2 = (BigIntegerValue) addInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed2 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
 			account(0),
 			_20_000,
 			BigInteger.ONE,
@@ -130,7 +131,7 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor
 		);
 
-		postInstanceMethodCallTransaction(
+		addInstanceMethodCallTransaction(
 			account(0),
 			_20_000,
 			BigInteger.ONE,
@@ -139,7 +140,7 @@ class RedGreenDistributor extends TakamakaTest {
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
 		);
 
-		BigIntegerValue balanceRed1 = (BigIntegerValue) addInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed1 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
 			account(0),
 			_20_000,
 			BigInteger.ONE,
@@ -148,7 +149,7 @@ class RedGreenDistributor extends TakamakaTest {
 			account(1)
 		);
 
-		BigIntegerValue balanceRed2 = (BigIntegerValue) addInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed2 = (BigIntegerValue) runViewInstanceMethodCallTransaction(
 			account(0),
 			_20_000,
 			BigInteger.ONE,
@@ -163,27 +164,9 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@Test @DisplayName("distributeRed() cannot be called from an externally owned account that is not red/green")
 	void distributeRedCannotBeCalledFromNOnRedGreen() throws TransactionException, CodeExecutionException {
-		StorageReference distributor = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR));
+		CodeExecutionFuture<StorageReference> distributor = postConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(DISTRIBUTOR));
 
-		postInstanceMethodCallTransaction(
-			account(1),
-			_20_000,
-			BigInteger.ONE,
-			classpath,
-			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
-			distributor
-		);
-
-		postInstanceMethodCallTransaction(
-			account(2),
-			_20_000,
-			BigInteger.ONE,
-			classpath,
-			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
-			distributor
-		);
-
-		StorageReference eoa = addConstructorCallTransaction(
+		CodeExecutionFuture<StorageReference> eoa = postConstructorCallTransaction(
 			account(0),
 			_20_000,
 			BigInteger.ONE,
@@ -192,14 +175,32 @@ class RedGreenDistributor extends TakamakaTest {
 			new BigIntegerValue(_20_000)
 		);
 
+		postInstanceMethodCallTransaction(
+			account(1),
+			_20_000,
+			BigInteger.ONE,
+			classpath,
+			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
+			distributor.get()
+		);
+
+		postInstanceMethodCallTransaction(
+			account(2),
+			_20_000,
+			BigInteger.ONE,
+			classpath,
+			new VoidMethodSignature(DISTRIBUTOR, "addAsPayee"),
+			distributor.get()
+		);
+
 		throwsTransactionException(() ->
 			addInstanceMethodCallTransaction(
-				eoa,
+				eoa.get(),
 				_20_000,
 				BigInteger.ONE,
 				classpath,
 				new VoidMethodSignature(DISTRIBUTOR, "distributeRed", ClassType.BIG_INTEGER),
-				distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
+				distributor.get(), new BigIntegerValue(BigInteger.valueOf(1_000))
 			)
 		);
 	}

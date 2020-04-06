@@ -142,8 +142,7 @@ class Lambdas extends TakamakaTest {
 	void testConcatenation() throws TransactionException, CodeExecutionException {
 		StorageReference lambdas = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		StringValue result = (StringValue) addInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath,
-					new NonVoidMethodSignature(LAMBDAS, "concatenation", ClassType.STRING,
-					ClassType.STRING, ClassType.OBJECT, LAMBDAS, BasicTypes.LONG, INT),
+			new NonVoidMethodSignature(LAMBDAS, "concatenation", ClassType.STRING, ClassType.STRING, ClassType.OBJECT, LAMBDAS, BasicTypes.LONG, INT),
 			lambdas,
 			new StringValue("hello"), new StringValue("hi"), lambdas, new LongValue(1973L), new IntValue(13));
 

@@ -379,8 +379,8 @@ public abstract class AbstractNode implements SynchronousNode, AsynchronousNode 
 	protected abstract void postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception;
 
 	@Override
-	public final void postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException {
-		wrapInCaseOfException(() -> postConstructorCallTransactionInternal(request));
+	public final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException {
+		return wrapInCaseOfException(() -> postConstructorCallTransactionInternal(request));
 	}
 
 	/**
@@ -396,13 +396,14 @@ public abstract class AbstractNode implements SynchronousNode, AsynchronousNode 
 	 * and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the request of the transaction
+	 * @return the future holding the result of the computation
 	 * @throws Exception if an error prevented the transaction from being posted
 	 */
-	protected abstract void postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception;
+	protected abstract CodeExecutionFuture<StorageReference> postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception;
 
 	@Override
-	public final void postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException {
-		wrapInCaseOfException(() -> postInstanceMethodCallTransactionInternal(request));
+	public final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException {
+		return wrapInCaseOfException(() -> postInstanceMethodCallTransactionInternal(request));
 	}
 
 	/**
@@ -417,9 +418,10 @@ public abstract class AbstractNode implements SynchronousNode, AsynchronousNode 
 	 * the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the transaction request
+	 * @return the future holding the result of the transaction
 	 * @throws Exception if an error prevented the transaction from being posted
 	 */
-	protected abstract void postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception;
+	protected abstract CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception;
 
 	@Override
 	public final void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException {

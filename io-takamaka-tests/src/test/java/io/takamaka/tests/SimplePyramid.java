@@ -67,8 +67,8 @@ class SimplePyramid extends TakamakaTest {
 	@Test @DisplayName("two investors do not get investment back yet")
 	void twoInvestors() throws TransactionException, CodeExecutionException {
 		StorageReference pyramid = addConstructorCallTransaction(players[0], _10_000, BigInteger.ZERO, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		postInstanceMethodCallTransaction(players[1], _10_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
-		BigIntegerValue balance0 = (BigIntegerValue) addInstanceMethodCallTransaction(players[0], _10_000, BigInteger.ZERO, classpath, GET_BALANCE, players[0]);
+		addInstanceMethodCallTransaction(players[1], _10_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(players[0], _10_000, BigInteger.ZERO, classpath, GET_BALANCE, players[0]);
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
@@ -76,8 +76,8 @@ class SimplePyramid extends TakamakaTest {
 	void threeInvestors() throws TransactionException, CodeExecutionException {
 		StorageReference pyramid = addConstructorCallTransaction(players[0], _10_000, BigInteger.ZERO, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		postInstanceMethodCallTransaction(players[1], _10_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
-		postInstanceMethodCallTransaction(players[2], _20_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
-		BigIntegerValue balance0 = (BigIntegerValue) addInstanceMethodCallTransaction(players[0], _10_000, BigInteger.ZERO, classpath, GET_BALANCE, players[0]);
+		addInstanceMethodCallTransaction(players[2], _20_000, BigInteger.ZERO, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(players[0], _10_000, BigInteger.ZERO, classpath, GET_BALANCE, players[0]);
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(201_000)) >= 0);
 	}
 }

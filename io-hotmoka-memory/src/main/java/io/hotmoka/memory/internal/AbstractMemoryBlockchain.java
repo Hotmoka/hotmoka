@@ -19,8 +19,11 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
@@ -107,6 +110,11 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	 * True if and only if this node doesn't allow initial transactions anymore.
 	 */
 	private boolean initialized;
+
+	/**
+	 * The identifier that can be used in futures of posted transactions.
+	 */
+	private BigInteger id = BigInteger.ONE;
 
 	/**
 	 * Builds a blockchain that stores transaction in disk memory.
@@ -256,17 +264,57 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	protected void postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
+	protected CodeExecutionFuture<StorageReference> postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
 		Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 		expandStoreWith(transaction);
-		transaction.getResponse().getOutcome();
+		ConstructorCallTransactionResponse response = transaction.getResponse();
+		String hash = String.valueOf(id);
+		id = id.add(BigInteger.ONE);
+
+		return new CodeExecutionFuture<StorageReference>() {
+
+			@Override
+			public StorageReference get() throws TransactionException, CodeExecutionException {
+				return response.getOutcome();
+			}
+
+			@Override
+			public StorageReference get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
+				return response.getOutcome();
+			}
+
+			@Override
+			public String id() {
+				return hash;
+			}
+		};
 	}
 
 	@Override
-	protected void postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
+	protected CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
 		Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 		expandStoreWith(transaction);
-		transaction.getResponse().getOutcome();
+		MethodCallTransactionResponse response = transaction.getResponse();
+		String hash = String.valueOf(id);
+		id = id.add(BigInteger.ONE);
+
+		return new CodeExecutionFuture<StorageValue>() {
+
+			@Override
+			public StorageValue get() throws TransactionException, CodeExecutionException {
+				return response.getOutcome();
+			}
+
+			@Override
+			public StorageValue get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
+				return response.getOutcome();
+			}
+
+			@Override
+			public String id() {
+				return hash;
+			}
+		};
 	}
 
 	@Override

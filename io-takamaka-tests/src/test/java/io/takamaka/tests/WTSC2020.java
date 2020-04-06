@@ -73,10 +73,10 @@ class WTSC2020 extends TakamakaTest {
 		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		postInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) addInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, classpath, GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, classpath, GET_BALANCE, account(0));
 
 		// no money back yet
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(19980000)) <= 0);
@@ -91,10 +91,10 @@ class WTSC2020 extends TakamakaTest {
 		postInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		postInstanceMethodCallTransaction(account(2), _20_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(account(2), _20_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) addInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, classpath, GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, classpath, GET_BALANCE, account(0));
 
 		// the money is back!
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(19990000)) > 0);
@@ -112,10 +112,10 @@ class WTSC2020 extends TakamakaTest {
 		postInstanceMethodCallTransaction(account(2), _20_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(1) invests again and becomes the most frequent investor
-		postInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks which is the most frequent investor class
-		StringValue result = (StringValue) addInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, classpath, MOST_FREQUENT_INVESTOR_CLASS, pyramid);
+		StringValue result = (StringValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, classpath, MOST_FREQUENT_INVESTOR_CLASS, pyramid);
 
 		assertEquals(ClassType.TEOA.name, result.value);
 	}
@@ -133,9 +133,9 @@ class WTSC2020 extends TakamakaTest {
 		postInstanceMethodCallTransaction(account(2), _20_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(1) invests again and becomes the most frequent investor
-		postInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, classpath, INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks who is the most frequent investor
-		addInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, classpath, MOST_FREQUENT_INVESTOR, pyramid);
+		runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, classpath, MOST_FREQUENT_INVESTOR, pyramid);
 	}
 }
