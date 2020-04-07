@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -43,7 +44,7 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The number of bids placed by the players.
 	 */
-	private static final int NUM_BIDS = 20;
+	private static final int NUM_BIDS = 15;
 
 	/**
 	 * The bidding time of the experiments (in milliseconds).
@@ -53,7 +54,7 @@ class BlindAuction extends TakamakaTest {
 	/**
 	 * The reveal time of the experiments (in millisecond).
 	 */
-	private static final int REVEAL_TIME = 60_000;
+	private static final int REVEAL_TIME = 20_000;
 
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 
@@ -147,6 +148,7 @@ class BlindAuction extends TakamakaTest {
 		private final BigInteger value;
 		private final boolean fake;
 		private final byte[] salt;
+		private CodeExecutionFuture<StorageReference> bytes32;
 
 		private BidToReveal(int player, BigInteger value, boolean fake, byte[] salt) {
 			this.player = player;
@@ -155,9 +157,22 @@ class BlindAuction extends TakamakaTest {
 			this.salt = salt;
 		}
 
-		private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException {
-			return addConstructorCallTransaction
-        		(account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), createBytes32(player, salt));
+		private CodeExecutionFuture<StorageReference> intoBlockchain() throws TransactionException, CodeExecutionException {
+			return postConstructorCallTransaction
+        		(account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), bytes32.get());
+		}
+
+		private void createBytes32() throws TransactionException {
+			this.bytes32 = postConstructorCallTransaction
+				(account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32,
+					new ByteValue(salt[0]), new ByteValue(salt[1]), new ByteValue(salt[2]), new ByteValue(salt[3]),
+					new ByteValue(salt[4]), new ByteValue(salt[5]), new ByteValue(salt[6]), new ByteValue(salt[7]),
+					new ByteValue(salt[8]), new ByteValue(salt[9]), new ByteValue(salt[10]), new ByteValue(salt[11]),
+					new ByteValue(salt[12]), new ByteValue(salt[13]), new ByteValue(salt[14]), new ByteValue(salt[15]),
+					new ByteValue(salt[16]), new ByteValue(salt[17]), new ByteValue(salt[18]), new ByteValue(salt[19]),
+					new ByteValue(salt[20]), new ByteValue(salt[21]), new ByteValue(salt[22]), new ByteValue(salt[23]),
+					new ByteValue(salt[24]), new ByteValue(salt[25]), new ByteValue(salt[26]), new ByteValue(salt[27]),
+					new ByteValue(salt[28]), new ByteValue(salt[29]), new ByteValue(salt[30]), new ByteValue(salt[31]));
 		}
 	}
 
@@ -209,8 +224,16 @@ class BlindAuction extends TakamakaTest {
 		};
 
 		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over
+		List<CodeExecutionFuture<?>> revealedBids = new ArrayList<>();
 		for (BidToReveal bid: bids)
-			postInstanceMethodCallTransaction(account(bid.player), _100_000, BigInteger.ONE, jar(), ADD, (StorageReference) lists[bid.player].get(), bid.intoBlockchain());
+			bid.createBytes32();
+
+		for (BidToReveal bid: bids)
+			revealedBids.add(bid.intoBlockchain());
+
+		Iterator<CodeExecutionFuture<?>> it = revealedBids.iterator();
+		for (BidToReveal bid: bids)
+			postInstanceMethodCallTransaction(account(bid.player), _100_000, BigInteger.ONE, jar(), ADD, (StorageReference) lists[bid.player].get(), it.next().get());
 
 		for (int player = 1; player <= 3; player++)
 			postInstanceMethodCallTransaction(account(player), _10_000_000, BigInteger.ONE, jar(), REVEAL, auction.get(), lists[player].get());
