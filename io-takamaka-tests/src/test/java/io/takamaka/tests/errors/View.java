@@ -12,8 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -28,45 +26,34 @@ class View extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain(_1_000_000_000);
-	}
-
-	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, IOException {
-		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("view.jar"), takamakaCode());
+		mkBlockchain("view.jar", _1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar then call to View.no1() fails")
 	void callNo1() throws TransactionException, IOException, CodeExecutionException {
-		TransactionReference view = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("view.jar"), takamakaCode());
-		Classpath classpath = new Classpath(view, true);
-		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.errors.view.C"));
+		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
-			runViewInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, new Classpath(view, true),
+			runViewInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, jar(),
 				new NonVoidMethodSignature("io.takamaka.tests.errors.view.C", "no1", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 				c, new IntValue(13), new IntValue(17)));
 	}
 
 	@Test @DisplayName("install jar then call to View.no2() fails")
 	void callNo2() throws TransactionException, IOException, CodeExecutionException {
-		TransactionReference view = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("view.jar"), takamakaCode());
-		Classpath classpath = new Classpath(view, true);
-		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.errors.view.C"));
+		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
 		TakamakaTest.throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
-			runViewInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, new Classpath(view, true),
+			runViewInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, jar(),
 				new NonVoidMethodSignature("io.takamaka.tests.errors.view.C", "no2", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 				c, new IntValue(13), new IntValue(17)));
 	}
 
 	@Test @DisplayName("install jar then call to View.yes() succeeds")
 	void callYes() throws TransactionException, IOException, CodeExecutionException {
-		TransactionReference view = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("view.jar"), takamakaCode());
-		Classpath classpath = new Classpath(view, true);
-		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.errors.view.C"));
+		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
-		runViewInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, new Classpath(view, true),
+		runViewInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature("io.takamaka.tests.errors.view.C", "yes", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 			c, new IntValue(13), new IntValue(17));
 	}

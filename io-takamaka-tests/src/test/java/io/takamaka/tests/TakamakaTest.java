@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +31,7 @@ import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.AsynchronousNode;
 import io.hotmoka.nodes.AsynchronousNode.CodeExecutionFuture;
 import io.hotmoka.nodes.AsynchronousNode.JarStoreFuture;
-import io.hotmoka.nodes.NodeWithAccounts;
+import io.hotmoka.nodes.InitializedNode;
 import io.hotmoka.nodes.SynchronousNode;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -42,7 +43,7 @@ public abstract class TakamakaTest {
 	/**
 	 * The node under test. This is recreated before each test.
 	 */
-	private NodeWithAccounts node;
+	private InitializedNode node;
 
 	/**
 	 * The nonce of each externally owned account used in the test.
@@ -54,8 +55,7 @@ public abstract class TakamakaTest {
 	}
 
 	/**
-	 * Change in order to specify the default blockchain to use in tests, when not
-	 * explicitly required otherwise.
+	 * Change in order to specify the default blockchain to use in tests.
 	 */
 	protected final void mkBlockchain(BigInteger... coins) throws Exception {
 		//Config config = new Config(Paths.get("chain"), 26657, 26658);
@@ -69,6 +69,18 @@ public abstract class TakamakaTest {
 		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
+	protected final void mkBlockchain(String jar, BigInteger... coins) throws Exception {
+		//Config config = new Config(Paths.get("chain"), 26657, 26658);
+		//node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+	}
+
+	protected final void mkRedGreenBlockchain(String jar, BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
+		//Config config = new Config(Paths.get("chain"), 26657, 26658);
+		//node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+	}
+
 	@AfterEach
 	void afterEach() throws Exception {
 		node.close();
@@ -76,6 +88,10 @@ public abstract class TakamakaTest {
 
 	protected final Classpath takamakaCode() {
 		return node.takamakaCode();
+	}
+
+	protected final Classpath jar() {
+		return node.jar().get();
 	}
 
 	protected final StorageReference account(int i) {
@@ -182,7 +198,11 @@ public abstract class TakamakaTest {
 	}
 
 	protected static byte[] bytesOf(String fileName) throws IOException {
-		return Files.readAllBytes(Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-" + fileName));
+		return Files.readAllBytes(pathOfExample(fileName));
+	}
+
+	protected static Path pathOfExample(String fileName) {
+		return Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-" + fileName);
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {

@@ -3,6 +3,7 @@ package io.takamaka.tests.basicdependency;
 import java.math.BigInteger;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 
 public class Wrapper extends Storage {
 	private final Time time;
@@ -21,7 +22,7 @@ public class Wrapper extends Storage {
 		this.l = l;
 	}
 
-	@Override
+	@Override @View
 	public String toString() {
 		return "wrapper(" + time + "," + s + "," + bi + "," + l + ")";
 	}

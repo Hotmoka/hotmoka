@@ -23,8 +23,7 @@ class IllegalCallToNonWhiteListedMethod11 extends TakamakaTest {
 	@Test @DisplayName("System.currentTimeMillis()")
 	void testNonWhiteListedCall() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addStaticMethodCallTransaction
-				(account(0), _20_000, BigInteger.ONE, takamakaCode(), new NonVoidMethodSignature(System.class.getName(), "currentTimeMillis", BasicTypes.LONG))
+			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), new NonVoidMethodSignature(System.class.getName(), "currentTimeMillis", BasicTypes.LONG))
 		);
 	}
 }

@@ -76,23 +76,29 @@ class State implements AutoCloseable {
     private final static ByteIterable TAKAMAKA_CODE = ArrayByteIterable.fromByte((byte) 0);
 
     /**
+     * The key used inside the {@code INFO} store to keep the transaction reference
+     * that installed a user jar in blockchain, if any. This is mainly used to simplify the tests.
+     */
+    private final static ByteIterable JAR = ArrayByteIterable.fromByte((byte) 1);
+
+    /**
      * The key used inside the {@code INFO} store to keep the storage references
      * of the initial accounts in blockchain, created in the constructor of
      * {@linkplain io.hotmoka.tendermint.internal.TendermintBlockchainImpl}.
      * This is an array of storage references, from the first account to the last account.
      */
-    private final static ByteIterable ACCOUNTS = ArrayByteIterable.fromByte((byte) 1);
+    private final static ByteIterable ACCOUNTS = ArrayByteIterable.fromByte((byte) 2);
 
     /**
      * The key used inside the {@code INFO} store to keep the number of
      * commits executed with this state.
      */
-    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 2);
+    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 3);
 
     /**
      * The key used inside the {@code INFO} store to know if the blockchain is initialized.
      */
-    private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 3);
+    private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 4);
 
     /**
      * Creates a state that gets persisted inside the given directory.
@@ -191,6 +197,16 @@ class State implements AutoCloseable {
 	}
 
 	/**
+	 * Puts in state the classpath of the transaction that installed a user jar in blockchain.
+	 * This might be missing and is mainly used to simplify the tests.
+	 * 
+	 * @param takamakaCode the classpath
+	 */
+	void putJar(Classpath jar) {
+		env.executeInTransaction(txn -> info.put(txn, JAR, byteArraySerializationOf(jar)));
+	}
+
+	/**
 	 * Puts in state the storage reference to a new initial account.
 	 * 
 	 * @param account the storage reference of the account to add
@@ -213,7 +229,6 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponseOf(TransactionReference transactionReference) {
-		//TODO
 		if (txn != null && !txn.isFinished()) {
 			ByteIterable response = responses.get(txn, compactByteArraySerializationOf(transactionReference));
 			return response == null ? Optional.empty() : Optional.of((TransactionResponse) deserializationOf(response));
@@ -278,6 +293,20 @@ class State implements AutoCloseable {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable takamakaCode = info.get(txn, TAKAMAKA_CODE);
 			return takamakaCode == null ? Optional.empty() : Optional.of((Classpath) deserializationOf(takamakaCode));
+		});
+	}
+
+	/**
+	 * Yields the classpath of a user jar installed in blockchain, if any.
+	 * This is mainly used to simplify the tests.
+	 * 
+	 * @return the classpath
+	 */
+	Optional<Classpath> getJar() {
+		return env.computeInReadonlyTransaction(txn -> {
+			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+			ByteIterable jar = info.get(txn, JAR);
+			return jar == null ? Optional.empty() : Optional.of((Classpath) deserializationOf(jar));
 		});
 	}
 

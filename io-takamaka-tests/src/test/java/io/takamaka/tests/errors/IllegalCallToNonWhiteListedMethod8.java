@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.NonWhiteListedCallException;
@@ -22,16 +20,13 @@ class IllegalCallToNonWhiteListedMethod8 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain(_1_000_000_000);
+		mkBlockchain("illegalcalltononwhitelistedmethod8.jar", _1_000_000_000);
 	}
 
 	@Test @DisplayName("C.foo()")
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
-		TransactionReference jar = addJarStoreTransaction
-			(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltononwhitelistedmethod8.jar"), takamakaCode());
-
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, new Classpath(jar, true),
+			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, jar(),
 				new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.illegalcalltononwhitelistedmethod8.C"), "foo", ClassType.STRING))
 		);
 	}

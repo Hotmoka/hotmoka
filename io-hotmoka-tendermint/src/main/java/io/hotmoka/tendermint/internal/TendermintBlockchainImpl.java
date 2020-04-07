@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -70,6 +71,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	private final Classpath takamakaCode;
 
 	/**
+	 * The classpath of a user jar that has been installed, if any.
+	 * This jar is typically referred to at construction time of the node.
+	 */
+	private final Classpath jar;
+
+	/**
 	 * The accounts created during initialization.
 	 * This is copy of the information in the state, for efficiency.
 	 */
@@ -103,12 +110,14 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
+	 * @param jar the path of a jar that must be installed after the creation of the gamete. This is optional and mainly
+	 *            useful to simplify the implementation of tests
 	 * @param funds the initial funds of the accounts that are created
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
 	 */
-	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
 		this.abci = new ABCI(this);
 		deleteDir(config.dir);
 
@@ -128,11 +137,20 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 			StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
 
+			BigInteger nonce = BigInteger.ZERO;
+			JarStoreFuture jarFuture;
+
+			if (jar.isPresent()) {
+				jarFuture = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
+				nonce = nonce.add(BigInteger.ONE);
+			}
+			else
+				jarFuture = null;
+
 			// let us create the accounts
 			this.accounts = new StorageReference[funds.length];
 			ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
 			BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
-			BigInteger nonce = BigInteger.ZERO;
 			List<CodeExecutionFuture<StorageReference>> accounts = new ArrayList<>();
 
 			for (BigInteger fund: funds) {
@@ -145,6 +163,13 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			int i = 0;
 			for (CodeExecutionFuture<StorageReference> future: accounts)
 				this.accounts[i++] = future.get();
+
+			if (jar.isPresent()) {
+				this.jar = new Classpath(jarFuture.get(), true);
+				state.putJar(this.jar);
+			}
+			else
+				this.jar = null;
 		}
 		catch (Exception e) {
 			try {
@@ -168,6 +193,8 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
+	 * @param jar the path of a jar that must be installed after the creation of the gamete. This is optional and mainly
+	 *            useful to simplify the implementation of tests
 	 * @param redGreen unused; only meant to distinguish the signature of this constructor from that of the previous one
 	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
 	 *              initial funds of each account (green before red)
@@ -175,7 +202,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
 	 */
-	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, boolean redGreen, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
 		this.abci = new ABCI(this);
 		deleteDir(config.dir);
 
@@ -201,10 +228,19 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 			StorageReference gamete = addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode(), green, red));
 
+			BigInteger nonce = BigInteger.ZERO;
+			JarStoreFuture jarFuture;
+
+			if (jar.isPresent()) {
+				jarFuture = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
+				nonce = nonce.add(BigInteger.ONE);
+			}
+			else
+				jarFuture = null;
+
 			// let us create the accounts
 			this.accounts = new StorageReference[funds.length / 2];
 			BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
-			BigInteger nonce = BigInteger.ZERO;
 			ConstructorSignature constructor = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER);
 			VoidMethodSignature receiveRed = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
 
@@ -228,6 +264,13 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 				nonce = nonce.add(BigInteger.ONE);
 				i++;
 			}
+
+			if (jar.isPresent()) {
+				this.jar = new Classpath(jarFuture.get(), true);
+				state.putJar(this.jar);
+			}
+			else
+				this.jar = null;
 		}
 		catch (Exception e) {
 			try {
@@ -268,6 +311,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			addShutdownHook();
 
 			this.takamakaCode = state.getTakamakaCode().get();
+			this.jar = state.getJar().orElse(null);
 			this.initialized = state.isInitialized();
 			this.accounts = state.getAccounts().toArray(StorageReference[]::new);
 		}
@@ -303,6 +347,11 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	@Override
 	public Classpath takamakaCode() {
 		return takamakaCode;
+	}
+
+	@Override
+	public final Optional<Classpath> jar() {
+		return Optional.ofNullable(jar);
 	}
 
 	@Override

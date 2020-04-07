@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -57,7 +56,9 @@ class Basic extends TakamakaTest {
 
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.takamaka.tests.basicdependency.InternationalTime", INT, INT, INT);
 
-	private static final MethodSignature TO_STRING = new NonVoidMethodSignature(ClassType.OBJECT, "toString", ClassType.STRING);
+	private static final MethodSignature TIME_TO_STRING = new NonVoidMethodSignature(new ClassType("io.takamaka.tests.basicdependency.Time"), "toString", ClassType.STRING);
+
+	private static final MethodSignature WRAPPER_TO_STRING = new NonVoidMethodSignature(new ClassType("io.takamaka.tests.basicdependency.Wrapper"), "toString", ClassType.STRING);
 
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
@@ -75,24 +76,17 @@ class Basic extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain(ALL_FUNDS);
+		mkBlockchain("basicdependency.jar", ALL_FUNDS, BigInteger.ZERO);
 		master = account(0);
-
-		TransactionReference basicdependency = addJarStoreTransaction
-			(master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basicdependency.jar"), takamakaCode());
-
-		TransactionReference basic = addJarStoreTransaction
-			(master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(),
-			bytesOf("basic.jar"), new Classpath(basicdependency, true)); // true relevant here
-
-		classpath = new Classpath(basic, true);
+		// true relevant below
+		classpath = new Classpath(addJarStoreTransaction(master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), new Classpath(jar().transaction, true)), true);
 	}
 
 	@Test @DisplayName("new InternationalTime(13,25,40).toString().equals(\"13:25:40\")")
 	void testToStringInternationTime() throws TransactionException, CodeExecutionException {
 		StorageReference internationalTime = addConstructorCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME, new IntValue(13), new IntValue(25), new IntValue(40));
-		assertEquals(new StringValue("13:25:40"), addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, TO_STRING, internationalTime));
+		assertEquals(new StringValue("13:25:40"), runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, TIME_TO_STRING, internationalTime));
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40)).toString().equals(\"wrapper(13:25:40,null,null,0)\")")
@@ -102,7 +96,7 @@ class Basic extends TakamakaTest {
 			new IntValue(13), new IntValue(25), new IntValue(40));
 		StorageReference wrapper = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_WRAPPER_1, internationalTime);
 		assertEquals(new StringValue("wrapper(13:25:40,null,null,0)"),
-			addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, TO_STRING, wrapper));
+			runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, WRAPPER_TO_STRING, wrapper));
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40),\"hello\",13011973,12345L).toString().equals(\"wrapper(13:25:40,hello,13011973,12345)\")")
@@ -114,7 +108,7 @@ class Basic extends TakamakaTest {
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_WRAPPER_2,
 			internationalTime, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(13011973)), new LongValue(12345L));
 		assertEquals(new StringValue("wrapper(13:25:40,hello,13011973,12345)"),
-			addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, TO_STRING, wrapper));
+			runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, WRAPPER_TO_STRING, wrapper));
 	}
 
 	@Test @DisplayName("new Sub(1973)")
@@ -145,77 +139,70 @@ class Basic extends TakamakaTest {
 		StorageReference sub = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub"));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
-			addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, SUB_MS, sub)
+			runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, SUB_MS, sub)
 		);
 	}
 
 	@Test @DisplayName("Sub.ms()")
 	void callStaticAsStatic() throws CodeExecutionException, TransactionException {
-		addStaticMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, SUB_MS);
+		runViewStaticMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, SUB_MS);
 	}
 
 	@Test @DisplayName("Sub.m5() throws TransactionException since NoSuchMethodException")
 	void callInstanceAsStatic() throws CodeExecutionException, TransactionException {
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
-			addStaticMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, SUB_M5)
+			runViewStaticMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, SUB_M5)
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) without gas")
 	void callerHasNotEnoughFundsForGas() throws CodeExecutionException, TransactionException {
-		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-
 		throwsTransactionException(() ->
-			addConstructorCallTransaction(eoa, _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973))
+			addConstructorCallTransaction(account(1), _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973))
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas but without enough coins to pay the @Entry")
 	void callerHasNotEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException {
-		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(200000));
+		addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(200000));
 
 		throwsTransactionExceptionWithCause(Constants.INSUFFICIENT_FUNDS_ERROR_NAME, () ->
-			addConstructorCallTransaction(eoa, _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973))
+			addConstructorCallTransaction(account(1), _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973))
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
 	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException {
-		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
-		addConstructorCallTransaction(eoa, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
+		addConstructorCallTransaction(account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
 	void callInstanceMethod() throws CodeExecutionException, TransactionException {
-		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
 		CodeExecutionFuture<StorageReference> internationalTime = postConstructorCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40));
 		StorageReference sub = addConstructorCallTransaction
-			(eoa, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
+			(account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 		addInstanceMethodCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "print", new ClassType("io.takamaka.tests.basicdependency.Time")), sub, internationalTime.get());
 	}
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException {
-		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
 		StorageReference sub = addConstructorCallTransaction
-			(eoa, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
+			(account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4 receives 13 coins from an externally owned account with public balance"), addInstanceMethodCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4", ClassType.STRING, INT), sub, new IntValue(13)));
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithLong() throws CodeExecutionException, TransactionException {
-		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(2000000));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(2000000));
 		StorageReference sub = addConstructorCallTransaction
-			(eoa, _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
+			(account(1), _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4_1 receives 13 coins from an externally owned account with public balance"),
 			addInstanceMethodCallTransaction
 				(master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4_1", ClassType.STRING, LONG), sub, new LongValue(13L)));
@@ -223,9 +210,8 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
 	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException {
-		StorageReference eoa = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, eoa, new IntValue(20000));
-		StorageReference sub = addConstructorCallTransaction(eoa, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
+		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
+		StorageReference sub = addConstructorCallTransaction(account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4_2 receives 13 coins from an externally owned account with public balance"),
 			addInstanceMethodCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature("io.takamaka.tests.basic.Sub", "m4_2", ClassType.STRING, ClassType.BIG_INTEGER),
@@ -237,7 +223,7 @@ class Basic extends TakamakaTest {
 		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		CodeExecutionFuture<StorageReference> a1 = postConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StorageReference a2 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
-		assertEquals(new BooleanValue(false), addInstanceMethodCallTransaction
+		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, alias, alias), a1.get(), a1.get(), a2));
 	}
 
@@ -245,7 +231,7 @@ class Basic extends TakamakaTest {
 	void aliasBetweenStorage2() throws CodeExecutionException, TransactionException {
 		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
-		assertEquals(new BooleanValue(true), addInstanceMethodCallTransaction
+		assertEquals(new BooleanValue(true), runViewInstanceMethodCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, alias, alias), a1, a1, a1));
 	}
 
@@ -255,7 +241,7 @@ class Basic extends TakamakaTest {
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
 		StringValue s2 = new StringValue("hello");
-		assertEquals(new BooleanValue(false), addInstanceMethodCallTransaction
+		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s2));
 	}
 
@@ -264,7 +250,7 @@ class Basic extends TakamakaTest {
 		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
-		assertEquals(new BooleanValue(false), addInstanceMethodCallTransaction
+		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s1));
 	}
 
@@ -274,7 +260,7 @@ class Basic extends TakamakaTest {
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		BigIntegerValue bi2 = new BigIntegerValue(BigInteger.valueOf(13L));
-		assertEquals(new BooleanValue(false), addInstanceMethodCallTransaction
+		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi2));
 	}
 
@@ -283,7 +269,7 @@ class Basic extends TakamakaTest {
 		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
-		assertEquals(new BooleanValue(false), addInstanceMethodCallTransaction
+		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi1));
 	}
 
@@ -303,7 +289,7 @@ class Basic extends TakamakaTest {
 		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(simple, INT), new IntValue(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
-			addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo2", simple), s)
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo2", simple), s)
 		);
 	}
 
@@ -313,7 +299,7 @@ class Basic extends TakamakaTest {
 		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(simple, INT), new IntValue(13));
 
 		assertEquals(new IntValue(13),
-			addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo3", INT), s));
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo3", INT), s));
 	}
 
 	@Test @DisplayName("new Simple(13).foo4() == 13")
@@ -323,14 +309,14 @@ class Basic extends TakamakaTest {
 			(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(simple, BasicTypes.INT), new IntValue(13));
 
 		assertEquals(new IntValue(13),
-			addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo4", INT), s));
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo4", INT), s));
 	}
 
 	@Test @DisplayName("new Simple(13).foo5() == 13")
 	void viewMethodOk3() throws CodeExecutionException, TransactionException {
 		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
 		assertEquals(new IntValue(14),
-			addStaticMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo5", INT)));
+			runViewStaticMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo5", INT)));
 	}
 
 	@Test @DisplayName("new WithList().toString().equals(\"[hello,how,are,you]\")")
@@ -338,7 +324,7 @@ class Basic extends TakamakaTest {
 		ClassType withList = new ClassType("io.takamaka.tests.basic.WithList");
 		StorageReference wl = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(withList));
 		assertEquals(new StringValue("[hello,how,are,you]"),
-			addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(withList, "toString", ClassType.STRING), wl));
+			runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(withList, "toString", ClassType.STRING), wl));
 	}
 
 	@Test @DisplayName("new WithList().illegal() throws TransactionException since DeserializationError")

@@ -1,6 +1,7 @@
 package io.takamaka.tests.basicdependency;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 
 public abstract class Time extends Storage implements Comparable<Time> {
 	protected final int secondsFromStartOfDay;
@@ -37,5 +38,6 @@ public abstract class Time extends Storage implements Comparable<Time> {
 			return String.valueOf(i);
 	}
 
+	@Override @View
 	public abstract String toString();
 }

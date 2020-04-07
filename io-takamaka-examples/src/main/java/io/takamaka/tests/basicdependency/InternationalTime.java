@@ -1,5 +1,7 @@
 package io.takamaka.tests.basicdependency;
 
+import io.takamaka.code.lang.View;
+
 public class InternationalTime extends Time {
 
 	public InternationalTime(int hours, int minutes, int seconds) {
@@ -14,7 +16,7 @@ public class InternationalTime extends Time {
 	}
 
 	@Override
-	public String toString() {
+	public @View String toString() {
 		return twoDigits(secondsFromStartOfDay / 3600) + ':' + twoDigits((secondsFromStartOfDay / 60) % 60)
 			+ ':' + twoDigits(secondsFromStartOfDay % 60);
 	}

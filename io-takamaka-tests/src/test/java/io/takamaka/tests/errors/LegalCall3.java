@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -25,14 +23,12 @@ class LegalCall3 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain(_1_000_000_000);
+		mkBlockchain("legalcall3.jar", _1_000_000_000);
 	}
 
 	@Test @DisplayName("C.test() == false")
 	void callTest() throws TransactionException, CodeExecutionException, IOException {
-		TransactionReference jar = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall3.jar"), takamakaCode());
-
-		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, new Classpath(jar, true),
+		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall3.C"), "test", BasicTypes.BOOLEAN));
 
 		assertFalse(result.value);

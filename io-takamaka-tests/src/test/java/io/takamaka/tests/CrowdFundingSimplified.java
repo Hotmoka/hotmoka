@@ -16,8 +16,6 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -30,17 +28,10 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for the simplified crowd funding contract.
  */
 class CrowdFundingSimplified extends TakamakaTest {
-
 	private static final ClassType CAMPAIGN = new ClassType("io.takamaka.tests.crowdfunding.CrowdFundingSimplified$Campaign");
-
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-
 	private static final ClassType CROWD_FUNDING_SIMPLIFIED = new ClassType("io.takamaka.tests.crowdfunding.CrowdFundingSimplified");
-
 	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED = new ConstructorSignature("io.takamaka.tests.crowdfunding.CrowdFundingSimplified");
-
-	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
-
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000_000L);
 
 	/**
@@ -68,30 +59,20 @@ class CrowdFundingSimplified extends TakamakaTest {
 	 */
 	private StorageReference crowdFunding;
 
-	/**
-	 * The classpath of the classes being tested.
-	 */
-	private Classpath classpath;
-
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain(ALL_FUNDS, BigInteger.ZERO, BigInteger.valueOf(10_000_000L), BigInteger.valueOf(10_000_000L));
+		mkBlockchain("crowdfunding.jar", ALL_FUNDS, BigInteger.ZERO, BigInteger.valueOf(10_000_000L), BigInteger.valueOf(10_000_000L));
 		gamete = account(0);
 		beneficiary = account(1);
 		funder1 = account(2);
 		funder2 = account(3);
-
-		TransactionReference crowdfunding = addJarStoreTransaction
-			(gamete, _20_000, BigInteger.ONE, takamakaCode(), bytesOf("crowdfunding.jar"), takamakaCode());
-
-		classpath = new Classpath(crowdfunding, true);
-		crowdFunding = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, classpath, CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED);
+		crowdFunding = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED);
 	}
 
 	@Test @DisplayName("new CrowdFundingSimplified().newCampaign(beneficiary, 50) != null")
 	void createCampaign() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, classpath,
+			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
@@ -101,22 +82,22 @@ class CrowdFundingSimplified extends TakamakaTest {
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, classpath,
+			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
 		postInstanceMethodCallTransaction
-			(funder1, _10_000, BigInteger.ONE, classpath,
+			(funder1, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
 		postInstanceMethodCallTransaction
-			(funder2, _10_000, BigInteger.ONE, classpath,
+			(funder2, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, classpath,
+			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign);
 
@@ -126,22 +107,22 @@ class CrowdFundingSimplified extends TakamakaTest {
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, classpath,
+			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
 		postInstanceMethodCallTransaction
-			(funder1, _10_000, BigInteger.ONE, classpath,
+			(funder1, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
 		postInstanceMethodCallTransaction
-			(funder2, _10_000, BigInteger.ONE, classpath,
+			(funder2, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, classpath,
+			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign);
 

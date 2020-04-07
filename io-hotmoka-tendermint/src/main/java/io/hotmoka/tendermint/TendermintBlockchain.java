@@ -3,13 +3,14 @@ package io.hotmoka.tendermint;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.AsynchronousNode;
-import io.hotmoka.nodes.NodeWithAccounts;
+import io.hotmoka.nodes.InitializedNode;
 import io.hotmoka.nodes.SynchronousNode;
 import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
 
@@ -20,7 +21,7 @@ import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
  * Updates are stored inside the blocks, rather than in an external database.
  * It provides support for the creation of a given number of initial accounts.
  */
-public interface TendermintBlockchain extends AsynchronousNode, SynchronousNode, NodeWithAccounts {
+public interface TendermintBlockchain extends AsynchronousNode, SynchronousNode, InitializedNode {
 
 	/**
 	 * Yields a fresh Tendermint blockchain and initializes user accounts with the given initial funds.
@@ -36,7 +37,7 @@ public interface TendermintBlockchain extends AsynchronousNode, SynchronousNode,
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
 	 */
 	static TendermintBlockchain of(Config config, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
-		return new TendermintBlockchainImpl(config, takamakaCodePath, funds);
+		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.empty(), funds);
 	}
 
 	/**
@@ -54,7 +55,44 @@ public interface TendermintBlockchain extends AsynchronousNode, SynchronousNode,
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
 	 */
 	static TendermintBlockchain ofRedGreen(Config config, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
-		return new TendermintBlockchainImpl(config, takamakaCodePath, true, funds);
+		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.empty(), true, funds);
+	}
+
+	/**
+	 * Yields a fresh Tendermint blockchain and initializes user accounts with the given initial funds.
+	 * This method spawns the Tendermint process on localhost and connects it to an ABCI application
+	 * for handling its transactions. The blockchain gets deleted if it existed already at the given directory.
+	 * 
+	 * @param config the configuration of the blockchain
+	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
+	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
+	 * @param jar the path of a user jar that must be installed. This is optional and mainly useful to simplify the implementation of tests
+	 * @param funds the initial funds of the accounts that are created
+	 * @throws IOException if a disk error occurs
+	 * @throws TransactionException if some transaction for initialization fails
+	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 */
+	static TendermintBlockchain of(Config config, Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.of(jar), funds);
+	}
+
+	/**
+	 * Yields a fresh Tendermint blockchain and initializes red/green user accounts with the given initial funds.
+	 * The only different with respect to {@linkplain #of(Config, Path, BigInteger...)} is that the initial
+	 * account are red/green externally owned accounts.
+	 * 
+	 * @param config the configuration of the blockchain
+	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
+	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.RedGreenMemoryBlockchain#takamakaCode()}
+	 * @param jar the path of a user jar that must be installed. This is optional and mainly useful to simplify the implementation of tests
+	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
+	 *              initial funds of each account (green before red)
+	 * @throws IOException if a disk error occurs
+	 * @throws TransactionException if some transaction for initialization fails
+	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 */
+	static TendermintBlockchain ofRedGreen(Config config, Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.of(jar), true, funds);
 	}
 
 	/**

@@ -1,6 +1,7 @@
 package io.takamaka.tests.basic;
 
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageList;
 
 public class WithList extends Storage {
@@ -13,7 +14,7 @@ public class WithList extends Storage {
 		list.add("you");
 	}
 
-	@Override
+	@Override @View
 	public String toString() {
 		return list.toString();
 	}

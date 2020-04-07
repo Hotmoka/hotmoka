@@ -1,5 +1,7 @@
 package io.takamaka.tests.basicdependency;
 
+import io.takamaka.code.lang.View;
+
 public class AmericanTime extends Time {
 	public enum Period {
 		AM, PM
@@ -27,7 +29,7 @@ public class AmericanTime extends Time {
 	}
 
 	@Override
-	public String toString() {
+	public @View String toString() {
 		Period period;
 
 		int hours = (secondsFromStartOfDay / 3600);
