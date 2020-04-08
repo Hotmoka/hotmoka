@@ -80,7 +80,7 @@ class Tendermint implements AutoCloseable {
 			if (run("tendermint init --home " + config.dir + "/blocks").waitFor() != 0)
 				throw new IOException("Tendermint initialization failed");
 
-		this.process = run("tendermint node --home " + config.dir + "/blocks --abci grpc --proxy_app tcp://localhost:" + config.abciPort); // process remains in background
+		this.process = run("tendermint node --home " + config.dir + "/blocks --abci grpc --proxy_app tcp://127.0.0.1:" + config.abciPort); // process remains in background
 
 		ping();
 	}
@@ -246,7 +246,7 @@ class Tendermint implements AutoCloseable {
 	 * @throws MalformedURLException if the URL is not well formed
 	 */
 	private URL url() throws MalformedURLException {
-		return new URL("http://localhost:" + config.tendermintPort);
+		return new URL("http://127.0.0.1:" + config.tendermintPort);
 	}
 
 	/**
