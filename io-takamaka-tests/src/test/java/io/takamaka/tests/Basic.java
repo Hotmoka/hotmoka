@@ -39,29 +39,21 @@ import io.takamaka.code.constants.Constants;
  * A test for basic storage and contract Takamaka classes.
  */
 class Basic extends TakamakaTest {
-
+	private static final ClassType ALIAS = new ClassType("io.takamaka.tests.basicdependency.Alias");
+	private static final ClassType SIMPLE = new ClassType("io.takamaka.tests.basic.Simple");
+	private static final ClassType WITH_LIST = new ClassType("io.takamaka.tests.basic.WithList");
+	private static final ClassType ENTRY_FILTER = new ClassType("io.takamaka.tests.basic.EntryFilter");
 	private static final BigInteger _5_000 = BigInteger.valueOf(5000);
-
-	private static final ConstructorSignature CONSTRUCTOR_ALIAS = new ConstructorSignature(new ClassType("io.takamaka.tests.basicdependency.Alias"));
-
+	private static final ConstructorSignature CONSTRUCTOR_ALIAS = new ConstructorSignature(ALIAS);
 	private static final MethodSignature PAYABLE_CONTRACT_RECEIVE = new VoidMethodSignature(ClassType.PAYABLE_CONTRACT, "receive", INT);
-
 	private static final MethodSignature SUB_MS = new VoidMethodSignature("io.takamaka.tests.basic.Sub", "ms");
-
 	private static final MethodSignature SUB_M5 = new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m5");
-
 	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = new ConstructorSignature("io.takamaka.tests.basicdependency.Wrapper", new ClassType("io.takamaka.tests.basicdependency.Time"));
-
 	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = new ConstructorSignature("io.takamaka.tests.basicdependency.Wrapper", new ClassType("io.takamaka.tests.basicdependency.Time"), ClassType.STRING, ClassType.BIG_INTEGER, BasicTypes.LONG);
-
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.takamaka.tests.basicdependency.InternationalTime", INT, INT, INT);
-
 	private static final MethodSignature TIME_TO_STRING = new NonVoidMethodSignature(new ClassType("io.takamaka.tests.basicdependency.Time"), "toString", ClassType.STRING);
-
 	private static final MethodSignature WRAPPER_TO_STRING = new NonVoidMethodSignature(new ClassType("io.takamaka.tests.basicdependency.Wrapper"), "toString", ClassType.STRING);
-
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
-
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);
 
 	/**
@@ -122,7 +114,7 @@ class Basic extends TakamakaTest {
 			(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub"));
 
 		try {
-			addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m1"), sub);
+			runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m1"), sub);
 		}
 		catch (TransactionException e) {
 			if (e.getMessage().startsWith(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME) && e.getMessage().endsWith("An @Entry can only be called from a distinct contract object"))
@@ -220,161 +212,143 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("a1 = new Alias(); a2 = new Alias(); a1.test(a1, a2)=false")
 	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		CodeExecutionFuture<StorageReference> a1 = postConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StorageReference a2 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
-			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, alias, alias), a1.get(), a1.get(), a2));
+			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1.get(), a1.get(), a2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a1.test(a1, a1)=true")
 	void aliasBetweenStorage2() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(true), runViewInstanceMethodCallTransaction
-			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, alias, alias), a1, a1, a1));
+			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; s2 = \"hello\"; a1.test(s1, s2)=false")
 	void aliasBetweenString() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
 		StringValue s2 = new StringValue("hello");
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
-			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s2));
+			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; a1.test(s1, s1)=false")
 	void aliasBetweenString2() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
-			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s1));
+			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.STRING, ClassType.STRING), a1, s1, s1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); bi2 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
 	void aliasBetweenBigInteger1() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		BigIntegerValue bi2 = new BigIntegerValue(BigInteger.valueOf(13L));
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
-			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi2));
+			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
 	void aliasBetweenBigInteger2() throws CodeExecutionException, TransactionException {
-		ClassType alias = new ClassType("io.takamaka.tests.basicdependency.Alias");
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
-			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(alias, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi1));
+			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), a1, bi1, bi1));
 	}
 
 	@Test @DisplayName("new Simple(13).foo1() throws TransactionException since SideEffectsInViewMethodException")
 	void viewMethodViolation1() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
-		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(simple, INT), new IntValue(13));
+		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
-			addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(simple, "foo1"), s)
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(SIMPLE, "foo1"), s)
 		);
 	}
 
 	@Test @DisplayName("new Simple(13).foo2() throws TransactionException since SideEffectsInViewMethodException")
 	void viewMethodViolation2() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
-		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(simple, INT), new IntValue(13));
+		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
-			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo2", simple), s)
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE, "foo2", SIMPLE), s)
 		);
 	}
 
 	@Test @DisplayName("new Simple(13).foo3() == 13")
 	void viewMethodOk1() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
-		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(simple, INT), new IntValue(13));
+		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
 
 		assertEquals(new IntValue(13),
-			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo3", INT), s));
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE, "foo3", INT), s));
 	}
 
 	@Test @DisplayName("new Simple(13).foo4() == 13")
 	void viewMethodOk2() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
 		StorageReference s = addConstructorCallTransaction
-			(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(simple, BasicTypes.INT), new IntValue(13));
+			(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, BasicTypes.INT), new IntValue(13));
 
 		assertEquals(new IntValue(13),
-			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo4", INT), s));
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE, "foo4", INT), s));
 	}
 
 	@Test @DisplayName("new Simple(13).foo5() == 13")
 	void viewMethodOk3() throws CodeExecutionException, TransactionException {
-		ClassType simple = new ClassType("io.takamaka.tests.basic.Simple");
 		assertEquals(new IntValue(14),
-			runViewStaticMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(simple, "foo5", INT)));
+			runViewStaticMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE, "foo5", INT)));
 	}
 
 	@Test @DisplayName("new WithList().toString().equals(\"[hello,how,are,you]\")")
 	void listCreation() throws CodeExecutionException, TransactionException {
-		ClassType withList = new ClassType("io.takamaka.tests.basic.WithList");
-		StorageReference wl = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(withList));
+		StorageReference wl = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(WITH_LIST));
 		assertEquals(new StringValue("[hello,how,are,you]"),
-			runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(withList, "toString", ClassType.STRING), wl));
+			runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(WITH_LIST, "toString", ClassType.STRING), wl));
 	}
 
 	@Test @DisplayName("new WithList().illegal() throws TransactionException since DeserializationError")
 	void deserializationError() throws CodeExecutionException, TransactionException {
-		ClassType withList = new ClassType("io.takamaka.tests.basic.WithList");
-		StorageReference wl = addConstructorCallTransaction	(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(withList));
+		StorageReference wl = addConstructorCallTransaction	(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(WITH_LIST));
 		
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
-			addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new VoidMethodSignature(withList, "illegal"), wl)
+			addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new VoidMethodSignature(WITH_LIST, "illegal"), wl)
 		);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo1() called by an ExternallyOwnedAccount")
 	void entryFilterOk1() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
-		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(entryFilter));
-		addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(entryFilter, "foo1"), ef);
+		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
+		runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo1"), ef);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo2() called by an ExternallyOwnedAccount")
 	void entryFilterOk2() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
-		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(entryFilter));
-		addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(entryFilter, "foo2"), ef);
+		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
+		runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo2"), ef);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo3() called by an ExternallyOwnedAccount")
 	void entryFilterOk3() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
-		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(entryFilter));
-		addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(entryFilter, "foo3"), ef);
+		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
+		runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo3"), ef);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo4() called by an ExternallyOwnedAccount throws TransactionException since ClassCastException")
 	void entryFilterFails() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
-		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(entryFilter));
+		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		throwsTransactionExceptionWithCause(ClassCastException.class, () ->
-			addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(entryFilter, "foo4"), ef)
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo4"), ef)
 		);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo5() throws CodeExecutionException since MyCheckedException")
 	void entryFilterFailsWithThrowsExceptions() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
-		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(entryFilter));
+		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		try {
-			addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(entryFilter, "foo5"), ef);
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo5"), ef);
 		}
 		catch (CodeExecutionException e) {
 			Assertions.assertEquals("io.takamaka.tests.basic.MyCheckedException", e.classNameOfCause, "wrong exceptions");
@@ -386,10 +360,9 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("new EntryFilter().foo6() fails")
 	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException {
-		ClassType entryFilter = new ClassType("io.takamaka.tests.basic.EntryFilter");
-		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(entryFilter));
+		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		Assertions.assertThrows(TransactionException.class, () ->
-			addInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(entryFilter, "foo6"), ef));
+			runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo6"), ef));
 	}
 }

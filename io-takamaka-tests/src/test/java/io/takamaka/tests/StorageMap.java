@@ -37,19 +37,16 @@ import io.hotmoka.nodes.AsynchronousNode.CodeExecutionFuture;
  * A test for the storage map Takamaka class.
  */
 class StorageMap extends TakamakaTest {
-
 	private static final BigInteger _20_000 = BigInteger.valueOf(20000);
-
 	private static final ClassType STORAGE_MAP = ClassType.STORAGE_MAP;
-
+	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = new NonVoidMethodSignature(STORAGE_MAP, "isEmpty", BOOLEAN);
+	private static final NonVoidMethodSignature STORAGE_MAP_MIN = new NonVoidMethodSignature(STORAGE_MAP, "min", ClassType.OBJECT);
+	private static final NonVoidMethodSignature STORAGE_MAP_SIZE = new NonVoidMethodSignature(STORAGE_MAP, "size", INT);
+	private static final VoidMethodSignature STORAGE_MAP_PUT = new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT);
 	private static final ConstructorSignature CONSTRUCTOR_STORAGE_MAP = new ConstructorSignature(STORAGE_MAP);
-
 	private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
-
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(100_000_000);
-
 	private static final StorageValue ONE = new BigIntegerValue(BigInteger.ONE);
-
 	private static final StorageValue TWO = new BigIntegerValue(BigInteger.valueOf(2L));
 
 	/**
@@ -77,7 +74,7 @@ class StorageMap extends TakamakaTest {
 	@Test @DisplayName("new StorageMap().size() == 0")
 	void sizeIsInitially0() throws TransactionException, CodeExecutionException {
 		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
-		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);
+		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map);
 
 		assertEquals(new IntValue(0), size);
 	}
@@ -85,7 +82,7 @@ class StorageMap extends TakamakaTest {
 	@Test @DisplayName("new StorageMap().isEmpty() == true")
 	void mapIsInitiallyEmpty() throws TransactionException, CodeExecutionException {
 		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
-		BooleanValue size = (BooleanValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "isEmpty", BOOLEAN), map);
+		BooleanValue size = (BooleanValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_ISEMPTY, map);
 
 		assertEquals(BooleanValue.TRUE, size);
 	}
@@ -94,7 +91,7 @@ class StorageMap extends TakamakaTest {
 	void putThenGet() throws TransactionException, CodeExecutionException {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa, ONE);
+		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map.get(), eoa, ONE);
 		BigIntegerValue get = (BigIntegerValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa);
 
 		assertEquals(ONE, get);
@@ -105,7 +102,7 @@ class StorageMap extends TakamakaTest {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		CodeExecutionFuture<StorageReference> eoa1 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 		CodeExecutionFuture<StorageReference> eoa2 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa1.get(), ONE);
+		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map.get(), eoa1.get(), ONE);
 		StorageValue get = (StorageValue) runViewInstanceMethodCallTransaction
 			(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa2.get());
 
@@ -117,7 +114,7 @@ class StorageMap extends TakamakaTest {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		CodeExecutionFuture<StorageReference> eoa1 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 		CodeExecutionFuture<StorageReference> eoa2 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa1.get(), ONE);
+		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map.get(), eoa1.get(), ONE);
 		StorageValue get = (StorageValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa2.get(), TWO);
 
 		assertEquals(TWO, get);
@@ -132,14 +129,14 @@ class StorageMap extends TakamakaTest {
 			accounts[i] = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 
 		Random random = new Random();
-		VoidMethodSignature put = new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT);
+		VoidMethodSignature put = STORAGE_MAP_PUT;
 		CodeExecutionFuture<StorageValue> future = null;
 		for (int i = 0; i < 100; i++)
 			future = postInstanceMethodCallTransaction
 				(gamete, _100_000, BigInteger.ONE, classpath, put, map.get(), accounts[i].get(), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 		future.get(); // we wait until everything has been committed
-		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map.get());
+		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map.get());
 
 		assertEquals(100, size.value);
 	}
@@ -153,11 +150,11 @@ class StorageMap extends TakamakaTest {
 		CodeExecutionFuture<StorageValue> future = null;
 		for (int i = 0; i < 100; i++)
 			future = postInstanceMethodCallTransaction
-				(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT,
 					map.get(), eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 		future.get(); // we wait until everything has been committed
-		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map.get());
+		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map.get());
 
 		assertEquals(1, size.value);
 	}
@@ -170,11 +167,11 @@ class StorageMap extends TakamakaTest {
 		CodeExecutionFuture<StorageValue> future = null;
 		for (int i = 0; i < 100; i++)
 			future = postInstanceMethodCallTransaction
-				(gamete, _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT,
 					map, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 		future.get(); // we wait until everything has been committed
-		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map);
+		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map);
 
 		assertEquals(1, size.value);
 	}
@@ -192,12 +189,12 @@ class StorageMap extends TakamakaTest {
 				min = bi;
 
 			future = postInstanceMethodCallTransaction
-				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(gamete, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT,
 					map, new BigIntegerValue(bi), new StringValue("hello"));
 		}
 
 		future.get(); // we wait until everything has been committed
-		BigIntegerValue result = (BigIntegerValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "min", ClassType.OBJECT), map);
+		BigIntegerValue result = (BigIntegerValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_MIN, map);
 
 		assertEquals(min, result.value);
 	}
@@ -214,13 +211,14 @@ class StorageMap extends TakamakaTest {
 		int i = 0;
 		do {
 			postInstanceMethodCallTransaction
-				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
+				(gamete, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT,
 					map.get(), accounts[i].get(), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 		}
 		while (++i < 100);
 
-		addInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "remove", ClassType.OBJECT), map.get(), accounts[random.nextInt(100)].get());
-		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "size", INT), map.get());
+		VoidMethodSignature STORAGE_MAP_REMOVE = new VoidMethodSignature(STORAGE_MAP, "remove", ClassType.OBJECT);
+		addInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_REMOVE, map.get(), accounts[random.nextInt(100)].get());
+		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map.get());
 
 		assertEquals(99, size.value);
 	}
@@ -238,8 +236,7 @@ class StorageMap extends TakamakaTest {
 		Random random = new Random();
 		for (int i = 0; i < 100; i++) {
 			postInstanceMethodCallTransaction
-				(gamete, _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(STORAGE_MAP, "put", ClassType.OBJECT, ClassType.OBJECT),
-					map.get(), accounts[i].get(), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
+				(gamete, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map.get(), accounts[i].get(), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 			results.add(postInstanceMethodCallTransaction(gamete, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "contains", BOOLEAN, ClassType.OBJECT), map.get(), accounts[i].get()));
 		}

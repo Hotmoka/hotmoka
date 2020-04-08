@@ -35,7 +35,7 @@ class Tendermint implements AutoCloseable {
 	 * The delay of the first ping attempt of the Tendermint process.
 	 * This delay is then increased by 30% at each subsequent attempt.
 	 */
-	private final static int PING_DELAY = 1_000;
+	private final static int PING_DELAY = 200;
 
 	/**
 	 * The maximal number of polling attempts, while waiting for the result of a posted transaction.

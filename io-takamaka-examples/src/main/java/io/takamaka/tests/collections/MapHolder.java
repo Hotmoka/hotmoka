@@ -35,39 +35,39 @@ public class MapHolder extends Storage {
 		return map.get(BigInteger.TEN);
 	}
 
-	public boolean isRunning(Object state) {
+	public @View boolean isRunning(Object state) {
 		return state == State.RUNNING;
 	}
 
-	public boolean isSleeping(Object state) {
+	public @View boolean isSleeping(Object state) {
 		return state == State.SLEEPING;
 	}
 
-	public boolean isWaiting(Object state) {
+	public @View boolean isWaiting(Object state) {
 		return state == State.WAITING;
 	}
 
-	public boolean isRunning2(State state) {
+	public @View boolean isRunning2(State state) {
 		return state == State.RUNNING;
 	}
 
-	public boolean isSleeping2(State state) {
+	public @View boolean isSleeping2(State state) {
 		return state == State.SLEEPING;
 	}
 
-	public boolean isWaiting2(State state) {
+	public @View boolean isWaiting2(State state) {
 		return state == State.WAITING;
 	}
 
-	public boolean isRunning3(Comparable<?> state) {
+	public @View boolean isRunning3(Comparable<?> state) {
 		return state == State.RUNNING;
 	}
 
-	public boolean isSleeping3(Comparable<?> state) {
+	public @View boolean isSleeping3(Comparable<?> state) {
 		return state == State.SLEEPING;
 	}
 
-	public boolean isWaiting3(Comparable<?> state) {
+	public @View boolean isWaiting3(Comparable<?> state) {
 		return state == State.WAITING;
 	}
 }
