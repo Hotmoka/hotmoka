@@ -12,7 +12,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -177,7 +177,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
             	else if (hotmokaRequest instanceof StaticMethodCallTransactionRequest)
             		hotmokaResponse = Transaction.mkFor((StaticMethodCallTransactionRequest) hotmokaRequest, next, node).getResponse();
             	else
-            		throw new TransactionException("unexpected transaction request of class " + hotmokaRequest.getClass().getName());
+            		throw new TransactionRejectedException("unexpected transaction request of class " + hotmokaRequest.getClass().getName());
 
             	if (hotmokaRequest instanceof AbstractJarStoreTransactionRequest)
             		node.state.putDependenciesOf(next, (AbstractJarStoreTransactionRequest) hotmokaRequest);
@@ -190,13 +190,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
             	responseBuilder.setCode(0);
             	responseBuilder.setData(byteStringSerializationOf(next.toString()));
             }
-            catch (TransactionException e) {
-            	Throwable t = e;
-            	while (t instanceof TransactionException && t.getCause() != null)
-            		t = t.getCause();
-
+            catch (TransactionRejectedException e) {
             	responseBuilder.setCode(1);
-            	responseBuilder.setInfo(t.toString());
+            	responseBuilder.setInfo(e.getMessage());
 			}
             catch (Throwable t) {
             	responseBuilder.setCode(2);

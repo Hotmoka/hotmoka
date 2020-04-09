@@ -1,12 +1,9 @@
 package io.hotmoka.tendermint;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.InitializedNode;
@@ -30,11 +27,9 @@ public interface TendermintBlockchain extends InitializedNode {
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
 	 * @param funds the initial funds of the accounts that are created
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws Exception if the blockchain could not be created
 	 */
-	static TendermintBlockchain of(Config config, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	static TendermintBlockchain of(Config config, Path takamakaCodePath, BigInteger... funds) throws Exception {
 		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.empty(), funds);
 	}
 
@@ -48,11 +43,9 @@ public interface TendermintBlockchain extends InitializedNode {
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.RedGreenMemoryBlockchain#takamakaCode()}
 	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
 	 *              initial funds of each account (green before red)
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws Exception if the blockchain could not be created
 	 */
-	static TendermintBlockchain ofRedGreen(Config config, Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	static TendermintBlockchain ofRedGreen(Config config, Path takamakaCodePath, BigInteger... funds) throws Exception {
 		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.empty(), true, funds);
 	}
 
@@ -66,11 +59,9 @@ public interface TendermintBlockchain extends InitializedNode {
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
 	 * @param jar the path of a user jar that must be installed. This is optional and mainly useful to simplify the implementation of tests
 	 * @param funds the initial funds of the accounts that are created
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws Exception if the blockchain could not be created
 	 */
-	static TendermintBlockchain of(Config config, Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	static TendermintBlockchain of(Config config, Path takamakaCodePath, Path jar, BigInteger... funds) throws Exception {
 		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.of(jar), funds);
 	}
 
@@ -85,11 +76,9 @@ public interface TendermintBlockchain extends InitializedNode {
 	 * @param jar the path of a user jar that must be installed. This is optional and mainly useful to simplify the implementation of tests
 	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
 	 *              initial funds of each account (green before red)
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws Exception if the blockchain could not be created
 	 */
-	static TendermintBlockchain ofRedGreen(Config config, Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	static TendermintBlockchain ofRedGreen(Config config, Path takamakaCodePath, Path jar, BigInteger... funds) throws Exception {
 		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.of(jar), true, funds);
 	}
 
@@ -101,10 +90,9 @@ public interface TendermintBlockchain extends InitializedNode {
 	 * its configuration directory.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @throws IOException if a disk error occurs
-	 * @throws InterruptedException if the Java process has been interrupted while starting Tendermint
+	 * @throws Exception if the blockchain could not be created
 	 */
-	static TendermintBlockchain of(Config config) throws IOException, InterruptedException {
+	static TendermintBlockchain of(Config config) throws Exception {
 		return new TendermintBlockchainImpl(config);
 	}
 

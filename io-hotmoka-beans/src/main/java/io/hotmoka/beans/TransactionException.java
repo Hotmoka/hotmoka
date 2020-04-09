@@ -10,12 +10,4 @@ public class TransactionException extends Exception {
 	public TransactionException(String message) {
 		super(message);
 	}
-
-	public TransactionException(Throwable cause) {
-		super(cause.getClass().getName() + messageOf(cause), cause);
-	}
-
-	private static String messageOf(Throwable cause) {
-		return cause.getMessage() == null ? "" : (": " + cause.getMessage());
-	}
 }

@@ -67,7 +67,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 			this.classLoader = new EngineClassLoader(request.classpath, this);
 
 			if (request.constructor.formals().count() != request.actuals().count())
-				throw new TransactionException("argument count mismatch between formals and actuals");
+				throw new IllegalArgumentException("argument count mismatch between formals and actuals");
 
 			// we perform deserialization in a thread, since enums passed as parameters
 			// would trigger the execution of their static initializer, which will charge gas

@@ -113,15 +113,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @param jar the path of a jar that must be installed after the creation of the gamete. This is optional and mainly
 	 *            useful to simplify the implementation of tests
 	 * @param funds the initial funds of the accounts that are created
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws Exception if the blockchain could not be created
 	 */
-	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
-		this.abci = new ABCI(this);
-		deleteDir(config.dir);
-
+	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, BigInteger... funds) throws Exception {
 		try {
+			this.abci = new ABCI(this);
+			deleteDir(config.dir);
 			this.state = new State(config.dir + "/state");
 			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
 			this.server.start();
@@ -171,19 +168,14 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			else
 				this.jar = null;
 		}
-		catch (Exception e) {
+		catch (Throwable t) {
 			try {
 				deleteDir(config.dir); // do not leave zombies behind
 				close();
 			}
 			catch (Exception e2) {}
 
-			if (e instanceof TransactionException)
-				throw (TransactionException) e;
-			else if (e instanceof CodeExecutionException)
-				throw (CodeExecutionException) e;
-			else
-				throw new TransactionException(e);
+			throw t;
 		}
 	}
 
@@ -198,15 +190,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @param redGreen unused; only meant to distinguish the signature of this constructor from that of the previous one
 	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
 	 *              initial funds of each account (green before red)
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws Exception if the blockchain could not be created
 	 */
-	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
-		this.abci = new ABCI(this);
-		deleteDir(config.dir);
-
+	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {
 		try {
+			this.abci = new ABCI(this);
+			deleteDir(config.dir);
 			this.state = new State(config.dir + "/state");
 			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
 			this.server.start();
@@ -272,19 +261,14 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			else
 				this.jar = null;
 		}
-		catch (Exception e) {
+		catch (Throwable t) {
 			try {
 				deleteDir(config.dir); // do not leave zombies behind
 				close();
 			}
 			catch (Exception e2) {}
 
-			if (e instanceof TransactionException)
-				throw (TransactionException) e;
-			else if (e instanceof CodeExecutionException)
-				throw (CodeExecutionException) e;
-			else
-				throw new TransactionException(e);
+			throw t;
 		}
 	}
 
@@ -588,10 +572,10 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 */
 	private static void deleteDir(Path dir) throws IOException {
 		if (Files.exists(dir))
-		Files.walk(dir)
-			.sorted(Comparator.reverseOrder())
-			.map(Path::toFile)
-			.forEach(File::delete);
+			Files.walk(dir)
+				.sorted(Comparator.reverseOrder())
+				.map(Path::toFile)
+				.forEach(File::delete);
 	}
 
 	private void addShutdownHook() {
@@ -613,28 +597,27 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 *  
 	 * @param hash the hash of the Tendermint transaction
 	 * @return the reference to the Hotmoka transaction
-	 * @throws Exception if the transaction reference cannot be found
 	 */
-	private TransactionReference extractTransactionReferenceFromTendermintResult(String hash) throws TransactionException {
+	private TransactionReference extractTransactionReferenceFromTendermintResult(String hash) {
 		try {
 			TendermintTopLevelResult tendermintResult = tendermint.poll(hash);
 
 			TendermintTxResult tx_result = tendermintResult.tx_result;
 			if (tx_result == null)
-				throw new TransactionException("no result for transaction " + hash);
+				throw new IllegalStateException("no result for transaction " + hash);
 
 			String data = tx_result.data;
 			if (data == null)
-				throw new TransactionException(tx_result.info);
+				throw new IllegalStateException(tx_result.info);
 
 			Object dataAsObject = base64DeserializationOf(data);
 			if (!(dataAsObject instanceof String))
-				throw new TransactionException("no Hotmoka transaction reference found in data field of Tendermint transaction");
+				throw new IllegalStateException("no Hotmoka transaction reference found in data field of Tendermint transaction");
 
 			return new TendermintTransactionReference((String) dataAsObject);
 		}
 		catch (Exception e) {
-			throw new TransactionException(e.getMessage());
+			throw new IllegalStateException(e.getMessage());
 		}
 	}
 
