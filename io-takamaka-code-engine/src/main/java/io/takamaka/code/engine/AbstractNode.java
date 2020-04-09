@@ -371,8 +371,8 @@ public abstract class AbstractNode implements Node {
 	protected abstract CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception;
 
 	@Override
-	public final void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-		wrapWithRejectedInCaseOfException(() -> postStaticMethodCallTransactionInternal(request));
+	public final CodeExecutionFuture<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> postStaticMethodCallTransactionInternal(request));
 	}
 
 	/**
@@ -381,7 +381,7 @@ public abstract class AbstractNode implements Node {
 	 * @param request the transaction request
 	 * @throws Exception if the transaction could not be posted; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
-	protected abstract void postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception;
+	protected abstract CodeExecutionFuture<StorageValue> postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception;
 
 	/**
 	 * Checks if this node is still not fully initialized, so that further initial transactions can still
@@ -564,30 +564,6 @@ public abstract class AbstractNode implements Node {
 			throw e;
 		}
 		catch (TransactionException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			throw new TransactionRejectedException(t);
-		}
-	}
-
-	private interface Task {
-		void run() throws Exception;
-	}
-
-	/**
-	 * Runs the given runnable. If if throws an exception,
-	 * it wraps it into an {@link io.hotmoka.beans.TransactionRejectedException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws TransactionRejectedException the wrapped exception
-	 */
-	private static void wrapWithRejectedInCaseOfException(Task what) throws TransactionRejectedException {
-		try {
-			what.run();
-		}
-		catch (TransactionRejectedException e) {
 			throw e;
 		}
 		catch (Throwable t) {

@@ -273,7 +273,7 @@ public interface Node extends AutoCloseable {
 	 * @return the future holding the result of the transaction
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException; //TODO
+	CodeExecutionFuture<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * The future of a transaction that executes code in blockchain.

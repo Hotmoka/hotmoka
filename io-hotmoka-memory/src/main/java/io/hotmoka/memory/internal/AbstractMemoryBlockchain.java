@@ -340,10 +340,30 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	protected void postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
+	protected CodeExecutionFuture<StorageValue> postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
 		Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> transaction = Transaction.mkFor(request, getNextTransaction(), this);
 		expandStoreWith(transaction);
-		transaction.getResponse().getOutcome();
+		MethodCallTransactionResponse response = transaction.getResponse();
+		String hash = String.valueOf(id);
+		id = id.add(BigInteger.ONE);
+
+		return new CodeExecutionFuture<StorageValue>() {
+
+			@Override
+			public StorageValue get() throws TransactionException, CodeExecutionException {
+				return response.getOutcome();
+			}
+
+			@Override
+			public StorageValue get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
+				return response.getOutcome();
+			}
+
+			@Override
+			public String id() {
+				return hash;
+			}
+		};
 	}
 
 	/**

@@ -355,11 +355,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	protected void postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		postInTendermintTransaction(request);
-	}
-
-	@Override
 	public TransactionReference getTransactionReferenceFor(String toString) {
 		return new TendermintTransactionReference(toString);
 	}
@@ -511,6 +506,36 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
+		String hash = postInTendermintTransaction(request);
+
+		return new CodeExecutionFuture<StorageValue>() {
+			private MethodCallTransactionResponse response;
+
+			@Override
+			public StorageValue get() throws TransactionException, CodeExecutionException {
+				if (response == null)
+					response = (MethodCallTransactionResponse) state.getResponseOf(extractTransactionReferenceFromTendermintResult(hash)).get();
+
+				return response.getOutcome();
+			}
+
+			@Override
+			public StorageValue get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
+				if (response == null)
+					response = (MethodCallTransactionResponse) state.getResponseOf(extractTransactionReferenceFromTendermintResult(hash)).get();
+
+				return response.getOutcome();
+			}
+
+			@Override
+			public String id() {
+				return hash;
+			}
+		};
+	}
+
+	@Override
+	protected CodeExecutionFuture<StorageValue> postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
 		String hash = postInTendermintTransaction(request);
 
 		return new CodeExecutionFuture<StorageValue>() {
