@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -66,7 +67,7 @@ class TicTacToe extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new TicTacToe() then first player plays")
-	void crossPlays() throws TransactionException, CodeExecutionException {
+	void crossPlays() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		addInstanceMethodCallTransaction(
 			player1, 
@@ -167,7 +168,7 @@ class TicTacToe extends TakamakaTest {
 	}
 
 	@Test @DisplayName("first player wins")
-	void crossWins() throws TransactionException, CodeExecutionException {
+	void crossWins() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		postInstanceMethodCallTransaction(
 			player1, 

@@ -12,13 +12,14 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.AsynchronousNode.CodeExecutionFuture;
+import io.hotmoka.nodes.Node.CodeExecutionFuture;
 
 /**
  * A test for the remote purchase contract.
@@ -45,7 +46,7 @@ class RedGreenDistributor extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new RedGreenDistributor() then adds two payees without red, distributes 1000 green and their red balance is zero")
-	void createDistributorAndTwoPayees() throws TransactionException, CodeExecutionException {
+	void createDistributorAndTwoPayees() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference distributor = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
 		postInstanceMethodCallTransaction(
@@ -98,7 +99,7 @@ class RedGreenDistributor extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new RedGreenDistributor() then adds two payees without red, distributes 1000 red and their red balance is 500")
-	void createDistributorAndTwoPayeesThenDistributes1000Red() throws TransactionException, CodeExecutionException {
+	void createDistributorAndTwoPayeesThenDistributes1000Red() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference distributor = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
 		postInstanceMethodCallTransaction(

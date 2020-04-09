@@ -55,10 +55,7 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 		this.events = events.toArray(StorageReference[]::new);
 		this.classNameOfCause = exception.getClass().getName();
 		this.messageOfCause = exception.getMessage();
-
-		StackTraceElement[] stackTrace = exception.getStackTrace();
-		this.where = (stackTrace != null && stackTrace.length > 0) ?
-			stackTrace[0].getFileName() + ":" + stackTrace[0].getLineNumber() : "<unknown line>";
+		this.where = placeOfException(exception);
 	}
 
 	@Override
@@ -76,6 +73,6 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 
 	@Override
 	public StorageReference getOutcome() throws CodeExecutionException {
-		throw new CodeExecutionException("constructor threw", classNameOfCause, messageOfCause, where);
+		throw new CodeExecutionException(classNameOfCause, messageOfCause, where);
 	}
 }

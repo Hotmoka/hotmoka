@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -31,7 +32,7 @@ import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.nodes.AsynchronousNode.CodeExecutionFuture;
+import io.hotmoka.nodes.Node.CodeExecutionFuture;
 
 /**
  * A test for the storage map Takamaka class.
@@ -72,7 +73,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap().size() == 0")
-	void sizeIsInitially0() throws TransactionException, CodeExecutionException {
+	void sizeIsInitially0() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		IntValue size = (IntValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_SIZE, map);
 
@@ -80,7 +81,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap().isEmpty() == true")
-	void mapIsInitiallyEmpty() throws TransactionException, CodeExecutionException {
+	void mapIsInitiallyEmpty() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		BooleanValue size = (BooleanValue) runViewInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_ISEMPTY, map);
 
@@ -88,7 +89,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap().put(k,v) then get(k) yields v")
-	void putThenGet() throws TransactionException, CodeExecutionException {
+	void putThenGet() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 		addInstanceMethodCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map.get(), eoa, ONE);
@@ -98,7 +99,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap().put(k1,v) then get(k2) yields null")
-	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException {
+	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		CodeExecutionFuture<StorageReference> eoa1 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 		CodeExecutionFuture<StorageReference> eoa2 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
@@ -110,7 +111,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap().put(k1,v) then get(k2, _default) yields default")
-	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException {
+	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		CodeExecutionFuture<StorageReference> eoa1 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 		CodeExecutionFuture<StorageReference> eoa2 = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
@@ -121,7 +122,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys then size is 100")
-	void put100RandomThenSize() throws TransactionException, CodeExecutionException {
+	void put100RandomThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		CodeExecutionFuture<?> accounts[] = new CodeExecutionFuture<?>[100];
@@ -142,7 +143,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 times the same key then size is 1")
-	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException {
+	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 		StorageReference eoa = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
 
@@ -160,7 +161,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 times equal string keys then size is 1")
-	void put100TimesEqualStringThenSize() throws TransactionException, CodeExecutionException {
+	void put100TimesEqualStringThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		Random random = new Random();
@@ -177,7 +178,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 random BigInteger keys then min key is correct")
-	void min() throws TransactionException, CodeExecutionException {
+	void min() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference map = addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		Random random = new Random();
@@ -200,7 +201,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys then remove the last then size is 99")
-	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException {
+	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		CodeExecutionFuture<?> accounts[] = new CodeExecutionFuture<?>[100];

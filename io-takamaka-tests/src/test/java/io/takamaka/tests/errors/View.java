@@ -3,7 +3,6 @@
  */
 package io.takamaka.tests.errors;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -30,7 +30,7 @@ class View extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar then call to View.no1() fails")
-	void callNo1() throws TransactionException, IOException, CodeExecutionException {
+	void callNo1() throws TransactionException, CodeExecutionException {
 		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
@@ -40,7 +40,7 @@ class View extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar then call to View.no2() fails")
-	void callNo2() throws TransactionException, IOException, CodeExecutionException {
+	void callNo2() throws TransactionException, CodeExecutionException {
 		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
 		TakamakaTest.throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
@@ -50,7 +50,7 @@ class View extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar then call to View.yes() succeeds")
-	void callYes() throws TransactionException, IOException, CodeExecutionException {
+	void callYes() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
 		runViewInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, jar(),

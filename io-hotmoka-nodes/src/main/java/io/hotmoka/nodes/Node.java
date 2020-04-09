@@ -2,17 +2,22 @@ package io.hotmoka.nodes;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -122,6 +127,8 @@ public interface Node extends AutoCloseable {
 	 * of the node. It has no caller and requires no gas. The goal is to install, in the
 	 * node, some basic jars that are likely needed as dependencies by future jars.
 	 * For instance, the jar containing the basic contract classes.
+	 * This installation have special privileges, such as that of installing
+	 * packages in {@code io.takamaka.code.lang.*}.
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the transaction that can be used to refer to the jar in a class path or as future dependency of other jars
@@ -154,17 +161,82 @@ public interface Node extends AutoCloseable {
 	StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException;
 
 	/**
+	 * Expands the store of this node with a transaction that installs a jar in it.
+	 * 
+	 * @param request the transaction request
+	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
+	 * @throws TransactionException if the transaction could not be completed successfully. If this occurs and the caller
+	 *                              has been identified, the node store will still be expanded
+	 *                              with a transaction that charges the gas limit to the caller, but no jar will be installed.
+	 *                              Otherwise, the transaction will be rejected and not added to this node's store
+	 */
+	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException;
+
+	/**
+	 * Expands this node's store with a transaction that runs a constructor of a class.
+	 * 
+	 * @param request the request of the transaction
+	 * @return the created object, if the constructor was successfully executed, without exception
+	 * @throws TransactionException if the transaction could not be completed successfully. This includes
+	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
+	 *                              with a transaction that charges all gas limit to the caller, but no constructor will be executed.
+	 *                              Otherwise, the transaction will be rejected and not added to this node's store
+	 * @throws CodeExecutionException if the constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
+	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
+	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
+	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	 */
+	StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException;
+
+	/**
+	 * Expands this node's store with a transaction that runs an instance method of an object already in this node's store.
+	 * 
+	 * @param request the transaction request
+	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
+	 *         declared to return {@code void}, this result will be {@code null}
+	 * @throws TransactionException if the transaction could not be completed successfully. This includes
+	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
+	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
+	 *                              Otherwise, the transaction will be rejected and not added to this node's store
+	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
+	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
+	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
+	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	 */
+	StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
+
+	/**
+	 * Expands this node's store with a transaction that runs a static method of a class in this node.
+	 * 
+	 * @param request the transaction request
+	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
+	 *         declared to return {@code void}, this result will be {@code null}
+	 * @throws TransactionException if the transaction could not be completed successfully. This includes
+	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
+	 *                              with a transaction that charges all gas limit to the caller, but no method will be executed.
+	 *                              Otherwise, the transaction will be rejected and not added to this node's store
+	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
+	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
+	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
+	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	 */
+	StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
+
+	/**
 	 * Runs an instance {@code @@View} method of an object already in this node's store.
 	 * The node's store is not expanded, since the execution of the method has no side-effects.
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@linkplain io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s
-	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. In all other cases, a {@linkplain io.hotmoka.beans.TransactionException} is thrown
+	 * @throws TransactionRejectedException if the caller of the transaction cannot be identified or has not enough money to pay for a failed transaction
+	 * @throws TransactionException otherwise, if an exception occurred in the engine of the node that executes the transaction,
+	 *                              not in the user code that is being executed
+	 * @throws CodeExecutionException otherwise, that is, if an exception occurred in the user code that is being executed
 	 */
-	StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
+	StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Runs a static {@code @@View} method of a class in this node.
@@ -172,10 +244,158 @@ public interface Node extends AutoCloseable {
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s
-	 * @throws CodeExecutionException if the method is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. In all other cases, a {@linkplain io.hotmoka.beans.TransactionException} is thrown
+	 * @throws TransactionRejectedException if the caller of the transaction cannot be identified or has not enough money to pay for a failed transaction
+	 * @throws TransactionException otherwise, if an exception occurred in the engine of the node that executes the transaction,
+	 *                              not in the user code that is being executed
+	 * @throws CodeExecutionException otherwise, that is, if an exception occurred in the user code that is being executed
 	 */
-	StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
+	StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+
+	/**
+	 * Posts a transaction that expands the store of this node with a transaction that installs a jar in it.
+	 * If the transaction could not be completed successfully
+	 * and the caller has been identified, the node store will still be expanded
+	 * with a transaction that charges the gas limit to the caller, but no jar will be installed.
+	 * Otherwise, the transaction will be rejected and not added to this node's store.
+	 * 
+	 * @param request the transaction request
+	 * @return the future holding the reference to the transaction where the jar has been installed
+	 * @throws TransactionException if an error prevented the transaction from being posted
+	 */
+	JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException ;
+
+	/**
+	 * Posts a transaction that runs a constructor of a class in this node.
+	 * If the transaction could not be completed successfully,
+	 * for instance because of {@linkplain OutOfGasError}s and {@linkplain io.takamaka.code.lang.InsufficientFundsError}s,
+	 * and the caller has been identified, the node's store will still be expanded
+	 * with a transaction that charges all gas limit to the caller, but no constructor will be executed.
+	 * Otherwise, the transaction will be rejected and not added to this node's store.
+	 * If the constructor is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions}
+	 * and the constructor threw a {@linkplain CodeExecutionException} then,
+	 * from the point of view of Takamaka, the transaction was successful, it gets added to this node's store
+	 * and the consumed gas gets charged to the caller.
+	 * 
+	 * @param request the request of the transaction
+	 * @return the future holding the result of the computation
+	 * @throws TransactionException if an error prevented the transaction from being posted
+	 */
+	CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException;
+
+	/**
+	 * Posts a transaction that runs an instance method of an object already in this node's store.
+	 * If the transaction could not be completed successfully, also because of
+	 * {@linkplain OutOfGasError}s and {@linkplain io.takamaka.code.lang.InsufficientFundsError}s,
+	 * and the caller has been identified, the node's store will still be expanded
+	 * with a transaction that charges all gas limit to the caller, but no method will be executed.
+	 * Otherwise, the transaction will be rejected and not added to this node's store.
+	 * If the method is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions} and its execution
+	 * failed with a checked exception then, from the point of view of Takamaka,
+	 * the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
+	 * 
+	 * @param request the transaction request
+	 * @return the future holding the result of the transaction
+	 * @throws TransactionException if an error prevented the transaction from being posted
+	 */
+	CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException;
+
+	/**
+	 * Posts a request that runs a static method of a class in this node.
+	 * If the transaction could not be completed successfully, also because of
+	 * {@linkplain OutOfGasError}s and {@linkplain io.takamaka.code.lang.InsufficientFundsError}s,
+	 * and the caller has been identified, the node's store will still be expanded
+	 * with a transaction that charges all gas limit to the caller, but no method will be executed.
+	 * Otherwise, the transaction will be rejected and not added to this node's store.
+	 * If the method is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions} and its execution
+	 * failed with a checked exception then, from the point of view of Takamaka,
+	 * the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
+	 * 
+	 * @param request the transaction request
+	 * @throws TransactionException if an error prevented the transaction from being posted
+	 */
+	void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException;
+
+	/**
+	 * The future of a transaction that executes code in blockchain.
+	 * 
+	 * @param <V> the type of the value computed by the transaction
+	 */
+	interface CodeExecutionFuture<V extends StorageValue> {
+	
+		/**
+	     * Waits if necessary for the transaction to complete, and then retrieves its result.
+	     *
+	     * @return the computed result of the transaction
+	     * @throws TransactionException if the transaction could not be completed successfully. This includes
+	     *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	     *                              In this case, the node's store will still be expanded
+	     *                              with a transaction that charges all gas limit to the caller, but no code will be executed
+	     * @throws CodeExecutionException if the method or constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
+	     *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
+	     *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
+	     *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	     */
+	    V get() throws TransactionException, CodeExecutionException;
+	
+	    /**
+	     * Waits if necessary for at most the given time for the transaction
+	     * to complete, and then retrieves its result, if available.
+	     *
+	     * @param timeout the maximum time to wait
+	     * @param unit the time unit of the timeout argument
+	     * @return the computed result of the transaction
+	     * @throws TransactionException if the transaction could not be completed successfully. This includes
+	     *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
+	     *                              In this case, the node's store will still be expanded
+	     *                              with a transaction that charges all gas limit to the caller, but no code will be executed
+	     * @throws CodeExecutionException if the method or constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
+	     *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
+	     *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
+	     *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	     * @throws TimeoutException if the timeout expired but the result has not been computed yet
+	     */
+	    V get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException;
+
+	    /**
+	     * Yields an identifier of the transaction, that can be used for polling its result.
+	     * This can be, for instance, a hash of the transaction.
+	     * 
+	     * @return the identifier
+	     */
+	    String id();
+	}
+
+	/**
+	 * The future of a transaction that stores a jar in blockchain.
+	 */
+	interface JarStoreFuture {
+
+		/**
+	     * Waits if necessary for the transaction to complete, and then retrieves its result.
+	     *
+	     * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
+	     * @throws TransactionException if the transaction threw that exception
+	     */
+	    TransactionReference get() throws TransactionException;
+
+	    /**
+	     * Waits if necessary for at most the given time for the transaction
+	     * to complete, and then retrieves its result, if available.
+	     *
+	     * @param timeout the maximum time to wait
+	     * @param unit the time unit of the timeout argument
+	     * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
+	     * @throws TransactionException if the transaction threw that exception
+	     * @throws TimeoutException if the timeout expired but the result has not been computed yet
+	     */
+	    TransactionReference get(long timeout, TimeUnit unit) throws TransactionException, TimeoutException;
+
+	    /**
+	     * Yields an identifier of the transaction, that can be used for polling its result.
+	     * This can be, for instance, a hash of the transaction.
+	     * 
+	     * @return the identifier
+	     */
+	    String id();
+	}
 }

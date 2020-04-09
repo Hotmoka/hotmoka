@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -46,7 +47,7 @@ class WTSC2020 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("two investors do not get their investment back yet")
-	void twoInvestors() throws TransactionException, CodeExecutionException {
+	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
 		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
@@ -61,7 +62,7 @@ class WTSC2020 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
-	void threeInvestors() throws TransactionException, CodeExecutionException {
+	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
 		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
@@ -79,7 +80,7 @@ class WTSC2020 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("three investors then check most frequent investor class")
-	void mostFrequentInvestorClass() throws TransactionException, CodeExecutionException {
+	void mostFrequentInvestorClass() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
 		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
@@ -100,7 +101,7 @@ class WTSC2020 extends TakamakaTest {
 
 	@Disabled
 	@Test @DisplayName("three investors then check most frequent investor and fails")
-	void mostFrequentInvestor() throws TransactionException, CodeExecutionException {
+	void mostFrequentInvestor() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
 		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 

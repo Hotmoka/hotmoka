@@ -9,9 +9,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.AsynchronousNode;
 import io.hotmoka.nodes.InitializedNode;
-import io.hotmoka.nodes.SynchronousNode;
 import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
 
 /**
@@ -21,7 +19,7 @@ import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
  * Updates are stored inside the blocks, rather than in an external database.
  * It provides support for the creation of a given number of initial accounts.
  */
-public interface TendermintBlockchain extends AsynchronousNode, SynchronousNode, InitializedNode {
+public interface TendermintBlockchain extends InitializedNode {
 
 	/**
 	 * Yields a fresh Tendermint blockchain and initializes user accounts with the given initial funds.

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -51,79 +52,79 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("MapTests.testIteration1() == 4950")
-	void geometricSum() throws TransactionException, CodeExecutionException {
+	void geometricSum() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_TESTS, "testIteration1", INT));
 		assertEquals(4950, sum.value);
 	}
 
 	@Test @DisplayName("MapTests.testUpdate1() == 5050")
-	void geometricSumAfterUpdate() throws TransactionException, CodeExecutionException {
+	void geometricSumAfterUpdate() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_TESTS, "testUpdate1", INT));
 		assertEquals(5050, sum.value);
 	}
 
 	@Test @DisplayName("MapTests.testUpdate2() == 5050")
-	void geometricSumAfterUpdateWithStream() throws TransactionException, CodeExecutionException {
+	void geometricSumAfterUpdateWithStream() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_TESTS, "testUpdate2", INT));
 		assertEquals(5050, sum.value);
 	}
 
 	@Test @DisplayName("MapTests.testNullValues() == 100L()")
-	void nullValuesInMap() throws TransactionException, CodeExecutionException {
+	void nullValuesInMap() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		LongValue count = (LongValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_TESTS, "testNullValues", LONG));
 		assertEquals(100L, count.value);
 	}
 
 	@Test @DisplayName("IntMapTests.testIteration1() == 4950")
-	void geometricSumIntKeys() throws TransactionException, CodeExecutionException {
+	void geometricSumIntKeys() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(INT_MAP_TESTS, "testIteration1", INT));
 		assertEquals(4950, sum.value);
 	}
 
 	@Test @DisplayName("IntMapTests.testUpdate1() == 5050")
-	void geometricSumAfterUpdateIntKeys() throws TransactionException, CodeExecutionException {
+	void geometricSumAfterUpdateIntKeys() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(INT_MAP_TESTS, "testUpdate1", INT));
 		assertEquals(5050, sum.value);
 	}
 
 	@Test @DisplayName("IntMapTests.testUpdate2() == 5050")
-	void geometricSumAfterUpdateIntKeysWithStream() throws TransactionException, CodeExecutionException {
+	void geometricSumAfterUpdateIntKeysWithStream() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(INT_MAP_TESTS, "testUpdate2", INT));
 		assertEquals(5050, sum.value);
 	}
 
 	@Test @DisplayName("IntMapTests.testNullValues() == 100L()")
-	void nullValuesInMapIntKeys() throws TransactionException, CodeExecutionException {
+	void nullValuesInMapIntKeys() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		LongValue count = (LongValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(INT_MAP_TESTS, "testNullValues", LONG));
 		assertEquals(100L, count.value);
 	}
 
 	@Test @DisplayName("ArrayTests.testRandomInitialization() == 1225")
-	void randomArray() throws TransactionException, CodeExecutionException {
+	void randomArray() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testRandomInitialization", INT));
 		assertEquals(1225, sum.value);
 	}
 
 	@Test @DisplayName("ArrayTests.countNullsAfterRandomInitialization() == 50L")
-	void randomArrayCountNulls() throws TransactionException, CodeExecutionException {
+	void randomArrayCountNulls() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		LongValue count = (LongValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "countNullsAfterRandomInitialization", LONG));
 		assertEquals(50L, count.value);
 	}
 
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault1() == 1325")
-	void randomArrayThenUpdate1() throws TransactionException, CodeExecutionException {
+	void randomArrayThenUpdate1() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testUpdateWithDefault1", INT));
 		assertEquals(1325, sum.value);
 	}
 
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault2() == 1225")
-	void randomArrayThenUpdate2() throws TransactionException, CodeExecutionException {
+	void randomArrayThenUpdate2() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testUpdateWithDefault2", INT));
 		assertEquals(1225, sum.value);
 	}
 
 	@Test @DisplayName("ArrayTests.testGetOrDefault() == 1225")
-	void randomArrayTheGetOrDefault() throws TransactionException, CodeExecutionException {
+	void randomArrayTheGetOrDefault() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runViewStaticMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testGetOrDefault", INT));
 		assertEquals(1225, sum.value);
 	}
@@ -134,7 +135,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING")
-	void mapHolderGet0() throws TransactionException, CodeExecutionException {
+	void mapHolderGet0() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference mapHolder = addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isRunning", BOOLEAN, ClassType.OBJECT), mapHolder, state);
@@ -142,7 +143,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING")
-	void mapHolderGet1() throws TransactionException, CodeExecutionException {
+	void mapHolderGet1() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference mapHolder = addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isSleeping", BOOLEAN, ClassType.OBJECT), mapHolder, state);
@@ -150,7 +151,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING")
-	void mapHolderGet10() throws TransactionException, CodeExecutionException {
+	void mapHolderGet10() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference mapHolder = addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isWaiting", BOOLEAN, ClassType.OBJECT), mapHolder, state);
@@ -158,7 +159,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING with State")
-	void mapHolderGet0State() throws TransactionException, CodeExecutionException {
+	void mapHolderGet0State() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference mapHolder = addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isRunning2", BOOLEAN, STATE), mapHolder, state);
@@ -166,7 +167,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING with State")
-	void mapHolderGet1State() throws TransactionException, CodeExecutionException {
+	void mapHolderGet1State() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference mapHolder = addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isSleeping2", BOOLEAN, STATE), mapHolder, state);
@@ -174,7 +175,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING with State")
-	void mapHolderGet10State() throws TransactionException, CodeExecutionException {
+	void mapHolderGet10State() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference mapHolder = addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isWaiting2", BOOLEAN, STATE), mapHolder, state);
@@ -182,7 +183,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING with Comparable")
-	void mapHolderGet0Comparable() throws TransactionException, CodeExecutionException {
+	void mapHolderGet0Comparable() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference mapHolder = addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isRunning3", BOOLEAN, COMPARABLE), mapHolder, state);
@@ -190,7 +191,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING with Comparable")
-	void mapHolderGet1Comparable() throws TransactionException, CodeExecutionException {
+	void mapHolderGet1Comparable() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference mapHolder = addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isSleeping3", BOOLEAN, COMPARABLE), mapHolder, state);
@@ -198,7 +199,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING with Comparable")
-	void mapHolderGet10Comparable() throws TransactionException, CodeExecutionException {
+	void mapHolderGet10Comparable() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference mapHolder = addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runViewInstanceMethodCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isWaiting3", BOOLEAN, COMPARABLE), mapHolder, state);

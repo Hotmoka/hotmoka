@@ -66,6 +66,19 @@ public abstract class CodeExecutionTransactionResponse implements NonInitialTran
 	        + "  gas consumed for storage consumption: " + gasConsumedForStorage + "\n";
 	}
 
+	/**
+	 * Yields the description of the program point where the given exception occurred.
+	 * 
+	 * @param exception the exception
+	 * @return the description
+	 */
+	protected final static String placeOfException(Exception exception) {
+		StackTraceElement[] stackTrace = exception.getStackTrace();
+		return (stackTrace != null && stackTrace.length > 0) ?
+			stackTrace[0].getFileName() + ":" + stackTrace[0].getLineNumber()
+			: null;
+	}
+
 	@Override
 	public final Stream<Update> getUpdates() {
 		return Stream.of(updates);

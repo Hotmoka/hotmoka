@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -46,21 +47,21 @@ class Storage extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() is an int")
-	void neverInitializedStorageYieldsInt() throws TransactionException, CodeExecutionException {
+	void neverInitializedStorageYieldsInt() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference storage = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		StorageValue value = runViewInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertTrue(value instanceof IntValue);
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() == 0")
-	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException {
+	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference storage = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertEquals(value.value, 0);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then get() == 13")
-	void set13ThenGet13() throws TransactionException, CodeExecutionException {
+	void set13ThenGet13() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference storage = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		addInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
 		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
@@ -68,7 +69,7 @@ class Storage extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then set(17) then get() == 17")
-	void set13set17ThenGet17() throws TransactionException, CodeExecutionException {
+	void set13set17ThenGet17() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference storage = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		postInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
 		addInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(17));

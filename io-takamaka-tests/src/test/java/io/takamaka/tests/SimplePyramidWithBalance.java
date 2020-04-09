@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -40,7 +41,7 @@ class SimplePyramidWithBalance extends TakamakaTest {
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")
-	void twoInvestors() throws TransactionException, CodeExecutionException {
+	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference pyramid = addConstructorCallTransaction(account(0), _50_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		postInstanceMethodCallTransaction(account(1), _50_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(account(0), _50_000, BigInteger.ZERO, jar(), WITHDRAW, pyramid);
@@ -49,7 +50,7 @@ class SimplePyramidWithBalance extends TakamakaTest {
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
-	void threeInvestors() throws TransactionException, CodeExecutionException {
+	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference pyramid = addConstructorCallTransaction(account(0), _50_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		postInstanceMethodCallTransaction(account(1), _50_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		postInstanceMethodCallTransaction(account(2), _50_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);

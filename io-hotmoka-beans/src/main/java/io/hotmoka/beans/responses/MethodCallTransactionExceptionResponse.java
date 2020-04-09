@@ -56,10 +56,7 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 		this.events = events.toArray(StorageReference[]::new);
 		this.classNameOfCause = exception.getClass().getName();
 		this.messageOfCause = exception.getMessage();
-
-		StackTraceElement[] stackTrace = exception.getStackTrace();
-		this.where = (stackTrace != null && stackTrace.length > 0) ?
-			stackTrace[0].getFileName() + ":" + stackTrace[0].getLineNumber() : "<unknown line>";
+		this.where = placeOfException(exception);
 	}
 
 	@Override
@@ -77,6 +74,6 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 
 	@Override
 	public StorageValue getOutcome() throws CodeExecutionException {
-		throw new CodeExecutionException("method threw", classNameOfCause, messageOfCause, where);
+		throw new CodeExecutionException(classNameOfCause, messageOfCause, where);
 	}
 }

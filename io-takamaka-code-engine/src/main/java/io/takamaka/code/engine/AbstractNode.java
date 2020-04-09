@@ -33,17 +33,16 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.nodes.AsynchronousNode;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.GasCostModel;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
-import io.hotmoka.nodes.SynchronousNode;
 
 /**
  * A generic implementation of a node.
  * Specific implementations can subclass this class and implement the abstract template methods.
  */
-public abstract class AbstractNode implements SynchronousNode, AsynchronousNode {
+public abstract class AbstractNode implements Node {
 
 	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
 

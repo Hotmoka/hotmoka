@@ -23,8 +23,8 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.AsynchronousNode.JarStoreFuture;
 import io.hotmoka.nodes.DeserializationError;
+import io.hotmoka.nodes.Node.JarStoreFuture;
 
 /**
  * A test for the creation of classes with the same name but from different jars.

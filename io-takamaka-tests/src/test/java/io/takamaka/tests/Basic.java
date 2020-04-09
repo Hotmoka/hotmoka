@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
@@ -30,8 +31,8 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.nodes.AsynchronousNode.CodeExecutionFuture;
 import io.hotmoka.nodes.DeserializationError;
+import io.hotmoka.nodes.Node.CodeExecutionFuture;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
 
@@ -75,14 +76,14 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new InternationalTime(13,25,40).toString().equals(\"13:25:40\")")
-	void testToStringInternationTime() throws TransactionException, CodeExecutionException {
+	void testToStringInternationTime() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference internationalTime = addConstructorCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME, new IntValue(13), new IntValue(25), new IntValue(40));
 		assertEquals(new StringValue("13:25:40"), runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, TIME_TO_STRING, internationalTime));
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40)).toString().equals(\"wrapper(13:25:40,null,null,0)\")")
-	void testToStringWrapperInternationTime1() throws TransactionException, CodeExecutionException {
+	void testToStringWrapperInternationTime1() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference internationalTime = addConstructorCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40));
@@ -92,7 +93,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Wrapper(new InternationalTime(13,25,40),\"hello\",13011973,12345L).toString().equals(\"wrapper(13:25:40,hello,13011973,12345)\")")
-	void testToStringWrapperInternationTime2() throws TransactionException, CodeExecutionException {
+	void testToStringWrapperInternationTime2() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference internationalTime = addConstructorCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40));
@@ -109,7 +110,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub().m1() throws TransactionException since RequirementViolationException")
-	void callEntryFromSameContract() throws CodeExecutionException, TransactionException {
+	void callEntryFromSameContract() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference sub = addConstructorCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub"));
 
@@ -136,7 +137,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("Sub.ms()")
-	void callStaticAsStatic() throws CodeExecutionException, TransactionException {
+	void callStaticAsStatic() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		runViewStaticMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, SUB_MS);
 	}
 
@@ -211,7 +212,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a2 = new Alias(); a1.test(a1, a2)=false")
-	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException {
+	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		CodeExecutionFuture<StorageReference> a1 = postConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StorageReference a2 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
@@ -219,14 +220,14 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a1.test(a1, a1)=true")
-	void aliasBetweenStorage2() throws CodeExecutionException, TransactionException {
+	void aliasBetweenStorage2() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(true), runViewInstanceMethodCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; s2 = \"hello\"; a1.test(s1, s2)=false")
-	void aliasBetweenString() throws CodeExecutionException, TransactionException {
+	void aliasBetweenString() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
 		StringValue s2 = new StringValue("hello");
@@ -235,7 +236,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; a1.test(s1, s1)=false")
-	void aliasBetweenString2() throws CodeExecutionException, TransactionException {
+	void aliasBetweenString2() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
@@ -243,7 +244,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); bi2 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
-	void aliasBetweenBigInteger1() throws CodeExecutionException, TransactionException {
+	void aliasBetweenBigInteger1() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		BigIntegerValue bi2 = new BigIntegerValue(BigInteger.valueOf(13L));
@@ -252,7 +253,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
-	void aliasBetweenBigInteger2() throws CodeExecutionException, TransactionException {
+	void aliasBetweenBigInteger2() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference a1 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
@@ -278,7 +279,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo3() == 13")
-	void viewMethodOk1() throws CodeExecutionException, TransactionException {
+	void viewMethodOk1() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
 
 		assertEquals(new IntValue(13),
@@ -286,7 +287,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo4() == 13")
-	void viewMethodOk2() throws CodeExecutionException, TransactionException {
+	void viewMethodOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference s = addConstructorCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, BasicTypes.INT), new IntValue(13));
 
@@ -295,13 +296,13 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo5() == 13")
-	void viewMethodOk3() throws CodeExecutionException, TransactionException {
+	void viewMethodOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		assertEquals(new IntValue(14),
 			runViewStaticMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(SIMPLE, "foo5", INT)));
 	}
 
 	@Test @DisplayName("new WithList().toString().equals(\"[hello,how,are,you]\")")
-	void listCreation() throws CodeExecutionException, TransactionException {
+	void listCreation() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference wl = addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(WITH_LIST));
 		assertEquals(new StringValue("[hello,how,are,you]"),
 			runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(WITH_LIST, "toString", ClassType.STRING), wl));
@@ -317,19 +318,19 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new EntryFilter().foo1() called by an ExternallyOwnedAccount")
-	void entryFilterOk1() throws CodeExecutionException, TransactionException {
+	void entryFilterOk1() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 		runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo1"), ef);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo2() called by an ExternallyOwnedAccount")
-	void entryFilterOk2() throws CodeExecutionException, TransactionException {
+	void entryFilterOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 		runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo2"), ef);
 	}
 
 	@Test @DisplayName("new EntryFilter().foo3() called by an ExternallyOwnedAccount")
-	void entryFilterOk3() throws CodeExecutionException, TransactionException {
+	void entryFilterOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 		runViewInstanceMethodCallTransaction(master, _5_000, BigInteger.ONE, classpath, new VoidMethodSignature(ENTRY_FILTER, "foo3"), ef);
 	}
@@ -344,7 +345,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new EntryFilter().foo5() throws CodeExecutionException since MyCheckedException")
-	void entryFilterFailsWithThrowsExceptions() throws CodeExecutionException, TransactionException {
+	void entryFilterFailsWithThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		try {

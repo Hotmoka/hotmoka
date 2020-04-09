@@ -33,7 +33,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.nodes.AsynchronousNode.CodeExecutionFuture;
+import io.hotmoka.nodes.Node.CodeExecutionFuture;
 import io.takamaka.code.constants.Constants;
 
 /**
