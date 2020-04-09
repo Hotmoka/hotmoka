@@ -130,7 +130,7 @@ class Collections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new MapHolder()")
-	void mapHolder() throws TransactionException, CodeExecutionException {
+	void mapHolder() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		addConstructorCallTransaction(eoa, _5_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 	}
 

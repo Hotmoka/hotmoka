@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -36,7 +37,6 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.OutOfGasError;
 
 /**
  * A generic implementation of a node.
@@ -154,8 +154,8 @@ public abstract class AbstractNode implements Node {
 	}
 
 	@Override
-	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
+	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> {
 			requireNodeUninitialized();
 			return addJarStoreInitialTransactionInternal(request);
 		});
@@ -170,14 +170,13 @@ public abstract class AbstractNode implements Node {
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the transaction that can be used to refer to the jar in a class path or as future dependency of other jars
-	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
-	 * @throws Exception if the transaction could not be completed for an internal error; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionException}
+	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
 	protected abstract TransactionReference addJarStoreInitialTransactionInternal(JarStoreInitialTransactionRequest request) throws Exception;
 
 	@Override
-	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
+	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> {
 			requireNodeUninitialized();
 			return addGameteCreationTransactionInternal(request);
 		});
@@ -191,14 +190,13 @@ public abstract class AbstractNode implements Node {
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the freshly created gamete
-	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
-	 * @throws Exception if the transaction could not be completed for an internal error; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionException}
+	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
 	protected abstract StorageReference addGameteCreationTransactionInternal(GameteCreationTransactionRequest request) throws Exception;
 
 	@Override
-	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
+	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> {
 			requireNodeUninitialized();
 			return addRedGreenGameteCreationTransactionInternal(request);
 		});
@@ -212,14 +210,13 @@ public abstract class AbstractNode implements Node {
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the freshly created gamete
-	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
-	 * @throws Exception if the transaction could not be completed for an internal error; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionException}
+	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
 	protected abstract StorageReference addRedGreenGameteCreationTransactionInternal(RedGreenGameteCreationTransactionRequest request) throws Exception;
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> {
+	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
+		return wrapInCaseOfExceptionMedium(() -> {
 			TransactionReference transaction = addJarStoreTransactionInternal(request);
 			markAsInitialized();
 			return transaction;
@@ -231,17 +228,14 @@ public abstract class AbstractNode implements Node {
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
-	 * @throws TransactionException if the transaction could not be completed successfully. If this occurs and the caller
-	 *                              has been identified, the node store will still be expanded
-	 *                              with a transaction that charges the gas limit to the caller, but no jar will be installed.
-	 *                              Otherwise, the transaction will be rejected and not added to this node's store
-	 * @throws Exception if the transaction could not be completed for an internal error; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionException}
+	 * @throws TransactionException if the transaction was added but as a failed transaction
+	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
-	protected abstract TransactionReference addJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception;
+	protected abstract TransactionReference addJarStoreTransactionInternal(JarStoreTransactionRequest request) throws TransactionException, Exception;
 
 	@Override
-	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> {
+	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> {
 			StorageReference newObject = addConstructorCallTransactionInternal(request);
 			markAsInitialized();
 			return newObject;
@@ -253,22 +247,15 @@ public abstract class AbstractNode implements Node {
 	 * 
 	 * @param request the request of the transaction
 	 * @return the created object, if the constructor was successfully executed, without exception
-	 * @throws CodeExecutionException if the constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
-	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                                {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	 *                                If this occurs and the caller has been identified, the node's store will still be expanded
-	 *                                with a transaction that charges all gas limit to the caller, but no constructor will be executed.
-	 *                                Otherwise, the transaction will be rejected and not added to this node's store
-	 * @throws Exception if the transaction could not be completed for an internal error; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionException}
+	 * @throws CodeExecutionException if the transaction was added but as a failed transaction, with failure inside the user code
+	 * @throws TransactionException if the transaction was added but as a failed transaction, with failure outside user code
+	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
-	protected abstract StorageReference addConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception;
+	protected abstract StorageReference addConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;
 
 	@Override
-	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> {
+	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> {
 			StorageValue result = addInstanceMethodCallTransactionInternal(request);
 			markAsInitialized();
 			return result;
@@ -281,22 +268,15 @@ public abstract class AbstractNode implements Node {
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
-	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
-	 *                              Otherwise, the transaction will be rejected and not added to this node's store
-	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
-	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
-	 * @throws Exception if the transaction could not be completed for an internal error; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionException}
+	 * @throws CodeExecutionException if the transaction was added but as a failed transaction, with failure inside the user code
+	 * @throws TransactionException if the transaction was added but as a failed transaction, with failure outside user code
+	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
-	protected abstract StorageValue addInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception;
+	protected abstract StorageValue addInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;
 
 	@Override
-	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> {
+	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> {
 			StorageValue result = addStaticMethodCallTransactionInternal(request);
 			markAsInitialized();
 			return result;
@@ -309,22 +289,15 @@ public abstract class AbstractNode implements Node {
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
-	 *                              with a transaction that charges all gas limit to the caller, but no method will be executed.
-	 *                              Otherwise, the transaction will be rejected and not added to this node's store
-	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
-	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
-	 * @throws Exception if the transaction could not be completed for an internal error; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionException}
+	 * @throws CodeExecutionException if the transaction was added but as a failed transaction, with failure inside the user code
+	 * @throws TransactionException if the transaction was added but as a failed transaction, with failure outside user code
+	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
-	protected abstract StorageValue addStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception;
+	protected abstract StorageValue addStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;
 
 	@Override
-	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> runViewInstanceMethodCallTransactionInternal(request));
+	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> runViewInstanceMethodCallTransactionInternal(request));
 	}
 
 	/**
@@ -333,17 +306,15 @@ public abstract class AbstractNode implements Node {
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@linkplain io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s
-	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. In all other cases, a {@linkplain io.hotmoka.beans.TransactionException} is thrown
-	 * @throws Exception if the transaction could not be completed for an internal error; this will be wrapped into a {@ļinkplain io.hotmoka.beans.TransactionException}
+	 * @throws CodeExecutionException if the transaction could be added but as a failed transaction, with failure inside the user code
+	 * @throws TransactionException if the transaction could be added but as a failed transaction, with failure outside user code
+	 * @throws Exception if the transaction could not be added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
-	protected abstract StorageValue runViewInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception;
+	protected abstract StorageValue runViewInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;
 
 	@Override
-	public final StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException {
-		return wrapWithCodeInCaseOfException(() -> runViewStaticMethodCallTransactionInternal(request));
+	public final StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> runViewStaticMethodCallTransactionInternal(request));
 	}
 
 	/**
@@ -352,94 +323,63 @@ public abstract class AbstractNode implements Node {
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s
-	 * @throws CodeExecutionException if the method is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. In all other cases, a {@linkplain io.hotmoka.beans.TransactionException} is thrown
-	 * @throws Exception if the transaction could not be completed for an internal error; this will be wrapped into a {@ļinkplain io.hotmoka.beans.TransactionException}
+	 * @throws CodeExecutionException if the transaction could be added but as a failed transaction, with failure inside the user code
+	 * @throws TransactionException if the transaction could be added but as a failed transaction, with failure outside user code
+	 * @throws Exception if the transaction could not be added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
-	protected abstract StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception;	
+	protected abstract StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;	
 
 	@Override
-	public final JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> postJarStoreTransactionInternal(request));
+	public final JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> postJarStoreTransactionInternal(request));
 	}
 
 	/**
 	 * Posts a transaction that expands the store of this node with a transaction that installs a jar in it.
-	 * If the transaction could not be completed successfully
-	 * and the caller has been identified, the node store will still be expanded
-	 * with a transaction that charges the gas limit to the caller, but no jar will be installed.
-	 * Otherwise, the transaction will be rejected and not added to this node's store.
 	 * 
 	 * @param request the transaction request
-	 * @throws Exception if an error prevented the transaction from being posted
+	 * @throws Exception if the transaction could not be posted; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
 	protected abstract JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception;
 
 	@Override
-	public final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> postConstructorCallTransactionInternal(request));
+	public final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> postConstructorCallTransactionInternal(request));
 	}
 
 	/**
 	 * Posts a transaction that runs a constructor of a class in this node.
-	 * If the transaction could not be completed successfully,
-	 * for instance because of {@linkplain OutOfGasError}s and {@linkplain io.takamaka.code.lang.InsufficientFundsError}s,
-	 * and the caller has been identified, the node's store will still be expanded
-	 * with a transaction that charges all gas limit to the caller, but no constructor will be executed.
-	 * Otherwise, the transaction will be rejected and not added to this node's store.
-	 * If the constructor is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions}
-	 * and the constructor threw a {@linkplain CodeExecutionException} then,
-	 * from the point of view of Takamaka, the transaction was successful, it gets added to this node's store
-	 * and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the request of the transaction
 	 * @return the future holding the result of the computation
-	 * @throws Exception if an error prevented the transaction from being posted
+	 * @throws Exception if the transaction could not be posted; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
 	protected abstract CodeExecutionFuture<StorageReference> postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception;
 
 	@Override
-	public final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException {
-		return wrapInCaseOfException(() -> postInstanceMethodCallTransactionInternal(request));
+	public final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> postInstanceMethodCallTransactionInternal(request));
 	}
 
 	/**
 	 * Posts a transaction that runs an instance method of an object already in this node's store.
-	 * If the transaction could not be completed successfully, also because of
-	 * {@linkplain OutOfGasError}s and {@linkplain io.takamaka.code.lang.InsufficientFundsError}s,
-	 * and the caller has been identified, the node's store will still be expanded
-	 * with a transaction that charges all gas limit to the caller, but no method will be executed.
-	 * Otherwise, the transaction will be rejected and not added to this node's store.
-	 * If the method is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 * failed with a checked exception then, from the point of view of Takamaka,
-	 * the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the transaction request
 	 * @return the future holding the result of the transaction
-	 * @throws Exception if an error prevented the transaction from being posted
+	 * @throws Exception if the transaction could not be posted; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
 	protected abstract CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception;
 
 	@Override
-	public final void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException {
-		wrapInCaseOfException(() -> postStaticMethodCallTransactionInternal(request));
+	public final void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
+		wrapWithRejectedInCaseOfException(() -> postStaticMethodCallTransactionInternal(request));
 	}
 
 	/**
 	 * Posts a request that runs a static method of a class in this node.
-	 * If the transaction could not be completed successfully, also because of
-	 * {@linkplain OutOfGasError}s and {@linkplain io.takamaka.code.lang.InsufficientFundsError}s,
-	 * and the caller has been identified, the node's store will still be expanded
-	 * with a transaction that charges all gas limit to the caller, but no method will be executed.
-	 * Otherwise, the transaction will be rejected and not added to this node's store.
-	 * If the method is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 * failed with a checked exception then, from the point of view of Takamaka,
-	 * the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the transaction request
-	 * @throws Exception if an error prevented the transaction from being posted
+	 * @throws Exception if the transaction could not be posted; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
 	 */
 	protected abstract void postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception;
 
@@ -586,40 +526,48 @@ public abstract class AbstractNode implements Node {
 			throw new IllegalStateException("unexpected storage type " + type);
 	}
 
-	/**
-	 * Calls the given callable. If if throws an exception, it wraps it into an {@link io.hotmoka.beans.TransactionException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws TransactionException the wrapped exception
-	 */
-	private static <T> T wrapInCaseOfException(Callable<T> what) throws TransactionException {
+	private static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
 		try {
 			return what.call();
 		}
+		catch (TransactionRejectedException e) {
+			throw e;
+		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
+			throw new TransactionRejectedException(t);
 		}
 	}
 
-	/**
-	 * Calls the given callable. If if throws a {@link io.hotmoka.beans.CodeExecutionException}, if throws it back
-	 * unchanged. Otherwise, it wraps the exception into an {@link io.hotmoka.beans.TransactionException}.
-	 * 
-	 * @param what the callable
-	 * @return the result of the callable
-	 * @throws CodeExecutionException the unwrapped exception
-	 * @throws TransactionException the wrapped exception
-	 */
-	private static <T> T wrapWithCodeInCaseOfException(Callable<T> what) throws TransactionException, CodeExecutionException {
+	private static <T> T wrapInCaseOfExceptionMedium(Callable<T> what) throws TransactionRejectedException, TransactionException {
 		try {
 			return what.call();
+		}
+		catch (TransactionRejectedException e) {
+			throw e;
+		}
+		catch (TransactionException e) {
+			throw e;
+		}
+		catch (Throwable t) {
+			throw new TransactionRejectedException(t);
+		}
+	}
+
+	private static <T> T wrapInCaseOfExceptionFull(Callable<T> what) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		try {
+			return what.call();
+		}
+		catch (TransactionRejectedException e) {
+			throw e;
 		}
 		catch (CodeExecutionException e) {
 			throw e;
 		}
+		catch (TransactionException e) {
+			throw e;
+		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
+			throw new TransactionRejectedException(t);
 		}
 	}
 
@@ -628,31 +576,22 @@ public abstract class AbstractNode implements Node {
 	}
 
 	/**
-	 * Runs the given runnable. If if throws a {@link io.hotmoka.beans.CodeExecutionException}, if throws it back
-	 * unchanged. Otherwise, it wraps the exception into an {@link io.hotmoka.beans.TransactionException}.
+	 * Runs the given runnable. If if throws an exception,
+	 * it wraps it into an {@link io.hotmoka.beans.TransactionRejectedException}.
 	 * 
 	 * @param what the callable
 	 * @return the result of the callable
-	 * @throws CodeExecutionException the unwrapped exception
-	 * @throws TransactionException the wrapped exception
+	 * @throws TransactionRejectedException the wrapped exception
 	 */
-	private static void wrapInCaseOfException(Task what) throws TransactionException {
+	private static void wrapWithRejectedInCaseOfException(Task what) throws TransactionRejectedException {
 		try {
 			what.run();
 		}
-		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
+		catch (TransactionRejectedException e) {
+			throw e;
 		}
-	}
-
-	/**
-	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
-	 * already an instance of that exception.
-	 * 
-	 * @param t the throwable to wrap
-	 * @return the wrapped or original exception
-	 */
-	private static TransactionException wrapAsTransactionException(Throwable t) {
-		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
+		catch (Throwable t) {
+			throw new TransactionRejectedException(t);
+		}
 	}
 }

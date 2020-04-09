@@ -3,7 +3,7 @@ package io.takamaka.code.engine.internal.transactions;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.responses.InitialTransactionResponse;
@@ -15,13 +15,13 @@ import io.hotmoka.nodes.Node;
 public abstract class InitialTransactionBuilder<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse> extends AbstractTransactionBuilder<Request, Response> {
 
 	/**
-	 * Builds an initial transaction creator.
+	 * Creates an initial transaction builder.
 	 * 
 	 * @param current the reference that must be used to refer to the created transaction
 	 * @param node the node that is creating the transaction
-	 * @throws TransactionException if the creator cannot be built
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialTransactionBuilder(TransactionReference current, Node node) throws TransactionException {
+	protected InitialTransactionBuilder(TransactionReference current, Node node) throws TransactionRejectedException {
 		super(current, node);
 	}
 

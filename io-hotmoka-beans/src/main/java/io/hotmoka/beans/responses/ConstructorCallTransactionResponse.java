@@ -32,6 +32,10 @@ public abstract class ConstructorCallTransactionResponse extends CodeExecutionTr
 	 * Yields the outcome of the execution having this response.
 	 * 
 	 * @return the outcome
+	 * @throws CodeExecutionException if the transaction failed with an exception inside the user code in store,
+	 *                                allowed to be thrown outside the store
+	 * @throws TransactionException if the transaction failed with an exception outside the user code in store,
+	 *                              or not allowed to be thrown outside the store
 	 */
 	public abstract StorageReference getOutcome() throws TransactionException, CodeExecutionException;
 }

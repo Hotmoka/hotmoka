@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -72,7 +73,7 @@ class ClassSwap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("c13 new/get works in its classpath")
-	void testC13() throws TransactionException, CodeExecutionException {
+	void testC13() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference c13 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 		IntValue get = (IntValue) addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, GET, c13);
 
@@ -80,7 +81,7 @@ class ClassSwap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("c17 new/get works in its classpath")
-	void testC17() throws TransactionException, CodeExecutionException {
+	void testC17() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference c17 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
 		IntValue get = (IntValue) addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, GET, c17);
 
@@ -88,11 +89,11 @@ class ClassSwap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("c13 new/get fails if classpath changed")
-	void testC13SwapC17() throws TransactionException, CodeExecutionException {
+	void testC13SwapC17() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference c13 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 
 		// the following call should fail since c13 was created from another jar
-		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
+		throwsTransactionRejectedWithCause(DeserializationError.class, () ->
 			addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, GET, c13)
 		);
 	}

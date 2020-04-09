@@ -2,7 +2,7 @@ package io.takamaka.code.engine.internal.transactions;
 
 import java.lang.reflect.Method;
 
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
@@ -16,15 +16,15 @@ import io.takamaka.code.constants.Constants;
 public class StaticViewMethodCallTransactionBuilder extends StaticMethodCallTransactionBuilder {
 
 	/**
-	 * Builds the creator of a transaction that executes a static method of Takamaka code
+	 * Creates the builder of a transaction that executes a static method of Takamaka code
 	 * annotated as {@linkplain io.hotmoka.code.lang.View}.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
-	 * @throws TransactionException if the transaction cannot be created
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public StaticViewMethodCallTransactionBuilder(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public StaticViewMethodCallTransactionBuilder(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 	}
 

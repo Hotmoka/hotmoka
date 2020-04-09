@@ -60,7 +60,7 @@ public abstract class TakamakaTest {
 		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
-	protected final void mkRedGreenBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
+	protected final void mkRedGreenBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
 		//Config config = new Config(Paths.get("chain"), 26657, 26658);
 		//node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
@@ -72,7 +72,7 @@ public abstract class TakamakaTest {
 		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
 	}
 
-	protected final void mkRedGreenBlockchain(String jar, BigInteger... coins) throws IOException, TransactionException, CodeExecutionException {
+	protected final void mkRedGreenBlockchain(String jar, BigInteger... coins) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
 		//Config config = new Config(Paths.get("chain"), 26657, 26658);
 		//node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
 		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
@@ -102,7 +102,7 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, byte[] jar, Classpath... dependencies) throws TransactionException {
+	protected final TransactionReference addJarStoreTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, byte[] jar, Classpath... dependencies) throws TransactionException, TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.addJarStoreTransaction(new JarStoreTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
@@ -110,7 +110,7 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	protected final StorageReference addConstructorCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
@@ -118,7 +118,7 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	protected final StorageValue addInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
@@ -126,7 +126,7 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException {
+	protected final StorageValue addStaticMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, actuals));
 	}
@@ -145,7 +145,7 @@ public abstract class TakamakaTest {
 		return node.runViewStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
-	protected final JarStoreFuture postJarStoreTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, byte[] jar, Classpath... dependencies) throws TransactionException {
+	protected final JarStoreFuture postJarStoreTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, byte[] jar, Classpath... dependencies) throws TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.postJarStoreTransaction(new JarStoreTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
@@ -153,7 +153,7 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException {
+	protected final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
@@ -161,7 +161,7 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException {
+	protected final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.postConstructorCallTransaction(new ConstructorCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
@@ -191,6 +191,23 @@ public abstract class TakamakaTest {
 		fail("no exception: expected " + TransactionException.class.getName());
 	}
 
+	protected static void throwsTransactionRejectedWithCause(Class<? extends Throwable> expected, TestBody what) {
+		try {
+			what.run();
+		}
+		catch (TransactionRejectedException e) {
+			if (e.getMessage().startsWith(expected.getName()))
+				return;
+
+			fail("wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
+		}
+		catch (Exception e) {
+			fail("wrong exception: expected " + TransactionRejectedException.class.getName() + " but got " + e.getClass().getName());
+		}
+
+		fail("no exception: expected " + TransactionRejectedException.class.getName());
+	}
+
 	protected static void throwsTransactionExceptionWithCause(String expected, TestBody what) {
 		try {
 			what.run();
@@ -208,6 +225,23 @@ public abstract class TakamakaTest {
 		fail("no exception: expected " + TransactionException.class.getName());
 	}
 
+	protected static void throwsTransactionRejectedWithCause(String expected, TestBody what) {
+		try {
+			what.run();
+		}
+		catch (TransactionRejectedException e) {
+			if (e.getMessage().startsWith(expected))
+				return;
+
+			fail("wrong cause: expected " + expected + " but got " + e.getMessage());
+		}
+		catch (Exception e) {
+			fail("wrong exception: expected " + TransactionRejectedException.class.getName() + " but got " + e.getClass().getName());
+		}
+
+		fail("no exception: expected " + TransactionRejectedException.class.getName());
+	}
+
 	protected static void throwsTransactionException(TestBody what) {
 		try {
 			what.run();
@@ -220,7 +254,21 @@ public abstract class TakamakaTest {
 		}
 
 		fail("no exception: expected " + TransactionException.class.getName());
-	}	
+	}
+
+	protected static void throwsTransactionRejectedException(TestBody what) {
+		try {
+			what.run();
+		}
+		catch (TransactionRejectedException e) {
+			return;
+		}
+		catch (Exception e) {
+			fail("wrong exception: expected " + TransactionRejectedException.class.getName() + " but got " + e.getClass().getName());
+		}
+
+		fail("no exception: expected " + TransactionRejectedException.class.getName());
+	}
 
 	protected static void throwsVerificationException(TestBody what) {
 		throwsTransactionExceptionWithCause(VerificationException.class, what);
@@ -234,7 +282,7 @@ public abstract class TakamakaTest {
 	 * @return the nonce
 	 * @throws TransactionException if the nonce cannot be found
 	 */
-	private BigInteger getNonceOf(StorageReference account, Classpath classpath) throws TransactionException {
+	private BigInteger getNonceOf(StorageReference account, Classpath classpath) throws TransactionRejectedException {
 		try {
 			BigInteger nonce = nonces.get(account);
 			if (nonce != null)
@@ -248,7 +296,7 @@ public abstract class TakamakaTest {
 			return nonce;
 		}
 		catch (Exception e) {
-			throw new TransactionException("cannot compute the nonce of " + account);
+			throw new TransactionRejectedException("cannot compute the nonce of " + account);
 		}
 	}
 }

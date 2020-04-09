@@ -68,7 +68,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap()")
-	void constructionSucceeds() throws TransactionException, CodeExecutionException {
+	void constructionSucceeds() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		addConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 	}
 
@@ -225,7 +225,7 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys and checks contains after each put")
-	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException {
+	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		CodeExecutionFuture<StorageReference> map = postConstructorCallTransaction(gamete, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		CodeExecutionFuture<?> accounts[] = new CodeExecutionFuture<?>[100];

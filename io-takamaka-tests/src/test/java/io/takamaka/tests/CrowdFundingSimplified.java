@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -70,7 +71,7 @@ class CrowdFundingSimplified extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new CrowdFundingSimplified().newCampaign(beneficiary, 50) != null")
-	void createCampaign() throws TransactionException, CodeExecutionException {
+	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
 			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
@@ -80,7 +81,7 @@ class CrowdFundingSimplified extends TakamakaTest {
 	}
 
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
-	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException {
+	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
 			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
@@ -105,7 +106,7 @@ class CrowdFundingSimplified extends TakamakaTest {
 	}
 
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
-	void contributionsAreEnough() throws TransactionException, CodeExecutionException {
+	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
 			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),

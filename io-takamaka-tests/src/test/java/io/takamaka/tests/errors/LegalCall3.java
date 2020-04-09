@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -27,7 +28,7 @@ class LegalCall3 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("C.test() == false")
-	void callTest() throws TransactionException, CodeExecutionException, IOException {
+	void callTest() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
 		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall3.C"), "test", BasicTypes.BOOLEAN));
 

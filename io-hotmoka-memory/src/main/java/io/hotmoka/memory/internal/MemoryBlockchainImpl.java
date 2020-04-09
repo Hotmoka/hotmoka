@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -54,8 +55,9 @@ public class MemoryBlockchainImpl extends AbstractMemoryBlockchain implements Me
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws TransactionRejectedException if some transaction could not be started
 	 */
-	public MemoryBlockchainImpl(Path takamakaCodePath, Optional<Path> jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	public MemoryBlockchainImpl(Path takamakaCodePath, Optional<Path> jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
 		super(takamakaCodePath);
 
 		// we compute the total amount of funds needed to create the accounts
@@ -92,8 +94,9 @@ public class MemoryBlockchainImpl extends AbstractMemoryBlockchain implements Me
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws TransactionRejectedException if some transaction could not be started
 	 */
-	public MemoryBlockchainImpl(Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	public MemoryBlockchainImpl(Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
 		super(takamakaCodePath);
 
 		// we compute the total amount of funds needed to create the accounts

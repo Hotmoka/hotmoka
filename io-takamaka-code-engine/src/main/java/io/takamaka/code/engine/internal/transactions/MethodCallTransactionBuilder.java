@@ -4,7 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
@@ -35,12 +35,17 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
-	 * @throws TransactionException if the transaction cannot be created
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected MethodCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
+	protected MethodCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 
-		this.method = request.method;
+		try {
+			this.method = request.method;
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
 	}
 
 	/**

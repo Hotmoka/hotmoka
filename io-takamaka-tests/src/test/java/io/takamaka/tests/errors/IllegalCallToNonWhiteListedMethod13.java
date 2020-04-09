@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -26,7 +27,7 @@ public class IllegalCallToNonWhiteListedMethod13 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("call with argument with non-deterministic hashCode()")
-	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException {
+	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference eoa = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(ClassType.EOA));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->

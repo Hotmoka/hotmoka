@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.takamaka.tests.TakamakaTest;
 
 class LegalCall1 extends TakamakaTest {
@@ -21,7 +22,7 @@ class LegalCall1 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, CodeExecutionException, IOException {
+	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
 		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall1.jar"), takamakaCode());		
 	}
 }

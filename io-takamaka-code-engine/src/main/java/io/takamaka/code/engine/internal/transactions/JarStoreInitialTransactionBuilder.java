@@ -1,6 +1,6 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
@@ -25,14 +25,14 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 	private final JarStoreInitialTransactionResponse response;
 
 	/**
-	 * Builds the creator of a transaction that installs a jar in the node, during its initialization.
+	 * Creates the builder of a transaction that installs a jar in the node, during its initialization.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
-	 * @throws TransactionException if the transaction cannot be created
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreInitialTransactionBuilder(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public JarStoreInitialTransactionBuilder(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(current, node);
 
 		byte[] jar = request.getJar();
@@ -43,7 +43,7 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 			this.response = new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
+			throw wrapAsTransactionRejectedException(t);
 		}
 	}
 

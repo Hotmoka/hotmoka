@@ -132,9 +132,9 @@ public interface Node extends AutoCloseable {
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the transaction that can be used to refer to the jar in a class path or as future dependency of other jars
-	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 */
-	TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionException;
+	TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Expands the store of this node with a transaction that creates a gamete, that is,
@@ -144,9 +144,9 @@ public interface Node extends AutoCloseable {
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the freshly created gamete
-	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 */
-	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionException;
+	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Expands the store of this blockchain with a transaction that creates a red/green gamete, that is,
@@ -156,38 +156,32 @@ public interface Node extends AutoCloseable {
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the freshly created gamete
-	 * @throws TransactionException if the transaction could not be completed successfully. In this case, the node's store is not expanded
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 */
-	StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionException;
+	StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Expands the store of this node with a transaction that installs a jar in it.
 	 * 
 	 * @param request the transaction request
 	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
-	 * @throws TransactionException if the transaction could not be completed successfully. If this occurs and the caller
-	 *                              has been identified, the node store will still be expanded
-	 *                              with a transaction that charges the gas limit to the caller, but no jar will be installed.
-	 *                              Otherwise, the transaction will be rejected and not added to this node's store
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
 	 */
-	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException;
+	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException;
 
 	/**
 	 * Expands this node's store with a transaction that runs a constructor of a class.
 	 * 
 	 * @param request the request of the transaction
 	 * @return the created object, if the constructor was successfully executed, without exception
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
-	 *                              with a transaction that charges all gas limit to the caller, but no constructor will be executed.
-	 *                              Otherwise, the transaction will be rejected and not added to this node's store
-	 * @throws CodeExecutionException if the constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
-	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
+	 *                                because of an exception in the user code in blockchain, that is allowed to be thrown by the constructor
+	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
+	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the constructor
 	 */
-	StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException;
+	StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Expands this node's store with a transaction that runs an instance method of an object already in this node's store.
@@ -195,17 +189,13 @@ public interface Node extends AutoCloseable {
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
-	 *                              with a transaction that charges all gas to the caller, but no method will be executed.
-	 *                              Otherwise, the transaction will be rejected and not added to this node's store
-	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
-	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
+	 *                                because of an exception in the user code in blockchain, that is allowed to be thrown by the method
+	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
+	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the method
 	 */
-	StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
+	StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Expands this node's store with a transaction that runs a static method of a class in this node.
@@ -213,17 +203,13 @@ public interface Node extends AutoCloseable {
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
 	 *         declared to return {@code void}, this result will be {@code null}
-	 * @throws TransactionException if the transaction could not be completed successfully. This includes
-	 *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	 *                              If this occurs and the caller has been identified, the node's store will still be expanded
-	 *                              with a transaction that charges all gas limit to the caller, but no method will be executed.
-	 *                              Otherwise, the transaction will be rejected and not added to this node's store
-	 * @throws CodeExecutionException if the method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	 *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
-	 *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
+	 *                                because of an exception in the user code in blockchain, that is allowed to be thrown by the method
+	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
+	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the method
 	 */
-	StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException;
+	StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Runs an instance {@code @@View} method of an object already in this node's store.
@@ -231,10 +217,11 @@ public interface Node extends AutoCloseable {
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception
-	 * @throws TransactionRejectedException if the caller of the transaction cannot be identified or has not enough money to pay for a failed transaction
-	 * @throws TransactionException otherwise, if an exception occurred in the engine of the node that executes the transaction,
-	 *                              not in the user code that is being executed
-	 * @throws CodeExecutionException otherwise, that is, if an exception occurred in the user code that is being executed
+	 * @throws TransactionRejectedException if the transaction could not be executed
+	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
+	 *                                that is allowed to be thrown by the method
+	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code in blockchain,
+	 *                              or that is not allowed to be thrown by the method
 	 */
 	StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
@@ -244,76 +231,49 @@ public interface Node extends AutoCloseable {
 	 * 
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception
-	 * @throws TransactionRejectedException if the caller of the transaction cannot be identified or has not enough money to pay for a failed transaction
-	 * @throws TransactionException otherwise, if an exception occurred in the engine of the node that executes the transaction,
-	 *                              not in the user code that is being executed
-	 * @throws CodeExecutionException otherwise, that is, if an exception occurred in the user code that is being executed
+	 * @throws TransactionRejectedException if the transaction could not be executed
+	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
+	 *                                that is allowed to be thrown by the method
+	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code in blockchain,
+	 *                              or that is not allowed to be thrown by the method
 	 */
 	StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Posts a transaction that expands the store of this node with a transaction that installs a jar in it.
-	 * If the transaction could not be completed successfully
-	 * and the caller has been identified, the node store will still be expanded
-	 * with a transaction that charges the gas limit to the caller, but no jar will be installed.
-	 * Otherwise, the transaction will be rejected and not added to this node's store.
 	 * 
 	 * @param request the transaction request
 	 * @return the future holding the reference to the transaction where the jar has been installed
-	 * @throws TransactionException if an error prevented the transaction from being posted
+	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionException ;
+	JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException ;
 
 	/**
 	 * Posts a transaction that runs a constructor of a class in this node.
-	 * If the transaction could not be completed successfully,
-	 * for instance because of {@linkplain OutOfGasError}s and {@linkplain io.takamaka.code.lang.InsufficientFundsError}s,
-	 * and the caller has been identified, the node's store will still be expanded
-	 * with a transaction that charges all gas limit to the caller, but no constructor will be executed.
-	 * Otherwise, the transaction will be rejected and not added to this node's store.
-	 * If the constructor is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions}
-	 * and the constructor threw a {@linkplain CodeExecutionException} then,
-	 * from the point of view of Takamaka, the transaction was successful, it gets added to this node's store
-	 * and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the request of the transaction
 	 * @return the future holding the result of the computation
-	 * @throws TransactionException if an error prevented the transaction from being posted
+	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionException;
+	CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Posts a transaction that runs an instance method of an object already in this node's store.
-	 * If the transaction could not be completed successfully, also because of
-	 * {@linkplain OutOfGasError}s and {@linkplain io.takamaka.code.lang.InsufficientFundsError}s,
-	 * and the caller has been identified, the node's store will still be expanded
-	 * with a transaction that charges all gas limit to the caller, but no method will be executed.
-	 * Otherwise, the transaction will be rejected and not added to this node's store.
-	 * If the method is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 * failed with a checked exception then, from the point of view of Takamaka,
-	 * the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the transaction request
 	 * @return the future holding the result of the transaction
-	 * @throws TransactionException if an error prevented the transaction from being posted
+	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionException;
+	CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Posts a request that runs a static method of a class in this node.
-	 * If the transaction could not be completed successfully, also because of
-	 * {@linkplain OutOfGasError}s and {@linkplain io.takamaka.code.lang.InsufficientFundsError}s,
-	 * and the caller has been identified, the node's store will still be expanded
-	 * with a transaction that charges all gas limit to the caller, but no method will be executed.
-	 * Otherwise, the transaction will be rejected and not added to this node's store.
-	 * If the method is annotated as {@linkplain io.takamaka.code.lang.ThrowsExceptions} and its execution
-	 * failed with a checked exception then, from the point of view of Takamaka,
-	 * the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
 	 * 
 	 * @param request the transaction request
-	 * @throws TransactionException if an error prevented the transaction from being posted
+	 * @return the future holding the result of the transaction
+	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionException;
+	void postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException; //TODO
 
 	/**
 	 * The future of a transaction that executes code in blockchain.
@@ -326,16 +286,12 @@ public interface Node extends AutoCloseable {
 	     * Waits if necessary for the transaction to complete, and then retrieves its result.
 	     *
 	     * @return the computed result of the transaction
-	     * @throws TransactionException if the transaction could not be completed successfully. This includes
-	     *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	     *                              In this case, the node's store will still be expanded
-	     *                              with a transaction that charges all gas limit to the caller, but no code will be executed
-	     * @throws CodeExecutionException if the method or constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	     *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	     *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
-	     *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	     * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
+	     *                                that is allowed to be thrown by the constructor
+	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
 	     */
-	    V get() throws TransactionException, CodeExecutionException;
+	    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException;
 	
 	    /**
 	     * Waits if necessary for at most the given time for the transaction
@@ -344,17 +300,13 @@ public interface Node extends AutoCloseable {
 	     * @param timeout the maximum time to wait
 	     * @param unit the time unit of the timeout argument
 	     * @return the computed result of the transaction
-	     * @throws TransactionException if the transaction could not be completed successfully. This includes
-	     *                              {@link io.hotmoka.nodes.OutOfGasError}s and {@link io.takamaka.code.lang.InsufficientFundsError}s.
-	     *                              In this case, the node's store will still be expanded
-	     *                              with a transaction that charges all gas limit to the caller, but no code will be executed
-	     * @throws CodeExecutionException if the method or constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions} and its execution
-	     *                                failed with a checked exception. Note that, in this case, from the point of view of Takamaka,
-	     *                                the transaction was successful, it gets added to this node's store and the consumed gas gets charged to the caller.
-	     *                                In all other cases, a {@link io.hotmoka.beans.TransactionException} is thrown
+	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	     * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
+	     *                                that is allowed to be thrown by the constructor
+	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
 	     * @throws TimeoutException if the timeout expired but the result has not been computed yet
 	     */
-	    V get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException;
+	    V get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException;
 
 	    /**
 	     * Yields an identifier of the transaction, that can be used for polling its result.
@@ -374,9 +326,10 @@ public interface Node extends AutoCloseable {
 	     * Waits if necessary for the transaction to complete, and then retrieves its result.
 	     *
 	     * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
-	     * @throws TransactionException if the transaction threw that exception
+	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
 	     */
-	    TransactionReference get() throws TransactionException;
+	    TransactionReference get() throws TransactionRejectedException, TransactionException;
 
 	    /**
 	     * Waits if necessary for at most the given time for the transaction
@@ -385,10 +338,11 @@ public interface Node extends AutoCloseable {
 	     * @param timeout the maximum time to wait
 	     * @param unit the time unit of the timeout argument
 	     * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
-	     * @throws TransactionException if the transaction threw that exception
+	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
 	     * @throws TimeoutException if the timeout expired but the result has not been computed yet
 	     */
-	    TransactionReference get(long timeout, TimeUnit unit) throws TransactionException, TimeoutException;
+	    TransactionReference get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, TimeoutException;
 
 	    /**
 	     * Yields an identifier of the transaction, that can be used for polling its result.

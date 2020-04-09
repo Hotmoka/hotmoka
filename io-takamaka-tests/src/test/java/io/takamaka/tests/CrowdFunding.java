@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -71,7 +72,7 @@ class CrowdFunding extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new CrowdFunding().newCampaign(beneficiary, 50) == 0")
-	void createCampaign() throws TransactionException, CodeExecutionException {
+	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue id = (IntValue) addInstanceMethodCallTransaction
 			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
@@ -81,7 +82,7 @@ class CrowdFunding extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new CrowdFunding().newCampaign(beneficiary, 50) twice == 1")
-	void createTwoCampaigns() throws TransactionException, CodeExecutionException {
+	void createTwoCampaigns() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		postInstanceMethodCallTransaction
 			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
@@ -96,7 +97,7 @@ class CrowdFunding extends TakamakaTest {
 	}
 
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
-	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException {
+	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue id = (IntValue) addInstanceMethodCallTransaction
 			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
@@ -121,7 +122,7 @@ class CrowdFunding extends TakamakaTest {
 	}
 
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
-	void contributionsAreEnough() throws TransactionException, CodeExecutionException {
+	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue id = (IntValue) addInstanceMethodCallTransaction
 			(gamete, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),

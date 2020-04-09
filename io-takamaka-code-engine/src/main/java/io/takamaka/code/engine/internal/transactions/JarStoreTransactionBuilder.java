@@ -1,6 +1,6 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
@@ -33,18 +33,18 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 
 
 	/**
-	 * Builds the creator of a transaction that installs a jar in the node.
+	 * Creates the builder of a transaction that installs a jar in the node.
 	 * 
 	 * @param request the request of the transaction
 	 * @param transaction the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
-	 * @throws TransactionException if the transaction cannot be created
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreTransactionBuilder(JarStoreTransactionRequest request, TransactionReference transaction, Node node) throws TransactionException {
+	public JarStoreTransactionBuilder(JarStoreTransactionRequest request, TransactionReference transaction, Node node) throws TransactionRejectedException {
 		super(request, transaction, node);
 
-		byte[] jar = request.getJar();
 		try {
+			byte[] jar = request.getJar();
 			this.classLoader = new EngineClassLoader(jar, transaction, request.getDependencies(), this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeAnExternallyOwnedAccount();
@@ -79,7 +79,7 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 			this.response = response;
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
+			throw wrapAsTransactionRejectedException(t);
 		}
 	}
 

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -78,20 +78,20 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	private BigInteger nextProgressive = BigInteger.ZERO;
 
 	/**
-	 * Builds a transaction creator.
+	 * Creates a transaction builder.
 	 * 
 	 * @param current the reference that must be used to refer to the created transaction
 	 * @param node the node that is creating the transaction
-	 * @throws TransactionException if the creator cannot be built
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractTransactionBuilder(TransactionReference current, Node node) throws TransactionException {
+	protected AbstractTransactionBuilder(TransactionReference current, Node node) throws TransactionRejectedException {
 		try {
 			this.node = node;
 			this.current = current;
 			this.now = node.getNow();
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
+			throw wrapAsTransactionRejectedException(t);
 		}
 	}
 
@@ -142,8 +142,8 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	 * @param message the message used for the {@link io.hotmoka.beans.TransactionException}, if wrapping occurs
 	 * @return the wrapped or original exception
 	 */
-	protected final static TransactionException wrapAsTransactionException(Throwable t) {
-		return t instanceof TransactionException ? (TransactionException) t : new TransactionException(t);
+	protected final static TransactionRejectedException wrapAsTransactionRejectedException(Throwable t) {
+		return t instanceof TransactionRejectedException ? (TransactionRejectedException) t : new TransactionRejectedException(t);
 	}
 
 	/**

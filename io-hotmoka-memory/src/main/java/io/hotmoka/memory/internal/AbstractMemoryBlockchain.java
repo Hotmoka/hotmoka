@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
@@ -123,7 +124,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	 * @throws IOException if the root directory cannot be created
 	 * @throws TransactionException if the initialization of the blockchain fails
 	 */
-	protected AbstractMemoryBlockchain(Path takamakaCodePath) throws IOException, TransactionException {
+	protected AbstractMemoryBlockchain(Path takamakaCodePath) throws IOException, TransactionRejectedException {
 		this.root = Paths.get("chain");
 		ensureDeleted(root);  // cleans the directory where the blockchain lives
 		Files.createDirectories(root);

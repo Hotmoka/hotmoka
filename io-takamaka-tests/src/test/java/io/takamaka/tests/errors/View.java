@@ -30,7 +30,7 @@ class View extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar then call to View.no1() fails")
-	void callNo1() throws TransactionException, CodeExecutionException {
+	void callNo1() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
@@ -40,7 +40,7 @@ class View extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar then call to View.no2() fails")
-	void callNo2() throws TransactionException, CodeExecutionException {
+	void callNo2() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature("io.takamaka.tests.errors.view.C"));
 
 		TakamakaTest.throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -25,12 +26,12 @@ class Loop2 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, IOException {
+	void installJar() throws TransactionException, IOException, TransactionRejectedException {
 		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop2.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("install jar then call to Loop.loop() fails")
-	void callLoop() throws TransactionException, IOException, CodeExecutionException {
+	void callLoop() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException {
 		TransactionReference loop = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop2.jar"), takamakaCode());
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 

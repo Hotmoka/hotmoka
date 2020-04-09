@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
@@ -56,14 +57,13 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
-	 * @throws TransactionException if the transaction cannot be created
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public ConstructorCallTransactionBuilder(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public ConstructorCallTransactionBuilder(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 
-		this.constructor = request.constructor;
-
 		try {
+			this.constructor = request.constructor;
 			this.classLoader = new EngineClassLoader(request.classpath, this);
 
 			if (request.constructor.formals().count() != request.actuals().count())
@@ -149,7 +149,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 			this.response = response;
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
+			throw wrapAsTransactionRejectedException(t);
 		}
 	}
 

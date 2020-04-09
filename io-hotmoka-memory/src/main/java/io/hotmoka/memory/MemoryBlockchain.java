@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
 import io.hotmoka.nodes.InitializedNode;
 
@@ -28,8 +29,9 @@ public interface MemoryBlockchain extends InitializedNode {
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws TransactionRejectedException if some transaction could not be started
 	 */
-	static MemoryBlockchain of(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	static MemoryBlockchain of(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
 		return new MemoryBlockchainImpl(takamakaCodePath, Optional.empty(), funds);
 	}
 
@@ -45,8 +47,9 @@ public interface MemoryBlockchain extends InitializedNode {
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws TransactionRejectedException if some transaction could not be started
 	 */
-	static MemoryBlockchain ofRedGreen(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	static MemoryBlockchain ofRedGreen(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
 		return new MemoryBlockchainImpl(takamakaCodePath, Optional.empty(), true, funds);
 	}
 
@@ -60,8 +63,9 @@ public interface MemoryBlockchain extends InitializedNode {
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws TransactionRejectedException if some transaction could not be started
 	 */
-	static MemoryBlockchain of(Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	static MemoryBlockchain of(Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
 		return new MemoryBlockchainImpl(takamakaCodePath, Optional.of(jar), funds);
 	}
 
@@ -77,8 +81,9 @@ public interface MemoryBlockchain extends InitializedNode {
 	 * @throws IOException if a disk error occurs
 	 * @throws TransactionException if some transaction for initialization fails
 	 * @throws CodeExecutionException if some transaction for initialization throws an exception
+	 * @throws TransactionRejectedException if some transaction could not be started
 	 */
-	static MemoryBlockchain ofRedGreen(Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException {
+	static MemoryBlockchain ofRedGreen(Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
 		return new MemoryBlockchainImpl(takamakaCodePath, Optional.of(jar), true, funds);
 	}
 }

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -48,36 +49,36 @@ class Lambdas extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Lambdas()")
-	void createLambdas() throws TransactionException, CodeExecutionException {
+	void createLambdas() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 	}
 
 	@Test @DisplayName("new Lambdas().invest(10)")
-	void createLambdasThenInvest10() throws TransactionException, CodeExecutionException {
+	void createLambdasThenInvest10() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "invest", ClassType.BIG_INTEGER), lambdas, new BigIntegerValue(BigInteger.ONE));
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithThis()")
-	void testLambdaWithThis() throws TransactionException, CodeExecutionException {
+	void testLambdaWithThis() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "testLambdaWithThis"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithoutThis()")
-	void testLambdaWithoutThis() throws TransactionException, CodeExecutionException {
+	void testLambdaWithoutThis() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThis"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithoutThisGetStatic()")
-	void testLambdaWithoutThisGetStatic() throws TransactionException, CodeExecutionException {
+	void testLambdaWithoutThisGetStatic() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThisGetStatic"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntry()")
-	void testMethodReferenceToEntry() throws TransactionException, CodeExecutionException {
+	void testMethodReferenceToEntry() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntry", INT), lambdas);
 
@@ -85,13 +86,13 @@ class Lambdas extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntryOfOtherClass()")
-	void testMethodReferenceToEntryOfOtherClass() throws TransactionException, CodeExecutionException {
+	void testMethodReferenceToEntryOfOtherClass() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "testMethodReferenceToEntryOfOtherClass"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntrySameContract()")
-	void testMethodReferenceToEntrySameContract() throws TransactionException, CodeExecutionException {
+	void testMethodReferenceToEntrySameContract() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -100,7 +101,7 @@ class Lambdas extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntry()")
-	void testConstructorReferenceToEntry() throws TransactionException, CodeExecutionException {
+	void testConstructorReferenceToEntry() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntry", INT), lambdas);
 
@@ -108,13 +109,13 @@ class Lambdas extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntryPopResult()")
-	void testConstructorReferenceToEntryPopResult() throws TransactionException, CodeExecutionException {
+	void testConstructorReferenceToEntryPopResult() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntryPopResult"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().whiteListChecks(13,1,1973)==7")
-	void testWhiteListChecks() throws TransactionException, CodeExecutionException {
+	void testWhiteListChecks() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(LAMBDAS, "whiteListChecks", INT, ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT),
@@ -124,7 +125,7 @@ class Lambdas extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Lambdas().concatenation(\"hello\", \"hi\", self, 1973L, 13)==\"\"")
-	void testConcatenation() throws TransactionException, CodeExecutionException {
+	void testConcatenation() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference lambdas = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000));
 		StringValue result = (StringValue) addInstanceMethodCallTransaction(eoa, _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(LAMBDAS, "concatenation", ClassType.STRING, ClassType.STRING, ClassType.OBJECT, LAMBDAS, BasicTypes.LONG, INT),

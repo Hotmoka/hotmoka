@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
 
@@ -27,7 +28,7 @@ class Allocations extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Allocations()")
-	void createAllocations() throws TransactionException, CodeExecutionException {
+	void createAllocations() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		addConstructorCallTransaction(account(0), _20_000_000, BigInteger.ONE, jar(), new ConstructorSignature(new ClassType("io.takamaka.tests.allocations.Allocations")));
 	}
 }

@@ -62,7 +62,7 @@ class TicTacToe extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new TicTacToe()")
-	void createTicTacToe() throws TransactionException, CodeExecutionException {
+	void createTicTacToe() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
 	}
 
@@ -90,7 +90,7 @@ class TicTacToe extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new TicTacToe(), first player plays, second player plays same position")
-	void bothPlaySamePosition() throws TransactionException, CodeExecutionException {
+	void bothPlaySamePosition() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		postInstanceMethodCallTransaction(
 			player1, 
@@ -116,7 +116,7 @@ class TicTacToe extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new TicTacToe(), same player plays twice")
-	void samePlayerPlaysTwice() throws TransactionException, CodeExecutionException {
+	void samePlayerPlaysTwice() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		postInstanceMethodCallTransaction(
 			player1, 
@@ -142,7 +142,7 @@ class TicTacToe extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new TicTacToe(), second player bets too little")
-	void circleBetsTooLittle() throws TransactionException, CodeExecutionException {
+	void circleBetsTooLittle() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		postInstanceMethodCallTransaction(
 			player1,
@@ -229,7 +229,7 @@ class TicTacToe extends TakamakaTest {
 
 
 	@Test @DisplayName("first player wins but second continues to play")
-	void crossWinsButCircleContinues() throws TransactionException, CodeExecutionException {
+	void crossWinsButCircleContinues() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(creator, _200_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
 		postInstanceMethodCallTransaction(
 			player1, 

@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
@@ -35,14 +35,14 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionBuilder<Request, Response> {
 
 	/**
-	 * Builds the transaction creator.
+	 * Creates the builder of a non-initial transaction that executes code.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used to refer to the created transaction
 	 * @param node the node that is creating the transaction
-	 * @throws TransactionException if the creator cannot be built
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected CodeCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
+	protected CodeCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 	}
 

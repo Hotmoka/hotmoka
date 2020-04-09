@@ -105,7 +105,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973)")
-	void callPayableConstructor() throws TransactionException, CodeExecutionException {
+	void callPayableConstructor() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		addConstructorCallTransaction(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 	}
 
@@ -128,7 +128,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub().ms() throws TransactionException since NoSuchMethodException")
-	void callStaticAsInstance() throws CodeExecutionException, TransactionException {
+	void callStaticAsInstance() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference sub = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub"));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
@@ -149,14 +149,14 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973) without gas")
-	void callerHasNotEnoughFundsForGas() throws CodeExecutionException, TransactionException {
-		throwsTransactionException(() ->
+	void callerHasNotEnoughFundsForGas() {
+		throwsTransactionRejectedException(() ->
 			addConstructorCallTransaction(account(1), _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973))
 		);
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas but without enough coins to pay the @Entry")
-	void callerHasNotEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException {
+	void callerHasNotEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		addInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(200000));
 
 		throwsTransactionExceptionWithCause(Constants.INSUFFICIENT_FUNDS_ERROR_NAME, () ->
@@ -165,13 +165,13 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
-	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException {
+	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
 		addConstructorCallTransaction(account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
-	void callInstanceMethod() throws CodeExecutionException, TransactionException {
+	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
 		CodeExecutionFuture<StorageReference> internationalTime = postConstructorCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
@@ -183,7 +183,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")
-	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException {
+	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
 		StorageReference sub = addConstructorCallTransaction
 			(account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
@@ -192,7 +192,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
-	void callPayableEntryWithLong() throws CodeExecutionException, TransactionException {
+	void callPayableEntryWithLong() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(2000000));
 		StorageReference sub = addConstructorCallTransaction
 			(account(1), _200_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
@@ -202,7 +202,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
-	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException {
+	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
 		StorageReference sub = addConstructorCallTransaction(account(1), _5_000, BigInteger.ONE, classpath, new ConstructorSignature("io.takamaka.tests.basic.Sub", INT), new IntValue(1973));
 		assertEquals(new StringValue("Sub.m4_2 receives 13 coins from an externally owned account with public balance"),
@@ -261,7 +261,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo1() throws TransactionException since SideEffectsInViewMethodException")
-	void viewMethodViolation1() throws CodeExecutionException, TransactionException {
+	void viewMethodViolation1() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
@@ -270,7 +270,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Simple(13).foo2() throws TransactionException since SideEffectsInViewMethodException")
-	void viewMethodViolation2() throws CodeExecutionException, TransactionException {
+	void viewMethodViolation2() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference s = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(SIMPLE, INT), new IntValue(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
@@ -309,7 +309,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new WithList().illegal() throws TransactionException since DeserializationError")
-	void deserializationError() throws CodeExecutionException, TransactionException {
+	void deserializationError() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference wl = addConstructorCallTransaction	(master, _200_000, BigInteger.ONE, classpath, new ConstructorSignature(WITH_LIST));
 		
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
@@ -336,7 +336,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new EntryFilter().foo4() called by an ExternallyOwnedAccount throws TransactionException since ClassCastException")
-	void entryFilterFails() throws CodeExecutionException, TransactionException {
+	void entryFilterFails() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		throwsTransactionExceptionWithCause(ClassCastException.class, () ->
@@ -360,7 +360,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new EntryFilter().foo6() fails")
-	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException {
+	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException {
 		StorageReference ef = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, new ConstructorSignature(ENTRY_FILTER));
 
 		Assertions.assertThrows(TransactionException.class, () ->

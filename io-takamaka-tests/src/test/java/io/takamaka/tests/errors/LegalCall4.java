@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -31,12 +32,12 @@ class LegalCall4 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, CodeExecutionException, IOException {
+	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
 		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall4.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("new C().test(); toString() == \"33531\"")
-	void newTestToString() throws TransactionException, CodeExecutionException, IOException {
+	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
 		Classpath classpath = new Classpath(addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall4.jar"), takamakaCode()), true);
 		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(C));
 		postInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c);

@@ -3,7 +3,6 @@ package io.hotmoka.beans.responses;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
@@ -56,7 +55,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	}
 
 	@Override
-	public TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException {
+	public TransactionReference getOutcomeAt(TransactionReference transactionReference) {
 		// the outcome is the reference to the transaction where this response has been executed
 		return transactionReference;
 	}

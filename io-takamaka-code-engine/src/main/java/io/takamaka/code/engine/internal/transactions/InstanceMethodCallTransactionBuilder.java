@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
@@ -52,14 +53,14 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	private final MethodCallTransactionResponse response;
 
 	/**
-	 * Builds the creator of a transaction that executes an instance method of Takamaka code.
+	 * Creates the builder of a transaction that executes an instance method of Takamaka code.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
-	 * @throws TransactionException if the transaction cannot be created
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallTransactionBuilder(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public InstanceMethodCallTransactionBuilder(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 
 		try {
@@ -162,7 +163,7 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 			this.response = response;
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
+			throw wrapAsTransactionRejectedException(t);
 		}
 	}
 

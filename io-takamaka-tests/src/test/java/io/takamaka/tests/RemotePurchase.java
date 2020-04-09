@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -55,12 +56,12 @@ class RemotePurchase extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Purchase(20)")
-	void evenDeposit() throws TransactionException, CodeExecutionException {
+	void evenDeposit() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18)")
-	void buyerCheats() throws TransactionException, CodeExecutionException {
+	void buyerCheats() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference purchase = addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -69,13 +70,13 @@ class RemotePurchase extends TakamakaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20)")
-	void buyerHonest() throws TransactionException, CodeExecutionException {
+	void buyerHonest() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference purchase = addConstructorCallTransaction(seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 		addInstanceMethodCallTransaction(buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmReceived()")
-	void confirmReceptionBeforePaying() throws TransactionException, CodeExecutionException {
+	void confirmReceptionBeforePaying() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference purchase = addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -84,7 +85,7 @@ class RemotePurchase extends TakamakaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20) and then purchase.confirmReception()")
-	void buyerPaysAndConfirmReception() throws TransactionException, CodeExecutionException {
+	void buyerPaysAndConfirmReception() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference purchase = addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 		postInstanceMethodCallTransaction(buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
 		addInstanceMethodCallTransaction(buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase);

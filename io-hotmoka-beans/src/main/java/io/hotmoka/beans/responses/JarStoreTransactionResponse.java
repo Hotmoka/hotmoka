@@ -97,6 +97,7 @@ public abstract class JarStoreTransactionResponse implements NonInitialTransacti
 	 * 
 	 * @param transactionReference the transaction reference
 	 * @return the outcome
+	 * @throws TransactionException if the outcome of the transaction is this exception
 	 */
 	public abstract TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException;
 }

@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -67,14 +67,14 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
 
 	/**
-	 * Builds a non-initial transaction creator.
+	 * Creates a non-initial transaction builder.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used to refer to the created transaction
 	 * @param node the node that is creating the transaction
-	 * @throws TransactionException if the creator cannot be built
+	 * @throws TransactionRejectedException if the creator cannot be built
 	 */
-	protected NonInitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionException {
+	protected NonInitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(current, node);
 
 		this.gas = this.initialGas = request.gasLimit;

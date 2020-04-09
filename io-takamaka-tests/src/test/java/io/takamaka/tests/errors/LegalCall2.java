@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -32,15 +32,13 @@ class LegalCall2 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, CodeExecutionException, IOException {
+	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
 		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall2.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("new C().test(); toString() == \"53331\"")
-	void newTestToString() throws TransactionException, CodeExecutionException, IOException {
-		TransactionReference jar = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall2.jar"), takamakaCode());
-		Classpath classpath = new Classpath(jar, true);
-
+	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
+		Classpath classpath = new Classpath(addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall2.jar"), takamakaCode()), true);
 		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(C));
 		postInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c);
 		StringValue result = (StringValue) addInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c);

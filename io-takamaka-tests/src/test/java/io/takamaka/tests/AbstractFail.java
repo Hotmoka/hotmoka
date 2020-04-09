@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -43,12 +44,12 @@ class AbstractFail extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new AbstractFailImpl()")
-	void createAbstractFailImpl() throws TransactionException, CodeExecutionException {
+	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 	}
 
 	@Test @DisplayName("new AbstractFailImpl().method() yields an AbstractFailImpl")
-	void createAbstractFailImplThenCallAbstractMethod() throws TransactionException, CodeExecutionException {
+	void createAbstractFailImplThenCallAbstractMethod() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference abstractfail = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 
 		StorageReference result = (StorageReference) addInstanceMethodCallTransaction

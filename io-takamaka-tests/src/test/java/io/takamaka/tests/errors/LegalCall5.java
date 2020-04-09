@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -25,12 +26,12 @@ class LegalCall5 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, CodeExecutionException, IOException {
+	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
 		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("new C().foo()")
-	void newTestToString() throws TransactionException, CodeExecutionException, IOException {
+	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
 		TransactionReference jar = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
 
 		addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, new Classpath(jar, true), new VoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall5.C"), "foo"));

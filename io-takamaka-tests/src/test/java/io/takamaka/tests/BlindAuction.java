@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -118,7 +119,7 @@ class BlindAuction extends TakamakaTest {
 	}
 
 	@Test @DisplayName("three players put bids but bidding time expires")
-	void biddingTimeExpires() throws TransactionException, CodeExecutionException {
+	void biddingTimeExpires() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		CodeExecutionFuture<StorageReference> auction = postConstructorCallTransaction
 			(account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME));
 
@@ -157,12 +158,12 @@ class BlindAuction extends TakamakaTest {
 			this.salt = salt;
 		}
 
-		private CodeExecutionFuture<StorageReference> intoBlockchain() throws TransactionException, CodeExecutionException {
+		private CodeExecutionFuture<StorageReference> intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 			return postConstructorCallTransaction
         		(account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), bytes32.get());
 		}
 
-		private void createBytes32() throws TransactionException {
+		private void createBytes32() throws TransactionRejectedException {
 			this.bytes32 = postConstructorCallTransaction
 				(account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32,
 					new ByteValue(salt[0]), new ByteValue(salt[1]), new ByteValue(salt[2]), new ByteValue(salt[3]),
@@ -177,7 +178,7 @@ class BlindAuction extends TakamakaTest {
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time then reveal")
-	void bidsThenReveal() throws TransactionException, CodeExecutionException {
+	void bidsThenReveal() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		long start = System.currentTimeMillis();
 		CodeExecutionFuture<StorageReference> auction = postConstructorCallTransaction
 			(account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME));
@@ -248,7 +249,7 @@ class BlindAuction extends TakamakaTest {
 		assertEquals(expectedWinner, winner);
 	}
 
-	private void waitUntil(long duration, long start) throws TransactionException, CodeExecutionException {
+	private void waitUntil(long duration, long start) throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		while (System.currentTimeMillis() - start < duration) {
 			sleep(100);
 			// we need to perform dummy transactions, otherwise the blockchain time does not progress
@@ -256,7 +257,7 @@ class BlindAuction extends TakamakaTest {
 		}
 	}
 
-	private StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt) throws TransactionException, CodeExecutionException {
+	private StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt) throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		digest.reset();
 		digest.update(value.toByteArray());
 		digest.update(fake ? (byte) 0 : (byte) 1);
@@ -265,7 +266,7 @@ class BlindAuction extends TakamakaTest {
 		return createBytes32(player, hash);
 	}
 
-	private StorageReference createBytes32(int player, byte[] hash) throws TransactionException, CodeExecutionException {
+	private StorageReference createBytes32(int player, byte[] hash) throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		return addConstructorCallTransaction
 			(account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32,
 				new ByteValue(hash[0]), new ByteValue(hash[1]), new ByteValue(hash[2]), new ByteValue(hash[3]),

@@ -2,7 +2,7 @@ package io.takamaka.code.engine.internal.transactions;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
@@ -25,14 +25,14 @@ public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<
 	private final GameteCreationTransactionResponse response;
 
 	/**
-	 * Builds the creator of a transaction that creates a gamete.
+	 * Creates the builder of a transaction that creates a gamete.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
-	 * @throws TransactionException if the transaction cannot be created
+	 * @throws TransactionRejectedException if the transaction cannot be created
 	 */
-	public GameteCreationTransactionBuilder(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionException {
+	public GameteCreationTransactionBuilder(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(current, node);
 
 		try {
@@ -52,7 +52,7 @@ public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<
 			this.response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(thread.gamete)), classLoader.getStorageReferenceOf(thread.gamete));
 		}
 		catch (Throwable t) {
-			throw wrapAsTransactionException(t);
+			throw wrapAsTransactionRejectedException(t);
 		}
 	}
 
