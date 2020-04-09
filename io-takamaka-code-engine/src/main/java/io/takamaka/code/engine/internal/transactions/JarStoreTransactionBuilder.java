@@ -1,5 +1,7 @@
 package io.takamaka.code.engine.internal.transactions;
 
+import java.math.BigInteger;
+
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -96,5 +98,12 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 	@Override
 	protected Object getDeserializedCaller() {
 		return deserializedCaller;
+	}
+
+	@Override
+	protected final BigInteger gasForStoringFailedResponse() {
+		BigInteger gas = gas();
+
+		return sizeCalculator.sizeOfResponse(new JarStoreTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
 	}
 }

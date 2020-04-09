@@ -8,14 +8,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
@@ -207,9 +200,19 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 */
 	protected final void chargeToCallerMinimalGasFor(NonInitialTransactionRequest<?> request) {
 		decreaseBalance(getDeserializedCaller(), request.gasLimit);
-		if (gas.compareTo(minimalGasForRunning(request)) < 0)
+		BigInteger minimalGasForRunning = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOfRequest(request))
+			.add(gasForStoringFailedResponse());
+
+		if (gas.compareTo(minimalGasForRunning) < 0)
 			throw new IllegalStateException("not enough gas to start the transaction");
 	}
+
+	/**
+	 * Yields the cost for storage a failed response for the transaction that is being built.
+	 * 
+	 * @return the cost
+	 */
+	protected abstract BigInteger gasForStoringFailedResponse();
 
 	/**
 	 * Collects all updates to the balance or nonce of the caller of the transaction.
@@ -225,27 +228,6 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 			.filter(update -> ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
 					|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
 					|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD));
-	}
-
-	/**
-	 * Computes the minimal gas needed to run a given request. It accounts for storing in the node the failed transaction response.
-	 * 
-	 * @param request the request
-	 * @return the minimal gas
-	 */
-	private BigInteger minimalGasForRunning(NonInitialTransactionRequest<?> request) {
-		// we create a response whose size over-approximates that of a response in case of failure of this request
-		BigInteger result = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOfRequest(request));
-		if (request instanceof ConstructorCallTransactionRequest)
-			return result.add(sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas)));
-		else if (request instanceof InstanceMethodCallTransactionRequest)
-			return result.add(sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas)));
-		else if (request instanceof StaticMethodCallTransactionRequest)
-			return result.add(sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas)));
-		else if (request instanceof JarStoreTransactionRequest)
-			return result.add(sizeCalculator.sizeOfResponse(new JarStoreTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas)));
-		else
-			throw new IllegalStateException("unexpected transaction request");
 	}
 
 	/**
@@ -279,6 +261,15 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 */
 	protected void setNonceAfter(NonInitialTransactionRequest<?> request) {
 		getClassLoader().setNonceOf(getDeserializedCaller(), request.nonce.add(BigInteger.ONE));
+	}
+
+	/**
+	 * Yields the remaining amount of gas for the current transaction, not yet consumed.
+	 * 
+	 * @return the amount of gas
+	 */
+	protected final BigInteger gas() {
+		return gas;
 	}
 
 	/**

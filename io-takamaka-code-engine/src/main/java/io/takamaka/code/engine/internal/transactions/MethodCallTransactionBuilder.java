@@ -2,11 +2,13 @@ package io.takamaka.code.engine.internal.transactions;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.util.Optional;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
@@ -105,5 +107,12 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	@Override
 	protected final MethodSignature getMethodOrConstructor() {
 		return method;
+	}
+
+	@Override
+	protected final BigInteger gasForStoringFailedResponse() {
+		BigInteger gas = gas();
+
+		return sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
 	}
 }

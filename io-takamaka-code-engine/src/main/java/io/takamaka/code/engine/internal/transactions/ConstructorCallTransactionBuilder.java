@@ -3,10 +3,10 @@ package io.takamaka.code.engine.internal.transactions;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -241,6 +241,13 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	@Override
 	protected final Stream<Object> getDeserializedActuals() {
 		return Stream.of(deserializedActuals);
+	}
+
+	@Override
+	protected final BigInteger gasForStoringFailedResponse() {
+		BigInteger gas = gas();
+
+		return sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
 	}
 
 	/**
