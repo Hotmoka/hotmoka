@@ -80,18 +80,20 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 			this.deserializedCaller = deserializerThread.deserializedCaller;
 			this.deserializedActuals = deserializerThread.deserializedActuals;
 
-			callerIsAnExternallyOwnedAccount();
-			callerAndRequestAgreeOnNonce();
-			callerCanPayForAllGas();
+			callerMustBeAnExternallyOwnedAccount();
+			callerAndRequestMustAgreeOnNonce();
+			callerMustBeAbleToPayForAllGas();
+			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
+			chargeGasForStorageOfRequest();
+			remainingGasMustBeEnoughForStoringFailedResponse();
+
 			sellAllGasToCaller();
-			chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeForStorageOfRequest();
-			remainingGasMustBeEnoughToPayForFailure();
+			increaseNonceOfCaller();
 
 			ConstructorCallTransactionResponse response = null;
-			Constructor<?> constructorJVM = null;
 			try {
 				Object[] deserializedActuals;
+				Constructor<?> constructorJVM;
 
 				try {
 					// we first try to call the constructor with exactly the parameter types explicitly provided
@@ -120,9 +122,8 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 					if (thread.exception instanceof InvocationTargetException) {
 						Throwable cause = thread.exception.getCause();
 						if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
-							chargeForStorage(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-							payBackRemainingGas();
-							increaseNonceOfCaller();
+							chargeGasForStorage(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+							payBackAllRemainingGasToCaller();
 							response = new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
 						}
 						else
@@ -131,16 +132,14 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 					else
 						throw thread.exception;
 				else {
-					chargeForStorage(new ConstructorCallTransactionSuccessfulResponse
+					chargeGasForStorage(new ConstructorCallTransactionSuccessfulResponse
 						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					payBackRemainingGas();
-					increaseNonceOfCaller();
+					payBackAllRemainingGasToCaller();
 					response = new ConstructorCallTransactionSuccessfulResponse
 						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
-				increaseNonceOfCaller();
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				response = new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}

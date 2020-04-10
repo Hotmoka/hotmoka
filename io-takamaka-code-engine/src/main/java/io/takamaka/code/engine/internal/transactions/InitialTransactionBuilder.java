@@ -27,14 +27,14 @@ public abstract class InitialTransactionBuilder<Request extends InitialTransacti
 	}
 
 	@Override
-	public final void chargeForCPU(BigInteger amount) {
+	public final void chargeGasForCPU(BigInteger amount) {
 		// initial transactions consume no gas; this implementation is needed
 		// since code run in initial transactions (such as the creation of gametes)
 		// tries to charge for gas
 	}
 
 	@Override
-	public final void chargeForRAM(BigInteger amount) {
+	public final void chargeGasForRAM(BigInteger amount) {
 		// initial transactions consume no gas; this implementation is needed
 		// since code run in initial transactions (such as the creation of gametes)
 		// tries to charge for gas

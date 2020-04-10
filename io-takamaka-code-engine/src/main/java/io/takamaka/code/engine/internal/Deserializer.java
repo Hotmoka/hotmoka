@@ -167,7 +167,7 @@ public class Deserializer {
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, builder.node.getLastEagerUpdatesFor(reference, builder::chargeForCPU, this::collectEagerFieldsOf));
+			return createStorageObject(reference, builder.node.getLastEagerUpdatesFor(reference, builder::chargeGasForCPU, this::collectEagerFieldsOf));
 		}
 		catch (DeserializationError e) {
 			throw e;

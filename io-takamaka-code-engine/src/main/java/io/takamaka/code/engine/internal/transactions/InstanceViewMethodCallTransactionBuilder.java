@@ -36,7 +36,7 @@ public class InstanceViewMethodCallTransactionBuilder extends InstanceMethodCall
 	}
 
 	@Override
-	protected final void callerAndRequestAgreeOnNonce() {
+	protected final void callerAndRequestMustAgreeOnNonce() {
 		// we disable the check, since the nonce is not checked in view transactions
 	}
 

@@ -49,30 +49,28 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 			byte[] jar = request.getJar();
 			this.classLoader = new EngineClassLoader(jar, transaction, request.getDependencies(), this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
-			callerIsAnExternallyOwnedAccount();
-			callerCanPayForAllGas();
-			sellAllGasToCaller();
-			chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeForStorageOfRequest();
-			chargeForCPU(gasCostModel.cpuCostForInstallingJar(jar.length));
-			chargeForRAM(gasCostModel.ramCostForInstallingJar(jar.length));
-			remainingGasMustBeEnoughToPayForFailure();
+			callerMustBeAnExternallyOwnedAccount();
+			callerAndRequestMustAgreeOnNonce();
+			callerMustBeAbleToPayForAllGas();
+			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
+			chargeGasForStorageOfRequest();
+			chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jar.length));
+			chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jar.length));
+			remainingGasMustBeEnoughForStoringFailedResponse();
 
+			sellAllGasToCaller();
+			increaseNonceOfCaller();
+			
 			JarStoreTransactionResponse response;
 			try {
-				callerAndRequestAgreeOnNonce();
-
 				VerifiedJar verifiedJar = VerifiedJar.of(jar, classLoader, false);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
-
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
-				chargeForStorage(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				payBackRemainingGas();
-				increaseNonceOfCaller();
+				chargeGasForStorage(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				payBackAllRemainingGasToCaller();
 				response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
-				increaseNonceOfCaller();
 				// we do not pay back the gas
 				response = new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}

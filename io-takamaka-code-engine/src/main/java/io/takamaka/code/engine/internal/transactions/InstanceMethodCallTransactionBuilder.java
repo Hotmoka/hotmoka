@@ -80,13 +80,16 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 			this.deserializedReceiver = deserializerThread.deserializedReceiver;
 			this.deserializedActuals = deserializerThread.deserializedActuals;
 
-			callerIsAnExternallyOwnedAccount();
-			callerAndRequestAgreeOnNonce();
-			callerCanPayForAllGas();
+			callerMustBeAnExternallyOwnedAccount();
+			callerAndRequestMustAgreeOnNonce();
+			callerMustBeAbleToPayForAllGas();
+			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
+			chargeGasForStorageOfRequest();
+			remainingGasMustBeEnoughForStoringFailedResponse();
+
 			sellAllGasToCaller();
-			chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeForStorageOfRequest();
-			remainingGasMustBeEnoughToPayForFailure();
+			increaseNonceOfCaller();
+
 			MethodCallTransactionResponse response;
 
 			try {
@@ -124,9 +127,8 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 					if (thread.exception instanceof InvocationTargetException) {
 						Throwable cause = thread.exception.getCause();
 						if (isCheckedForThrowsExceptions(cause, methodJVM)) {
-							chargeForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-							payBackRemainingGas();
-							increaseNonceOfCaller();
+							chargeGasForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+							payBackAllRemainingGasToCaller();
 							response = new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 						}
 						else
@@ -135,25 +137,22 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 					else
 						throw thread.exception;
 				else {
-					if (isViewMethod && !onlyAffectedBalanceOfCaller(thread.result))
+					if (isViewMethod && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
 						throw new SideEffectsInViewMethodException(method);
 
 					if (isVoidMethod) {
-						chargeForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						payBackRemainingGas();
-						increaseNonceOfCaller();
+						chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						payBackAllRemainingGasToCaller();
 						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else {
-						chargeForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						payBackRemainingGas();
-						increaseNonceOfCaller();
+						chargeGasForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						payBackAllRemainingGasToCaller();
 						response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 				}
 			}
 			catch (Throwable t) {
-				increaseNonceOfCaller();
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				response = new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}

@@ -121,7 +121,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * 
 	 * @throws IllegalArgumentException if the caller is not an externally owned account
 	 */
-	protected final void callerIsAnExternallyOwnedAccount() {
+	protected final void callerMustBeAnExternallyOwnedAccount() {
 		Class<? extends Object> clazz = getDeserializedCaller().getClass();
 		if (!getClassLoader().getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
@@ -133,25 +133,25 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * 
 	 * @throws IllegalArgumentException if the nonce of the caller is not equal to that in {@code request}
 	 */
-	protected void callerAndRequestAgreeOnNonce() {
+	protected void callerAndRequestMustAgreeOnNonce() {
 		BigInteger expected = getClassLoader().getNonceOf(getDeserializedCaller());
 		if (!expected.equals(request.nonce))
 			throw new IllegalArgumentException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
 	}
 
 	@Override
-	public final void chargeForCPU(BigInteger amount) {
+	public final void chargeGasForCPU(BigInteger amount) {
 		charge(amount, x -> gasConsumedForCPU = gasConsumedForCPU.add(x));
 	}
 
 	@Override
-	public final void chargeForRAM(BigInteger amount) {
+	public final void chargeGasForRAM(BigInteger amount) {
 		charge(amount, x -> gasConsumedForRAM = gasConsumedForRAM.add(x));
 	}
 
 	@Override
 	public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		chargeForCPU(amount);
+		chargeGasForCPU(amount);
 		oldGas.addFirst(gas);
 		amount.hashCode();
 		gas = amount;
@@ -176,7 +176,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	/**
 	 * Decreases the available gas for the request of this transaction, for storage allocation.
 	 */
-	protected final void chargeForStorageOfRequest() {
+	protected final void chargeGasForStorageOfRequest() {
 		chargeForStorage(sizeCalculator.sizeOfRequest(request));
 	}
 
@@ -185,7 +185,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * 
 	 * @param response the response
 	 */
-	protected final void chargeForStorage(Response response) {
+	protected final void chargeGasForStorage(Response response) {
 		chargeForStorage(sizeCalculator.sizeOfResponse(response));
 	}
 
@@ -204,7 +204,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * 
 	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas
 	 */
-	protected final void callerCanPayForAllGas() {
+	protected final void callerMustBeAbleToPayForAllGas() {
 		Object eoa = getDeserializedCaller();
 		if (getClassLoader().getBalanceOf(eoa).subtract(costOf(request.gasLimit)).signum() < 0)
 			throw new IllegalStateException("caller has not enough funds to buy " + request.gasLimit + " units of gas");
@@ -225,10 +225,8 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * 
 	 * @throws OutOfGasError if the gas is not enough
 	 */
-	protected final void remainingGasMustBeEnoughToPayForFailure() throws OutOfGasError {
-		BigInteger gasForStoringFailedResponse = gasForStoringFailedResponse();
-
-		if (gas.compareTo(gasForStoringFailedResponse) < 0)
+	protected final void remainingGasMustBeEnoughForStoringFailedResponse() throws OutOfGasError {
+		if (gas.compareTo(gasForStoringFailedResponse()) < 0)
 			throw new OutOfGasError("not enough gas to start the transaction");
 	}
 
@@ -258,7 +256,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	/**
 	 * Buys back the remaining gas to the caller of the transaction.
 	 */
-	protected final void payBackRemainingGas() {
+	protected final void payBackAllRemainingGasToCaller() {
 		Object eoa = getDeserializedCaller();
 		getClassLoader().setBalanceOf(eoa, getClassLoader().getBalanceOf(eoa).add(costOf(gas)));
 	}

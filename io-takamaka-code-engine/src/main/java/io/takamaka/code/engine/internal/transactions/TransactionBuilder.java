@@ -62,14 +62,14 @@ public interface TransactionBuilder<Request extends TransactionRequest<Response>
 	 * 
 	 * @param amount the amount of gas to consume
 	 */
-	void chargeForCPU(BigInteger amount);
+	void chargeGasForCPU(BigInteger amount);
 
 	/**
 	 * Decreases the available gas by the given amount, for RAM execution.
 	 * 
 	 * @param amount the amount of gas to consume
 	 */
-	void chargeForRAM(BigInteger amount);
+	void chargeGasForRAM(BigInteger amount);
 
 	/**
 	 * Runs a given piece of code with a subset of the available gas.

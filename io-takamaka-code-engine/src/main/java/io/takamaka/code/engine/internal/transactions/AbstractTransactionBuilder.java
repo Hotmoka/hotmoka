@@ -124,12 +124,12 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 
 	@Override
 	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this::chargeForCPU).getValue());
+		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
 	}
 
 	@Override
 	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this::chargeForCPU).getValue());
+		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
 	}
 
 	/**

@@ -220,16 +220,16 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
-			builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingDependenciesAt(classpath.transaction));
+			builder.chargeGasForCPU(builder.node.getGasCostModel().cpuCostForGettingDependenciesAt(classpath.transaction));
 			Stream<Classpath> dependencies = builder.node.getDependenciesOfJarStoreTransactionAt(classpath.transaction);
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
 				addJars(dependency, jars, jarNames);
 		}
 
-		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForGettingResponseAt(classpath.transaction));
+		builder.chargeGasForCPU(builder.node.getGasCostModel().cpuCostForGettingResponseAt(classpath.transaction));
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
-		builder.chargeForCPU(builder.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
-		builder.chargeForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
+		builder.chargeGasForCPU(builder.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
+		builder.chargeGasForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 		jars.add(instrumentedJarBytes);
 		jarNames.add("takamaka@" + classpath.transaction + ".jar");
 	}
