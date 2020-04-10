@@ -113,6 +113,8 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	protected final BigInteger gasForStoringFailedResponse() {
 		BigInteger gas = gas();
 
-		return sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
+		return sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse
+			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
+			updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
 	}
 }

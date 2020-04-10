@@ -35,27 +35,29 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	public final String messageOfCause;
 
 	/**
-	 * The program point where the cause exception occurred.
+	 * The program point where the cause exception occurred. This might be {@code null}.
 	 */
 	public final String where;
 
 	/**
 	 * Builds the transaction response.
 	 * 
-	 * @param exception the exception that has been thrown by the constructor
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param events the events resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public ConstructorCallTransactionExceptionResponse(Exception exception, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	public ConstructorCallTransactionExceptionResponse(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.events = events.toArray(StorageReference[]::new);
-		this.classNameOfCause = exception.getClass().getName();
-		this.messageOfCause = exception.getMessage();
-		this.where = placeOfException(exception);
+		this.classNameOfCause = classNameOfCause;
+		this.messageOfCause = messageOfCause;
+		this.where = where;
 	}
 
 	@Override

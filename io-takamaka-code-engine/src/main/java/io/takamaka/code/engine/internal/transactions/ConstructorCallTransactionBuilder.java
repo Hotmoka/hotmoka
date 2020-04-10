@@ -121,10 +121,10 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 					if (thread.exception instanceof InvocationTargetException) {
 						Throwable cause = thread.exception.getCause();
 						if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
-							chargeForStorage(new ConstructorCallTransactionExceptionResponse((Exception) cause, updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+							chargeForStorage(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 							payBackRemainingGas();
 							setNonceAfter(request);
-							response = new ConstructorCallTransactionExceptionResponse((Exception) cause, updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
+							response = new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
 						}
 						else
 							throw cause;
@@ -143,7 +143,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 			catch (Throwable t) {
 				setNonceAfter(request);
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				response = new ConstructorCallTransactionFailedResponse(t, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				response = new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 
 			this.response = response;
@@ -247,7 +247,9 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	protected final BigInteger gasForStoringFailedResponse() {
 		BigInteger gas = gas();
 
-		return sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
+		return sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse
+			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
+			updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
 	}
 
 	/**

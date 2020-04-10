@@ -34,7 +34,8 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	/**
 	 * Builds the transaction response.
 	 * 
-	 * @param cause the exception that justifies why the transaction failed
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param callerBalanceUpdate the update of balance of the caller of the transaction, for paying for the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
@@ -42,11 +43,11 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
-	public JarStoreTransactionFailedResponse(Throwable cause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+	public JarStoreTransactionFailedResponse(String classNameOfCause, String messageOfCause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
-		this.classNameOfCause = cause == null ? "<unknown exception>" : cause.getClass().getName();
-		this.messageOfCause = cause == null ? "<unknown message>" : cause.getMessage();
+		this.classNameOfCause = classNameOfCause;
+		this.messageOfCause = messageOfCause;
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
 	}
 
@@ -78,6 +79,6 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 
 	@Override
 	public TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException {
-		throw new TransactionException(classNameOfCause + ": " + messageOfCause);
+		throw new TransactionException(classNameOfCause, messageOfCause, null);
 	}
 }

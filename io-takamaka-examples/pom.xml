@@ -195,6 +195,12 @@
             </configuration>
           </execution>
 
+		  <execution><id>exceptions</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>exceptions</classifier>
+              <includes><include>io/takamaka/tests/errors/exceptions/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>illegalaccesstononwhitelistedfield1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalaccesstononwhitelistedfield1</classifier>
               <includes><include>io/takamaka/tests/errors/illegalaccesstononwhitelistedfield1/**</include></includes>

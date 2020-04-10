@@ -75,7 +75,7 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 			catch (Throwable t) {
 				setNonceAfter(request);
 				// we do not pay back the gas
-				response = new JarStoreTransactionFailedResponse(t, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				response = new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 
 			this.response = response;
@@ -104,6 +104,6 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 	protected final BigInteger gasForStoringFailedResponse() {
 		BigInteger gas = gas();
 
-		return sizeCalculator.sizeOfResponse(new JarStoreTransactionFailedResponse(null, updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
+		return sizeCalculator.sizeOfResponse(new JarStoreTransactionFailedResponse("placeholder for the name of the exception", "placeholder for the message of the exception", updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
 	}
 }

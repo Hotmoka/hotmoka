@@ -118,7 +118,7 @@ class Basic extends TakamakaTest {
 			runViewInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, new VoidMethodSignature("io.takamaka.tests.basic.Sub", "m1"), sub);
 		}
 		catch (TransactionException e) {
-			if (e.getMessage().startsWith(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME) && e.getMessage().endsWith("An @Entry can only be called from a distinct contract object"))
+			if (e.getMessage().startsWith(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME) && e.getMessage().endsWith("An @Entry can only be called from a distinct contract object@Sub.java:21"))
 				return;
 
 			fail("wrong exception");

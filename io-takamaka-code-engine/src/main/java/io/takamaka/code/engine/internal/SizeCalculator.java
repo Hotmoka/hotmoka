@@ -154,9 +154,22 @@ public class SizeCalculator {
 
 		if (response instanceof TransactionResponseFailed) {
 			TransactionResponseFailed trf = (TransactionResponseFailed) response;
+			String message = trf.getMessageOfCause();
 			size = size.add(gasCostModel.storageCostOf(trf.gasConsumedForPenalty()))
-				.add(gasCostModel.storageCostOf(trf.getClassNameOfCause()))
-				.add(gasCostModel.storageCostOf(trf.getMessageOfCause()));
+				.add(gasCostModel.storageCostOf(trf.getClassNameOfCause()));
+			if (message != null)
+				size = size.add(gasCostModel.storageCostOf(message));
+
+			if (response instanceof ConstructorCallTransactionFailedResponse) {
+				String where = ((ConstructorCallTransactionFailedResponse) response).where;
+				if (where != null)
+					size = size.add(gasCostModel.storageCostOf(where));
+			}
+			else if (response instanceof MethodCallTransactionFailedResponse) {
+				String where = ((MethodCallTransactionFailedResponse) response).where;
+				if (where != null)
+					size = size.add(gasCostModel.storageCostOf(where));
+			}
 		}			
 
 		if (response instanceof TransactionResponseWithEvents)
@@ -173,6 +186,8 @@ public class SizeCalculator {
 			size = size.add(gasCostModel.storageCostOf(ccter.classNameOfCause));
 			if (ccter.messageOfCause != null)
 				size = size.add(gasCostModel.storageCostOf(ccter.messageOfCause));
+			if (ccter.where != null)
+				size = size.add(gasCostModel.storageCostOf(ccter.where));
 
 			return size;
 		}
@@ -181,6 +196,8 @@ public class SizeCalculator {
 			size = size.add(gasCostModel.storageCostOf(mcter.classNameOfCause));
 			if (mcter.messageOfCause != null)
 				size = size.add(gasCostModel.storageCostOf(mcter.messageOfCause));
+			if (mcter.where != null)
+				size = size.add(gasCostModel.storageCostOf(mcter.where));
 
 			return size;
 		}

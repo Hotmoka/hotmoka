@@ -1,10 +1,8 @@
 package io.hotmoka.beans;
 
 /**
- * A wrapper of an exception that occurred during the execution of
- * a Takamaka constructor or method. The exception is inside
- * the user code being executed, not in the engine of the node
- * that is executing the code.
+ * A wrapper of an exception, raised during a transaction, that occurred during
+ * the execution of a Takamaka constructor or method that was allowed to throw it.
  */
 @SuppressWarnings("serial")
 public class CodeExecutionException extends Exception {
@@ -15,11 +13,12 @@ public class CodeExecutionException extends Exception {
 	public final String classNameOfCause;
 
 	/**
-	 * Builds an exception that occurred during the execution of a Takamaka constructor or method.
+	 * Builds the wrapper of an exception that occurred during the execution
+	 * of a Takamaka constructor or method that was allowed to throw it.
 	 * 
 	 * @param classNameOfCause the name of the class of the cause of the exception
-	 * @param messageOfCause the message of the cause of the exception
-	 * @param where a description of the program point of the exception
+	 * @param messageOfCause the message of the cause of the exception. This might be {@code null}
+	 * @param where a description of the program point of the exception. This might be {@code null}
 	 */
 	public CodeExecutionException(String classNameOfCause, String messageOfCause, String where) {
 		super(classNameOfCause

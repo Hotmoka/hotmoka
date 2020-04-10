@@ -32,21 +32,29 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	public final String messageOfCause;
 
 	/**
+	 * The program point where the cause exception occurred. This might be {@code null}.
+	 */
+	public final String where;
+
+	/**
 	 * Builds the transaction response.
 	 * 
-	 * @param cause the exception that justifies why the transaction failed
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
-	public MethodCallTransactionFailedResponse(Throwable cause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+	public MethodCallTransactionFailedResponse(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
-		this.classNameOfCause = cause == null ? "<unknown exception>" : cause.getClass().getName();
-		this.messageOfCause = cause == null ? "<unknown message>" : cause.getMessage();
+		this.classNameOfCause = classNameOfCause;
+		this.messageOfCause = messageOfCause;
+		this.where = where;
 	}
 
 	@Override
@@ -77,6 +85,6 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 
 	@Override
 	public StorageValue getOutcome() throws TransactionException {
-		throw new TransactionException(classNameOfCause + ": " + messageOfCause);
+		throw new TransactionException(classNameOfCause, messageOfCause, where);
 	}
 }

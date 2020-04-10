@@ -91,6 +91,11 @@ public interface Constants {
 	public final static String TAKAMAKA_NAME = "io.takamaka.code.lang.Takamaka";
 
 	/**
+	 * The name of the package of the Takamaka language classes.
+	 */
+	public final static String TAKAMAKA_LANG_PACKAGE = "io.takamaka.code.lang.";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.RequirementViolationException}.
 	 */
 	public final static String REQUIREMENT_VIOLATION_EXCEPTION_NAME = "io.takamaka.code.lang.RequirementViolationException";

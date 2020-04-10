@@ -23,6 +23,7 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.Dummy;
+import io.takamaka.code.whitelisting.ResolvingClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingPredicate;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
@@ -198,6 +199,34 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 	 */
 	protected final Stream<StorageReference> storageReferencesOfEvents() {
 		return events().map(getClassLoader()::getStorageReferenceOf);
+	}
+
+	/**
+	 * Yields a description of the program point where the given exception should be reported
+	 * to the user. It scans its stack trace, backwards, looking for a stack element that
+	 * was loaded by a classloader of Takamaka. If it does not find it, yields {@code null}.
+	 * The idea is that users should not get any program point related to the Java library,
+	 * but only program points inside the code that they wrote.
+	 * 
+	 * @param throwable the exception
+	 * @return the program point, if available. Otherwise {@code null}
+	 */
+	protected final String where(Throwable throwable) {
+		StackTraceElement[] stackTrace = throwable.getStackTrace();
+		if (stackTrace != null)
+			for (StackTraceElement cursor: stackTrace) {
+				int line = cursor.getLineNumber();
+				// we avoid messages in synthetic code or code in the Takamaka library
+				if (line >= 0 && !cursor.getClassName().startsWith(Constants.TAKAMAKA_LANG_PACKAGE))
+					try {
+						Class<?> clazz = getClassLoader().loadClass(cursor.getClassName());
+						if (clazz.getClassLoader() instanceof ResolvingClassLoader)
+							return cursor.getFileName() + ":" + line;
+					}
+					catch (Exception e) {}
+			}
+
+		return null;
 	}
 
 	/**
