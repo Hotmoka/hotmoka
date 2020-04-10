@@ -18,7 +18,7 @@ public interface InstrumentedJar {
 
 	/**
 	 * Instruments the given jar file into another jar file. This instrumentation
-	 * might fail if at least a class did not verify.
+	 * will fail if at least a class did not verify.
 	 * 
 	 * @param verifiedJar the jar that contains the classes already verified
 	 * @param gasCostModel the gas cost model used for the instrumentation

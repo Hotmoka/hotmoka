@@ -80,14 +80,12 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 			this.deserializedCaller = deserializerThread.deserializedCaller;
 			this.deserializedActuals = deserializerThread.deserializedActuals;
 
-			callerMustBeAnExternallyOwnedAccount();
-			nonceOfCallerMustMatch(request);
-
-			// we sell all gas first: what remains will be paid back at the end;
-			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-			chargeToCallerMinimalGasFor(request);
-			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
-			chargeForStorage(request);
+			callerIsAnExternallyOwnedAccount();
+			callerAndRequestAgreeOnNonce();
+			sellAllGasToCaller();
+			gasIsEnoughToPayForFailure();
+			chargeForCPU(gasCostModel.cpuBaseTransactionCost());
+			chargeForStorageOfRequest();
 
 			ConstructorCallTransactionResponse response = null;
 			Constructor<?> constructorJVM = null;
@@ -123,7 +121,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 						if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
 							chargeForStorage(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 							payBackRemainingGas();
-							setNonceAfter(request);
+							increaseNonceOfCaller();
 							response = new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
 						}
 						else
@@ -135,13 +133,13 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 					chargeForStorage(new ConstructorCallTransactionSuccessfulResponse
 						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					payBackRemainingGas();
-					setNonceAfter(request);
+					increaseNonceOfCaller();
 					response = new ConstructorCallTransactionSuccessfulResponse
 						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
-				setNonceAfter(request);
+				increaseNonceOfCaller();
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				response = new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}

@@ -33,7 +33,7 @@ public class RedGreenGameteCreationTransactionBuilder extends InitialTransaction
 	 * @throws TransactionRejectedException if the transaction cannot be created
 	 */
 	public RedGreenGameteCreationTransactionBuilder(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(current, node);
+		super(request, current, node);
 
 		try {
 			this.classLoader = new EngineClassLoader(request.classpath, this);

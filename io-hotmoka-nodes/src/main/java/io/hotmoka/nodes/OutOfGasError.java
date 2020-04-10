@@ -6,4 +6,12 @@ package io.hotmoka.nodes;
  */
 @SuppressWarnings("serial")
 public class OutOfGasError extends Error {
+
+	public OutOfGasError() {
+		super();
+	}
+
+	public OutOfGasError(String message) {
+		super(message);
+	}
 }

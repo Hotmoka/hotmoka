@@ -14,6 +14,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
 
@@ -60,6 +61,11 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
 
 	/**
+	 * The cost model of the node for which the transaction is being built.
+	 */
+	public final GasCostModel gasCostModel;
+
+	/**
 	 * Creates a non-initial transaction builder.
 	 * 
 	 * @param request the request of the transaction
@@ -68,10 +74,16 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @throws TransactionRejectedException if the creator cannot be built
 	 */
 	protected NonInitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(current, node);
+		super(request, current, node);
 
-		this.gas = this.initialGas = request.gasLimit;
-		this.gasPrice = request.gasPrice;
+		try {
+			this.gasCostModel = node.getGasCostModel();
+			this.gas = this.initialGas = request.gasLimit;
+			this.gasPrice = request.gasPrice;
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
 	}
 
 	/**
@@ -109,7 +121,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * 
 	 * @throws IllegalArgumentException if the caller is not an externally owned account
 	 */
-	protected final void callerMustBeAnExternallyOwnedAccount() {
+	protected final void callerIsAnExternallyOwnedAccount() {
 		Class<? extends Object> clazz = getDeserializedCaller().getClass();
 		if (!getClassLoader().getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
@@ -117,12 +129,11 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Checks if the caller has the same nonce has the given request.
+	 * Checks if the caller has the same nonce as the request.
 	 * 
-	 * @param request the request
 	 * @throws IllegalArgumentException if the nonce of the caller is not equal to that in {@code request}
 	 */
-	protected void nonceOfCallerMustMatch(NonInitialTransactionRequest<?> request) {
+	protected void callerAndRequestAgreeOnNonce() {
 		BigInteger expected = getClassLoader().getNonceOf(getDeserializedCaller());
 		if (!expected.equals(request.nonce))
 			throw new IllegalArgumentException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
@@ -163,11 +174,9 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Decreases the available gas for the given request, for storage allocation.
-	 * 
-	 * @param request the request
+	 * Decreases the available gas for the request of this transaction, for storage allocation.
 	 */
-	protected final void chargeForStorage(Request request) {
+	protected final void chargeForStorageOfRequest() {
 		chargeForStorage(sizeCalculator.sizeOfRequest(request));
 	}
 
@@ -191,20 +200,26 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Charges to the caller of a transaction the money to pay for the promised gas and the addition of a
-	 * failed transaction response to blockchain.
+	 * Sells to the caller of the transaction all gas promised for the transaction.
 	 * 
-	 * @param request the request
-	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas and the addition
-	 *                               of a failed transaction response to the node
+	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas
 	 */
-	protected final void chargeToCallerMinimalGasFor(NonInitialTransactionRequest<?> request) {
+	protected final void sellAllGasToCaller() {
 		decreaseBalance(getDeserializedCaller(), request.gasLimit);
+	}
+
+	/**
+	 * Checks if the gas limit of the transaction is high enough to cover the cost of the addition of a
+	 * failed transaction response to the store of the node.
+	 * 
+	 * @throws OutOfGasError if the gas limit is not high enough
+	 */
+	protected final void gasIsEnoughToPayForFailure() throws OutOfGasError {
 		BigInteger minimalGasForRunning = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOfRequest(request))
 			.add(gasForStoringFailedResponse());
 
 		if (gas.compareTo(minimalGasForRunning) < 0)
-			throw new IllegalStateException("not enough gas to start the transaction");
+			throw new OutOfGasError("not enough gas to start the transaction, needed at least " + minimalGasForRunning + " units of gas");
 	}
 
 	/**
@@ -255,11 +270,9 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Sets the nonce of the caller after the given transaction.
-	 * 
-	 * @param request the request. The nonce of the caller will become one more than that of this request
+	 * Sets the nonce to the value successive to that in the request.
 	 */
-	protected void setNonceAfter(NonInitialTransactionRequest<?> request) {
+	protected void increaseNonceOfCaller() {
 		getClassLoader().setNonceOf(getDeserializedCaller(), request.nonce.add(BigInteger.ONE));
 	}
 

@@ -32,6 +32,11 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	public final Node node;
 
 	/**
+	 * The request of the transaction.
+	 */
+	public final Request request;
+
+	/**
 	 * The object that knows about the size of data once serialized.
 	 */
 	public final SizeCalculator sizeCalculator = new SizeCalculator(this);
@@ -80,12 +85,14 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	/**
 	 * Creates a transaction builder.
 	 * 
+	 * @param request the request of the transaction
 	 * @param current the reference that must be used to refer to the created transaction
 	 * @param node the node that is creating the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractTransactionBuilder(TransactionReference current, Node node) throws TransactionRejectedException {
+	protected AbstractTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		try {
+			this.request = request;
 			this.node = node;
 			this.current = current;
 			this.now = node.getNow();

@@ -72,7 +72,7 @@ public interface GasCostModel {
 	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
 	 */
-	BigInteger ramCostForInstalling(int numBytes);
+	BigInteger ramCostForInstallingJar(int numBytes);
 
 	/**
 	 * Yields the RAM gas cost for loading from store a jar consisting of the given bytes.

@@ -71,14 +71,12 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 			this.deserializedCaller = deserializerThread.deserializedCaller;
 			this.deserializedActuals = deserializerThread.deserializedActuals;
 
-			callerMustBeAnExternallyOwnedAccount();
-			nonceOfCallerMustMatch(request);
-
-			// we sell all gas first: what remains will be paid back at the end;
-			// if the caller has not enough to pay for the whole gas, the transaction won't be executed
-			chargeToCallerMinimalGasFor(request);
-			chargeForCPU(node.getGasCostModel().cpuBaseTransactionCost());
-			chargeForStorage(request);
+			callerIsAnExternallyOwnedAccount();
+			callerAndRequestAgreeOnNonce();
+			sellAllGasToCaller();
+			gasIsEnoughToPayForFailure();
+			chargeForCPU(gasCostModel.cpuBaseTransactionCost());
+			chargeForStorageOfRequest();
 			MethodCallTransactionResponse response;
 
 			try {
@@ -98,7 +96,7 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 						if (isCheckedForThrowsExceptions(cause, methodJVM)) {
 							chargeForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 							payBackRemainingGas();
-							setNonceAfter(request);
+							increaseNonceOfCaller();
 							response = new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 						}
 						else
@@ -118,13 +116,13 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 					else {
 						chargeForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						payBackRemainingGas();
-						setNonceAfter(request);
+						increaseNonceOfCaller();
 						response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 				}
 			}
 			catch (Throwable t) {
-				setNonceAfter(request);
+				increaseNonceOfCaller();
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				response = new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}

@@ -33,7 +33,7 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
 	public JarStoreInitialTransactionBuilder(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(current, node);
+		super(request, current, node);
 
 		try {
 			byte[] jar = request.getJar();

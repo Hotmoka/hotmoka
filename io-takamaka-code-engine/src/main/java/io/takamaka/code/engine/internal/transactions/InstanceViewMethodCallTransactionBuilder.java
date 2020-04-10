@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.constants.Constants;
 
@@ -37,12 +36,12 @@ public class InstanceViewMethodCallTransactionBuilder extends InstanceMethodCall
 	}
 
 	@Override
-	protected final void nonceOfCallerMustMatch(NonInitialTransactionRequest<?> request) {
+	protected final void callerAndRequestAgreeOnNonce() {
 		// we disable the check, since the nonce is not checked in view transactions
 	}
 
 	@Override
-	protected void setNonceAfter(NonInitialTransactionRequest<?> request) {
+	protected void increaseNonceOfCaller() {
 		// we disable the nonce increment for view transactions
 	}
 }

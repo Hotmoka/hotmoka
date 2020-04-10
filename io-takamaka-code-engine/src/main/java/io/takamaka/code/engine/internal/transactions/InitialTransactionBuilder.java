@@ -17,12 +17,13 @@ public abstract class InitialTransactionBuilder<Request extends InitialTransacti
 	/**
 	 * Creates an initial transaction builder.
 	 * 
+	 * @param request the request of the transaction
 	 * @param current the reference that must be used to refer to the created transaction
 	 * @param node the node that is creating the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialTransactionBuilder(TransactionReference current, Node node) throws TransactionRejectedException {
-		super(current, node);
+	protected InitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
+		super(request, current, node);
 	}
 
 	@Override
