@@ -220,17 +220,16 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	}
 
 	/**
-	 * Checks if the gas limit of the transaction is high enough to cover the cost of the addition of a
+	 * Checks if the remaining gas for the transaction is enough to cover the cost of the addition of a
 	 * failed transaction response to the store of the node.
 	 * 
-	 * @throws OutOfGasError if the gas limit is not high enough
+	 * @throws OutOfGasError if the gas is not enough
 	 */
-	protected final void gasIsEnoughToPayForFailure() throws OutOfGasError {
-		BigInteger minimalGasForRunning = gasCostModel.cpuBaseTransactionCost().add(sizeCalculator.sizeOfRequest(request))
-			.add(gasForStoringFailedResponse());
+	protected final void remainingGasMustBeEnoughToPayForFailure() throws OutOfGasError {
+		BigInteger gasForStoringFailedResponse = gasForStoringFailedResponse();
 
-		if (gas.compareTo(minimalGasForRunning) < 0)
-			throw new OutOfGasError("not enough gas to start the transaction, needed at least " + minimalGasForRunning + " units of gas");
+		if (gas.compareTo(gasForStoringFailedResponse) < 0)
+			throw new OutOfGasError("not enough gas to start the transaction");
 	}
 
 	/**

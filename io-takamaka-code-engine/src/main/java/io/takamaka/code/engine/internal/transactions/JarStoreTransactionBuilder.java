@@ -52,15 +52,15 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 			callerIsAnExternallyOwnedAccount();
 			callerCanPayForAllGas();
 			sellAllGasToCaller();
-			gasIsEnoughToPayForFailure();
+			chargeForCPU(gasCostModel.cpuBaseTransactionCost());
+			chargeForStorageOfRequest();
+			chargeForCPU(gasCostModel.cpuCostForInstallingJar(jar.length));
+			chargeForRAM(gasCostModel.ramCostForInstallingJar(jar.length));
+			remainingGasMustBeEnoughToPayForFailure();
 
 			JarStoreTransactionResponse response;
 			try {
 				callerAndRequestAgreeOnNonce();
-				chargeForCPU(gasCostModel.cpuBaseTransactionCost());
-				chargeForStorageOfRequest();
-				chargeForCPU(gasCostModel.cpuCostForInstallingJar(jar.length));
-				chargeForRAM(gasCostModel.ramCostForInstallingJar(jar.length));
 
 				VerifiedJar verifiedJar = VerifiedJar.of(jar, classLoader, false);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);

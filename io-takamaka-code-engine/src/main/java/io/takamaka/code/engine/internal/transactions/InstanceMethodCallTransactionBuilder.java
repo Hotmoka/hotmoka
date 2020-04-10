@@ -84,9 +84,9 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 			callerAndRequestAgreeOnNonce();
 			callerCanPayForAllGas();
 			sellAllGasToCaller();
-			gasIsEnoughToPayForFailure();
 			chargeForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeForStorageOfRequest();
+			remainingGasMustBeEnoughToPayForFailure();
 			MethodCallTransactionResponse response;
 
 			try {

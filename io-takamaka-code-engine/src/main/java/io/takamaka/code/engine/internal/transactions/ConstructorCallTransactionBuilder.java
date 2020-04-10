@@ -84,9 +84,9 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 			callerAndRequestAgreeOnNonce();
 			callerCanPayForAllGas();
 			sellAllGasToCaller();
-			gasIsEnoughToPayForFailure();
 			chargeForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeForStorageOfRequest();
+			remainingGasMustBeEnoughToPayForFailure();
 
 			ConstructorCallTransactionResponse response = null;
 			Constructor<?> constructorJVM = null;

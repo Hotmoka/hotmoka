@@ -75,9 +75,9 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 			callerAndRequestAgreeOnNonce();
 			callerCanPayForAllGas();
 			sellAllGasToCaller();
-			gasIsEnoughToPayForFailure();
 			chargeForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeForStorageOfRequest();
+			remainingGasMustBeEnoughToPayForFailure();
 			MethodCallTransactionResponse response;
 
 			try {
