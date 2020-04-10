@@ -204,8 +204,19 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * 
 	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas
 	 */
+	protected final void callerCanPayForAllGas() {
+		Object eoa = getDeserializedCaller();
+		if (getClassLoader().getBalanceOf(eoa).subtract(costOf(request.gasLimit)).signum() < 0)
+			throw new IllegalStateException("caller has not enough funds to buy " + request.gasLimit + " units of gas");
+	}
+
+	/**
+	 * Sells to the caller of the transaction all gas promised for the transaction.
+	 */
 	protected final void sellAllGasToCaller() {
-		decreaseBalance(getDeserializedCaller(), request.gasLimit);
+		Object eoa = getDeserializedCaller();
+		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(costOf(request.gasLimit));
+		getClassLoader().setBalanceOf(eoa, result);
 	}
 
 	/**
@@ -215,7 +226,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * @throws OutOfGasError if the gas limit is not high enough
 	 */
 	protected final void gasIsEnoughToPayForFailure() throws OutOfGasError {
-		BigInteger minimalGasForRunning = node.getGasCostModel().cpuBaseTransactionCost().add(sizeCalculator.sizeOfRequest(request))
+		BigInteger minimalGasForRunning = gasCostModel.cpuBaseTransactionCost().add(sizeCalculator.sizeOfRequest(request))
 			.add(gasForStoringFailedResponse());
 
 		if (gas.compareTo(minimalGasForRunning) < 0)
@@ -243,22 +254,6 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 			.filter(update -> ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
 					|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
 					|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD));
-	}
-
-	/**
-	 * Sells the given amount of gas to the given externally owned account.
-	 * 
-	 * @param eoa the reference to the externally owned account
-	 * @param gas the gas to sell
-	 * @return the balance of the contract after paying the given amount of gas
-	 * @throws IllegalStateException if the externally owned account does not have funds for buying the given amount of gas
-	 */
-	private void decreaseBalance(Object eoa, BigInteger gas) {
-		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(costOf(gas));
-		if (result.signum() < 0)
-			throw new IllegalStateException("caller has not enough funds to buy " + gas + " units of gas");
-
-		getClassLoader().setBalanceOf(eoa, result);
 	}
 
 	/**

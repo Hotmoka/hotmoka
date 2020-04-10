@@ -82,6 +82,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 
 			callerIsAnExternallyOwnedAccount();
 			callerAndRequestAgreeOnNonce();
+			callerCanPayForAllGas();
 			sellAllGasToCaller();
 			gasIsEnoughToPayForFailure();
 			chargeForCPU(gasCostModel.cpuBaseTransactionCost());

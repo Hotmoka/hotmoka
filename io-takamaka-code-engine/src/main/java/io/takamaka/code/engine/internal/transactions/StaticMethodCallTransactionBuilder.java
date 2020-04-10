@@ -73,6 +73,7 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 
 			callerIsAnExternallyOwnedAccount();
 			callerAndRequestAgreeOnNonce();
+			callerCanPayForAllGas();
 			sellAllGasToCaller();
 			gasIsEnoughToPayForFailure();
 			chargeForCPU(gasCostModel.cpuBaseTransactionCost());

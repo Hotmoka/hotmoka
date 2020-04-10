@@ -82,6 +82,7 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 
 			callerIsAnExternallyOwnedAccount();
 			callerAndRequestAgreeOnNonce();
+			callerCanPayForAllGas();
 			sellAllGasToCaller();
 			gasIsEnoughToPayForFailure();
 			chargeForCPU(gasCostModel.cpuBaseTransactionCost());

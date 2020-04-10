@@ -50,6 +50,7 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 			this.classLoader = new EngineClassLoader(jar, transaction, request.getDependencies(), this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerIsAnExternallyOwnedAccount();
+			callerCanPayForAllGas();
 			sellAllGasToCaller();
 			gasIsEnoughToPayForFailure();
 
