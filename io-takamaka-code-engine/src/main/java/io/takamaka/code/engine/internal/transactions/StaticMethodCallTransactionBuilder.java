@@ -56,22 +56,8 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 
 		try {
 			this.classLoader = new EngineClassLoader(request.classpath, this);
-
-			if (request.method.formals().count() != request.actuals().count())
-				throw new IllegalArgumentException("argument count mismatch between formals and actuals");
-
-			// we perform deserialization in a thread, since enums passed as parameters
-			// would trigger the execution of their static initializer, which will charge gas
-			DeserializerThread deserializerThread = new DeserializerThread(request);
-			deserializerThread.start();
-			deserializerThread.join();
-			if (deserializerThread.exception != null)
-				throw deserializerThread.exception;
-
-			this.deserializedCaller = deserializerThread.deserializedCaller;
-			this.deserializedActuals = deserializerThread.deserializedActuals;
-
-			callerMustBeAnExternallyOwnedAccount();
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			callerMustBeExternallyOwnedAccount();
 			callerAndRequestMustAgreeOnNonce();
 			callerMustBeAbleToPayForAllGas();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -81,15 +67,22 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
 
+			// we perform deserialization in a thread, since enums passed as parameters
+			// would trigger the execution of their static initializer, which will charge gas
+			DeserializerThread deserializerThread = new DeserializerThread(request);
+			deserializerThread.start();
+			deserializerThread.join();
+			if (deserializerThread.exception != null)
+				throw deserializerThread.exception;
+			this.deserializedActuals = deserializerThread.deserializedActuals;
+
 			MethodCallTransactionResponse response;
 
 			try {
+				formalsAndActualsMustMatch();
 				Method methodJVM = getMethod();
-				validateTarget(methodJVM);
-				ensureWhiteListingOf(methodJVM);
-
-				boolean isVoidMethod = methodJVM.getReturnType() == void.class;
-				boolean isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+				validateCallee(methodJVM);
+				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
 				thread.start();
@@ -108,10 +101,10 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 					else
 						throw thread.exception;
 				else {
-					if (isViewMethod && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
-						throw new SideEffectsInViewMethodException(method);
+					if (hasAnnotation(methodJVM, Constants.VIEW_NAME) && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
+						throw new SideEffectsInViewMethodException(request.method);
 
-					if (isVoidMethod) {
+					if (methodJVM.getReturnType() == void.class) {
 						chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						payBackAllRemainingGasToCaller();
 						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
@@ -141,7 +134,7 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 	 * @param methodJVM the method
 	 * @throws NoSuchMethodException if the constraints are not satisfied
 	 */
-	protected void validateTarget(Method methodJVM) throws NoSuchMethodException {
+	protected void validateCallee(Method methodJVM) throws NoSuchMethodException {
 		if (!Modifier.isStatic(methodJVM.getModifiers()))
 			throw new NoSuchMethodException("cannot call an instance method");
 	}
@@ -175,11 +168,6 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 		private final StaticMethodCallTransactionRequest request;
 
 		/**
-		 * The deserialized caller.
-		 */
-		private Object deserializedCaller;
-
-		/**
 		 * The deserialized actual arguments of the call.
 		 */
 		private Object[] deserializedActuals;
@@ -190,7 +178,6 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 
 		@Override
 		protected void body() throws Exception {
-			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 		}
 	}

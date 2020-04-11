@@ -15,7 +15,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -91,9 +90,19 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 	 * 
 	 * @throws IllegalArgumentException if the object is not a red/green externally owned account
 	 */
-	protected final void callerMustBeARedGreenExternallyOwnedAccount() {
+	protected final void callerMustBeRedGreenExternallyOwnedAccount() {
 		if (!getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(getDeserializedCaller().getClass()))
 			throw new IllegalArgumentException("only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
+	}
+
+	/**
+	 * Checks that the number of formal and actual arguments is the same.
+	 * 
+	 * @throws IllegalArgumentException if the numbers do not match
+	 */
+	protected final void formalsAndActualsMustMatch() {
+		if (request.getStaticTarget().formals().count() != request.actuals().count())
+			throw new IllegalArgumentException("argument count mismatch between formals and actuals");
 	}
 
 	/**
@@ -104,7 +113,7 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 	 */
 	protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: getMethodOrConstructor().formals().collect(Collectors.toList()))
+		for (StorageType type: request.getStaticTarget().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
 
 		return classes.toArray(new Class<?>[classes.size()]);
@@ -120,7 +129,7 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 	 */
 	protected final Class<?>[] formalsAsClassForEntry() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: getMethodOrConstructor().formals().collect(Collectors.toList()))
+		for (StorageType type: request.getStaticTarget().formals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
 
 		classes.add(getClassLoader().getContract());
@@ -247,13 +256,6 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 		// events are accessible from outside, hence they count as side-effects
 		events().forEach(consumer);
 	}
-
-	/**
-	 * Yields the method or constructor that is being called.
-	 * 
-	 * @return the method or constructor that is being called
-	 */
-	protected abstract CodeSignature getMethodOrConstructor();
 
 	/**
 	 * Yields the actual arguments of the call.

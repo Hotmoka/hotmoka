@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
+import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 
@@ -42,4 +43,11 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	public final Stream<StorageValue> actuals() {
 		return Stream.of(actuals);
 	}
+
+	/**
+	 * Yields the method or constructor referenced in this request.
+	 * 
+	 * @return the method or constructor
+	 */
+	public abstract CodeSignature getStaticTarget();
 }

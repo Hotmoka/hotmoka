@@ -121,7 +121,7 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * 
 	 * @throws IllegalArgumentException if the caller is not an externally owned account
 	 */
-	protected final void callerMustBeAnExternallyOwnedAccount() {
+	protected final void callerMustBeExternallyOwnedAccount() {
 		Class<? extends Object> clazz = getDeserializedCaller().getClass();
 		if (!getClassLoader().getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
@@ -257,8 +257,8 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	 * Buys back the remaining gas to the caller of the transaction.
 	 */
 	protected final void payBackAllRemainingGasToCaller() {
-		Object eoa = getDeserializedCaller();
-		getClassLoader().setBalanceOf(eoa, getClassLoader().getBalanceOf(eoa).add(costOf(gas)));
+		Object caller = getDeserializedCaller();
+		getClassLoader().setBalanceOf(caller, getClassLoader().getBalanceOf(caller).add(costOf(gas)));
 	}
 
 	/**

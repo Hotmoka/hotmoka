@@ -15,6 +15,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
@@ -64,23 +65,8 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 
 		try {
 			this.classLoader = new EngineClassLoader(request.classpath, this);
-
-			if (request.method.formals().count() != request.actuals().count())
-				throw new IllegalArgumentException("argument count mismatch between formals and actuals");
-
-			// we perform deserialization in a thread, since enums passed as parameters
-			// would trigger the execution of their static initializer, which will charge gas
-			DeserializerThread deserializerThread = new DeserializerThread(request);
-			deserializerThread.start();
-			deserializerThread.join();
-			if (deserializerThread.exception != null)
-				throw deserializerThread.exception;
-
-			this.deserializedCaller = deserializerThread.deserializedCaller;
-			this.deserializedReceiver = deserializerThread.deserializedReceiver;
-			this.deserializedActuals = deserializerThread.deserializedActuals;
-
-			callerMustBeAnExternallyOwnedAccount();
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			callerMustBeExternallyOwnedAccount();
 			callerAndRequestMustAgreeOnNonce();
 			callerMustBeAbleToPayForAllGas();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -90,9 +76,22 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
 
+			// we perform deserialization in a thread, since enums passed as parameters
+			// would trigger the execution of their static initializer, which will charge gas
+			DeserializerThread deserializerThread = new DeserializerThread(request);
+			deserializerThread.start();
+			deserializerThread.join();
+			if (deserializerThread.exception != null)
+				throw deserializerThread.exception;
+
+			this.deserializedReceiver = deserializerThread.deserializedReceiver;
+			this.deserializedActuals = deserializerThread.deserializedActuals;
+
 			MethodCallTransactionResponse response;
 
 			try {
+				formalsAndActualsMustMatch();
+
 				Object[] deserializedActuals;
 				Method methodJVM;
 
@@ -112,13 +111,11 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 					}
 				}
 
-				validateTarget(methodJVM);
-				ensureWhiteListingOf(methodJVM);
+				validateCallee(methodJVM);
+				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
-				boolean isVoidMethod = methodJVM.getReturnType() == void.class;
-				boolean isViewMethod = hasAnnotation(methodJVM, Constants.VIEW_NAME);
 				if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
-					callerMustBeARedGreenExternallyOwnedAccount();
+					callerMustBeRedGreenExternallyOwnedAccount();
 
 				MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
 				thread.start();
@@ -137,10 +134,10 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 					else
 						throw thread.exception;
 				else {
-					if (isViewMethod && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
-						throw new SideEffectsInViewMethodException(method);
+					if (hasAnnotation(methodJVM, Constants.VIEW_NAME) && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
+						throw new SideEffectsInViewMethodException(request.method);
 
-					if (isVoidMethod) {
+					if (methodJVM.getReturnType() == void.class) {
 						chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						payBackAllRemainingGasToCaller();
 						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
@@ -170,7 +167,7 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	 * @param methodJVM the method
 	 * @throws NoSuchMethodException if the constraints are not satisfied
 	 */
-	protected void validateTarget(Method methodJVM) throws NoSuchMethodException {
+	protected void validateCallee(Method methodJVM) throws NoSuchMethodException {
 		if (Modifier.isStatic(methodJVM.getModifiers()))
 			throw new NoSuchMethodException("cannot call a static method");
 	}
@@ -194,8 +191,8 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	}
 
 	@Override
-	protected void ensureWhiteListingOf(Method executable) throws ClassNotFoundException {
-		super.ensureWhiteListingOf(executable);
+	protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
+		super.ensureWhiteListingOf(executable, actuals);
 
 		// we check the annotations on the receiver as well
 		Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
@@ -239,6 +236,7 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
 	private Method getEntryMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+		MethodSignature method = request.method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClassForEntry();
 
@@ -260,11 +258,6 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 		private Object deserializedReceiver;
 
 		/**
-		 * The deserialized caller.
-		 */
-		private Object deserializedCaller;
-
-		/**
 		 * The deserialized actual arguments of the call.
 		 */
 		private Object[] deserializedActuals;
@@ -275,7 +268,6 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 
 		@Override
 		protected void body() throws Exception {
-			deserializedCaller = deserializer.deserialize(request.caller);
 			deserializedReceiver = deserializer.deserialize(request.receiver);
 			deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 		}

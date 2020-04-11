@@ -46,4 +46,9 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 			+ "  constructor: " + constructor + "\n"
 			+ "  actuals:\n" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "    ", ""));
 	}
+
+	@Override
+	public ConstructorSignature getStaticTarget() {
+		return constructor;
+	}
 }

@@ -28,8 +28,8 @@ public class InstanceViewMethodCallTransactionBuilder extends InstanceMethodCall
 	}
 
 	@Override
-	protected void validateTarget(Method methodJVM) throws NoSuchMethodException {
-		super.validateTarget(methodJVM);
+	protected void validateCallee(Method methodJVM) throws NoSuchMethodException {
+		super.validateCallee(methodJVM);
 
 		if (!hasAnnotation(methodJVM, Constants.VIEW_NAME))
 			throw new NoSuchMethodException("cannot call a method not annotated as @View");

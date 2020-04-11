@@ -14,7 +14,6 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
@@ -30,11 +29,6 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	 * The class loader used for the transaction.
 	 */
 	private final EngineClassLoader classLoader;
-
-	/**
-	 * The constructor that is being called.
-	 */
-	private final CodeSignature constructor;
 
 	/**
 	 * The deserialized caller.
@@ -63,24 +57,9 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 		super(request, current, node);
 
 		try {
-			this.constructor = request.constructor;
 			this.classLoader = new EngineClassLoader(request.classpath, this);
-
-			if (request.constructor.formals().count() != request.actuals().count())
-				throw new IllegalArgumentException("argument count mismatch between formals and actuals");
-
-			// we perform deserialization in a thread, since enums passed as parameters
-			// would trigger the execution of their static initializer, which will charge gas
-			DeserializerThread deserializerThread = new DeserializerThread(request);
-			deserializerThread.start();
-			deserializerThread.join();
-			if (deserializerThread.exception != null)
-				throw deserializerThread.exception;
-
-			this.deserializedCaller = deserializerThread.deserializedCaller;
-			this.deserializedActuals = deserializerThread.deserializedActuals;
-
-			callerMustBeAnExternallyOwnedAccount();
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			callerMustBeExternallyOwnedAccount();
 			callerAndRequestMustAgreeOnNonce();
 			callerMustBeAbleToPayForAllGas();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -90,8 +69,18 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
 
-			ConstructorCallTransactionResponse response = null;
+			// we perform deserialization in a thread, since enums passed as parameters
+			// would trigger the execution of their static initializer, which will charge gas
+			DeserializerThread deserializerThread = new DeserializerThread(request);
+			deserializerThread.start();
+			deserializerThread.join();
+			if (deserializerThread.exception != null)
+				throw deserializerThread.exception;
+			this.deserializedActuals = deserializerThread.deserializedActuals;
+
+			ConstructorCallTransactionResponse response;
 			try {
+				formalsAndActualsMustMatch();
 				Object[] deserializedActuals;
 				Constructor<?> constructorJVM;
 
@@ -113,7 +102,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
 				if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
-					callerMustBeARedGreenExternallyOwnedAccount();
+					callerMustBeRedGreenExternallyOwnedAccount();
 
 				ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
 				thread.start();
@@ -189,7 +178,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws ClassNotFoundException {
 		Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
 		if (!model.isPresent())
-			throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + constructor.definingClass.name);
+			throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.definingClass.name);
 
 		Annotation[][] anns = model.get().getParameterAnnotations();
 		for (int pos = 0; pos < anns.length; pos++)
@@ -207,8 +196,8 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
 		Class<?>[] argTypes = formalsAsClass();
 
-		return classLoader.resolveConstructor(constructor.definingClass.name, argTypes)
-			.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
+		return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
 	}
 
 	/**
@@ -222,13 +211,8 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
 		Class<?>[] argTypes = formalsAsClassForEntry();
 
-		return classLoader.resolveConstructor(constructor.definingClass.name, argTypes)
-			.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
-	}
-
-	@Override
-	protected final CodeSignature getMethodOrConstructor() {
-		return constructor;
+		return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+			.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
 	}
 
 	@Override
@@ -259,11 +243,6 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 		private final ConstructorCallTransactionRequest request;
 
 		/**
-		 * The deserialized caller.
-		 */
-		private Object deserializedCaller;
-
-		/**
 		 * The deserialized actual arguments of the call.
 		 */
 		private Object[] deserializedActuals;
@@ -274,7 +253,6 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 
 		@Override
 		protected void body() {
-			this.deserializedCaller = deserializer.deserialize(request.caller);
 			this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 		}
 	}

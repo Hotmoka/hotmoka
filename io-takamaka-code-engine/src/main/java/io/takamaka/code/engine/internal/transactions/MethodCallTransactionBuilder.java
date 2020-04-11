@@ -27,11 +27,6 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
 public abstract class MethodCallTransactionBuilder<Request extends MethodCallTransactionRequest> extends CodeCallTransactionBuilder<Request, MethodCallTransactionResponse> {
 
 	/**
-	 * The method that is being called.
-	 */
-	protected final MethodSignature method;
-
-	/**
 	 * Builds the creator of a transaction that executes a method of Takamaka code.
 	 * 
 	 * @param request the request of the transaction
@@ -41,13 +36,6 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	 */
 	protected MethodCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
-
-		try {
-			this.method = request.method;
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
 	}
 
 	/**
@@ -59,6 +47,7 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
 	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
+		MethodSignature method = request.method;
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClass();
 
@@ -91,24 +80,16 @@ public abstract class MethodCallTransactionBuilder<Request extends MethodCallTra
 	 * @param actuals the actual arguments passed to {@code executable}, including the receiver for instance methods
 	 * @throws ClassNotFoundException if some class could not be found during the check
 	 */
-	protected void ensureWhiteListingOf(Method executable) throws ClassNotFoundException {
+	protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
 		Optional<Method> model = getClassLoader().getWhiteListingWizard().whiteListingModelOf(executable);
 		if (!model.isPresent())
-			throw new NonWhiteListedCallException("illegal call to non-white-listed method " + method.definingClass.name + "." + method.methodName);
+			throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.method.definingClass.name + "." + request.method.methodName);
 
 		Annotation[][] anns = model.get().getParameterAnnotations();
-		Object[] actuals = getDeserializedActuals().toArray();
 		String methodName = model.get().getName();
 
-		// we check actuals.length since it might be smaller than actuals.length
-		// when calling instrumented @Entry methods
 		for (int pos = 0; pos < actuals.length; pos++)
 			checkWhiteListingProofObligations(methodName, actuals[pos], anns[pos]);
-	}
-
-	@Override
-	protected final MethodSignature getMethodOrConstructor() {
-		return method;
 	}
 
 	@Override

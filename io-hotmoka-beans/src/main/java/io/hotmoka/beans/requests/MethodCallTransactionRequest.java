@@ -45,4 +45,9 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 			+ "  method: " + method + "\n"
 			+ "  actuals:\n" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "    ", ""));
 	}
+
+	@Override
+	public final MethodSignature getStaticTarget() {
+		return method;
+	}
 }
