@@ -34,11 +34,6 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	private final Object deserializedCaller;
 
 	/**
-	 * The deserialized actual arguments of the call.
-	 */
-	private Object[] deserializedActuals;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
@@ -70,45 +65,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 			increaseNonceOfCaller();
 
 			try {
-				// we perform deserialization in a thread, since enums passed as parameters
-				// would trigger the execution of their static initializer, which will charge gas
-				DeserializerThread deserializerThread = new DeserializerThread(request);
-				deserializerThread.go();
-				this.deserializedActuals = deserializerThread.deserializedActuals;
-
-				formalsAndActualsMustMatch();
-				Method methodJVM = getMethod();
-				validateCallee(methodJVM);
-				ensureWhiteListingOf(methodJVM, deserializedActuals);
-
-				MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
-				try {
-					thread.go();
-				}
-				catch (InvocationTargetException e) {
-					Throwable cause = e.getCause();
-					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
-						chargeGasForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						payBackAllRemainingGasToCaller();
-						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					}
-					else
-						throw cause;
-				}
-
-				if (hasAnnotation(methodJVM, Constants.VIEW_NAME) && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
-					throw new SideEffectsInViewMethodException(request.method);
-
-				if (methodJVM.getReturnType() == void.class) {
-					chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					payBackAllRemainingGasToCaller();
-					return new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
-				else {
-					chargeGasForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					payBackAllRemainingGasToCaller();
-					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
+				return new ResponseCreator().response;
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -118,6 +75,11 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
+	}
+
+	@Override
+	public final EngineClassLoader getClassLoader() {
+		return classLoader;
 	}
 
 	/**
@@ -132,18 +94,69 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
-	}
-
-	@Override
 	protected final Object getDeserializedCaller() {
 		return deserializedCaller;
 	}
 
-	@Override
-	protected final Stream<Object> getDeserializedActuals() {
-		return Stream.of(deserializedActuals);
+	private class ResponseCreator extends MethodCallResponseBuilder<StaticMethodCallTransactionRequest>.ResponseCreator {
+
+		/**
+		 * The deserialized actual arguments of the call.
+		 */
+		private final Object[] deserializedActuals;
+
+		/**
+		 * The response that is created.
+		 */
+		private final MethodCallTransactionResponse response;
+
+		private ResponseCreator() throws Throwable {
+			// we perform deserialization in a thread, since enums passed as parameters
+			// would trigger the execution of their static initializer, which will charge gas
+			DeserializerThread deserializerThread = new DeserializerThread(request);
+			deserializerThread.go();
+			this.deserializedActuals = deserializerThread.deserializedActuals;
+
+			formalsAndActualsMustMatch();
+			Method methodJVM = getMethod();
+			validateCallee(methodJVM);
+			ensureWhiteListingOf(methodJVM, deserializedActuals);
+
+			MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
+			try {
+				thread.go();
+			}
+			catch (InvocationTargetException e) {
+				Throwable cause = e.getCause();
+				if (isCheckedForThrowsExceptions(cause, methodJVM)) {
+					chargeGasForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					payBackAllRemainingGasToCaller();
+					response = new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					return;
+				}
+				else
+					throw cause;
+			}
+
+			if (hasAnnotation(methodJVM, Constants.VIEW_NAME) && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
+				throw new SideEffectsInViewMethodException(request.method);
+
+			if (methodJVM.getReturnType() == void.class) {
+				chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				payBackAllRemainingGasToCaller();
+				response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+			}
+			else {
+				chargeGasForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				payBackAllRemainingGasToCaller();
+				response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+			}
+		}
+
+		@Override
+		protected final Stream<Object> getDeserializedActuals() {
+			return Stream.of(deserializedActuals);
+		}
 	}
 
 	/**

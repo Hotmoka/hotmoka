@@ -36,11 +36,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	private final Object deserializedCaller;
 
 	/**
-	 * The deserialized actual arguments of the constructor.
-	 */
-	private Object[] deserializedActuals;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
@@ -72,56 +67,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			increaseNonceOfCaller();
 
 			try {
-				// we perform deserialization in a thread, since enums passed as parameters
-				// would trigger the execution of their static initializer, which will charge gas
-				DeserializerThread deserializerThread = new DeserializerThread(request);
-				deserializerThread.go();
-				this.deserializedActuals = deserializerThread.deserializedActuals;
-
-				formalsAndActualsMustMatch();
-				Object[] deserializedActuals;
-				Constructor<?> constructorJVM;
-
-				try {
-					// we first try to call the constructor with exactly the parameter types explicitly provided
-					constructorJVM = getConstructor();
-					deserializedActuals = this.deserializedActuals;
-				}
-				catch (NoSuchMethodException e) {
-					// if not found, we try to add the trailing types that characterize the @Entry constructors
-					try {
-						constructorJVM = getEntryConstructor();
-						deserializedActuals = addExtraActualsForEntry();
-					}
-					catch (NoSuchMethodException ee) {
-						throw e; // the message must be relative to the constructor as the user sees it
-					}
-				}
-
-				ensureWhiteListingOf(constructorJVM, deserializedActuals);
-				if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
-					callerMustBeRedGreenExternallyOwnedAccount();
-
-				ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
-				try {
-					thread.go();
-				}
-				catch (InvocationTargetException e) {
-					Throwable cause = e.getCause();
-					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
-						chargeGasForStorage(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						payBackAllRemainingGasToCaller();
-						return new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
-					}
-					else
-						throw cause;
-				}
-
-				chargeGasForStorage(new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				payBackAllRemainingGasToCaller();
-				return new ConstructorCallTransactionSuccessfulResponse
-					((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				return new ResponseCreator().response;
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -138,79 +84,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		return classLoader;
 	}
 
-	/**
-	 * Adds to the actual parameters the implicit actuals that are passed
-	 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
-	 * the entry and {@code null} for the dummy argument.
-	 * 
-	 * @return the resulting actual parameters
-	 */
-	private Object[] addExtraActualsForEntry() {
-		int al = deserializedActuals.length;
-		Object[] result = new Object[al + 2];
-		System.arraycopy(deserializedActuals, 0, result, 0, al);
-		result[al] = getDeserializedCaller();
-		result[al + 1] = null; // Dummy is not used
-	
-		return result;
-	}
-
-	/**
-	 * Checks that the constructor called by this transaction is
-	 * white-listed and its white-listing proof-obligations hold.
-	 * 
-	 * @param executable the constructor
-	 * @param actuals the actual arguments passed to {@code executable}
-	 * @throws ClassNotFoundException if some class could not be found during the check
-	 */
-	private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws ClassNotFoundException {
-		Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
-		if (!model.isPresent())
-			throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.definingClass.name);
-
-		Annotation[][] anns = model.get().getParameterAnnotations();
-		for (int pos = 0; pos < anns.length; pos++)
-			checkWhiteListingProofObligations(model.get().getName(), actuals[pos], anns[pos]);
-	}
-
-	/**
-	 * Resolves the constructor that must be called.
-	 * 
-	 * @return the constructor
-	 * @throws NoSuchMethodException if the constructor could not be found
-	 * @throws SecurityException if the constructor could not be accessed
-	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
-	 */
-	private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
-		Class<?>[] argTypes = formalsAsClass();
-
-		return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
-			.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
-	}
-
-	/**
-	 * Resolves the constructor that must be called, assuming that it is an entry.
-	 * 
-	 * @return the constructor
-	 * @throws NoSuchMethodException if the constructor could not be found
-	 * @throws SecurityException if the constructor could not be accessed
-	 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
-	 */
-	private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
-		Class<?>[] argTypes = formalsAsClassForEntry();
-
-		return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
-			.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
-	}
-
 	@Override
 	protected final Object getDeserializedCaller() {
 		return deserializedCaller;
-	}
-
-	@Override
-	protected final Stream<Object> getDeserializedActuals() {
-		return Stream.of(deserializedActuals);
 	}
 
 	@Override
@@ -220,6 +96,143 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		return sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
 			updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
+	}
+
+	private class ResponseCreator extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse>.ResponseCreator {
+		
+		/**
+		 * The deserialized actual arguments of the constructor.
+		 */
+		private final Object[] deserializedActuals;
+
+		/**
+		 * The created response.
+		 */
+		private final ConstructorCallTransactionResponse response;
+
+		private ResponseCreator() throws Throwable {
+			// we perform deserialization in a thread, since enums passed as parameters
+			// would trigger the execution of their static initializer, which will charge gas
+			DeserializerThread deserializerThread = new DeserializerThread(request);
+			deserializerThread.go();
+			this.deserializedActuals = deserializerThread.deserializedActuals;
+
+			formalsAndActualsMustMatch();
+			Object[] deserializedActuals;
+			Constructor<?> constructorJVM;
+
+			try {
+				// we first try to call the constructor with exactly the parameter types explicitly provided
+				constructorJVM = getConstructor();
+				deserializedActuals = this.deserializedActuals;
+			}
+			catch (NoSuchMethodException e) {
+				// if not found, we try to add the trailing types that characterize the @Entry constructors
+				try {
+					constructorJVM = getEntryConstructor();
+					deserializedActuals = addExtraActualsForEntry();
+				}
+				catch (NoSuchMethodException ee) {
+					throw e; // the message must be relative to the constructor as the user sees it
+				}
+			}
+
+			ensureWhiteListingOf(constructorJVM, deserializedActuals);
+			if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
+				callerMustBeRedGreenExternallyOwnedAccount();
+
+			ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
+			try {
+				thread.go();
+			}
+			catch (InvocationTargetException e) {
+				Throwable cause = e.getCause();
+				if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
+					chargeGasForStorage(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					payBackAllRemainingGasToCaller();
+					response = new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
+					return;
+				}
+				else
+					throw cause;
+			}
+
+			chargeGasForStorage(new ConstructorCallTransactionSuccessfulResponse
+				((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+			payBackAllRemainingGasToCaller();
+			response = new ConstructorCallTransactionSuccessfulResponse
+				((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+		}
+
+		/**
+		 * Adds to the actual parameters the implicit actuals that are passed
+		 * to {@link io.takamaka.code.lang.Entry} methods or constructors. They are the caller of
+		 * the entry and {@code null} for the dummy argument.
+		 * 
+		 * @return the resulting actual parameters
+		 */
+		private Object[] addExtraActualsForEntry() {
+			int al = deserializedActuals.length;
+			Object[] result = new Object[al + 2];
+			System.arraycopy(deserializedActuals, 0, result, 0, al);
+			result[al] = getDeserializedCaller();
+			result[al + 1] = null; // Dummy is not used
+		
+			return result;
+		}
+
+		/**
+		 * Checks that the constructor called by this transaction is
+		 * white-listed and its white-listing proof-obligations hold.
+		 * 
+		 * @param executable the constructor
+		 * @param actuals the actual arguments passed to {@code executable}
+		 * @throws ClassNotFoundException if some class could not be found during the check
+		 */
+		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws ClassNotFoundException {
+			Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
+			if (!model.isPresent())
+				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.definingClass.name);
+
+			Annotation[][] anns = model.get().getParameterAnnotations();
+			for (int pos = 0; pos < anns.length; pos++)
+				checkWhiteListingProofObligations(model.get().getName(), actuals[pos], anns[pos]);
+		}
+
+		/**
+		 * Resolves the constructor that must be called.
+		 * 
+		 * @return the constructor
+		 * @throws NoSuchMethodException if the constructor could not be found
+		 * @throws SecurityException if the constructor could not be accessed
+		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+		 */
+		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
+			Class<?>[] argTypes = formalsAsClass();
+
+			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
+		}
+
+		/**
+		 * Resolves the constructor that must be called, assuming that it is an entry.
+		 * 
+		 * @return the constructor
+		 * @throws NoSuchMethodException if the constructor could not be found
+		 * @throws SecurityException if the constructor could not be accessed
+		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+		 */
+		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
+			Class<?>[] argTypes = formalsAsClassForEntry();
+
+			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
+		}
+
+		@Override
+		protected final Stream<Object> getDeserializedActuals() {
+			return Stream.of(deserializedActuals);
+		}
 	}
 
 	/**

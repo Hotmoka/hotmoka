@@ -40,7 +40,7 @@ public class InstanceViewMethodCallResponseBuilder extends InstanceMethodCallRes
 	}
 
 	@Override
-	protected void increaseNonceOfCaller() {
+	protected final void increaseNonceOfCaller() {
 		// we disable the nonce increment for view transactions
 	}
 }

@@ -12,7 +12,11 @@ import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
- * The creator of a response from a request. It executes transaction from the request that builds the corresponding response.
+ * The creator of a response from a request. It executes a transaction from the request and builds the corresponding response.
+ * The constructors of the implementations of this interface check the prerequisite for running the
+ * transaction, such as the fact that the caller can be identified and has provided a minimum of gas.
+ * The {@linkplain #build()} method, instead, performs the actual creation of the response.
+ * If the constructors fail, then a node could for instance reject the transaction.
  * 
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
