@@ -25,11 +25,6 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 	private final byte[] jar;
 
 	/**
-	 * The response computed at the end of the transaction.
-	 */
-	private final JarStoreInitialTransactionResponse response;
-
-	/**
 	 * Creates the builder of a transaction that installs a jar in the node, during its initialization.
 	 * 
 	 * @param request the request of the transaction
@@ -47,8 +42,6 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-
-		this.response = build();
 	}
 
 	@Override
@@ -60,11 +53,6 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-	}
-
-	@Override
-	public final JarStoreInitialTransactionResponse getResponse() {
-		return response;
 	}
 
 	@Override

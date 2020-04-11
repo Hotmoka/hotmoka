@@ -64,7 +64,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionRejectedException if the transaction could not be created
 	 */
 	static Transaction<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> mkFor(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new AbstractTransaction<>(request, new JarStoreInitialTransactionBuilder(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new JarStoreInitialTransactionBuilder(request, current, node).build());
 	}
 
 	/**
@@ -80,7 +80,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionRejectedException if the transaction could not be created
 	 */
 	static Transaction<GameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new AbstractTransaction<>(request, new GameteCreationTransactionBuilder(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new GameteCreationTransactionBuilder(request, current, node).build());
 	}
 
 	/**
@@ -96,7 +96,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionRejectedException if the transaction could not be created
 	 */
 	static Transaction<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> mkFor(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new AbstractTransaction<>(request, new RedGreenGameteCreationTransactionBuilder(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new RedGreenGameteCreationTransactionBuilder(request, current, node).build());
 	}
 
 	/**
@@ -109,7 +109,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionRejectedException if the transaction could not be created
 	 */
 	static Transaction<JarStoreTransactionRequest, JarStoreTransactionResponse> mkFor(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new AbstractTransaction<>(request, new JarStoreTransactionBuilder(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new JarStoreTransactionBuilder(request, current, node).build());
 	}
 
 	/**
@@ -123,7 +123,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionRejectedException if the transaction could not be created
 	 */
 	static Transaction<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> mkFor(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new AbstractTransaction<>(request, new ConstructorCallTransactionBuilder(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new ConstructorCallTransactionBuilder(request, current, node).build());
 	}
 
 	/**
@@ -137,7 +137,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionRejectedException if the transaction could not be created
 	 */
 	static Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new AbstractTransaction<>(request, new InstanceMethodCallTransactionBuilder(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new InstanceMethodCallTransactionBuilder(request, current, node).build());
 	}
 
 	/**
@@ -151,7 +151,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionRejectedException if the transaction could not be created
 	 */
 	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkFor(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new AbstractTransaction<>(request, new StaticMethodCallTransactionBuilder(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new StaticMethodCallTransactionBuilder(request, current, node).build());
 	}
 
 	/**
@@ -166,7 +166,7 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionRejectedException if the transaction could not be created
 	 */
 	static Transaction<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> mkForView(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new AbstractTransaction<>(request, new InstanceViewMethodCallTransactionBuilder(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new InstanceViewMethodCallTransactionBuilder(request, current, node).build());
 	}
 
 	/**
@@ -181,6 +181,6 @@ public interface Transaction<Request extends TransactionRequest<Response>, Respo
 	 * @throws TransactionRejectedException if the transaction could not be created
 	 */
 	static Transaction<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> mkForView(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new AbstractTransaction<>(request, new StaticViewMethodCallTransactionBuilder(request, current, node).getResponse());
+		return new AbstractTransaction<>(request, new StaticViewMethodCallTransactionBuilder(request, current, node).build());
 	}
 }

@@ -102,8 +102,6 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 		}
 	}
 
-	public abstract Response build() throws TransactionRejectedException;
-
 	@Override
 	public final StorageReference getNextStorageReference() {
 		BigInteger result = nextProgressive;

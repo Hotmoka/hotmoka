@@ -48,11 +48,6 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	private Object[] deserializedActuals;
 
 	/**
-	 * The response computed at the end of the transaction.
-	 */
-	private final MethodCallTransactionResponse response;
-
-	/**
 	 * Creates the builder of a transaction that executes an instance method of Takamaka code.
 	 * 
 	 * @param request the request of the transaction
@@ -79,8 +74,6 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-
-		this.response = build();
 	}
 
 	@Override
@@ -184,11 +177,6 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	@Override
 	public final EngineClassLoader getClassLoader() {
 		return classLoader;
-	}
-
-	@Override
-	public final MethodCallTransactionResponse getResponse() {
-		return response;
 	}
 
 	@Override

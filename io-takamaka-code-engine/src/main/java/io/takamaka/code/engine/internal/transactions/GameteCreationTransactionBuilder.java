@@ -20,11 +20,6 @@ public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<
 	private final EngineClassLoader classLoader;
 
 	/**
-	 * The response computed at the end of the transaction.
-	 */
-	private final GameteCreationTransactionResponse response;
-
-	/**
 	 * Creates the builder of a transaction that creates a gamete.
 	 * 
 	 * @param request the request of the transaction
@@ -44,8 +39,6 @@ public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-
-		this.response = build();
 	}
 
 	@Override
@@ -69,11 +62,6 @@ public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<
 	@Override
 	public final EngineClassLoader getClassLoader() {
 		return classLoader;
-	}
-
-	@Override
-	public final GameteCreationTransactionResponse getResponse() {
-		return response;
 	}
 
 	/**

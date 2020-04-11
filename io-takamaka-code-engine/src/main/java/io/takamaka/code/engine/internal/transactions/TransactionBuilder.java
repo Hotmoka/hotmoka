@@ -3,6 +3,7 @@ package io.takamaka.code.engine.internal.transactions;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -17,6 +18,14 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
  * @param <Response> the type of the response of the transaction
  */
 public interface TransactionBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> {
+
+	/**
+	 * Builds the response of the transaction.
+	 * 
+	 * @return the response
+	 * @throws TransactionRejectedException if the response cannot be built
+	 */
+	Response build() throws TransactionRejectedException;
 
 	/**
 	 * Yields the UTC time when the transaction is being run.
@@ -42,13 +51,6 @@ public interface TransactionBuilder<Request extends TransactionRequest<Response>
 	 * @return the class loader
 	 */
 	EngineClassLoader getClassLoader();
-
-	/**
-	 * Yields the response resulting from the execution of the transaction.
-	 * 
-	 * @return the response
-	 */
-	Response getResponse();
 
 	/**
 	 * Takes note of the given event, emitted during this execution.

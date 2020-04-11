@@ -41,11 +41,6 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	private Object[] deserializedActuals;
 
 	/**
-	 * The response computed at the end of the transaction.
-	 */
-	private final ConstructorCallTransactionResponse response;
-
-	/**
 	 * Builds the creator of a transaction that executes a constructor of Takamaka code.
 	 * 
 	 * @param request the request of the transaction
@@ -69,8 +64,6 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-
-		this.response = build();
 	}
 
 	@Override
@@ -150,11 +143,6 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	@Override
 	public final EngineClassLoader getClassLoader() {
 		return classLoader;
-	}
-
-	@Override
-	public final ConstructorCallTransactionResponse getResponse() {
-		return response;
 	}
 
 	/**

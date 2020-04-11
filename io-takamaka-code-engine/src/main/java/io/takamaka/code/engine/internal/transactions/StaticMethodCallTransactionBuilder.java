@@ -39,11 +39,6 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 	private Object[] deserializedActuals;
 
 	/**
-	 * The response computed at the end of the transaction.
-	 */
-	private final MethodCallTransactionResponse response;
-
-	/**
 	 * Creates the builder of a transaction that executes a static method of Takamaka code.
 	 * 
 	 * @param request the request of the transaction
@@ -67,8 +62,6 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-
-		this.response = build();
 	}
 
 	@Override
@@ -148,11 +141,6 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 	@Override
 	public final EngineClassLoader getClassLoader() {
 		return classLoader;
-	}
-
-	@Override
-	public final MethodCallTransactionResponse getResponse() {
-		return response;
 	}
 
 	@Override
