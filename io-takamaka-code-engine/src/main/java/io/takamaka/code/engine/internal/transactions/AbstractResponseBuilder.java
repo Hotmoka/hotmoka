@@ -3,6 +3,7 @@ package io.takamaka.code.engine.internal.transactions;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -12,7 +13,10 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.OutOfGasError;
+import io.takamaka.code.engine.ResponseBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
@@ -24,7 +28,7 @@ import io.takamaka.code.engine.internal.UpdatesExtractor;
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
  */
-public abstract class AbstractResponseBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements ResponseBuilder<Request, Response> {
+public abstract class AbstractResponseBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements ResponseBuilder<Response> {
 
 	/**
 	 * The HotMoka node that is creating the response.
@@ -102,19 +106,70 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 	}
 
-	@Override
+	/**
+	 * Yields the class loader used for the transaction being created.
+	 * 
+	 * @return the class loader
+	 */
+	public abstract EngineClassLoader getClassLoader();
+
+	/**
+	 * Decreases the available gas by the given amount, for CPU execution.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	public abstract void chargeGasForCPU(BigInteger amount);
+
+	/**
+	 * Decreases the available gas by the given amount, for RAM execution.
+	 * 
+	 * @param amount the amount of gas to consume
+	 */
+	public abstract void chargeGasForRAM(BigInteger amount);
+
+	/**
+	 * Runs a given piece of code with a subset of the available gas.
+	 * It first charges the given amount of gas. Then runs the code
+	 * with the charged gas only. At its end, the remaining gas is added
+	 * to the available gas to continue the computation.
+	 * 
+	 * @param amount the amount of gas provided to the code
+	 * @param what the code to run
+	 * @return the result of the execution of the code
+	 * @throws OutOfGasError if there is not enough gas
+	 * @throws Exception if the code runs into this exception
+	 */
+	public abstract <T> T withGas(BigInteger amount, Callable<T> what) throws Exception;
+
+	/**
+	 * Yields the next storage reference for the current transaction.
+	 * This can be used to associate a storage reference to each new
+	 * storage object created during a transaction.
+	 * 
+	 * @return the next storage reference
+	 */
 	public final StorageReference getNextStorageReference() {
 		BigInteger result = nextProgressive;
 		nextProgressive = nextProgressive.add(BigInteger.ONE);
 		return StorageReference.mk(current, result);
 	}
 
-	@Override
+	/**
+	 * Yields the UTC time when the transaction is being run.
+	 * This might be for instance the time of creation of a block where the transaction
+	 * will be stored, but the detail is left to the implementation.
+	 * 
+	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+	 */
 	public final long now() {
 		return now;
 	}
 
-	@Override
+	/**
+	 * Takes note of the given event, emitted during this execution.
+	 * 
+	 * @param event the event
+	 */
 	public final void event(Object event) {
 		if (event == null)
 			throw new NullPointerException("an event cannot be null");
@@ -122,12 +177,30 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		events.add(event);
 	}
 
-	@Override
+	/**
+	 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
+	 * The field is {@code final}. Conceptually, this method looks for the value of the field
+	 * in the transaction where the reference was created.
+	 * 
+	 * @param reference the storage reference
+	 * @param field the field, of lazy type
+	 * @return the value of the field
+	 * @throws Exception if the look up fails
+	 */
 	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
 		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
 	}
 
-	@Override
+	/**
+	 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
+	 * The field is {@code final}. Conceptually, this method looks for the value of the field
+	 * in the transaction where the reference was created.
+	 * 
+	 * @param reference the storage reference
+	 * @param field the field, of lazy type
+	 * @return the value of the field
+	 * @throws Exception if the look up fails
+	 */
 	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
 		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
 	}
@@ -193,7 +266,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * 
 		 * @return the builder
 		 */
-		public final ResponseBuilder<?,?> getBuilder() {
+		public final AbstractResponseBuilder<?,?> getBuilder() {
 			return AbstractResponseBuilder.this;
 		}
 	}
