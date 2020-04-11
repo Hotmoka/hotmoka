@@ -32,6 +32,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 
 		try {
 			this.classLoader = new EngineClassLoader(request.classpath, this);
+
 			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
 				throw new IllegalArgumentException("the gamete must be initialized with a non-negative amount of coins");
 		}
@@ -46,9 +47,10 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
 			GameteThread thread = new GameteThread();
 			thread.go();
-			classLoader.setBalanceOf(thread.gamete, request.initialAmount);
-			classLoader.setRedBalanceOf(thread.gamete, request.redInitialAmount);
-			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(thread.gamete)), classLoader.getStorageReferenceOf(thread.gamete));
+			Object gamete = thread.gamete;
+			classLoader.setBalanceOf(gamete, request.initialAmount);
+			classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
+			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);

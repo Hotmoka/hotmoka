@@ -117,7 +117,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	@Override
 	public final void event(Object event) {
 		if (event == null)
-			throw new IllegalArgumentException("an event cannot be null");
+			throw new NullPointerException("an event cannot be null");
 
 		events.add(event);
 	}

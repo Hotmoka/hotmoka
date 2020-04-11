@@ -47,8 +47,9 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 			GameteThread thread = new GameteThread();
 			thread.go();
-			classLoader.setBalanceOf(thread.gamete, request.initialAmount);
-			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(thread.gamete)), classLoader.getStorageReferenceOf(thread.gamete));
+			Object gamete = thread.gamete;
+			classLoader.setBalanceOf(gamete, request.initialAmount);
+			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);

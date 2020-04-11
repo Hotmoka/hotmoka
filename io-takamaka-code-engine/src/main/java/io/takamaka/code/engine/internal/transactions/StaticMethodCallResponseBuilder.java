@@ -53,8 +53,6 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 			this.classLoader = new EngineClassLoader(request.classpath, this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeExternallyOwnedAccount();
-			callerAndRequestMustAgreeOnNonce();
-			callerMustBeAbleToPayForAllGas();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorageOfRequest();
 			remainingGasMustBeEnoughForStoringFailedResponse();
@@ -67,6 +65,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	@Override
 	public final MethodCallTransactionResponse build() throws TransactionRejectedException {
 		try {
+			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
 

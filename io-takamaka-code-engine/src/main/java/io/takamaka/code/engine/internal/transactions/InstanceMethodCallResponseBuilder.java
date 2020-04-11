@@ -62,14 +62,9 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			this.classLoader = new EngineClassLoader(request.classpath, this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeExternallyOwnedAccount();
-			callerAndRequestMustAgreeOnNonce();
-			callerMustBeAbleToPayForAllGas();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorageOfRequest();
 			remainingGasMustBeEnoughForStoringFailedResponse();
-
-			sellAllGasToCaller();
-			increaseNonceOfCaller();
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -79,6 +74,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	@Override
 	public MethodCallTransactionResponse build() throws TransactionRejectedException {
 		try {
+			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
 

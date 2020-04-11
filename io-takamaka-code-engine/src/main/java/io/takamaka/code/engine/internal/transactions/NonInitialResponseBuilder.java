@@ -17,6 +17,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
  * The creator of the response for a non-initial transaction. Non-initial transactions consume gas.
@@ -63,7 +64,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	/**
 	 * The cost model of the node for which the transaction is being built.
 	 */
-	public final GasCostModel gasCostModel;
+	protected final GasCostModel gasCostModel;
 
 	/**
 	 * Creates a the builder of the response.
@@ -204,19 +205,16 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * 
 	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas
 	 */
-	protected final void callerMustBeAbleToPayForAllGas() {
-		Object eoa = getDeserializedCaller();
-		if (getClassLoader().getBalanceOf(eoa).subtract(costOf(request.gasLimit)).signum() < 0)
-			throw new IllegalStateException("caller has not enough funds to buy " + request.gasLimit + " units of gas");
-	}
-
-	/**
-	 * Sells to the caller of the transaction all gas promised for the transaction.
-	 */
 	protected final void sellAllGasToCaller() {
 		Object eoa = getDeserializedCaller();
-		BigInteger result = getClassLoader().getBalanceOf(eoa).subtract(costOf(request.gasLimit));
-		getClassLoader().setBalanceOf(eoa, result);
+		EngineClassLoader classLoader = getClassLoader();
+		BigInteger balance = classLoader.getBalanceOf(eoa);
+		BigInteger cost = costOf(request.gasLimit);
+
+		if (balance.subtract(cost).signum() < 0)
+			throw new IllegalStateException("caller has not enough funds to buy " + request.gasLimit + " units of gas");
+
+		classLoader.setBalanceOf(eoa, balance.subtract(cost));
 	}
 
 	/**
