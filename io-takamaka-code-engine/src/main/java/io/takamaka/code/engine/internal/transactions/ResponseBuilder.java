@@ -12,12 +12,12 @@ import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
- * A creator of a transaction. It executes a request and builds the corresponding response.
+ * The creator of a response from a request. It executes transaction from the request that builds the corresponding response.
  * 
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
  */
-public interface TransactionBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> {
+public interface ResponseBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> {
 
 	/**
 	 * Builds the response of the transaction.

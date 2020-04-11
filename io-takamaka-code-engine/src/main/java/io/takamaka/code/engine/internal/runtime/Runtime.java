@@ -9,8 +9,8 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.internal.EngineClassLoader;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
-import io.takamaka.code.engine.internal.transactions.TransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.ResponseBuilder;
 import io.takamaka.code.whitelisting.WhiteListingPredicate;
 
 /**
@@ -30,8 +30,8 @@ public abstract class Runtime {
 	 * 
 	 * @return the transaction builder that is using the current thread
 	 */
-	private static TransactionBuilder<?,?> getBuilder() {
-		return ((AbstractTransactionBuilder<?,?>.TakamakaThread) Thread.currentThread()).getBuilder();
+	private static ResponseBuilder<?,?> getBuilder() {
+		return ((AbstractResponseBuilder<?,?>.TakamakaThread) Thread.currentThread()).getBuilder();
 	}
 
 	/**
@@ -46,7 +46,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		TransactionBuilder<?,?> builder = getBuilder();
+		ResponseBuilder<?,?> builder = getBuilder();
 		return builder.deserializeLastLazyUpdateFor(builder.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
@@ -62,7 +62,7 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		TransactionBuilder<?,?> builder = getBuilder();
+		ResponseBuilder<?,?> builder = getBuilder();
 		return builder.deserializeLastLazyUpdateForFinal(builder.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 

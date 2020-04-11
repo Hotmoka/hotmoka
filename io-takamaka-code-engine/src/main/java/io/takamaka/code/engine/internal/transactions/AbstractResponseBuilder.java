@@ -19,15 +19,15 @@ import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
 
 /**
- * A generic implementation of a creator of a transaction.
+ * A generic implementation of the creator of a response.
  *
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
  */
-public abstract class AbstractTransactionBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements TransactionBuilder<Request, Response> {
+public abstract class AbstractResponseBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements ResponseBuilder<Request, Response> {
 
 	/**
-	 * The HotMoka node that is creating the transaction.
+	 * The HotMoka node that is creating the response.
 	 */
 	public final Node node;
 
@@ -83,14 +83,14 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	private BigInteger nextProgressive = BigInteger.ZERO;
 
 	/**
-	 * Creates a transaction builder.
+	 * Creates the builder of the response.
 	 * 
-	 * @param request the request of the transaction
-	 * @param current the reference that must be used to refer to the created transaction
-	 * @param node the node that is creating the transaction
+	 * @param request the request of the response
+	 * @param current the reference that must be used to refer to the transaction
+	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		try {
 			this.request = request;
 			this.node = node;
@@ -162,7 +162,7 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 		/**
 		 * The exception that occurred during the transaction, if any.
 		 */
-		protected Throwable exception;
+		private Throwable exception;
 
 		@Override
 		public final void run() {
@@ -174,6 +174,18 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 			}
 		}
 
+		/**
+		 * Starts the thread, waits for its conclusion and throws its exception, if any.
+		 * 
+		 * @throws Throwable the exception generated during the execution of {@linkplain #body()}, if any
+		 */
+		public final void go() throws Throwable {
+			start();
+			join();
+			if (exception != null)
+				throw exception;
+		}
+
 		protected abstract void body() throws Exception;
 
 		/**
@@ -181,8 +193,8 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 		 * 
 		 * @return the builder
 		 */
-		public final TransactionBuilder<?,?> getBuilder() {
-			return AbstractTransactionBuilder.this;
+		public final ResponseBuilder<?,?> getBuilder() {
+			return AbstractResponseBuilder.this;
 		}
 	}
 }

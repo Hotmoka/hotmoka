@@ -10,9 +10,9 @@ import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
- * The creator of a transaction that creates a red/green gamete.
+ * The creator of a response for a transaction that creates a red/green gamete.
  */
-public class RedGreenGameteCreationTransactionBuilder extends InitialTransactionBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> {
+public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
 	/**
 	 * The class loader of the transaction.
@@ -20,14 +20,14 @@ public class RedGreenGameteCreationTransactionBuilder extends InitialTransaction
 	private final EngineClassLoader classLoader;
 
 	/**
-	 * Creates the builder of a transaction that creates a red/green gamete.
+	 * Creates the builder of a response.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
-	 * @throws TransactionRejectedException if the transaction cannot be created
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public RedGreenGameteCreationTransactionBuilder(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
+	public RedGreenGameteCreationResponseBuilder(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 
 		try {
@@ -45,11 +45,7 @@ public class RedGreenGameteCreationTransactionBuilder extends InitialTransaction
 		try {
 			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
 			GameteThread thread = new GameteThread();
-			thread.start();
-			thread.join();
-			if (thread.exception != null)
-				throw thread.exception;
-
+			thread.go();
 			classLoader.setBalanceOf(thread.gamete, request.initialAmount);
 			classLoader.setRedBalanceOf(thread.gamete, request.redInitialAmount);
 			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(thread.gamete)), classLoader.getStorageReferenceOf(thread.gamete));

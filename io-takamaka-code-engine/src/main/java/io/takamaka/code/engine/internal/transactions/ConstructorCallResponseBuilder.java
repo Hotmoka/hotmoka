@@ -21,9 +21,9 @@ import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
- * The creator of a transaction that executes a constructor of Takamaka code.
+ * The creator of a response for a transaction that executes a constructor of Takamaka code.
  */
-public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
+public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
 
 	/**
 	 * The class loader used for the transaction.
@@ -41,14 +41,14 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 	private Object[] deserializedActuals;
 
 	/**
-	 * Builds the creator of a transaction that executes a constructor of Takamaka code.
+	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public ConstructorCallTransactionBuilder(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
+	public ConstructorCallResponseBuilder(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 
 		try {
@@ -76,10 +76,7 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 				// we perform deserialization in a thread, since enums passed as parameters
 				// would trigger the execution of their static initializer, which will charge gas
 				DeserializerThread deserializerThread = new DeserializerThread(request);
-				deserializerThread.start();
-				deserializerThread.join();
-				if (deserializerThread.exception != null)
-					throw deserializerThread.exception;
+				deserializerThread.go();
 				this.deserializedActuals = deserializerThread.deserializedActuals;
 
 				formalsAndActualsMustMatch();
@@ -107,28 +104,25 @@ public class ConstructorCallTransactionBuilder extends CodeCallTransactionBuilde
 					callerMustBeRedGreenExternallyOwnedAccount();
 
 				ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
-				thread.start();
-				thread.join();
-				if (thread.exception != null)
-					if (thread.exception instanceof InvocationTargetException) {
-						Throwable cause = thread.exception.getCause();
-						if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
-							chargeGasForStorage(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-							payBackAllRemainingGasToCaller();
-							return new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
-						}
-						else
-							throw cause;
+				try {
+					thread.go();
+				}
+				catch (InvocationTargetException e) {
+					Throwable cause = e.getCause();
+					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
+						chargeGasForStorage(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						payBackAllRemainingGasToCaller();
+						return new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());						
 					}
 					else
-						throw thread.exception;
-				else {
-					chargeGasForStorage(new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					payBackAllRemainingGasToCaller();
-					return new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						throw cause;
 				}
+
+				chargeGasForStorage(new ConstructorCallTransactionSuccessfulResponse
+					((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				payBackAllRemainingGasToCaller();
+				return new ConstructorCallTransactionSuccessfulResponse
+					((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller

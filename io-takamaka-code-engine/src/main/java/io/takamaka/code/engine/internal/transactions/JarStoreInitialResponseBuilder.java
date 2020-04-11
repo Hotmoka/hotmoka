@@ -10,9 +10,9 @@ import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
 
 /**
- * Builds the creator of a transaction that installs a jar in the node, during its initialization.
+ * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.
  */
-public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
+public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 
 	/**
 	 * The class loader of the transaction.
@@ -25,14 +25,14 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 	private final byte[] jar;
 
 	/**
-	 * Creates the builder of a transaction that installs a jar in the node, during its initialization.
+	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreInitialTransactionBuilder(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
+	public JarStoreInitialResponseBuilder(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 
 		try {

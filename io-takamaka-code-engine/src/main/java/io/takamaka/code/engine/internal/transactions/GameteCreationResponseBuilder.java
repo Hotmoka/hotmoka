@@ -10,9 +10,9 @@ import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
- * The creator of a transaction that creates a gamete.
+ * The creator of a response for a transaction that creates a gamete.
  */
-public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
+public class GameteCreationResponseBuilder extends InitialResponseBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
 	/**
 	 * The class loader of the transaction.
@@ -20,14 +20,14 @@ public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<
 	private final EngineClassLoader classLoader;
 
 	/**
-	 * Creates the builder of a transaction that creates a gamete.
+	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
-	 * @throws TransactionRejectedException if the transaction cannot be created
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public GameteCreationTransactionBuilder(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
+	public GameteCreationResponseBuilder(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 
 		try {
@@ -46,11 +46,7 @@ public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<
 		try {
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 			GameteThread thread = new GameteThread();
-			thread.start();
-			thread.join();
-			if (thread.exception != null)
-				throw thread.exception;
-
+			thread.go();
 			classLoader.setBalanceOf(thread.gamete, request.initialAmount);
 			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(thread.gamete)), classLoader.getStorageReferenceOf(thread.gamete));
 		}

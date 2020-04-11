@@ -35,7 +35,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.DeserializationError;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.verification.IncompleteClasspathError;
 
@@ -47,7 +47,7 @@ public class Deserializer {
 	/**
 	 * The builder of the transaction for which deserialization is performed.
 	 */
-	private final AbstractTransactionBuilder<?,?> builder;
+	private final AbstractResponseBuilder<?,?> builder;
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -105,7 +105,7 @@ public class Deserializer {
 	 * 
 	 * @param builder the builder of the transaction for which deserialization is performed
 	 */
-	public Deserializer(AbstractTransactionBuilder<?,?> builder) {
+	public Deserializer(AbstractResponseBuilder<?,?> builder) {
 		this.builder = builder;
 	}
 

@@ -67,7 +67,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.GasCostModel;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**
  * An object that knows about the size of objects when stored in the node's store.
@@ -77,14 +77,14 @@ public class SizeCalculator {
 	/**
 	 * The builder of the transaction for which this calculator works.
 	 */
-	private final AbstractTransactionBuilder<?,?> builder;
+	private final AbstractResponseBuilder<?,?> builder;
 
 	/**
 	 * Builds the size calculator.
 	 * 
 	 * @param builder the builder of the transaction for which this calculator works
 	 */
-	public SizeCalculator(AbstractTransactionBuilder<?,?> builder) {
+	public SizeCalculator(AbstractResponseBuilder<?,?> builder) {
 		this.builder = builder;
 	}
 

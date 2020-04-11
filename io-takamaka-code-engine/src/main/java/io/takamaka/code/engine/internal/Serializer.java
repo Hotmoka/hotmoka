@@ -16,7 +16,7 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**
  * An object that translates RAM values into storage values.
@@ -26,14 +26,14 @@ public class Serializer {
 	/**
 	 * The builder of the transaction for which serialization is performed.
 	 */
-	private final AbstractTransactionBuilder<?,?> builder;
+	private final AbstractResponseBuilder<?,?> builder;
 
 	/**
 	 * Builds an object that translates RAM values into storage values.
 	 * 
 	 * @param builder the builder of the transaction for which serialization is performed
 	 */
-	public Serializer(AbstractTransactionBuilder<?,?> builder) {
+	public Serializer(AbstractResponseBuilder<?,?> builder) {
 		this.builder = builder;
 	}
 

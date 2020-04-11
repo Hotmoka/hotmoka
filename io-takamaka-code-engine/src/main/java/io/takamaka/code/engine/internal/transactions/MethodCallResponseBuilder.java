@@ -19,22 +19,22 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 
 /**
- * The creator of a transaction that executes a method of Takamaka code.
+ * The creator of a response for a transaction that executes a method of Takamaka code.
  * 
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
  */
-public abstract class MethodCallTransactionBuilder<Request extends MethodCallTransactionRequest> extends CodeCallTransactionBuilder<Request, MethodCallTransactionResponse> {
+public abstract class MethodCallResponseBuilder<Request extends MethodCallTransactionRequest> extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse> {
 
 	/**
-	 * Builds the creator of a transaction that executes a method of Takamaka code.
+	 * Builds the creator of the response.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected MethodCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
+	protected MethodCallResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 	}
 

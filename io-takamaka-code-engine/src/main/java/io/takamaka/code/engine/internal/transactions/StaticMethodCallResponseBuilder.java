@@ -19,9 +19,9 @@ import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
- * Builds the creator of a transaction that executes a static method of Takamaka code.
+ * The builder of the response for a transaction that executes a static method of Takamaka code.
  */
-public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBuilder<StaticMethodCallTransactionRequest> {
+public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<StaticMethodCallTransactionRequest> {
 
 	/**
 	 * The class loader of the transaction.
@@ -39,14 +39,14 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 	private Object[] deserializedActuals;
 
 	/**
-	 * Creates the builder of a transaction that executes a static method of Takamaka code.
+	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public StaticMethodCallTransactionBuilder(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
+	public StaticMethodCallResponseBuilder(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 
 		try {
@@ -74,10 +74,7 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 				// we perform deserialization in a thread, since enums passed as parameters
 				// would trigger the execution of their static initializer, which will charge gas
 				DeserializerThread deserializerThread = new DeserializerThread(request);
-				deserializerThread.start();
-				deserializerThread.join();
-				if (deserializerThread.exception != null)
-					throw deserializerThread.exception;
+				deserializerThread.go();
 				this.deserializedActuals = deserializerThread.deserializedActuals;
 
 				formalsAndActualsMustMatch();
@@ -86,35 +83,32 @@ public class StaticMethodCallTransactionBuilder extends MethodCallTransactionBui
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
-				thread.start();
-				thread.join();
-				if (thread.exception != null)
-					if (thread.exception instanceof InvocationTargetException) {
-						Throwable cause = thread.exception.getCause();
-						if (isCheckedForThrowsExceptions(cause, methodJVM)) {
-							chargeGasForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-							payBackAllRemainingGasToCaller();
-							return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-						}
-						else
-							throw cause;
+				try {
+					thread.go();
+				}
+				catch (InvocationTargetException e) {
+					Throwable cause = e.getCause();
+					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
+						chargeGasForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						payBackAllRemainingGasToCaller();
+						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
-						throw thread.exception;
-				else {
-					if (hasAnnotation(methodJVM, Constants.VIEW_NAME) && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
-						throw new SideEffectsInViewMethodException(request.method);
+						throw cause;
+				}
 
-					if (methodJVM.getReturnType() == void.class) {
-						chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						payBackAllRemainingGasToCaller();
-						return new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					}
-					else {
-						chargeGasForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-						payBackAllRemainingGasToCaller();
-						return new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					}
+				if (hasAnnotation(methodJVM, Constants.VIEW_NAME) && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
+					throw new SideEffectsInViewMethodException(request.method);
+
+				if (methodJVM.getReturnType() == void.class) {
+					chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					payBackAllRemainingGasToCaller();
+					return new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				}
+				else {
+					chargeGasForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					payBackAllRemainingGasToCaller();
+					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {

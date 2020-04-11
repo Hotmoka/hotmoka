@@ -27,22 +27,22 @@ import io.takamaka.code.whitelisting.WhiteListingPredicate;
 import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 
 /**
- * The creator of a non-initial transaction that executes a method or constructor of Takamaka code.
+ * The creator of a response for a non-initial transaction that executes a method or constructor of Takamaka code.
  * 
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
  */
-public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialTransactionBuilder<Request, Response> {
+public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialResponseBuilder<Request, Response> {
 
 	/**
-	 * Creates the builder of a non-initial transaction that executes code.
+	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
 	 * @param current the reference that must be used to refer to the created transaction
-	 * @param node the node that is creating the transaction
+	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected CodeCallTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
+	protected CodeCallResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 	}
 
@@ -62,7 +62,7 @@ public abstract class CodeCallTransactionBuilder<Request extends CodeExecutionTr
 			.map(annotationType -> annotationType.getAnnotation(WhiteListingProofObligation.class))
 			.filter(Objects::nonNull)
 			.map(WhiteListingProofObligation::check)
-			.map(CodeCallTransactionBuilder::createWhiteListingPredicateFrom)
+			.map(CodeCallResponseBuilder::createWhiteListingPredicateFrom)
 			.filter(predicate -> !predicate.test(value, getClassLoader().getWhiteListingWizard()))
 			.map(predicate -> predicate.messageIfFailed(methodName))
 			.map(NonWhiteListedCallException::new)

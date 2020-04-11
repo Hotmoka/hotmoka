@@ -15,7 +15,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -29,7 +29,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	/**
 	 * The builder of the transaction for which deserialization is performed.
 	 */
-	private final AbstractTransactionBuilder<?,?> builder;
+	private final AbstractResponseBuilder<?,?> builder;
 
 	/**
 	 * The parent of this class loader;
@@ -108,7 +108,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param builder the builder of the transaction for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, AbstractTransactionBuilder<?,?> builder) throws Exception {
+	public EngineClassLoader(Classpath classpath, AbstractResponseBuilder<?,?> builder) throws Exception {
 		this.builder = builder;
 		this.parent = mkTakamakaClassLoader(Stream.of(classpath), null, null);
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
@@ -149,7 +149,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param builder the builder of the transaction for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, TransactionReference transaction, Stream<Classpath> dependencies, AbstractTransactionBuilder<?,?> builder) throws Exception {
+	public EngineClassLoader(byte[] jar, TransactionReference transaction, Stream<Classpath> dependencies, AbstractResponseBuilder<?,?> builder) throws Exception {
 		this.builder = builder;
 		this.parent = mkTakamakaClassLoader(dependencies, jar, "takamaka@" + transaction.toString() + ".jar");
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();

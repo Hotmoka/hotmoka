@@ -10,19 +10,19 @@ import io.hotmoka.beans.responses.InitialTransactionResponse;
 import io.hotmoka.nodes.Node;
 
 /**
- * The creator of an initial transaction. Initial transactions do not consume gas.
+ * The creator of the response for an initial transaction. Initial transactions do not consume gas.
  */
-public abstract class InitialTransactionBuilder<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse> extends AbstractTransactionBuilder<Request, Response> {
+public abstract class InitialResponseBuilder<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
 
 	/**
-	 * Creates an initial transaction builder.
+	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used to refer to the created transaction
-	 * @param node the node that is creating the transaction
+	 * @param current the reference that must be used to refer to the transaction
+	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
+	protected InitialResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 	}
 

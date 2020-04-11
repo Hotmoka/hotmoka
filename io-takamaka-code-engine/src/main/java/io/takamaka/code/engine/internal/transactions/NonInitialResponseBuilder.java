@@ -19,9 +19,9 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
 
 /**
- * The creator of a non-initial transaction. Non-initial transactions consume gas.
+ * The creator of the response for a non-initial transaction. Non-initial transactions consume gas.
  */
-public abstract class NonInitialTransactionBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractTransactionBuilder<Request, Response> {
+public abstract class NonInitialResponseBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
 
 	/**
 	 * The gas initially provided for the transaction.
@@ -66,14 +66,14 @@ public abstract class NonInitialTransactionBuilder<Request extends NonInitialTra
 	public final GasCostModel gasCostModel;
 
 	/**
-	 * Creates a non-initial transaction builder.
+	 * Creates a the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used to refer to the created transaction
-	 * @param node the node that is creating the transaction
-	 * @throws TransactionRejectedException if the creator cannot be built
+	 * @param current the reference that must be used to refer to the transaction
+	 * @param node the node that is creating the response
+	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialTransactionBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
+	protected NonInitialResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
 		super(request, current, node);
 
 		try {

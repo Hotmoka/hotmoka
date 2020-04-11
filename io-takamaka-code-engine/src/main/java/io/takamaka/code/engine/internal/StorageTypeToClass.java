@@ -3,7 +3,7 @@ package io.takamaka.code.engine.internal;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder;
+import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 
 /**
  * An object that translates storage types into their run-time class tag.
@@ -13,14 +13,14 @@ public class StorageTypeToClass {
 	/**
 	 * The builder of the transaction for which the translation is performed.
 	 */
-	private final AbstractTransactionBuilder<?,?> builder;
+	private final AbstractResponseBuilder<?,?> builder;
 
 	/**
 	 * Builds an object that translates storage types into their run-time class tag.
 	 * 
 	 * @param builder the builder of the transaction for which the translation is performed
 	 */
-	public StorageTypeToClass(AbstractTransactionBuilder<?,?> builder) {
+	public StorageTypeToClass(AbstractResponseBuilder<?,?> builder) {
 		this.builder = builder;
 	}
 
