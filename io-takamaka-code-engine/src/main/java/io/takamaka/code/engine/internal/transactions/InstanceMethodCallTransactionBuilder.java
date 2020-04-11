@@ -28,11 +28,6 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
 public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionBuilder<InstanceMethodCallTransactionRequest> {
 
 	/**
-	 * The deserialized receiver the call.
-	 */
-	private final Object deserializedReceiver;
-
-	/**
 	 * The class loader of the transaction.
 	 */
 	private final EngineClassLoader classLoader;
@@ -43,9 +38,14 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 	private final Object deserializedCaller;
 
 	/**
+	 * The deserialized receiver the call.
+	 */
+	private Object deserializedReceiver;
+
+	/**
 	 * The deserialized actual arguments of the call.
 	 */
-	private final Object[] deserializedActuals;
+	private Object[] deserializedActuals;
 
 	/**
 	 * The response computed at the end of the transaction.
@@ -75,21 +75,32 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
 
-			// we perform deserialization in a thread, since enums passed as parameters
-			// would trigger the execution of their static initializer, which will charge gas
-			DeserializerThread deserializerThread = new DeserializerThread(request);
-			deserializerThread.start();
-			deserializerThread.join();
-			if (deserializerThread.exception != null)
-				throw deserializerThread.exception;
+		this.response = build();
+	}
 
-			this.deserializedReceiver = deserializerThread.deserializedReceiver;
-			this.deserializedActuals = deserializerThread.deserializedActuals;
-
-			MethodCallTransactionResponse response;
+	@Override
+	public MethodCallTransactionResponse build() throws TransactionRejectedException {
+		try {
+			sellAllGasToCaller();
+			increaseNonceOfCaller();
 
 			try {
+				// we perform deserialization in a thread, since enums passed as parameters
+				// would trigger the execution of their static initializer, which will charge gas
+				DeserializerThread deserializerThread = new DeserializerThread(request);
+				deserializerThread.start();
+				deserializerThread.join();
+				if (deserializerThread.exception != null)
+					throw deserializerThread.exception;
+
+				this.deserializedReceiver = deserializerThread.deserializedReceiver;
+				this.deserializedActuals = deserializerThread.deserializedActuals;
+
 				formalsAndActualsMustMatch();
 
 				Object[] deserializedActuals;
@@ -126,7 +137,7 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 						if (isCheckedForThrowsExceptions(cause, methodJVM)) {
 							chargeGasForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 							payBackAllRemainingGasToCaller();
-							response = new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+							return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 						}
 						else
 							throw cause;
@@ -140,21 +151,19 @@ public class InstanceMethodCallTransactionBuilder extends MethodCallTransactionB
 					if (methodJVM.getReturnType() == void.class) {
 						chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						payBackAllRemainingGasToCaller();
-						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						return new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else {
 						chargeGasForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						payBackAllRemainingGasToCaller();
-						response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						return new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 				}
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				response = new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
-
-			this.response = response;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);

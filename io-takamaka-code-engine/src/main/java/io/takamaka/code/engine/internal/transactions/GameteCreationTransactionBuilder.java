@@ -40,7 +40,17 @@ public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<
 
 			if (request.initialAmount.signum() < 0)
 				throw new IllegalArgumentException("the gamete must be initialized with a non-negative amount of coins");
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
 
+		this.response = build();
+	}
+
+	@Override
+	public GameteCreationTransactionResponse build() throws TransactionRejectedException {
+		try {
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
 			GameteThread thread = new GameteThread();
 			thread.start();
@@ -49,7 +59,7 @@ public class GameteCreationTransactionBuilder extends InitialTransactionBuilder<
 				throw thread.exception;
 
 			classLoader.setBalanceOf(thread.gamete, request.initialAmount);
-			this.response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(thread.gamete)), classLoader.getStorageReferenceOf(thread.gamete));
+			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(thread.gamete)), classLoader.getStorageReferenceOf(thread.gamete));
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);

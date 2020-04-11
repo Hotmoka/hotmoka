@@ -4,7 +4,6 @@
 package io.takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 
@@ -49,34 +48,34 @@ class WTSC2020 extends TakamakaTest {
 	@Test @DisplayName("two investors do not get their investment back yet")
 	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		addInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 
 		// no money back yet
-		assertTrue(balance0.value.compareTo(BigInteger.valueOf(19980000)) <= 0);
+		assertEquals(balance0.value, BigInteger.valueOf(19_990_000));
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
 	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		postInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		addInstanceMethodCallTransaction(account(2), _20_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(account(2), _20_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 
 		// the money is back!
-		assertTrue(balance0.value.compareTo(BigInteger.valueOf(19990000)) > 0);
+		assertEquals(balance0.value, BigInteger.valueOf(20_006_666));
 	}
 
 	@Test @DisplayName("three investors then check most frequent investor class")

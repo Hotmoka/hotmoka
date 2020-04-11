@@ -20,6 +20,11 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 	private final EngineClassLoader classLoader;
 
 	/**
+	 * The jar to install, as a byte array.
+	 */
+	private final byte[] jar;
+
+	/**
 	 * The response computed at the end of the transaction.
 	 */
 	private final JarStoreInitialTransactionResponse response;
@@ -36,10 +41,21 @@ public class JarStoreInitialTransactionBuilder extends InitialTransactionBuilder
 		super(request, current, node);
 
 		try {
-			byte[] jar = request.getJar();
+			this.jar = request.getJar();
 			this.classLoader = new EngineClassLoader(jar, current, request.getDependencies(), this);
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
+
+		this.response = build();
+	}
+
+	@Override
+	public JarStoreInitialTransactionResponse build() throws TransactionRejectedException {
+		try {
 			InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(jar, classLoader, true), node.getGasCostModel());
-			this.response = new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
+			return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);

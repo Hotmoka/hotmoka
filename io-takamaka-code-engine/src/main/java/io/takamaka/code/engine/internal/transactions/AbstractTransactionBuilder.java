@@ -65,7 +65,7 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 	/**
 	 * The reference that must be used to refer to the created transaction.
 	 */
-	private final TransactionReference current;
+	public final TransactionReference current;
 
 	/**
 	 * The events accumulated during the transaction.
@@ -101,6 +101,8 @@ public abstract class AbstractTransactionBuilder<Request extends TransactionRequ
 			throw wrapAsTransactionRejectedException(t);
 		}
 	}
+
+	public abstract Response build() throws TransactionRejectedException;
 
 	@Override
 	public final StorageReference getNextStorageReference() {

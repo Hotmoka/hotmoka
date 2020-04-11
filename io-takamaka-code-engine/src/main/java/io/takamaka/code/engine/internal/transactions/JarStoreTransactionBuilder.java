@@ -29,6 +29,11 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 	private final Object deserializedCaller;
 
 	/**
+	 * The jar to install, as a byte array.
+	 */
+	private final byte[] jar;
+
+	/**
 	 * The response computed at the end of the transaction.
 	 */
 	private final JarStoreTransactionResponse response;
@@ -46,7 +51,7 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 		super(request, transaction, node);
 
 		try {
-			byte[] jar = request.getJar();
+			this.jar = request.getJar();
 			this.classLoader = new EngineClassLoader(jar, transaction, request.getDependencies(), this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeExternallyOwnedAccount();
@@ -57,25 +62,32 @@ public class JarStoreTransactionBuilder extends NonInitialTransactionBuilder<Jar
 			chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jar.length));
 			chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jar.length));
 			remainingGasMustBeEnoughForStoringFailedResponse();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
 
+		this.response = build();
+	}
+
+	@Override
+	public final JarStoreTransactionResponse build() throws TransactionRejectedException {
+		try {
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
-			
-			JarStoreTransactionResponse response;
+
 			try {
 				VerifiedJar verifiedJar = VerifiedJar.of(jar, classLoader, false);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
 				chargeGasForStorage(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				payBackAllRemainingGasToCaller();
-				response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas
-				response = new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
-
-			this.response = response;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);

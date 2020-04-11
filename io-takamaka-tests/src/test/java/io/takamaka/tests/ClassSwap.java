@@ -93,7 +93,7 @@ class ClassSwap extends TakamakaTest {
 		StorageReference c13 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 
 		// the following call should fail since c13 was created from another jar
-		throwsTransactionRejectedWithCause(DeserializationError.class, () ->
+		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, GET, c13)
 		);
 	}
