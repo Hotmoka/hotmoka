@@ -25,7 +25,7 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
-import io.takamaka.code.engine.Transaction;
+import io.takamaka.code.engine.ResponseBuilder;
 import types.ABCIApplicationGrpc;
 import types.Types.Header;
 import types.Types.RequestBeginBlock;
@@ -163,19 +163,19 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
             	TransactionResponse hotmokaResponse;
 
             	if (hotmokaRequest instanceof JarStoreInitialTransactionRequest)
-            		hotmokaResponse = Transaction.mkFor((JarStoreInitialTransactionRequest) hotmokaRequest, next, node).getResponse();
+            		hotmokaResponse = ResponseBuilder.of((JarStoreInitialTransactionRequest) hotmokaRequest, next, node).build();
             	else if (hotmokaRequest instanceof RedGreenGameteCreationTransactionRequest)
-            		hotmokaResponse = Transaction.mkFor((RedGreenGameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse();
+            		hotmokaResponse = ResponseBuilder.of((RedGreenGameteCreationTransactionRequest) hotmokaRequest, next, node).build();
             	else if (hotmokaRequest instanceof GameteCreationTransactionRequest)
-            		hotmokaResponse = Transaction.mkFor((GameteCreationTransactionRequest) hotmokaRequest, next, node).getResponse();
+            		hotmokaResponse = ResponseBuilder.of((GameteCreationTransactionRequest) hotmokaRequest, next, node).build();
             	else if (hotmokaRequest instanceof JarStoreTransactionRequest)
-            		hotmokaResponse = Transaction.mkFor((JarStoreTransactionRequest) hotmokaRequest, next, node).getResponse();
+            		hotmokaResponse = ResponseBuilder.of((JarStoreTransactionRequest) hotmokaRequest, next, node).build();
             	else if (hotmokaRequest instanceof ConstructorCallTransactionRequest)
-            		hotmokaResponse = Transaction.mkFor((ConstructorCallTransactionRequest) hotmokaRequest, next, node).getResponse();
+            		hotmokaResponse = ResponseBuilder.of((ConstructorCallTransactionRequest) hotmokaRequest, next, node).build();
             	else if (hotmokaRequest instanceof InstanceMethodCallTransactionRequest)
-            		hotmokaResponse = Transaction.mkFor((InstanceMethodCallTransactionRequest) hotmokaRequest, next, node).getResponse();
+            		hotmokaResponse = ResponseBuilder.of((InstanceMethodCallTransactionRequest) hotmokaRequest, next, node).build();
             	else if (hotmokaRequest instanceof StaticMethodCallTransactionRequest)
-            		hotmokaResponse = Transaction.mkFor((StaticMethodCallTransactionRequest) hotmokaRequest, next, node).getResponse();
+            		hotmokaResponse = ResponseBuilder.of((StaticMethodCallTransactionRequest) hotmokaRequest, next, node).build();
             	else
             		throw new TransactionRejectedException("unexpected transaction request of class " + hotmokaRequest.getClass().getName());
 

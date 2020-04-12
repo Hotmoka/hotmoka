@@ -542,10 +542,7 @@ public abstract class AbstractNode implements Node {
 		try {
 			return what.call();
 		}
-		catch (TransactionRejectedException e) {
-			throw e;
-		}
-		catch (TransactionException e) {
+		catch (TransactionRejectedException | TransactionException e) {
 			throw e;
 		}
 		catch (Throwable t) {
@@ -557,13 +554,7 @@ public abstract class AbstractNode implements Node {
 		try {
 			return what.call();
 		}
-		catch (TransactionRejectedException e) {
-			throw e;
-		}
-		catch (CodeExecutionException e) {
-			throw e;
-		}
-		catch (TransactionException e) {
+		catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
 			throw e;
 		}
 		catch (Throwable t) {

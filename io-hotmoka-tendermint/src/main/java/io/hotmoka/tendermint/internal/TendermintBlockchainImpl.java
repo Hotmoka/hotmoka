@@ -51,7 +51,7 @@ import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
 import io.hotmoka.tendermint.internal.beans.TxError;
 import io.takamaka.code.engine.AbstractNode;
-import io.takamaka.code.engine.Transaction;
+import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * An implementation of a blockchain integrated over the Tendermint generic
@@ -414,13 +414,13 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	@Override
 	protected StorageValue runViewInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
 		// this is executed in the node itself, not sent to Tendermint
-		return Transaction.mkForView(request, abci.getNextTransaction(), this).getResponse().getOutcome();
+		return ResponseBuilder.ofView(request, abci.getNextTransaction(), this).build().getOutcome();
 	}
 
 	@Override
 	protected StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
 		// this is executed in the node itself, not sent to Tendermint
-		return Transaction.mkForView(request, abci.getNextTransaction(), this).getResponse().getOutcome();
+		return ResponseBuilder.ofView(request, abci.getNextTransaction(), this).build().getOutcome();
 	}
 
 	@Override
