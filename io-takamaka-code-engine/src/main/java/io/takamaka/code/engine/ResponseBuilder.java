@@ -9,6 +9,7 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
@@ -178,5 +179,33 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 */
 	static ResponseBuilder<MethodCallTransactionResponse> ofView(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
 		return new StaticViewMethodCallResponseBuilder(request, current, node);
+	}
+
+	/**
+	 * Yields the builder of a response for a request of a transaction.
+	 * It forwards the call to any of the most specified {@code of} methods.
+	 * 
+	 * @param request the request
+	 * @param current the reference that will be used for the transaction
+	 * @return the builder
+	 * @throws TransactionRejectedException if the builder cannot be created
+	 */
+	static ResponseBuilder<?> of(TransactionRequest<?> request, TransactionReference current, Node node) throws TransactionRejectedException {
+		if (request instanceof JarStoreInitialTransactionRequest)
+			return of((JarStoreInitialTransactionRequest) request, current, node);
+		else if (request instanceof RedGreenGameteCreationTransactionRequest)
+			return of((RedGreenGameteCreationTransactionRequest) request, current, node);
+    	else if (request instanceof GameteCreationTransactionRequest)
+    		return of((GameteCreationTransactionRequest) request, current, node);
+    	else if (request instanceof JarStoreTransactionRequest)
+    		return of((JarStoreTransactionRequest) request, current, node);
+    	else if (request instanceof ConstructorCallTransactionRequest)
+    		return of((ConstructorCallTransactionRequest) request, current, node);
+    	else if (request instanceof InstanceMethodCallTransactionRequest)
+    		return of((InstanceMethodCallTransactionRequest) request, current, node);
+    	else if (request instanceof StaticMethodCallTransactionRequest)
+    		return of((StaticMethodCallTransactionRequest) request, current, node);
+    	else
+    		throw new TransactionRejectedException("unexpected transaction request of class " + request.getClass().getName());
 	}
 }

@@ -46,7 +46,7 @@ class Tendermint implements AutoCloseable {
 	 * The delay of two subsequent polling attempts, while waiting for the result of a posted transaction.
 	 * This delay is then increased by 30% at each subsequent attempt.
 	 */
-	private final static int POLLING_DELAY = 100;
+	private final static int POLLING_DELAY = 10;
 
 	/**
 	 * The configuration of the blockchain.

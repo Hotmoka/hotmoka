@@ -15,13 +15,6 @@ import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -100,23 +93,23 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     public void checkTx(RequestCheckTx req, StreamObserver<ResponseCheckTx> responseObserver) {
     	//System.out.print("[checkTx");
         ByteString tx = req.getTx();
+        ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
-        Object data;
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	data = ois.readObject();
+        	TransactionRequest<?> hotmokaRequest = (TransactionRequest<?>) ois.readObject();
+        	//ResponseBuilder.of(hotmokaRequest, next, node);
+        	responseBuilder.setCode(0);
         }
-        catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+        /*catch (TransactionRejectedException e) {
+        	responseBuilder.setCode(1);
+        	responseBuilder.setInfo(e.getMessage());
+		}*/
+        catch (Throwable t) {
+        	responseBuilder.setCode(2);
+        	responseBuilder.setInfo(t.toString());
 		}
 
-        int code = validate(tx);
-        ResponseCheckTx resp = ResponseCheckTx.newBuilder()
-                .setCode(code)
+        ResponseCheckTx resp = responseBuilder
                 //.setGasWanted(1)
                 .build();
         responseObserver.onNext(resp);
@@ -150,8 +143,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     //private long deliverTxTime;
 
     @Override
-    public void deliverTx(RequestDeliverTx req, StreamObserver<ResponseDeliverTx> responseObserver) {
-        ByteString tx = req.getTx();
+    public synchronized void deliverTx(RequestDeliverTx req, StreamObserver<ResponseDeliverTx> responseObserver) {
+    	ByteString tx = req.getTx();
         //System.out.print("[deliverTx ");
         //long start = System.currentTimeMillis();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
@@ -160,24 +153,11 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         if (code == 0) {
             try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
             	TransactionRequest<?> hotmokaRequest = (TransactionRequest<?>) ois.readObject();
+
             	TransactionResponse hotmokaResponse;
 
-            	if (hotmokaRequest instanceof JarStoreInitialTransactionRequest)
-            		hotmokaResponse = ResponseBuilder.of((JarStoreInitialTransactionRequest) hotmokaRequest, next, node).build();
-            	else if (hotmokaRequest instanceof RedGreenGameteCreationTransactionRequest)
-            		hotmokaResponse = ResponseBuilder.of((RedGreenGameteCreationTransactionRequest) hotmokaRequest, next, node).build();
-            	else if (hotmokaRequest instanceof GameteCreationTransactionRequest)
-            		hotmokaResponse = ResponseBuilder.of((GameteCreationTransactionRequest) hotmokaRequest, next, node).build();
-            	else if (hotmokaRequest instanceof JarStoreTransactionRequest)
-            		hotmokaResponse = ResponseBuilder.of((JarStoreTransactionRequest) hotmokaRequest, next, node).build();
-            	else if (hotmokaRequest instanceof ConstructorCallTransactionRequest)
-            		hotmokaResponse = ResponseBuilder.of((ConstructorCallTransactionRequest) hotmokaRequest, next, node).build();
-            	else if (hotmokaRequest instanceof InstanceMethodCallTransactionRequest)
-            		hotmokaResponse = ResponseBuilder.of((InstanceMethodCallTransactionRequest) hotmokaRequest, next, node).build();
-            	else if (hotmokaRequest instanceof StaticMethodCallTransactionRequest)
-            		hotmokaResponse = ResponseBuilder.of((StaticMethodCallTransactionRequest) hotmokaRequest, next, node).build();
-            	else
-            		throw new TransactionRejectedException("unexpected transaction request of class " + hotmokaRequest.getClass().getName());
+            	ResponseBuilder<?> builder = ResponseBuilder.of(hotmokaRequest, next, node);
+            	hotmokaResponse = builder.build();
 
             	if (hotmokaRequest instanceof AbstractJarStoreTransactionRequest)
             		node.state.putDependenciesOf(next, (AbstractJarStoreTransactionRequest) hotmokaRequest);

@@ -32,6 +32,8 @@ import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.InitializedNode;
 import io.hotmoka.nodes.Node.CodeExecutionFuture;
 import io.hotmoka.nodes.Node.JarStoreFuture;
+import io.hotmoka.tendermint.Config;
+import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.VerificationException;
 
@@ -55,27 +57,27 @@ public abstract class TakamakaTest {
 	 * Change in order to specify the default blockchain to use in tests.
 	 */
 	protected final void mkBlockchain(BigInteger... coins) throws Exception {
-		//Config config = new Config(Paths.get("chain"), 26657, 26658);
-		//node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
-		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		Config config = new Config(Paths.get("chain"), 26657, 26658);
+		node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		//node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
-	protected final void mkRedGreenBlockchain(BigInteger... coins) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
-		//Config config = new Config(Paths.get("chain"), 26657, 26658);
-		//node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
-		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+	protected final void mkRedGreenBlockchain(BigInteger... coins) throws Exception {
+		Config config = new Config(Paths.get("chain"), 26657, 26658);
+		node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		//node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
 	protected final void mkBlockchain(String jar, BigInteger... coins) throws Exception {
-		//Config config = new Config(Paths.get("chain"), 26657, 26658);
-		//node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
-		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		Config config = new Config(Paths.get("chain"), 26657, 26658);
+		node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		//node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
 	}
 
-	protected final void mkRedGreenBlockchain(String jar, BigInteger... coins) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
-		//Config config = new Config(Paths.get("chain"), 26657, 26658);
-		//node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
-		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+	protected final void mkRedGreenBlockchain(String jar, BigInteger... coins) throws Exception {
+		Config config = new Config(Paths.get("chain"), 26657, 26658);
+		node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		//node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
 	}
 
 	@AfterEach
