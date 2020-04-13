@@ -86,6 +86,16 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
+	 * Charges gas proportional to the complexity of the class loader that has been created.
+	 */
+	protected final void chargeGasForClassLoader() {
+		EngineClassLoader classLoader = getClassLoader();
+		classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).forEach(this::chargeGasForCPU);
+		classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).forEach(this::chargeGasForRAM);
+		classLoader.getTransactionsOfJars().map(gasCostModel::cpuCostForGettingResponseAt).forEach(this::chargeGasForCPU);
+	}
+
+	/**
 	 * Yields the caller of the transaction.
 	 * 
 	 * @return the caller

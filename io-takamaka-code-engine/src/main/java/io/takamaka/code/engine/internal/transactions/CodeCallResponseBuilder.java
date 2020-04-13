@@ -55,7 +55,8 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		super(request, node);
 
 		try {
-			this.classLoader = new EngineClassLoader(request.classpath, this);
+			this.classLoader = new EngineClassLoader(request.classpath, node);
+			chargeGasForClassLoader();
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeExternallyOwnedAccount();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());

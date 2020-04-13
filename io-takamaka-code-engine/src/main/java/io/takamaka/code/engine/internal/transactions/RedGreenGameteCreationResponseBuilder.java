@@ -31,7 +31,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 		super(request, node);
 
 		try {
-			this.classLoader = new EngineClassLoader(request.classpath, this);
+			this.classLoader = new EngineClassLoader(request.classpath, node);
 
 			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
 				throw new IllegalArgumentException("the gamete must be initialized with a non-negative amount of coins");

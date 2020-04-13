@@ -48,7 +48,13 @@ class Bombing extends TakamakaTest {
 
 		for (int i = 0; i < TRANSFERS; i++) {
 			StorageReference from = account(random.nextInt(ACCOUNTS));
-			StorageReference to = account(random.nextInt(ACCOUNTS));
+
+			StorageReference to;
+			do {
+				to = account(random.nextInt(ACCOUNTS));
+			}
+			while (to == from); // we want a different account than from
+
 			IntValue amount = new IntValue(1 + random.nextInt(10));
 			//System.out.println(amount + ": " + from + " -> " + to);
 			if (i < TRANSFERS - 1)

@@ -36,7 +36,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 
 		try {
 			this.jar = request.getJar();
-			this.classLoader = new EngineClassLoader(jar, request.getDependencies(), this);
+			this.classLoader = new EngineClassLoader(jar, request.getDependencies(), node);
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);

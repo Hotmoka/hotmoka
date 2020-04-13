@@ -18,8 +18,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.GasCostModel;
-import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
+import io.hotmoka.nodes.Node;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -29,6 +28,17 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
  * of Takamaka methods or constructors executed during a transaction.
  */
 public class EngineClassLoader implements TakamakaClassLoader {
+
+	/**
+	 * The maximal number of dependencies in the classpath used to create an engine class loader.
+	 */
+	public final static int MAX_DEPENDENCIES = 20;
+
+	/**
+	 * The maximal cumulative size (in bytes) of the instrumented jars of the dependencies
+	 * in the classpath used to create an engine class loader.
+	 */
+	public final static int MAX_SIZE_OF_DEPENDENCIES = 1_000_000;
 
 	/**
 	 * The parent of this class loader;
@@ -121,11 +131,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * Builds the class loader for the given class path and its dependencies.
 	 * 
 	 * @param classpath the class path
-	 * @param builder the builder of the transaction for which the class loader is created
+	 * @param node the node for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, AbstractResponseBuilder<?,?> builder) throws Exception {
-		this(null, Stream.of(classpath), builder);
+	public EngineClassLoader(Classpath classpath, Node node) throws Exception {
+		this(null, Stream.of(classpath), node);
 	}
 
 	/*public static EngineClassLoader mk(Classpath classpath, AbstractResponseBuilder<?,?> builder) throws Exception {
@@ -147,13 +157,13 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @param jar the jar
 	 * @param dependencies the dependencies
-	 * @param builder the builder of the response for which the class loader is created
+	 * @param node the node for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, AbstractResponseBuilder<?,?> builder) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, Node node) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
 		List<TransactionReference> transactionsOfJars = new ArrayList<>();
-		this.parent = mkTakamakaClassLoader(dependencies, jar, builder, jars, transactionsOfJars);
+		this.parent = mkTakamakaClassLoader(dependencies, jar, node, jars, transactionsOfJars);
 		this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
 		this.transactionsOfJars = transactionsOfJars.toArray(new TransactionReference[transactionsOfJars.size()]);
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
@@ -190,18 +200,18 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @param classpaths the classpaths
 	 * @param start an initial jar. This can be {@code null}
-	 * @param builder the builder of the response for which the class loader is created
+	 * @param node the node for which the class loader is created
 	 * @return the class loader
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, AbstractResponseBuilder<?,?> builder, List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws Exception {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, Node node, List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws Exception {
 		if (start != null) {
 			jars.add(start);
 			transactionsOfJars.add(null);
 		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
-			addJars(classpath, jars, transactionsOfJars, builder);
+			addJars(classpath, jars, transactionsOfJars, node);
 
 		TransactionReference[] jarTransactionsAsArray = transactionsOfJars.toArray(new TransactionReference[transactionsOfJars.size()]);
 		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, jarTransactionsAsArray[pos]));
@@ -220,27 +230,28 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param classpath the classpath
 	 * @param jars the list where the jars will be added
 	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
-	 * @param builder the builder of the response for which the class loader is created
+	 * @param node the node for which the class loader is created
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private void addJars(Classpath classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractResponseBuilder<?,?> builder) throws Exception {
-		TransactionResponse response = builder.node.getResponseAt(classpath.transaction);
+	private void addJars(Classpath classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, Node node) throws Exception {
+		if (jars.size() > MAX_DEPENDENCIES)
+			throw new IllegalArgumentException("too many dependencies in classpath: max is " + MAX_DEPENDENCIES);
+
+		if (jars.stream().mapToLong(bytes -> bytes.length).sum() > MAX_SIZE_OF_DEPENDENCIES)
+			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + MAX_SIZE_OF_DEPENDENCIES + " bytes");
+
+		TransactionResponse response = node.getResponseAt(classpath.transaction);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalStateException("expected a jar store response at " + classpath.transaction);
 
-		GasCostModel gasCostModel = builder.node.getGasCostModel();
-		builder.chargeGasForCPU(gasCostModel.cpuCostForGettingResponseAt(classpath.transaction));
 		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = (TransactionResponseWithInstrumentedJar) response;
 
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive)
 			for (Classpath dependency: responseWithInstrumentedJar.getDependencies().toArray(Classpath[]::new))
-				addJars(dependency, jars, jarTransactions, builder);
+				addJars(dependency, jars, jarTransactions, node);
 
-		byte[] instrumentedJarBytes = responseWithInstrumentedJar.getInstrumentedJar();
-		builder.chargeGasForCPU(gasCostModel.cpuCostForLoadingJar(instrumentedJarBytes.length));
-		builder.chargeGasForRAM(gasCostModel.ramCostForLoadingJar(instrumentedJarBytes.length));
-		jars.add(instrumentedJarBytes);
+		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
 		jarTransactions.add(classpath.transaction);
 	}
 

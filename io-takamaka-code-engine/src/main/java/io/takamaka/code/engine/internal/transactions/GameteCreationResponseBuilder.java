@@ -30,7 +30,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 		super(request, node);
 
 		try {
-			this.classLoader = new EngineClassLoader(request.classpath, this);
+			this.classLoader = new EngineClassLoader(request.classpath, node);
 
 			if (request.initialAmount.signum() < 0)
 				throw new IllegalArgumentException("the gamete must be initialized with a non-negative amount of coins");
