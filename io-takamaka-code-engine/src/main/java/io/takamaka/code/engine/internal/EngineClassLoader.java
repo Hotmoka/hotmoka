@@ -115,6 +115,20 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		this(null, Stream.of(classpath), builder);
 	}
 
+	/*public static EngineClassLoader mk(Classpath classpath, AbstractResponseBuilder<?,?> builder) throws Exception {
+		EngineClassLoader result = cache.get(classpath);
+		if (result != null)
+			return result;
+
+		result = new EngineClassLoader(classpath, builder);
+
+		cache.putIfAbsent(classpath, result);
+
+		return result;
+	}
+
+	private static final ConcurrentMap<Classpath, EngineClassLoader> cache = new ConcurrentHashMap<>();*/
+
 	/**
 	 * Builds the class loader for the given jar and its dependencies.
 	 * 
@@ -163,7 +177,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @return the class loader
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, AbstractResponseBuilder<?,?> builder ) throws Exception {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, AbstractResponseBuilder<?,?> builder) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
 		List<TransactionReference> jarTransactions = new ArrayList<>();
 		if (start != null) {
@@ -212,7 +226,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		builder.chargeGasForCPU(gasCostModel.cpuCostForGettingResponseAt(classpath.transaction));
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
 		builder.chargeGasForCPU(gasCostModel.cpuCostForLoadingJar(instrumentedJarBytes.length));
-		builder.chargeGasForRAM(gasCostModel.ramCostForLoading(instrumentedJarBytes.length));
+		builder.chargeGasForRAM(gasCostModel.ramCostForLoadingJar(instrumentedJarBytes.length));
 		jars.add(instrumentedJarBytes);
 		jarTransactions.add(classpath.transaction);
 	}

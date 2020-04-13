@@ -46,7 +46,7 @@ public class StandardGasCostModel implements GasCostModel {
 	}
 
 	@Override
-	public BigInteger ramCostForLoading(int numBytes) {
+	public BigInteger ramCostForLoadingJar(int numBytes) {
 		return BigInteger.valueOf(numBytes / 200);
 	}
 

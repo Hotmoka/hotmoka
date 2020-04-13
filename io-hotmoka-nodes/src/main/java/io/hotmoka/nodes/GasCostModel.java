@@ -80,7 +80,7 @@ public interface GasCostModel {
 	 * @param numBytes the number of bytes of the jar
 	 * @return the cost
 	 */
-	BigInteger ramCostForLoading(int numBytes);
+	BigInteger ramCostForLoadingJar(int numBytes);
 
 	/**
 	 * Yields the CPU gas cost of the execution of an arithmetic instruction.

@@ -29,8 +29,8 @@ import io.takamaka.code.constants.Constants;
  * A test for the remote purchase contract.
  */
 class Bombing extends TakamakaTest {
-	private static final BigInteger _10_000 = BigInteger.valueOf(10000);
-	private static final int TRANSFERS = 1_000;
+	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
+	private static final int TRANSFERS = 500;
 	private static final int ACCOUNTS = 16;
 	private static final VoidMethodSignature RECEIVE = new VoidMethodSignature(Constants.PAYABLE_CONTRACT_NAME, "receive", BasicTypes.INT);
 	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
@@ -41,7 +41,7 @@ class Bombing extends TakamakaTest {
 		mkBlockchain(_10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000);
 	}
 
-	@Test @DisplayName("100 random transfers between accounts")
+	@Test @DisplayName(TRANSFERS + " random transfers between accounts")
 	void randomTranfers() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		Random random = new Random();
 		long start = System.currentTimeMillis();
