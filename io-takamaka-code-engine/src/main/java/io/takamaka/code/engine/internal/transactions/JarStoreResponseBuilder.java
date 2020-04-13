@@ -46,7 +46,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 
 		try {
 			this.jar = request.getJar();
-			this.classLoader = new EngineClassLoader(jar, transaction, request.getDependencies(), this);
+			this.classLoader = new EngineClassLoader(jar, request.getDependencies(), this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeExternallyOwnedAccount();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());

@@ -117,49 +117,20 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @throws Exception if an error occurs
 	 */
 	public EngineClassLoader(Classpath classpath, AbstractResponseBuilder<?,?> builder) throws Exception {
-		this.builder = builder;
-		this.parent = mkTakamakaClassLoader(Stream.of(classpath), null, null);
-		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
-		this.entry = contract.getDeclaredMethod("entry", contract);
-		this.entry.setAccessible(true); // it was private
-		this.payableEntryInt = contract.getDeclaredMethod("payableEntry", contract, int.class);
-		this.payableEntryInt.setAccessible(true); // it was private
-		this.payableEntryLong = contract.getDeclaredMethod("payableEntry", contract, long.class);
-		this.payableEntryLong.setAccessible(true); // it was private
-		this.payableEntryBigInteger = contract.getDeclaredMethod("payableEntry", contract, BigInteger.class);
-		this.payableEntryBigInteger.setAccessible(true); // it was private
-		this.redPayableInt = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, int.class);
-		this.redPayableInt.setAccessible(true); // it was private
-		this.redPayableLong = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, long.class);
-		this.redPayableLong.setAccessible(true); // it was private
-		this.redPayableBigInteger = redGreenContract.getDeclaredMethod("redPayable", redGreenContract, BigInteger.class);
-		this.redPayableBigInteger.setAccessible(true); // it was private
-		this.redBalanceField = redGreenContract.getDeclaredField("balanceRed");
-		this.redBalanceField.setAccessible(true); // it was private
-		this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
-		this.externallyOwnedAccountNonce.setAccessible(true); // it was private
-		this.redGreenExternallyOwnedAccountNonce = getRedGreenExternallyOwnedAccount().getDeclaredField("nonce");
-		this.redGreenExternallyOwnedAccountNonce.setAccessible(true); // it was private
-		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
-		this.storageReference.setAccessible(true); // it was private
-		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
-		this.inStorage.setAccessible(true); // it was private
-		this.balanceField = contract.getDeclaredField("balance");
-		this.balanceField.setAccessible(true); // it was private
+		this(null, Stream.of(classpath), builder);
 	}
 
 	/**
 	 * Builds the class loader for the given jar and its dependencies.
 	 * 
 	 * @param jar the jar
-	 * @param transaction the transaction that is installing the given jar in the node
 	 * @param dependencies the dependencies
 	 * @param builder the builder of the transaction for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, TransactionReference transaction, Stream<Classpath> dependencies, AbstractResponseBuilder<?,?> builder) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, AbstractResponseBuilder<?,?> builder) throws Exception {
 		this.builder = builder;
-		this.parent = mkTakamakaClassLoader(dependencies, jar, transaction);
+		this.parent = mkTakamakaClassLoader(dependencies, jar);
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -193,24 +164,30 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * Yields the Takamaka class loader for the components of the given classpaths.
 	 * 
 	 * @param classpaths the classpaths
-	 * @param start an initial jar, if any
-	 * @param startTransaction the transaction that is installing {@code start}, if any
+	 * @param start an initial jar. This can be {@code null}
 	 * @return the class loader
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, TransactionReference startTransaction) throws Exception {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
 		List<TransactionReference> jarTransactions = new ArrayList<>();
 		if (start != null) {
 			jars.add(start);
-			jarTransactions.add(startTransaction);
+			jarTransactions.add(null);
 		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
 			addJars(classpath, jars, jarTransactions);
 
 		TransactionReference[] jarTransactionsAsArray = jarTransactions.toArray(new TransactionReference[jarTransactions.size()]);
-		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> transactionsThatInstalledJarForClasses.put(name, jarTransactionsAsArray[pos]));
+		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, jarTransactionsAsArray[pos]));
+	}
+
+	private void takeNoteOfTransactionThatInstalledJarFor(String className, TransactionReference transactionReference) {
+		// if the transaction reference is null, it means that the class comes from a jar that is being installed
+		// by the transaction that created this class loader. In that case, the storage reference of the class is not used
+		if (transactionReference != null)
+			transactionsThatInstalledJarForClasses.put(className, transactionReference);
 	}
 
 	/**
@@ -246,8 +223,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
 	 * Yields the transaction reference that installed the jar where the given class is defined.
+	 * The class must belong to the class path used at creation time of this engine class loader
+	 * (hence not to the extra jar provided in the second constructor).
 	 * 
-	 * @param clazz the class, accessible during the created transaction
+	 * @param clazz the class
 	 * @return the transaction reference
 	 */
 	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
