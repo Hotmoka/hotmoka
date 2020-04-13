@@ -45,16 +45,12 @@ public class Verifier {
 		    	byte[] bytesOfOrigin = Files.readAllBytes(origin);
 
 		    	List<byte[]> jars = new ArrayList<>();
-		    	List<String> jarNames = new ArrayList<>();
 		    	jars.add(bytesOfOrigin);
-		    	jarNames.add(appJarName);
 		    	if (libJarNames != null)
-		    		for (String lib: libJarNames) {
+		    		for (String lib: libJarNames)
 		    			jars.add(Files.readAllBytes(Paths.get(lib)));
-		    			jarNames.add(lib);
-		    		}
 
-		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), jarNames.stream());
+		    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(jars.stream(), (name, pos) -> {});
 		    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, duringInitialization);
 		    	verifiedJar.issues().forEach(System.err::println);
 		    	if (verifiedJar.hasErrors())

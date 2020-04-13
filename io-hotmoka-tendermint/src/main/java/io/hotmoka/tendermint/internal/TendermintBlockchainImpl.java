@@ -339,11 +339,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	public TransactionReference getTransactionReferenceFor(String toString) {
-		return new TendermintTransactionReference(toString);
-	}
-
-	@Override
 	public TransactionResponse getResponseAt(TransactionReference transactionReference) throws Exception {
 		return state.getResponseOf(transactionReference)
 			.orElseThrow(() -> new IllegalStateException("cannot find no response for transaction " + transactionReference));

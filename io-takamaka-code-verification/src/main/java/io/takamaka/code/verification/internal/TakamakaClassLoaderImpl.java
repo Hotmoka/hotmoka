@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Repository;
@@ -56,14 +57,16 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 * Builds a class loader for the given jars, given as arrays of bytes.
 	 * 
 	 * @param jars the jars
-	 * @param jarNames the names of the jars
+	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
+	 *                           it can be used to take note that a class with a given name comes from the
+	 *                           n-th jar in {@code jars}
 	 */
-	public TakamakaClassLoaderImpl(Stream<byte[]> jars, Stream<String> jarNames) {
+	public TakamakaClassLoaderImpl(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
 		// we set the BCEL repository so that it matches the class path made up of the jar to
 		// instrument and its dependencies. This is important since class instrumentation will use
 		// the repository to infer least common supertypes during type inference, hence the
 		// whole hierarchy of classes must be available to BCEL through its repository
-		this.parent = ResolvingClassLoader.of(jars, jarNames);
+		this.parent = ResolvingClassLoader.of(jars, classNameProcessor);
 		Repository.setRepository(new ClassLoaderRepository(getJavaClassLoader()));
 
 		try {
@@ -186,10 +189,5 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	@Override
 	public ClassLoader getJavaClassLoader() {
 		return parent.getJavaClassLoader();
-	}
-
-	@Override
-	public String getJarNameOf(Class<?> clazz) {
-		return parent.getJarNameOf(clazz);
 	}
 }

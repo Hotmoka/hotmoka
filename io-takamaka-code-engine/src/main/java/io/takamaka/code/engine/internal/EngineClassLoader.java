@@ -8,6 +8,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.Classpath;
@@ -102,6 +104,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private final Field redBalanceField;
 
 	/**
+	 * A map from each class name to the transaction that installed the jar it belongs to.
+	 */
+	private final ConcurrentMap<String, TransactionReference> transactionsThatInstalledJarForClasses = new ConcurrentHashMap<>();
+
+	/**
 	 * Builds the class loader for the given class path and its dependencies.
 	 * 
 	 * @param classpath the class path
@@ -151,7 +158,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 */
 	public EngineClassLoader(byte[] jar, TransactionReference transaction, Stream<Classpath> dependencies, AbstractResponseBuilder<?,?> builder) throws Exception {
 		this.builder = builder;
-		this.parent = mkTakamakaClassLoader(dependencies, jar, "takamaka@" + transaction.toString() + ".jar");
+		this.parent = mkTakamakaClassLoader(dependencies, jar, transaction);
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -182,26 +189,27 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	}
 
 	/**
-	 * Yields the stream of jars (as byte arrays) that refer to the components of the given classpaths.
+	 * Yields the Takamaka class loader for the components of the given classpaths.
 	 * 
 	 * @param classpaths the classpaths
 	 * @param start an initial jar, if any
-	 * @param startName the name that must be used for {@code start}, if any
-	 * @return the jars
+	 * @param startTransaction the transaction that is installing {@code start}, if any
+	 * @return the class loader
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, String startName) throws Exception {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, TransactionReference startTransaction) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
-		List<String> jarNames = new ArrayList<>();
+		List<TransactionReference> jarTransactions = new ArrayList<>();
 		if (start != null) {
 			jars.add(start);
-			jarNames.add(startName);
+			jarTransactions.add(startTransaction);
 		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
-			addJars(classpath, jars, jarNames);
+			addJars(classpath, jars, jarTransactions);
 
-		return TakamakaClassLoader.of(jars.stream(), jarNames.stream());
+		TransactionReference[] jarTransactionsAsArray = jarTransactions.toArray(new TransactionReference[jarTransactions.size()]);
+		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> transactionsThatInstalledJarForClasses.put(name, jarTransactionsAsArray[pos]));
 	}
 
 	/**
@@ -209,11 +217,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @param classpath the classpath
 	 * @param jars the list where the jars will be added
-	 * @param jarNames the list where the names of the jars will be added; the {@code toString()} of the transaction
-	 *                 is used as name of the jar that it installed
+	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private void addJars(Classpath classpath, List<byte[]> jars, List<String> jarNames) throws Exception {
+	private void addJars(Classpath classpath, List<byte[]> jars, List<TransactionReference> jarTransactions) throws Exception {
 		TransactionResponse response = builder.node.getResponseAt(classpath.transaction);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalStateException("expected a jar store response at " + classpath.transaction);
@@ -223,7 +230,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 			builder.chargeGasForCPU(builder.node.getGasCostModel().cpuCostForGettingDependenciesAt(classpath.transaction));
 			Stream<Classpath> dependencies = builder.node.getDependenciesOfJarStoreTransactionAt(classpath.transaction);
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-				addJars(dependency, jars, jarNames);
+				addJars(dependency, jars, jarTransactions);
 		}
 
 		builder.chargeGasForCPU(builder.node.getGasCostModel().cpuCostForGettingResponseAt(classpath.transaction));
@@ -231,7 +238,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		builder.chargeGasForCPU(builder.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
 		builder.chargeGasForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
 		jars.add(instrumentedJarBytes);
-		jarNames.add("takamaka@" + classpath.transaction + ".jar");
+		jarTransactions.add(classpath.transaction);
 	}
 
 	/**
@@ -239,17 +246,9 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @param clazz the class, accessible during the created transaction
 	 * @return the transaction reference
-	 * @throws IllegalStateException if the transaction reference cannot be determined
 	 */
 	public final TransactionReference transactionThatInstalledJarFor(Class<?> clazz) {
-		String jarName = getJarNameOf(clazz);
-		if (!jarName.endsWith(".jar"))
-			throw new IllegalStateException("unexpected class path " + jarName + " for class " + clazz.getName());
-		int start = jarName.lastIndexOf('@');
-		if (start < 0)
-			throw new IllegalStateException("class path " + jarName + " misses @ separator");
-
-		return builder.node.getTransactionReferenceFor(jarName.substring(start + 1, jarName.length() - 4));
+		return transactionsThatInstalledJarForClasses.get(clazz.getName().replace('.', '/') + ".class");
 	}
 
 	/**
@@ -678,10 +677,5 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	@Override
 	public ClassLoader getJavaClassLoader() {
 		return parent.getJavaClassLoader();
-	}
-
-	@Override
-	public String getJarNameOf(Class<?> clazz) {
-		return parent.getJarNameOf(clazz);
 	}
 }

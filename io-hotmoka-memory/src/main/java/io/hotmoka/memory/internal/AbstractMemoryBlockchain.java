@@ -169,11 +169,6 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	public TransactionReference getTransactionReferenceFor(String toString) {
-		return new MemoryTransactionReference(toString);
-	}
-
-	@Override
 	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
 		List<TransactionReference> history = new ArrayList<>();
 		TransactionReference whenCreated = object.transaction;

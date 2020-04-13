@@ -1,5 +1,6 @@
 package io.takamaka.code.verification;
 
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.takamaka.code.verification.internal.TakamakaClassLoaderImpl;
@@ -14,10 +15,12 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	 * Builds a class loader with the given jars, given as byte arrays.
 	 * 
 	 * @param jars the jars
-	 * @param jarNames the names that must be used for the {@code jars}
+	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
+	 *                           it can be used to take note that a class with a given name comes from the
+	 *                           n-th jar in {@code jars}
 	 */
-	static TakamakaClassLoader of(Stream<byte[]> jars, Stream<String> jarNames) {
-		return new TakamakaClassLoaderImpl(jars, jarNames);
+	static TakamakaClassLoader of(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
+		return new TakamakaClassLoaderImpl(jars, classNameProcessor);
 	}
 
 	/**

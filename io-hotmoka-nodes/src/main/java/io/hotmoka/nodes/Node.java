@@ -43,14 +43,6 @@ public interface Node extends AutoCloseable {
 	String getClassNameOf(StorageReference storageReference);
 
 	/**
-	 * Yields a transaction reference whose {@code toString()} is the given string.
-	 * 
-	 * @param toString the result of {@code toString()} on the desired transaction reference
-	 * @return the transaction reference
-	 */
-	TransactionReference getTransactionReferenceFor(String toString);
-
-	/**
 	 * Yields the classpath dependencies of the jar store transaction that generated the transaction with the given reference.
 	 * 
 	 * @param transactionReference the reference to the transaction

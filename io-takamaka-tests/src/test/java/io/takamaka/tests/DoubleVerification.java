@@ -26,7 +26,7 @@ class DoubleVerification {
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
     	TakamakaClassLoader classLoader = TakamakaClassLoader.of
     		(Stream.of(bytesOfClasspath, bytesOfOrigin),
-			Stream.of("", "")); // names are irrelevant if we do not execute the code);
+			(name, pos) -> {}); // irrelevant if we do not execute the code;
     	VerifiedJar.of(bytesOfOrigin, classLoader, false);
     	VerifiedJar.of(bytesOfOrigin, classLoader, false);
 	}

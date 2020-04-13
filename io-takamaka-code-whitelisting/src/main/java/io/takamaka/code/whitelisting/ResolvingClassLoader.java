@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.takamaka.code.whitelisting.internal.ResolvingClassLoaderImpl;
@@ -18,21 +19,14 @@ public interface ResolvingClassLoader {
 	 * Yields an implementation of this interface that loads classes from the given jars, provided as byte arrays.
 	 * 
 	 * @param jars the jars, as byte arrays
-	 * @param jarNames the names of the jars
+	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
+	 *                           it can be used to take note that a class with a given name comes from the
+	 *                           n-th jar in {@code jars}
 	 * @return the class loader
 	 */
-	static ResolvingClassLoader of(Stream<byte[]> jars, Stream<String> jarNames) {
-		return new ResolvingClassLoaderImpl(jars, jarNames);
+	static ResolvingClassLoader of(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
+		return new ResolvingClassLoaderImpl(jars, classNameProcessor);
 	}
-
-	/**
-	 * Yields the name of the jar from where the given class was loaded.
-	 * It works for non-system classes only.
-	 * 
-	 * @param clazz the class
-	 * @return the name of the jar
-	 */
-	String getJarNameOf(Class<?> clazz);
 
 	/**
 	 * Yields the Java class loader used internally by this class loader.

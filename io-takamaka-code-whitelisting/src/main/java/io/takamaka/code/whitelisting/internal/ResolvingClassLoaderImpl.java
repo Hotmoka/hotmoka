@@ -10,8 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -36,26 +35,23 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	private final byte[][] jars;
 
 	/**
-	 * The names of the jars of the classpath of this class loader.
+	 * A processor called whenever a new class is loaded with this class loader.
 	 */
-	private final String[] jarNames;
-
-	/**
-	 * The name of each class loaded from with this class loader.
-	 */
-	private final ConcurrentMap<String, String> jarNameOf = new ConcurrentHashMap<>();
+	private final BiConsumer<String, Integer> classNameProcessor;
 
 	/**
 	 * Builds a class loader with the given jars.
 	 * 
 	 * @param jars the jars, as arrays of bytes
-	 * @param jarNames the names of the jars
+	 * @param classNameProcessor a processor called whenever a new class is loaded with this class loader;
+	 *                           it can be used to take note that a class with a given name comes from the
+	 *                           n-th jar in {@code jars}
 	 */
-	public ResolvingClassLoaderImpl(Stream<byte[]> jars, Stream<String> jarNames) {
+	public ResolvingClassLoaderImpl(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
 		super(ClassLoader.getSystemClassLoader());
 
 		this.jars = jars.toArray(byte[][]::new);
-		this.jarNames = jarNames.toArray(String[]::new);
+		this.classNameProcessor = classNameProcessor;
 	}
 
 	@Override
@@ -113,7 +109,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     			while ((entry = jis.getNextEntry()) != null)
     				if (entry.getName().equals(name)) {
     					found = true;
-    					jarNameOf.put(name, jarNames[pos]);
+    					classNameProcessor.accept(name, pos);
     					return jis;
     				}
 
@@ -135,11 +131,6 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     	}
 
     	return null;
-    }
-
-    @Override
-    public String getJarNameOf(Class<?> clazz) {
-    	return jarNameOf.get(clazz.getName().replace('.', '/') + ".class");
     }
 
     @Override
