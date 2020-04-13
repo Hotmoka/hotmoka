@@ -20,22 +20,11 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
  * The builder of the response of a transaction that executes an instance method of Takamaka code.
  */
 public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest> {
-
-	/**
-	 * The class loader of the transaction.
-	 */
-	private final EngineClassLoader classLoader;
-
-	/**
-	 * The deserialized caller.
-	 */
-	private final Object deserializedCaller;
 
 	/**
 	 * Creates the builder of the response.
@@ -46,18 +35,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 */
 	public InstanceMethodCallResponseBuilder(InstanceMethodCallTransactionRequest request, Node node) throws TransactionRejectedException {
 		super(request, node);
-
-		try {
-			this.classLoader = new EngineClassLoader(request.classpath, this);
-			this.deserializedCaller = deserializer.deserialize(request.caller);
-			callerMustBeExternallyOwnedAccount();
-			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeGasForStorageOfRequest();
-			remainingGasMustBeEnoughForStoringFailedResponse();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
 	}
 
 	@Override
@@ -78,16 +55,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-	}
-
-	@Override
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
-	}
-
-	@Override
-	protected final Object getDeserializedCaller() {
-		return deserializedCaller;
 	}
 
 	/**
@@ -202,7 +169,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			super.ensureWhiteListingOf(executable, actuals);
 
 			// we check the annotations on the receiver as well
-			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
+			Optional<Method> model = getClassLoader().getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isPresent() && !Modifier.isStatic(executable.getModifiers()))
 				checkWhiteListingProofObligations(model.get().getName(), deserializedReceiver, model.get().getAnnotations());
 		}
@@ -237,7 +204,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 			Class<?>[] argTypes = formalsAsClassForEntry();
 		
-			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			return getClassLoader().resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 

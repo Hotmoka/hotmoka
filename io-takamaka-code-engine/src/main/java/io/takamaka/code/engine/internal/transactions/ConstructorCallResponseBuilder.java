@@ -18,22 +18,11 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.
  */
 public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
-
-	/**
-	 * The class loader used for the transaction.
-	 */
-	private final EngineClassLoader classLoader;
-
-	/**
-	 * The deserialized caller.
-	 */
-	private final Object deserializedCaller;
 
 	/**
 	 * Creates the builder of the response.
@@ -44,18 +33,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 */
 	public ConstructorCallResponseBuilder(ConstructorCallTransactionRequest request, Node node) throws TransactionRejectedException {
 		super(request, node);
-
-		try {
-			this.classLoader = new EngineClassLoader(request.classpath, this);
-			this.deserializedCaller = deserializer.deserialize(request.caller);
-			callerMustBeExternallyOwnedAccount();
-			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeGasForStorageOfRequest();
-			remainingGasMustBeEnoughForStoringFailedResponse();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
 	}
 
 	@Override
@@ -76,16 +53,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-	}
-
-	@Override
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
-	}
-
-	@Override
-	protected final Object getDeserializedCaller() {
-		return deserializedCaller;
 	}
 
 	@Override
@@ -189,7 +156,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * @throws ClassNotFoundException if some class could not be found during the check
 		 */
 		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws ClassNotFoundException {
-			Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
+			Optional<Constructor<?>> model = getClassLoader().getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
 			if (!model.isPresent())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.definingClass.name);
 
@@ -209,7 +176,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
 			Class<?>[] argTypes = formalsAsClass();
 
-			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+			return getClassLoader().resolveConstructor(request.constructor.definingClass.name, argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
 		}
 
@@ -224,7 +191,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
 			Class<?>[] argTypes = formalsAsClassForEntry();
 
-			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+			return getClassLoader().resolveConstructor(request.constructor.definingClass.name, argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
 		}
 

@@ -20,6 +20,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingPredicate;
@@ -34,6 +35,16 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialResponseBuilder<Request, Response> {
 
 	/**
+	 * The class loader used for the transaction.
+	 */
+	private final EngineClassLoader classLoader;
+
+	/**
+	 * The deserialized caller.
+	 */
+	private final Object deserializedCaller;
+
+	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
@@ -42,6 +53,28 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 */
 	protected CodeCallResponseBuilder(Request request, Node node) throws TransactionRejectedException {
 		super(request, node);
+
+		try {
+			this.classLoader = new EngineClassLoader(request.classpath, this);
+			this.deserializedCaller = deserializer.deserialize(request.caller);
+			callerMustBeExternallyOwnedAccount();
+			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
+			chargeGasForStorageOfRequest();
+			remainingGasMustBeEnoughForStoringFailedResponse();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
+	}
+
+	@Override
+	public final EngineClassLoader getClassLoader() {
+		return classLoader;
+	}
+
+	@Override
+	protected final Object getDeserializedCaller() {
+		return deserializedCaller;
 	}
 
 	/**

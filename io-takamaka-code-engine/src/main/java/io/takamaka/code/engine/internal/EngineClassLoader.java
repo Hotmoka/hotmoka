@@ -30,11 +30,6 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
 public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
-	 * The builder of the response for which deserialization is performed.
-	 */
-	private final AbstractResponseBuilder<?,?> builder;
-
-	/**
 	 * The parent of this class loader;
 	 */
 	private final TakamakaClassLoader parent;
@@ -125,12 +120,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @param jar the jar
 	 * @param dependencies the dependencies
-	 * @param builder the builder of the transaction for which the class loader is created
+	 * @param builder the builder of the response for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
 	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, AbstractResponseBuilder<?,?> builder) throws Exception {
-		this.builder = builder;
-		this.parent = mkTakamakaClassLoader(dependencies, jar);
+		this.parent = mkTakamakaClassLoader(dependencies, jar, builder);
 		Class<?> contract = getContract(), redGreenContract = getRedGreenContract(), storage = getStorage();
 		this.entry = contract.getDeclaredMethod("entry", contract);
 		this.entry.setAccessible(true); // it was private
@@ -165,10 +159,11 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @param classpaths the classpaths
 	 * @param start an initial jar. This can be {@code null}
+	 * @param builder the builder of the response for which the class loader is created
 	 * @return the class loader
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start) throws Exception {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, AbstractResponseBuilder<?,?> builder ) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
 		List<TransactionReference> jarTransactions = new ArrayList<>();
 		if (start != null) {
@@ -177,7 +172,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		}
 
 		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
-			addJars(classpath, jars, jarTransactions);
+			addJars(classpath, jars, jarTransactions, builder);
 
 		TransactionReference[] jarTransactionsAsArray = jarTransactions.toArray(new TransactionReference[jarTransactions.size()]);
 		return TakamakaClassLoader.of(jars.stream(), (name, pos) -> takeNoteOfTransactionThatInstalledJarFor(name, jarTransactionsAsArray[pos]));
@@ -196,9 +191,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param classpath the classpath
 	 * @param jars the list where the jars will be added
 	 * @param jarTransactions the list of transactions where the {@code jars} have been installed
+	 * @param builder the builder of the response for which the class loader is created
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private void addJars(Classpath classpath, List<byte[]> jars, List<TransactionReference> jarTransactions) throws Exception {
+	private void addJars(Classpath classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractResponseBuilder<?,?> builder) throws Exception {
 		TransactionResponse response = builder.node.getResponseAt(classpath.transaction);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalStateException("expected a jar store response at " + classpath.transaction);
@@ -210,7 +206,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 			builder.chargeGasForCPU(gasCostModel.cpuCostForGettingDependenciesAt(classpath.transaction));
 			Stream<Classpath> dependencies = builder.node.getDependenciesOfJarStoreTransactionAt(classpath.transaction);
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
-				addJars(dependency, jars, jarTransactions);
+				addJars(dependency, jars, jarTransactions, builder);
 		}
 
 		builder.chargeGasForCPU(gasCostModel.cpuCostForGettingResponseAt(classpath.transaction));

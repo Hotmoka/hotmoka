@@ -16,22 +16,11 @@ import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
  * The builder of the response for a transaction that executes a static method of Takamaka code.
  */
 public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<StaticMethodCallTransactionRequest> {
-
-	/**
-	 * The class loader of the transaction.
-	 */
-	private final EngineClassLoader classLoader;
-
-	/**
-	 * The deserialized caller.
-	 */
-	private final Object deserializedCaller;
 
 	/**
 	 * Creates the builder of the response.
@@ -42,18 +31,6 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	 */
 	public StaticMethodCallResponseBuilder(StaticMethodCallTransactionRequest request, Node node) throws TransactionRejectedException {
 		super(request, node);
-
-		try {
-			this.classLoader = new EngineClassLoader(request.classpath, this);
-			this.deserializedCaller = deserializer.deserialize(request.caller);
-			callerMustBeExternallyOwnedAccount();
-			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeGasForStorageOfRequest();
-			remainingGasMustBeEnoughForStoringFailedResponse();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
 	}
 
 	@Override
@@ -76,11 +53,6 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		}
 	}
 
-	@Override
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
-	}
-
 	/**
 	 * Checks that the called method respects the expected constraints.
 	 * 
@@ -90,11 +62,6 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	protected void validateCallee(Method methodJVM) throws NoSuchMethodException {
 		if (!Modifier.isStatic(methodJVM.getModifiers()))
 			throw new NoSuchMethodException("cannot call an instance method");
-	}
-
-	@Override
-	protected final Object getDeserializedCaller() {
-		return deserializedCaller;
 	}
 
 	private class ResponseCreator extends MethodCallResponseBuilder<StaticMethodCallTransactionRequest>.ResponseCreator {

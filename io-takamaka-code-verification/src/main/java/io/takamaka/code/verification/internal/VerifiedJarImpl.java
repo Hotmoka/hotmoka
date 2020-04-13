@@ -11,7 +11,9 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.util.ClassLoaderRepository;
 
 import io.takamaka.code.verification.Annotations;
 import io.takamaka.code.verification.BcelToClass;
@@ -67,6 +69,12 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 */
 	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization) throws IOException {
 		this.classLoader = classLoader;
+
+		// we set the BCEL repository so that it matches the class path made up of the jar to
+		// instrument and its dependencies. This is important since class instrumentation will use
+		// the repository to infer least common supertypes during type inference, hence the
+		// whole hierarchy of classes must be available to BCEL through its repository
+		Repository.setRepository(new ClassLoaderRepository(classLoader.getJavaClassLoader()));
 
 		new Initializer(origin, duringInitialization);
 	}

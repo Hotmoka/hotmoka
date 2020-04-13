@@ -8,9 +8,6 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
-import org.apache.bcel.Repository;
-import org.apache.bcel.util.ClassLoaderRepository;
-
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.verification.IncompleteClasspathError;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -62,12 +59,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 *                           n-th jar in {@code jars}
 	 */
 	public TakamakaClassLoaderImpl(Stream<byte[]> jars, BiConsumer<String, Integer> classNameProcessor) {
-		// we set the BCEL repository so that it matches the class path made up of the jar to
-		// instrument and its dependencies. This is important since class instrumentation will use
-		// the repository to infer least common supertypes during type inference, hence the
-		// whole hierarchy of classes must be available to BCEL through its repository
 		this.parent = ResolvingClassLoader.of(jars, classNameProcessor);
-		Repository.setRepository(new ClassLoaderRepository(getJavaClassLoader()));
 
 		try {
 			this.contract = loadClass(Constants.CONTRACT_NAME);
