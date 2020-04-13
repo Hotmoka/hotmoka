@@ -97,10 +97,6 @@ public abstract class TakamakaTest {
 		return node.account(i);
 	}
 
-	protected final String getClassNameOf(StorageReference storageReference) {
-		return node.getClassNameOf(storageReference);
-	}
-
 	/**
 	 * Takes care of computing the next nonce.
 	 */

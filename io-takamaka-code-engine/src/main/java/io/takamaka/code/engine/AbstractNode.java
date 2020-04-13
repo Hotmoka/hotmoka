@@ -79,30 +79,6 @@ public abstract class AbstractNode implements Node {
 	protected abstract void markAsInitialized();
 
 	@Override
-	public final String getClassNameOf(StorageReference object) {
-		try {
-			TransactionResponse response = getResponseAt(object.transaction);
-			if (response instanceof TransactionResponseWithUpdates) {
-				Optional<ClassTag> classTag = ((TransactionResponseWithUpdates) response).getUpdates()
-					.filter(update -> update instanceof ClassTag)
-					.map(update -> (ClassTag) update)
-					.findFirst();
-
-				if (classTag.isPresent())
-					return classTag.get().className;
-			}
-		}
-		catch (DeserializationError e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw new DeserializationError(e);
-		}
-
-		throw new DeserializationError("no class tag found for " + object);
-	}
-
-	@Override
 	public final Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	

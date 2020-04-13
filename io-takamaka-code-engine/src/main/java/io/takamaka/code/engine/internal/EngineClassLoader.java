@@ -17,6 +17,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.GasCostModel;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
@@ -225,18 +226,20 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalStateException("expected a jar store response at " + classpath.transaction);
 
+		GasCostModel gasCostModel = builder.node.getGasCostModel();
+
 		// if the class path is recursive, we consider its dependencies as well, recursively
 		if (classpath.recursive) {
-			builder.chargeGasForCPU(builder.node.getGasCostModel().cpuCostForGettingDependenciesAt(classpath.transaction));
+			builder.chargeGasForCPU(gasCostModel.cpuCostForGettingDependenciesAt(classpath.transaction));
 			Stream<Classpath> dependencies = builder.node.getDependenciesOfJarStoreTransactionAt(classpath.transaction);
 			for (Classpath dependency: dependencies.toArray(Classpath[]::new))
 				addJars(dependency, jars, jarTransactions);
 		}
 
-		builder.chargeGasForCPU(builder.node.getGasCostModel().cpuCostForGettingResponseAt(classpath.transaction));
+		builder.chargeGasForCPU(gasCostModel.cpuCostForGettingResponseAt(classpath.transaction));
 		byte[] instrumentedJarBytes = ((TransactionResponseWithInstrumentedJar) response).getInstrumentedJar();
-		builder.chargeGasForCPU(builder.node.getGasCostModel().cpuCostForLoadingJar(instrumentedJarBytes.length));
-		builder.chargeGasForRAM(builder.node.getGasCostModel().ramCostForLoading(instrumentedJarBytes.length));
+		builder.chargeGasForCPU(gasCostModel.cpuCostForLoadingJar(instrumentedJarBytes.length));
+		builder.chargeGasForRAM(gasCostModel.ramCostForLoading(instrumentedJarBytes.length));
 		jars.add(instrumentedJarBytes);
 		jarTransactions.add(classpath.transaction);
 	}

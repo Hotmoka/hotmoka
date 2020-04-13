@@ -34,15 +34,6 @@ import io.hotmoka.beans.values.StorageValue;
 public interface Node extends AutoCloseable {
 
 	/**
-	 * Yields the run-time class of the storage object with the given reference.
-	 * 
-	 * @param storageReference the storage reference of the object
-	 * @return the name of the class
-	 * @throws DeserializationError if the class of the object cannot be found
-	 */
-	String getClassNameOf(StorageReference storageReference);
-
-	/**
 	 * Yields the classpath dependencies of the jar store transaction that generated the transaction with the given reference.
 	 * 
 	 * @param transactionReference the reference to the transaction

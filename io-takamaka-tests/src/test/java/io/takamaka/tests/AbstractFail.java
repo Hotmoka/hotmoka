@@ -20,6 +20,8 @@ import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A test for the remote purchase contract.
@@ -57,6 +59,8 @@ class AbstractFail extends TakamakaTest {
 			new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL),
 			abstractfail);
 
-		assertEquals("io.takamaka.tests.abstractfail.AbstractFailImpl", getClassNameOf(result));
+		String className = ((StringValue) runViewInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ZERO, jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", ClassType.STRING), result)).value;
+
+		assertEquals("io.takamaka.tests.abstractfail.AbstractFailImpl", className);
 	}
 }

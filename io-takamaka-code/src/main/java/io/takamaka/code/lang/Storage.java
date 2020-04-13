@@ -60,6 +60,15 @@ public abstract class Storage {
 	}
 
 	/**
+	 * Yields the name of the class of this object.
+	 * 
+	 * @return the name of the class of this object
+	 */
+	public final @View String getClassName() {
+		return getClass().getName();
+	}
+
+	/**
 	 * Implements an order on storage object that delegates to the
 	 * {@code compareTo()} on the storage references of the compared objects.
 	 * This method is guaranteed to implement a total order relation.
