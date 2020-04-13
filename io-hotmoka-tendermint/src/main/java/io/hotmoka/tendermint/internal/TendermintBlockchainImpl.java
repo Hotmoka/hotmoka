@@ -345,12 +345,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	public Stream<Classpath> getDependenciesOfJarStoreTransactionAt(TransactionReference transactionReference) throws Exception {
-		return state.getDependenciesOf(transactionReference)
-			.orElseThrow(() -> new IllegalStateException("cannot find no jar store dependencies for transaction " + transactionReference));
-	}
-
-	@Override
 	public long getNow() throws Exception {
 		return abci.getNow();
 	}

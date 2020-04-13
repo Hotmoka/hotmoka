@@ -103,11 +103,6 @@ public class StandardGasCostModel implements GasCostModel {
 	}
 
 	@Override
-	public BigInteger cpuCostForGettingDependenciesAt(TransactionReference transaction) {
-		return BigInteger.valueOf(10);
-	}
-
-	@Override
 	public BigInteger cpuCostForGettingResponseAt(TransactionReference transaction) {
 		return BigInteger.valueOf(10);
 	}

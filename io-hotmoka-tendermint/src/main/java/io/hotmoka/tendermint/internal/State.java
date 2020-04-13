@@ -52,11 +52,6 @@ class State implements AutoCloseable {
     private final static String RESPONSES = "responses";
 
     /**
-     * The name of the store where the dependencies of installed jars are kept.
-     */
-    private final static String DEPENDENCIES = "dependencies";
-
-    /**
      * The name of the store that keeps, for each storage reference, the list of
      * transaction references where that storage reference has been modified,
      * from youngest to oldest.
@@ -111,7 +106,6 @@ class State implements AutoCloseable {
     	// we enforce that all stores are created
     	env.executeInTransaction(txn -> {
     		env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
-            env.openStore(DEPENDENCIES, StoreConfig.WITHOUT_DUPLICATES, txn);
             env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
             env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 		});
@@ -138,7 +132,6 @@ class State implements AutoCloseable {
 	void beginTransaction() {
 		txn = env.beginTransaction();
         responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
-        dependencies = env.openStore(DEPENDENCIES, StoreConfig.WITHOUT_DUPLICATES, txn);
         history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
         info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 	}
@@ -253,20 +246,6 @@ class State implements AutoCloseable {
 			Store history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
 			return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
-		});
-	}
-
-	/**
-	 * Yields the dependencies of the jar installed by a jar store transaction request having the given reference.
-	 * 
-	 * @param transactionReference the reference of the transaction
-	 * @return the dependencies, if any
-	 */
-	Optional<Stream<Classpath>> getDependenciesOf(TransactionReference transactionReference) {
-		return env.computeInReadonlyTransaction(txn -> {
-			Store dependencies = env.openStore(DEPENDENCIES, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable response = dependencies.get(txn, compactByteArraySerializationOf(transactionReference));
-			return response == null ? Optional.empty() : Optional.of(Stream.of((Classpath[]) deserializationOf(response)));
 		});
 	}
 

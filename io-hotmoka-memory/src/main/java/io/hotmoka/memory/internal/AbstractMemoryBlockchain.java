@@ -28,7 +28,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -413,18 +412,6 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathInBlockFor(blockNumber, HEADER_TXT_NAME)))) {
 			output.print(header);
-		}
-	}
-
-	@Override
-	public Stream<Classpath> getDependenciesOfJarStoreTransactionAt(TransactionReference reference) throws IOException, ClassNotFoundException {
-		Path path = getPathFor((MemoryTransactionReference) reference, REQUEST_NAME);
-		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
-			TransactionRequest<?> request = (TransactionRequest<?>) in.readObject();
-			if (!(request instanceof AbstractJarStoreTransactionRequest))
-				throw new IllegalArgumentException("the transaction does not contain a jar store request");
-
-			return ((AbstractJarStoreTransactionRequest) request).getDependencies();
 		}
 	}
 

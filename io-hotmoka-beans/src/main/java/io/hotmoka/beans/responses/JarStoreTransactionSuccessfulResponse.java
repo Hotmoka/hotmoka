@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 
@@ -21,18 +22,26 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	private final byte[] instrumentedJar;
 
 	/**
+	 * The dependencies of the jar, previously installed in blockchain.
+	 * This is a copy of the same information contained in the request.
+	 */
+	private final Classpath[] dependencies;
+
+	/**
 	 * Builds the transaction response.
 	 * 
 	 * @param instrumentedJar the bytes of the jar to install, instrumented
+	 * @param dependencies the dependencies of the jar, previously installed in blockchain
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<Classpath> dependencies, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.instrumentedJar = instrumentedJar.clone();
+		this.dependencies = dependencies.toArray(Classpath[]::new);
 	}
 
 	@Override
@@ -43,6 +52,11 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	@Override
 	public int getInstrumentedJarLength() {
 		return instrumentedJar.length;
+	}
+
+	@Override
+	public Stream<Classpath> getDependencies() {
+		return Stream.of(dependencies);
 	}
 
 	@Override

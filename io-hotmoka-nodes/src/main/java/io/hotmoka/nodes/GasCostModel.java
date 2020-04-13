@@ -158,14 +158,6 @@ public interface GasCostModel {
 	BigInteger cpuBaseTransactionCost();
 
 	/**
-	 * Yields the CPU gas cost for accessing from store the dependencies of the given jar store transaction.
-	 * 
-	 * @param transaction the jar store transaction
-	 * @return the cost
-	 */
-	BigInteger cpuCostForGettingDependenciesAt(TransactionReference transaction);
-
-	/**
 	 * Yields the CPU gas cost for accessing from store the response at the given transaction.
 	 * 
 	 * @param transaction the transaction
