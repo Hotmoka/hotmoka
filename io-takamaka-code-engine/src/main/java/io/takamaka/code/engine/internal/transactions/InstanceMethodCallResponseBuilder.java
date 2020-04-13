@@ -41,12 +41,11 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallResponseBuilder(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(request, current, node);
+	public InstanceMethodCallResponseBuilder(InstanceMethodCallTransactionRequest request, Node node) throws TransactionRejectedException {
+		super(request, node);
 
 		try {
 			this.classLoader = new EngineClassLoader(request.classpath, this);
@@ -62,14 +61,14 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	@Override
-	public MethodCallTransactionResponse build() throws TransactionRejectedException {
+	public MethodCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
 			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
 
 			try {
-				return new ResponseCreator().response;
+				return new ResponseCreator(current).response;
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -119,10 +118,10 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private final MethodCallTransactionResponse response;
 
-		private ResponseCreator() throws Throwable {
+		private ResponseCreator(TransactionReference current) throws Throwable {
 			// we perform deserialization in a thread, since enums passed as parameters
 			// would trigger the execution of their static initializer, which will charge gas
-			DeserializerThread deserializerThread = new DeserializerThread(request);
+			DeserializerThread deserializerThread = new DeserializerThread(request, current);
 			deserializerThread.go();
 			this.deserializedReceiver = deserializerThread.deserializedReceiver;
 			this.deserializedActuals = deserializerThread.deserializedActuals;
@@ -154,7 +153,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
 				callerMustBeRedGreenExternallyOwnedAccount();
 
-			MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
+			MethodThread thread = new MethodThread(methodJVM, deserializedActuals, current);
 			try {
 				thread.go();
 			}
@@ -250,7 +249,9 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			private final Method methodJVM;
 			private final Object[] deserializedActuals;
 		
-			private MethodThread(Method methodJVM, Object[] deserializedActuals) {
+			private MethodThread(Method methodJVM, Object[] deserializedActuals, TransactionReference current) {
+				super(current);
+
 				this.methodJVM = methodJVM;
 				this.deserializedActuals = deserializedActuals;
 			}
@@ -280,7 +281,9 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Object[] deserializedActuals;
 
-		private DeserializerThread(InstanceMethodCallTransactionRequest request) {
+		private DeserializerThread(InstanceMethodCallTransactionRequest request, TransactionReference current) {
+			super(current);
+
 			this.request = request;
 		}
 

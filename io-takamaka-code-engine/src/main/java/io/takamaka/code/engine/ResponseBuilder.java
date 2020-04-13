@@ -41,10 +41,11 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	/**
 	 * Builds the response of the transaction.
 	 * 
+	 * @param current the reference that can be used to refer to the transaction
 	 * @return the response
 	 * @throws TransactionRejectedException if the response cannot be built
 	 */
-	Response build() throws TransactionRejectedException;
+	Response build(TransactionReference current) throws TransactionRejectedException;
 
 	/**
 	 * Yields the builder of a response for a request of a transaction
@@ -55,13 +56,12 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * basic Takamaka classes.
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<JarStoreInitialTransactionResponse> of(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new JarStoreInitialResponseBuilder(request, current, node);
+	static ResponseBuilder<JarStoreInitialTransactionResponse> of(JarStoreInitialTransactionRequest request, Node node) throws TransactionRejectedException {
+		return new JarStoreInitialResponseBuilder(request, node);
 	}
 
 	/**
@@ -72,13 +72,12 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * no caller and requires no gas.
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<GameteCreationTransactionResponse> of(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new GameteCreationResponseBuilder(request, current, node);
+	static ResponseBuilder<GameteCreationTransactionResponse> of(GameteCreationTransactionRequest request, Node node) throws TransactionRejectedException {
+		return new GameteCreationResponseBuilder(request, node);
 	}
 
 	/**
@@ -89,13 +88,12 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * no caller and requires no gas.
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<GameteCreationTransactionResponse> of(RedGreenGameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new RedGreenGameteCreationResponseBuilder(request, current, node);
+	static ResponseBuilder<GameteCreationTransactionResponse> of(RedGreenGameteCreationTransactionRequest request, Node node) throws TransactionRejectedException {
+		return new RedGreenGameteCreationResponseBuilder(request, node);
 	}
 
 	/**
@@ -103,12 +101,12 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * that installs a jar in this node. The goal is to install a jar, with its dependencies.
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
+	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<JarStoreTransactionResponse> of(JarStoreTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new JarStoreResponseBuilder(request, current, node);
+	static ResponseBuilder<JarStoreTransactionResponse> of(JarStoreTransactionRequest request, Node node) throws TransactionRejectedException {
+		return new JarStoreResponseBuilder(request, node);
 	}
 
 	/**
@@ -117,12 +115,12 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * The goal is to run the constructor and compute a reference to the freshly created object.
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
+	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<ConstructorCallTransactionResponse> of(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new ConstructorCallResponseBuilder(request, current, node);
+	static ResponseBuilder<ConstructorCallTransactionResponse> of(ConstructorCallTransactionRequest request, Node node) throws TransactionRejectedException {
+		return new ConstructorCallResponseBuilder(request, node);
 	}
 
 	/**
@@ -131,12 +129,12 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * The goal is to run the method and compute its returned value (if any).
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
+	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<MethodCallTransactionResponse> of(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new InstanceMethodCallResponseBuilder(request, current, node);
+	static ResponseBuilder<MethodCallTransactionResponse> of(InstanceMethodCallTransactionRequest request, Node node) throws TransactionRejectedException {
+		return new InstanceMethodCallResponseBuilder(request, node);
 	}
 
 	/**
@@ -144,12 +142,12 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * that calls a static method. The goal is to run the method and compute its returned value (if any).
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
+	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<MethodCallTransactionResponse> of(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new StaticMethodCallResponseBuilder(request, current, node);
+	static ResponseBuilder<MethodCallTransactionResponse> of(StaticMethodCallTransactionRequest request, Node node) throws TransactionRejectedException {
+		return new StaticMethodCallResponseBuilder(request, node);
 	}
 
 	/**
@@ -159,12 +157,12 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * The method must be annotated as {@linkplain io.hotmoka.code.lang.View}.
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
+	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<MethodCallTransactionResponse> ofView(InstanceMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new InstanceViewMethodCallResponseBuilder(request, current, node);
+	static ResponseBuilder<MethodCallTransactionResponse> ofView(InstanceMethodCallTransactionRequest request, Node node) throws TransactionRejectedException {
+		return new InstanceViewMethodCallResponseBuilder(request, node);
 	}
 
 	/**
@@ -173,12 +171,12 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * The method must be annotated as {@linkplain io.hotmoka.code.lang.View}.
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
+	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<MethodCallTransactionResponse> ofView(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		return new StaticViewMethodCallResponseBuilder(request, current, node);
+	static ResponseBuilder<MethodCallTransactionResponse> ofView(StaticMethodCallTransactionRequest request, Node node) throws TransactionRejectedException {
+		return new StaticViewMethodCallResponseBuilder(request, node);
 	}
 
 	/**
@@ -186,25 +184,25 @@ public interface ResponseBuilder<Response extends TransactionResponse> {
 	 * It forwards the call to any of the most specified {@code of} methods.
 	 * 
 	 * @param request the request
-	 * @param current the reference that will be used for the transaction
+	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<?> of(TransactionRequest<?> request, TransactionReference current, Node node) throws TransactionRejectedException {
+	static ResponseBuilder<?> of(TransactionRequest<?> request, Node node) throws TransactionRejectedException {
 		if (request instanceof JarStoreInitialTransactionRequest)
-			return of((JarStoreInitialTransactionRequest) request, current, node);
+			return of((JarStoreInitialTransactionRequest) request, node);
 		else if (request instanceof RedGreenGameteCreationTransactionRequest)
-			return of((RedGreenGameteCreationTransactionRequest) request, current, node);
+			return of((RedGreenGameteCreationTransactionRequest) request, node);
     	else if (request instanceof GameteCreationTransactionRequest)
-    		return of((GameteCreationTransactionRequest) request, current, node);
+    		return of((GameteCreationTransactionRequest) request, node);
     	else if (request instanceof JarStoreTransactionRequest)
-    		return of((JarStoreTransactionRequest) request, current, node);
+    		return of((JarStoreTransactionRequest) request, node);
     	else if (request instanceof ConstructorCallTransactionRequest)
-    		return of((ConstructorCallTransactionRequest) request, current, node);
+    		return of((ConstructorCallTransactionRequest) request, node);
     	else if (request instanceof InstanceMethodCallTransactionRequest)
-    		return of((InstanceMethodCallTransactionRequest) request, current, node);
+    		return of((InstanceMethodCallTransactionRequest) request, node);
     	else if (request instanceof StaticMethodCallTransactionRequest)
-    		return of((StaticMethodCallTransactionRequest) request, current, node);
+    		return of((StaticMethodCallTransactionRequest) request, node);
     	else
     		throw new TransactionRejectedException("unexpected transaction request of class " + request.getClass().getName());
 	}

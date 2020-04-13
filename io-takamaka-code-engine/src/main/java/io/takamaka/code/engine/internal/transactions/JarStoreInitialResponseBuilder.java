@@ -28,12 +28,11 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreInitialResponseBuilder(JarStoreInitialTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(request, current, node);
+	public JarStoreInitialResponseBuilder(JarStoreInitialTransactionRequest request, Node node) throws TransactionRejectedException {
+		super(request, node);
 
 		try {
 			this.jar = request.getJar();
@@ -45,7 +44,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 	}
 
 	@Override
-	public JarStoreInitialTransactionResponse build() throws TransactionRejectedException {
+	public JarStoreInitialTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
 			InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(jar, classLoader, true), node.getGasCostModel());
 			return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes());

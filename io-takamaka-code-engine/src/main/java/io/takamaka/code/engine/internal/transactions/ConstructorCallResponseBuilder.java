@@ -39,12 +39,11 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public ConstructorCallResponseBuilder(ConstructorCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(request, current, node);
+	public ConstructorCallResponseBuilder(ConstructorCallTransactionRequest request, Node node) throws TransactionRejectedException {
+		super(request, node);
 
 		try {
 			this.classLoader = new EngineClassLoader(request.classpath, this);
@@ -60,14 +59,14 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	}
 
 	@Override
-	public ConstructorCallTransactionResponse build() throws TransactionRejectedException {
+	public ConstructorCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
 			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
 
 			try {
-				return new ResponseCreator().response;
+				return new ResponseCreator(current).response;
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -110,10 +109,10 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private final ConstructorCallTransactionResponse response;
 
-		private ResponseCreator() throws Throwable {
+		private ResponseCreator(TransactionReference current) throws Throwable {
 			// we perform deserialization in a thread, since enums passed as parameters
 			// would trigger the execution of their static initializer, which will charge gas
-			DeserializerThread deserializerThread = new DeserializerThread(request);
+			DeserializerThread deserializerThread = new DeserializerThread(request, current);
 			deserializerThread.go();
 			this.deserializedActuals = deserializerThread.deserializedActuals;
 
@@ -141,7 +140,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
 				callerMustBeRedGreenExternallyOwnedAccount();
 
-			ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
+			ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals, current);
 			try {
 				thread.go();
 			}
@@ -248,7 +247,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private Object[] deserializedActuals;
 
-		private DeserializerThread(ConstructorCallTransactionRequest request) {
+		private DeserializerThread(ConstructorCallTransactionRequest request, TransactionReference current) {
+			super(current);
+
 			this.request = request;
 		}
 
@@ -266,7 +267,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private final Constructor<?> constructorJVM;
 		private final Object[] deserializedActuals;
 
-		private ConstructorThread(Constructor<?> constructorJVM, Object[] deserializedActuals) {
+		private ConstructorThread(Constructor<?> constructorJVM, Object[] deserializedActuals, TransactionReference current) {
+			super(current);
+
 			this.constructorJVM = constructorJVM;
 			this.deserializedActuals = deserializedActuals;
 		}

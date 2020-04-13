@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.responses.InitialTransactionResponse;
 import io.hotmoka.nodes.Node;
@@ -18,12 +17,11 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used to refer to the transaction
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(request, current, node);
+	protected InitialResponseBuilder(Request request, Node node) throws TransactionRejectedException {
+		super(request, node);
 	}
 
 	@Override

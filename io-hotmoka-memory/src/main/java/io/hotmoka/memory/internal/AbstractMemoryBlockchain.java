@@ -193,21 +193,21 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	@Override
 	protected TransactionReference addJarStoreInitialTransactionInternal(JarStoreInitialTransactionRequest request) throws Exception {
 		TransactionReference transactionReference = getNextTransaction();
-		JarStoreInitialTransactionResponse response = ResponseBuilder.of(request, transactionReference, this).build();
+		JarStoreInitialTransactionResponse response = ResponseBuilder.of(request, this).build(transactionReference);
 		expandStoreWith(request, response);
 		return response.getOutcomeAt(transactionReference);
 	}
 
 	@Override
 	protected StorageReference addGameteCreationTransactionInternal(GameteCreationTransactionRequest request) throws Exception {
-		GameteCreationTransactionResponse response = ResponseBuilder.of(request, getNextTransaction(), this).build();
+		GameteCreationTransactionResponse response = ResponseBuilder.of(request, this).build(getNextTransaction());
 		expandStoreWith(request, response);
 		return response.getOutcome();
 	}
 
 	@Override
 	protected StorageReference addRedGreenGameteCreationTransactionInternal(RedGreenGameteCreationTransactionRequest request) throws Exception {
-		GameteCreationTransactionResponse response = ResponseBuilder.of(request, getNextTransaction(), this).build();
+		GameteCreationTransactionResponse response = ResponseBuilder.of(request, this).build(getNextTransaction());
 		expandStoreWith(request, response);
 		return response.getOutcome();
 	}
@@ -215,46 +215,46 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	@Override
 	protected TransactionReference addJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
 		TransactionReference transactionReference = getNextTransaction();
-		JarStoreTransactionResponse response = ResponseBuilder.of(request, transactionReference, this).build();
+		JarStoreTransactionResponse response = ResponseBuilder.of(request, this).build(transactionReference);
 		expandStoreWith(request, response);
 		return response.getOutcomeAt(transactionReference);
 	}
 
 	@Override
 	protected StorageReference addConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
-		ConstructorCallTransactionResponse response = ResponseBuilder.of(request, getNextTransaction(), this).build();
+		ConstructorCallTransactionResponse response = ResponseBuilder.of(request, this).build(getNextTransaction());
 		expandStoreWith(request, response);
 		return response.getOutcome();
 	}
 
 	@Override
 	protected StorageValue addInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, getNextTransaction(), this).build();
+		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(getNextTransaction());
 		expandStoreWith(request, response);
 		return response.getOutcome();
 	}
 
 	@Override
 	protected StorageValue addStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, getNextTransaction(), this).build();
+		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(getNextTransaction());
 		expandStoreWith(request, response);
 		return response.getOutcome();
 	}
 
 	@Override
 	protected StorageValue runViewInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		return ResponseBuilder.ofView(request, getNextTransaction(), this).build().getOutcome();
+		return ResponseBuilder.ofView(request, this).build(getNextTransaction()).getOutcome();
 	}
 
 	@Override
 	protected StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		return ResponseBuilder.ofView(request, getNextTransaction(), this).build().getOutcome();
+		return ResponseBuilder.ofView(request, this).build(getNextTransaction()).getOutcome();
 	}
 
 	@Override
 	protected JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
 		TransactionReference transactionReference = getNextTransaction();
-		JarStoreTransactionResponse response = ResponseBuilder.of(request, transactionReference, this).build();
+		JarStoreTransactionResponse response = ResponseBuilder.of(request, this).build(transactionReference);
 		expandStoreWith(request, response);
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
@@ -280,7 +280,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected CodeExecutionFuture<StorageReference> postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
-		ConstructorCallTransactionResponse response = ResponseBuilder.of(request, getNextTransaction(), this).build();
+		ConstructorCallTransactionResponse response = ResponseBuilder.of(request, this).build(getNextTransaction());
 		expandStoreWith(request, response);
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
@@ -306,7 +306,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, getNextTransaction(), this).build();
+		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(getNextTransaction());
 		expandStoreWith(request, response);
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
@@ -332,7 +332,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected CodeExecutionFuture<StorageValue> postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, getNextTransaction(), this).build();
+		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(getNextTransaction());
 		expandStoreWith(request, response);
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);

@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -27,7 +26,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	/**
 	 * The gas initially provided for the transaction.
 	 */
-	private final BigInteger initialGas;
+	private final BigInteger gasLimit;
 
 	/**
 	 * The coins payed for each unit of gas consumed by the transaction.
@@ -70,16 +69,15 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * Creates a the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used to refer to the transaction
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(request, current, node);
+	protected NonInitialResponseBuilder(Request request, Node node) throws TransactionRejectedException {
+		super(request, node);
 
 		try {
 			this.gasCostModel = node.getGasCostModel();
-			this.gas = this.initialGas = request.gasLimit;
+			this.gas = this.gasLimit = request.gasLimit;
 			this.gasPrice = request.gasPrice;
 		}
 		catch (Throwable t) {
@@ -309,6 +307,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 *         the gas already consumed for PCU, for RAM and for storage
 	 */
 	protected final BigInteger gasConsumedForPenalty() {
-		return initialGas.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
+		return gasLimit.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
 	}
 }

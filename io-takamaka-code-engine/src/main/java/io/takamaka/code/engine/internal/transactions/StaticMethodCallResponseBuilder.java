@@ -37,12 +37,11 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public StaticMethodCallResponseBuilder(StaticMethodCallTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(request, current, node);
+	public StaticMethodCallResponseBuilder(StaticMethodCallTransactionRequest request, Node node) throws TransactionRejectedException {
+		super(request, node);
 
 		try {
 			this.classLoader = new EngineClassLoader(request.classpath, this);
@@ -58,14 +57,14 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	}
 
 	@Override
-	public final MethodCallTransactionResponse build() throws TransactionRejectedException {
+	public final MethodCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
 			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
 			increaseNonceOfCaller();
 
 			try {
-				return new ResponseCreator().response;
+				return new ResponseCreator(current).response;
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
@@ -110,10 +109,10 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		 */
 		private final MethodCallTransactionResponse response;
 
-		private ResponseCreator() throws Throwable {
+		private ResponseCreator(TransactionReference current) throws Throwable {
 			// we perform deserialization in a thread, since enums passed as parameters
 			// would trigger the execution of their static initializer, which will charge gas
-			DeserializerThread deserializerThread = new DeserializerThread(request);
+			DeserializerThread deserializerThread = new DeserializerThread(request, current);
 			deserializerThread.go();
 			this.deserializedActuals = deserializerThread.deserializedActuals;
 
@@ -122,7 +121,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 			validateCallee(methodJVM);
 			ensureWhiteListingOf(methodJVM, deserializedActuals);
 
-			MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
+			MethodThread thread = new MethodThread(methodJVM, deserializedActuals, current);
 			try {
 				thread.go();
 			}
@@ -172,7 +171,9 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		 */
 		private Object[] deserializedActuals;
 
-		private DeserializerThread(StaticMethodCallTransactionRequest request) {
+		private DeserializerThread(StaticMethodCallTransactionRequest request, TransactionReference current) {
+			super(current);
+
 			this.request = request;
 		}
 
@@ -190,7 +191,9 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		private final Method methodJVM;
 		private final Object[] deserializedActuals;
 
-		private MethodThread(Method methodJVM, Object[] deserializedActuals) {
+		private MethodThread(Method methodJVM, Object[] deserializedActuals, TransactionReference current) {
+			super(current);
+
 			this.methodJVM = methodJVM;
 			this.deserializedActuals = deserializedActuals;
 		}

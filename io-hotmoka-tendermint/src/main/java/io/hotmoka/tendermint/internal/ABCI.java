@@ -156,8 +156,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
             	TransactionResponse hotmokaResponse;
 
-            	ResponseBuilder<?> builder = ResponseBuilder.of(hotmokaRequest, next, node);
-            	hotmokaResponse = builder.build();
+            	ResponseBuilder<?> builder = ResponseBuilder.of(hotmokaRequest, node);
+            	hotmokaResponse = builder.build(next);
 
             	if (hotmokaRequest instanceof AbstractJarStoreTransactionRequest)
             		node.state.putDependenciesOf(next, (AbstractJarStoreTransactionRequest) hotmokaRequest);

@@ -6,7 +6,6 @@ import java.math.BigInteger;
 import java.util.Optional;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
@@ -30,12 +29,11 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 * Builds the creator of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected MethodCallResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(request, current, node);
+	protected MethodCallResponseBuilder(Request request, Node node) throws TransactionRejectedException {
+		super(request, node);
 	}
 
 	@Override

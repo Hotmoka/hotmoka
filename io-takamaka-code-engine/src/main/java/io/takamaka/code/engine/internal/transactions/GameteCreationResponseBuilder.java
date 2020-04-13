@@ -23,12 +23,11 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public GameteCreationResponseBuilder(GameteCreationTransactionRequest request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(request, current, node);
+	public GameteCreationResponseBuilder(GameteCreationTransactionRequest request, Node node) throws TransactionRejectedException {
+		super(request, node);
 
 		try {
 			this.classLoader = new EngineClassLoader(request.classpath, this);
@@ -42,10 +41,10 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	}
 
 	@Override
-	public GameteCreationTransactionResponse build() throws TransactionRejectedException {
+	public GameteCreationTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-			GameteThread thread = new GameteThread();
+			GameteThread thread = new GameteThread(current);
 			thread.go();
 			Object gamete = thread.gamete;
 			classLoader.setBalanceOf(gamete, request.initialAmount);
@@ -67,7 +66,9 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	private class GameteThread extends TakamakaThread {
 		private Object gamete;
 
-		private GameteThread() {}
+		private GameteThread(TransactionReference current) {
+			super(current);
+		}
 
 		@Override
 		protected void body() throws Exception {

@@ -409,13 +409,13 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	@Override
 	protected StorageValue runViewInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
 		// this is executed in the node itself, not sent to Tendermint
-		return ResponseBuilder.ofView(request, abci.getNextTransaction(), this).build().getOutcome();
+		return ResponseBuilder.ofView(request, this).build(abci.getNextTransaction()).getOutcome();
 	}
 
 	@Override
 	protected StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
 		// this is executed in the node itself, not sent to Tendermint
-		return ResponseBuilder.ofView(request, abci.getNextTransaction(), this).build().getOutcome();
+		return ResponseBuilder.ofView(request, this).build(abci.getNextTransaction()).getOutcome();
 	}
 
 	@Override

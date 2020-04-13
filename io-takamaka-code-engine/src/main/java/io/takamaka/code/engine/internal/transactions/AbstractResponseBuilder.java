@@ -67,11 +67,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	public final UpdatesExtractor updatesExtractor = new UpdatesExtractor(this);
 
 	/**
-	 * The reference that must be used to refer to the created transaction.
-	 */
-	public final TransactionReference current;
-
-	/**
 	 * The events accumulated during the transaction.
 	 */
 	private final List<Object> events = new ArrayList<>();
@@ -90,15 +85,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the response
-	 * @param current the reference that must be used to refer to the transaction
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(Request request, Node node) throws TransactionRejectedException {
 		try {
 			this.request = request;
 			this.node = node;
-			this.current = current;
 			this.now = node.getNow();
 		}
 		catch (Throwable t) {
@@ -140,19 +133,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @throws Exception if the code runs into this exception
 	 */
 	public abstract <T> T withGas(BigInteger amount, Callable<T> what) throws Exception;
-
-	/**
-	 * Yields the next storage reference for the current transaction.
-	 * This can be used to associate a storage reference to each new
-	 * storage object created during a transaction.
-	 * 
-	 * @return the next storage reference
-	 */
-	public final StorageReference getNextStorageReference() {
-		BigInteger result = nextProgressive;
-		nextProgressive = nextProgressive.add(BigInteger.ONE);
-		return StorageReference.mk(current, result);
-	}
 
 	/**
 	 * Yields the UTC time when the transaction is being run.
@@ -230,7 +210,20 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * A thread that executes Takamaka code as part of this transaction.
 	 */
 	public abstract class TakamakaThread extends Thread {
-		protected TakamakaThread() {}
+
+		/**
+		 * The reference that must be used to refer to the created transaction.
+		 */
+		private final TransactionReference current;
+
+		/**
+		 * Builds the thread.
+		 * 
+		 * @param current the reference of the transaction that is creating the response
+		 */
+		protected TakamakaThread(TransactionReference current) {
+			this.current = current;
+		}
 
 		/**
 		 * The exception that occurred during the transaction, if any.
@@ -260,6 +253,19 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 
 		protected abstract void body() throws Exception;
+
+		/**
+		 * Yields the next storage reference for the current transaction.
+		 * This can be used to associate a storage reference to each new
+		 * storage object created during a transaction.
+		 * 
+		 * @return the next storage reference
+		 */
+		public final StorageReference getNextStorageReference() {
+			BigInteger result = nextProgressive;
+			nextProgressive = nextProgressive.add(BigInteger.ONE);
+			return StorageReference.mk(current, result);
+		}
 
 		/**
 		 * Yields the builder for which the transaction is executed.

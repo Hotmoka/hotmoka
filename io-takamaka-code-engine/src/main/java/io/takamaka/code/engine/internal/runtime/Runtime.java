@@ -233,7 +233,7 @@ public abstract class Runtime {
 	 * @return the next storage reference
 	 */
 	public static Object getNextStorageReference() {
-		return getBuilder().getNextStorageReference();
+		return ((AbstractResponseBuilder<?,?>.TakamakaThread) Thread.currentThread()).getNextStorageReference();
 	}
 
 	/**

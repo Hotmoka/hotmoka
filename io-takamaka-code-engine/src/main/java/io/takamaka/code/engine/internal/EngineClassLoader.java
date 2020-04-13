@@ -30,7 +30,7 @@ import io.takamaka.code.whitelisting.WhiteListingWizard;
 public class EngineClassLoader implements TakamakaClassLoader {
 
 	/**
-	 * The builder of the transaction for which deserialization is performed.
+	 * The builder of the response for which deserialization is performed.
 	 */
 	private final AbstractResponseBuilder<?,?> builder;
 

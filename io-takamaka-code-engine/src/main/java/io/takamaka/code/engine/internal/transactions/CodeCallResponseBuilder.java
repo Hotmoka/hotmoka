@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.types.StorageType;
@@ -38,12 +37,11 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used to refer to the created transaction
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected CodeCallResponseBuilder(Request request, TransactionReference current, Node node) throws TransactionRejectedException {
-		super(request, current, node);
+	protected CodeCallResponseBuilder(Request request, Node node) throws TransactionRejectedException {
+		super(request, node);
 	}
 
 	/**

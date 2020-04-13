@@ -37,12 +37,11 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param transaction the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreResponseBuilder(JarStoreTransactionRequest request, TransactionReference transaction, Node node) throws TransactionRejectedException {
-		super(request, transaction, node);
+	public JarStoreResponseBuilder(JarStoreTransactionRequest request, Node node) throws TransactionRejectedException {
+		super(request, node);
 
 		try {
 			this.jar = request.getJar();
@@ -61,7 +60,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	}
 
 	@Override
-	public final JarStoreTransactionResponse build() throws TransactionRejectedException {
+	public final JarStoreTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
 			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
