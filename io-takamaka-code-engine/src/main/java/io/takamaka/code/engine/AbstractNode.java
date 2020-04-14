@@ -3,7 +3,9 @@ package io.takamaka.code.engine;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -62,9 +64,23 @@ public abstract class AbstractNode implements Node {
 	 * 
 	 * @param object the object whose update history must be looked for
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest)
+	 *         (from newest to oldest). If {@code object} has currently no history, can yield an
+	 *         empty stream, but never throw an exception
 	 */
 	protected abstract Stream<TransactionReference> getHistoryOf(StorageReference object);
+
+	/**
+	 * Sets the history of the given object, that is,
+	 * the references to the transactions that might have updated the
+	 * given object, in reverse chronological order (from newest to oldest).
+	 * This stream is an over-approximation, hence it might also contain transactions
+	 * that did not affect the object, but it must include all that did it.
+	 * 
+	 * @param object the object whose history is set
+	 * @param history the stream that will become the history of the object,
+	 *                replacing its previous history, if any
+	 */
+	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
 
 	/**
 	 * Determines if this node allows to execute initial transactions.
@@ -77,6 +93,61 @@ public abstract class AbstractNode implements Node {
 	 * Takes note that this node doesn't allow any initial transaction anymore.
 	 */
 	protected abstract void markAsInitialized();
+
+	/**
+	 * Process the updates contained in the given response, expanding the history of the affected objects.
+	 * This method should be called at the end of a transaction, to keep in store the updates to the objects.
+	 * 
+	 * @param transactionReference the transaction that has generated the given response
+	 * @param response the response
+	 * @throws Exception if the history could not be expanded
+	 */
+	protected final void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws Exception {
+		// we collect the storage references that have been updated in the response; for each of them,
+		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
+		// in front of such lists and store back the updated lists, replacing the old ones
+		Stream<StorageReference> affectedObjects = response.getUpdates()
+			.map(Update::getObject)
+			.distinct();
+
+		for (StorageReference object: affectedObjects.toArray(StorageReference[]::new))
+			setHistory(object, simplifiedHistoryOf(object, transactionReference, response, getHistoryOf(object)));
+	}
+
+	private Stream<TransactionReference> simplifiedHistoryOf(StorageReference object, TransactionReference added, TransactionResponseWithUpdates response, Stream<TransactionReference> old) throws Exception {
+		// we trace the set of updates that are already covered by previous transactions, so that
+		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
+		Set<Update> covered = response.getUpdates().filter(update -> update.getObject() == object).collect(Collectors.toSet());
+		List<TransactionReference> simplified = new ArrayList<>();
+		simplified.add(added);
+
+		TransactionReference[] oldAsArray = old.toArray(TransactionReference[]::new);
+		int length = oldAsArray.length;
+		for (int pos = 0; pos < length - 1; pos++)
+			addIfUseful(oldAsArray[pos], object, covered, simplified);
+
+		// the last is always useful, since it contains the final fields and the class tag of the object
+		if (length >= 1)
+			simplified.add(oldAsArray[length - 1]);
+
+		return simplified.stream();
+	}
+
+	private void addIfUseful(TransactionReference cursor, StorageReference object, Set<Update> covered, List<TransactionReference> simplified) throws Exception {
+		TransactionResponse response = getResponseAt(cursor);
+		if (response instanceof TransactionResponseWithUpdates) {
+			Set<Update> diff = ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update.getObject().equals(object))
+				.filter(update -> !isAlreadyIn(update, covered))
+				.collect(Collectors.toSet());
+
+			if (!diff.isEmpty()) {
+				// the transaction reference actually adds at least one useful update
+				simplified.add(cursor);
+				covered.addAll(diff);
+			}
+		}
+	}
 
 	@Override
 	public final Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception {

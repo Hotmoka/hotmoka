@@ -14,10 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -42,6 +42,7 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.AbstractNode;
@@ -107,6 +108,12 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	private MemoryTransactionReference topmost;
 
 	/**
+	 * The histories of the objects created in blockchain. In a real implementation, this must
+	 * be stored in a persistent state.
+	 */
+	private final Map<StorageReference, TransactionReference[]> histories = new HashMap<>();
+
+	/**
 	 * True if and only if this node doesn't allow initial transactions anymore.
 	 */
 	private boolean initialized;
@@ -169,15 +176,14 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
-		List<TransactionReference> history = new ArrayList<>();
-		TransactionReference whenCreated = object.transaction;
-		if (topmost != null)
-			for (MemoryTransactionReference cursor = topmost; !cursor.isOlderThan(whenCreated); cursor = cursor.getPrevious())
-				history.add(cursor);
-
-		return history.stream();
+		TransactionReference[] history = histories.get(object);
+		return history == null ? Stream.empty() : Stream.of(history);
 	}
 
+	@Override
+	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
+		histories.put(object, history.toArray(TransactionReference[]::new));
+	}
 
 	@Override
 	protected boolean isInitialized() {
@@ -387,6 +393,9 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(next, RESPONSE_TXT_NAME)))) {
 			output.print(response);
 		}
+
+		if (response instanceof TransactionResponseWithUpdates)
+			expandHistoryWith(next, (TransactionResponseWithUpdates) response);
 
 		topmost = next;
 		if (next.isLastInBlock())

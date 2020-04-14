@@ -8,15 +8,11 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.UncheckedIOException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
-import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
@@ -42,7 +38,6 @@ class State implements AutoCloseable {
 	private Transaction txn;
 
 	private Store responses;
-    private Store dependencies;
     private Store history;
     private Store info;
 
@@ -155,7 +150,7 @@ class State implements AutoCloseable {
 		responses.put(txn, compactByteArraySerializationOf(transactionReference), byteArraySerializationOf(response));
 	}
 
-	void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws IOException {
+	/*void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws IOException {
 		// we collect the storage references that have been updates; for each of them,
 		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
 		// in front of such lists and store back the updated lists, replacing the old ones
@@ -166,17 +161,10 @@ class State implements AutoCloseable {
 				(State::byteArraySerializationOf,
 				object -> byteArraySerializationOf(getExpandedHistoryOf(object, transactionReference).toArray(TransactionReference[]::new))))
 			.forEach((key, value) -> history.put(txn, key, value));
-	}
+	}*/
 
-	/**
-	 * Puts in state the dependencies of a transaction having the given jar store request.
-	 * 
-	 * @param transactionReference the reference of the transaction
-	 * @param request the request
-	 * @throws IOException if the request cannot be saved in state
-	 */
-	void putDependenciesOf(TransactionReference transactionReference, AbstractJarStoreTransactionRequest request) throws IOException {
-		dependencies.put(txn, compactByteArraySerializationOf(transactionReference), byteArraySerializationOf(request.getDependencies().toArray(Classpath[]::new)));
+	void setHistory(StorageReference transactionReference, Stream<TransactionReference> history) {
+		this.history.put(txn, byteArraySerializationOf(transactionReference), byteArraySerializationOf(history.toArray(TransactionReference[]::new)));
 	}
 
 	/**
@@ -241,7 +229,7 @@ class State implements AutoCloseable {
 			return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
 		}
 
-		// the transaction might be missing if this method is called as part of a view transaction that occurs after a commit
+		// txn might be missing if this method is called as part of a view transaction that occurs after a commit
 		return env.computeInReadonlyTransaction(txn -> {
 			Store history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
@@ -316,11 +304,6 @@ class State implements AutoCloseable {
 
 	private void increaseNumberOfCommits() {
 		info.put(txn, COMMIT_COUNT, byteArraySerializationOf(getNumberOfCommits() + 1));
-	}
-
-	private Stream<TransactionReference> getExpandedHistoryOf(StorageReference object, TransactionReference addedFirst) {
-		Optional<Stream<TransactionReference>> history = getHistoryOf(object);
-		return history.isPresent() ? Stream.concat(Stream.of(addedFirst), history.get()) : Stream.of(addedFirst);
 	}
 
 	/**

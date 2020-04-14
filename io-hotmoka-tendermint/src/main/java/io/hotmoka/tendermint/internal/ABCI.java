@@ -14,7 +14,6 @@ import com.google.protobuf.Timestamp;
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -159,11 +158,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
             	ResponseBuilder<?> builder = ResponseBuilder.of(hotmokaRequest, node);
             	hotmokaResponse = builder.build(next);
 
-            	if (hotmokaRequest instanceof AbstractJarStoreTransactionRequest)
-            		node.state.putDependenciesOf(next, (AbstractJarStoreTransactionRequest) hotmokaRequest);
-
             	if (hotmokaResponse instanceof TransactionResponseWithUpdates)
-            		node.state.expandHistoryWith(next, (TransactionResponseWithUpdates) hotmokaResponse);
+            		node.expandHistoryWithProxy(next, (TransactionResponseWithUpdates) hotmokaResponse);
 
             	node.state.putResponseOf(next, hotmokaResponse);
 

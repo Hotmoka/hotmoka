@@ -38,6 +38,7 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -539,7 +540,22 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
-		return state.getHistoryOf(object).get();
+		return state.getHistoryOf(object).orElseGet(Stream::empty);
+	}
+
+	@Override
+	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
+		state.setHistory(object, history);
+	}
+
+	/**
+	 * Process the updates contained in the given response, expanding the history of the affected objects.
+	 * 
+	 * @param transactionReference the transaction that has generated the given response
+	 * @param response the response
+	 */
+	protected final void expandHistoryWithProxy(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws Exception {
+		super.expandHistoryWith(transactionReference, response);
 	}
 
 	@Override
