@@ -340,7 +340,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	public TransactionResponse getResponseAt(TransactionReference transactionReference) throws Exception {
+	protected TransactionResponse getResponseAtInternal(TransactionReference transactionReference) throws Exception {
 		return state.getResponseOf(transactionReference)
 			.orElseThrow(() -> new IllegalStateException("cannot find no response for transaction " + transactionReference));
 	}
@@ -548,14 +548,14 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 		state.setHistory(object, history);
 	}
 
-	/**
-	 * Process the updates contained in the given response, expanding the history of the affected objects.
-	 * 
-	 * @param transactionReference the transaction that has generated the given response
-	 * @param response the response
-	 */
-	protected final void expandHistoryWithProxy(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws Exception {
+	@Override
+	protected final void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws Exception {
 		super.expandHistoryWith(transactionReference, response);
+	}
+
+	@Override
+	protected final void cacheResponseAt(TransactionReference reference, TransactionResponse response) {
+		super.cacheResponseAt(reference, response);
 	}
 
 	@Override

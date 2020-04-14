@@ -187,7 +187,7 @@ class Tendermint implements AutoCloseable {
 			}
 
 			// we increase the delay, for next attempt
-			delay = (130 * delay) / 100;
+			delay = (110 * delay) / 100;
 		}
 
 		throw new IOException("cannot find transaction " + hash);

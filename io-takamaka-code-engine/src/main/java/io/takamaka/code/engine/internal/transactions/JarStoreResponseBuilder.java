@@ -8,7 +8,7 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.nodes.Node;
+import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
@@ -40,7 +40,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreResponseBuilder(JarStoreTransactionRequest request, Node node) throws TransactionRejectedException {
+	public JarStoreResponseBuilder(JarStoreTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
 
 		try {

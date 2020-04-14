@@ -400,6 +400,8 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		topmost = next;
 		if (next.isLastInBlock())
 			createHeaderOfBlock(next.blockNumber.add(BigInteger.ONE));
+
+		cacheResponseAt(next, response);
 	}
 
 	/**
@@ -425,7 +427,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	public TransactionResponse getResponseAt(TransactionReference reference) throws IOException, ClassNotFoundException {
+	protected TransactionResponse getResponseAtInternal(TransactionReference reference) throws IOException, ClassNotFoundException {
 		Path response = getPathFor((MemoryTransactionReference) reference, RESPONSE_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
 			return (TransactionResponse) in.readObject();

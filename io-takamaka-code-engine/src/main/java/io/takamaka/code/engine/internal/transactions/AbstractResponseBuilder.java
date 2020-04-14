@@ -12,8 +12,8 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
+import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.ResponseBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
@@ -33,7 +33,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The HotMoka node that is creating the response.
 	 */
-	public final Node node;
+	public final AbstractNode node;
 
 	/**
 	 * The request of the transaction.
@@ -88,7 +88,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(Request request, Node node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(Request request, AbstractNode node) throws TransactionRejectedException {
 		try {
 			this.request = request;
 			this.node = node;

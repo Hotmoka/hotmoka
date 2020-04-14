@@ -14,8 +14,8 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.GasCostModel;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
+import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
@@ -72,7 +72,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilder(Request request, Node node) throws TransactionRejectedException {
+	protected NonInitialResponseBuilder(Request request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
 
 		try {

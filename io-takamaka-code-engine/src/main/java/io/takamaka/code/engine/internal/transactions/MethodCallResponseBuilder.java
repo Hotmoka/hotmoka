@@ -14,8 +14,8 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
+import io.takamaka.code.engine.AbstractNode;
 
 /**
  * The creator of a response for a transaction that executes a method of Takamaka code.
@@ -32,7 +32,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected MethodCallResponseBuilder(Request request, Node node) throws TransactionRejectedException {
+	protected MethodCallResponseBuilder(Request request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
 	}
 

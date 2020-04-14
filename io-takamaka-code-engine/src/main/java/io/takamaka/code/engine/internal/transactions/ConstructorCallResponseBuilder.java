@@ -15,9 +15,9 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
+import io.takamaka.code.engine.AbstractNode;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.
@@ -31,7 +31,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public ConstructorCallResponseBuilder(ConstructorCallTransactionRequest request, Node node) throws TransactionRejectedException {
+	public ConstructorCallResponseBuilder(ConstructorCallTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
 	}
 

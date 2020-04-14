@@ -6,7 +6,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.nodes.Node;
+import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
@@ -27,11 +27,11 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public RedGreenGameteCreationResponseBuilder(RedGreenGameteCreationTransactionRequest request, Node node) throws TransactionRejectedException {
+	public RedGreenGameteCreationResponseBuilder(RedGreenGameteCreationTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
 
 		try {
-			this.classLoader = new EngineClassLoader(request.classpath, node);
+			this.classLoader = node.getCachedClassLoader(request.classpath);
 
 			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
 				throw new IllegalArgumentException("the gamete must be initialized with a non-negative amount of coins");

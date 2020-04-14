@@ -129,6 +129,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
     	//System.out.print("[beginBlock");
     	node.state.beginTransaction();
+    	//System.out.println("committed " + req.getHeader().getNumTxs() + " transactions");
         Header header = req.getHeader();
         next = new TendermintTransactionReference(BigInteger.valueOf(header.getHeight()), (short) 0);
     	Timestamp time = header.getTime();
@@ -157,14 +158,17 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
             	ResponseBuilder<?> builder = ResponseBuilder.of(hotmokaRequest, node);
             	hotmokaResponse = builder.build(next);
-
-            	if (hotmokaResponse instanceof TransactionResponseWithUpdates)
-            		node.expandHistoryWithProxy(next, (TransactionResponseWithUpdates) hotmokaResponse);
+            	ByteString serializedNext = byteStringSerializationOf(next.toString());
 
             	node.state.putResponseOf(next, hotmokaResponse);
 
+            	if (hotmokaResponse instanceof TransactionResponseWithUpdates)
+            		node.expandHistoryWith(next, (TransactionResponseWithUpdates) hotmokaResponse);
+
+            	node.cacheResponseAt(next, hotmokaResponse);
+
             	responseBuilder.setCode(0);
-            	responseBuilder.setData(byteStringSerializationOf(next.toString()));
+            	responseBuilder.setData(serializedNext);
             }
             catch (TransactionRejectedException e) {
             	responseBuilder.setCode(1);

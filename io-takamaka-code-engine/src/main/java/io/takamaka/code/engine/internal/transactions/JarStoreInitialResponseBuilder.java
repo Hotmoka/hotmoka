@@ -4,7 +4,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.nodes.Node;
+import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
@@ -31,7 +31,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreInitialResponseBuilder(JarStoreInitialTransactionRequest request, Node node) throws TransactionRejectedException {
+	public JarStoreInitialResponseBuilder(JarStoreInitialTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
 
 		try {

@@ -17,9 +17,9 @@ import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
+import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
@@ -51,11 +51,11 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected CodeCallResponseBuilder(Request request, Node node) throws TransactionRejectedException {
+	protected CodeCallResponseBuilder(Request request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
 
 		try {
-			this.classLoader = new EngineClassLoader(request.classpath, node);
+			this.classLoader = node.getCachedClassLoader(request.classpath);
 			chargeGasForClassLoader();
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeExternallyOwnedAccount();

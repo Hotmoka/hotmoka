@@ -18,7 +18,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node;
+import io.takamaka.code.engine.internal.transactions.AbstractNodeWithCache;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingWizard;
@@ -134,23 +134,9 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, Node node) throws Exception {
+	public EngineClassLoader(Classpath classpath, AbstractNodeWithCache node) throws Exception {
 		this(null, Stream.of(classpath), node);
 	}
-
-	/*public static EngineClassLoader mk(Classpath classpath, AbstractResponseBuilder<?,?> builder) throws Exception {
-		EngineClassLoader result = cache.get(classpath);
-		if (result != null)
-			return result;
-
-		result = new EngineClassLoader(classpath, builder);
-
-		cache.putIfAbsent(classpath, result);
-
-		return result;
-	}
-
-	private static final ConcurrentMap<Classpath, EngineClassLoader> cache = new ConcurrentHashMap<>();*/
 
 	/**
 	 * Builds the class loader for the given jar and its dependencies.
@@ -160,7 +146,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, Node node) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, AbstractNodeWithCache node) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
 		List<TransactionReference> transactionsOfJars = new ArrayList<>();
 		this.parent = mkTakamakaClassLoader(dependencies, jar, node, jars, transactionsOfJars);
@@ -204,7 +190,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @return the class loader
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, Node node, List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws Exception {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, AbstractNodeWithCache node, List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws Exception {
 		if (start != null) {
 			jars.add(start);
 			transactionsOfJars.add(null);
@@ -233,7 +219,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private void addJars(Classpath classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, Node node) throws Exception {
+	private void addJars(Classpath classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractNodeWithCache node) throws Exception {
 		if (jars.size() > MAX_DEPENDENCIES)
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + MAX_DEPENDENCIES);
 
@@ -261,7 +247,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @return the lengths
 	 */
-	public IntStream getLengthsOfJars() {
+	public final IntStream getLengthsOfJars() {
 		return IntStream.of(lengthsOfJars);
 	}
 
@@ -271,7 +257,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * 
 	 * @return the transactions
 	 */
-	public Stream<TransactionReference> getTransactionsOfJars() {
+	public final Stream<TransactionReference> getTransactionsOfJars() {
 		return Stream.of(transactionsOfJars);
 	}
 

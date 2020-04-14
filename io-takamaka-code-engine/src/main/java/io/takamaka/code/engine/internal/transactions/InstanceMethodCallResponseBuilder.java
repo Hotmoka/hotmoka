@@ -17,9 +17,9 @@ import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
+import io.takamaka.code.engine.AbstractNode;
 
 /**
  * The builder of the response of a transaction that executes an instance method of Takamaka code.
@@ -33,7 +33,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallResponseBuilder(InstanceMethodCallTransactionRequest request, Node node) throws TransactionRejectedException {
+	public InstanceMethodCallResponseBuilder(InstanceMethodCallTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
 	}
 

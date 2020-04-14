@@ -34,23 +34,6 @@ class MemoryTransactionReference implements TransactionReference {
 		this.transactionNumber = transactionNumber;
 	}
 
-	/**
-	 * Builds a transaction reference from its string representation.
-	 * 
-	 * @param toString the string representation, exactly as it would result by
-	 *                 calling {@code toString()} on the constructed transaction
-	 *                 reference
-	 */
-	MemoryTransactionReference(String toString) {
-		int dot = toString.indexOf('.');
-		this.blockNumber = new BigInteger(toString.substring(0, dot), 16);		
-		this.transactionNumber = Short.parseShort(toString.substring(dot + 1), 16);
-	}
-
-	boolean isOlderThan(TransactionReference other) {
-		return compareTo(other) < 0;
-	}
-
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof MemoryTransactionReference &&
@@ -66,16 +49,6 @@ class MemoryTransactionReference implements TransactionReference {
 	@Override
 	public String toString() {
 		return blockNumber.toString(16) + "." + Integer.toHexString(transactionNumber);
-	}
-
-	MemoryTransactionReference getPrevious() {
-		if (transactionNumber == 0)
-			if (blockNumber.signum() == 0)
-				return null;
-			else
-				return new MemoryTransactionReference(blockNumber.subtract(BigInteger.ONE), (short) (AbstractMemoryBlockchain.TRANSACTIONS_PER_BLOCK - 1));
-		else
-			return new MemoryTransactionReference(blockNumber, (short) (transactionNumber - 1));
 	}
 
 	@Override
