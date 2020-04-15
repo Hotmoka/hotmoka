@@ -48,7 +48,6 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 			this.jar = request.getJar();
 			this.classLoader = new EngineClassLoader(jar, request.getDependencies(), node);
 			chargeGasForClassLoader();
-			deserializer = new Deserializer(this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeExternallyOwnedAccount();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -65,6 +64,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	@Override
 	public final JarStoreTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
+			deserializer = new Deserializer(this);
 			deserializedCaller = deserializer.deserialize(request.caller);
 			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
