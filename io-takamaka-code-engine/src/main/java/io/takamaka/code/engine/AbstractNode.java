@@ -197,6 +197,20 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	}
 
 	@Override
+	public final ClassTag getClassTagOf(StorageReference storageReference, Consumer<BigInteger> chargeForCPU) throws Exception {
+		// we go straight to the transaction that created the object
+		TransactionResponse response = getResponseAndCharge(storageReference.transaction, chargeForCPU);
+
+		if (!(response instanceof TransactionResponseWithUpdates))
+			throw new DeserializationError("Storage reference " + storageReference + " does not contain updates");
+
+		return ((TransactionResponseWithUpdates) response).getUpdates()
+			.filter(update -> update instanceof ClassTag && update.object.equals(storageReference))
+			.map(update -> (ClassTag) update)
+			.findFirst().get();
+	}
+
+	@Override
 	public final Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception {
 		TransactionReference transaction = reference.transaction;
 	

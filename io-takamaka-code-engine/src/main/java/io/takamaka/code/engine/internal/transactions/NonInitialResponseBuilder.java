@@ -250,9 +250,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	protected final Stream<Update> updatesToBalanceOrNonceOfCaller() {
 		Object caller = getDeserializedCaller();
-		StorageReference storageReferenceOfCaller = getClassLoader().getStorageReferenceOf(caller);
 		return updatesExtractor.extractUpdatesFrom(Stream.of(caller))
-			.filter(update -> update.object.equals(storageReferenceOfCaller))
+			.filter(update -> update.object.equals(request.caller))
 			.filter(update -> update instanceof UpdateOfField)
 			.filter(update -> ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
 					|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)

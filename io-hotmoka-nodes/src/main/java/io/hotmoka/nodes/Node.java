@@ -21,6 +21,7 @@ import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
@@ -59,7 +60,7 @@ public interface Node extends AutoCloseable {
 	 * @param storageReference the storage reference
 	 * @param field the field whose update is being looked for
 	 * @param chargeForCPU a function called to charge CPU costs
-	 * @return the update, if any
+	 * @return the update
 	 * @throws Exception if the update could not be found
 	 */
 	UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception;
@@ -74,10 +75,20 @@ public interface Node extends AutoCloseable {
 	 * @param storageReference the storage reference
 	 * @param field the field whose update is being looked for
 	 * @param chargeForCPU a function called to charge CPU costs
-	 * @return the update, if any
+	 * @return the update
 	 * @throws Exception if the update could not be found
 	 */
 	UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception;
+
+	/**
+	 * Yields the class tag of the object with the given storage reference.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param chargeForCPU a function called to charge CPU costs
+	 * @return the class tag
+	 * @throws Exception if the class tag could not be found
+	 */
+	ClassTag getClassTagOf(StorageReference storageReference, Consumer<BigInteger> chargeForCPU) throws Exception;
 
 	/**
 	 * Yields the UTC time that must be used for a transaction, if it is executed
