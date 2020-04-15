@@ -29,4 +29,9 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	public StaticMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof StaticMethodCallTransactionRequest && super.equals(other);
+	}
 }

@@ -53,7 +53,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The object that deserializes storage objects into RAM values.
 	 */
-	public final Deserializer deserializer = new Deserializer(this);
+	public Deserializer deserializer = new Deserializer(this);
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -75,11 +75,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * The time of execution of the transaction.
 	 */
 	private final long now;
-
-	/**
-	 * The counter for the next storage object created during the transaction.
-	 */
-	private BigInteger nextProgressive = BigInteger.ZERO;
 
 	/**
 	 * Creates the builder of the response.
@@ -217,6 +212,16 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		private final TransactionReference current;
 
 		/**
+		 * The exception that occurred during the transaction, if any.
+		 */
+		private Throwable exception;
+
+		/**
+		 * The counter for the next storage object created during the transaction.
+		 */
+		private BigInteger nextProgressive = BigInteger.ZERO;
+
+		/**
 		 * Builds the thread.
 		 * 
 		 * @param current the reference of the transaction that is creating the response
@@ -224,11 +229,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		protected TakamakaThread(TransactionReference current) {
 			this.current = current;
 		}
-
-		/**
-		 * The exception that occurred during the transaction, if any.
-		 */
-		private Throwable exception;
 
 		@Override
 		public final void run() {

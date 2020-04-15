@@ -1,4 +1,4 @@
-package io.takamaka.code.engine.internal.cache;
+package io.takamaka.code.engine;
 
 import java.util.HashMap;
 import java.util.Map;

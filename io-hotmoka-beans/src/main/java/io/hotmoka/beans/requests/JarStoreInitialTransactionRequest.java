@@ -70,4 +70,19 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb.toString();
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof JarStoreInitialTransactionRequest) {
+			JarStoreInitialTransactionRequest otherCast = (JarStoreInitialTransactionRequest) other;
+			return Arrays.equals(dependencies, otherCast.dependencies) && Arrays.equals(jar, otherCast.jar);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies);
+	}
 }

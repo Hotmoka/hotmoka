@@ -88,4 +88,19 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb.toString();
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof JarStoreTransactionRequest) {
+			JarStoreTransactionRequest otherCast = (JarStoreTransactionRequest) other;
+			return super.equals(otherCast) && Arrays.equals(jar, otherCast.jar) && Arrays.equals(dependencies, otherCast.dependencies);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies);
+	}
 }

@@ -47,7 +47,7 @@ public abstract class TakamakaTest {
 	/**
 	 * The nonce of each externally owned account used in the test.
 	 */
-	private Map<StorageReference, BigInteger> nonces = new HashMap<>();
+	private final Map<StorageReference, BigInteger> nonces = new HashMap<>();
 
 	public interface TestBody {
 		public void run() throws Exception;

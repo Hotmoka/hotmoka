@@ -9,6 +9,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerifiedJar;
@@ -26,7 +27,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	/**
 	 * The deserialized caller.
 	 */
-	private final Object deserializedCaller;
+	private Object deserializedCaller;
 
 	/**
 	 * The jar to install, as a byte array.
@@ -47,6 +48,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 			this.jar = request.getJar();
 			this.classLoader = new EngineClassLoader(jar, request.getDependencies(), node);
 			chargeGasForClassLoader();
+			deserializer = new Deserializer(this);
 			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeExternallyOwnedAccount();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
@@ -63,6 +65,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	@Override
 	public final JarStoreTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
+			deserializedCaller = deserializer.deserialize(request.caller);
 			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
 			increaseNonceOfCaller();

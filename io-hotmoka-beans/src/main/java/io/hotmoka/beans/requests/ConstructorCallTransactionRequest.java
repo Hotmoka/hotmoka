@@ -51,4 +51,14 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	public ConstructorSignature getStaticTarget() {
 		return constructor;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof ConstructorCallTransactionRequest && super.equals(other) && constructor.equals(((ConstructorCallTransactionRequest) other).constructor);
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ constructor.hashCode();
+	}
 }

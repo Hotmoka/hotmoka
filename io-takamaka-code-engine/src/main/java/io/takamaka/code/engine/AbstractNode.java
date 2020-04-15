@@ -39,7 +39,6 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.Node;
-import io.takamaka.code.engine.internal.cache.LRUCache;
 import io.takamaka.code.engine.internal.transactions.AbstractNodeWithCache;
 
 /**
@@ -114,26 +113,6 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 */
 	protected abstract TransactionResponse getResponseAtInternal(TransactionReference reference) throws Exception;
 
-	/**
-	 * Process the updates contained in the given response, expanding the history of the affected objects.
-	 * This method should be called at the end of a transaction, to keep in store the updates to the objects.
-	 * 
-	 * @param transactionReference the transaction that has generated the given response
-	 * @param response the response
-	 * @throws Exception if the history could not be expanded
-	 */
-	protected void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws Exception {
-		// we collect the storage references that have been updated in the response; for each of them,
-		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
-		// in front of such lists and store back the updated lists, replacing the old ones
-		Stream<StorageReference> affectedObjects = response.getUpdates()
-			.map(Update::getObject)
-			.distinct();
-
-		for (StorageReference object: affectedObjects.toArray(StorageReference[]::new))
-			setHistory(object, simplifiedHistoryOf(object, transactionReference, response, getHistoryOf(object)));
-	}
-
 	@Override
 	public final TransactionResponse getResponseAt(TransactionReference reference) throws Exception {
 		TransactionResponse response = getResponseAtCache.get(reference);
@@ -147,14 +126,39 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	}
 
 	/**
-	 * Puts the given response in the cache for {@linkplain #getResponseAt(TransactionReference)}.
+	 * Process the given response with this node.
 	 * This is typically called at the end of the computation of a response.
+	 * Its goal is to take note of the response, for instance for caching.
 	 * 
 	 * @param reference the reference of the transaction that computed the response
-	 * @param response the response to cache
+	 * @param response the response
+	 * @throws Exception if the response could not be processed
 	 */
-	protected void cacheResponseAt(TransactionReference reference, TransactionResponse response) {
+	protected void processResponse(TransactionReference reference, TransactionResponse response) throws Exception {
+		if (response instanceof TransactionResponseWithUpdates)
+			expandHistoryWith(reference, (TransactionResponseWithUpdates) response);
+
 		getResponseAtCache.put(reference, response);
+	}
+
+	/**
+	 * Process the updates contained in the given response, expanding the history of the affected objects.
+	 * This method should be called at the end of a transaction, to keep in store the updates to the objects.
+	 * 
+	 * @param transactionReference the transaction that has generated the given response
+	 * @param response the response
+	 * @throws Exception if the history could not be expanded
+	 */
+	private void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws Exception {
+		// we collect the storage references that have been updated in the response; for each of them,
+		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
+		// in front of such lists and store back the updated lists, replacing the old ones
+		Stream<StorageReference> affectedObjects = response.getUpdates()
+			.map(Update::getObject)
+			.distinct();
+	
+		for (StorageReference object: affectedObjects.toArray(StorageReference[]::new))
+			setHistory(object, simplifiedHistoryOf(object, transactionReference, response, getHistoryOf(object)));
 	}
 
 	private Stream<TransactionReference> simplifiedHistoryOf(StorageReference object, TransactionReference added, TransactionResponseWithUpdates response, Stream<TransactionReference> old) throws Exception {

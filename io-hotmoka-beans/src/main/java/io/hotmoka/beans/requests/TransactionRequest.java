@@ -12,4 +12,9 @@ import io.hotmoka.beans.responses.TransactionResponse;
  */
 @Immutable
 public interface TransactionRequest<R extends TransactionResponse> extends Serializable {
+	boolean equals(Object obj);
+
+	int hashCode();
+
+	String toString();
 }

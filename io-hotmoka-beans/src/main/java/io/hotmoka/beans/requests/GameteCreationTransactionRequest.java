@@ -44,4 +44,19 @@ public class GameteCreationTransactionRequest implements InitialTransactionReque
         	+ "  class path: " + classpath + "\n"
         	+ "  initialAmount: " + initialAmount;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof GameteCreationTransactionRequest) {
+			GameteCreationTransactionRequest otherCast = (GameteCreationTransactionRequest) other;
+			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return classpath.hashCode() ^ initialAmount.hashCode();
+	}
 }

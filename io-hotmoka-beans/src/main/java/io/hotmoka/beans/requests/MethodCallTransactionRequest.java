@@ -50,4 +50,14 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	public final MethodSignature getStaticTarget() {
 		return method;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof MethodCallTransactionRequest && super.equals(other) && method.equals(((MethodCallTransactionRequest) other).method);
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ method.hashCode();
+	}
 }

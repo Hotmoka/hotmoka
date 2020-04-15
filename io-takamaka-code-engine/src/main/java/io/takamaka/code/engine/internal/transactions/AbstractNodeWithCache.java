@@ -3,8 +3,8 @@ package io.takamaka.code.engine.internal.transactions;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.takamaka.code.engine.LRUCache;
 import io.takamaka.code.engine.internal.EngineClassLoader;
-import io.takamaka.code.engine.internal.cache.LRUCache;
 
 /**
  * An object that is able to cache successive creations of a class loader.

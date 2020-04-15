@@ -43,4 +43,14 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	public String toString() {
         return super.toString() + "\n  receiver: " + receiver;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof InstanceMethodCallTransactionRequest && super.equals(other) && receiver.equals(((InstanceMethodCallTransactionRequest) other).receiver);
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ receiver.hashCode();
+	}
 }

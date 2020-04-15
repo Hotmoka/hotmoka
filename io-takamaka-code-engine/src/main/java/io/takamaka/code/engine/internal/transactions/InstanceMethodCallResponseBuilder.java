@@ -20,6 +20,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.internal.Deserializer;
 
 /**
  * The builder of the response of a transaction that executes an instance method of Takamaka code.
@@ -40,6 +41,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	@Override
 	public MethodCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
+			deserializer = new Deserializer(this);
+			deserializedCaller = deserializer.deserialize(request.caller);
 			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
 			increaseNonceOfCaller();

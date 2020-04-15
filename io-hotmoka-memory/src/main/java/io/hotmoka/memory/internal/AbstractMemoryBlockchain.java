@@ -42,7 +42,6 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.AbstractNode;
@@ -394,14 +393,11 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 			output.print(response);
 		}
 
-		if (response instanceof TransactionResponseWithUpdates)
-			expandHistoryWith(next, (TransactionResponseWithUpdates) response);
-
 		topmost = next;
 		if (next.isLastInBlock())
 			createHeaderOfBlock(next.blockNumber.add(BigInteger.ONE));
 
-		cacheResponseAt(next, response);
+		processResponse(next, response);
 	}
 
 	/**

@@ -16,6 +16,7 @@ import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.internal.Deserializer;
 
 /**
  * The builder of the response for a transaction that executes a static method of Takamaka code.
@@ -36,6 +37,8 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	@Override
 	public final MethodCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
+			deserializer = new Deserializer(this);
+			deserializedCaller = deserializer.deserialize(request.caller);
 			callerAndRequestMustAgreeOnNonce();
 			sellAllGasToCaller();
 			increaseNonceOfCaller();

@@ -42,7 +42,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	/**
 	 * The deserialized caller.
 	 */
-	private final Object deserializedCaller;
+	protected Object deserializedCaller;
 
 	/**
 	 * Creates the builder of the response.

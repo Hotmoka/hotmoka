@@ -62,4 +62,20 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
         	+ "  gas price: " + gasPrice + "\n"
         	+ "  class path: " + classpath;
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof NonInitialTransactionRequest) {
+			NonInitialTransactionRequest<?> otherCast = (NonInitialTransactionRequest<?>) other;
+			return caller.equals(otherCast.caller) && gasLimit.equals(otherCast.gasLimit) && gasPrice.equals(otherCast.gasPrice)
+				&& classpath.equals(otherCast.classpath) && nonce.equals(otherCast.nonce);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return caller.hashCode() ^ gasLimit.hashCode() ^ gasPrice.hashCode() ^ classpath.hashCode() ^ nonce.hashCode();
+	}
 }

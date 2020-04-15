@@ -16,7 +16,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
+import io.takamaka.code.engine.LRUCache;
 import io.takamaka.code.engine.ResponseBuilder;
 import types.ABCIApplicationGrpc;
 import types.Types.Header;
@@ -47,7 +47,12 @@ import types.Types.ResponseSetOption;
 class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	private final TendermintBlockchainImpl node;
 
-    /**
+	/**
+	 * A cache where checkTx stores the builders and from where deliverTx retrieves them.
+	 */
+	private final LRUCache<TransactionRequest<?>, ResponseBuilder<?>> builders = new LRUCache<>(10_000);
+
+	/**
      * The transaction reference that can be used for the next transaction that will be delivered.
      */
     private TendermintTransactionReference next;
@@ -89,20 +94,21 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     }
 
     @Override
-    public void checkTx(RequestCheckTx req, StreamObserver<ResponseCheckTx> responseObserver) {
+    public void checkTx(RequestCheckTx tendermintRequest, StreamObserver<ResponseCheckTx> responseObserver) {
     	//System.out.print("[checkTx");
-        ByteString tx = req.getTx();
+        ByteString tx = tendermintRequest.getTx();
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	TransactionRequest<?> hotmokaRequest = (TransactionRequest<?>) ois.readObject();
-        	//ResponseBuilder.of(hotmokaRequest, next, node);
+        	TransactionRequest<?> request = (TransactionRequest<?>) ois.readObject();
+        	// we store the builder where deliverTx will be able to find it
+        	builders.put(request, ResponseBuilder.of(request, node));
         	responseBuilder.setCode(0);
         }
-        /*catch (TransactionRejectedException e) {
+        catch (TransactionRejectedException e) {
         	responseBuilder.setCode(1);
         	responseBuilder.setInfo(e.getMessage());
-		}*/
+		}
         catch (Throwable t) {
         	responseBuilder.setCode(2);
         	responseBuilder.setInfo(t.toString());
@@ -143,8 +149,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     //private long deliverTxTime;
 
     @Override
-    public synchronized void deliverTx(RequestDeliverTx req, StreamObserver<ResponseDeliverTx> responseObserver) {
-    	ByteString tx = req.getTx();
+    public synchronized void deliverTx(RequestDeliverTx tendermintRequest, StreamObserver<ResponseDeliverTx> responseObserver) {
+    	ByteString tx = tendermintRequest.getTx();
         //System.out.print("[deliverTx ");
         //long start = System.currentTimeMillis();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
@@ -152,20 +158,18 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         int code = validate(tx);
         if (code == 0) {
             try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-            	TransactionRequest<?> hotmokaRequest = (TransactionRequest<?>) ois.readObject();
+            	TransactionRequest<?> request = (TransactionRequest<?>) ois.readObject();
+            	ResponseBuilder<?> builder = builders.get(request);
+            	if (builder == null) {
+            		// in case of cache miss, we recreate the builder
+            		builder = ResponseBuilder.of(request, node);
+            		//System.out.println("miss for " + request.getClass().getName());
+            	}
 
-            	TransactionResponse hotmokaResponse;
-
-            	ResponseBuilder<?> builder = ResponseBuilder.of(hotmokaRequest, node);
-            	hotmokaResponse = builder.build(next);
+            	TransactionResponse response = builder.build(next);
             	ByteString serializedNext = byteStringSerializationOf(next.toString());
 
-            	node.state.putResponseOf(next, hotmokaResponse);
-
-            	if (hotmokaResponse instanceof TransactionResponseWithUpdates)
-            		node.expandHistoryWith(next, (TransactionResponseWithUpdates) hotmokaResponse);
-
-            	node.cacheResponseAt(next, hotmokaResponse);
+            	node.processResponse(next, response);
 
             	responseBuilder.setCode(0);
             	responseBuilder.setData(serializedNext);
@@ -233,6 +237,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void flush(RequestFlush request, StreamObserver<ResponseFlush> responseObserver) {
+    	//System.out.println("flush");
     	ResponseFlush resp = ResponseFlush.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();

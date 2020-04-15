@@ -38,7 +38,6 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -549,13 +548,9 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	protected final void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws Exception {
-		super.expandHistoryWith(transactionReference, response);
-	}
-
-	@Override
-	protected final void cacheResponseAt(TransactionReference reference, TransactionResponse response) {
-		super.cacheResponseAt(reference, response);
+	protected final void processResponse(TransactionReference reference, TransactionResponse response) throws Exception {
+		state.putResponseOf(reference, response);
+		super.processResponse(reference, response);
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package io.hotmoka.beans.requests;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
@@ -50,4 +51,14 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	 * @return the method or constructor
 	 */
 	public abstract CodeSignature getStaticTarget();
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof CodeExecutionTransactionRequest<?> && super.equals(other) && Arrays.equals(actuals, ((CodeExecutionTransactionRequest<?>) other).actuals);
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ Arrays.deepHashCode(actuals);
+	}
 }
