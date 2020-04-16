@@ -190,7 +190,7 @@ public abstract class Runtime {
 	 * @param event the event
 	 */
 	public static void event(Object event) {
-		getBuilder().event(event);
+		getResponseCreator().event(event);
 	}
 
 	/**

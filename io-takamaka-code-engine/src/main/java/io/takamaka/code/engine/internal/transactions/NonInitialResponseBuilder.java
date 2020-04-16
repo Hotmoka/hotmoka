@@ -34,6 +34,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	private final BigInteger gasPrice;
 
 	/**
+	 * The cost model of the node for which the transaction is being built.
+	 */
+	protected final GasCostModel gasCostModel;
+
+	/**
 	 * The remaining amount of gas for the current transaction, not yet consumed.
 	 */
 	private BigInteger gas;
@@ -59,11 +64,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * the current available gas and pushed on top of this stack.
 	 */
 	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
-
-	/**
-	 * The cost model of the node for which the transaction is being built.
-	 */
-	protected final GasCostModel gasCostModel;
 
 	/**
 	 * Creates a the builder of the response.

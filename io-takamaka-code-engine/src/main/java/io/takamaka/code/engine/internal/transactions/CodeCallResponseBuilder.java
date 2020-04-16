@@ -108,12 +108,17 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		return null;
 	}
 
-	protected abstract class ResponseCreator extends NonInitialResponseBuilder<Request, Response>.ResponseCreator {
+	public abstract class ResponseCreator extends NonInitialResponseBuilder<Request, Response>.ResponseCreator {
 
 		/**
 		 * The object that serializes RAM values into storage objects.
 		 */
 		protected final Serializer serializer;
+
+		/**
+		 * The events accumulated during the transaction.
+		 */
+		private final List<Object> events = new ArrayList<>();
 
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
@@ -182,6 +187,14 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			classes.add(Dummy.class);
 
 			return classes.toArray(new Class<?>[classes.size()]);
+		}
+
+		@Override
+		public final void event(Object event) {
+			if (event == null)
+				throw new NullPointerException("an event cannot be null");
+
+			events.add(event);
 		}
 
 		/**
@@ -261,7 +274,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				.forEach(consumer);
 		
 			// events are accessible from outside, hence they count as side-effects
-			events().forEach(consumer);
+			events.stream().forEach(consumer);
 		}
 
 		/**
@@ -299,7 +312,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @return the storage references
 		 */
 		protected final Stream<StorageReference> storageReferencesOfEvents() {
-			return events().map(getClassLoader()::getStorageReferenceOf);
+			return events.stream().map(getClassLoader()::getStorageReferenceOf);
 		}
 	}
 }

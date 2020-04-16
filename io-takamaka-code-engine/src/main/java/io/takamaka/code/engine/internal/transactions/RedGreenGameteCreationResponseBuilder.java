@@ -73,6 +73,10 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 			response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}
 
+		@Override
+		public void event(Object event) {
+		}
+
 		/**
 		 * The thread that runs the code that creates the gamete.
 		 */

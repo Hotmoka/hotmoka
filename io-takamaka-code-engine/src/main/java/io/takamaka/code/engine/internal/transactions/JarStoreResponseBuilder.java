@@ -102,5 +102,9 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 
 			this.response = response;
 		}
+
+		@Override
+		public void event(Object event) {
+		}
 	}
 }

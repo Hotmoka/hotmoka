@@ -1,10 +1,7 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -48,11 +45,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * The object that translates storage types into their run-time class tag.
 	 */
 	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
-
-	/**
-	 * The events accumulated during the transaction.
-	 */
-	private final List<Object> events = new ArrayList<>();
 
 	/**
 	 * Creates the builder of the response.
@@ -107,27 +99,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	public abstract <T> T withGas(BigInteger amount, Callable<T> what) throws Exception;
 
 	/**
-	 * Takes note of the given event, emitted during this execution.
-	 * 
-	 * @param event the event
-	 */
-	public final void event(Object event) {
-		if (event == null)
-			throw new NullPointerException("an event cannot be null");
-
-		events.add(event);
-	}
-
-	/**
-	 * Yields the events generated so far.
-	 * 
-	 * @return the events
-	 */
-	protected final Stream<Object> events() {
-		return events.stream();
-	}
-
-	/**
 	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
 	 * already an instance of that exception.
 	 * 
@@ -161,6 +132,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 				throw new TransactionRejectedException(t);
 			}
 		}
+
+		/**
+		 * Takes note of the given event, emitted during this execution.
+		 * 
+		 * @param event the event
+		 */
+		public abstract void event(Object event);
 
 		/**
 		 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
