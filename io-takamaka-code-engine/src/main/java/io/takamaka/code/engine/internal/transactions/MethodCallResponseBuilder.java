@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
@@ -42,12 +43,13 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 		return sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-			updatesToBalanceOrNonceOfCaller(), gas, gas, gas, gas));
+			Stream.empty(), gas, gas, gas, gas));
 	}
 
 	protected abstract class ResponseCreator extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse>.ResponseCreator {
 
-		protected ResponseCreator() {}
+		protected ResponseCreator() throws TransactionRejectedException {
+		}
 
 		/**
 		 * Resolves the method that must be called.

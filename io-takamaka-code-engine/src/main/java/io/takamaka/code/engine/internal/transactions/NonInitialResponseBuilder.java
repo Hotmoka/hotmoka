@@ -15,6 +15,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
@@ -95,13 +96,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
-	 * Yields the caller of the transaction.
-	 * 
-	 * @return the caller
-	 */
-	protected abstract Object getDeserializedCaller();
-
-	/**
 	 * Reduces the remaining amount of gas. It performs a task at the end.
 	 * 
 	 * @param amount the amount of gas to consume
@@ -130,21 +124,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws IllegalArgumentException if the caller is not an externally owned account
 	 */
 	protected final void callerMustBeExternallyOwnedAccount() {
-		Class<? extends Object> clazz = getDeserializedCaller().getClass();
+		Object caller = new Deserializer(this).deserialize(request.caller);
+		Class<? extends Object> clazz = caller.getClass();
 		if (!getClassLoader().getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new IllegalArgumentException("only an externally owned account can start a transaction");
-	}
-
-	/**
-	 * Checks if the caller has the same nonce as the request.
-	 * 
-	 * @throws IllegalArgumentException if the nonce of the caller is not equal to that in {@code request}
-	 */
-	protected void callerAndRequestMustAgreeOnNonce() {
-		BigInteger expected = getClassLoader().getNonceOf(getDeserializedCaller());
-		if (!expected.equals(request.nonce))
-			throw new IllegalArgumentException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
 	}
 
 	@Override
@@ -208,23 +192,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
-	 * Sells to the caller of the transaction all gas promised for the transaction.
-	 * 
-	 * @throws IllegalStateException if the caller has not enough money to buy the promised gas
-	 */
-	protected final void sellAllGasToCaller() {
-		Object eoa = getDeserializedCaller();
-		EngineClassLoader classLoader = getClassLoader();
-		BigInteger balance = classLoader.getBalanceOf(eoa);
-		BigInteger cost = costOf(request.gasLimit);
-
-		if (balance.subtract(cost).signum() < 0)
-			throw new IllegalStateException("caller has not enough funds to buy " + request.gasLimit + " units of gas");
-
-		classLoader.setBalanceOf(eoa, balance.subtract(cost));
-	}
-
-	/**
 	 * Checks if the remaining gas for the transaction is enough to cover the cost of the addition of a
 	 * failed transaction response to the store of the node.
 	 * 
@@ -241,36 +208,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @return the cost
 	 */
 	protected abstract BigInteger gasForStoringFailedResponse();
-
-	/**
-	 * Collects all updates to the balance or nonce of the caller of the transaction.
-	 * 
-	 * @return the updates
-	 */
-	protected final Stream<Update> updatesToBalanceOrNonceOfCaller() {
-		Object caller = getDeserializedCaller();
-		return updatesExtractor.extractUpdatesFrom(Stream.of(caller))
-			.filter(update -> update.object.equals(request.caller))
-			.filter(update -> update instanceof UpdateOfField)
-			.filter(update -> ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
-					|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
-					|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD));
-	}
-
-	/**
-	 * Buys back the remaining gas to the caller of the transaction.
-	 */
-	protected final void payBackAllRemainingGasToCaller() {
-		Object caller = getDeserializedCaller();
-		getClassLoader().setBalanceOf(caller, getClassLoader().getBalanceOf(caller).add(costOf(gas)));
-	}
-
-	/**
-	 * Sets the nonce to the value successive to that in the request.
-	 */
-	protected void increaseNonceOfCaller() {
-		getClassLoader().setNonceOf(getDeserializedCaller(), request.nonce.add(BigInteger.ONE));
-	}
 
 	/**
 	 * Yields the remaining amount of gas for the current transaction, not yet consumed.
@@ -316,5 +253,94 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	protected final BigInteger gasConsumedForPenalty() {
 		return gasLimit.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
+	}
+
+	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
+
+		/**
+		 * The deserialized caller.
+		 */
+		private final Object deserializedCaller;
+
+		protected ResponseCreator() throws TransactionRejectedException {
+			try {
+				deserializedCaller = deserializer.deserialize(request.caller);
+
+				if (!(NonInitialResponseBuilder.this instanceof ViewResponseBuilder))
+					callerAndRequestMustAgreeOnNonce();
+
+				sellAllGasToCaller();
+
+				if (!(NonInitialResponseBuilder.this instanceof ViewResponseBuilder))
+					increaseNonceOfCaller();
+			}
+			catch (Throwable t) {
+				throw new TransactionRejectedException(t);
+			}
+		}
+
+		/**
+		 * Yields the deserialized caller of the transaction.
+		 * 
+		 * @return the deserialized caller
+		 */
+		protected final Object getDeserializedCaller() {
+			return deserializedCaller;
+		}
+
+		/**
+		 * Collects all updates to the balance or nonce of the caller of the transaction.
+		 * 
+		 * @return the updates
+		 */
+		protected final Stream<Update> updatesToBalanceOrNonceOfCaller() {
+			return updatesExtractor.extractUpdatesFrom(Stream.of(deserializedCaller))
+				.filter(update -> update.object.equals(request.caller))
+				.filter(update -> update instanceof UpdateOfField)
+				.filter(update -> ((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
+						|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
+						|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD));
+		}
+
+		/**
+		 * Buys back the remaining gas to the caller of the transaction.
+		 */
+		protected final void payBackAllRemainingGasToCaller() {
+			getClassLoader().setBalanceOf(deserializedCaller, getClassLoader().getBalanceOf(deserializedCaller).add(costOf(gas)));
+		}
+
+		/**
+		 * Checks if the caller has the same nonce as the request.
+		 * 
+		 * @throws IllegalArgumentException if the nonce of the caller is not equal to that in {@code request}
+		 */
+		private void callerAndRequestMustAgreeOnNonce() {
+			BigInteger expected = getClassLoader().getNonceOf(deserializedCaller);
+			if (!expected.equals(request.nonce))
+				throw new IllegalArgumentException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
+		}
+
+		/**
+		 * Sets the nonce to the value successive to that in the request.
+		 */
+		private void increaseNonceOfCaller() {
+			getClassLoader().setNonceOf(deserializedCaller, request.nonce.add(BigInteger.ONE));
+		}
+
+		/**
+		 * Sells to the caller of the transaction all gas promised for the transaction.
+		 * 
+		 * @throws IllegalStateException if the caller has not enough money to buy the promised gas
+		 */
+		private void sellAllGasToCaller() {
+			EngineClassLoader classLoader = getClassLoader();
+			BigInteger balance = classLoader.getBalanceOf(deserializedCaller);
+			BigInteger cost = costOf(request.gasLimit);
+
+			if (balance.subtract(cost).signum() < 0)
+				throw new IllegalStateException("caller has not enough funds to buy " + request.gasLimit + " units of gas");
+
+			classLoader.setBalanceOf(deserializedCaller, balance.subtract(cost));
+		}
 	}
 }

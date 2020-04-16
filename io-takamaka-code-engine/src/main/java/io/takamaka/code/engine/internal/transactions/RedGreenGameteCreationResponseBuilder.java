@@ -44,13 +44,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 	@Override
 	public final GameteCreationTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
-			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
-			GameteThread thread = new GameteThread(current);
-			thread.go();
-			Object gamete = thread.gamete;
-			classLoader.setBalanceOf(gamete, request.initialAmount);
-			classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
-			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
+			return new ResponseCreator(current).response;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -62,19 +56,37 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 		return classLoader;
 	}
 
-	/**
-	 * The thread that runs the code that creates the gamete.
-	 */
-	private class GameteThread extends TakamakaThread {
-		private Object gamete;
+	private class ResponseCreator extends InitialResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse>.ResponseCreator {
+		
+		/**
+		 * The created response.
+		 */
+		private final GameteCreationTransactionResponse response;
 
-		private GameteThread(TransactionReference current) throws Exception {
-			super(current);
+		private ResponseCreator(TransactionReference current) throws Throwable {
+			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
+			GameteThread thread = new GameteThread(current);
+			thread.go();
+			Object gamete = thread.gamete;
+			classLoader.setBalanceOf(gamete, request.initialAmount);
+			classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
+			response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}
 
-		@Override
-		protected void body() throws Exception {
-			gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+		/**
+		 * The thread that runs the code that creates the gamete.
+		 */
+		private class GameteThread extends TakamakaThread {
+			private Object gamete;
+
+			private GameteThread(TransactionReference current) throws Exception {
+				super(current);
+			}
+
+			@Override
+			protected void body() throws Exception {
+				gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+			}
 		}
 	}
 }

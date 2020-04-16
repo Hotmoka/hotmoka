@@ -21,6 +21,7 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.internal.EngineClassLoader;
+import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.verification.Dummy;
 import io.takamaka.code.whitelisting.ResolvingClassLoader;
 import io.takamaka.code.whitelisting.WhiteListingPredicate;
@@ -40,11 +41,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	private final EngineClassLoader classLoader;
 
 	/**
-	 * The deserialized caller.
-	 */
-	protected Object deserializedCaller;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
@@ -57,7 +53,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		try {
 			this.classLoader = node.getCachedClassLoader(request.classpath);
 			chargeGasForClassLoader();
-			this.deserializedCaller = deserializer.deserialize(request.caller);
 			callerMustBeExternallyOwnedAccount();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorageOfRequest();
@@ -71,21 +66,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	@Override
 	public final EngineClassLoader getClassLoader() {
 		return classLoader;
-	}
-
-	@Override
-	protected final Object getDeserializedCaller() {
-		return deserializedCaller;
-	}
-
-	/**
-	 * Checks that the caller of the transaction is a red/green externally owned account or subclass.
-	 * 
-	 * @throws IllegalArgumentException if the object is not a red/green externally owned account
-	 */
-	protected final void callerMustBeRedGreenExternallyOwnedAccount() {
-		if (!getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(getDeserializedCaller().getClass()))
-			throw new IllegalArgumentException("only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 	}
 
 	/**
@@ -128,9 +108,20 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		return null;
 	}
 
-	protected abstract class ResponseCreator {
+	protected abstract class ResponseCreator extends NonInitialResponseBuilder<Request, Response>.ResponseCreator {
 
-		protected ResponseCreator() {
+		/**
+		 * The object that serializes RAM values into storage objects.
+		 */
+		protected final Serializer serializer;
+
+		protected ResponseCreator() throws TransactionRejectedException {
+			try {
+				this.serializer = new Serializer(CodeCallResponseBuilder.this);
+			}
+			catch (Throwable t) {
+				throw new TransactionRejectedException(t);
+			}
 		}
 
 		/**
@@ -148,6 +139,16 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		protected final void formalsAndActualsMustMatch() {
 			if (request.getStaticTarget().formals().count() != request.actuals().count())
 				throw new IllegalArgumentException("argument count mismatch between formals and actuals");
+		}
+
+		/**
+		 * Checks that the caller of the transaction is a red/green externally owned account or subclass.
+		 * 
+		 * @throws IllegalArgumentException if the object is not a red/green externally owned account
+		 */
+		protected final void callerMustBeRedGreenExternallyOwnedAccount() {
+			if (!getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(getDeserializedCaller().getClass()))
+				throw new IllegalArgumentException("only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 		}
 
 		/**

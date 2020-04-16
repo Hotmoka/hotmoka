@@ -1,17 +1,14 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import java.lang.reflect.Method;
-
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
 
 /**
  * The builder of the response for a transaction that executes an instance method of Takamaka code
  * annotated as {@linkplain io.hotmoka.code.lang.View}.
  */
-public class InstanceViewMethodCallResponseBuilder extends InstanceMethodCallResponseBuilder {
+public class InstanceViewMethodCallResponseBuilder extends InstanceMethodCallResponseBuilder implements ViewResponseBuilder {
 
 	/**
 	 * Creates the builder of the response. 
@@ -22,23 +19,5 @@ public class InstanceViewMethodCallResponseBuilder extends InstanceMethodCallRes
 	 */
 	public InstanceViewMethodCallResponseBuilder(InstanceMethodCallTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
-	}
-
-	@Override
-	protected void validateCallee(Method methodJVM) throws NoSuchMethodException {
-		super.validateCallee(methodJVM);
-
-		if (!hasAnnotation(methodJVM, Constants.VIEW_NAME))
-			throw new NoSuchMethodException("cannot call a method not annotated as @View");
-	}
-
-	@Override
-	protected final void callerAndRequestMustAgreeOnNonce() {
-		// we disable the check, since the nonce is not checked in view transactions
-	}
-
-	@Override
-	protected final void increaseNonceOfCaller() {
-		// we disable the nonce increment for view transactions
 	}
 }

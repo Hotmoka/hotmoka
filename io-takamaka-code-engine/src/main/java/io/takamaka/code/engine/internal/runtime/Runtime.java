@@ -37,12 +37,24 @@ public abstract class Runtime {
 	/**
 	 * Transaction builders spawn a thread when they need to execute code that could
 	 * call into this class. This allows the execution of more transactions in parallel
+	 * and with distinct class loaders.
+	 * This method yields the transaction builder that is using that thread.
+	 * 
+	 * @return the transaction builder that is using the current thread
+	 */
+	private static AbstractResponseBuilder<?,?>.ResponseCreator getResponseCreator() {
+		return getCurrentThread().getResponseCreator();
+	}
+
+	/**
+	 * Transaction builders spawn a thread when they need to execute code that could
+	 * call into this class. This allows the execution of more transactions in parallel
 	 * and with distinct class loaders. This method yields that thread.
 	 * 
 	 * @return the current thread
 	 */
-	private static AbstractResponseBuilder<?,?>.TakamakaThread getCurrentThread() {
-		return (AbstractResponseBuilder<?,?>.TakamakaThread) Thread.currentThread();
+	private static AbstractResponseBuilder<?,?>.ResponseCreator.TakamakaThread getCurrentThread() {
+		return (AbstractResponseBuilder<?,?>.ResponseCreator.TakamakaThread) Thread.currentThread();
 	}
 	/**
 	 * Yields the last value assigned to the given lazy, non-{@code final} field of the given storage object.
@@ -57,7 +69,7 @@ public abstract class Runtime {
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
 		AbstractResponseBuilder<?,?> builder = getBuilder();
-		return builder.deserializeLastLazyUpdateFor(builder.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return getResponseCreator().deserializeLastLazyUpdateFor(builder.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -73,7 +85,7 @@ public abstract class Runtime {
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
 		AbstractResponseBuilder<?,?> builder = getBuilder();
-		return builder.deserializeLastLazyUpdateForFinal(builder.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return getResponseCreator().deserializeLastLazyUpdateForFinal(builder.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -244,7 +256,7 @@ public abstract class Runtime {
 	 * @return the next storage reference
 	 */
 	public static Object getNextStorageReference() {
-		return ((AbstractResponseBuilder<?,?>.TakamakaThread) Thread.currentThread()).getNextStorageReference();
+		return getCurrentThread().getNextStorageReference();
 	}
 
 	/**

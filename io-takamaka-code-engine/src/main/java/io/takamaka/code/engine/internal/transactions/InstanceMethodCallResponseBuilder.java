@@ -20,7 +20,6 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
-import io.takamaka.code.engine.internal.Deserializer;
 
 /**
  * The builder of the response of a transaction that executes an instance method of Takamaka code.
@@ -41,34 +40,11 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	@Override
 	public MethodCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
-			deserializer = new Deserializer(this);
-			deserializedCaller = deserializer.deserialize(request.caller);
-			callerAndRequestMustAgreeOnNonce();
-			sellAllGasToCaller();
-			increaseNonceOfCaller();
-
-			try {
-				return new ResponseCreator(current).response;
-			}
-			catch (Throwable t) {
-				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
-			}
+			return new ResponseCreator(current).response;
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-	}
-
-	/**
-	 * Checks that the called method respects the expected constraints.
-	 * 
-	 * @param methodJVM the method
-	 * @throws NoSuchMethodException if the constraints are not satisfied
-	 */
-	protected void validateCallee(Method methodJVM) throws NoSuchMethodException {
-		if (Modifier.isStatic(methodJVM.getModifiers()))
-			throw new NoSuchMethodException("cannot call a static method");
 	}
 
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {
@@ -81,7 +57,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		/**
 		 * The deserialized actual arguments of the call.
 		 */
-		private final Object[] deserializedActuals;
+		private Object[] deserializedActuals;
 
 		/**
 		 * The response that is created.
@@ -89,69 +65,94 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		private final MethodCallTransactionResponse response;
 
 		private ResponseCreator(TransactionReference current) throws Throwable {
-			// we perform deserialization in a thread, since enums passed as parameters
-			// would trigger the execution of their static initializer, which will charge gas
-			DeserializerThread deserializerThread = new DeserializerThread(request, current);
-			deserializerThread.go();
-			this.deserializedReceiver = deserializerThread.deserializedReceiver;
-			this.deserializedActuals = deserializerThread.deserializedActuals;
-
-			formalsAndActualsMustMatch();
-
-			Object[] deserializedActuals;
-			Method methodJVM;
+			MethodCallTransactionResponse response = null;
 
 			try {
-				// we first try to call the method with exactly the parameter types explicitly provided
-				methodJVM = getMethod();
-				deserializedActuals = this.deserializedActuals;
-			}
-			catch (NoSuchMethodException e) {
-				// if not found, we try to add the trailing types that characterize the @Entry methods
+				// we perform deserialization in a thread, since enums passed as parameters
+				// would trigger the execution of their static initializer, which will charge gas
+				DeserializerThread deserializerThread = new DeserializerThread(current);
+				deserializerThread.go();
+				this.deserializedReceiver = deserializerThread.deserializedReceiver;
+				this.deserializedActuals = deserializerThread.deserializedActuals;
+
+				formalsAndActualsMustMatch();
+
+				Object[] deserializedActuals;
+				Method methodJVM;
+
 				try {
-					methodJVM = getEntryMethod();
-					deserializedActuals = addExtraActualsForEntry();
+					// we first try to call the method with exactly the parameter types explicitly provided
+					methodJVM = getMethod();
+					deserializedActuals = this.deserializedActuals;
 				}
-				catch (NoSuchMethodException ee) {
-					throw e; // the message must be relative to the method as the user sees it
+				catch (NoSuchMethodException e) {
+					// if not found, we try to add the trailing types that characterize the @Entry methods
+					try {
+						methodJVM = getEntryMethod();
+						deserializedActuals = addExtraActualsForEntry();
+					}
+					catch (NoSuchMethodException ee) {
+						throw e; // the message must be relative to the method as the user sees it
+					}
+				}
+
+				validateCallee(methodJVM);
+				ensureWhiteListingOf(methodJVM, deserializedActuals);
+
+				if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
+					callerMustBeRedGreenExternallyOwnedAccount();
+
+				MethodThread thread = new MethodThread(methodJVM, deserializedActuals, current);
+				try {
+					thread.go();
+				}
+				catch (InvocationTargetException e) {
+					Throwable cause = e.getCause();
+					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
+						chargeGasForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						payBackAllRemainingGasToCaller();
+						response = new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
+					else
+						throw cause;
+				}
+
+				if (response == null) {
+					if (hasAnnotation(methodJVM, Constants.VIEW_NAME) && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
+						throw new SideEffectsInViewMethodException(request.method);
+
+					if (methodJVM.getReturnType() == void.class) {
+						chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						payBackAllRemainingGasToCaller();
+						response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
+					else {
+						chargeGasForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						payBackAllRemainingGasToCaller();
+						response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					}
 				}
 			}
-
-			validateCallee(methodJVM);
-			ensureWhiteListingOf(methodJVM, deserializedActuals);
-
-			if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
-				callerMustBeRedGreenExternallyOwnedAccount();
-
-			MethodThread thread = new MethodThread(methodJVM, deserializedActuals, current);
-			try {
-				thread.go();
-			}
-			catch (InvocationTargetException e) {
-				Throwable cause = e.getCause();
-				if (isCheckedForThrowsExceptions(cause, methodJVM)) {
-					chargeGasForStorage(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					payBackAllRemainingGasToCaller();
-					response = new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-					return;
-				}
-				else
-					throw cause;
+			catch (Throwable t) {
+				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
+				response = new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 
-			if (hasAnnotation(methodJVM, Constants.VIEW_NAME) && !onlyAffectedBalanceOrNonceOfCaller(thread.result))
-				throw new SideEffectsInViewMethodException(request.method);
+			this.response = response;
+		}
 
-			if (methodJVM.getReturnType() == void.class) {
-				chargeGasForStorage(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				payBackAllRemainingGasToCaller();
-				response = new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-			}
-			else {
-				chargeGasForStorage(new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-				payBackAllRemainingGasToCaller();
-				response = new MethodCallTransactionSuccessfulResponse(serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-			}
+		/**
+		 * Checks that the called method respects the expected constraints.
+		 * 
+		 * @param methodJVM the method
+		 * @throws NoSuchMethodException if the constraints are not satisfied
+		 */
+		private void validateCallee(Method methodJVM) throws NoSuchMethodException {
+			if (Modifier.isStatic(methodJVM.getModifiers()))
+				throw new NoSuchMethodException("cannot call a static method");
+
+			if (InstanceMethodCallResponseBuilder.this instanceof ViewResponseBuilder && !hasAnnotation(methodJVM, Constants.VIEW_NAME))
+				throw new NoSuchMethodException("cannot call a method not annotated as @View");
 		}
 
 		@Override
@@ -231,36 +232,33 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				result = methodJVM.invoke(deserializedReceiver, deserializedActuals);
 			}
 		}
-	}
-
-	/**
-	 * The thread that deserializes the caller, the receiver and the actual parameters.
-	 * This must be done inside a thread so that static initializers
-	 * are run with an associated {@code io.takamaka.code.engine.internal.Runtime} object.
-	 */
-	private class DeserializerThread extends TakamakaThread {
-		private final InstanceMethodCallTransactionRequest request;
 
 		/**
-		 * The deserialized receiver the call.
+		 * The thread that deserializes the caller, the receiver and the actual parameters.
+		 * This must be done inside a thread so that static initializers
+		 * are run with an associated {@code io.takamaka.code.engine.internal.Runtime} object.
 		 */
-		private Object deserializedReceiver;
+		private class DeserializerThread extends TakamakaThread {
 
-		/**
-		 * The deserialized actual arguments of the call.
-		 */
-		private Object[] deserializedActuals;
+			/**
+			 * The deserialized receiver the call.
+			 */
+			private Object deserializedReceiver;
 
-		private DeserializerThread(InstanceMethodCallTransactionRequest request, TransactionReference current) throws Exception {
-			super(current);
+			/**
+			 * The deserialized actual arguments of the call.
+			 */
+			private Object[] deserializedActuals;
 
-			this.request = request;
-		}
+			private DeserializerThread(TransactionReference current) throws Exception {
+				super(current);
+			}
 
-		@Override
-		protected void body() throws Exception {
-			deserializedReceiver = deserializer.deserialize(request.receiver);
-			deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+			@Override
+			protected void body() throws Exception {
+				deserializedReceiver = deserializer.deserialize(request.receiver);
+				deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+			}
 		}
 	}
 }

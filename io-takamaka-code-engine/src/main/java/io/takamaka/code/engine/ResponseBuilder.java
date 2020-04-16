@@ -1,7 +1,6 @@
 package io.takamaka.code.engine;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -40,7 +39,6 @@ import io.takamaka.code.engine.internal.transactions.StaticViewMethodCallRespons
  * 
  * @param <Response> the type of the response of the transaction
  */
-@Immutable
 public interface ResponseBuilder<Response extends TransactionResponse> {
 
 	/**

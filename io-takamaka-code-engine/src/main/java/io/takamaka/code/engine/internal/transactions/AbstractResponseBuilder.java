@@ -17,7 +17,6 @@ import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.ResponseBuilder;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
-import io.takamaka.code.engine.internal.Serializer;
 import io.takamaka.code.engine.internal.SizeCalculator;
 import io.takamaka.code.engine.internal.StorageTypeToClass;
 import io.takamaka.code.engine.internal.UpdatesExtractor;
@@ -46,25 +45,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	public final SizeCalculator sizeCalculator = new SizeCalculator(this);
 
 	/**
-	 * The object that serializes RAM values into storage objects.
-	 */
-	public final Serializer serializer = new Serializer(this);
-
-	/**
-	 * The object that deserializes storage objects into RAM values.
-	 */
-	public Deserializer deserializer = new Deserializer(this);
-
-	/**
 	 * The object that translates storage types into their run-time class tag.
 	 */
 	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
-
-	/**
-	 * The object that can be used to extract the updates to a set of storage objects,
-	 * induced by the run of the transaction.
-	 */
-	public final UpdatesExtractor updatesExtractor = new UpdatesExtractor(this);
 
 	/**
 	 * The events accumulated during the transaction.
@@ -136,34 +119,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	}
 
 	/**
-	 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
-	 * The field is {@code final}. Conceptually, this method looks for the value of the field
-	 * in the transaction where the reference was created.
-	 * 
-	 * @param reference the storage reference
-	 * @param field the field, of lazy type
-	 * @return the value of the field
-	 * @throws Exception if the look up fails
-	 */
-	public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
-	}
-
-	/**
-	 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
-	 * The field is {@code final}. Conceptually, this method looks for the value of the field
-	 * in the transaction where the reference was created.
-	 * 
-	 * @param reference the storage reference
-	 * @param field the field, of lazy type
-	 * @return the value of the field
-	 * @throws Exception if the look up fails
-	 */
-	public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-		return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
-	}
-
-	/**
 	 * Yields the events generated so far.
 	 * 
 	 * @return the events
@@ -184,97 +139,158 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		return t instanceof TransactionRejectedException ? (TransactionRejectedException) t : new TransactionRejectedException(t);
 	}
 
-	/**
-	 * A thread that executes Takamaka code as part of this transaction.
-	 */
-	public abstract class TakamakaThread extends Thread {
+	public abstract class ResponseCreator {
 
 		/**
-		 * The reference that must be used to refer to the created transaction.
+		 * The object that deserializes storage objects into RAM values.
 		 */
-		private final TransactionReference current;
+		protected final Deserializer deserializer;
 
 		/**
-		 * The time of execution of the transaction.
+		 * The object that can be used to extract the updates to a set of storage objects,
+		 * induced by the run of the transaction.
 		 */
-		private final long now;
+		protected final UpdatesExtractor updatesExtractor;
 
-		/**
-		 * The exception that occurred during the transaction, if any.
-		 */
-		private Throwable exception;
-
-		/**
-		 * The counter for the next storage object created during the transaction.
-		 */
-		private BigInteger nextProgressive = BigInteger.ZERO;
-
-		/**
-		 * Yields the UTC time when the transaction is being run.
-		 * This might be for instance the time of creation of a block where the transaction
-		 * will be stored, but the detail is left to the implementation.
-		 * 
-		 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
-		 */
-		public final long now() {
-			return now;
-		}
-
-		/**
-		 * Builds the thread.
-		 * 
-		 * @param current the reference of the transaction that is creating the response
-		 * @throws Exception if the thread cannot be created
-		 */
-		protected TakamakaThread(TransactionReference current) throws Exception {
-			this.current = current;
-			this.now = node.getNow();
-		}
-
-		@Override
-		public final void run() {
+		protected ResponseCreator() throws TransactionRejectedException {
 			try {
-				body();
+				deserializer = new Deserializer(AbstractResponseBuilder.this);
+				updatesExtractor = new UpdatesExtractor(AbstractResponseBuilder.this);
 			}
 			catch (Throwable t) {
-				exception = t;
+				throw new TransactionRejectedException(t);
 			}
 		}
 
 		/**
-		 * Starts the thread, waits for its conclusion and throws its exception, if any.
+		 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
+		 * The field is {@code final}. Conceptually, this method looks for the value of the field
+		 * in the transaction where the reference was created.
 		 * 
-		 * @throws Throwable the exception generated during the execution of {@linkplain #body()}, if any
+		 * @param reference the storage reference
+		 * @param field the field, of lazy type
+		 * @return the value of the field
+		 * @throws Exception if the look up fails
 		 */
-		public final void go() throws Throwable {
-			start();
-			join();
-			if (exception != null)
-				throw exception;
-		}
-
-		protected abstract void body() throws Exception;
-
-		/**
-		 * Yields the next storage reference for the current transaction.
-		 * This can be used to associate a storage reference to each new
-		 * storage object created during a transaction.
-		 * 
-		 * @return the next storage reference
-		 */
-		public final StorageReference getNextStorageReference() {
-			BigInteger result = nextProgressive;
-			nextProgressive = nextProgressive.add(BigInteger.ONE);
-			return StorageReference.mk(current, result);
+		public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
+			return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, AbstractResponseBuilder.this::chargeGasForCPU).getValue());
 		}
 
 		/**
-		 * Yields the builder for which the transaction is executed.
+		 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
+		 * The field is {@code final}. Conceptually, this method looks for the value of the field
+		 * in the transaction where the reference was created.
 		 * 
-		 * @return the builder
+		 * @param reference the storage reference
+		 * @param field the field, of lazy type
+		 * @return the value of the field
+		 * @throws Exception if the look up fails
 		 */
-		public final AbstractResponseBuilder<?,?> getBuilder() {
-			return AbstractResponseBuilder.this;
+		public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
+			return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, AbstractResponseBuilder.this::chargeGasForCPU).getValue());
+		}
+
+		/**
+		 * A thread that executes Takamaka code as part of this transaction.
+		 */
+		public abstract class TakamakaThread extends Thread {
+		
+			/**
+			 * The reference that must be used to refer to the created transaction.
+			 */
+			private final TransactionReference current;
+		
+			/**
+			 * The time of execution of the transaction.
+			 */
+			private final long now;
+		
+			/**
+			 * The exception that occurred during the transaction, if any.
+			 */
+			private Throwable exception;
+		
+			/**
+			 * The counter for the next storage object created during the transaction.
+			 */
+			private BigInteger nextProgressive = BigInteger.ZERO;
+		
+			/**
+			 * Yields the UTC time when the transaction is being run.
+			 * This might be for instance the time of creation of a block where the transaction
+			 * will be stored, but the detail is left to the implementation.
+			 * 
+			 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+			 */
+			public final long now() {
+				return now;
+			}
+		
+			/**
+			 * Builds the thread.
+			 * 
+			 * @param current the reference of the transaction that is creating the response
+			 * @throws Exception if the thread cannot be created
+			 */
+			protected TakamakaThread(TransactionReference current) throws Exception {
+				this.current = current;
+				this.now = node.getNow();
+			}
+		
+			@Override
+			public final void run() {
+				try {
+					body();
+				}
+				catch (Throwable t) {
+					exception = t;
+				}
+			}
+		
+			/**
+			 * Starts the thread, waits for its conclusion and throws its exception, if any.
+			 * 
+			 * @throws Throwable the exception generated during the execution of {@linkplain #body()}, if any
+			 */
+			public final void go() throws Throwable {
+				start();
+				join();
+				if (exception != null)
+					throw exception;
+			}
+		
+			protected abstract void body() throws Exception;
+		
+			/**
+			 * Yields the next storage reference for the current transaction.
+			 * This can be used to associate a storage reference to each new
+			 * storage object created during a transaction.
+			 * 
+			 * @return the next storage reference
+			 */
+			public final StorageReference getNextStorageReference() {
+				BigInteger result = nextProgressive;
+				nextProgressive = nextProgressive.add(BigInteger.ONE);
+				return StorageReference.mk(current, result);
+			}
+		
+			/**
+			 * Yields the builder for which the thread works.
+			 * 
+			 * @return the builder
+			 */
+			public final AbstractResponseBuilder<?,?> getBuilder() {
+				return AbstractResponseBuilder.this;
+			}
+
+			/**
+			 * Yields the response creator for which the thread works.
+			 * 
+			 * @return the response creator
+			 */
+			public final ResponseCreator getResponseCreator() {
+				return ResponseCreator.this;
+			}
 		}
 	}
 }

@@ -84,7 +84,7 @@ class RemotePurchase extends TakamakaTest {
 		);
 	}
 
-	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20) and then purchase.confirmReception()")
+	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20) and then purchase.confirmReceived()")
 	void buyerPaysAndConfirmReception() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		StorageReference purchase = addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 		postInstanceMethodCallTransaction(buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
