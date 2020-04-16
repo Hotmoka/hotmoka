@@ -68,7 +68,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 	private class GameteThread extends TakamakaThread {
 		private Object gamete;
 
-		private GameteThread(TransactionReference current) {
+		private GameteThread(TransactionReference current) throws Exception {
 			super(current);
 		}
 

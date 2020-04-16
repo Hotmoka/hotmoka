@@ -12,7 +12,6 @@ import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractNode;

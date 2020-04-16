@@ -1,6 +1,7 @@
 package io.takamaka.code.engine;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -30,11 +31,16 @@ import io.takamaka.code.engine.internal.transactions.StaticViewMethodCallRespons
  * The creator of a response from a request. It executes a transaction from the request and builds the corresponding response.
  * The factory methods in this interface check the prerequisite for running the
  * transaction, such as the fact that the caller can be identified and has provided a minimum of gas.
- * The {@linkplain #build()} method, instead, performs the actual creation of the response.
- * If the factory methods fail, then a node could for instance reject the request.
+ * The factory methods can be executed in a thread-safe way, since they do not depend on
+ * information in the node's store that might be modified by other transactions.
+ * If these factory methods fail, then a node could for instance reject the request.
+ * The {@linkplain #build(TransactionReference)} method performs the actual creation of the response and
+ * depends on the current store of the node. Hence, {@linkplain #build(TransactionReference)}
+ * is not thread-safe and should be executed only after a lock is taken on the store of the node.
  * 
  * @param <Response> the type of the response of the transaction
  */
+@Immutable
 public interface ResponseBuilder<Response extends TransactionResponse> {
 
 	/**

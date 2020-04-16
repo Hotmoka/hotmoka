@@ -72,11 +72,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	private final List<Object> events = new ArrayList<>();
 
 	/**
-	 * The time of execution of the transaction.
-	 */
-	private final long now;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the response
@@ -87,7 +82,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		try {
 			this.request = request;
 			this.node = node;
-			this.now = node.getNow();
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -128,17 +122,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @throws Exception if the code runs into this exception
 	 */
 	public abstract <T> T withGas(BigInteger amount, Callable<T> what) throws Exception;
-
-	/**
-	 * Yields the UTC time when the transaction is being run.
-	 * This might be for instance the time of creation of a block where the transaction
-	 * will be stored, but the detail is left to the implementation.
-	 * 
-	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
-	 */
-	public final long now() {
-		return now;
-	}
 
 	/**
 	 * Takes note of the given event, emitted during this execution.
@@ -212,6 +195,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		private final TransactionReference current;
 
 		/**
+		 * The time of execution of the transaction.
+		 */
+		private final long now;
+
+		/**
 		 * The exception that occurred during the transaction, if any.
 		 */
 		private Throwable exception;
@@ -222,12 +210,25 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		private BigInteger nextProgressive = BigInteger.ZERO;
 
 		/**
+		 * Yields the UTC time when the transaction is being run.
+		 * This might be for instance the time of creation of a block where the transaction
+		 * will be stored, but the detail is left to the implementation.
+		 * 
+		 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+		 */
+		public final long now() {
+			return now;
+		}
+
+		/**
 		 * Builds the thread.
 		 * 
 		 * @param current the reference of the transaction that is creating the response
+		 * @throws Exception if the thread cannot be created
 		 */
-		protected TakamakaThread(TransactionReference current) {
+		protected TakamakaThread(TransactionReference current) throws Exception {
 			this.current = current;
+			this.now = node.getNow();
 		}
 
 		@Override

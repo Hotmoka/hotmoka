@@ -129,6 +129,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	}
 
 	protected abstract class ResponseCreator {
+
 		protected ResponseCreator() {
 		}
 

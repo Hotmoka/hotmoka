@@ -219,7 +219,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			private final Method methodJVM;
 			private final Object[] deserializedActuals;
 		
-			private MethodThread(Method methodJVM, Object[] deserializedActuals, TransactionReference current) {
+			private MethodThread(Method methodJVM, Object[] deserializedActuals, TransactionReference current) throws Exception {
 				super(current);
 
 				this.methodJVM = methodJVM;
@@ -251,7 +251,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Object[] deserializedActuals;
 
-		private DeserializerThread(InstanceMethodCallTransactionRequest request, TransactionReference current) {
+		private DeserializerThread(InstanceMethodCallTransactionRequest request, TransactionReference current) throws Exception {
 			super(current);
 
 			this.request = request;

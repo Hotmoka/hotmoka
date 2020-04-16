@@ -217,7 +217,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private Object[] deserializedActuals;
 
-		private DeserializerThread(ConstructorCallTransactionRequest request, TransactionReference current) {
+		private DeserializerThread(ConstructorCallTransactionRequest request, TransactionReference current) throws Exception {
 			super(current);
 
 			this.request = request;
@@ -237,7 +237,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private final Constructor<?> constructorJVM;
 		private final Object[] deserializedActuals;
 
-		private ConstructorThread(Constructor<?> constructorJVM, Object[] deserializedActuals, TransactionReference current) {
+		private ConstructorThread(Constructor<?> constructorJVM, Object[] deserializedActuals, TransactionReference current) throws Exception {
 			super(current);
 
 			this.constructorJVM = constructorJVM;

@@ -141,7 +141,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		 */
 		private Object[] deserializedActuals;
 
-		private DeserializerThread(StaticMethodCallTransactionRequest request, TransactionReference current) {
+		private DeserializerThread(StaticMethodCallTransactionRequest request, TransactionReference current) throws Exception {
 			super(current);
 
 			this.request = request;
@@ -161,7 +161,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		private final Method methodJVM;
 		private final Object[] deserializedActuals;
 
-		private MethodThread(Method methodJVM, Object[] deserializedActuals, TransactionReference current) {
+		private MethodThread(Method methodJVM, Object[] deserializedActuals, TransactionReference current) throws Exception {
 			super(current);
 
 			this.methodJVM = methodJVM;

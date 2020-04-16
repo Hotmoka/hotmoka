@@ -24,15 +24,26 @@ public abstract class Runtime {
 
 	/**
 	 * Transaction builders spawn a thread when they need to execute code that could
-	 * call into this class. This allows the execution of more transactions in parallel.
-	 * This method yields the transaction builder that is using the current thread.
+	 * call into this class. This allows the execution of more transactions in parallel
+	 * and with distinct class loaders.
+	 * This method yields the transaction builder that is using that thread.
 	 * 
 	 * @return the transaction builder that is using the current thread
 	 */
 	private static AbstractResponseBuilder<?,?> getBuilder() {
-		return ((AbstractResponseBuilder<?,?>.TakamakaThread) Thread.currentThread()).getBuilder();
+		return getCurrentThread().getBuilder();
 	}
 
+	/**
+	 * Transaction builders spawn a thread when they need to execute code that could
+	 * call into this class. This allows the execution of more transactions in parallel
+	 * and with distinct class loaders. This method yields that thread.
+	 * 
+	 * @return the current thread
+	 */
+	private static AbstractResponseBuilder<?,?>.TakamakaThread getCurrentThread() {
+		return (AbstractResponseBuilder<?,?>.TakamakaThread) Thread.currentThread();
+	}
 	/**
 	 * Yields the last value assigned to the given lazy, non-{@code final} field of the given storage object.
 	 * 
@@ -192,7 +203,7 @@ public abstract class Runtime {
 	 * @return the time
 	 */
 	public static long now() {
-		return getBuilder().now();
+		return getCurrentThread().now();
 	}
 
 	/**
