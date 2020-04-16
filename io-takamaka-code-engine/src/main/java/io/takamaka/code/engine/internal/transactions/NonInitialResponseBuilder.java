@@ -1,5 +1,7 @@
 package io.takamaka.code.engine.internal.transactions;
 
+import static java.math.BigInteger.ZERO;
+
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
@@ -10,12 +12,12 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractNode;
-import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
@@ -24,46 +26,9 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
 public abstract class NonInitialResponseBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
 
 	/**
-	 * The gas initially provided for the transaction.
-	 */
-	private final BigInteger gasLimit;
-
-	/**
-	 * The coins payed for each unit of gas consumed by the transaction.
-	 */
-	private final BigInteger gasPrice;
-
-	/**
 	 * The cost model of the node for which the transaction is being built.
 	 */
 	protected final GasCostModel gasCostModel;
-
-	/**
-	 * The remaining amount of gas for the current transaction, not yet consumed.
-	 */
-	private BigInteger gas;
-
-	/**
-	 * The amount of gas consumed for CPU execution.
-	 */
-	private BigInteger gasConsumedForCPU = BigInteger.ZERO;
-
-	/**
-	 * The amount of gas consumed for RAM allocation.
-	 */
-	private BigInteger gasConsumedForRAM = BigInteger.ZERO;
-
-	/**
-	 * The amount of gas consumed for storage consumption.
-	 */
-	private BigInteger gasConsumedForStorage = BigInteger.ZERO;
-
-	/**
-	 * A stack of available gas. When a sub-computation is started
-	 * with a subset of the available gas, the latter is taken away from
-	 * the current available gas and pushed on top of this stack.
-	 */
-	private final LinkedList<BigInteger> oldGas = new LinkedList<>();
 
 	/**
 	 * Creates a the builder of the response.
@@ -76,9 +41,11 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		super(request, node);
 
 		try {
+			callerMustBeExternallyOwnedAccount();
 			this.gasCostModel = node.getGasCostModel();
-			this.gas = this.gasLimit = request.gasLimit;
-			this.gasPrice = request.gasPrice;
+
+			if (request.gasLimit.compareTo(minimalGasRequiredForTransaction()) < 0)
+				throw new TransactionRejectedException("not enough gas to start the transaction");
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -86,120 +53,35 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	/**
-	 * Charges gas proportional to the complexity of the class loader that has been created.
-	 */
-	protected final void chargeGasForClassLoader() {
-		EngineClassLoader classLoader = getClassLoader();
-		classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).forEach(this::chargeGasForCPU);
-		classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).forEach(this::chargeGasForRAM);
-		classLoader.getTransactionsOfJars().map(gasCostModel::cpuCostForGettingResponseAt).forEach(this::chargeGasForCPU);
-	}
-
-	/**
-	 * Reduces the remaining amount of gas. It performs a task at the end.
+	 * Computes a minimal threshold of gas that is required for the transaction.
+	 * Below this threshold, the response builder cannot be created.
 	 * 
-	 * @param amount the amount of gas to consume
-	 * @param forWhat the task performed at the end, for the amount of gas to consume
+	 * @return the minimal threshold
 	 */
-	private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
-		if (amount.signum() < 0)
-			throw new IllegalArgumentException("gas cannot increase");
+	protected BigInteger minimalGasRequiredForTransaction() {
+		EngineClassLoader classLoader = getClassLoader();
+		BigInteger result = gasCostModel.cpuBaseTransactionCost();
+		result = result.add(sizeCalculator.sizeOfRequest(request));
+		result = result.add(gasForStoringFailedResponse());
+		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).reduce(ZERO, BigInteger::add));
+		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).reduce(ZERO, BigInteger::add));
+		result = result.add(classLoader.getTransactionsOfJars().map(gasCostModel::cpuCostForGettingResponseAt).reduce(ZERO, BigInteger::add));
 
-		// gas can be negative only if it was initialized so; this special case is
-		// used for the creation of the gamete, when gas should not be counted
-		if (gas.signum() < 0)
-			return;
-
-		if (gas.compareTo(amount) < 0)
-			// we report how much gas is missing
-			throw new OutOfGasError();
-	
-		gas = gas.subtract(amount);
-		forWhat.accept(amount);
+		return result;
 	}
 
 	/**
 	 * Checks if the caller is an externally owned account or subclass.
+	 * @throws Exception 
 	 * 
 	 * @throws IllegalArgumentException if the caller is not an externally owned account
 	 */
-	protected final void callerMustBeExternallyOwnedAccount() {
-		Object caller = new Deserializer(this).deserialize(request.caller);
-		Class<? extends Object> clazz = caller.getClass();
+	private void callerMustBeExternallyOwnedAccount() throws Exception {
+		ClassTag classTag = node.getClassTagOf(request.caller, i -> {});
+		Class<?> clazz = getClassLoader().loadClass(classTag.className);
 		if (!getClassLoader().getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
-			throw new IllegalArgumentException("only an externally owned account can start a transaction");
-	}
-
-	@Override
-	public final void chargeGasForCPU(BigInteger amount) {
-		charge(amount, x -> gasConsumedForCPU = gasConsumedForCPU.add(x));
-	}
-
-	@Override
-	public final void chargeGasForRAM(BigInteger amount) {
-		charge(amount, x -> gasConsumedForRAM = gasConsumedForRAM.add(x));
-	}
-
-	@Override
-	public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		chargeGasForCPU(amount);
-		oldGas.addFirst(gas);
-		amount.hashCode();
-		gas = amount;
-	
-		try {
-			return what.call();
-		}
-		finally {
-			gas = gas.add(oldGas.removeFirst());
-		}
-	}
-
-	/**
-	 * Decreases the available gas by the given amount, for storage allocation.
-	 * 
-	 * @param amount the amount of gas to consume
-	 */
-	private void chargeForStorage(BigInteger amount) {
-		charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
-	}
-
-	/**
-	 * Decreases the available gas for the request of this transaction, for storage allocation.
-	 */
-	protected final void chargeGasForStorageOfRequest() {
-		chargeForStorage(sizeCalculator.sizeOfRequest(request));
-	}
-
-	/**
-	 * Decreases the available gas for the given response, for storage allocation.
-	 * 
-	 * @param response the response
-	 */
-	protected final void chargeGasForStorage(Response response) {
-		chargeForStorage(sizeCalculator.sizeOfResponse(response));
-	}
-
-	/**
-	 * Computes the cost of the given units of gas.
-	 * 
-	 * @param gas the units of gas
-	 * @return the cost, as {@code gas} times {@code gasPrice}
-	 */
-	private BigInteger costOf(BigInteger gas) {
-		return gas.multiply(gasPrice);
-	}
-
-	/**
-	 * Checks if the remaining gas for the transaction is enough to cover the cost of the addition of a
-	 * failed transaction response to the store of the node.
-	 * 
-	 * @throws OutOfGasError if the gas is not enough
-	 */
-	protected final void remainingGasMustBeEnoughForStoringFailedResponse() throws OutOfGasError {
-		if (gas.compareTo(gasForStoringFailedResponse()) < 0)
-			throw new OutOfGasError("not enough gas to start the transaction");
+			throw new TransactionRejectedException("only an externally owned account can start a transaction");
 	}
 
 	/**
@@ -209,52 +91,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	protected abstract BigInteger gasForStoringFailedResponse();
 
-	/**
-	 * Yields the remaining amount of gas for the current transaction, not yet consumed.
-	 * 
-	 * @return the amount of gas
-	 */
-	protected final BigInteger gas() {
-		return gas;
-	}
-
-	/**
-	 * Yields the amount of gas consumed for CPU execution.
-	 * 
-	 * @return the amount of gas
-	 */
-	protected final BigInteger gasConsumedForCPU() {
-		return gasConsumedForCPU;
-	}
-
-	/**
-	 * Yields the amount of gas consumed for RAM allocation.
-	 * 
-	 * @return the amount of gas
-	 */
-	protected final BigInteger gasConsumedForRAM() {
-		return gasConsumedForRAM;
-	}
-
-	/**
-	 * Yields the amount of gas consumed for storage consumption.
-	 * 
-	 * @return the amount of gas
-	 */
-	protected final BigInteger gasConsumedForStorage() {
-		return gasConsumedForStorage;
-	}
-
-	/**
-	 * Yields the gas that would be paid if the transaction fails.
-	 * 
-	 * @return the gas for penalty, computed as the total initial gas minus
-	 *         the gas already consumed for PCU, for RAM and for storage
-	 */
-	protected final BigInteger gasConsumedForPenalty() {
-		return gasLimit.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
-	}
-
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
 
 		/**
@@ -262,9 +98,42 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		private final Object deserializedCaller;
 
+		/**
+		 * A stack of available gas. When a sub-computation is started
+		 * with a subset of the available gas, the latter is taken away from
+		 * the current available gas and pushed on top of this stack.
+		 */
+		private final LinkedList<BigInteger> oldGas = new LinkedList<>();
+
+		/**
+		 * The remaining amount of gas for the current transaction, not yet consumed.
+		 */
+		private BigInteger gas;
+
+		/**
+		 * The amount of gas consumed for CPU execution.
+		 */
+		private BigInteger gasConsumedForCPU = BigInteger.ZERO;
+
+		/**
+		 * The amount of gas consumed for RAM allocation.
+		 */
+		private BigInteger gasConsumedForRAM = BigInteger.ZERO;
+
+		/**
+		 * The amount of gas consumed for storage consumption.
+		 */
+		private BigInteger gasConsumedForStorage = BigInteger.ZERO;
+
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
-				deserializedCaller = deserializer.deserialize(request.caller);
+				this.gas = request.gasLimit;
+
+				chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
+				chargeGasForStorage(sizeCalculator.sizeOfRequest(request));
+				chargeGasForClassLoader();
+
+				this.deserializedCaller = deserializer.deserialize(request.caller);
 
 				if (!(NonInitialResponseBuilder.this instanceof ViewResponseBuilder))
 					callerAndRequestMustAgreeOnNonce();
@@ -289,6 +158,104 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
+		 * Yields the amount of gas consumed for CPU execution.
+		 * 
+		 * @return the amount of gas
+		 */
+		protected final BigInteger gasConsumedForCPU() {
+			return gasConsumedForCPU;
+		}
+
+		/**
+		 * Yields the amount of gas consumed for RAM allocation.
+		 * 
+		 * @return the amount of gas
+		 */
+		protected final BigInteger gasConsumedForRAM() {
+			return gasConsumedForRAM;
+		}
+
+		/**
+		 * Yields the amount of gas consumed for storage consumption.
+		 * 
+		 * @return the amount of gas
+		 */
+		protected final BigInteger gasConsumedForStorage() {
+			return gasConsumedForStorage;
+		}
+
+		/**
+		 * Reduces the remaining amount of gas. It performs a task at the end.
+		 * 
+		 * @param amount the amount of gas to consume
+		 * @param forWhat the task performed at the end, for the amount of gas to consume
+		 */
+		private void charge(BigInteger amount, Consumer<BigInteger> forWhat) {
+			if (amount.signum() < 0)
+				throw new IllegalArgumentException("gas cannot increase");
+
+			// gas can be negative only if it was initialized so; this special case is
+			// used for the creation of the gamete, when gas should not be counted
+			if (gas.signum() < 0)
+				return;
+
+			if (gas.compareTo(amount) < 0)
+				// we report how much gas is missing
+				throw new OutOfGasError();
+		
+			gas = gas.subtract(amount);
+			forWhat.accept(amount);
+		}
+
+		/**
+		 * Decreases the available gas by the given amount, for storage allocation.
+		 * 
+		 * @param amount the amount of gas to consume
+		 */
+		private void chargeGasForStorage(BigInteger amount) {
+			charge(amount, x -> gasConsumedForStorage = gasConsumedForStorage.add(x));
+		}
+
+		/**
+		 * Decreases the available gas for the given response, for storage allocation.
+		 * 
+		 * @param response the response
+		 */
+		protected final void chargeGasForStorageOf(Response response) {
+			chargeGasForStorage(sizeCalculator.sizeOfResponse(response));
+		}
+
+		/**
+		 * Yields the gas that would be paid if the transaction fails.
+		 * 
+		 * @return the gas for penalty, computed as the total initial gas minus
+		 *         the gas already consumed for PCU, for RAM and for storage
+		 */
+		protected final BigInteger gasConsumedForPenalty() {
+			return request.gasLimit.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
+		}
+
+		@Override
+		public final void chargeGasForCPU(BigInteger amount) {
+			charge(amount, x -> gasConsumedForCPU = gasConsumedForCPU.add(x));
+		}
+
+		@Override
+		public final void chargeGasForRAM(BigInteger amount) {
+			charge(amount, x -> gasConsumedForRAM = gasConsumedForRAM.add(x));
+		}
+
+		/**
+		 * Charges gas proportional to the complexity of the class loader that has been created.
+		 */
+		protected final void chargeGasForClassLoader() {
+			EngineClassLoader classLoader = getClassLoader();
+			classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).forEach(this::chargeGasForCPU);
+			classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).forEach(this::chargeGasForRAM);
+			classLoader.getTransactionsOfJars().map(gasCostModel::cpuCostForGettingResponseAt).forEach(this::chargeGasForCPU);
+		}
+
+		/**
 		 * Collects all updates to the balance or nonce of the caller of the transaction.
 		 * 
 		 * @return the updates
@@ -303,10 +270,35 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
+		 * Computes the cost of the given units of gas.
+		 * 
+		 * @param gas the units of gas
+		 * @return the cost, as {@code gas} times {@code gasPrice}
+		 */
+		private BigInteger costOf(BigInteger gas) {
+			return gas.multiply(request.gasPrice);
+		}
+
+		/**
 		 * Buys back the remaining gas to the caller of the transaction.
 		 */
 		protected final void payBackAllRemainingGasToCaller() {
 			getClassLoader().setBalanceOf(deserializedCaller, getClassLoader().getBalanceOf(deserializedCaller).add(costOf(gas)));
+		}
+
+		@Override
+		public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
+			chargeGasForCPU(amount);
+			oldGas.addFirst(gas);
+			amount.hashCode();
+			gas = amount;
+		
+			try {
+				return what.call();
+			}
+			finally {
+				gas = gas.add(oldGas.removeFirst());
+			}
 		}
 
 		/**

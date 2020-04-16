@@ -20,16 +20,6 @@ import io.takamaka.code.verification.VerifiedJar;
 public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> {
 
 	/**
-	 * The class loader of the transaction.
-	 */
-	private final EngineClassLoader classLoader;
-
-	/**
-	 * The jar to install, as a byte array.
-	 */
-	private final byte[] jar;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
@@ -38,21 +28,22 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	 */
 	public JarStoreResponseBuilder(JarStoreTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
+	}
 
-		try {
-			this.jar = request.getJar();
-			this.classLoader = new EngineClassLoader(jar, request.getDependencies(), node);
-			chargeGasForClassLoader();
-			callerMustBeExternallyOwnedAccount();
-			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeGasForStorageOfRequest();
-			chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jar.length));
-			chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jar.length));
-			remainingGasMustBeEnoughForStoringFailedResponse();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+
+	@Override
+	protected EngineClassLoader mkClassLoader() throws Exception {
+		return new EngineClassLoader(request.getJar(), request.getDependencies(), node);
+	}
+
+	@Override
+	protected BigInteger minimalGasRequiredForTransaction() {
+		int jarLength = request.getJarLength();
+		BigInteger result = super.minimalGasRequiredForTransaction();
+		result = result.add(gasCostModel.cpuCostForInstallingJar(jarLength));
+		result = result.add(gasCostModel.ramCostForInstallingJar(jarLength));
+
+		return result;
 	}
 
 	@Override
@@ -66,13 +57,8 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
-	}
-
-	@Override
 	protected final BigInteger gasForStoringFailedResponse() {
-		BigInteger gas = gas();
+		BigInteger gas = request.gasLimit;
 
 		return sizeCalculator.sizeOfResponse(new JarStoreTransactionFailedResponse("placeholder for the name of the exception", "placeholder for the message of the exception", Stream.empty(), gas, gas, gas, gas));
 	}
@@ -87,11 +73,15 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 		private ResponseCreator(TransactionReference current) throws Throwable {
 			JarStoreTransactionResponse response;
 
+			int jarLength = request.getJarLength();
+			chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
+			chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
+
 			try {
-				VerifiedJar verifiedJar = VerifiedJar.of(jar, classLoader, false);
+				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), getClassLoader(), false);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
 				byte[] instrumentedBytes = instrumentedJar.toBytes();
-				chargeGasForStorage(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				payBackAllRemainingGasToCaller();
 				response = new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}

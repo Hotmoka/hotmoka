@@ -1,5 +1,7 @@
 package io.takamaka.code.engine.internal.transactions;
 
+import java.math.BigInteger;
+import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -15,11 +17,6 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
 public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> {
 
 	/**
-	 * The class loader of the transaction.
-	 */
-	private final EngineClassLoader classLoader;
-
-	/**
 	 * Creates the builder of a response.
 	 * 
 	 * @param request the request of the transaction
@@ -31,14 +28,17 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 		super(request, node);
 
 		try {
-			this.classLoader = node.getCachedClassLoader(request.classpath);
-
 			if (request.initialAmount.signum() < 0 || request.redInitialAmount.signum() < 0)
-				throw new IllegalArgumentException("the gamete must be initialized with a non-negative amount of coins");
+				throw new TransactionRejectedException("the gamete must be initialized with a non-negative amount of coins");
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
+	}
+
+	@Override
+	protected EngineClassLoader mkClassLoader() throws Exception {
+		return node.getCachedClassLoader(request.classpath);
 	}
 
 	@Override
@@ -49,11 +49,6 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-	}
-
-	@Override
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
 	}
 
 	private class ResponseCreator extends InitialResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse>.ResponseCreator {
@@ -68,6 +63,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 			GameteThread thread = new GameteThread(current);
 			thread.go();
 			Object gamete = thread.gamete;
+			EngineClassLoader classLoader = getClassLoader();
 			classLoader.setBalanceOf(gamete, request.initialAmount);
 			classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
 			response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
@@ -75,6 +71,14 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 
 		@Override
 		public void event(Object event) {
+		}
+
+		@Override
+		public <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
+			// initial transactions consume no gas; this implementation is needed
+			// if (in the future) code run in initial transactions tries to run
+			// tasks with a limited amount of gas
+			return what.call();
 		}
 
 		/**
@@ -89,7 +93,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 
 			@Override
 			protected void body() throws Exception {
-				gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+				gamete = getClassLoader().getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 			}
 		}
 	}

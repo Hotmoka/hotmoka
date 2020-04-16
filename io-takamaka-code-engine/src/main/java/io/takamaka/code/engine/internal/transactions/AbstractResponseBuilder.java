@@ -47,6 +47,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
 
 	/**
+	 * The class loader used for the transaction.
+	 */
+	private final EngineClassLoader classLoader;
+
+	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the response
@@ -57,6 +62,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		try {
 			this.request = request;
 			this.node = node;
+			this.classLoader = mkClassLoader();
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -64,39 +70,20 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	}
 
 	/**
+	 * Creates the class loader for computing the response.
+	 * 
+	 * @return the class loader
+	 */
+	protected abstract EngineClassLoader mkClassLoader() throws Exception;
+
+	/**
 	 * Yields the class loader used for the transaction being created.
 	 * 
 	 * @return the class loader
 	 */
-	public abstract EngineClassLoader getClassLoader();
-
-	/**
-	 * Decreases the available gas by the given amount, for CPU execution.
-	 * 
-	 * @param amount the amount of gas to consume
-	 */
-	public abstract void chargeGasForCPU(BigInteger amount);
-
-	/**
-	 * Decreases the available gas by the given amount, for RAM execution.
-	 * 
-	 * @param amount the amount of gas to consume
-	 */
-	public abstract void chargeGasForRAM(BigInteger amount);
-
-	/**
-	 * Runs a given piece of code with a subset of the available gas.
-	 * It first charges the given amount of gas. Then runs the code
-	 * with the charged gas only. At its end, the remaining gas is added
-	 * to the available gas to continue the computation.
-	 * 
-	 * @param amount the amount of gas provided to the code
-	 * @param what the code to run
-	 * @return the result of the execution of the code
-	 * @throws OutOfGasError if there is not enough gas
-	 * @throws Exception if the code runs into this exception
-	 */
-	public abstract <T> T withGas(BigInteger amount, Callable<T> what) throws Exception;
+	public final EngineClassLoader getClassLoader() {
+		return classLoader;
+	}
 
 	/**
 	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
@@ -125,7 +112,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
-				deserializer = new Deserializer(AbstractResponseBuilder.this);
+				deserializer = new Deserializer(this);
 				updatesExtractor = new UpdatesExtractor(AbstractResponseBuilder.this);
 			}
 			catch (Throwable t) {
@@ -134,11 +121,48 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 
 		/**
+		 * Yields the builder for which the creator works.
+		 * 
+		 * @return the builder
+		 */
+		public final AbstractResponseBuilder<?,?> getBuilder() {
+			return AbstractResponseBuilder.this;
+		}
+
+		/**
 		 * Takes note of the given event, emitted during this execution.
 		 * 
 		 * @param event the event
 		 */
 		public abstract void event(Object event);
+
+		/**
+		 * Runs a given piece of code with a subset of the available gas.
+		 * It first charges the given amount of gas. Then runs the code
+		 * with the charged gas only. At its end, the remaining gas is added
+		 * to the available gas to continue the computation.
+		 * 
+		 * @param amount the amount of gas provided to the code
+		 * @param what the code to run
+		 * @return the result of the execution of the code
+		 * @throws OutOfGasError if there is not enough gas
+		 * @throws Exception if the code runs into this exception
+		 */
+		public abstract <T> T withGas(BigInteger amount, Callable<T> what) throws Exception;
+
+		/**
+		 * Decreases the available gas by the given amount, for CPU execution.
+		 * 
+		 * @param amount the amount of gas to consume
+		 */
+		public abstract void chargeGasForCPU(BigInteger amount);
+
+		/**
+		 * Decreases the available gas by the given amount, for RAM execution.
+		 * 
+		 * @param amount the amount of gas to consume
+		 */
+		public abstract void chargeGasForRAM(BigInteger amount);
 
 		/**
 		 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
@@ -151,7 +175,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @throws Exception if the look up fails
 		 */
 		public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-			return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, AbstractResponseBuilder.this::chargeGasForCPU).getValue());
+			return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
 		}
 
 		/**
@@ -165,7 +189,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @throws Exception if the look up fails
 		 */
 		public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-			return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, AbstractResponseBuilder.this::chargeGasForCPU).getValue());
+			return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
 		}
 
 		/**

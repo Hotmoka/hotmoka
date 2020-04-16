@@ -39,7 +39,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 	@Override
 	protected final BigInteger gasForStoringFailedResponse() {
-		BigInteger gas = gas();
+		BigInteger gas = request.gasLimit;
 
 		return sizeCalculator.sizeOfResponse(new MethodCallTransactionFailedResponse
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",

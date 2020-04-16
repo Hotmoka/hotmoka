@@ -206,7 +206,7 @@ public abstract class Runtime {
 	 * @throws Exception if the code runs into this exception
 	 */
 	public static <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		return getBuilder().withGas(amount, what);
+		return getResponseCreator().withGas(amount, what);
 	}
 
 	/**
@@ -283,7 +283,7 @@ public abstract class Runtime {
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
 	public static void chargeForRAM(BigInteger ram) {
-		getBuilder().chargeGasForRAM(ram);
+		getResponseCreator().chargeGasForRAM(ram);
 	}
 
 	/**
@@ -292,7 +292,7 @@ public abstract class Runtime {
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
 	public static void chargeForRAM(long ram) {
-		getBuilder().chargeGasForRAM(BigInteger.valueOf(ram));
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
@@ -301,7 +301,7 @@ public abstract class Runtime {
 	 * @param ram the amount of gas to consume for RAM consumption
 	 */
 	public static void chargeForRAM(int ram) {
-		getBuilder().chargeGasForRAM(BigInteger.valueOf(ram));
+		getResponseCreator().chargeGasForRAM(BigInteger.valueOf(ram));
 	}
 
 	/**
@@ -310,7 +310,7 @@ public abstract class Runtime {
 	 * @param cpu the amount of gas to consume
 	 */
 	public static void charge(long cpu) {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(cpu));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(cpu));
 	}
 
 	/**
@@ -319,146 +319,146 @@ public abstract class Runtime {
 	 * @param cpu the amount of gas to consume
 	 */
 	public static void charge(int cpu) {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(cpu));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(cpu));
 	}
 
 	/**
 	 * Charges one unit of gas for CPU usage for the current transaction.
 	 */
 	public static void charge1() {
-		getBuilder().chargeGasForCPU(BigInteger.ONE);
+		getResponseCreator().chargeGasForCPU(BigInteger.ONE);
 	}
 
 	/**
 	 * Charges two units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge2() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(2L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(2L));
 	}
 
 	/**
 	 * Charges three units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge3() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(3L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(3L));
 	}
 
 	/**
 	 * Charges four units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge4() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(4L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(4L));
 	}
 
 	/**
 	 * Charges five units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge5() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(5L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(5L));
 	}
 
 	/**
 	 * Charges six units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge6() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(6L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(6L));
 	}
 
 	/**
 	 * Charges seven units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge7() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(7L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(7L));
 	}
 
 	/**
 	 * Charges eight units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge8() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(8L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(8L));
 	}
 
 	/**
 	 * Charges nine units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge9() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(9L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(9L));
 	}
 
 	/**
 	 * Charges ten units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge10() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(10L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(10L));
 	}
 
 	/**
 	 * Charges eleven units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge11() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(11L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(11L));
 	}
 
 	/**
 	 * Charges twelve units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge12() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(12L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(12L));
 	}
 
 	/**
 	 * Charges 13 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge13() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(13L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(13L));
 	}
 
 	/**
 	 * Charges 14 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge14() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(14L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(14L));
 	}
 
 	/**
 	 * Charges 15 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge15() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(15L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(15L));
 	}
 
 	/**
 	 * Charges 16 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge16() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(16L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(16L));
 	}
 
 	/**
 	 * Charges 17 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge17() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(17L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(17L));
 	}
 
 	/**
 	 * Charges 18 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge18() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(18L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(18L));
 	}
 
 	/**
 	 * Charges 19 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge19() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(19L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(19L));
 	}
 
 	/**
 	 * Charges 20 units of gas for CPU usage for the current transaction.
 	 */
 	public static void charge20() {
-		getBuilder().chargeGasForCPU(BigInteger.valueOf(20L));
+		getResponseCreator().chargeGasForCPU(BigInteger.valueOf(20L));
 	}
 }

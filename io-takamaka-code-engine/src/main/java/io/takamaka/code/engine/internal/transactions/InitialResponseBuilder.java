@@ -1,7 +1,6 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import java.math.BigInteger;
-import java.util.concurrent.Callable;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
@@ -24,25 +23,23 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		super(request, node);
 	}
 
-	@Override
-	public final void chargeGasForCPU(BigInteger amount) {
-		// initial transactions consume no gas; this implementation is needed
-		// since code run in initial transactions (such as the creation of gametes)
-		// tries to charge for gas
-	}
+	public abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
 
-	@Override
-	public final void chargeGasForRAM(BigInteger amount) {
-		// initial transactions consume no gas; this implementation is needed
-		// since code run in initial transactions (such as the creation of gametes)
-		// tries to charge for gas
-	}
+		protected ResponseCreator() throws TransactionRejectedException {
+		}
 
-	@Override
-	public final <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-		// initial transactions consume no gas; this implementation is needed
-		// if (in the future) code run in initial transactions tries to run
-		// tasks with a limited amount of gas
-		return what.call();
+		@Override
+		public final void chargeGasForCPU(BigInteger amount) {
+			// initial transactions consume no gas; this implementation is needed
+			// since code run in initial transactions (such as the creation of gametes)
+			// tries to charge for gas
+		}
+
+		@Override
+		public final void chargeGasForRAM(BigInteger amount) {
+			// initial transactions consume no gas; this implementation is needed
+			// since code run in initial transactions (such as the creation of gametes)
+			// tries to charge for gas
+		}
 	}
 }

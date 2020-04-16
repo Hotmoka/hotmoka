@@ -15,16 +15,6 @@ import io.takamaka.code.verification.VerifiedJar;
 public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 
 	/**
-	 * The class loader of the transaction.
-	 */
-	private final EngineClassLoader classLoader;
-
-	/**
-	 * The jar to install, as a byte array.
-	 */
-	private final byte[] jar;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
@@ -33,29 +23,21 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 	 */
 	public JarStoreInitialResponseBuilder(JarStoreInitialTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
+	}
 
-		try {
-			this.jar = request.getJar();
-			this.classLoader = new EngineClassLoader(jar, request.getDependencies(), node);
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+	@Override
+	protected EngineClassLoader mkClassLoader() throws Exception {
+		return new EngineClassLoader(request.getJar(), request.getDependencies(), node);
 	}
 
 	@Override
 	public JarStoreInitialTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
-			InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(jar, classLoader, true), node.getGasCostModel());
+			InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), getClassLoader(), true), node.getGasCostModel());
 			return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies());
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-	}
-
-	@Override
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
 	}
 }

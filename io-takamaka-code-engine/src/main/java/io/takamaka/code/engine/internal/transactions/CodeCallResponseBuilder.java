@@ -3,6 +3,7 @@ package io.takamaka.code.engine.internal.transactions;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,11 +37,6 @@ import io.takamaka.code.whitelisting.WhiteListingProofObligation;
 public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialResponseBuilder<Request, Response> {
 
 	/**
-	 * The class loader used for the transaction.
-	 */
-	private final EngineClassLoader classLoader;
-
-	/**
 	 * Creates the builder of the response.
 	 * 
 	 * @param request the request of the transaction
@@ -49,23 +45,16 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 	 */
 	protected CodeCallResponseBuilder(Request request, AbstractNode node) throws TransactionRejectedException {
 		super(request, node);
-
-		try {
-			this.classLoader = node.getCachedClassLoader(request.classpath);
-			chargeGasForClassLoader();
-			callerMustBeExternallyOwnedAccount();
-			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeGasForStorageOfRequest();
-			remainingGasMustBeEnoughForStoringFailedResponse();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
+	protected EngineClassLoader mkClassLoader() throws Exception {
+		return node.getCachedClassLoader(request.classpath);
+	}
+
+	@Override
+	protected BigInteger minimalGasRequiredForTransaction() {
+		return super.minimalGasRequiredForTransaction();
 	}
 
 	/**

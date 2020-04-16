@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,6 +49,11 @@ public class Deserializer {
 	 * The builder of the transaction for which deserialization is performed.
 	 */
 	private final AbstractResponseBuilder<?,?> builder;
+
+	/**
+	 * The function to call to charge gas costs for CPU execution.
+	 */
+	private final Consumer<BigInteger> chargeGasForCPU;
 
 	/**
 	 * A map from each storage reference to its deserialized object. This is needed in order to guarantee that
@@ -103,10 +109,11 @@ public class Deserializer {
 	/**
 	 * Builds an object that translates storage values into RAM values.
 	 * 
-	 * @param builder the builder of the transaction for which deserialization is performed
+	 * @param creator the response creator for which deserialization is performed
 	 */
-	public Deserializer(AbstractResponseBuilder<?,?> builder) {
-		this.builder = builder;
+	public Deserializer(AbstractResponseBuilder<?,?>.ResponseCreator creator) {
+		this.builder = creator.getBuilder();
+		this.chargeGasForCPU = creator::chargeGasForCPU;
 	}
 
 	/**
@@ -167,7 +174,7 @@ public class Deserializer {
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, builder.node.getLastEagerUpdatesFor(reference, builder::chargeGasForCPU, this::collectEagerFieldsOf));
+			return createStorageObject(reference, builder.node.getLastEagerUpdatesFor(reference, chargeGasForCPU, this::collectEagerFieldsOf));
 		}
 		catch (DeserializationError e) {
 			throw e;

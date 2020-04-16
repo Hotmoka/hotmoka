@@ -47,7 +47,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 	@Override
 	protected final BigInteger gasForStoringFailedResponse() {
-		BigInteger gas = gas();
+		BigInteger gas = request.gasLimit;
 
 		return sizeCalculator.sizeOfResponse(new ConstructorCallTransactionFailedResponse
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
@@ -107,7 +107,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				catch (InvocationTargetException e) {
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
-						chargeGasForStorage(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						chargeGasForStorageOf(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						payBackAllRemainingGasToCaller();
 						response = new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
@@ -116,7 +116,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				}
 
 				if (response == null) {
-					chargeGasForStorage(new ConstructorCallTransactionSuccessfulResponse
+					chargeGasForStorageOf(new ConstructorCallTransactionSuccessfulResponse
 						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					payBackAllRemainingGasToCaller();
 					response = new ConstructorCallTransactionSuccessfulResponse
