@@ -61,12 +61,12 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator(TransactionReference current) throws Throwable {
+		private ResponseCreator(TransactionReference current) throws TransactionRejectedException {
 			super(current);
 		}
 
 		@Override
-		protected ConstructorCallTransactionResponse body() throws Exception {
+		protected ConstructorCallTransactionResponse body() {
 			try {
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 		

@@ -64,12 +64,8 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 
 	private class ResponseCreator extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {
 		
-		private ResponseCreator(TransactionReference current) throws Throwable {
+		private ResponseCreator(TransactionReference current) throws TransactionRejectedException {
 			super(current);
-		}
-
-		@Override
-		public void event(Object event) {
 		}
 
 		@Override
@@ -77,7 +73,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 			int jarLength = request.getJarLength();
 			chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 			chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
-
+		
 			try {
 				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false);
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
@@ -90,6 +86,10 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				// we do not pay back the gas
 				return new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
+		}
+
+		@Override
+		public void event(Object event) {
 		}
 	}
 }

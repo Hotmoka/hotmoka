@@ -50,7 +50,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 
 	private class ResponseCreator extends InitialResponseBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse>.ResponseCreator {
 		
-		private ResponseCreator(TransactionReference current) throws Throwable {
+		private ResponseCreator(TransactionReference current) throws TransactionRejectedException {
 			super(current);
 		}
 

@@ -91,6 +91,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		return t instanceof TransactionRejectedException ? (TransactionRejectedException) t : new TransactionRejectedException(t);
 	}
 
+	/**
+	 * The creator of a response. Its body runs in a thread, so that the
+	 * {@linkplain io.takamaka.code.engine.internal.runtime.Runtime} class
+	 * can recover it from its thread-local table.
+	 */
 	public abstract class ResponseCreator {
 
 		/**
@@ -140,9 +145,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			}
 		}
 
-		protected Response body() throws Exception {
-			return null;
-		}
+		/**
+		 * The body of the creation of the response.
+		 * 
+		 * @return the response
+		 * @throws Exception if the response could not be created
+		 */
+		protected abstract Response body() throws Exception;
 
 		/**
 		 * Yields the UTC time when the transaction is being run.
@@ -261,50 +270,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 					responseCreators.remove();
 				}
 			}
-		}
-
-		/**
-		 * A thread that executes Takamaka code as part of this transaction.
-		 */
-		protected abstract class TakamakaThread extends Thread {
-		
-			/**
-			 * The exception that occurred during the transaction, if any.
-			 */
-			private Throwable exception;
-		
-			/**
-			 * Builds the thread.
-			 */
-			protected TakamakaThread() {}
-		
-			@Override
-			public final void run() {
-				try {
-					io.takamaka.code.engine.internal.runtime.Runtime.responseCreators.set(ResponseCreator.this);
-					body();
-				}
-				catch (Throwable t) {
-					exception = t;
-				}
-				finally {
-					io.takamaka.code.engine.internal.runtime.Runtime.responseCreators.remove();
-				}
-			}
-		
-			/**
-			 * Starts the thread, waits for its conclusion and throws its exception, if any.
-			 * 
-			 * @throws Throwable the exception generated during the execution of {@linkplain #body()}, if any
-			 */
-			public final void go() throws Throwable {
-				start();
-				join();
-				if (exception != null)
-					throw exception;
-			}
-
-			protected abstract void body() throws Exception;
 		}
 	}
 }

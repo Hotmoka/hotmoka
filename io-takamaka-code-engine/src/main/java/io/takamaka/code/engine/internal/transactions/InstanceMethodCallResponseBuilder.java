@@ -59,7 +59,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator(TransactionReference current) throws Throwable {
+		private ResponseCreator(TransactionReference current) throws TransactionRejectedException {
 			super(current);
 		}
 
@@ -90,7 +90,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					}
 				}
 
-				validateCallee(methodJVM);
+				boolean isView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
+				validateCallee(methodJVM, isView);
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
 				if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
@@ -103,6 +104,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				catch (InvocationTargetException e) {
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
+						viewMustBeSatisfied(isView, null);
 						chargeGasForStorageOf(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						payBackAllRemainingGasToCaller();
 						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
@@ -111,8 +113,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 						throw cause;
 				}
 
-				if (hasAnnotation(methodJVM, Constants.VIEW_NAME) && !onlyAffectedBalanceOrNonceOfCaller(result))
-					throw new SideEffectsInViewMethodException(request.method);
+				viewMustBeSatisfied(isView, result);
 
 				if (methodJVM.getReturnType() == void.class) {
 					chargeGasForStorageOf(new VoidMethodCallTransactionSuccessfulResponse(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
@@ -131,17 +132,23 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			}
 		}
 
+		private void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException {
+			if (isView && !onlyAffectedBalanceOrNonceOfCaller(result))
+				throw new SideEffectsInViewMethodException(request.method);
+		}
+
 		/**
 		 * Checks that the called method respects the expected constraints.
 		 * 
 		 * @param methodJVM the method
+		 * @param isView true if the method is annotated as view
 		 * @throws NoSuchMethodException if the constraints are not satisfied
 		 */
-		private void validateCallee(Method methodJVM) throws NoSuchMethodException {
+		private void validateCallee(Method methodJVM, boolean isView) throws NoSuchMethodException {
 			if (Modifier.isStatic(methodJVM.getModifiers()))
 				throw new NoSuchMethodException("cannot call a static method");
 
-			if (InstanceMethodCallResponseBuilder.this instanceof ViewResponseBuilder && !hasAnnotation(methodJVM, Constants.VIEW_NAME))
+			if (!isView && InstanceMethodCallResponseBuilder.this instanceof ViewResponseBuilder)
 				throw new NoSuchMethodException("cannot call a method not annotated as @View");
 		}
 

@@ -186,6 +186,16 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		}
 
 		/**
+		 * Yields the gas that would be paid if the transaction fails.
+		 * 
+		 * @return the gas for penalty, computed as the total initial gas minus
+		 *         the gas already consumed for PCU, for RAM and for storage
+		 */
+		protected final BigInteger gasConsumedForPenalty() {
+			return request.gasLimit.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
+		}
+
+		/**
 		 * Reduces the remaining amount of gas. It performs a task at the end.
 		 * 
 		 * @param amount the amount of gas to consume
@@ -224,16 +234,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		protected final void chargeGasForStorageOf(Response response) {
 			chargeGasForStorage(sizeCalculator.sizeOfResponse(response));
-		}
-
-		/**
-		 * Yields the gas that would be paid if the transaction fails.
-		 * 
-		 * @return the gas for penalty, computed as the total initial gas minus
-		 *         the gas already consumed for PCU, for RAM and for storage
-		 */
-		protected final BigInteger gasConsumedForPenalty() {
-			return request.gasLimit.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
 		}
 
 		@Override
