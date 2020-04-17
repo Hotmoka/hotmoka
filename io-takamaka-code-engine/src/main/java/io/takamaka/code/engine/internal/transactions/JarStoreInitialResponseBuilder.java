@@ -32,12 +32,14 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 
 	@Override
 	public JarStoreInitialTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		try {
-			InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true), node.getGasCostModel());
-			return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies());
+		return this.new ResponseCreator(current) {
+
+			@Override
+			protected JarStoreInitialTransactionResponse body() throws Exception {
+				InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true), node.getGasCostModel());
+				return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies());
+			}
 		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		.create();
 	}
 }

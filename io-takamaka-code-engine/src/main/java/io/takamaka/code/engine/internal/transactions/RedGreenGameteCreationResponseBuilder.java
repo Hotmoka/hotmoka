@@ -40,22 +40,17 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 
 	@Override
 	public GameteCreationTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		return new ResponseCreator(current).create();
-	}
+		return this.new ResponseCreator(current) {
 
-	private class ResponseCreator extends InitialResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse>.ResponseCreator {
-		
-		private ResponseCreator(TransactionReference current) throws TransactionRejectedException {
-			super(current);
+			@Override
+			protected GameteCreationTransactionResponse body() throws Exception {
+				// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
+				Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+				classLoader.setBalanceOf(gamete, request.initialAmount);
+				classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
+				return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
+			}
 		}
-
-		@Override
-		protected GameteCreationTransactionResponse body() throws Exception {
-			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
-			Object gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-			classLoader.setBalanceOf(gamete, request.initialAmount);
-			classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
-			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
-		}
+		.create();
 	}
 }
