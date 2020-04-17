@@ -98,7 +98,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		return null;
 	}
 
-	public abstract class ResponseCreator extends NonInitialResponseBuilder<Request, Response>.ResponseCreator {
+	protected abstract class ResponseCreator extends NonInitialResponseBuilder<Request, Response>.ResponseCreator {
 
 		/**
 		 * The object that serializes RAM values into storage objects.

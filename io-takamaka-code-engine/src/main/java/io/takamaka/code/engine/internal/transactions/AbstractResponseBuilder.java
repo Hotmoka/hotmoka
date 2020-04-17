@@ -140,15 +140,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 
 		/**
-		 * Yields the builder for which the creator works.
-		 * 
-		 * @return the builder
-		 */
-		public final AbstractResponseBuilder<?,?> getBuilder() {
-			return AbstractResponseBuilder.this;
-		}
-
-		/**
 		 * Takes note of the given event, emitted during this execution.
 		 * 
 		 * @param event the event

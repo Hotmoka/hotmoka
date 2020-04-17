@@ -1,7 +1,5 @@
 package io.takamaka.code.engine.internal.transactions;
 
-import java.math.BigInteger;
-import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -66,18 +64,6 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 			Object gamete = thread.gamete;
 			classLoader.setBalanceOf(gamete, request.initialAmount);
 			response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
-		}
-
-		@Override
-		public void event(Object event) {
-		}
-
-		@Override
-		public <T> T withGas(BigInteger amount, Callable<T> what) throws Exception {
-			// initial transactions consume no gas; this implementation is needed
-			// if (in the future) code run in initial transactions tries to run
-			// tasks with a limited amount of gas
-			return what.call();
 		}
 
 		/**
