@@ -310,7 +310,9 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	public void close() throws InterruptedException {
+	public void close() throws Exception {
+		super.close();
+
 		if (tendermint != null)
 			tendermint.close();
 

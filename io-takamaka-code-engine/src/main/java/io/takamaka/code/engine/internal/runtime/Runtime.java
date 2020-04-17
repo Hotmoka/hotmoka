@@ -22,6 +22,8 @@ import io.takamaka.code.whitelisting.WhiteListingPredicate;
  */
 public abstract class Runtime {
 
+	public final static ThreadLocal<AbstractResponseBuilder<?,?>.ResponseCreator> responseCreators = new ThreadLocal<>();
+
 	/**
 	 * Response builders spawn a thread when they need to execute code that could
 	 * call into this class. This allows the execution of more transactions in parallel
@@ -31,19 +33,10 @@ public abstract class Runtime {
 	 * @return the transaction builder that is using the current thread
 	 */
 	private static AbstractResponseBuilder<?,?>.ResponseCreator getResponseCreator() {
-		return getCurrentThread().getResponseCreator();
+		return responseCreators.get();
+		//return ((ResponseCreatorProvider) Thread.currentThread()).getResponseCreator();
 	}
 
-	/**
-	 * Transaction builders spawn a thread when they need to execute code that could
-	 * call into this class. This allows the execution of more transactions in parallel
-	 * and with distinct class loaders. This method yields that thread.
-	 * 
-	 * @return the current thread
-	 */
-	private static AbstractResponseBuilder<?,?>.ResponseCreator.TakamakaThread getCurrentThread() {
-		return (AbstractResponseBuilder<?,?>.ResponseCreator.TakamakaThread) Thread.currentThread();
-	}
 	/**
 	 * Yields the last value assigned to the given lazy, non-{@code final} field of the given storage object.
 	 * 

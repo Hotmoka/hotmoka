@@ -159,7 +159,8 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	public void close() {
+	public void close() throws Exception {
+		super.close();
 		// nothing to close
 	}
 

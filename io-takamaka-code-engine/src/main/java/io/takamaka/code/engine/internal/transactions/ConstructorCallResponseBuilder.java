@@ -36,16 +36,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	}
 
 	@Override
-	public ConstructorCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		try {
-			return new ResponseCreator(current).response;
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
-	}
-
-	@Override
 	protected final BigInteger gasForStoringFailedResponse() {
 		BigInteger gas = request.gasLimit;
 
@@ -54,34 +44,36 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			Stream.empty(), gas, gas, gas, gas));
 	}
 
+	@Override
+	public ConstructorCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
+		try {
+			return new ResponseCreator(current).create();
+		}
+		catch (Throwable t) {
+			throw wrapAsTransactionRejectedException(t);
+		}
+	}
+
 	private class ResponseCreator extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse>.ResponseCreator {
-		
+
 		/**
 		 * The deserialized actual arguments of the constructor.
 		 */
 		private Object[] deserializedActuals;
 
-		/**
-		 * The created response.
-		 */
-		private final ConstructorCallTransactionResponse response;
-
 		private ResponseCreator(TransactionReference current) throws Throwable {
 			super(current);
+		}
 
-			ConstructorCallTransactionResponse response = null;
-
+		@Override
+		protected ConstructorCallTransactionResponse body() throws Exception {
 			try {
-				// we perform deserialization in a thread, since enums passed as parameters
-				// would trigger the execution of their static initializer, which will charge gas
-				DeserializerThread deserializerThread = new DeserializerThread(request);
-				deserializerThread.go();
-				this.deserializedActuals = deserializerThread.deserializedActuals;
-
+				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
+		
 				formalsAndActualsMustMatch();
 				Object[] deserializedActuals;
 				Constructor<?> constructorJVM;
-
+		
 				try {
 					// we first try to call the constructor with exactly the parameter types explicitly provided
 					constructorJVM = getConstructor();
@@ -97,40 +89,67 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 						throw e; // the message must be relative to the constructor as the user sees it
 					}
 				}
-
+		
 				ensureWhiteListingOf(constructorJVM, deserializedActuals);
 				if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
 					callerMustBeRedGreenExternallyOwnedAccount();
-
-				ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
+		
+				//ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
+				Object result;
 				try {
-					thread.go();
+					result = constructorJVM.newInstance(deserializedActuals);
 				}
 				catch (InvocationTargetException e) {
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
 						chargeGasForStorageOf(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						payBackAllRemainingGasToCaller();
-						response = new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						return new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
 						throw cause;
 				}
-
-				if (response == null) {
-					chargeGasForStorageOf(new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
-					payBackAllRemainingGasToCaller();
-					response = new ConstructorCallTransactionSuccessfulResponse
-						((StorageReference) serializer.serialize(thread.result), updates(thread.result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
-				}
+		
+				chargeGasForStorageOf(new ConstructorCallTransactionSuccessfulResponse
+					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				payBackAllRemainingGasToCaller();
+				return new ConstructorCallTransactionSuccessfulResponse
+					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
-				response = new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
+		}
 
-			this.response = response;
+		/**
+		 * Resolves the constructor that must be called.
+		 * 
+		 * @return the constructor
+		 * @throws NoSuchMethodException if the constructor could not be found
+		 * @throws SecurityException if the constructor could not be accessed
+		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+		 */
+		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
+			Class<?>[] argTypes = formalsAsClass();
+
+			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
+		}
+
+		/**
+		 * Resolves the constructor that must be called, assuming that it is an entry.
+		 * 
+		 * @return the constructor
+		 * @throws NoSuchMethodException if the constructor could not be found
+		 * @throws SecurityException if the constructor could not be accessed
+		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
+		 */
+		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
+			Class<?>[] argTypes = formalsAsClassForEntry();
+
+			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
 		}
 
 		/**
@@ -168,81 +187,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				checkWhiteListingProofObligations(model.get().getName(), actuals[pos], anns[pos]);
 		}
 
-		/**
-		 * Resolves the constructor that must be called.
-		 * 
-		 * @return the constructor
-		 * @throws NoSuchMethodException if the constructor could not be found
-		 * @throws SecurityException if the constructor could not be accessed
-		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
-		 */
-		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
-			Class<?>[] argTypes = formalsAsClass();
-
-			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
-		}
-
-		/**
-		 * Resolves the constructor that must be called, assuming that it is an entry.
-		 * 
-		 * @return the constructor
-		 * @throws NoSuchMethodException if the constructor could not be found
-		 * @throws SecurityException if the constructor could not be accessed
-		 * @throws ClassNotFoundException if the class of the constructor or of some parameter cannot be found
-		 */
-		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
-			Class<?>[] argTypes = formalsAsClassForEntry();
-
-			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
-		}
-
 		@Override
 		protected final Stream<Object> getDeserializedActuals() {
 			return Stream.of(deserializedActuals);
-		}
-
-		/**
-		 * The thread that deserializes the caller and the actual parameters.
-		 * This must be done inside a thread so that static initializers
-		 * are run with an associated {@code io.takamaka.code.engine.internal.Runtime} object.
-		 */
-		private class DeserializerThread extends AbstractResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse>.ResponseCreator.TakamakaThread {
-			private final ConstructorCallTransactionRequest request;
-
-			/**
-			 * The deserialized actual arguments of the call.
-			 */
-			private Object[] deserializedActuals;
-
-			private DeserializerThread(ConstructorCallTransactionRequest request) throws Exception {
-				this.request = request;
-			}
-
-			@Override
-			protected void body() {
-				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
-			}
-		}
-
-		/**
-		 * The thread that runs the constructor.
-		 */
-		private class ConstructorThread extends AbstractResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse>.ResponseCreator.TakamakaThread {
-			private Object result;
-			private final Constructor<?> constructorJVM;
-			private final Object[] deserializedActuals;
-
-			private ConstructorThread(Constructor<?> constructorJVM, Object[] deserializedActuals) throws Exception {
-				this.constructorJVM = constructorJVM;
-				this.deserializedActuals = deserializedActuals;
-			}
-
-			@Override
-			protected void body() throws Exception {
-				result = constructorJVM.newInstance(deserializedActuals);
-			}
 		}
 	}
 }

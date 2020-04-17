@@ -1,7 +1,10 @@
 package io.takamaka.code.engine.internal.transactions;
 
+import static io.takamaka.code.engine.internal.runtime.Runtime.responseCreators;
+
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -128,6 +131,19 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			}
 		}
 
+		protected final Response create() throws Throwable {
+			try {
+				return node.submit(new TakamakaCallable(this::body)).get();
+			}
+			catch (ExecutionException e) {
+				throw e.getCause();
+			}
+		}
+
+		protected Response body() throws Exception {
+			return null;
+		}
+
 		/**
 		 * Yields the UTC time when the transaction is being run.
 		 * This might be for instance the time of creation of a block where the transaction
@@ -225,9 +241,32 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 
 		/**
+		 * A task that executes Takamaka code as part of this transaction.
+		 * It sets the response creator in the thread-local of the runtime.
+		 */
+		private final class TakamakaCallable implements Callable<Response> {
+			private final Callable<Response> body;
+
+			private TakamakaCallable(Callable<Response> body) {
+				this.body = body;
+			}
+
+			@Override
+			public Response call() throws Exception {
+				try {
+					responseCreators.set(ResponseCreator.this);
+					return body.call();
+				}
+				finally {
+					responseCreators.remove();
+				}
+			}
+		}
+
+		/**
 		 * A thread that executes Takamaka code as part of this transaction.
 		 */
-		public abstract class TakamakaThread extends Thread {
+		protected abstract class TakamakaThread extends Thread {
 		
 			/**
 			 * The exception that occurred during the transaction, if any.
@@ -242,10 +281,14 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			@Override
 			public final void run() {
 				try {
+					io.takamaka.code.engine.internal.runtime.Runtime.responseCreators.set(ResponseCreator.this);
 					body();
 				}
 				catch (Throwable t) {
 					exception = t;
+				}
+				finally {
+					io.takamaka.code.engine.internal.runtime.Runtime.responseCreators.remove();
 				}
 			}
 		
@@ -262,15 +305,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			}
 
 			protected abstract void body() throws Exception;
-		
-			/**
-			 * Yields the response creator for which the thread works.
-			 * 
-			 * @return the response creator
-			 */
-			public final ResponseCreator getResponseCreator() {
-				return ResponseCreator.this;
-			}
 		}
 	}
 }

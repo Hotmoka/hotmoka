@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -56,9 +59,20 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
 
+	private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
 	@Override
 	public GasCostModel getGasCostModel() {
 		return defaultGasCostModel;
+	}
+
+	@Override
+	public void close() throws Exception {
+		executor.shutdown();
+	}
+
+	public final <T> Future<T> submit(Callable<T> what) {
+		return executor.submit(what);
 	}
 
 	/**

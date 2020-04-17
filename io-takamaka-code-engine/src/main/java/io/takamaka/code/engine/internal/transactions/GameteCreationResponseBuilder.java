@@ -34,50 +34,32 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	}
 
 	@Override
+	protected EngineClassLoader mkClassLoader() throws Exception {
+		return node.getCachedClassLoader(request.classpath);
+	}
+
+	@Override
 	public GameteCreationTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
 		try {
-			return new ResponseCreator(current).response;
+			return new ResponseCreator(current).create();
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
 	}
 
-	@Override
-	protected EngineClassLoader mkClassLoader() throws Exception {
-		return node.getCachedClassLoader(request.classpath);
-	}
-
 	private class ResponseCreator extends InitialResponseBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse>.ResponseCreator {
 		
-		/**
-		 * The created response.
-		 */
-		private final GameteCreationTransactionResponse response;
-
 		private ResponseCreator(TransactionReference current) throws Throwable {
 			super(current);
-
-			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-			GameteThread thread = new GameteThread();
-			thread.go();
-			Object gamete = thread.gamete;
-			classLoader.setBalanceOf(gamete, request.initialAmount);
-			response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}
 
-		/**
-		 * The thread that runs the code that creates the gamete.
-		 */
-		private class GameteThread extends TakamakaThread {
-			private Object gamete;
-
-			private GameteThread() {}
-
-			@Override
-			protected void body() throws Exception {
-				gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
-			}
+		@Override
+		protected GameteCreationTransactionResponse body() throws Exception {
+			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
+			Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+			classLoader.setBalanceOf(gamete, request.initialAmount);
+			return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));			
 		}
 	}
 }
