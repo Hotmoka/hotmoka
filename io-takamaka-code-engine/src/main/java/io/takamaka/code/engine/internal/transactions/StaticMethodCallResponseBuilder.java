@@ -56,12 +56,14 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		private final MethodCallTransactionResponse response;
 
 		private ResponseCreator(TransactionReference current) throws Throwable {
+			super(current);
+
 			MethodCallTransactionResponse response = null;
 
 			try {
 				// we perform deserialization in a thread, since enums passed as parameters
 				// would trigger the execution of their static initializer, which will charge gas
-				DeserializerThread deserializerThread = new DeserializerThread(request, current);
+				DeserializerThread deserializerThread = new DeserializerThread(request);
 				deserializerThread.go();
 				this.deserializedActuals = deserializerThread.deserializedActuals;
 
@@ -71,7 +73,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 				validateCallee(methodJVM);
 				ensureWhiteListingOf(methodJVM, deserializedActuals);
 
-				MethodThread thread = new MethodThread(methodJVM, deserializedActuals, current);
+				MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
 				try {
 					thread.go();
 				}
@@ -142,9 +144,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 			 */
 			private Object[] deserializedActuals;
 
-			private DeserializerThread(StaticMethodCallTransactionRequest request, TransactionReference current) throws Exception {
-				super(current);
-
+			private DeserializerThread(StaticMethodCallTransactionRequest request) {
 				this.request = request;
 			}
 
@@ -162,9 +162,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 			private final Method methodJVM;
 			private final Object[] deserializedActuals;
 
-			private MethodThread(Method methodJVM, Object[] deserializedActuals, TransactionReference current) throws Exception {
-				super(current);
-
+			private MethodThread(Method methodJVM, Object[] deserializedActuals) {
 				this.methodJVM = methodJVM;
 				this.deserializedActuals = deserializedActuals;
 			}

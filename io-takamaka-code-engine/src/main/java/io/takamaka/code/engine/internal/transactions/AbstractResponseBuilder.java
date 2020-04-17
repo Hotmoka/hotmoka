@@ -49,7 +49,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The class loader used for the transaction.
 	 */
-	private final EngineClassLoader classLoader;
+	public final EngineClassLoader classLoader;
 
 	/**
 	 * Creates the builder of the response.
@@ -77,15 +77,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	protected abstract EngineClassLoader mkClassLoader() throws Exception;
 
 	/**
-	 * Yields the class loader used for the transaction being created.
-	 * 
-	 * @return the class loader
-	 */
-	public final EngineClassLoader getClassLoader() {
-		return classLoader;
-	}
-
-	/**
 	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
 	 * already an instance of that exception.
 	 * 
@@ -100,6 +91,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	public abstract class ResponseCreator {
 
 		/**
+		 * The reference that must be used to refer to the created transaction.
+		 */
+		private final TransactionReference current;
+
+		/**
 		 * The object that deserializes storage objects into RAM values.
 		 */
 		protected final Deserializer deserializer;
@@ -110,14 +106,37 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		protected final UpdatesExtractor updatesExtractor;
 
-		protected ResponseCreator() throws TransactionRejectedException {
+		/**
+		 * The time of execution of the transaction.
+		 */
+		private final long now;
+
+		/**
+		 * The counter for the next storage object created during the transaction.
+		 */
+		private BigInteger nextProgressive = BigInteger.ZERO;
+
+		protected ResponseCreator(TransactionReference current) throws TransactionRejectedException {
 			try {
-				deserializer = new Deserializer(this);
-				updatesExtractor = new UpdatesExtractor(AbstractResponseBuilder.this);
+				this.current = current;
+				this.deserializer = new Deserializer(AbstractResponseBuilder.this, this::chargeGasForCPU);
+				this.updatesExtractor = new UpdatesExtractor(AbstractResponseBuilder.this);
+				this.now = node.getNow();
 			}
 			catch (Throwable t) {
 				throw new TransactionRejectedException(t);
 			}
+		}
+
+		/**
+		 * Yields the UTC time when the transaction is being run.
+		 * This might be for instance the time of creation of a block where the transaction
+		 * will be stored, but the detail is left to the implementation.
+		 * 
+		 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+		 */
+		public final long now() {
+			return now;
 		}
 
 		/**
@@ -193,19 +212,31 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 
 		/**
+		 * Yields the next storage reference for the current transaction.
+		 * This can be used to associate a storage reference to each new
+		 * storage object created during a transaction.
+		 * 
+		 * @return the next storage reference
+		 */
+		public final StorageReference getNextStorageReference() {
+			BigInteger result = nextProgressive;
+			nextProgressive = nextProgressive.add(BigInteger.ONE);
+			return StorageReference.mk(current, result);
+		}
+
+		/**
+		 * Yields the class loader used for the transaction being created.
+		 * 
+		 * @return the class loader
+		 */
+		public final EngineClassLoader getClassLoader() {
+			return classLoader;
+		}
+
+		/**
 		 * A thread that executes Takamaka code as part of this transaction.
 		 */
 		public abstract class TakamakaThread extends Thread {
-		
-			/**
-			 * The reference that must be used to refer to the created transaction.
-			 */
-			private final TransactionReference current;
-		
-			/**
-			 * The time of execution of the transaction.
-			 */
-			private final long now;
 		
 			/**
 			 * The exception that occurred during the transaction, if any.
@@ -213,31 +244,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			private Throwable exception;
 		
 			/**
-			 * The counter for the next storage object created during the transaction.
-			 */
-			private BigInteger nextProgressive = BigInteger.ZERO;
-		
-			/**
-			 * Yields the UTC time when the transaction is being run.
-			 * This might be for instance the time of creation of a block where the transaction
-			 * will be stored, but the detail is left to the implementation.
-			 * 
-			 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
-			 */
-			public final long now() {
-				return now;
-			}
-		
-			/**
 			 * Builds the thread.
-			 * 
-			 * @param current the reference of the transaction that is creating the response
-			 * @throws Exception if the thread cannot be created
 			 */
-			protected TakamakaThread(TransactionReference current) throws Exception {
-				this.current = current;
-				this.now = node.getNow();
-			}
+			protected TakamakaThread() {}
 		
 			@Override
 			public final void run() {
@@ -260,31 +269,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 				if (exception != null)
 					throw exception;
 			}
-		
+
 			protected abstract void body() throws Exception;
 		
-			/**
-			 * Yields the next storage reference for the current transaction.
-			 * This can be used to associate a storage reference to each new
-			 * storage object created during a transaction.
-			 * 
-			 * @return the next storage reference
-			 */
-			public final StorageReference getNextStorageReference() {
-				BigInteger result = nextProgressive;
-				nextProgressive = nextProgressive.add(BigInteger.ONE);
-				return StorageReference.mk(current, result);
-			}
-		
-			/**
-			 * Yields the builder for which the thread works.
-			 * 
-			 * @return the builder
-			 */
-			public final AbstractResponseBuilder<?,?> getBuilder() {
-				return AbstractResponseBuilder.this;
-			}
-
 			/**
 			 * Yields the response creator for which the thread works.
 			 * 

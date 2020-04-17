@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.types.StorageType;
@@ -87,7 +88,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				// we avoid messages in synthetic code or code in the Takamaka library
 				if (line >= 0 && !cursor.getClassName().startsWith(Constants.TAKAMAKA_LANG_PACKAGE))
 					try {
-						Class<?> clazz = getClassLoader().loadClass(cursor.getClassName());
+						Class<?> clazz = classLoader.loadClass(cursor.getClassName());
 						if (clazz.getClassLoader() instanceof ResolvingClassLoader)
 							return cursor.getFileName() + ":" + line;
 					}
@@ -109,7 +110,9 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 */
 		private final List<Object> events = new ArrayList<>();
 
-		protected ResponseCreator() throws TransactionRejectedException {
+		protected ResponseCreator(TransactionReference current) throws TransactionRejectedException {
+			super(current);
+
 			try {
 				this.serializer = new Serializer(CodeCallResponseBuilder.this);
 			}
@@ -141,7 +144,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @throws IllegalArgumentException if the object is not a red/green externally owned account
 		 */
 		protected final void callerMustBeRedGreenExternallyOwnedAccount() {
-			if (!getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(getDeserializedCaller().getClass()))
+			if (!classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(getDeserializedCaller().getClass()))
 				throw new IllegalArgumentException("only a red/green externally owned contract can start a transaction for a @RedPayable method or constructor");
 		}
 
@@ -172,7 +175,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 			for (StorageType type: request.getStaticTarget().formals().collect(Collectors.toList()))
 				classes.add(storageTypeToClass.toClass(type));
 
-			classes.add(getClassLoader().getContract());
+			classes.add(classLoader.getContract());
 			classes.add(Dummy.class);
 
 			return classes.toArray(new Class<?>[classes.size()]);
@@ -203,7 +206,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 				.filter(Objects::nonNull)
 				.map(WhiteListingProofObligation::check)
 				.map(this::createWhiteListingPredicateFrom)
-				.filter(predicate -> !predicate.test(value, getClassLoader().getWhiteListingWizard()))
+				.filter(predicate -> !predicate.test(value, classLoader.getWhiteListingWizard()))
 				.map(predicate -> predicate.messageIfFailed(methodName))
 				.map(NonWhiteListedCallException::new)
 				.findFirst()
@@ -257,7 +260,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		protected void scanPotentiallyAffectedObjects(Consumer<Object> consumer) {
 			consumer.accept(getDeserializedCaller());
 		
-			Class<?> storage = getClassLoader().getStorage();
+			Class<?> storage = classLoader.getStorage();
 			getDeserializedActuals()
 				.filter(actual -> actual != null && storage.isAssignableFrom(actual.getClass()))
 				.forEach(consumer);
@@ -287,7 +290,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		protected final Stream<Update> updates(Object result) {
 			List<Object> potentiallyAffectedObjects = new ArrayList<>();
 
-			Class<?> storage = getClassLoader().getStorage();
+			Class<?> storage = classLoader.getStorage();
 			if (result != null && storage.isAssignableFrom(result.getClass()))
 				potentiallyAffectedObjects.add(result);
 
@@ -301,7 +304,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 * @return the storage references
 		 */
 		protected final Stream<StorageReference> storageReferencesOfEvents() {
-			return events.stream().map(getClassLoader()::getStorageReferenceOf);
+			return events.stream().map(classLoader::getStorageReferenceOf);
 		}
 	}
 }

@@ -67,12 +67,14 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private final ConstructorCallTransactionResponse response;
 
 		private ResponseCreator(TransactionReference current) throws Throwable {
+			super(current);
+
 			ConstructorCallTransactionResponse response = null;
 
 			try {
 				// we perform deserialization in a thread, since enums passed as parameters
 				// would trigger the execution of their static initializer, which will charge gas
-				DeserializerThread deserializerThread = new DeserializerThread(request, current);
+				DeserializerThread deserializerThread = new DeserializerThread(request);
 				deserializerThread.go();
 				this.deserializedActuals = deserializerThread.deserializedActuals;
 
@@ -100,7 +102,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
 					callerMustBeRedGreenExternallyOwnedAccount();
 
-				ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals, current);
+				ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
 				try {
 					thread.go();
 				}
@@ -157,7 +159,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 * @throws ClassNotFoundException if some class could not be found during the check
 		 */
 		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) throws ClassNotFoundException {
-			Optional<Constructor<?>> model = getClassLoader().getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
+			Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable);
 			if (!model.isPresent())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.definingClass.name);
 
@@ -177,7 +179,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
 			Class<?>[] argTypes = formalsAsClass();
 
-			return getClassLoader().resolveConstructor(request.constructor.definingClass.name, argTypes)
+			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
 		}
 
@@ -192,7 +194,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
 			Class<?>[] argTypes = formalsAsClassForEntry();
 
-			return getClassLoader().resolveConstructor(request.constructor.definingClass.name, argTypes)
+			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
 		}
 
@@ -214,9 +216,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			 */
 			private Object[] deserializedActuals;
 
-			private DeserializerThread(ConstructorCallTransactionRequest request, TransactionReference current) throws Exception {
-				super(current);
-
+			private DeserializerThread(ConstructorCallTransactionRequest request) throws Exception {
 				this.request = request;
 			}
 
@@ -234,9 +234,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			private final Constructor<?> constructorJVM;
 			private final Object[] deserializedActuals;
 
-			private ConstructorThread(Constructor<?> constructorJVM, Object[] deserializedActuals, TransactionReference current) throws Exception {
-				super(current);
-
+			private ConstructorThread(Constructor<?> constructorJVM, Object[] deserializedActuals) throws Exception {
 				this.constructorJVM = constructorJVM;
 				this.deserializedActuals = deserializedActuals;
 			}

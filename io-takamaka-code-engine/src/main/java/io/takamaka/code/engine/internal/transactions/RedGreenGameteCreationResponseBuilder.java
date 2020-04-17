@@ -20,7 +20,6 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 	 * Creates the builder of a response.
 	 * 
 	 * @param request the request of the transaction
-	 * @param current the reference that must be used for the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
@@ -59,11 +58,12 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 		private final GameteCreationTransactionResponse response;
 
 		private ResponseCreator(TransactionReference current) throws Throwable {
+			super(current);
+
 			// we create an initial gamete RedGreenExternallyOwnedContract and we fund it with the initial amount
-			GameteThread thread = new GameteThread(current);
+			GameteThread thread = new GameteThread();
 			thread.go();
 			Object gamete = thread.gamete;
-			EngineClassLoader classLoader = getClassLoader();
 			classLoader.setBalanceOf(gamete, request.initialAmount);
 			classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
 			response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
@@ -87,13 +87,11 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 		private class GameteThread extends TakamakaThread {
 			private Object gamete;
 
-			private GameteThread(TransactionReference current) throws Exception {
-				super(current);
-			}
+			private GameteThread() {}
 
 			@Override
 			protected void body() throws Exception {
-				gamete = getClassLoader().getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+				gamete = classLoader.getRedGreenExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 			}
 		}
 	}

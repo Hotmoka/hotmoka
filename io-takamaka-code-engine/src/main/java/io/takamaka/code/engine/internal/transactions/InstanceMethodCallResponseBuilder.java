@@ -65,12 +65,14 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		private final MethodCallTransactionResponse response;
 
 		private ResponseCreator(TransactionReference current) throws Throwable {
+			super(current);
+
 			MethodCallTransactionResponse response = null;
 
 			try {
 				// we perform deserialization in a thread, since enums passed as parameters
 				// would trigger the execution of their static initializer, which will charge gas
-				DeserializerThread deserializerThread = new DeserializerThread(current);
+				DeserializerThread deserializerThread = new DeserializerThread();
 				deserializerThread.go();
 				this.deserializedReceiver = deserializerThread.deserializedReceiver;
 				this.deserializedActuals = deserializerThread.deserializedActuals;
@@ -102,7 +104,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				if (hasAnnotation(methodJVM, Constants.RED_PAYABLE_NAME))
 					callerMustBeRedGreenExternallyOwnedAccount();
 
-				MethodThread thread = new MethodThread(methodJVM, deserializedActuals, current);
+				MethodThread thread = new MethodThread(methodJVM, deserializedActuals);
 				try {
 					thread.go();
 				}
@@ -173,7 +175,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			super.ensureWhiteListingOf(executable, actuals);
 
 			// we check the annotations on the receiver as well
-			Optional<Method> model = getClassLoader().getWhiteListingWizard().whiteListingModelOf(executable);
+			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isPresent() && !Modifier.isStatic(executable.getModifiers()))
 				checkWhiteListingProofObligations(model.get().getName(), deserializedReceiver, model.get().getAnnotations());
 		}
@@ -208,7 +210,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 			Class<?>[] argTypes = formalsAsClassForEntry();
 		
-			return getClassLoader().resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 
@@ -220,9 +222,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			private final Method methodJVM;
 			private final Object[] deserializedActuals;
 		
-			private MethodThread(Method methodJVM, Object[] deserializedActuals, TransactionReference current) throws Exception {
-				super(current);
-
+			private MethodThread(Method methodJVM, Object[] deserializedActuals) throws Exception {
 				this.methodJVM = methodJVM;
 				this.deserializedActuals = deserializedActuals;
 			}
@@ -250,9 +250,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			 */
 			private Object[] deserializedActuals;
 
-			private DeserializerThread(TransactionReference current) throws Exception {
-				super(current);
-			}
+			private DeserializerThread() {}
 
 			@Override
 			protected void body() throws Exception {

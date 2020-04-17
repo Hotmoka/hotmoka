@@ -58,11 +58,12 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 		private final GameteCreationTransactionResponse response;
 
 		private ResponseCreator(TransactionReference current) throws Throwable {
+			super(current);
+
 			// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-			GameteThread thread = new GameteThread(current);
+			GameteThread thread = new GameteThread();
 			thread.go();
 			Object gamete = thread.gamete;
-			EngineClassLoader classLoader = getClassLoader();
 			classLoader.setBalanceOf(gamete, request.initialAmount);
 			response = new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 		}
@@ -85,13 +86,11 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 		private class GameteThread extends TakamakaThread {
 			private Object gamete;
 
-			private GameteThread(TransactionReference current) throws Exception {
-				super(current);
-			}
+			private GameteThread() {}
 
 			@Override
 			protected void body() throws Exception {
-				gamete = getClassLoader().getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+				gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
 			}
 		}
 	}

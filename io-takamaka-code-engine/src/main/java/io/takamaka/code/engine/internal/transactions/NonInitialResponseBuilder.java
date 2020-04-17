@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -18,7 +19,6 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractNode;
-import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
  * The creator of the response for a non-initial transaction. Non-initial transactions consume gas.
@@ -59,7 +59,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @return the minimal threshold
 	 */
 	protected BigInteger minimalGasRequiredForTransaction() {
-		EngineClassLoader classLoader = getClassLoader();
 		BigInteger result = gasCostModel.cpuBaseTransactionCost();
 		result = result.add(sizeCalculator.sizeOfRequest(request));
 		result = result.add(gasForStoringFailedResponse());
@@ -78,9 +77,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	private void callerMustBeExternallyOwnedAccount() throws Exception {
 		ClassTag classTag = node.getClassTagOf(request.caller, i -> {});
-		Class<?> clazz = getClassLoader().loadClass(classTag.className);
-		if (!getClassLoader().getExternallyOwnedAccount().isAssignableFrom(clazz)
-				&& !getClassLoader().getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+		Class<?> clazz = classLoader.loadClass(classTag.className);
+		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
+				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new TransactionRejectedException("only an externally owned account can start a transaction");
 	}
 
@@ -125,7 +124,9 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		private BigInteger gasConsumedForStorage = BigInteger.ZERO;
 
-		protected ResponseCreator() throws TransactionRejectedException {
+		protected ResponseCreator(TransactionReference current) throws TransactionRejectedException {
+			super(current);
+
 			try {
 				this.gas = request.gasLimit;
 
@@ -249,7 +250,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Charges gas proportional to the complexity of the class loader that has been created.
 		 */
 		protected final void chargeGasForClassLoader() {
-			EngineClassLoader classLoader = getClassLoader();
 			classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).forEach(this::chargeGasForCPU);
 			classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).forEach(this::chargeGasForRAM);
 			classLoader.getTransactionsOfJars().map(gasCostModel::cpuCostForGettingResponseAt).forEach(this::chargeGasForCPU);
@@ -283,7 +283,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Buys back the remaining gas to the caller of the transaction.
 		 */
 		protected final void payBackAllRemainingGasToCaller() {
-			getClassLoader().setBalanceOf(deserializedCaller, getClassLoader().getBalanceOf(deserializedCaller).add(costOf(gas)));
+			classLoader.setBalanceOf(deserializedCaller, classLoader.getBalanceOf(deserializedCaller).add(costOf(gas)));
 		}
 
 		@Override
@@ -307,7 +307,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @throws IllegalArgumentException if the nonce of the caller is not equal to that in {@code request}
 		 */
 		private void callerAndRequestMustAgreeOnNonce() {
-			BigInteger expected = getClassLoader().getNonceOf(deserializedCaller);
+			BigInteger expected = classLoader.getNonceOf(deserializedCaller);
 			if (!expected.equals(request.nonce))
 				throw new IllegalArgumentException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
 		}
@@ -316,7 +316,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * Sets the nonce to the value successive to that in the request.
 		 */
 		private void increaseNonceOfCaller() {
-			getClassLoader().setNonceOf(deserializedCaller, request.nonce.add(BigInteger.ONE));
+			classLoader.setNonceOf(deserializedCaller, request.nonce.add(BigInteger.ONE));
 		}
 
 		/**
@@ -325,7 +325,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @throws IllegalStateException if the caller has not enough money to buy the promised gas
 		 */
 		private void sellAllGasToCaller() {
-			EngineClassLoader classLoader = getClassLoader();
 			BigInteger balance = classLoader.getBalanceOf(deserializedCaller);
 			BigInteger cost = costOf(request.gasLimit);
 

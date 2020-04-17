@@ -105,7 +105,7 @@ public class UpdatesExtractor {
 		 *                for the objects recursively reachable from them)
 		 */
 		private Processor(Stream<Object> objects) {
-			this.classLoader = builder.getClassLoader();
+			this.classLoader = builder.classLoader;
 			this.workingSet = objects
 				.filter(object -> seen.add(classLoader.getStorageReferenceOf(object)))
 				.collect(Collectors.toList());
@@ -144,7 +144,7 @@ public class UpdatesExtractor {
 				this.inStorage = classLoader.getInStorageOf(object);
 
 				if (!inStorage)
-					updates.add(new ClassTag(storageReference, clazz.getName(), builder.getClassLoader().transactionThatInstalledJarFor(clazz)));
+					updates.add(new ClassTag(storageReference, clazz.getName(), classLoader.transactionThatInstalledJarFor(clazz)));
 
 				while (clazz != classLoader.getStorage()) {
 					addUpdatesForFieldsDefinedInClass(clazz, object);

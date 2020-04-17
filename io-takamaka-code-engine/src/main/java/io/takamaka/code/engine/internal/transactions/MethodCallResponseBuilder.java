@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
@@ -48,7 +49,8 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 	protected abstract class ResponseCreator extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse>.ResponseCreator {
 
-		protected ResponseCreator() throws TransactionRejectedException {
+		protected ResponseCreator(TransactionReference current) throws TransactionRejectedException {
+			super(current);
 		}
 
 		/**
@@ -64,7 +66,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 			Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 			Class<?>[] argTypes = formalsAsClass();
 
-			return getClassLoader().resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+			return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
 				.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 		}
 
@@ -75,7 +77,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @return true if and only if that condition holds
 		 */
 		protected final boolean onlyAffectedBalanceOrNonceOfCaller(Object result) {
-			StorageReference caller = getClassLoader().getStorageReferenceOf(getDeserializedCaller());
+			StorageReference caller = classLoader.getStorageReferenceOf(getDeserializedCaller());
 
 			return updates(result).allMatch
 				(update -> update.object.equals(caller)
@@ -94,7 +96,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 * @throws ClassNotFoundException if some class could not be found during the check
 		 */
 		protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
-			Optional<Method> model = getClassLoader().getWhiteListingWizard().whiteListingModelOf(executable);
+			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (!model.isPresent())
 				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.method.definingClass.name + "." + request.method.methodName);
 

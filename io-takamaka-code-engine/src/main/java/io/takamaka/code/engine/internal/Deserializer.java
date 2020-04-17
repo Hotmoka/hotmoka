@@ -88,8 +88,8 @@ public class Deserializer {
 							return field1.type.toString().compareTo(field2.type.toString());
 					}
 
-					Class<?> clazz1 = builder.getClassLoader().loadClass(className1);
-					Class<?> clazz2 = builder.getClassLoader().loadClass(className2);
+					Class<?> clazz1 = builder.classLoader.loadClass(className1);
+					Class<?> clazz2 = builder.classLoader.loadClass(className2);
 					if (clazz1.isAssignableFrom(clazz2)) // clazz1 superclass of clazz2
 						return -1;
 					else if (clazz2.isAssignableFrom(clazz1)) // clazz2 superclass of clazz1
@@ -109,11 +109,12 @@ public class Deserializer {
 	/**
 	 * Builds an object that translates storage values into RAM values.
 	 * 
-	 * @param creator the response creator for which deserialization is performed
+	 * @param builder the response builder for which deserialization is performed
+	 * @param chargeGasForCPU what to apply to charge gas for CPU use
 	 */
-	public Deserializer(AbstractResponseBuilder<?,?>.ResponseCreator creator) {
-		this.builder = creator.getBuilder();
-		this.chargeGasForCPU = creator::chargeGasForCPU;
+	public Deserializer(AbstractResponseBuilder<?,?> builder, Consumer<BigInteger> chargeGasForCPU) {
+		this.builder = builder;
+		this.chargeGasForCPU = chargeGasForCPU;
 	}
 
 	/**
@@ -156,7 +157,7 @@ public class Deserializer {
 			EnumValue ev = (EnumValue) value;
 
 			try {
-				return Enum.valueOf((Class<? extends Enum>) builder.getClassLoader().loadClass(ev.enumClassName), ev.name);
+				return Enum.valueOf((Class<? extends Enum>) builder.classLoader.loadClass(ev.enumClassName), ev.name);
 			}
 			catch (ClassNotFoundException e) {
 				throw new DeserializationError(e);
@@ -191,7 +192,7 @@ public class Deserializer {
 	 * @return the fields
 	 */
 	private Stream<Field> collectEagerFieldsOf(String className) {
-		EngineClassLoader classLoader = builder.getClassLoader();
+		EngineClassLoader classLoader = builder.classLoader;
 		Set<Field> bag = new HashSet<>();
 		Class<?> storage = classLoader.getStorage();
 
@@ -242,8 +243,8 @@ public class Deserializer {
 			if (classTag == null)
 				throw new DeserializationError("No class tag found for " + reference);
 
-			Class<?> clazz = builder.getClassLoader().loadClass(classTag.className);
-			TransactionReference actual = builder.getClassLoader().transactionThatInstalledJarFor(clazz);
+			Class<?> clazz = builder.classLoader.loadClass(classTag.className);
+			TransactionReference actual = builder.classLoader.transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
 				throw new DeserializationError("Class " + classTag.className + " was instantiated from jar at " + expected + " not from jar at " + actual);

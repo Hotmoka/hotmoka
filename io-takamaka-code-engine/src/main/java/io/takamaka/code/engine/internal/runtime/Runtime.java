@@ -23,19 +23,7 @@ import io.takamaka.code.whitelisting.WhiteListingPredicate;
 public abstract class Runtime {
 
 	/**
-	 * Transaction builders spawn a thread when they need to execute code that could
-	 * call into this class. This allows the execution of more transactions in parallel
-	 * and with distinct class loaders.
-	 * This method yields the transaction builder that is using that thread.
-	 * 
-	 * @return the transaction builder that is using the current thread
-	 */
-	private static AbstractResponseBuilder<?,?> getBuilder() {
-		return getCurrentThread().getBuilder();
-	}
-
-	/**
-	 * Transaction builders spawn a thread when they need to execute code that could
+	 * Response builders spawn a thread when they need to execute code that could
 	 * call into this class. This allows the execution of more transactions in parallel
 	 * and with distinct class loaders.
 	 * This method yields the transaction builder that is using that thread.
@@ -68,8 +56,8 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		AbstractResponseBuilder<?,?> builder = getBuilder();
-		return getResponseCreator().deserializeLastLazyUpdateFor(builder.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
+		return responseCreator.deserializeLastLazyUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -84,8 +72,8 @@ public abstract class Runtime {
 	 * @throws Exception if the value could not be found
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
-		AbstractResponseBuilder<?,?> builder = getBuilder();
-		return getResponseCreator().deserializeLastLazyUpdateForFinal(builder.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
+		return responseCreator.deserializeLastLazyUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
 	}
 
 	/**
@@ -97,7 +85,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void entry(Object callee, Object caller) throws Throwable {
-		getBuilder().getClassLoader().entry(callee, caller);
+		getResponseCreator().getClassLoader().entry(callee, caller);
 	}
 
 	/**
@@ -110,7 +98,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.payableEntry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		getBuilder().getClassLoader().payableEntry(callee, caller, amount);
+		getResponseCreator().getClassLoader().payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -125,7 +113,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, BigInteger amount) throws Throwable {
-		getBuilder().getClassLoader().redPayableEntry(callee, caller, amount);
+		getResponseCreator().getClassLoader().redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -138,7 +126,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, int amount) throws Throwable {
-		getBuilder().getClassLoader().payableEntry(callee, caller, amount);
+		getResponseCreator().getClassLoader().payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -153,7 +141,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, int amount) throws Throwable {
-		getBuilder().getClassLoader().redPayableEntry(callee, caller, amount);
+		getResponseCreator().getClassLoader().redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -166,7 +154,7 @@ public abstract class Runtime {
 	 * @throws any possible exception thrown inside {@code io.takamaka.code.lang.Contract.entry()}
 	 */
 	public static void payableEntry(Object callee, Object caller, long amount) throws Throwable {
-		getBuilder().getClassLoader().payableEntry(callee, caller, amount);
+		getResponseCreator().getClassLoader().payableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -181,7 +169,7 @@ public abstract class Runtime {
 	 *         or {@code io.takamaka.code.lang.RedGreenContract.redPayable()}
 	 */
 	public static void redPayableEntry(Object callee, Object caller, long amount) throws Throwable {
-		getBuilder().getClassLoader().redPayableEntry(callee, caller, amount);
+		getResponseCreator().getClassLoader().redPayableEntry(callee, caller, amount);
 	}
 
 	/**
@@ -215,7 +203,7 @@ public abstract class Runtime {
 	 * @return the time
 	 */
 	public static long now() {
-		return getCurrentThread().now();
+		return getResponseCreator().now();
 	}
 
 	/**
@@ -225,7 +213,7 @@ public abstract class Runtime {
 	 * @return the value of the field
 	 */
 	public static boolean inStorageOf(Object object) {
-		return getBuilder().getClassLoader().getInStorageOf(object);
+		return getResponseCreator().getClassLoader().getInStorageOf(object);
 	}
 
 	/**
@@ -244,7 +232,7 @@ public abstract class Runtime {
 		else if (o2 == null)
 			return 1;
 		else {
-			EngineClassLoader classLoader = getBuilder().getClassLoader();
+			EngineClassLoader classLoader = getResponseCreator().getClassLoader();
 			return classLoader.getStorageReferenceOf(o1).compareTo(classLoader.getStorageReferenceOf(o2));
 		}
 	}
@@ -256,7 +244,7 @@ public abstract class Runtime {
 	 * @return the next storage reference
 	 */
 	public static Object getNextStorageReference() {
-		return getCurrentThread().getNextStorageReference();
+		return getResponseCreator().getNextStorageReference();
 	}
 
 	/**
@@ -269,7 +257,7 @@ public abstract class Runtime {
 	public static void checkWhiteListingPredicate(Object value, Class<? extends WhiteListingPredicate> predicateClass, String methodName) {
 		try {
 			WhiteListingPredicate predicate = predicateClass.getConstructor().newInstance();
-			if (!predicate.test(value, getBuilder().getClassLoader().getWhiteListingWizard()))
+			if (!predicate.test(value, getResponseCreator().getClassLoader().getWhiteListingWizard()))
 				throw new NonWhiteListedCallException(predicate.messageIfFailed(methodName));
 		}
 		catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
