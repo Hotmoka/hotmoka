@@ -46,12 +46,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 
 	@Override
 	public ConstructorCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		try {
-			return new ResponseCreator(current).create();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		return new ResponseCreator(current).create();
 	}
 
 	private class ResponseCreator extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse>.ResponseCreator {

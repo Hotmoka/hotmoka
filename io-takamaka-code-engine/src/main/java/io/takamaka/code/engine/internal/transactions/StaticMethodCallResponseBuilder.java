@@ -13,7 +13,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
-import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
 
@@ -35,12 +34,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 
 	@Override
 	public final MethodCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		try {
-			return new ResponseCreator(current).create();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		return new ResponseCreator(current).create();
 	}
 
 	private class ResponseCreator extends MethodCallResponseBuilder<StaticMethodCallTransactionRequest>.ResponseCreator {
@@ -55,7 +49,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		}
 
 		@Override
-		protected MethodCallTransactionResponse body() throws Exception {
+		protected MethodCallTransactionResponse body() {
 			try {
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 
@@ -104,11 +98,6 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		@Override
 		protected final Stream<Object> getDeserializedActuals() {
 			return Stream.of(deserializedActuals);
-		}
-
-		private void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException {
-			if (isView && !onlyAffectedBalanceOrNonceOfCaller(result))
-				throw new SideEffectsInViewMethodException(request.method);
 		}
 
 		/**

@@ -54,12 +54,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 
 	@Override
 	public JarStoreTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		try {
-			return new ResponseCreator(current).create();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		return new ResponseCreator(current).create();
 	}
 
 	private class ResponseCreator extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {

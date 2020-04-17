@@ -22,6 +22,9 @@ import io.takamaka.code.whitelisting.WhiteListingPredicate;
  */
 public abstract class Runtime {
 
+	/**
+	 * A map that provides the response creation environment for each thread that is running a transaction.
+	 */
 	public final static ThreadLocal<AbstractResponseBuilder<?,?>.ResponseCreator> responseCreators = new ThreadLocal<>();
 
 	/**
@@ -34,7 +37,6 @@ public abstract class Runtime {
 	 */
 	private static AbstractResponseBuilder<?,?>.ResponseCreator getResponseCreator() {
 		return responseCreators.get();
-		//return ((ResponseCreatorProvider) Thread.currentThread()).getResponseCreator();
 	}
 
 	/**

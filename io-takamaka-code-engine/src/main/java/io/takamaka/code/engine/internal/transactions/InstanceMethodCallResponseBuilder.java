@@ -17,7 +17,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
 
@@ -39,12 +38,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 	@Override
 	public MethodCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		try {
-			return new ResponseCreator(current).create();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		return new ResponseCreator(current).create();
 	}
 
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {
@@ -64,7 +58,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected MethodCallTransactionResponse body() throws Exception {
+		protected MethodCallTransactionResponse body() {
 			try {
 				this.deserializedReceiver = deserializer.deserialize(request.receiver);
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
@@ -130,11 +124,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
-		}
-
-		private void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException {
-			if (isView && !onlyAffectedBalanceOrNonceOfCaller(result))
-				throw new SideEffectsInViewMethodException(request.method);
 		}
 
 		/**

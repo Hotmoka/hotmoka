@@ -17,6 +17,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.NonWhiteListedCallException;
+import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.engine.AbstractNode;
 
 /**
@@ -85,6 +86,18 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 							&& (((UpdateOfField) update).getField().equals(FieldSignature.BALANCE_FIELD)
 								|| ((UpdateOfField) update).getField().equals(FieldSignature.EOA_NONCE_FIELD)
 								|| ((UpdateOfField) update).getField().equals(FieldSignature.RGEOA_NONCE_FIELD)));
+		}
+
+		/**
+		 * Checks that the view annotation, if any, is satisfied.
+		 * 
+		 * @param isView true if and only if the method is annotated as view
+		 * @param result the returned value of the method, if any
+		 * @throws SideEffectsInViewMethodException if the method is annotated as view, but generated side-effects
+		 */
+		protected final void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException {
+			if (isView && !onlyAffectedBalanceOrNonceOfCaller(result))
+				throw new SideEffectsInViewMethodException(request.method);
 		}
 
 		/**

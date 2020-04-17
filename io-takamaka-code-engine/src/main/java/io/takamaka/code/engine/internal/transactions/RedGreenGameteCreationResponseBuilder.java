@@ -40,12 +40,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 
 	@Override
 	public GameteCreationTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		try {
-			return new ResponseCreator(current).create();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		return new ResponseCreator(current).create();
 	}
 
 	private class ResponseCreator extends InitialResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse>.ResponseCreator {

@@ -35,16 +35,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	public final AbstractNode node;
 
 	/**
-	 * The request of the transaction.
-	 */
-	public final Request request;
-
-	/**
-	 * The object that knows about the size of data once serialized.
-	 */
-	public final SizeCalculator sizeCalculator = new SizeCalculator(this);
-
-	/**
 	 * The object that translates storage types into their run-time class tag.
 	 */
 	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
@@ -53,6 +43,16 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * The class loader used for the transaction.
 	 */
 	public final EngineClassLoader classLoader;
+
+	/**
+	 * The request of the transaction.
+	 */
+	protected final Request request;
+
+	/**
+	 * The object that knows about the size of data once serialized.
+	 */
+	protected final SizeCalculator sizeCalculator = new SizeCalculator(this);
 
 	/**
 	 * Creates the builder of the response.
@@ -99,11 +99,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	public abstract class ResponseCreator {
 
 		/**
-		 * The reference that must be used to refer to the created transaction.
-		 */
-		private final TransactionReference current;
-
-		/**
 		 * The object that deserializes storage objects into RAM values.
 		 */
 		protected final Deserializer deserializer;
@@ -113,6 +108,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * induced by the run of the transaction.
 		 */
 		protected final UpdatesExtractor updatesExtractor;
+
+		/**
+		 * The reference that must be used to refer to the created transaction.
+		 */
+		private final TransactionReference current;
 
 		/**
 		 * The time of execution of the transaction.
@@ -136,12 +136,15 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			}
 		}
 
-		protected final Response create() throws Throwable {
+		protected final Response create() throws TransactionRejectedException {
 			try {
 				return node.submit(new TakamakaCallable(this::body)).get();
 			}
 			catch (ExecutionException e) {
-				throw e.getCause();
+				throw wrapAsTransactionRejectedException(e.getCause());
+			}
+			catch (Throwable t) {
+				throw wrapAsTransactionRejectedException(t);
 			}
 		}
 
