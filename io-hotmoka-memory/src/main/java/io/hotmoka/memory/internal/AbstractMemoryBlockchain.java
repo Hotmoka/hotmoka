@@ -19,11 +19,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
@@ -235,23 +232,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
 
-		return new JarStoreFuture() {
-
-			@Override
-			public TransactionReference get() throws TransactionException {
-				return response.getOutcomeAt(transactionReference);
-			}
-
-			@Override
-			public TransactionReference get(long timeout, TimeUnit unit) throws TransactionException, TimeoutException {
-				return response.getOutcomeAt(transactionReference);
-			}
-
-			@Override
-			public String id() {
-				return hash;
-			}
-		};
+		return new JarStoreFutureAdaptor(submit(() -> response.getOutcomeAt(transactionReference)), hash);
 	}
 
 	@Override
@@ -262,23 +243,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
 
-		return new CodeExecutionFuture<StorageReference>() {
-
-			@Override
-			public StorageReference get() throws TransactionException, CodeExecutionException {
-				return response.getOutcome();
-			}
-
-			@Override
-			public StorageReference get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
-				return response.getOutcome();
-			}
-
-			@Override
-			public String id() {
-				return hash;
-			}
-		};
+		return new CodeExecutionFutureAdaptor<StorageReference>(submit(response::getOutcome), hash);
 	}
 
 	@Override
@@ -289,23 +254,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
 
-		return new CodeExecutionFuture<StorageValue>() {
-
-			@Override
-			public StorageValue get() throws TransactionException, CodeExecutionException {
-				return response.getOutcome();
-			}
-
-			@Override
-			public StorageValue get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
-				return response.getOutcome();
-			}
-
-			@Override
-			public String id() {
-				return hash;
-			}
-		};
+		return new CodeExecutionFutureAdaptor<StorageValue>(submit(response::getOutcome), hash);
 	}
 
 	@Override
@@ -316,23 +265,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
 
-		return new CodeExecutionFuture<StorageValue>() {
-
-			@Override
-			public StorageValue get() throws TransactionException, CodeExecutionException {
-				return response.getOutcome();
-			}
-
-			@Override
-			public StorageValue get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
-				return response.getOutcome();
-			}
-
-			@Override
-			public String id() {
-				return hash;
-			}
-		};
+		return new CodeExecutionFutureAdaptor<StorageValue>(submit(response::getOutcome), hash);
 	}
 
 	@Override

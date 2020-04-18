@@ -9,9 +9,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -638,6 +641,118 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		}
 		catch (Throwable t) {
 			throw new TransactionRejectedException(t);
+		}
+	}
+
+	/**
+	 * An adaptor from Java's futures to ours.
+	 *
+	 * @param <V> the type of the value provided by the future
+	 */
+	protected static class JarStoreFutureAdaptor implements JarStoreFuture {
+		private final Future<TransactionReference> adapted;
+		private final String id;
+
+		public JarStoreFutureAdaptor(Future<TransactionReference> adapted, String id) {
+			this.adapted = adapted;
+			this.id = id;
+		}
+
+		@Override
+		public TransactionReference get() throws TransactionRejectedException, TransactionException {
+			try {
+				try {
+					return adapted.get();
+				}
+				catch (ExecutionException e) {
+					throw e.getCause();
+				}
+			}
+			catch (TransactionRejectedException | TransactionException e) {
+				throw e;
+			}
+			catch (Throwable t) {
+				throw new TransactionRejectedException(t);
+			}
+		}
+
+		@Override
+		public TransactionReference get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, TimeoutException {
+			try {
+				try {
+					return adapted.get(timeout, unit);
+				}
+				catch (ExecutionException e) {
+					throw e.getCause();
+				}
+			}
+			catch (TransactionRejectedException | TransactionException e) {
+				throw e;
+			}
+			catch (Throwable t) {
+				throw new TransactionRejectedException(t);
+			}
+		}
+
+		@Override
+		public String id() {
+			return id;
+		}
+	}
+
+	/**
+	 * An adaptor from Java's futures to ours.
+	 *
+	 * @param <V> the type of the value provided by the future
+	 */
+	protected static class CodeExecutionFutureAdaptor<V extends StorageValue> implements CodeExecutionFuture<V> {
+		private final Future<V> adapted;
+		private final String id;
+
+		public CodeExecutionFutureAdaptor(Future<V> adapted, String id) {
+			this.adapted = adapted;
+			this.id = id;
+		}
+
+		@Override
+		public V get() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+			try {
+				try {
+					return adapted.get();
+				}
+				catch (ExecutionException e) {
+					throw e.getCause();
+				}
+			}
+			catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
+				throw e;
+			}
+			catch (Throwable t) {
+				throw new TransactionRejectedException(t);
+			}
+		}
+
+		@Override
+		public V get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException {
+			try {
+				try {
+					return adapted.get(timeout, unit);
+				}
+				catch (ExecutionException e) {
+					throw e.getCause();
+				}
+			}
+			catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
+				throw e;
+			}
+			catch (Throwable t) {
+				throw new TransactionRejectedException(t);
+			}
+		}
+
+		@Override
+		public String id() {
+			return id;
 		}
 	}
 }
