@@ -150,19 +150,6 @@ class State implements AutoCloseable {
 		responses.put(txn, compactByteArraySerializationOf(transactionReference), byteArraySerializationOf(response));
 	}
 
-	/*void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws IOException {
-		// we collect the storage references that have been updates; for each of them,
-		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
-		// in front of such lists and store back the updated lists, replacing the old ones
-		response.getUpdates()
-			.map(Update::getObject)
-			.distinct()
-			.collect(Collectors.toMap
-				(State::byteArraySerializationOf,
-				object -> byteArraySerializationOf(getExpandedHistoryOf(object, transactionReference).toArray(TransactionReference[]::new))))
-			.forEach((key, value) -> history.put(txn, key, value));
-	}*/
-
 	void setHistory(StorageReference transactionReference, Stream<TransactionReference> history) {
 		this.history.put(txn, byteArraySerializationOf(transactionReference), byteArraySerializationOf(history.toArray(TransactionReference[]::new)));
 	}

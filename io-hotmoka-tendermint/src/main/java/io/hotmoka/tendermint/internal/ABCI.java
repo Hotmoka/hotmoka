@@ -166,10 +166,11 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
             		//System.out.println("miss for " + request.getClass().getName());
             	}
 
+            	TransactionReference next = node.nextAndIncrement();
             	TransactionResponse response = builder.build(next);
             	ByteString serializedNext = byteStringSerializationOf(next.toString());
 
-            	node.storeResponse(next, response);
+            	node.expandStoreWith(next, request, response);
 
             	responseBuilder.setCode(0);
             	responseBuilder.setData(serializedNext);
@@ -185,8 +186,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         }
         else
         	responseBuilder.setCode(code);
-
-        next = new TendermintTransactionReference(next.blockNumber, next.transactionNumber + 1);
 
         ResponseDeliverTx resp = responseBuilder.build();
         responseObserver.onNext(resp);
@@ -276,7 +275,20 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
      * 
      * @return the transaction reference
      */
-	TransactionReference getNextTransaction() {
+	TransactionReference getNextTransactionReference() {
 		return next;
+	}
+
+	private final Object lockGetNextTransactionReferenceAndIncrement = new Object();
+
+	TransactionReference getNextTransactionReferenceAndIncrement() {
+		TransactionReference result;
+
+		synchronized (lockGetNextTransactionReferenceAndIncrement) {
+			result = next;
+			next = new TendermintTransactionReference(next.blockNumber, next.transactionNumber + 1);
+		}
+
+		return result;
 	}
 }

@@ -183,62 +183,55 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		return next;
 	}
 
+	private final Object lockGetNextTransactionReferenceAndIncrement = new Object();
+
+	@Override
+	protected TransactionReference nextAndIncrement() {
+		TransactionReference result;
+
+		synchronized (lockGetNextTransactionReferenceAndIncrement) {
+			result = next;
+			next = next.getNext();
+
+			if (next.transactionNumber == 0)
+				try {
+					createHeaderOfCurrentBlock();
+				}
+				catch (Exception e) {}
+		}
+
+		return result;
+	}
+
 	@Override
 	protected TransactionReference addJarStoreInitialTransactionInternal(JarStoreInitialTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = next;
+		TransactionReference transactionReference = nextAndIncrement();
 		JarStoreInitialTransactionResponse response = ResponseBuilder.of(request, this).build(transactionReference);
-		expandStoreWith(request, response);
+		expandStoreWith(transactionReference, request, response);
 		return response.getOutcomeAt(transactionReference);
 	}
 
 	@Override
 	protected StorageReference addGameteCreationTransactionInternal(GameteCreationTransactionRequest request) throws Exception {
-		GameteCreationTransactionResponse response = ResponseBuilder.of(request, this).build(next);
-		expandStoreWith(request, response);
+		TransactionReference reference = nextAndIncrement();
+		GameteCreationTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
+		expandStoreWith(reference, request, response);
 		return response.getOutcome();
 	}
 
 	@Override
 	protected StorageReference addRedGreenGameteCreationTransactionInternal(RedGreenGameteCreationTransactionRequest request) throws Exception {
-		GameteCreationTransactionResponse response = ResponseBuilder.of(request, this).build(next);
-		expandStoreWith(request, response);
-		return response.getOutcome();
-	}
-
-	@Override
-	protected TransactionReference addJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = next;
-		JarStoreTransactionResponse response = ResponseBuilder.of(request, this).build(transactionReference);
-		expandStoreWith(request, response);
-		return response.getOutcomeAt(transactionReference);
-	}
-
-	@Override
-	protected StorageReference addConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
-		ConstructorCallTransactionResponse response = ResponseBuilder.of(request, this).build(next);
-		expandStoreWith(request, response);
-		return response.getOutcome();
-	}
-
-	@Override
-	protected StorageValue addInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(next);
-		expandStoreWith(request, response);
-		return response.getOutcome();
-	}
-
-	@Override
-	protected StorageValue addStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(next);
-		expandStoreWith(request, response);
+		TransactionReference reference = nextAndIncrement();
+		GameteCreationTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
+		expandStoreWith(reference, request, response);
 		return response.getOutcome();
 	}
 
 	@Override
 	protected JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = next;
+		TransactionReference transactionReference = nextAndIncrement();
 		JarStoreTransactionResponse response = ResponseBuilder.of(request, this).build(transactionReference);
-		expandStoreWith(request, response);
+		expandStoreWith(transactionReference, request, response);
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
 
@@ -263,8 +256,9 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected CodeExecutionFuture<StorageReference> postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
-		ConstructorCallTransactionResponse response = ResponseBuilder.of(request, this).build(next);
-		expandStoreWith(request, response);
+		TransactionReference reference = nextAndIncrement();
+		ConstructorCallTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
+		expandStoreWith(reference, request, response);
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
 
@@ -289,8 +283,9 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(next);
-		expandStoreWith(request, response);
+		TransactionReference reference = nextAndIncrement();
+		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
+		expandStoreWith(reference, request, response);
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
 
@@ -315,8 +310,9 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected CodeExecutionFuture<StorageValue> postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(next);
-		expandStoreWith(request, response);
+		TransactionReference reference = nextAndIncrement();
+		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
+		expandStoreWith(reference, request, response);
 		String hash = String.valueOf(id);
 		id = id.add(BigInteger.ONE);
 
@@ -339,17 +335,9 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		};
 	}
 
-	/**
-	 * Expands the store of this node with a transaction, that is added after the topmost one and
-	 * becomes the new topmost transaction.
-	 * 
-	 * @param <Request> the type of the request of the transaction
-	 * @param <Response> the type of the response of the transaction
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
-	 * @throws Exception if the expansion cannot be completed
-	 */
-	private <Request extends TransactionRequest<Response>, Response extends TransactionResponse> void expandStoreWith(Request request, Response response) throws Exception {
+	@Override
+	protected void expandStoreWith(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
+		MemoryTransactionReference next = (MemoryTransactionReference) reference;
 		Path requestPath = getPathFor(next, REQUEST_NAME);
 		Path parent = requestPath.getParent();
 		ensureDeleted(parent);
@@ -363,15 +351,6 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 			output.print(request);
 		}
 
-		storeResponse(next, response);
-
-		next = next.getNext();
-		if (next.transactionNumber == 0)
-			createHeaderOfCurrentBlock();
-	}
-
-	@Override
-	protected void storeResponse(TransactionReference reference, TransactionResponse response) throws Exception {
 		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor((MemoryTransactionReference) reference, RESPONSE_NAME))))) {
 			os.writeObject(response);
 		}
@@ -380,7 +359,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 			output.print(response);
 		}
 
-		super.storeResponse(reference, response);
+		super.expandStoreWith(reference, request, response);
 	}
 
 	/**

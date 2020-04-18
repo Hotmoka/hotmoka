@@ -87,7 +87,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 */
 	private boolean initialized;
 
-	private final Server server;
+    private final Server server;
 
 	private final ABCI abci;
 
@@ -335,7 +335,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	public final Optional<Classpath> jar() {
+	public Optional<Classpath> jar() {
 		return Optional.ofNullable(jar);
 	}
 
@@ -375,30 +375,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	protected StorageReference addRedGreenGameteCreationTransactionInternal(RedGreenGameteCreationTransactionRequest request) throws Exception {
 		TransactionReference transactionReference = executeInTendermintTransaction(request);
 		return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
-	}
-
-	@Override
-	protected TransactionReference addJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = executeInTendermintTransaction(request);
-		return ((JarStoreTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcomeAt(transactionReference);
-	}
-
-	@Override
-	protected StorageReference addConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = executeInTendermintTransaction(request);
-		return ((ConstructorCallTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
-	}
-
-	@Override
-	protected StorageValue addInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = executeInTendermintTransaction(request);
-		return ((MethodCallTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
-	}
-
-	@Override
-	protected StorageValue addStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = executeInTendermintTransaction(request);
-		return ((MethodCallTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
 	}
 
 	@Override
@@ -537,9 +513,9 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	protected final void storeResponse(TransactionReference reference, TransactionResponse response) throws Exception {
+	protected void expandStoreWith(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
 		state.putResponseOf(reference, response);
-		super.storeResponse(reference, response);
+		super.expandStoreWith(reference, request, response);
 	}
 
 	@Override
@@ -555,7 +531,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected TransactionReference next() {
-		return abci.getNextTransaction();
+		return abci.getNextTransactionReference();
+	}
+
+	@Override
+	protected TransactionReference nextAndIncrement() {
+		return abci.getNextTransactionReferenceAndIncrement();
 	}
 
 	/**

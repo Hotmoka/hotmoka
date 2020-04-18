@@ -28,6 +28,7 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -147,16 +148,16 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	}
 
 	/**
-	 * Stores the given response with this node.
-	 * This is typically called at the end of the computation of a response.
-	 * After this call, the response becomes available through the
-	 * {@linkplain #getResponseAt(TransactionReference)}.
+	 * Expands the store of this node with a transaction.
 	 * 
-	 * @param reference the reference of the transaction that computed the response
-	 * @param response the response
-	 * @throws Exception if the response could not be stored
+	 * @param <Request> the type of the request of the transaction
+	 * @param <Response> the type of the response of the transaction
+	 * @param reference the reference for the transaction
+	 * @param request the request of the transaction
+	 * @param response the response of the transaction
+	 * @throws Exception if the expansion cannot be completed
 	 */
-	protected void storeResponse(TransactionReference reference, TransactionResponse response) throws Exception {
+	protected void expandStoreWith(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
 		if (response instanceof TransactionResponseWithUpdates)
 			expandHistoryWith(reference, (TransactionResponseWithUpdates) response);
 
@@ -164,13 +165,25 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	}
 
 	/**
-	 * This method is called when a transaction gets scheduled for execution.
+	 * This method is called when a view transaction gets scheduled for execution.
 	 * It must yield a transaction reference that can be used to reference the
-	 * scheduled transaction at that moment.
+	 * scheduled transaction at that moment. This method must be
+	 * thread-safe, that is, more thread must be able to call into it.
 	 * 
 	 * @return the transaction reference
 	 */
 	protected abstract TransactionReference next();
+
+	/**
+	 * This method is called when a non-view transaction gets scheduled for execution.
+	 * It must yield a transaction reference that can be used to reference the
+	 * scheduled transaction at that moment. It is guaranteed that next time this
+	 * method will be called, a different reference will be returned, never seen
+	 * before. This method must be thread-safe, that is, more thread must be able to call into it.
+	 * 
+	 * @return the transaction reference
+	 */
+	protected abstract TransactionReference nextAndIncrement();
 
 	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.
@@ -355,80 +368,23 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	@Override
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
-		return wrapInCaseOfExceptionMedium(() -> {
-			markAsInitialized();
-			return addJarStoreTransactionInternal(request);
-		});
+		return wrapInCaseOfExceptionMedium(() -> postJarStoreTransaction(request).get());
 	}
-
-	/**
-	 * Expands the store of this node with a transaction that installs a jar in it.
-	 * 
-	 * @param request the transaction request
-	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
-	 * @throws TransactionException if the transaction was added but as a failed transaction
-	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
-	 */
-	protected abstract TransactionReference addJarStoreTransactionInternal(JarStoreTransactionRequest request) throws TransactionException, Exception;
 
 	@Override
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> {
-			markAsInitialized();
-			return addConstructorCallTransactionInternal(request);
-		});
+		return wrapInCaseOfExceptionFull(() -> postConstructorCallTransaction(request).get());
 	}
-
-	/**
-	 * Expands this node's store with a transaction that runs a constructor of a class.
-	 * 
-	 * @param request the request of the transaction
-	 * @return the created object, if the constructor was successfully executed, without exception
-	 * @throws CodeExecutionException if the transaction was added but as a failed transaction, with failure inside the user code
-	 * @throws TransactionException if the transaction was added but as a failed transaction, with failure outside user code
-	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
-	 */
-	protected abstract StorageReference addConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;
 
 	@Override
 	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> {
-			markAsInitialized();
-			return addInstanceMethodCallTransactionInternal(request);
-		});
+		return wrapInCaseOfExceptionFull(() -> postInstanceMethodCallTransaction(request).get());
 	}
-
-	/**
-	 * Expands this node's store with a transaction that runs an instance method of an object already in this node's store.
-	 * 
-	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
-	 *         declared to return {@code void}, this result will be {@code null}
-	 * @throws CodeExecutionException if the transaction was added but as a failed transaction, with failure inside the user code
-	 * @throws TransactionException if the transaction was added but as a failed transaction, with failure outside user code
-	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
-	 */
-	protected abstract StorageValue addInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;
 
 	@Override
 	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> {
-			markAsInitialized();
-			return addStaticMethodCallTransactionInternal(request);
-		});
+		return wrapInCaseOfExceptionFull(() -> postStaticMethodCallTransaction(request).get());
 	}
-
-	/**
-	 * Expands this node's store with a transaction that runs a static method of a class in this node.
-	 * 
-	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
-	 *         declared to return {@code void}, this result will be {@code null}
-	 * @throws CodeExecutionException if the transaction was added but as a failed transaction, with failure inside the user code
-	 * @throws TransactionException if the transaction was added but as a failed transaction, with failure outside user code
-	 * @throws Exception if the transaction was not added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
-	 */
-	protected abstract StorageValue addStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;
 
 	@Override
 	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
@@ -442,7 +398,10 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	@Override
 	public final JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> postJarStoreTransactionInternal(request));
+		return wrapInCaseOfExceptionSimple(() -> {
+			markAsInitialized();
+			return postJarStoreTransactionInternal(request);
+		});
 	}
 
 	/**
@@ -455,7 +414,10 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	@Override
 	public final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> postConstructorCallTransactionInternal(request));
+		return wrapInCaseOfExceptionSimple(() -> {
+			markAsInitialized();
+			return postConstructorCallTransactionInternal(request);
+		});
 	}
 
 	/**
@@ -469,7 +431,10 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	@Override
 	public final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> postInstanceMethodCallTransactionInternal(request));
+		return wrapInCaseOfExceptionSimple(() -> {
+			markAsInitialized();
+			return postInstanceMethodCallTransactionInternal(request);
+		});
 	}
 
 	/**
@@ -483,7 +448,10 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	@Override
 	public final CodeExecutionFuture<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> postStaticMethodCallTransactionInternal(request));
+		return wrapInCaseOfExceptionSimple(() -> {
+			markAsInitialized();
+			return postStaticMethodCallTransactionInternal(request);
+		});
 	}
 
 	/**
