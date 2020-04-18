@@ -70,18 +70,9 @@ class MemoryTransactionReference implements TransactionReference {
 	 * @return the next transaction reference
 	 */
 	MemoryTransactionReference getNext() {
-		if (isLastInBlock())
+		if (transactionNumber + 1 == AbstractMemoryBlockchain.TRANSACTIONS_PER_BLOCK)
 			return new MemoryTransactionReference(blockNumber.add(BigInteger.ONE), (short) 0);
 		else
 			return new MemoryTransactionReference(blockNumber, (short) (transactionNumber + 1));
-	}
-
-	/**
-	 * Determines if this transaction is the last in its block.
-	 * 
-	 * @return true if and only if this transaction is the last in its block
-	 */
-	boolean isLastInBlock() {
-		return transactionNumber + 1 == AbstractMemoryBlockchain.TRANSACTIONS_PER_BLOCK;
 	}
 }

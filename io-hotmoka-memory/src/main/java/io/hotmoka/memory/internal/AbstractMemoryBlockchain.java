@@ -179,6 +179,11 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
+	protected TransactionReference next() {
+		return next;
+	}
+
+	@Override
 	protected TransactionReference addJarStoreInitialTransactionInternal(JarStoreInitialTransactionRequest request) throws Exception {
 		TransactionReference transactionReference = next;
 		JarStoreInitialTransactionResponse response = ResponseBuilder.of(request, this).build(transactionReference);
@@ -227,16 +232,6 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(next);
 		expandStoreWith(request, response);
 		return response.getOutcome();
-	}
-
-	@Override
-	protected StorageValue runViewInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		return ResponseBuilder.ofView(request, this).build(next).getOutcome();
-	}
-
-	@Override
-	protected StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		return ResponseBuilder.ofView(request, this).build(next).getOutcome();
 	}
 
 	@Override

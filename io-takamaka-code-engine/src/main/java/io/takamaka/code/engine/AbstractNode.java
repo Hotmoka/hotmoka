@@ -164,6 +164,15 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	}
 
 	/**
+	 * This method is called when a transaction gets scheduled for execution.
+	 * It must yield a transaction reference that can be used to reference the
+	 * scheduled transaction at that moment.
+	 * 
+	 * @return the transaction reference
+	 */
+	protected abstract TransactionReference next();
+
+	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.
 	 * This method should be called at the end of a transaction, to keep in store the updates to the objects.
 	 * 
@@ -423,37 +432,13 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	@Override
 	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> runViewInstanceMethodCallTransactionInternal(request));
+		return wrapInCaseOfExceptionFull(() -> ResponseBuilder.ofView(request, this).build(next()).getOutcome());
 	}
-
-	/**
-	 * Runs an instance {@code @@View} method of an object already in this node's store.
-	 * The node's store is not expanded, since the execution of the method has no side-effects.
-	 * 
-	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception
-	 * @throws CodeExecutionException if the transaction could be added but as a failed transaction, with failure inside the user code
-	 * @throws TransactionException if the transaction could be added but as a failed transaction, with failure outside user code
-	 * @throws Exception if the transaction could not be added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
-	 */
-	protected abstract StorageValue runViewInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;
 
 	@Override
 	public final StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> runViewStaticMethodCallTransactionInternal(request));
+		return wrapInCaseOfExceptionFull(() -> ResponseBuilder.ofView(request, this).build(next()).getOutcome());
 	}
-
-	/**
-	 * Runs a static {@code @@View} method of a class in this node.
-	 * The node's store is not expanded, since the execution of the method has no side-effects.
-	 * 
-	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception
-	 * @throws CodeExecutionException if the transaction could be added but as a failed transaction, with failure inside the user code
-	 * @throws TransactionException if the transaction could be added but as a failed transaction, with failure outside user code
-	 * @throws Exception if the transaction could not be added; this will be wrapped into a {@ļink io.hotmoka.beans.TransactionRejectedException}
-	 */
-	protected abstract StorageValue runViewStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws TransactionException, CodeExecutionException, Exception;	
 
 	@Override
 	public final JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
