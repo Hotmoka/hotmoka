@@ -71,6 +71,13 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		executor.shutdown();
 	}
 
+	/**
+	 * Runs the given task with the executor service of this node.
+	 * 
+	 * @param <T> the type of the result of the task
+	 * @param what the task
+	 * @return the return value computed by the task
+	 */
 	public final <T> Future<T> submit(Callable<T> what) {
 		return executor.submit(what);
 	}
@@ -140,15 +147,16 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	}
 
 	/**
-	 * Process the given response with this node.
+	 * Stores the given response with this node.
 	 * This is typically called at the end of the computation of a response.
-	 * Its goal is to take note of the response, for instance for caching.
+	 * After this call, the response becomes available through the
+	 * {@linkplain #getResponseAt(TransactionReference)}.
 	 * 
 	 * @param reference the reference of the transaction that computed the response
 	 * @param response the response
-	 * @throws Exception if the response could not be processed
+	 * @throws Exception if the response could not be stored
 	 */
-	protected void processResponse(TransactionReference reference, TransactionResponse response) throws Exception {
+	protected void storeResponse(TransactionReference reference, TransactionResponse response) throws Exception {
 		if (response instanceof TransactionResponseWithUpdates)
 			expandHistoryWith(reference, (TransactionResponseWithUpdates) response);
 
@@ -339,9 +347,8 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	@Override
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
 		return wrapInCaseOfExceptionMedium(() -> {
-			TransactionReference transaction = addJarStoreTransactionInternal(request);
 			markAsInitialized();
-			return transaction;
+			return addJarStoreTransactionInternal(request);
 		});
 	}
 
@@ -358,9 +365,8 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	@Override
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
-			StorageReference newObject = addConstructorCallTransactionInternal(request);
 			markAsInitialized();
-			return newObject;
+			return addConstructorCallTransactionInternal(request);
 		});
 	}
 
@@ -378,9 +384,8 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	@Override
 	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
-			StorageValue result = addInstanceMethodCallTransactionInternal(request);
 			markAsInitialized();
-			return result;
+			return addInstanceMethodCallTransactionInternal(request);
 		});
 	}
 
@@ -399,9 +404,8 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	@Override
 	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
-			StorageValue result = addStaticMethodCallTransactionInternal(request);
 			markAsInitialized();
-			return result;
+			return addStaticMethodCallTransactionInternal(request);
 		});
 	}
 

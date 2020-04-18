@@ -550,9 +550,9 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	protected final void processResponse(TransactionReference reference, TransactionResponse response) throws Exception {
+	protected final void storeResponse(TransactionReference reference, TransactionResponse response) throws Exception {
 		state.putResponseOf(reference, response);
-		super.processResponse(reference, response);
+		super.storeResponse(reference, response);
 	}
 
 	@Override

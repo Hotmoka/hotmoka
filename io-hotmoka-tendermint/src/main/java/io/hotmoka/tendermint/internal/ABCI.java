@@ -169,7 +169,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
             	TransactionResponse response = builder.build(next);
             	ByteString serializedNext = byteStringSerializationOf(next.toString());
 
-            	node.processResponse(next, response);
+            	node.storeResponse(next, response);
 
             	responseBuilder.setCode(0);
             	responseBuilder.setData(serializedNext);
