@@ -7,6 +7,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.UncheckedIOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -38,7 +40,11 @@ class State implements AutoCloseable {
 	private Transaction txn;
 
 	private Store responses;
-    private Store history;
+	private final Map<TransactionReference, TransactionResponse> responsesRecent = new HashMap<>();
+
+	private Store history;
+    private final Map<StorageReference, TransactionReference[]> historyRecent = new HashMap<>();
+
     private Store info;
 
     /**
@@ -109,7 +115,8 @@ class State implements AutoCloseable {
     @Override
 	public void close() {
     	if (txn != null && !txn.isFinished())
-    		txn.abort(); // blockchain closed with non-committed transaction; they will be dropped
+    		// blockchain closed with uncommitted transactions: we commit them
+    		commitTransaction();
 
     	try {
     		env.close();
@@ -127,7 +134,9 @@ class State implements AutoCloseable {
 	void beginTransaction() {
 		txn = env.beginTransaction();
         responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
+        responsesRecent.clear();
         history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
+        historyRecent.clear();
         info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 	}
 
@@ -147,11 +156,14 @@ class State implements AutoCloseable {
 	 * @throws IOException if the response cannot be saved in state
 	 */
 	void putResponseOf(TransactionReference transactionReference, TransactionResponse response) throws IOException {
-		responses.put(txn, compactByteArraySerializationOf(transactionReference), byteArraySerializationOf(response));
+		env.executeInTransaction(txn -> responses.put(txn, compactByteArraySerializationOf(transactionReference), byteArraySerializationOf(response)));
+		responsesRecent.put(transactionReference, response);
 	}
 
 	void setHistory(StorageReference transactionReference, Stream<TransactionReference> history) {
-		this.history.put(txn, byteArraySerializationOf(transactionReference), byteArraySerializationOf(history.toArray(TransactionReference[]::new)));
+		TransactionReference[] historyAsArray = history.toArray(TransactionReference[]::new);
+		env.executeInTransaction(txn -> this.history.put(txn, byteArraySerializationOf(transactionReference), byteArraySerializationOf(historyAsArray)));
+		historyRecent.put(transactionReference, historyAsArray);
 	}
 
 	/**
@@ -197,10 +209,9 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponseOf(TransactionReference transactionReference) {
-		if (txn != null && !txn.isFinished()) {
-			ByteIterable response = responses.get(txn, compactByteArraySerializationOf(transactionReference));
-			return response == null ? Optional.empty() : Optional.of((TransactionResponse) deserializationOf(response));
-		}
+		TransactionResponse result = responsesRecent.get(transactionReference);
+		if (result != null)
+			return Optional.of(result);
 
 		return env.computeInReadonlyTransaction(txn -> {
 			Store responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
@@ -210,13 +221,10 @@ class State implements AutoCloseable {
 	}
 
 	Optional<Stream<TransactionReference>> getHistoryOf(StorageReference object) {
-		if (txn != null && !txn.isFinished()) {
-			// we also consider not yet committed transactions
-			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
-			return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
-		}
+		TransactionReference[] result = historyRecent.get(object);
+		if (result != null)
+			return Optional.of(Stream.of(result));
 
-		// txn might be missing if this method is called as part of a view transaction that occurs after a commit
 		return env.computeInReadonlyTransaction(txn -> {
 			Store history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
@@ -225,11 +233,6 @@ class State implements AutoCloseable {
 	}
 
 	long getNumberOfCommits() {
-		if (txn != null && !txn.isFinished()) {
-			ByteIterable count = info.get(txn, COMMIT_COUNT);
-			return count == null ? 0L : (long) deserializationOf(count);
-		}
-
 		return env.computeInReadonlyTransaction(txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable count = info.get(txn, COMMIT_COUNT);

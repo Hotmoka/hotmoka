@@ -158,7 +158,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 			int i = 0;
 			for (CodeExecutionFuture<StorageReference> future: accounts)
-				this.accounts[i++] = future.get();
+				state.addAccount(this.accounts[i++] = future.get());
 
 			if (jar.isPresent()) {
 				this.jar = new Classpath(jarFuture.get(), true);
@@ -245,7 +245,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			int i = 0;
 			for (CodeExecutionFuture<StorageReference> account: accounts) {
 				// then we add the red coins
-				this.accounts[i] = account.get();
+				state.addAccount(this.accounts[i] = account.get());
 				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(),
 					receiveRed, this.accounts[i], new BigIntegerValue(funds[1 + i * 2])));
 
@@ -525,8 +525,10 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected void markAsInitialized() {
-		state.markAsInitialized();
-		initialized = true;
+		if (!initialized) {
+			state.markAsInitialized();
+			initialized = true;
+		}
 	}
 
 	@Override
