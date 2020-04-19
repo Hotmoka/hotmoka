@@ -276,15 +276,17 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
      * @return the transaction reference
      */
 	TransactionReference getNextTransactionReference() {
-		return next;
+		synchronized (lockGetNext) {
+			return next;
+		}
 	}
 
-	private final Object lockGetNextTransactionReferenceAndIncrement = new Object();
+	private final Object lockGetNext = new Object();
 
 	TransactionReference getNextTransactionReferenceAndIncrement() {
 		TransactionReference result;
 
-		synchronized (lockGetNextTransactionReferenceAndIncrement) {
+		synchronized (lockGetNext) {
 			result = next;
 			next = new TendermintTransactionReference(next.blockNumber, next.transactionNumber + 1);
 		}

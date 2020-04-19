@@ -177,16 +177,18 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected TransactionReference next() {
-		return next;
+		synchronized (lockGetNext) {
+			return next;
+		}
 	}
 
-	private final Object lockGetNextTransactionReferenceAndIncrement = new Object();
+	private final Object lockGetNext = new Object();
 
 	@Override
 	protected TransactionReference nextAndIncrement() {
 		TransactionReference result;
 
-		synchronized (lockGetNextTransactionReferenceAndIncrement) {
+		synchronized (lockGetNext) {
 			result = next;
 			next = next.getNext();
 
