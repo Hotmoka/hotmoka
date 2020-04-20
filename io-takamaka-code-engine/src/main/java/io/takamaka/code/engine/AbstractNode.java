@@ -61,6 +61,12 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache = new LRUCache<>(1000, GET_RESPONSE_CACHE_SIZE);
 
+	/**
+	 * A cache where {@linkplain #checkTransaction(TransactionRequest)} stores the builders and
+	 * from where {@linkplain #deliverTransaction(TransactionRequest)} can retrieve them.
+	 */
+	private final LRUCache<TransactionRequest<?>, ResponseBuilder<?,?>> builders = new LRUCache<>(10_000);
+
 	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
 
 	private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -114,6 +120,26 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 *                replacing its previous history, if any
 	 */
 	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
+
+	//protected abstract void postRequest(TransactionRequest<?> request);
+
+	/**
+	 * Checks that the given transaction request is valid.
+	 * 
+	 * @param request the request
+	 * @return the builder of the response
+	 * @throws TransactionRejectedException if the request is not valid
+	 */
+	public final ResponseBuilder<?,?> checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+		ResponseBuilder<?,?> builder = builders.get(request);
+		if (builder == null) {
+			builder = ResponseBuilder.of(request, this);
+			// we store the builder where next call might be able to find it
+			builders.put(request, builder);
+		}
+
+		return builder;
+	}
 
 	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.
@@ -198,7 +224,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 * @return the response
 	 * @throws Exception if the response could not be computed or the store could not be expanded
 	 */
-	protected final <Request extends TransactionRequest<Response>, Response extends TransactionResponse> Response computeResponse(ResponseBuilder<Request,Response> builder, TransactionReference reference) throws Exception {
+	public final <Request extends TransactionRequest<Response>, Response extends TransactionResponse> Response deliverTransaction(ResponseBuilder<Request,Response> builder, TransactionReference reference) throws Exception {
 		Response response = builder.build(reference);
 		expandStoreWith(reference, builder.getRequest(), response);
 

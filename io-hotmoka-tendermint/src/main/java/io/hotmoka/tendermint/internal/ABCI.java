@@ -15,8 +15,6 @@ import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.takamaka.code.engine.LRUCache;
-import io.takamaka.code.engine.ResponseBuilder;
 import types.ABCIApplicationGrpc;
 import types.Types.Header;
 import types.Types.RequestBeginBlock;
@@ -45,11 +43,6 @@ import types.Types.ResponseSetOption;
 
 class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	private final TendermintBlockchainImpl node;
-
-	/**
-	 * A cache where checkTx stores the builders and from where deliverTx retrieves them.
-	 */
-	private final LRUCache<TransactionRequest<?>, ResponseBuilder<?,?>> builders = new LRUCache<>(10_000);
 
 	/**
      * The transaction reference that can be used for the next transaction that will be delivered.
@@ -100,8 +93,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
         	TransactionRequest<?> request = (TransactionRequest<?>) ois.readObject();
-        	// we store the builder where deliverTx will be able to find it
-        	builders.put(request, ResponseBuilder.of(request, node));
+        	node.checkTransaction(request);
         	responseBuilder.setCode(0);
         }
         catch (TransactionRejectedException e) {
@@ -160,13 +152,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
             	TransactionRequest<?> request = (TransactionRequest<?>) ois.readObject();
 
             	TransactionReference next = node.nextAndIncrement();
-
-            	ResponseBuilder<?,?> builder = builders.get(request);
-            	if (builder == null)
-            		// in case of cache miss, we recreate the builder
-            		builder = ResponseBuilder.of(request, node);
-
-            	node.computeResponseProxy(builder, next);
+            	node.deliverTransaction(node.checkTransaction(request), next);
 
             	responseBuilder.setCode(0);
             	responseBuilder.setData(byteStringSerializationOf(next.toString()));

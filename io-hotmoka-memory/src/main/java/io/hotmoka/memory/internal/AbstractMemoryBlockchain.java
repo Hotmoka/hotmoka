@@ -223,18 +223,20 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
-		TransactionReference reference = nextAndIncrement();
-		JarStoreTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
-		expandStoreWith(reference, request, response);
+		ResponseBuilder<?,?> builder = checkTransaction(request);
+		TransactionReference next = nextAndIncrement();
+		JarStoreTransactionResponse response = (JarStoreTransactionResponse) deliverTransaction(builder, next);
 
-		return new JarStoreFutureAdaptor(submit(() -> response.getOutcomeAt(reference)), reference.toString());
+		return new JarStoreFutureAdaptor(submit(() -> {
+			return response.getOutcomeAt(next);
+		}), next.toString());
 	}
 
 	@Override
 	protected CodeExecutionFuture<StorageReference> postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
+		ResponseBuilder<?,?> builder = checkTransaction(request);
 		TransactionReference next = nextAndIncrement();
-		ResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> builder = ResponseBuilder.of(request, this);
-		ConstructorCallTransactionResponse response = computeResponse(builder, next);
+		ConstructorCallTransactionResponse response = (ConstructorCallTransactionResponse) deliverTransaction(builder, next);
 
 		return new CodeExecutionFutureAdaptor<>(submit(() -> {
 			return response.getOutcome();
@@ -243,22 +245,24 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
+		ResponseBuilder<?,?> builder = checkTransaction(request);
 		TransactionReference next = nextAndIncrement();
-		ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> builder = ResponseBuilder.of(request, this);
-		MethodCallTransactionResponse response = computeResponse(builder, next);
+		MethodCallTransactionResponse response = (MethodCallTransactionResponse) deliverTransaction(builder, next);
 
-		return new CodeExecutionFutureAdaptor<>(submit(() ->{
+		return new CodeExecutionFutureAdaptor<>(submit(() -> {
 			return response.getOutcome();
 		}), next.toString());
 	}
 
 	@Override
 	protected CodeExecutionFuture<StorageValue> postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		TransactionReference reference = nextAndIncrement();
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
-		expandStoreWith(reference, request, response);
+		ResponseBuilder<?,?> builder = checkTransaction(request);
+		TransactionReference next = nextAndIncrement();
+		MethodCallTransactionResponse response = (MethodCallTransactionResponse) deliverTransaction(builder, next);
 
-		return new CodeExecutionFutureAdaptor<>(submit(response::getOutcome), reference.toString());
+		return new CodeExecutionFutureAdaptor<>(submit(() -> {
+			return response.getOutcome();
+		}), next.toString());
 	}
 
 	@Override

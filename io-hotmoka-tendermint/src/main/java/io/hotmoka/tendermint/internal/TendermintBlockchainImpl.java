@@ -346,13 +346,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			.orElseThrow(() -> new IllegalStateException("cannot find no response for transaction " + transactionReference));
 	}
 
-	/**
-	 * A proxy for the {@linkplain #computeResponse(ResponseBuilder, TransactionReference)} method.
-	 */
-	final <Request extends TransactionRequest<Response>, Response extends TransactionResponse> Response computeResponseProxy(ResponseBuilder<Request,Response> builder, TransactionReference reference) throws Exception {
-		return super.computeResponse(builder, reference);
-	}
-
 	@Override
 	public long getNow() throws Exception {
 		return abci.getNow();
