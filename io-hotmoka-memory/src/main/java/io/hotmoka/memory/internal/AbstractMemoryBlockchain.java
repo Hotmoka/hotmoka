@@ -114,11 +114,6 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	private boolean initialized;
 
 	/**
-	 * The identifier that can be used in futures of posted transactions.
-	 */
-	private BigInteger id = BigInteger.ONE;
-
-	/**
 	 * Builds a blockchain that stores transaction in disk memory.
 	 * 
 	 * @param root the directory where blocks and transactions must be stored.
@@ -228,35 +223,33 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = nextAndIncrement();
-		JarStoreTransactionResponse response = ResponseBuilder.of(request, this).build(transactionReference);
-		expandStoreWith(transactionReference, request, response);
-		String hash = String.valueOf(id);
-		id = id.add(BigInteger.ONE);
+		TransactionReference reference = nextAndIncrement();
+		JarStoreTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
+		expandStoreWith(reference, request, response);
 
-		return new JarStoreFutureAdaptor(submit(() -> response.getOutcomeAt(transactionReference)), hash);
+		return new JarStoreFutureAdaptor(submit(() -> response.getOutcomeAt(reference)), reference.toString());
 	}
 
 	@Override
 	protected CodeExecutionFuture<StorageReference> postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
-		TransactionReference reference = nextAndIncrement();
-		ConstructorCallTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
-		expandStoreWith(reference, request, response);
-		String hash = String.valueOf(id);
-		id = id.add(BigInteger.ONE);
+		TransactionReference next = nextAndIncrement();
+		ResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> builder = ResponseBuilder.of(request, this);
+		ConstructorCallTransactionResponse response = computeResponse(builder, next);
 
-		return new CodeExecutionFutureAdaptor<StorageReference>(submit(response::getOutcome), hash);
+		return new CodeExecutionFutureAdaptor<>(submit(() -> {
+			return response.getOutcome();
+		}), next.toString());
 	}
 
 	@Override
 	protected CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		TransactionReference reference = nextAndIncrement();
-		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
-		expandStoreWith(reference, request, response);
-		String hash = String.valueOf(id);
-		id = id.add(BigInteger.ONE);
+		TransactionReference next = nextAndIncrement();
+		ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> builder = ResponseBuilder.of(request, this);
+		MethodCallTransactionResponse response = computeResponse(builder, next);
 
-		return new CodeExecutionFutureAdaptor<StorageValue>(submit(response::getOutcome), hash);
+		return new CodeExecutionFutureAdaptor<>(submit(() ->{
+			return response.getOutcome();
+		}), next.toString());
 	}
 
 	@Override
@@ -264,16 +257,13 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		TransactionReference reference = nextAndIncrement();
 		MethodCallTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
 		expandStoreWith(reference, request, response);
-		String hash = String.valueOf(id);
-		id = id.add(BigInteger.ONE);
 
-		return new CodeExecutionFutureAdaptor<StorageValue>(submit(response::getOutcome), hash);
+		return new CodeExecutionFutureAdaptor<>(submit(response::getOutcome), reference.toString());
 	}
 
 	@Override
 	protected void expandStoreWith(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
-		MemoryTransactionReference next = (MemoryTransactionReference) reference;
-		Path requestPath = getPathFor(next, REQUEST_NAME);
+		Path requestPath = getPathFor((MemoryTransactionReference) reference, REQUEST_NAME);
 		Path parent = requestPath.getParent();
 		ensureDeleted(parent);
 		Files.createDirectories(parent);
@@ -282,7 +272,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 			os.writeObject(request);
 		}
 
-		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(next, REQUEST_TXT_NAME)))) {
+		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((MemoryTransactionReference) reference, REQUEST_TXT_NAME)))) {
 			output.print(request);
 		}
 

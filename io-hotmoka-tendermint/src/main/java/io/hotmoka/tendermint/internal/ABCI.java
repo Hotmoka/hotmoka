@@ -15,7 +15,6 @@ import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.takamaka.code.engine.LRUCache;
 import io.takamaka.code.engine.ResponseBuilder;
 import types.ABCIApplicationGrpc;
@@ -50,7 +49,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	/**
 	 * A cache where checkTx stores the builders and from where deliverTx retrieves them.
 	 */
-	private final LRUCache<TransactionRequest<?>, ResponseBuilder<?>> builders = new LRUCache<>(10_000);
+	private final LRUCache<TransactionRequest<?>, ResponseBuilder<?,?>> builders = new LRUCache<>(10_000);
 
 	/**
      * The transaction reference that can be used for the next transaction that will be delivered.
@@ -159,21 +158,18 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         if (code == 0) {
             try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
             	TransactionRequest<?> request = (TransactionRequest<?>) ois.readObject();
-            	ResponseBuilder<?> builder = builders.get(request);
-            	if (builder == null) {
-            		// in case of cache miss, we recreate the builder
-            		builder = ResponseBuilder.of(request, node);
-            		//System.out.println("miss for " + request.getClass().getName());
-            	}
 
             	TransactionReference next = node.nextAndIncrement();
-            	TransactionResponse response = builder.build(next);
-            	ByteString serializedNext = byteStringSerializationOf(next.toString());
 
-            	node.expandStoreWith(next, request, response);
+            	ResponseBuilder<?,?> builder = builders.get(request);
+            	if (builder == null)
+            		// in case of cache miss, we recreate the builder
+            		builder = ResponseBuilder.of(request, node);
+
+            	node.computeResponseProxy(builder, next);
 
             	responseBuilder.setCode(0);
-            	responseBuilder.setData(serializedNext);
+            	responseBuilder.setData(byteStringSerializationOf(next.toString()));
             }
             catch (TransactionRejectedException e) {
             	responseBuilder.setCode(1);

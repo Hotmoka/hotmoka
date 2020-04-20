@@ -51,6 +51,7 @@ import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
 import io.hotmoka.tendermint.internal.beans.TxError;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * An implementation of a blockchain integrated over the Tendermint generic
@@ -343,6 +344,13 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	protected TransactionResponse getResponseAtInternal(TransactionReference transactionReference) throws Exception {
 		return state.getResponseOf(transactionReference)
 			.orElseThrow(() -> new IllegalStateException("cannot find no response for transaction " + transactionReference));
+	}
+
+	/**
+	 * A proxy for the {@linkplain #computeResponse(ResponseBuilder, TransactionReference)} method.
+	 */
+	final <Request extends TransactionRequest<Response>, Response extends TransactionResponse> Response computeResponseProxy(ResponseBuilder<Request,Response> builder, TransactionReference reference) throws Exception {
+		return super.computeResponse(builder, reference);
 	}
 
 	@Override

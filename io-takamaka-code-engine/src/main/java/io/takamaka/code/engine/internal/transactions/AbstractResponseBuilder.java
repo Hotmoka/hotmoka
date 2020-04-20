@@ -27,7 +27,7 @@ import io.takamaka.code.engine.internal.UpdatesExtractor;
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
  */
-public abstract class AbstractResponseBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements ResponseBuilder<Response> {
+public abstract class AbstractResponseBuilder<Request extends TransactionRequest<Response>, Response extends TransactionResponse> implements ResponseBuilder<Request, Response> {
 
 	/**
 	 * The HotMoka node that is creating the response.
@@ -70,6 +70,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
+	}
+
+	@Override
+	public final Request getRequest() {
+		return request;
 	}
 
 	/**
