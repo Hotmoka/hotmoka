@@ -171,7 +171,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
-	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException {
+	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException, InterruptedException {
 		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
 		CodeExecutionFuture<StorageReference> internationalTime = postConstructorCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
@@ -212,7 +212,7 @@ class Basic extends TakamakaTest {
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a2 = new Alias(); a1.test(a1, a2)=false")
-	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException, TransactionRejectedException {
+	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InterruptedException {
 		CodeExecutionFuture<StorageReference> a1 = postConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StorageReference a2 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction

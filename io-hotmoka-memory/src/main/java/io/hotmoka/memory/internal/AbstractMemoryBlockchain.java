@@ -19,30 +19,20 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.takamaka.code.engine.AbstractNode;
-import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -97,6 +87,8 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	 */
 	private final Classpath takamakaCode;
 
+	private final Mempool mempool;
+
 	/**
 	 * The reference that identifies the next transaction, that will run for the next request.
 	 */
@@ -107,6 +99,18 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	 * be stored in a persistent state.
 	 */
 	private final Map<StorageReference, TransactionReference[]> histories = new HashMap<>();
+
+	/**
+	 * A map from the identifier created at time of posting a request to
+	 * the transaction that has been computed, if any.
+	 */
+	private final ConcurrentMap<String, TransactionReference> transactions = new ConcurrentHashMap<>();
+
+	/**
+	 * A map from the identifier created at time of posting a request to
+	 * the error message that resulted from the post, if any.
+	 */
+	private final ConcurrentMap<String, String> transactionErrors = new ConcurrentHashMap<>();
 
 	/**
 	 * True if and only if this node doesn't allow initial transactions anymore.
@@ -126,6 +130,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		Files.createDirectories(root);
 		this.next = new MemoryTransactionReference(BigInteger.ZERO, (short) 0);
 		createHeaderOfCurrentBlock();
+		this.mempool = new Mempool(this);
 		TransactionReference support = addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath)));
 		this.takamakaCode = new Classpath(support, false);
 	}
@@ -145,8 +150,38 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	public void close() throws Exception {
+		mempool.stop();
 		super.close();
-		// nothing to close
+	}
+
+	protected void setTransactionReferenceFor(String id, TransactionReference reference) {
+		transactions.put(id, reference);
+	}
+
+	protected void setTransactionErrorFor(String id, String message) {
+		transactionErrors.put(id, message);
+	}
+
+	@Override
+	public TransactionReference getTransactionReferenceFor(String id) throws Exception {
+		int delay = POLLING_DELAY;
+
+		for (int i = 0; i < MAX_POLLING_ATTEMPTS; i++) {
+			TransactionReference result = transactions.get(id);
+			if (result != null)
+				return result;
+
+			String error = transactionErrors.get(id);
+			if (error != null)
+				throw new IllegalStateException(error);
+
+			Thread.sleep(delay);
+
+			// we increase the delay, for next attempt
+			delay = 110 * delay / 100;
+		}
+
+		throw new TimeoutException("cannot find transaction " + id);
 	}
 
 	@Override
@@ -198,71 +233,8 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	protected TransactionReference addJarStoreInitialTransactionInternal(JarStoreInitialTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = nextAndIncrement();
-		JarStoreInitialTransactionResponse response = ResponseBuilder.of(request, this).build(transactionReference);
-		expandStoreWith(transactionReference, request, response);
-		return response.getOutcomeAt(transactionReference);
-	}
-
-	@Override
-	protected StorageReference addGameteCreationTransactionInternal(GameteCreationTransactionRequest request) throws Exception {
-		TransactionReference reference = nextAndIncrement();
-		GameteCreationTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
-		expandStoreWith(reference, request, response);
-		return response.getOutcome();
-	}
-
-	@Override
-	protected StorageReference addRedGreenGameteCreationTransactionInternal(RedGreenGameteCreationTransactionRequest request) throws Exception {
-		TransactionReference reference = nextAndIncrement();
-		GameteCreationTransactionResponse response = ResponseBuilder.of(request, this).build(reference);
-		expandStoreWith(reference, request, response);
-		return response.getOutcome();
-	}
-
-	@Override
-	protected JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
-		ResponseBuilder<?,?> builder = checkTransaction(request);
-		TransactionReference next = nextAndIncrement();
-		JarStoreTransactionResponse response = (JarStoreTransactionResponse) deliverTransaction(builder, next);
-
-		return new JarStoreFutureAdaptor(submit(() -> {
-			return response.getOutcomeAt(next);
-		}), next.toString());
-	}
-
-	@Override
-	protected CodeExecutionFuture<StorageReference> postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
-		ResponseBuilder<?,?> builder = checkTransaction(request);
-		TransactionReference next = nextAndIncrement();
-		ConstructorCallTransactionResponse response = (ConstructorCallTransactionResponse) deliverTransaction(builder, next);
-
-		return new CodeExecutionFutureAdaptor<>(submit(() -> {
-			return response.getOutcome();
-		}), next.toString());
-	}
-
-	@Override
-	protected CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		ResponseBuilder<?,?> builder = checkTransaction(request);
-		TransactionReference next = nextAndIncrement();
-		MethodCallTransactionResponse response = (MethodCallTransactionResponse) deliverTransaction(builder, next);
-
-		return new CodeExecutionFutureAdaptor<>(submit(() -> {
-			return response.getOutcome();
-		}), next.toString());
-	}
-
-	@Override
-	protected CodeExecutionFuture<StorageValue> postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		ResponseBuilder<?,?> builder = checkTransaction(request);
-		TransactionReference next = nextAndIncrement();
-		MethodCallTransactionResponse response = (MethodCallTransactionResponse) deliverTransaction(builder, next);
-
-		return new CodeExecutionFutureAdaptor<>(submit(() -> {
-			return response.getOutcome();
-		}), next.toString());
+	protected String postTransaction(TransactionRequest<?> request) throws Exception {
+		return mempool.add(request).toString();
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Base64;
+import java.util.concurrent.TimeoutException;
 
 import com.google.gson.Gson;
 
@@ -19,6 +20,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResponse;
+import io.takamaka.code.engine.AbstractNode;
 
 /**
  * A proxy object that connects to the Tendermint process, sends transactions to it
@@ -36,17 +38,6 @@ class Tendermint implements AutoCloseable {
 	 * This delay is then increased by 30% at each subsequent attempt.
 	 */
 	private final static int PING_DELAY = 200;
-
-	/**
-	 * The maximal number of polling attempts, while waiting for the result of a posted transaction.
-	 */
-	private final static int MAX_POLLING_ATTEMPTS = 100;
-
-	/**
-	 * The delay of two subsequent polling attempts, while waiting for the result of a posted transaction.
-	 * This delay is then increased by 30% at each subsequent attempt.
-	 */
-	private final static int POLLING_DELAY = 10;
 
 	/**
 	 * The configuration of the blockchain.
@@ -170,27 +161,25 @@ class Tendermint implements AutoCloseable {
 	 * 
 	 * @param hash the hash of the transaction to look for
 	 * @return the result of the transaction
+	 * @throws TimeoutException if the transaction could not be found in the expected timeout interval
 	 * @throws IOException if the connection couldn't be opened or the request could not be sent
+	 * @throws InterruptedException if the waiting thread has been interrupted
 	 */
-	TendermintTopLevelResult poll(String hash) throws IOException {
-		int delay = POLLING_DELAY;
+	TendermintTopLevelResult poll(String hash) throws TimeoutException, IOException, InterruptedException {
+		int delay = AbstractNode.POLLING_DELAY;
 
-		for (int i = 0; i < MAX_POLLING_ATTEMPTS; i++) {
+		for (int i = 0; i < AbstractNode.MAX_POLLING_ATTEMPTS; i++) {
 			TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
 			if (response.error == null)
 				return response.result;
 
-			try {
-				Thread.sleep(delay);
-			}
-			catch (InterruptedException e) {
-			}
+			Thread.sleep(delay);
 
 			// we increase the delay, for next attempt
-			delay = (110 * delay) / 100;
+			delay = 110 * delay / 100;
 		}
 
-		throw new IOException("cannot find transaction " + hash);
+		throw new TimeoutException("cannot find transaction " + hash);
 	}
 
 	/**

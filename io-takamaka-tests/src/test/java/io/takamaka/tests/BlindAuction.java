@@ -158,7 +158,7 @@ class BlindAuction extends TakamakaTest {
 			this.salt = salt;
 		}
 
-		private CodeExecutionFuture<StorageReference> intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		private CodeExecutionFuture<StorageReference> intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException {
 			return postConstructorCallTransaction
         		(account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), bytes32.get());
 		}
@@ -178,7 +178,7 @@ class BlindAuction extends TakamakaTest {
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time then reveal")
-	void bidsThenReveal() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void bidsThenReveal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException {
 		long start = System.currentTimeMillis();
 		CodeExecutionFuture<StorageReference> auction = postConstructorCallTransaction
 			(account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME));

@@ -152,7 +152,7 @@ class RedGreenDistributor extends TakamakaTest {
 	}
 
 	@Test @DisplayName("distributeRed() cannot be called from an externally owned account that is not red/green")
-	void distributeRedCannotBeCalledFromNOnRedGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void distributeRedCannotBeCalledFromNOnRedGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException {
 		CodeExecutionFuture<StorageReference> distributor = postConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
 		CodeExecutionFuture<StorageReference> eoa = postConstructorCallTransaction(

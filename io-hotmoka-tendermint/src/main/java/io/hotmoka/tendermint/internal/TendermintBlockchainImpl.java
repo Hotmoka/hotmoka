@@ -12,16 +12,12 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -30,20 +26,13 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
@@ -51,7 +40,6 @@ import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
 import io.hotmoka.tendermint.internal.beans.TxError;
 import io.takamaka.code.engine.AbstractNode;
-import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * An implementation of a blockchain integrated over the Tendermint generic
@@ -347,160 +335,37 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	public long getNow() throws Exception {
-		return abci.getNow();
-	}
-
-	private TransactionReference executeInTendermintTransaction(TransactionRequest<?> request) throws Exception {
-		String hash = postInTendermintTransaction(request);
-		return extractTransactionReferenceFromTendermintResult(hash);
-	}
-
-	private String postInTendermintTransaction(TransactionRequest<?> request) throws IOException {
+	protected String postTransaction(TransactionRequest<?> request) throws Exception {
 		return extractHashFromBroadcastTxResponse(tendermint.broadcastTxAsync(request));
 	}
 
 	@Override
-	protected TransactionReference addJarStoreInitialTransactionInternal(JarStoreInitialTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = executeInTendermintTransaction(request);
-		return ((JarStoreInitialTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcomeAt(transactionReference);
+	public TransactionReference getTransactionReferenceFor(String id) throws Exception {
+		try {
+			TendermintTopLevelResult tendermintResult = tendermint.poll(id);
+
+			TendermintTxResult tx_result = tendermintResult.tx_result;
+			if (tx_result == null)
+				throw new IllegalStateException("no result for transaction " + id);
+
+			String data = tx_result.data;
+			if (data == null)
+				throw new IllegalStateException(tx_result.info);
+
+			Object dataAsObject = base64DeserializationOf(data);
+			if (!(dataAsObject instanceof String))
+				throw new IllegalStateException("no Hotmoka transaction reference found in data field of Tendermint transaction");
+
+			return new TendermintTransactionReference((String) dataAsObject);
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e.getMessage());
+		}
 	}
 
 	@Override
-	protected StorageReference addGameteCreationTransactionInternal(GameteCreationTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = executeInTendermintTransaction(request);
-		return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
-	}
-
-	@Override
-	protected StorageReference addRedGreenGameteCreationTransactionInternal(RedGreenGameteCreationTransactionRequest request) throws Exception {
-		TransactionReference transactionReference = executeInTendermintTransaction(request);
-		return ((GameteCreationTransactionResponse) state.getResponseOf(transactionReference).get()).getOutcome();
-	}
-
-	@Override
-	protected JarStoreFuture postJarStoreTransactionInternal(JarStoreTransactionRequest request) throws Exception {
-		String hash = postInTendermintTransaction(request);
-
-		return new JarStoreFuture() {
-			private JarStoreTransactionResponse response;
-			private TransactionReference transactionReference;
-
-			@Override
-			public TransactionReference get() throws TransactionException {
-				if (response == null) {
-					transactionReference = extractTransactionReferenceFromTendermintResult(hash);
-					response = (JarStoreTransactionResponse) state.getResponseOf(transactionReference).get();
-				}
-	
-				return response.getOutcomeAt(transactionReference);
-			}
-
-			@Override
-			public TransactionReference get(long timeout, TimeUnit unit) throws TransactionException, TimeoutException {
-				if (response == null) {
-					transactionReference = extractTransactionReferenceFromTendermintResult(hash);
-					response = (JarStoreTransactionResponse) state.getResponseOf(transactionReference).get();
-				}
-
-				return response.getOutcomeAt(transactionReference);
-			}
-
-			@Override
-			public String id() {
-				return hash;
-			}
-		};
-	}
-
-	@Override
-	protected CodeExecutionFuture<StorageReference> postConstructorCallTransactionInternal(ConstructorCallTransactionRequest request) throws Exception {
-		String hash = postInTendermintTransaction(request);
-
-		return new CodeExecutionFuture<StorageReference>() {
-			private ConstructorCallTransactionResponse response;
-
-			@Override
-			public StorageReference get() throws TransactionException, CodeExecutionException {
-				if (response == null)
-					response = (ConstructorCallTransactionResponse) state.getResponseOf(extractTransactionReferenceFromTendermintResult(hash)).get();
-	
-				return response.getOutcome();
-			}
-
-			@Override
-			public StorageReference get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
-				if (response == null)
-					response = (ConstructorCallTransactionResponse) state.getResponseOf(extractTransactionReferenceFromTendermintResult(hash)).get();
-
-				return response.getOutcome();
-			}
-
-			@Override
-			public String id() {
-				return hash;
-			}
-		};
-	}
-
-	@Override
-	protected CodeExecutionFuture<StorageValue> postInstanceMethodCallTransactionInternal(InstanceMethodCallTransactionRequest request) throws Exception {
-		String hash = postInTendermintTransaction(request);
-
-		return new CodeExecutionFuture<StorageValue>() {
-			private MethodCallTransactionResponse response;
-
-			@Override
-			public StorageValue get() throws TransactionException, CodeExecutionException {
-				if (response == null)
-					response = (MethodCallTransactionResponse) state.getResponseOf(extractTransactionReferenceFromTendermintResult(hash)).get();
-
-				return response.getOutcome();
-			}
-
-			@Override
-			public StorageValue get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
-				if (response == null)
-					response = (MethodCallTransactionResponse) state.getResponseOf(extractTransactionReferenceFromTendermintResult(hash)).get();
-
-				return response.getOutcome();
-			}
-
-			@Override
-			public String id() {
-				return hash;
-			}
-		};
-	}
-
-	@Override
-	protected CodeExecutionFuture<StorageValue> postStaticMethodCallTransactionInternal(StaticMethodCallTransactionRequest request) throws Exception {
-		String hash = postInTendermintTransaction(request);
-
-		return new CodeExecutionFuture<StorageValue>() {
-			private MethodCallTransactionResponse response;
-
-			@Override
-			public StorageValue get() throws TransactionException, CodeExecutionException {
-				if (response == null)
-					response = (MethodCallTransactionResponse) state.getResponseOf(extractTransactionReferenceFromTendermintResult(hash)).get();
-
-				return response.getOutcome();
-			}
-
-			@Override
-			public StorageValue get(long timeout, TimeUnit unit) throws TransactionException, CodeExecutionException, TimeoutException {
-				if (response == null)
-					response = (MethodCallTransactionResponse) state.getResponseOf(extractTransactionReferenceFromTendermintResult(hash)).get();
-
-				return response.getOutcome();
-			}
-
-			@Override
-			public String id() {
-				return hash;
-			}
-		};
+	public long getNow() throws Exception {
+		return abci.getNow();
 	}
 
 	@Override
@@ -565,38 +430,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 				throw new RuntimeException(e);
 			}
 		}));
-	}
-
-	/**
-	 * Pools Tendermint for the result of a Tendermint transaction with the given hash.
-	 * When it is available, parse its result looking for the {@code data}
-	 * field, that should contained the reference of the Hotmoka transaction
-	 * executed for that Tendermint transaction.
-	 *  
-	 * @param hash the hash of the Tendermint transaction
-	 * @return the reference to the Hotmoka transaction
-	 */
-	private TransactionReference extractTransactionReferenceFromTendermintResult(String hash) {
-		try {
-			TendermintTopLevelResult tendermintResult = tendermint.poll(hash);
-
-			TendermintTxResult tx_result = tendermintResult.tx_result;
-			if (tx_result == null)
-				throw new IllegalStateException("no result for transaction " + hash);
-
-			String data = tx_result.data;
-			if (data == null)
-				throw new IllegalStateException(tx_result.info);
-
-			Object dataAsObject = base64DeserializationOf(data);
-			if (!(dataAsObject instanceof String))
-				throw new IllegalStateException("no Hotmoka transaction reference found in data field of Tendermint transaction");
-
-			return new TendermintTransactionReference((String) dataAsObject);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e.getMessage());
-		}
 	}
 
 	private String extractHashFromBroadcastTxResponse(String response) {

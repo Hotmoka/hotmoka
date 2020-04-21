@@ -43,6 +43,17 @@ public interface Node extends AutoCloseable {
 	TransactionResponse getResponseAt(TransactionReference transactionReference) throws Exception;
 
 	/**
+	 * Yields the transaction reference that has been generated for a request
+	 * whose posting yielded the given identifier.
+	 * 
+	 * @param id the identifier
+	 * @return the transaction reference
+	 * @throws Exception if the transaction reference cannot be retrieved or if the execution of the
+	 *                   transaction led into an exception
+	 */
+	TransactionReference getTransactionReferenceFor(String id) throws Exception;
+
+	/**
 	 * Yields the most recent eager updates for the given storage reference.
 	 * 
 	 * @param storageReference the storage reference
@@ -274,8 +285,9 @@ public interface Node extends AutoCloseable {
 	     * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
 	     *                                that is allowed to be thrown by the constructor
 	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
+	     * @throws InterruptedException if the waiting thread was interrupted while waiting
 	     */
-	    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException;
 	
 	    /**
 	     * Waits if necessary for at most the given time for the transaction
@@ -289,8 +301,9 @@ public interface Node extends AutoCloseable {
 	     *                                that is allowed to be thrown by the constructor
 	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
 	     * @throws TimeoutException if the timeout expired but the result has not been computed yet
+	     * @throws InterruptedException if the waiting thread was interrupted while waiting
 	     */
-	    V get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException;
+	    V get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException;
 
 	    /**
 	     * Yields an identifier of the transaction, that can be used for polling its result.
@@ -301,7 +314,7 @@ public interface Node extends AutoCloseable {
 	    String id();
 	}
 
-	/**
+	 /**
 	 * The future of a transaction that stores a jar in blockchain.
 	 */
 	interface JarStoreFuture {
@@ -312,8 +325,9 @@ public interface Node extends AutoCloseable {
 	     * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
+	     * @throws InterruptedException if the waiting thread was interrupted while waiting
 	     */
-	    TransactionReference get() throws TransactionRejectedException, TransactionException;
+	    TransactionReference get() throws TransactionRejectedException, TransactionException, InterruptedException;
 
 	    /**
 	     * Waits if necessary for at most the given time for the transaction
@@ -325,8 +339,9 @@ public interface Node extends AutoCloseable {
 	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
 	     * @throws TimeoutException if the timeout expired but the result has not been computed yet
+	     * @throws InterruptedException if the waiting thread was interrupted while waiting
 	     */
-	    TransactionReference get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, TimeoutException;
+	    TransactionReference get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, TimeoutException, InterruptedException;
 
 	    /**
 	     * Yields an identifier of the transaction, that can be used for polling its result.
