@@ -131,14 +131,16 @@ class Tendermint implements AutoCloseable {
 	 * a {@code broadcast_tx_async} Tendermint request.
 	 * 
 	 * @param request the request to send
-	 * @return the response of Tendermint
+	 * @return the connection, from where the response of Tendermint can be read
 	 * @throws IOException if the connection couldn't be opened or the request could not be sent
 	 */
-	String broadcastTxAsync(TransactionRequest<?> request) throws IOException {
+	HttpURLConnection broadcastTxAsync(TransactionRequest<?> request) throws IOException {
 		String base64EncodedHotmokaRequest = base64EncodedSerializationOf(request);
 		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + base64EncodedHotmokaRequest + "\"}}";
+		HttpURLConnection connection = openPostConnectionToTendermint();
+		writeInto(connection, jsonTendermintRequest);
 
-		return postToTendermint(jsonTendermintRequest);
+		return connection;
 	}
 
 	/**
@@ -258,7 +260,7 @@ class Tendermint implements AutoCloseable {
 	 * @return the response
 	 * @throws IOException if the response couldn't be read
 	 */
-	private static String readFrom(HttpURLConnection connection) throws IOException {
+	static String readFrom(HttpURLConnection connection) throws IOException {
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
 			StringBuilder response = new StringBuilder();
 			String responseLine;

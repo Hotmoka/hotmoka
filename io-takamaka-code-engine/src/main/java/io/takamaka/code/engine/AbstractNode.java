@@ -12,10 +12,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -158,7 +157,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 */
 	protected abstract TransactionResponse getResponseAtInternal(TransactionReference reference) throws Exception;
 
-	protected abstract String postTransaction(TransactionRequest<?> request) throws Exception;
+	protected abstract Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception;
 
 	/**
 	 * Expands the store of this node with a transaction.
@@ -337,7 +336,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			requireNodeUninitialized();
-			String id = postTransaction(request);
+			String id = postTransaction(request).get();
 			TransactionReference reference = getTransactionReferenceFor(id);
 			return ((JarStoreInitialTransactionResponse) getResponseAt(reference)).getOutcomeAt(reference);
 		});
@@ -347,7 +346,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			requireNodeUninitialized();
-			String id = postTransaction(request);
+			String id = postTransaction(request).get();
 			return ((GameteCreationTransactionResponse) getResponseAt(getTransactionReferenceFor(id))).getOutcome();
 		});
 	}
@@ -356,7 +355,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			requireNodeUninitialized();
-			String id = postTransaction(request);
+			String id = postTransaction(request).get();
 			return ((GameteCreationTransactionResponse) getResponseAt(getTransactionReferenceFor(id))).getOutcome();
 		});
 	}
@@ -392,41 +391,41 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	}
 
 	@Override
-	public final JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
+	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			markAsInitialized();
-			String id = postTransaction(request);
-			return jarStoreFutureFor(request, () -> {
-				TransactionReference reference = getTransactionReferenceFor(id);
+			Supplier<String> id = postTransaction(request);
+			return jarSupplierFor(_id -> {
+				TransactionReference reference = getTransactionReferenceFor(_id);
 				return ((JarStoreTransactionResponse) getResponseAt(reference)).getOutcomeAt(reference);
 			}, id);
 		});
 	}
 
 	@Override
-	public final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
+	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			markAsInitialized();
-			String id = postTransaction(request);
-			return codeExecutionFutureFor(request, () -> ((ConstructorCallTransactionResponse) getResponseAt(getTransactionReferenceFor(id))).getOutcome(), id);
+			Supplier<String> id = postTransaction(request);
+			return codeSupplierFor(_id -> ((ConstructorCallTransactionResponse) getResponseAt(getTransactionReferenceFor(_id))).getOutcome(), id);
 		});
 	}
 
 	@Override
-	public final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
+	public final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			markAsInitialized();
-			String id = postTransaction(request);
-			return codeExecutionFutureFor(request, () -> ((MethodCallTransactionResponse) getResponseAt(getTransactionReferenceFor(id))).getOutcome(), id);
+			Supplier<String> id = postTransaction(request);
+			return codeSupplierFor(_id -> ((MethodCallTransactionResponse) getResponseAt(getTransactionReferenceFor(_id))).getOutcome(), id);
 		});
 	}
 
 	@Override
-	public final CodeExecutionFuture<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
+	public final CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			markAsInitialized();
-			String id = postTransaction(request);
-			return codeExecutionFutureFor(request, () -> ((MethodCallTransactionResponse) getResponseAt(getTransactionReferenceFor(id))).getOutcome(), id);
+			Supplier<String> id = postTransaction(request);
+			return codeSupplierFor(_id -> ((MethodCallTransactionResponse) getResponseAt(getTransactionReferenceFor(_id))).getOutcome(), id);
 		});
 	}
 
@@ -644,42 +643,80 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		}
 	}
 
-	public interface JarTask {
-		TransactionReference apply(String id) throws Exception;
+	public interface Task<V> {
+		V apply(String id) throws Exception;
 	}
 
-	private JarStoreFuture jarStoreFutureFor(TransactionRequest<?> request, Callable<TransactionReference> callable, String id) {
-		return new JarStoreFuture() {
+	private JarSupplier jarSupplierFor(Task<TransactionReference> task, Supplier<String> id) {
+		return new JarSupplier() {
+
+			private volatile String cachedId;
+			private volatile TransactionReference cachedGet;
 
 			@Override
-			public TransactionReference get() throws TransactionRejectedException, TransactionException, InterruptedException {
+			public TransactionReference get() throws TransactionRejectedException, TransactionException {
+				if (cachedGet != null)
+					return cachedGet;
+
 				try {
-					return callable.call();
+					return cachedGet = task.apply(id());
 				}
-				catch (TransactionRejectedException | TransactionException | InterruptedException e) {
+				catch (TransactionRejectedException | TransactionException e) {
 					throw e;
 				}
 				catch (Throwable t) {
-					throw new TransactionException(t.getClass().getName(), t.getMessage(), null);
+					throw new TransactionRejectedException(t);
 				}
 			}
 
 			@Override
-			public TransactionReference get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, TimeoutException, InterruptedException {
+			public String id() throws TransactionRejectedException {
+				if (cachedId != null)
+					return cachedId;
+
 				try {
-					return callable.call();
+					return cachedId = id.get();
 				}
-				catch (TransactionRejectedException | TransactionException | InterruptedException e) {
+				catch (Throwable t) {
+					throw new TransactionRejectedException(t);
+				}
+			}
+		};
+	}
+
+	private <W extends StorageValue> CodeSupplier<W> codeSupplierFor(Task<W> task, Supplier<String> id) {
+		return new CodeSupplier<>() {
+
+			private volatile String cachedId;
+			private volatile W cachedGet;
+
+			@Override
+			public W get() throws TransactionRejectedException, TransactionException {
+				if (cachedGet != null)
+					return cachedGet;
+
+				try {
+					return cachedGet = task.apply(id());
+				}
+				catch (TransactionRejectedException | TransactionException e) {
 					throw e;
 				}
 				catch (Throwable t) {
-					throw new TransactionException(t.getClass().getName(), t.getMessage(), null);
+					throw new TransactionRejectedException(t);
 				}
 			}
 
 			@Override
-			public String id() {
-				return id;
+			public String id() throws TransactionRejectedException {
+				if (cachedId != null)
+					return cachedId;
+
+				try {
+					return cachedId = id.get();
+				}
+				catch (Throwable t) {
+					throw new TransactionRejectedException(t);
+				}
 			}
 		};
 	}
@@ -736,46 +773,6 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 			}
 		};
 	}*/
-
-	private <W extends StorageValue> CodeExecutionFuture<W> codeExecutionFutureFor(TransactionRequest<?> request, Callable<W> callable, String id) {
-		return new CodeExecutionFuture<W>() {
-
-			@Override
-			public W get() throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException {
-				try {
-					return callable.call();
-				}
-				catch (TransactionRejectedException | TransactionException | CodeExecutionException | InterruptedException e) {
-					throw e;
-				}
-				catch (Throwable t) {
-					throw new TransactionRejectedException(t);
-				}
-			}
-
-			@Override
-			public W get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException {
-				try {
-					return callable.call();
-				}
-				catch (TransactionRejectedException | TransactionException | CodeExecutionException | TimeoutException | InterruptedException e) {
-					throw e;
-				}
-				catch (Throwable t) {
-					throw new TransactionRejectedException(t);
-				}
-			}
-
-			@Override
-			public String id() {
-				return id;
-			}
-		};
-	}
-
-	public interface CodeTask<W extends StorageValue> {
-		W apply(String id) throws Exception;
-	}
 
 	/*private <W extends StorageValue> CodeExecutionFuture<W> codeExecutionFutureFor2(TransactionRequest<?> request, CodeTask<W> task, Future<String> id) {
 		return new CodeExecutionFuture<W>() {

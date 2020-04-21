@@ -2,8 +2,6 @@ package io.hotmoka.nodes;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -241,7 +239,7 @@ public interface Node extends AutoCloseable {
 	 * @return the future holding the reference to the transaction where the jar has been installed
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	JarStoreFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException ;
+	JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException ;
 
 	/**
 	 * Posts a transaction that runs a constructor of a class in this node.
@@ -250,7 +248,7 @@ public interface Node extends AutoCloseable {
 	 * @return the future holding the result of the computation
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	CodeExecutionFuture<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException;
+	CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Posts a transaction that runs an instance method of an object already in this node's store.
@@ -259,7 +257,7 @@ public interface Node extends AutoCloseable {
 	 * @return the future holding the result of the transaction
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException;
+	CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Posts a request that runs a static method of a class in this node.
@@ -268,14 +266,14 @@ public interface Node extends AutoCloseable {
 	 * @return the future holding the result of the transaction
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	CodeExecutionFuture<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException;
+	CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * The future of a transaction that executes code in blockchain.
 	 * 
 	 * @param <V> the type of the value computed by the transaction
 	 */
-	interface CodeExecutionFuture<V extends StorageValue> {
+	interface CodeSupplier<V extends StorageValue> {
 	
 		/**
 	     * Waits if necessary for the transaction to complete, and then retrieves its result.
@@ -285,39 +283,23 @@ public interface Node extends AutoCloseable {
 	     * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
 	     *                                that is allowed to be thrown by the constructor
 	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
-	     * @throws InterruptedException if the waiting thread was interrupted while waiting
 	     */
-	    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException;
+	    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException;
 	
-	    /**
-	     * Waits if necessary for at most the given time for the transaction
-	     * to complete, and then retrieves its result, if available.
-	     *
-	     * @param timeout the maximum time to wait
-	     * @param unit the time unit of the timeout argument
-	     * @return the computed result of the transaction
-	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	     * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
-	     *                                that is allowed to be thrown by the constructor
-	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
-	     * @throws TimeoutException if the timeout expired but the result has not been computed yet
-	     * @throws InterruptedException if the waiting thread was interrupted while waiting
-	     */
-	    V get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException;
-
 	    /**
 	     * Yields an identifier of the transaction, that can be used for polling its result.
 	     * This can be, for instance, a hash of the transaction.
 	     * 
 	     * @return the identifier
+	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	     */
-	    String id();
+	    String id() throws TransactionRejectedException;
 	}
 
 	 /**
 	 * The future of a transaction that stores a jar in blockchain.
 	 */
-	interface JarStoreFuture {
+	interface JarSupplier {
 
 		/**
 	     * Waits if necessary for the transaction to complete, and then retrieves its result.
@@ -325,30 +307,16 @@ public interface Node extends AutoCloseable {
 	     * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
-	     * @throws InterruptedException if the waiting thread was interrupted while waiting
 	     */
-	    TransactionReference get() throws TransactionRejectedException, TransactionException, InterruptedException;
-
-	    /**
-	     * Waits if necessary for at most the given time for the transaction
-	     * to complete, and then retrieves its result, if available.
-	     *
-	     * @param timeout the maximum time to wait
-	     * @param unit the time unit of the timeout argument
-	     * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
-	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	     * @throws TransactionException if the transaction could not be executed and the store of the node has been expanded with a failed transaction
-	     * @throws TimeoutException if the timeout expired but the result has not been computed yet
-	     * @throws InterruptedException if the waiting thread was interrupted while waiting
-	     */
-	    TransactionReference get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, TimeoutException, InterruptedException;
+	    TransactionReference get() throws TransactionRejectedException, TransactionException;
 
 	    /**
 	     * Yields an identifier of the transaction, that can be used for polling its result.
 	     * This can be, for instance, a hash of the transaction.
 	     * 
 	     * @return the identifier
+	     * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	     */
-	    String id();
+	    String id() throws TransactionRejectedException;
 	}
 }

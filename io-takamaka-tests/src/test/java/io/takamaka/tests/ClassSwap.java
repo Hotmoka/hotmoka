@@ -25,7 +25,7 @@ import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.nodes.Node.JarStoreFuture;
+import io.hotmoka.nodes.Node.JarSupplier;
 
 /**
  * A test for the creation of classes with the same name but from different jars.
@@ -62,7 +62,7 @@ class ClassSwap extends TakamakaTest {
 		mkBlockchain(ALL_FUNDS);
 		account = account(0);
 
-		JarStoreFuture c13 = postJarStoreTransaction
+		JarSupplier c13 = postJarStoreTransaction
 			(account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode());
 
 		TransactionReference c17 = addJarStoreTransaction

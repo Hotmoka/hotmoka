@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
+import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
@@ -123,7 +125,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
 
 			BigInteger nonce = BigInteger.ZERO;
-			JarStoreFuture jarFuture;
+			JarSupplier jarFuture;
 
 			if (jar.isPresent()) {
 				jarFuture = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
@@ -136,7 +138,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			this.accounts = new StorageReference[funds.length];
 			ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
 			BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
-			List<CodeExecutionFuture<StorageReference>> accounts = new ArrayList<>();
+			List<CodeSupplier<StorageReference>> accounts = new ArrayList<>();
 
 			for (BigInteger fund: funds) {
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
@@ -146,7 +148,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			}
 
 			int i = 0;
-			for (CodeExecutionFuture<StorageReference> future: accounts)
+			for (CodeSupplier<StorageReference> future: accounts)
 				state.addAccount(this.accounts[i++] = future.get());
 
 			if (jar.isPresent()) {
@@ -206,7 +208,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			StorageReference gamete = addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode(), green, red));
 
 			BigInteger nonce = BigInteger.ZERO;
-			JarStoreFuture jarFuture;
+			JarSupplier jarFuture;
 
 			if (jar.isPresent()) {
 				jarFuture = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
@@ -221,7 +223,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			ConstructorSignature constructor = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER);
 			VoidMethodSignature receiveRed = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
 
-			List<CodeExecutionFuture<StorageReference>> accounts = new ArrayList<>();
+			List<CodeSupplier<StorageReference>> accounts = new ArrayList<>();
 
 			for (int i = 0; i < this.accounts.length; i++) {
 				// the constructor provides the green coins
@@ -232,7 +234,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			}
 
 			int i = 0;
-			for (CodeExecutionFuture<StorageReference> account: accounts) {
+			for (CodeSupplier<StorageReference> account: accounts) {
 				// then we add the red coins
 				state.addAccount(this.accounts[i] = account.get());
 				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(),
@@ -335,8 +337,11 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	protected String postTransaction(TransactionRequest<?> request) throws Exception {
-		return extractHashFromBroadcastTxResponse(tendermint.broadcastTxAsync(request));
+	protected Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception {
+		HttpURLConnection connection = tendermint.broadcastTxAsync(request);
+		String s = Tendermint.readFrom(connection);
+
+		return () -> extractHashFromBroadcastTxResponse(s);
 	}
 
 	@Override

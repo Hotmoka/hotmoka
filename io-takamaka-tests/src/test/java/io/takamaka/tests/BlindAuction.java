@@ -34,7 +34,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.nodes.Node.CodeExecutionFuture;
+import io.hotmoka.nodes.Node.CodeSupplier;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -102,7 +102,7 @@ class BlindAuction extends TakamakaTest {
 
 	@Test @DisplayName("three players put bids before end of bidding time")
 	void bids() throws TransactionException, CodeExecutionException, Exception {
-		CodeExecutionFuture<StorageReference> auction = postConstructorCallTransaction
+		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
 			(account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME));
 
 		Random random = new Random();
@@ -120,7 +120,7 @@ class BlindAuction extends TakamakaTest {
 
 	@Test @DisplayName("three players put bids but bidding time expires")
 	void biddingTimeExpires() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		CodeExecutionFuture<StorageReference> auction = postConstructorCallTransaction
+		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
 			(account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -149,7 +149,7 @@ class BlindAuction extends TakamakaTest {
 		private final BigInteger value;
 		private final boolean fake;
 		private final byte[] salt;
-		private CodeExecutionFuture<StorageReference> bytes32;
+		private CodeSupplier<StorageReference> bytes32;
 
 		private BidToReveal(int player, BigInteger value, boolean fake, byte[] salt) {
 			this.player = player;
@@ -158,7 +158,7 @@ class BlindAuction extends TakamakaTest {
 			this.salt = salt;
 		}
 
-		private CodeExecutionFuture<StorageReference> intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException {
+		private CodeSupplier<StorageReference> intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException {
 			return postConstructorCallTransaction
         		(account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), bytes32.get());
 		}
@@ -180,7 +180,7 @@ class BlindAuction extends TakamakaTest {
 	@Test @DisplayName("three players put bids before end of bidding time then reveal")
 	void bidsThenReveal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException {
 		long start = System.currentTimeMillis();
-		CodeExecutionFuture<StorageReference> auction = postConstructorCallTransaction
+		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
 			(account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME));
 
 		List<BidToReveal> bids = new ArrayList<>();
@@ -217,7 +217,7 @@ class BlindAuction extends TakamakaTest {
 		waitUntil(BIDDING_TIME + 5000, start);
 
 		// we create a storage list for each of the players
-		CodeExecutionFuture<?>[] lists = {
+		CodeSupplier<?>[] lists = {
 			null, // unused, since player 0 is the beneficiary
 			postConstructorCallTransaction(account(1), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST),
 			postConstructorCallTransaction(account(2), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_STORAGE_LIST),
@@ -225,14 +225,14 @@ class BlindAuction extends TakamakaTest {
 		};
 
 		// we create the revealed bids in blockchain; this is safe now, since the bidding time is over
-		List<CodeExecutionFuture<?>> revealedBids = new ArrayList<>();
+		List<CodeSupplier<?>> revealedBids = new ArrayList<>();
 		for (BidToReveal bid: bids)
 			bid.createBytes32();
 
 		for (BidToReveal bid: bids)
 			revealedBids.add(bid.intoBlockchain());
 
-		Iterator<CodeExecutionFuture<?>> it = revealedBids.iterator();
+		Iterator<CodeSupplier<?>> it = revealedBids.iterator();
 		for (BidToReveal bid: bids)
 			postInstanceMethodCallTransaction(account(bid.player), _100_000, BigInteger.ONE, jar(), ADD, (StorageReference) lists[bid.player].get(), it.next().get());
 

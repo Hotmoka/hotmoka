@@ -30,8 +30,8 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.nodes.InitializedNode;
-import io.hotmoka.nodes.Node.CodeExecutionFuture;
-import io.hotmoka.nodes.Node.JarStoreFuture;
+import io.hotmoka.nodes.Node.CodeSupplier;
+import io.hotmoka.nodes.Node.JarSupplier;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
@@ -57,27 +57,27 @@ public abstract class TakamakaTest {
 	 * Change in order to specify the default blockchain to use in tests.
 	 */
 	protected final void mkBlockchain(BigInteger... coins) throws Exception {
-		//Config config = new Config(Paths.get("chain"), 26657, 26658);
-		//node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
-		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		Config config = new Config(Paths.get("chain"), 26657, 26658);
+		node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		//node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
 	protected final void mkRedGreenBlockchain(BigInteger... coins) throws Exception {
-		//Config config = new Config(Paths.get("chain"), 26657, 26658);
-		//node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
-		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		Config config = new Config(Paths.get("chain"), 26657, 26658);
+		node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		//node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
 	protected final void mkBlockchain(String jar, BigInteger... coins) throws Exception {
-		//Config config = new Config(Paths.get("chain"), 26657, 26658);
-		//node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
-		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		Config config = new Config(Paths.get("chain"), 26657, 26658);
+		node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		//node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
 	}
 
 	protected final void mkRedGreenBlockchain(String jar, BigInteger... coins) throws Exception {
-		//Config config = new Config(Paths.get("chain"), 26657, 26658);
-		//node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
-		node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		Config config = new Config(Paths.get("chain"), 26657, 26658);
+		node = TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		//node = MemoryBlockchain.ofRedGreen(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
 	}
 
 	@AfterEach
@@ -143,7 +143,7 @@ public abstract class TakamakaTest {
 		return node.runViewStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
-	protected final JarStoreFuture postJarStoreTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, byte[] jar, Classpath... dependencies) throws TransactionRejectedException {
+	protected final JarSupplier postJarStoreTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, byte[] jar, Classpath... dependencies) throws TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.postJarStoreTransaction(new JarStoreTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
@@ -151,7 +151,7 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final CodeExecutionFuture<StorageValue> postInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException {
+	protected final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
@@ -159,7 +159,7 @@ public abstract class TakamakaTest {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final CodeExecutionFuture<StorageReference> postConstructorCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionRejectedException {
+	protected final CodeSupplier<StorageReference> postConstructorCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.postConstructorCallTransaction(new ConstructorCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, constructor, actuals));
 	}

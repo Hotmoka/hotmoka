@@ -32,7 +32,7 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.nodes.Node.CodeExecutionFuture;
+import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
 import io.takamaka.code.constants.Constants;
 
@@ -173,7 +173,7 @@ class Basic extends TakamakaTest {
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
 	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException, InterruptedException {
 		postInstanceMethodCallTransaction(master, _200_000, BigInteger.ONE, classpath, PAYABLE_CONTRACT_RECEIVE, account(1), new IntValue(20000));
-		CodeExecutionFuture<StorageReference> internationalTime = postConstructorCallTransaction
+		CodeSupplier<StorageReference> internationalTime = postConstructorCallTransaction
 			(master, _200_000, BigInteger.ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
 			new IntValue(13), new IntValue(25), new IntValue(40));
 		StorageReference sub = addConstructorCallTransaction
@@ -213,7 +213,7 @@ class Basic extends TakamakaTest {
 
 	@Test @DisplayName("a1 = new Alias(); a2 = new Alias(); a1.test(a1, a2)=false")
 	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InterruptedException {
-		CodeExecutionFuture<StorageReference> a1 = postConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
+		CodeSupplier<StorageReference> a1 = postConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		StorageReference a2 = addConstructorCallTransaction(master, _5_000, BigInteger.ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(false), runViewInstanceMethodCallTransaction
 			(master, _5_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1.get(), a1.get(), a2));

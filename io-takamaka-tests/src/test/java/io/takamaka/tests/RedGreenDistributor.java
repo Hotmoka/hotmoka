@@ -19,7 +19,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node.CodeExecutionFuture;
+import io.hotmoka.nodes.Node.CodeSupplier;
 
 /**
  * A test for the remote purchase contract.
@@ -153,9 +153,9 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@Test @DisplayName("distributeRed() cannot be called from an externally owned account that is not red/green")
 	void distributeRedCannotBeCalledFromNOnRedGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException {
-		CodeExecutionFuture<StorageReference> distributor = postConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		CodeSupplier<StorageReference> distributor = postConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
 
-		CodeExecutionFuture<StorageReference> eoa = postConstructorCallTransaction(
+		CodeSupplier<StorageReference> eoa = postConstructorCallTransaction(
 			account(0),
 			_20_000,
 			BigInteger.ONE,

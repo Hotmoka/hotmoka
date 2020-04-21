@@ -22,6 +22,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
@@ -233,8 +234,9 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	protected String postTransaction(TransactionRequest<?> request) throws Exception {
-		return mempool.add(request).toString();
+	protected Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception {
+		String id = mempool.add(request);
+		return () -> id.toString();
 	}
 
 	@Override
