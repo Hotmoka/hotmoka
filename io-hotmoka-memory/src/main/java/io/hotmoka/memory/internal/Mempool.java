@@ -11,22 +11,26 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.takamaka.code.engine.ResponseBuilder;
 
 public class Mempool {
-	public final static int MAX_CAPACITY = 100_000;
+	public final static int MAX_CAPACITY = 200_000;
 
 	private final BlockingQueue<RequestWithId> mempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
+	private final BlockingQueue<RequestWithId> checkedMempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
 	private final AbstractMemoryBlockchain node;
 	private final Object idLock = new Object();
 
 	@GuardedBy("idLock")
 	private BigInteger id;
 
-	private final Thread worker;
+	private final Thread checker;
+	private final Thread deliverer;
 
 	Mempool(AbstractMemoryBlockchain node) {
 		this.node = node;
 		this.id = BigInteger.ZERO;
-		this.worker = new Thread(this::work);
-		this.worker.start();
+		this.checker = new Thread(this::check);
+		this.checker.start();
+		this.deliverer = new Thread(this::deliver);
+		this.deliverer.start();
 	}
 
 	public String add(TransactionRequest<?> request) {
@@ -45,20 +49,49 @@ public class Mempool {
 	}
 
 	public void stop() {
-		worker.interrupt();
+		checker.interrupt();
+		deliverer.interrupt();
 	}
 
-	private void work() {
+	private void check() {
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
 				RequestWithId current = mempool.take();
-				TransactionReference next = node.nextAndIncrement();
+
+				try {
+					//System.out.println(current + ": checking");
+					node.checkTransaction(current.request);
+					if (!checkedMempool.offer(current)) {
+						deliverer.interrupt();
+						throw new IllegalStateException("mempool overflow");
+					}
+					//System.out.println(current + ": checked");
+				}
+				catch (TransactionRejectedException e) {
+					node.setTransactionErrorFor(current.id, e.getMessage());
+				}
+	            catch (Throwable t) {
+	            	node.setTransactionErrorFor(current.id, t.toString());
+	    		}
+			}
+			catch (InterruptedException e) {
+				return;
+			}
+		}
+	}
+
+	private void deliver() {
+		while (!Thread.currentThread().isInterrupted()) {
+			try {
+				RequestWithId current = checkedMempool.take();
+				//System.out.println(current + ": delivering");
 
 				try {
 					ResponseBuilder<?,?> builder = node.checkTransaction(current.request);
-					//System.out.println(current.request.getClass().getName());
+					TransactionReference next = node.nextAndIncrement();
 					node.deliverTransaction(builder, next);
 					node.setTransactionReferenceFor(current.id, next);
+					//System.out.println(current + ": delivered");
 				}
 				catch (TransactionRejectedException e) {
 					node.setTransactionErrorFor(current.id, e.getMessage());

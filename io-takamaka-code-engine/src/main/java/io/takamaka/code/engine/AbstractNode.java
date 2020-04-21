@@ -644,6 +644,10 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		}
 	}
 
+	public interface JarTask {
+		TransactionReference apply(String id) throws Exception;
+	}
+
 	private JarStoreFuture jarStoreFutureFor(TransactionRequest<?> request, Callable<TransactionReference> callable, String id) {
 		return new JarStoreFuture() {
 
@@ -680,6 +684,59 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		};
 	}
 
+	/*private JarStoreFuture jarStoreFutureFor2(TransactionRequest<?> request, JarTask task, Future<String> id) {
+		return new JarStoreFuture() {
+
+			@Override
+			public TransactionReference get() throws TransactionRejectedException, TransactionException, InterruptedException {
+				try {
+					return task.apply(id.get());
+				}
+				catch (TransactionRejectedException | TransactionException | InterruptedException e) {
+					throw e;
+				}
+				catch (ExecutionException e) {
+					throw new TransactionRejectedException(e.getCause());
+				}
+				catch (Throwable t) {
+					throw new TransactionException(t.getClass().getName(), t.getMessage(), null);
+				}
+			}
+
+			@Override
+			public TransactionReference get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, TimeoutException, InterruptedException {
+				try {
+					return task.apply(id.get(timeout, unit));
+				}
+				catch (TransactionRejectedException | TransactionException | TimeoutException | InterruptedException e) {
+					throw e;
+				}
+				catch (ExecutionException e) {
+					throw new TransactionRejectedException(e.getCause());
+				}
+				catch (Throwable t) {
+					throw new TransactionException(t.getClass().getName(), t.getMessage(), null);
+				}
+			}
+
+			@Override
+			public String id() throws TransactionRejectedException, InterruptedException {
+				try {
+					return id.get();
+				}
+				catch (InterruptedException e) {
+					throw e;
+				}
+				catch (ExecutionException e) {
+					throw new TransactionRejectedException(e.getCause());
+				}
+				catch (Throwable t) {
+					throw new TransactionRejectedException(t);
+				}
+			}
+		};
+	}*/
+
 	private <W extends StorageValue> CodeExecutionFuture<W> codeExecutionFutureFor(TransactionRequest<?> request, Callable<W> callable, String id) {
 		return new CodeExecutionFuture<W>() {
 
@@ -701,7 +758,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 				try {
 					return callable.call();
 				}
-				catch (TransactionRejectedException | TransactionException | CodeExecutionException | InterruptedException e) {
+				catch (TransactionRejectedException | TransactionException | CodeExecutionException | TimeoutException | InterruptedException e) {
 					throw e;
 				}
 				catch (Throwable t) {
@@ -715,4 +772,61 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 			}
 		};
 	}
+
+	public interface CodeTask<W extends StorageValue> {
+		W apply(String id) throws Exception;
+	}
+
+	/*private <W extends StorageValue> CodeExecutionFuture<W> codeExecutionFutureFor2(TransactionRequest<?> request, CodeTask<W> task, Future<String> id) {
+		return new CodeExecutionFuture<W>() {
+
+			@Override
+			public W get() throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException {
+				try {
+					return task.apply(id.get());
+				}
+				catch (TransactionRejectedException | TransactionException | CodeExecutionException | InterruptedException e) {
+					throw e;
+				}
+				catch (ExecutionException e) {
+					throw new TransactionRejectedException(e.getCause());
+				}
+				catch (Throwable t) {
+					throw new TransactionRejectedException(t);
+				}
+			}
+
+			@Override
+			public W get(long timeout, TimeUnit unit) throws TransactionRejectedException, TransactionException, CodeExecutionException, TimeoutException, InterruptedException {
+				try {
+					return task.apply(id.get(timeout, unit));
+				}
+				catch (TransactionRejectedException | TransactionException | CodeExecutionException | TimeoutException | InterruptedException e) {
+					throw e;
+				}
+				catch (ExecutionException e) {
+					throw new TransactionRejectedException(e.getCause());
+				}
+				catch (Throwable t) {
+					throw new TransactionRejectedException(t);
+				}
+			}
+
+			@Override
+			public String id() throws TransactionRejectedException, InterruptedException {
+				try {
+					return id.get();
+				}
+				catch (InterruptedException e) {
+					throw e;
+				}
+				catch (ExecutionException e) {
+					throw new TransactionRejectedException(e.getCause());
+				}
+				catch (Throwable t) {
+					throw new TransactionRejectedException(t);
+				}
+			}
+		};
+	}*/
 }
