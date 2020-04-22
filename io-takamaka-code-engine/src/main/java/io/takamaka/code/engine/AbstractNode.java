@@ -210,6 +210,17 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	}
 
 	/**
+	 * Runs the given task with the executor service of this node.
+	 * 
+	 * @param <T> the type of the result of the task
+	 * @param what the task
+	 * @return the return value computed by the task
+	 */
+	public final void submit(Runnable what) {
+		executor.submit(what);
+	}
+
+	/**
 	 * Checks that the given transaction request is valid.
 	 * 
 	 * @param request the request

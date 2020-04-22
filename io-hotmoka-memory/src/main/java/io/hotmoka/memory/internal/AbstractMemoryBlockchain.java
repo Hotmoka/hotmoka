@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -250,17 +251,26 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 			os.writeObject(request);
 		}
 
-		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((MemoryTransactionReference) reference, REQUEST_TXT_NAME)))) {
-			output.print(request);
-		}
-
 		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor((MemoryTransactionReference) reference, RESPONSE_NAME))))) {
 			os.writeObject(response);
 		}
 
-		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((MemoryTransactionReference) reference, RESPONSE_TXT_NAME)))) {
-			output.print(response);
-		}
+		// we write the textual request and response in a background thread, since they are not needed
+		// to the blockchain itself but are only useful for the user who wants to see the transactions
+		submit(() -> {
+			try {
+				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((MemoryTransactionReference) reference, RESPONSE_TXT_NAME)))) {
+					output.print(response);
+				}
+
+				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((MemoryTransactionReference) reference, REQUEST_TXT_NAME)))) {
+					output.print(request);
+				}
+			}
+			catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
+		});
 
 		super.expandStoreWith(reference, request, response);
 	}
