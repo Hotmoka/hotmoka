@@ -96,12 +96,15 @@ class State implements AutoCloseable {
      */
     private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 4);
 
+    private long stateTime;
+
     /**
      * Creates a state that gets persisted inside the given directory.
      * 
      * @param dir the directory where the state is persisted
      */
     State(String dir) {
+    	long start = System.currentTimeMillis();
     	this.env = Environments.newInstance(dir);
 
     	// we enforce that all stores are created
@@ -110,10 +113,13 @@ class State implements AutoCloseable {
             env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
             env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 		});
+
+    	stateTime += (System.currentTimeMillis() - start);
     }
 
     @Override
-	public void close() {
+    public void close() {
+    	//System.out.println("state time: " + stateTime);
     	if (txn != null && !txn.isFinished())
     		// blockchain closed with uncommitted transactions: we commit them
     		commitTransaction();
@@ -124,7 +130,7 @@ class State implements AutoCloseable {
     	catch (ExodusException e) {
     		// this seems a big in Exodus: jetbrains.exodus.ExodusException: Finish all transactions before closing database environment
     	}
-	}
+    }
 
     /**
      * Starts a transaction. All updates during the transaction are saved
@@ -132,20 +138,24 @@ class State implements AutoCloseable {
      * of the execution of the transactions inside a block.
      */
 	void beginTransaction() {
+		long start = System.currentTimeMillis();
 		txn = env.beginTransaction();
         responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
         responsesRecent.clear();
         history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
         historyRecent.clear();
         info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+        stateTime += (System.currentTimeMillis() - start);
 	}
 
 	/**
 	 * Commits all updates during the current transaction.
 	 */
 	void commitTransaction() {
+		long start = System.currentTimeMillis();
 		increaseNumberOfCommits();
 		txn.commit();
+		stateTime += (System.currentTimeMillis() - start);
 	}
 
 	/**
@@ -156,14 +166,18 @@ class State implements AutoCloseable {
 	 * @throws IOException if the response cannot be saved in state
 	 */
 	void putResponseOf(TransactionReference transactionReference, TransactionResponse response) throws IOException {
+		long start = System.currentTimeMillis();
 		env.executeInTransaction(txn -> responses.put(txn, compactByteArraySerializationOf(transactionReference), byteArraySerializationOf(response)));
 		responsesRecent.put(transactionReference, response);
+		stateTime += (System.currentTimeMillis() - start);
 	}
 
 	void setHistory(StorageReference transactionReference, Stream<TransactionReference> history) {
+		long start = System.currentTimeMillis();
 		TransactionReference[] historyAsArray = history.toArray(TransactionReference[]::new);
 		env.executeInTransaction(txn -> this.history.put(txn, byteArraySerializationOf(transactionReference), byteArraySerializationOf(historyAsArray)));
 		historyRecent.put(transactionReference, historyAsArray);
+		stateTime += (System.currentTimeMillis() - start);
 	}
 
 	/**
@@ -173,7 +187,9 @@ class State implements AutoCloseable {
 	 * @param takamakaCode the classpath
 	 */
 	void putTakamakaCode(Classpath takamakaCode) {
+		long start = System.currentTimeMillis();
 		env.executeInTransaction(txn -> info.put(txn, TAKAMAKA_CODE, byteArraySerializationOf(takamakaCode)));
+		stateTime += (System.currentTimeMillis() - start);
 	}
 
 	/**
@@ -183,7 +199,9 @@ class State implements AutoCloseable {
 	 * @param takamakaCode the classpath
 	 */
 	void putJar(Classpath jar) {
+		long start = System.currentTimeMillis();
 		env.executeInTransaction(txn -> info.put(txn, JAR, byteArraySerializationOf(jar)));
+		stateTime += (System.currentTimeMillis() - start);
 	}
 
 	/**
@@ -192,14 +210,18 @@ class State implements AutoCloseable {
 	 * @param account the storage reference of the account to add
 	 */
 	void addAccount(StorageReference account) {
+		long start = System.currentTimeMillis();
 		env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, byteArraySerializationOf(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new))));
+		stateTime += (System.currentTimeMillis() - start);
 	}
 
 	/**
 	 * Sets the initialized property in this state.
 	 */
 	void markAsInitialized() {
+		long start = System.currentTimeMillis();
 		env.executeInTransaction(txn -> info.put(txn, INITIALIZED, ByteIterable.EMPTY));
+		stateTime += (System.currentTimeMillis() - start);
 	}
 
 	/**
@@ -209,6 +231,7 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponseOf(TransactionReference transactionReference) {
+		long start = System.currentTimeMillis();
 		TransactionResponse result = responsesRecent.get(transactionReference);
 		if (result != null)
 			return Optional.of(result);
@@ -216,11 +239,13 @@ class State implements AutoCloseable {
 		return env.computeInReadonlyTransaction(txn -> {
 			Store responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable response = responses.get(txn, compactByteArraySerializationOf(transactionReference));
+			stateTime += (System.currentTimeMillis() - start);
 			return response == null ? Optional.empty() : Optional.of((TransactionResponse) deserializationOf(response));
 		});
 	}
 
 	Optional<Stream<TransactionReference>> getHistoryOf(StorageReference object) {
+		long start = System.currentTimeMillis();
 		TransactionReference[] result = historyRecent.get(object);
 		if (result != null)
 			return Optional.of(Stream.of(result));
@@ -228,14 +253,17 @@ class State implements AutoCloseable {
 		return env.computeInReadonlyTransaction(txn -> {
 			Store history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
+			stateTime += (System.currentTimeMillis() - start);
 			return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
 		});
 	}
 
 	long getNumberOfCommits() {
+		long start = System.currentTimeMillis();
 		return env.computeInReadonlyTransaction(txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable count = info.get(txn, COMMIT_COUNT);
+			stateTime += (System.currentTimeMillis() - start);
 			return count == null ? 0L : (long) deserializationOf(count);
 		});
 	}
@@ -246,9 +274,11 @@ class State implements AutoCloseable {
 	 * @return the classpath
 	 */
 	Optional<Classpath> getTakamakaCode() {
+		long start = System.currentTimeMillis();
 		return env.computeInReadonlyTransaction(txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable takamakaCode = info.get(txn, TAKAMAKA_CODE);
+			stateTime += (System.currentTimeMillis() - start);
 			return takamakaCode == null ? Optional.empty() : Optional.of((Classpath) deserializationOf(takamakaCode));
 		});
 	}
@@ -260,9 +290,11 @@ class State implements AutoCloseable {
 	 * @return the classpath
 	 */
 	Optional<Classpath> getJar() {
+		long start = System.currentTimeMillis();
 		return env.computeInReadonlyTransaction(txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable jar = info.get(txn, JAR);
+			stateTime += (System.currentTimeMillis() - start);
 			return jar == null ? Optional.empty() : Optional.of((Classpath) deserializationOf(jar));
 		});
 	}
@@ -273,9 +305,11 @@ class State implements AutoCloseable {
 	 * @return the accounts, as an ordered stream from the first to the last account
 	 */
 	Stream<StorageReference> getAccounts() {
+		long start = System.currentTimeMillis();
 		return env.computeInReadonlyTransaction(txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable accounts = info.get(txn, ACCOUNTS);
+			stateTime += (System.currentTimeMillis() - start);
 			return accounts == null ? Stream.empty() : Stream.of((StorageReference[]) deserializationOf(accounts));
 		});
 	}
@@ -286,8 +320,10 @@ class State implements AutoCloseable {
 	 * @return true if and only if {@code markAsInitialized()} has been already called
 	 */
 	boolean isInitialized() {
+		long start = System.currentTimeMillis();
 		return env.computeInReadonlyTransaction(txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+			stateTime += (System.currentTimeMillis() - start);
 			return info.get(txn, INITIALIZED) != null;
 		});
 	}

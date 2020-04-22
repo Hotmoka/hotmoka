@@ -94,6 +94,8 @@ class Tendermint implements AutoCloseable {
 	public void close() throws InterruptedException {
 		process.destroy();
 		process.waitFor();
+		//System.out.println("polling time: " + pollingTime);
+		//System.out.println("writing time: " + writingTime);
 	}
 
 	/**
@@ -104,12 +106,12 @@ class Tendermint implements AutoCloseable {
 	 * @return the response of Tendermint
 	 * @throws IOException if the connection couldn't be opened or the request could not be sent
 	 */
-	String broadcastTxCommit(TransactionRequest<?> request) throws IOException {
+	/*String broadcastTxCommit(TransactionRequest<?> request) throws IOException {
 		String base64EncodedHotmokaRequest = base64EncodedSerializationOf(request);
 		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_commit\", \"params\": {\"tx\": \"" + base64EncodedHotmokaRequest + "\"}}";
 
 		return postToTendermint(jsonTendermintRequest);
-	}
+	}*/
 
 	/**
 	 * Sends the given {@code request} to the Tendermint process, inside
@@ -119,28 +121,24 @@ class Tendermint implements AutoCloseable {
 	 * @return the response of Tendermint
 	 * @throws IOException if the connection couldn't be opened or the request could not be sent
 	 */
-	String broadcastTxSync(TransactionRequest<?> request) throws IOException {
+	/*String broadcastTxSync(TransactionRequest<?> request) throws IOException {
 		String base64EncodedHotmokaRequest = base64EncodedSerializationOf(request);
 		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_sync\", \"params\": {\"tx\": \"" + base64EncodedHotmokaRequest + "\"}}";
 
 		return postToTendermint(jsonTendermintRequest);
-	}
+	}*/
 
 	/**
 	 * Sends the given {@code request} to the Tendermint process, inside
 	 * a {@code broadcast_tx_async} Tendermint request.
 	 * 
 	 * @param request the request to send
-	 * @return the connection, from where the response of Tendermint can be read
+	 * @return the response of Tendermint
 	 * @throws IOException if the connection couldn't be opened or the request could not be sent
 	 */
-	HttpURLConnection broadcastTxAsync(TransactionRequest<?> request) throws IOException {
-		String base64EncodedHotmokaRequest = base64EncodedSerializationOf(request);
-		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + base64EncodedHotmokaRequest + "\"}}";
-		HttpURLConnection connection = openPostConnectionToTendermint();
-		writeInto(connection, jsonTendermintRequest);
-
-		return connection;
+	String broadcastTxAsync(TransactionRequest<?> request) throws IOException, TimeoutException, InterruptedException {
+		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + base64EncodedSerializationOf(request) + "\"}}";
+		return postToTendermint(jsonTendermintRequest);
 	}
 
 	/**
@@ -151,12 +149,14 @@ class Tendermint implements AutoCloseable {
 	 * @return the response of Tendermint
 	 * @throws IOException if the connection couldn't be opened or the request could not be sent
 	 */
-	String tx(String hash) throws IOException {
+	private String tx(String hash) throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
 			Base64.getEncoder().encodeToString(hexStringToByteArray(hash)) + "\", \"prove\": false }}";
 
 		return postToTendermint(jsonTendermintRequest);
 	}
+
+	public long pollingTime;
 
 	/**
 	 * Pools Tendermint until a transaction with the given hash has been successfully committed.
@@ -168,12 +168,15 @@ class Tendermint implements AutoCloseable {
 	 * @throws InterruptedException if the waiting thread has been interrupted
 	 */
 	TendermintTopLevelResult poll(String hash) throws TimeoutException, IOException, InterruptedException {
+		long start = System.currentTimeMillis();
 		int delay = AbstractNode.POLLING_DELAY;
 
 		for (int i = 0; i < AbstractNode.MAX_POLLING_ATTEMPTS; i++) {
 			TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
-			if (response.error == null)
+			if (response.error == null) {
+				pollingTime += (System.currentTimeMillis() - start);
 				return response.result;
+			}
 
 			Thread.sleep(delay);
 
@@ -181,6 +184,7 @@ class Tendermint implements AutoCloseable {
 			delay = 110 * delay / 100;
 		}
 
+		pollingTime += (System.currentTimeMillis() - start);
 		throw new TimeoutException("cannot find transaction " + hash);
 	}
 
@@ -247,7 +251,7 @@ class Tendermint implements AutoCloseable {
 	 * @return the response
 	 * @throws IOException if the request couldn't be sent
 	 */
-	private String postToTendermint(String jsonTendermintRequest) throws IOException {
+	private String postToTendermint(String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
 		HttpURLConnection connection = openPostConnectionToTendermint();
 		writeInto(connection, jsonTendermintRequest);
 		return readFrom(connection);
@@ -260,7 +264,7 @@ class Tendermint implements AutoCloseable {
 	 * @return the response
 	 * @throws IOException if the response couldn't be read
 	 */
-	static String readFrom(HttpURLConnection connection) throws IOException {
+	private static String readFrom(HttpURLConnection connection) throws IOException {
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
 			StringBuilder response = new StringBuilder();
 			String responseLine;
@@ -271,6 +275,8 @@ class Tendermint implements AutoCloseable {
 		}
 	}
 
+	public long writingTime;
+
 	/**
 	 * Writes the given request into the given connection.
 	 * 
@@ -278,12 +284,14 @@ class Tendermint implements AutoCloseable {
 	 * @param jsonTendermintRequest the request
 	 * @throws IOException if the request cannot be written
 	 */
-	private static void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException {
+	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
+		long start = System.currentTimeMillis();
 		int delay = PING_DELAY;
 		for (int i = 0; i < MAX_PING_ATTEMPTS; i++) {
 			try (OutputStream os = connection.getOutputStream()) {
 				byte[] input = jsonTendermintRequest.getBytes("utf-8");
 				os.write(input, 0, input.length);
+				writingTime += (System.currentTimeMillis() - start);
 				return;
 			}
 			catch (ConnectException e) {
@@ -299,7 +307,8 @@ class Tendermint implements AutoCloseable {
 			}
 		}
 
-		throw new IOException("Cannot write into Tendermint's connection. Tried " + MAX_PING_ATTEMPTS + " times");
+		writingTime += (System.currentTimeMillis() - start);
+		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + MAX_PING_ATTEMPTS + " times");
 	}
 
 	/**

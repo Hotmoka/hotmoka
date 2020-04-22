@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
-import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -125,14 +124,14 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
 
 			BigInteger nonce = BigInteger.ZERO;
-			JarSupplier jarFuture;
+			JarSupplier jarSupplier;
 
 			if (jar.isPresent()) {
-				jarFuture = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
+				jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
 				nonce = nonce.add(BigInteger.ONE);
 			}
 			else
-				jarFuture = null;
+				jarSupplier = null;
 
 			// let us create the accounts
 			this.accounts = new StorageReference[funds.length];
@@ -148,15 +147,18 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			}
 
 			int i = 0;
-			for (CodeSupplier<StorageReference> future: accounts)
-				state.addAccount(this.accounts[i++] = future.get());
+			for (CodeSupplier<StorageReference> account: accounts)
+				state.addAccount(this.accounts[i++] = account.get());
 
 			if (jar.isPresent()) {
-				this.jar = new Classpath(jarFuture.get(), true);
+				this.jar = new Classpath(jarSupplier.get(), true);
 				state.putJar(this.jar);
 			}
 			else
 				this.jar = null;
+
+			tendermint.pollingTime = 0L;
+			tendermint.writingTime = 0L;
 		}
 		catch (Throwable t) {
 			try {
@@ -208,14 +210,14 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			StorageReference gamete = addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode(), green, red));
 
 			BigInteger nonce = BigInteger.ZERO;
-			JarSupplier jarFuture;
+			JarSupplier jarSupplier;
 
 			if (jar.isPresent()) {
-				jarFuture = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
+				jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
 				nonce = nonce.add(BigInteger.ONE);
 			}
 			else
-				jarFuture = null;
+				jarSupplier = null;
 
 			// let us create the accounts
 			this.accounts = new StorageReference[funds.length / 2];
@@ -245,7 +247,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			}
 
 			if (jar.isPresent()) {
-				this.jar = new Classpath(jarFuture.get(), true);
+				this.jar = new Classpath(jarSupplier.get(), true);
 				state.putJar(this.jar);
 			}
 			else
@@ -338,10 +340,9 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception {
-		HttpURLConnection connection = tendermint.broadcastTxAsync(request);
-		String s = Tendermint.readFrom(connection);
+		String response = tendermint.broadcastTxAsync(request);
 
-		return () -> extractHashFromBroadcastTxResponse(s);
+		return () -> extractHashFromBroadcastTxResponse(response);
 	}
 
 	@Override

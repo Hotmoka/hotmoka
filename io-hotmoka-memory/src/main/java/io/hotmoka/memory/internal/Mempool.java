@@ -69,9 +69,11 @@ public class Mempool {
 				}
 				catch (TransactionRejectedException e) {
 					node.setTransactionErrorFor(current.id, e.getMessage());
+					node.releaseWhoWasWaitingFor(current.request);
 				}
 	            catch (Throwable t) {
 	            	node.setTransactionErrorFor(current.id, t.toString());
+	            	node.releaseWhoWasWaitingFor(current.request);
 	    		}
 			}
 			catch (InterruptedException e) {
@@ -99,6 +101,8 @@ public class Mempool {
 	            catch (Throwable t) {
 	            	node.setTransactionErrorFor(current.id, t.toString());
 	    		}
+
+				node.releaseWhoWasWaitingFor(current.request);
 			}
 			catch (InterruptedException e) {
 				return;

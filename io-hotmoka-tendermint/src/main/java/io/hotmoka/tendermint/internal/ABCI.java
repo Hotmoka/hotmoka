@@ -91,18 +91,24 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ByteString tx = tendermintRequest.getTx();
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
+        boolean checked;
+        TransactionRequest<?> request = null;
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	TransactionRequest<?> request = (TransactionRequest<?>) ois.readObject();
+        	request = (TransactionRequest<?>) ois.readObject();
+
         	node.checkTransaction(request);
         	responseBuilder.setCode(0);
+        	checked = true;
         }
         catch (TransactionRejectedException e) {
         	responseBuilder.setCode(1);
         	responseBuilder.setInfo(e.getMessage());
+        	checked = false;
 		}
         catch (Throwable t) {
         	responseBuilder.setCode(2);
         	responseBuilder.setInfo(t.toString());
+        	checked = false;
 		}
 
         ResponseCheckTx resp = responseBuilder
@@ -110,6 +116,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
+
+        if (!checked && request != null)
+    		node.releaseWhoWasWaitingFor(request);
         //System.out.println("]");
     }
 
@@ -146,32 +155,31 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         //long start = System.currentTimeMillis();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
-        int code = validate(tx);
-        if (code == 0) {
-            try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-            	TransactionRequest<?> request = (TransactionRequest<?>) ois.readObject();
+        TransactionRequest<?> request = null;
+        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
+        	request = (TransactionRequest<?>) ois.readObject();
 
-            	TransactionReference next = node.nextAndIncrement();
-            	node.deliverTransaction(node.checkTransaction(request), next);
+        	TransactionReference next = node.nextAndIncrement();
+        	node.deliverTransaction(node.checkTransaction(request), next);
 
-            	responseBuilder.setCode(0);
-            	responseBuilder.setData(byteStringSerializationOf(next.toString()));
-            }
-            catch (TransactionRejectedException e) {
-            	responseBuilder.setCode(1);
-            	responseBuilder.setInfo(e.getMessage());
-			}
-            catch (Throwable t) {
-            	responseBuilder.setCode(2);
-            	responseBuilder.setInfo(t.toString());
-    		}
+        	responseBuilder.setCode(0);
+        	responseBuilder.setData(byteStringSerializationOf(next.toString()));
         }
-        else
-        	responseBuilder.setCode(code);
+        catch (TransactionRejectedException e) {
+        	responseBuilder.setCode(1);
+        	responseBuilder.setInfo(e.getMessage());
+        }
+        catch (Throwable t) {
+        	responseBuilder.setCode(2);
+        	responseBuilder.setInfo(t.toString());
+        }
 
         ResponseDeliverTx resp = responseBuilder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
+
+        if (request != null)
+    		node.releaseWhoWasWaitingFor(request);
         //deliverTxTime += (System.currentTimeMillis() - start);
         //System.out.println(deliverTxTime + "]");
     }
@@ -233,10 +241,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     long getNow() {
 		return now;
 	}
-
-	private static int validate(ByteString tx) {
-    	return 0;
-    }
 
 	/**
 	 * Serializes the given object into a byte string.
