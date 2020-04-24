@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -77,7 +78,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	/**
 	 * The number of transactions that fit inside a block.
 	 */
-	public final static int TRANSACTIONS_PER_BLOCK = 5;
+	public final static BigInteger TRANSACTIONS_PER_BLOCK = BigInteger.valueOf(5);
 
 	/**
 	 * The root path where the blocks are stored.
@@ -89,12 +90,10 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	 */
 	private final Classpath takamakaCode;
 
-	private final Mempool mempool;
-
 	/**
-	 * The reference that identifies the next transaction, that will run for the next request.
+	 * The mempool where transaction requests are stored and eventually executed.
 	 */
-	private MemoryTransactionReference next;
+	private final Mempool mempool;
 
 	/**
 	 * The histories of the objects created in blockchain. In a real implementation, this must
@@ -130,7 +129,6 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		this.root = Paths.get("chain");
 		ensureDeleted(root);  // cleans the directory where the blockchain lives
 		Files.createDirectories(root);
-		this.next = new MemoryTransactionReference(BigInteger.ZERO, (short) 0);
 		createHeaderOfCurrentBlock();
 		this.mempool = new Mempool(this);
 		TransactionReference support = addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath)));
@@ -144,10 +142,26 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	@Override
 	public long getNow() throws Exception {
 		// we access the block header where the transaction would be added
-		Path headerPath = getPathInBlockFor(next.blockNumber, HEADER_NAME);
+		Path headerPath = getPathInBlockFor(blockNumber(next()), HEADER_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(headerPath)))) {
 			return ((MemoryBlockHeader) in.readObject()).time;
 		}
+	}
+
+	@Override
+	protected void setNext(LocalTransactionReference next) {
+		super.setNext(next);
+
+		if (next.getNumber().remainder(TRANSACTIONS_PER_BLOCK).signum() == 0)
+			try {
+				createHeaderOfCurrentBlock();
+			}
+			catch (Exception e) {}
+	}
+
+	@Override
+	protected TransactionReference nextAndIncrement() {
+		return super.nextAndIncrement();
 	}
 
 	@Override
@@ -207,31 +221,12 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		initialized = true;
 	}
 
-	@Override
-	protected TransactionReference next() {
-		synchronized (lockGetNext) {
-			return next;
-		}
+	private BigInteger blockNumber(TransactionReference reference) {
+		return reference.getNumber().divide(TRANSACTIONS_PER_BLOCK);
 	}
 
-	private final Object lockGetNext = new Object();
-
-	@Override
-	protected TransactionReference nextAndIncrement() {
-		TransactionReference result;
-
-		synchronized (lockGetNext) {
-			result = next;
-			next = next.getNext();
-
-			if (next.transactionNumber == 0)
-				try {
-					createHeaderOfCurrentBlock();
-				}
-				catch (Exception e) {}
-		}
-
-		return result;
+	private BigInteger transactionNumber(TransactionReference reference) {
+		return reference.getNumber().remainder(TRANSACTIONS_PER_BLOCK);
 	}
 
 	@Override
@@ -242,7 +237,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 
 	@Override
 	protected void expandStoreWith(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
-		Path requestPath = getPathFor((MemoryTransactionReference) reference, REQUEST_NAME);
+		Path requestPath = getPathFor((LocalTransactionReference) reference, REQUEST_NAME);
 		Path parent = requestPath.getParent();
 		ensureDeleted(parent);
 		Files.createDirectories(parent);
@@ -251,7 +246,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 			os.writeObject(request);
 		}
 
-		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor((MemoryTransactionReference) reference, RESPONSE_NAME))))) {
+		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor((LocalTransactionReference) reference, RESPONSE_NAME))))) {
 			os.writeObject(response);
 		}
 
@@ -259,11 +254,11 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		// to the blockchain itself but are only useful for the user who wants to see the transactions
 		submit(() -> {
 			try {
-				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((MemoryTransactionReference) reference, RESPONSE_TXT_NAME)))) {
+				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((LocalTransactionReference) reference, RESPONSE_TXT_NAME)))) {
 					output.print(response);
 				}
 
-				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((MemoryTransactionReference) reference, REQUEST_TXT_NAME)))) {
+				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((LocalTransactionReference) reference, REQUEST_TXT_NAME)))) {
 					output.print(request);
 				}
 			}
@@ -280,8 +275,9 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	 * 
 	 * @throws IOException if the header cannot be created
 	 */
-	private void createHeaderOfCurrentBlock() throws IOException {
-		Path headerPath = getPathInBlockFor(next.blockNumber, HEADER_NAME);
+	protected void createHeaderOfCurrentBlock() throws IOException {
+		BigInteger blockNumber = blockNumber(next());
+		Path headerPath = getPathInBlockFor(blockNumber, HEADER_NAME);
 		ensureDeleted(headerPath.getParent());
 		Files.createDirectories(headerPath.getParent());
 
@@ -291,14 +287,14 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 			os.writeObject(header);
 		}
 
-		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathInBlockFor(next.blockNumber, HEADER_TXT_NAME)))) {
+		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathInBlockFor(blockNumber, HEADER_TXT_NAME)))) {
 			output.print(header);
 		}
 	}
 
 	@Override
 	protected TransactionResponse getResponseAtInternal(TransactionReference reference) throws IOException, ClassNotFoundException {
-		Path response = getPathFor((MemoryTransactionReference) reference, RESPONSE_NAME);
+		Path response = getPathFor((LocalTransactionReference) reference, RESPONSE_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
 			return (TransactionResponse) in.readObject();
 		}
@@ -310,8 +306,8 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	 * @param fileName the name of the file
 	 * @return the path
 	 */
-	private Path getPathFor(MemoryTransactionReference reference, Path fileName) {
-		return root.resolve("b" + reference.blockNumber).resolve("t" + reference.transactionNumber).resolve(fileName);
+	private Path getPathFor(LocalTransactionReference reference, Path fileName) {
+		return root.resolve("b" + blockNumber(reference)).resolve("t" + transactionNumber(reference)).resolve(fileName);
 	}
 
 	/**

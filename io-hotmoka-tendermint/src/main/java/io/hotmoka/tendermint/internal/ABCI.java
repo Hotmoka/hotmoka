@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.math.BigInteger;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -16,7 +15,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import types.ABCIApplicationGrpc;
-import types.Types.Header;
 import types.Types.RequestBeginBlock;
 import types.Types.RequestCheckTx;
 import types.Types.RequestCommit;
@@ -43,11 +41,6 @@ import types.Types.ResponseSetOption;
 
 class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	private final TendermintBlockchainImpl node;
-
-	/**
-     * The transaction reference that can be used for the next transaction that will be delivered.
-     */
-    private TendermintTransactionReference next;
 
     /**
     * The current time of the blockchain, set at the time of creation of each block.
@@ -136,9 +129,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	//System.out.print("[beginBlock");
     	node.state.beginTransaction();
     	//System.out.println("committed " + req.getHeader().getNumTxs() + " transactions");
-        Header header = req.getHeader();
-        next = new TendermintTransactionReference(BigInteger.valueOf(header.getHeight()), (short) 0);
-    	Timestamp time = header.getTime();
+        Timestamp time = req.getHeader().getTime();
     	now = time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L;
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
@@ -254,29 +245,5 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 			oos.writeObject(object);
 			return ByteString.copyFrom(baos.toByteArray());
 		}
-	}
-
-    /**
-     * Yields the transaction reference that can be used for the next transaction that will be delivered.
-     * 
-     * @return the transaction reference
-     */
-	TransactionReference getNextTransactionReference() {
-		synchronized (lockGetNext) {
-			return next;
-		}
-	}
-
-	private final Object lockGetNext = new Object();
-
-	TransactionReference getNextTransactionReferenceAndIncrement() {
-		TransactionReference result;
-
-		synchronized (lockGetNext) {
-			result = next;
-			next = new TendermintTransactionReference(next.blockNumber, next.transactionNumber + 1);
-		}
-
-		return result;
 	}
 }

@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
@@ -24,6 +25,7 @@ import jetbrains.exodus.env.Environments;
 import jetbrains.exodus.env.Store;
 import jetbrains.exodus.env.StoreConfig;
 import jetbrains.exodus.env.Transaction;
+import jetbrains.exodus.env.TransactionalComputable;
 
 /**
  * The state of the blockchain. It is a transactional database that keeps
@@ -96,6 +98,11 @@ class State implements AutoCloseable {
      */
     private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 4);
 
+    /**
+     * The key used inside the {@code INFO} store to know the last committed transaction reference.
+     */
+    private final static ByteIterable NEXT = ArrayByteIterable.fromByte((byte) 4);
+
     private long stateTime;
 
     /**
@@ -109,9 +116,9 @@ class State implements AutoCloseable {
 
     	// we enforce that all stores are created
     	env.executeInTransaction(txn -> {
-    		env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
-            env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
-            env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+    		responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
+            history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
+            info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 		});
 
     	stateTime += (System.currentTimeMillis() - start);
@@ -201,6 +208,12 @@ class State implements AutoCloseable {
 	void putJar(Classpath jar) {
 		long start = System.currentTimeMillis();
 		env.executeInTransaction(txn -> info.put(txn, JAR, byteArraySerializationOf(jar)));
+		stateTime += (System.currentTimeMillis() - start);
+	}
+
+	void putNext(TransactionReference next) {
+		long start = System.currentTimeMillis();
+		env.executeInTransaction(txn -> info.put(txn, NEXT, byteArraySerializationOf(next)));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -299,6 +312,16 @@ class State implements AutoCloseable {
 		});
 	}
 
+	Optional<LocalTransactionReference> getNext() {
+		long start = System.currentTimeMillis();
+		return env.computeInReadonlyTransaction(txn -> {
+			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+			ByteIterable next = info.get(txn, NEXT);
+			stateTime += (System.currentTimeMillis() - start);
+			return next == null ? Optional.empty() : Optional.of((LocalTransactionReference) deserializationOf(next));
+		});
+	}
+
 	/**
 	 * Yields the initial accounts.
 	 * 
@@ -321,11 +344,14 @@ class State implements AutoCloseable {
 	 */
 	boolean isInitialized() {
 		long start = System.currentTimeMillis();
-		return env.computeInReadonlyTransaction(txn -> {
+
+		TransactionalComputable<Boolean> computable = txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			stateTime += (System.currentTimeMillis() - start);
 			return info.get(txn, INITIALIZED) != null;
-		});
+		};
+
+		return env.computeInReadonlyTransaction(computable);
 	}
 
 	private void increaseNumberOfCommits() {

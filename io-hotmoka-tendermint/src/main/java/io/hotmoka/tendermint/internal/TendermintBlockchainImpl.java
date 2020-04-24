@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -290,6 +291,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			this.jar = state.getJar().orElse(null);
 			this.initialized = state.isInitialized();
 			this.accounts = state.getAccounts().toArray(StorageReference[]::new);
+			setNext(state.getNext().orElse(LocalTransactionReference.FIRST));
 		}
 		catch (Exception e) {
 			try {
@@ -333,9 +335,20 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
+	protected void setNext(LocalTransactionReference next) {
+		super.setNext(next);
+		state.putNext(next);
+	}
+
+	@Override
 	protected TransactionResponse getResponseAtInternal(TransactionReference transactionReference) throws Exception {
 		return state.getResponseOf(transactionReference)
 			.orElseThrow(() -> new IllegalStateException("cannot find no response for transaction " + transactionReference));
+	}
+
+	@Override
+	protected TransactionReference nextAndIncrement() {
+		return super.nextAndIncrement();
 	}
 
 	@Override
@@ -347,26 +360,21 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	public TransactionReference getTransactionReferenceFor(String id) throws Exception {
-		try {
-			TendermintTopLevelResult tendermintResult = tendermint.poll(id);
+		TendermintTopLevelResult tendermintResult = tendermint.poll(id);
 
-			TendermintTxResult tx_result = tendermintResult.tx_result;
-			if (tx_result == null)
-				throw new IllegalStateException("no result for transaction " + id);
+		TendermintTxResult tx_result = tendermintResult.tx_result;
+		if (tx_result == null)
+			throw new IllegalStateException("no result for transaction " + id);
 
-			String data = tx_result.data;
-			if (data == null)
-				throw new IllegalStateException(tx_result.info);
+		String data = tx_result.data;
+		if (data == null)
+			throw new IllegalStateException(tx_result.info);
 
-			Object dataAsObject = base64DeserializationOf(data);
-			if (!(dataAsObject instanceof String))
-				throw new IllegalStateException("no Hotmoka transaction reference found in data field of Tendermint transaction");
+		Object dataAsObject = base64DeserializationOf(data);
+		if (!(dataAsObject instanceof String))
+			throw new IllegalStateException("no Hotmoka transaction reference found in data field of Tendermint transaction");
 
-			return new TendermintTransactionReference((String) dataAsObject);
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e.getMessage());
-		}
+		return new LocalTransactionReference((String) dataAsObject);
 	}
 
 	@Override
@@ -401,16 +409,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			state.markAsInitialized();
 			initialized = true;
 		}
-	}
-
-	@Override
-	protected TransactionReference next() {
-		return abci.getNextTransactionReference();
-	}
-
-	@Override
-	protected TransactionReference nextAndIncrement() {
-		return abci.getNextTransactionReferenceAndIncrement();
 	}
 
 	/**
