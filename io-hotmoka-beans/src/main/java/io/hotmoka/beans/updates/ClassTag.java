@@ -1,5 +1,8 @@
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
@@ -13,6 +16,7 @@ import io.hotmoka.beans.values.StorageReference;
 public final class ClassTag extends Update {
 
 	private static final long serialVersionUID = 7597397926867306935L;
+	final static byte SELECTOR = 0;
 
 	/**
 	 * The name of the class of the object.
@@ -66,5 +70,13 @@ public final class ClassTag extends Update {
 			return diff;
 		else
 			return jar.compareTo(((ClassTag) other).jar);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		oos.writeUTF(className);
+		jar.into(oos);
 	}
 }

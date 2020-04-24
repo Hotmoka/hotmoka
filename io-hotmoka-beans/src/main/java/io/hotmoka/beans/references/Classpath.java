@@ -1,5 +1,8 @@
 package io.hotmoka.beans.references;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import io.hotmoka.beans.annotations.Immutable;
@@ -47,5 +50,41 @@ public final class Classpath implements Serializable {
 	@Override
 	public int hashCode() {
 		return transaction.hashCode();
+	}
+
+	/**
+	 * Marshals this classpath into the given stream. This method
+	 * in general performs better than standard Java serialization, wrt the size
+	 * of the marshalled data.
+	 * 
+	 * @param oos the stream
+	 * @throws IOException if the classpath cannot be marshalled
+	 */
+	void into(ObjectOutputStream oos) throws IOException {
+		if (recursive)
+			oos.writeByte(1);
+		else
+			oos.writeByte(0);
+
+		transaction.into(oos);
+	}
+
+	/**
+	 * Factory method that unmarshals a classpath from the given stream.
+	 * 
+	 * @param ois the stream
+	 * @return the classpath
+	 * @throws IOException if the classpath could not be unmarshalled
+	 * @throws ClassNotFoundException if the classpath could not be unmarshalled
+	 */
+	static Classpath from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		byte kind = ois.readByte();
+
+		if (kind == 0)
+			return new Classpath(TransactionReference.from(ois), false);
+		else if (kind == 1)
+			return new Classpath(TransactionReference.from(ois), true);
+		else
+			throw new IOException("unexpected classpath kind: " + kind);
 	}
 }

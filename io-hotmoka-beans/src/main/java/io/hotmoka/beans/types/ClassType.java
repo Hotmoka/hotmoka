@@ -1,5 +1,7 @@
 package io.hotmoka.beans.types;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -182,5 +184,11 @@ public final class ClassType implements StorageType {
 			return 1;
 		else
 			return name.compareTo(((ClassType) other).name); // other instanceof ClassType
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(8); // to distinguish from the basic types
+		oos.writeUTF(name);
 	}
 }

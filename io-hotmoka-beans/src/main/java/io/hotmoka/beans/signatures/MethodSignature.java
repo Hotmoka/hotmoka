@@ -1,5 +1,8 @@
 package io.hotmoka.beans.signatures;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -43,5 +46,11 @@ public abstract class MethodSignature extends CodeSignature {
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ methodName.hashCode();
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		super.into(oos);
+		oos.writeUTF(methodName);
 	}
 }

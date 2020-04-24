@@ -1,8 +1,11 @@
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -19,6 +22,7 @@ import io.hotmoka.beans.values.StorageValue;
 public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 
 	private static final long serialVersionUID = 7267869415886381162L;
+	final static byte SELECTOR = 2;
 
 	/**
 	 * The new value of the field.
@@ -66,5 +70,12 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 	public boolean isEager() {
 		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
 		return field.type.equals(ClassType.BIG_INTEGER);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		MarshallingUtils.marshal(value, oos);
 	}
 }

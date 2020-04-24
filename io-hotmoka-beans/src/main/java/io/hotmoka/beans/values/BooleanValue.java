@@ -1,5 +1,8 @@
 package io.hotmoka.beans.values;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -9,6 +12,8 @@ import io.hotmoka.beans.annotations.Immutable;
 public final class BooleanValue implements StorageValue {
 
 	private static final long serialVersionUID = -1793831545775110659L;
+	static final byte SELECTOR_TRUE = 0;
+	static final byte SELECTOR_FALSE = 1;
 
 	/**
 	 * The true Boolean value.
@@ -56,5 +61,13 @@ public final class BooleanValue implements StorageValue {
 			return diff;
 		else
 			return Boolean.compare(value, ((BooleanValue) other).value);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		if (value)
+			oos.writeByte(SELECTOR_TRUE);
+		else
+			oos.writeByte(SELECTOR_FALSE);
 	}
 }

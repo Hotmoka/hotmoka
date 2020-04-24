@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -149,12 +148,11 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         TransactionRequest<?> request = null;
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
         	request = (TransactionRequest<?>) ois.readObject();
-
         	TransactionReference next = node.nextAndIncrement();
         	node.deliverTransaction(node.checkTransaction(request), next);
 
         	responseBuilder.setCode(0);
-        	responseBuilder.setData(byteStringSerializationOf(next.toString()));
+        	responseBuilder.setData(byteStringSerializationOf(next));
         }
         catch (TransactionRejectedException e) {
         	responseBuilder.setCode(1);
@@ -240,9 +238,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	 * @return the serialization of {@code object}
 	 * @throws IOException if serialization fails
 	 */
-	private static ByteString byteStringSerializationOf(Serializable object) throws IOException {
+	private static ByteString byteStringSerializationOf(TransactionReference reference) throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			oos.writeObject(object);
+			reference.into(oos);
 			return ByteString.copyFrom(baos.toByteArray());
 		}
 	}

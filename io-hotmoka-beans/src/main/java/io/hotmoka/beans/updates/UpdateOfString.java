@@ -1,5 +1,8 @@
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -17,6 +20,7 @@ import io.hotmoka.beans.values.StringValue;
 public final class UpdateOfString extends AbstractUpdateOfField {
 
 	private static final long serialVersionUID = 3772782491017435498L;
+	final static byte SELECTOR = 17;
 
 	/**
 	 * The new value of the field.
@@ -64,5 +68,12 @@ public final class UpdateOfString extends AbstractUpdateOfField {
 	public boolean isEager() {
 		// a lazy String could be stored into a lazy Object or Serializable or Comparable or CharSequence field
 		return field.type.equals(ClassType.STRING);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		oos.writeUTF(value);
 	}
 }

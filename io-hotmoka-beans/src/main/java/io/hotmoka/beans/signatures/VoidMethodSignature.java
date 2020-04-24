@@ -1,5 +1,8 @@
 package io.hotmoka.beans.signatures;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -11,6 +14,7 @@ import io.hotmoka.beans.types.StorageType;
 public final class VoidMethodSignature extends MethodSignature {
 
 	private static final long serialVersionUID = 7990082363207586877L;
+	final static byte SELECTOR = 2;
 
 	/**
 	 * Builds the signature of a method, that returns no value.
@@ -42,5 +46,11 @@ public final class VoidMethodSignature extends MethodSignature {
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof VoidMethodSignature && super.equals(other);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
 	}
 }

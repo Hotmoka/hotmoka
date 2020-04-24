@@ -1,5 +1,8 @@
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -58,5 +61,11 @@ public abstract class AbstractUpdateOfField extends UpdateOfField {
 	@Override
 	public final boolean isForSamePropertyAs(Update other) {
 		return super.isForSamePropertyAs(other) && field.equals(((AbstractUpdateOfField) other).field);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		super.into(oos);
+		field.into(oos);
 	}
 }

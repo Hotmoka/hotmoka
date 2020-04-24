@@ -1,5 +1,8 @@
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.LongValue;
@@ -15,6 +18,7 @@ import io.hotmoka.beans.values.StorageValue;
 public final class UpdateOfLong extends AbstractUpdateOfField {
 
 	private static final long serialVersionUID = -2226960173435837206L;
+	final static byte SELECTOR = 11;
 
 	/**
 	 * The new value of the field.
@@ -56,5 +60,12 @@ public final class UpdateOfLong extends AbstractUpdateOfField {
 			return diff;
 		else
 			return Long.compare(value, ((UpdateOfLong) other).value);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		oos.writeLong(value);
 	}
 }

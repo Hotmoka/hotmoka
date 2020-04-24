@@ -1,10 +1,13 @@
 package io.hotmoka.beans.values;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.references.TransactionReference;
 
 /**
@@ -16,6 +19,7 @@ import io.hotmoka.beans.references.TransactionReference;
 public final class StorageReference implements StorageValue {
 
 	private static final long serialVersionUID = 5215119613321482697L;
+	static final byte SELECTOR = 11;
 
 	/**
 	 * The transaction that created the object.
@@ -75,5 +79,12 @@ public final class StorageReference implements StorageValue {
 	@Override
 	public String toString() {
 		return transaction + "#" + progressive.toString(16);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		transaction.into(oos);
+		MarshallingUtils.marshal(progressive, oos);
 	}
 }

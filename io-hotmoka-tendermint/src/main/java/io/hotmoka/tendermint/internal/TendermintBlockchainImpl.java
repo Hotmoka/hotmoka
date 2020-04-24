@@ -371,10 +371,10 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			throw new IllegalStateException(tx_result.info);
 
 		Object dataAsObject = base64DeserializationOf(data);
-		if (!(dataAsObject instanceof String))
+		if (!(dataAsObject instanceof TransactionReference))
 			throw new IllegalStateException("no Hotmoka transaction reference found in data field of Tendermint transaction");
 
-		return new LocalTransactionReference((String) dataAsObject);
+		return (TransactionReference) dataAsObject;
 	}
 
 	@Override
@@ -455,9 +455,9 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 		return hash;
 	}
 
-	private static Object base64DeserializationOf(String s) throws IOException, ClassNotFoundException {
+	private static TransactionReference base64DeserializationOf(String s) throws IOException, ClassNotFoundException {
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.getDecoder().decode(s)))) {
-			return ois.readObject();
+			return TransactionReference.from(ois);
 		}
 	}
 }

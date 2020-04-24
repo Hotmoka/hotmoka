@@ -1,5 +1,8 @@
 package io.hotmoka.beans.signatures;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -113,5 +116,31 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 
 		diff = name.compareTo(other.name);
 		return diff != 0 ? diff : type.compareAgainst(other.type);
+	}
+
+	/**
+	 * Marshals this field signature into the given stream. This method
+	 * in general performs better than standard Java serialization, wrt the size
+	 * of the marshalled data.
+	 * 
+	 * @param oos the stream
+	 * @throws IOException if the field signature cannot be marshalled
+	 */
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeUTF(definingClass.name);
+		oos.writeUTF(name);
+		type.into(oos);
+	}
+
+	/**
+	 * Factory method that unmarshals a field signature from the given stream.
+	 * 
+	 * @param ois the stream
+	 * @return the field signature
+	 * @throws IOException if the field signature could not be unmarshalled
+	 * @throws ClassNotFoundException if the field signature could not be unmarshalled
+	 */
+	static FieldSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		return mk(ois.readUTF(), ois.readUTF(), StorageType.from(ois));
 	}
 }

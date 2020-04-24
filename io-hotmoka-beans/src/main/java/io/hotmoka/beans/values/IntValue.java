@@ -1,5 +1,8 @@
 package io.hotmoka.beans.values;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -9,6 +12,7 @@ import io.hotmoka.beans.annotations.Immutable;
 public final class IntValue implements StorageValue {
 
 	private static final long serialVersionUID = -8632377447068901935L;
+	static final byte SELECTOR = 6;
 
 	/**
 	 * The value.
@@ -46,5 +50,11 @@ public final class IntValue implements StorageValue {
 			return diff;
 		else
 			return Integer.compare(value, ((IntValue) other).value);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.write(SELECTOR);
+		oos.writeInt(value);
 	}
 }

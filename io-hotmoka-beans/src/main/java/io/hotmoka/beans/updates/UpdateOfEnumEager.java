@@ -1,5 +1,8 @@
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.EnumValue;
@@ -17,6 +20,7 @@ import io.hotmoka.beans.values.StorageValue;
 public final class UpdateOfEnumEager extends AbstractUpdateOfField {
 
 	private static final long serialVersionUID = 1502304606798344063L;
+	final static byte SELECTOR = 8;
 
 	/**
 	 * The name of the enumeration class whose element is being assigned to the field.
@@ -75,5 +79,13 @@ public final class UpdateOfEnumEager extends AbstractUpdateOfField {
 	@Override
 	public boolean isEager() {
 		return true;
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		oos.writeUTF(enumClassName);
+		oos.writeUTF(name);
 	}
 }

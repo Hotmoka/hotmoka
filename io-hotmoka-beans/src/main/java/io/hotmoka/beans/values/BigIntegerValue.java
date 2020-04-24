@@ -1,8 +1,11 @@
 package io.hotmoka.beans.values;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.internal.MarshallingUtils;
 
 /**
  * A big integer stored in blockchain.
@@ -11,6 +14,7 @@ import io.hotmoka.beans.annotations.Immutable;
 public final class BigIntegerValue implements StorageValue {
 
 	private static final long serialVersionUID = 5290050934759989938L;
+	static final byte SELECTOR = 13;
 
 	/**
 	 * The big integer.
@@ -48,5 +52,11 @@ public final class BigIntegerValue implements StorageValue {
 			return diff;
 		else
 			return value.compareTo(((BigIntegerValue) other).value);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		MarshallingUtils.marshal(value, oos);
 	}
 }

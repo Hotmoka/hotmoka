@@ -1,5 +1,8 @@
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import io.hotmoka.beans.annotations.Immutable;
@@ -76,5 +79,45 @@ public abstract class Update implements Serializable, Comparable<Update> {
 	 */
 	public boolean isForSamePropertyAs(Update other) {
 		return getClass() == other.getClass() && object.equals(other.object);
+	}
+
+	/**
+	 * Marshals this update into the given stream. This method
+	 * in general performs better than standard Java serialization, wrt the size
+	 * of the marshalled data.
+	 * 
+	 * @param oos the stream
+	 * @throws IOException if the update cannot be marshalled
+	 */
+	public void into(ObjectOutputStream oos) throws IOException {
+		object.into(oos);
+	}
+
+	/**
+	 * Factory method that unmarshals an update from the given stream.
+	 * 
+	 * @param ois the stream
+	 * @return the update
+	 * @throws IOException if the update could not be unmarshalled
+	 * @throws ClassNotFoundException if the update could not be unmarshalled
+	 */
+	static Update from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		return null;
+		//TODO
+		/*
+		byte selector = ois.readByte();
+		String definingClass = ois.readUTF();
+		int formalsCount = ois.readInt();
+		StorageType[] formals = new StorageType[formalsCount];
+		for (int pos = 0; pos < formalsCount; pos++)
+			formals[pos] = StorageType.from(ois);
+
+		switch (selector) {
+		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);
+		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, ois.readUTF(), formals);
+		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, ois.readUTF(), StorageType.from(ois), formals);
+		default: throw new IOException("unexpected code signature selector: " + selector);
+		}
+		*/
 	}
 }

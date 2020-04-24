@@ -1,5 +1,8 @@
 package io.hotmoka.beans.signatures;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -77,5 +80,44 @@ public abstract class CodeSignature implements Serializable {
 	@Override
 	public int hashCode() {
 		return definingClass.hashCode() ^ Arrays.hashCode(formals);
+	}
+
+	/**
+	 * Marshals this code signature into the given stream. This method
+	 * in general performs better than standard Java serialization, wrt the size
+	 * of the marshalled data.
+	 * 
+	 * @param oos the stream
+	 * @throws IOException if the code signature cannot be marshalled
+	 */
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeUTF(definingClass.name);
+		oos.writeInt(formals.length);
+		for (StorageType formal: formals)
+			formal.into(oos);
+	}
+
+	/**
+	 * Factory method that unmarshals a code signature from the given stream.
+	 * 
+	 * @param ois the stream
+	 * @return the code signature
+	 * @throws IOException if the code signature could not be unmarshalled
+	 * @throws ClassNotFoundException if the code signature could not be unmarshalled
+	 */
+	static CodeSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		byte selector = ois.readByte();
+		String definingClass = ois.readUTF();
+		int formalsCount = ois.readInt();
+		StorageType[] formals = new StorageType[formalsCount];
+		for (int pos = 0; pos < formalsCount; pos++)
+			formals[pos] = StorageType.from(ois);
+
+		switch (selector) {
+		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);
+		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, ois.readUTF(), formals);
+		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, ois.readUTF(), StorageType.from(ois), formals);
+		default: throw new IOException("unexpected code signature selector: " + selector);
+		}
 	}
 }

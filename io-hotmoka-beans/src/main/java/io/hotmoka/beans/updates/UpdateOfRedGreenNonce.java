@@ -1,8 +1,11 @@
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -15,6 +18,7 @@ import io.hotmoka.beans.values.StorageValue;
 public final class UpdateOfRedGreenNonce extends UpdateOfField {
 
 	private static final long serialVersionUID = 8400112799490847998L;
+	final static byte SELECTOR = 14;
 
 	/**
 	 * The value set for the nonce of the account.
@@ -61,5 +65,12 @@ public final class UpdateOfRedGreenNonce extends UpdateOfField {
 	@Override
 	public FieldSignature getField() {
 		return FieldSignature.RGEOA_NONCE_FIELD;
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		MarshallingUtils.marshal(nonce, oos);
 	}
 }

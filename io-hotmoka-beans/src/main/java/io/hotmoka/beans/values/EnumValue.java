@@ -1,5 +1,8 @@
 package io.hotmoka.beans.values;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -9,6 +12,7 @@ import io.hotmoka.beans.annotations.Immutable;
 public final class EnumValue implements StorageValue {
 
 	private static final long serialVersionUID = -3771826841516937906L;
+	static final byte SELECTOR = 12;
 
 	/**
 	 * The name of the class of the enumeration.
@@ -58,5 +62,12 @@ public final class EnumValue implements StorageValue {
 			return diff;
 		else
 			return name.compareTo(((EnumValue) other).name);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		oos.writeUTF(enumClassName);
+		oos.writeUTF(name);
 	}
 }

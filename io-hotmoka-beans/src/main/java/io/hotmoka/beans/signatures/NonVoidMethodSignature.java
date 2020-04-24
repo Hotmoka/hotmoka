@@ -1,5 +1,8 @@
 package io.hotmoka.beans.signatures;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -11,6 +14,7 @@ import io.hotmoka.beans.types.StorageType;
 public final class NonVoidMethodSignature extends MethodSignature {
 
 	private static final long serialVersionUID = 4225754124118472707L;
+	final static byte SELECTOR = 1;
 
 	/**
 	 * The type of the returned type;
@@ -51,5 +55,12 @@ public final class NonVoidMethodSignature extends MethodSignature {
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof NonVoidMethodSignature && returnType.equals(((NonVoidMethodSignature) other).returnType) && super.equals(other);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		returnType.into(oos);
 	}
 }

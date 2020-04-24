@@ -1,6 +1,10 @@
 package io.hotmoka.beans.references;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+
+import io.hotmoka.beans.internal.MarshallingUtils;
 
 /**
  * A transaction reference that refers to a transaction in the local store of a node.
@@ -20,7 +24,7 @@ public final class LocalTransactionReference implements TransactionReference {
 	 * 
 	 * @param number the number of the transaction
 	 */
-	private LocalTransactionReference(BigInteger number) {
+	LocalTransactionReference(BigInteger number) {
 		this.number = number;
 	}
 
@@ -51,8 +55,6 @@ public final class LocalTransactionReference implements TransactionReference {
 
 	@Override
 	public int compareTo(TransactionReference other) {
-		// this transaction reference is created by the memory blockchain only, that
-		// generates only this kind of transaction references. Hence this cast must succeed
 		return number.compareTo(other.getNumber());
 	}
 
@@ -64,5 +66,10 @@ public final class LocalTransactionReference implements TransactionReference {
 	@Override
 	public BigInteger getNumber() {
 		return number;
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		MarshallingUtils.marshal(number, oos);
 	}
 }

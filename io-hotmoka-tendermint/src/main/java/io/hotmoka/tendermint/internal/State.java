@@ -273,12 +273,14 @@ class State implements AutoCloseable {
 
 	long getNumberOfCommits() {
 		long start = System.currentTimeMillis();
-		return env.computeInReadonlyTransaction(txn -> {
+		TransactionalComputable<Long> computable = txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable count = info.get(txn, COMMIT_COUNT);
 			stateTime += (System.currentTimeMillis() - start);
 			return count == null ? 0L : (long) deserializationOf(count);
-		});
+		};
+
+		return env.computeInReadonlyTransaction(computable);
 	}
 
 	/**

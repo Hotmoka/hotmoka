@@ -1,5 +1,8 @@
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.NullValue;
@@ -15,6 +18,7 @@ import io.hotmoka.beans.values.StorageValue;
 public final class UpdateToNullLazy extends AbstractUpdateOfField {
 
 	private static final long serialVersionUID = -8022647081096859934L;
+	final static byte SELECTOR = 19;
 
 	/**
 	 * Builds an update of a {@link java.math.BigInteger} field of lazy type.
@@ -39,5 +43,11 @@ public final class UpdateToNullLazy extends AbstractUpdateOfField {
 	@Override
 	public boolean isEager() {
 		return false;
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
 	}
 }
