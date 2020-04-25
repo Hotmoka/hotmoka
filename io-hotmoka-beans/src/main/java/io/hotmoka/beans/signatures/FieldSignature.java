@@ -140,7 +140,7 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	 * @throws IOException if the field signature could not be unmarshalled
 	 * @throws ClassNotFoundException if the field signature could not be unmarshalled
 	 */
-	static FieldSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static FieldSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		return mk(ois.readUTF(), ois.readUTF(), StorageType.from(ois));
 	}
 }

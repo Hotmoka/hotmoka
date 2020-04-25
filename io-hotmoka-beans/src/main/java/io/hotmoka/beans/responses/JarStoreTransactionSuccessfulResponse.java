@@ -1,5 +1,7 @@
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
@@ -15,6 +17,7 @@ import io.hotmoka.beans.updates.Update;
 public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse implements TransactionResponseWithInstrumentedJar {
 
 	private static final long serialVersionUID = -8888957484092351352L;
+	final static byte SELECTOR = 2;
 
 	/**
 	 * The bytes of the jar to install, instrumented.
@@ -72,5 +75,16 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	public TransactionReference getOutcomeAt(TransactionReference transactionReference) {
 		// the outcome is the reference to the transaction where this response has been executed
 		return transactionReference;
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		oos.writeInt(instrumentedJar.length);
+		oos.write(instrumentedJar);
+		oos.write(dependencies.length);
+		for (Classpath dependency: dependencies)
+			dependency.into(oos);
 	}
 }

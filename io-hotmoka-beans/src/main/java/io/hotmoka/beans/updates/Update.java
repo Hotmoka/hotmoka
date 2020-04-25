@@ -6,7 +6,11 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.internal.UnmarshallingUtils;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 
 /**
  * An update states that a property of an object has been
@@ -102,22 +106,30 @@ public abstract class Update implements Serializable, Comparable<Update> {
 	 * @throws ClassNotFoundException if the update could not be unmarshalled
 	 */
 	static Update from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return null;
-		//TODO
-		/*
 		byte selector = ois.readByte();
-		String definingClass = ois.readUTF();
-		int formalsCount = ois.readInt();
-		StorageType[] formals = new StorageType[formalsCount];
-		for (int pos = 0; pos < formalsCount; pos++)
-			formals[pos] = StorageType.from(ois);
-
 		switch (selector) {
-		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);
-		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, ois.readUTF(), formals);
-		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, ois.readUTF(), StorageType.from(ois), formals);
-		default: throw new IOException("unexpected code signature selector: " + selector);
+		case ClassTag.SELECTOR: return new ClassTag((StorageReference) StorageValue.from(ois), ois.readUTF(), TransactionReference.from(ois));
+		case UpdateOfBalance.SELECTOR: return new UpdateOfBalance((StorageReference) StorageValue.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
+		case UpdateOfBigInteger.SELECTOR: return new UpdateOfBigInteger((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
+		case UpdateOfBoolean.SELECTOR_FALSE: return new UpdateOfBoolean((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), false);
+		case UpdateOfBoolean.SELECTOR_TRUE: return new UpdateOfBoolean((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), true);
+		case UpdateOfByte.SELECTOR: return new UpdateOfByte((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readByte());
+		case UpdateOfChar.SELECTOR: return new UpdateOfChar((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readChar());
+		case UpdateOfDouble.SELECTOR: return new UpdateOfDouble((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readDouble());
+		case UpdateOfEnumEager.SELECTOR: return new UpdateOfEnumEager((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readUTF(), ois.readUTF());
+		case UpdateOfEnumLazy.SELECTOR: return new UpdateOfEnumLazy((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readUTF(), ois.readUTF());		
+		case UpdateOfFloat.SELECTOR: return new UpdateOfFloat((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readFloat());
+		case UpdateOfInt.SELECTOR: return new UpdateOfInt((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readInt());
+		case UpdateOfLong.SELECTOR: return new UpdateOfLong((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readLong());
+		case UpdateOfNonce.SELECTOR: return new UpdateOfNonce((StorageReference) StorageValue.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
+		case UpdateOfRedBalance.SELECTOR: return new UpdateOfRedBalance((StorageReference) StorageValue.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
+		case UpdateOfRedGreenNonce.SELECTOR: return new UpdateOfRedGreenNonce((StorageReference) StorageValue.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
+		case UpdateOfShort.SELECTOR: return new UpdateOfShort((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readShort());
+		case UpdateOfStorage.SELECTOR: return new UpdateOfStorage((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), (StorageReference) StorageValue.from(ois));
+		case UpdateOfString.SELECTOR: return new UpdateOfString((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readUTF());
+		case UpdateToNullEager.SELECTOR: return new UpdateToNullEager((StorageReference) StorageValue.from(ois), FieldSignature.from(ois));
+		case UpdateToNullLazy.SELECTOR: return new UpdateToNullLazy((StorageReference) StorageValue.from(ois), FieldSignature.from(ois));
+		default: throw new IOException("unexpected update selector: " + selector);
 		}
-		*/
 	}
 }

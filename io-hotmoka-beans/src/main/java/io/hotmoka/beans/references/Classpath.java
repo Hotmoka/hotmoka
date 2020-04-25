@@ -60,7 +60,7 @@ public final class Classpath implements Serializable {
 	 * @param oos the stream
 	 * @throws IOException if the classpath cannot be marshalled
 	 */
-	void into(ObjectOutputStream oos) throws IOException {
+	public void into(ObjectOutputStream oos) throws IOException {
 		if (recursive)
 			oos.writeByte(1);
 		else
@@ -77,7 +77,7 @@ public final class Classpath implements Serializable {
 	 * @throws IOException if the classpath could not be unmarshalled
 	 * @throws ClassNotFoundException if the classpath could not be unmarshalled
 	 */
-	static Classpath from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static Classpath from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte kind = ois.readByte();
 
 		if (kind == 0)

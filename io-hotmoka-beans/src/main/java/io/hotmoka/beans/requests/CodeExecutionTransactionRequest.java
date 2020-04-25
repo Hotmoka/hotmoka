@@ -1,5 +1,7 @@
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -60,5 +62,13 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ Arrays.deepHashCode(actuals);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		super.into(oos);
+		oos.writeInt(actuals.length);
+		for (StorageValue actual: actuals)
+			actual.into(oos);
 	}
 }

@@ -1,10 +1,13 @@
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -16,6 +19,7 @@ import io.hotmoka.beans.values.StorageReference;
 public class ConstructorCallTransactionFailedResponse extends ConstructorCallTransactionResponse implements TransactionResponseFailed {
 
 	private static final long serialVersionUID = 3291328917017257182L;
+	final static byte SELECTOR = 5;
 
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.
@@ -87,5 +91,15 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	@Override
 	public StorageReference getOutcome() throws TransactionException {
 		throw new TransactionException(classNameOfCause, messageOfCause, where);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		MarshallingUtils.marshal(gasConsumedForPenalty, oos);
+		oos.writeUTF(classNameOfCause);
+		oos.writeUTF(messageOfCause);
+		oos.writeUTF(where);
 	}
 }

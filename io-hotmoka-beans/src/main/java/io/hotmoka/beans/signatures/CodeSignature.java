@@ -105,7 +105,7 @@ public abstract class CodeSignature implements Serializable {
 	 * @throws IOException if the code signature could not be unmarshalled
 	 * @throws ClassNotFoundException if the code signature could not be unmarshalled
 	 */
-	static CodeSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static CodeSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
 		String definingClass = ois.readUTF();
 		int formalsCount = ois.readInt();

@@ -1,11 +1,14 @@
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 
@@ -100,4 +103,15 @@ public abstract class JarStoreTransactionResponse implements NonInitialTransacti
 	 * @throws TransactionException if the outcome of the transaction is this exception
 	 */
 	public abstract TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException;
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeInt(updates.length);
+		for (Update update: updates)
+			update.into(oos);
+
+		MarshallingUtils.marshal(gasConsumedForCPU, oos);
+		MarshallingUtils.marshal(gasConsumedForRAM, oos);
+		MarshallingUtils.marshal(gasConsumedForStorage, oos);
+	}
 }

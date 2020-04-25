@@ -1,5 +1,7 @@
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
@@ -14,6 +16,7 @@ import io.hotmoka.beans.values.StorageValue;
 @Immutable
 public class StaticMethodCallTransactionRequest extends MethodCallTransactionRequest {
 	private static final long serialVersionUID = -501977352886002289L;
+	final static byte SELECTOR = 6;
 
 	/**
 	 * Builds the transaction request.
@@ -33,5 +36,11 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof StaticMethodCallTransactionRequest && super.equals(other);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
 	}
 }

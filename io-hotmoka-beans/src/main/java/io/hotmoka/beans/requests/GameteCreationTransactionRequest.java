@@ -1,8 +1,11 @@
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 
@@ -13,6 +16,7 @@ import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 public class GameteCreationTransactionRequest implements InitialTransactionRequest<GameteCreationTransactionResponse> {
 
 	private static final long serialVersionUID = -6733566802012789524L;
+	final static byte SELECTOR = 0;
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must
@@ -58,5 +62,12 @@ public class GameteCreationTransactionRequest implements InitialTransactionReque
 	@Override
 	public int hashCode() {
 		return classpath.hashCode() ^ initialAmount.hashCode();
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		classpath.into(oos);
+		MarshallingUtils.marshal(initialAmount, oos);
 	}
 }

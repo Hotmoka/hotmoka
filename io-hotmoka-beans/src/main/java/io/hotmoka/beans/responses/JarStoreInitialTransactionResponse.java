@@ -1,5 +1,7 @@
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
@@ -13,6 +15,7 @@ import io.hotmoka.beans.references.TransactionReference;
 public class JarStoreInitialTransactionResponse implements InitialTransactionResponse, TransactionResponseWithInstrumentedJar {
 
 	private static final long serialVersionUID = 7320005929052884412L;
+	final static byte SELECTOR = 1;
 
 	/**
 	 * The bytes of the jar to install, instrumented.
@@ -70,5 +73,15 @@ public class JarStoreInitialTransactionResponse implements InitialTransactionRes
 	public TransactionReference getOutcomeAt(TransactionReference transactionReference) {
 		// the result of installing a jar in a node is the reference to the transaction that installed the jar
 		return transactionReference;
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		oos.writeInt(instrumentedJar.length);
+		oos.write(instrumentedJar);
+		oos.write(dependencies.length);
+		for (Classpath dependency: dependencies)
+			dependency.into(oos);
 	}
 }

@@ -1,5 +1,7 @@
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 
@@ -17,6 +19,7 @@ import io.hotmoka.beans.values.StorageValue;
 public class ConstructorCallTransactionRequest extends CodeExecutionTransactionRequest<ConstructorCallTransactionResponse> {
 
 	private static final long serialVersionUID = -6485399240275200765L;
+	final static byte SELECTOR = 4;
 
 	/**
 	 * The constructor to call.
@@ -60,5 +63,12 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ constructor.hashCode();
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		constructor.into(oos);
 	}
 }

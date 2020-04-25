@@ -1,5 +1,7 @@
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -16,6 +18,7 @@ import io.hotmoka.beans.values.StorageReference;
 public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest {
 
 	private static final long serialVersionUID = -986118537465436635L;
+	final static byte SELECTOR = 3;
 
 	/**
 	 * The bytes of the jar to install.
@@ -102,5 +105,16 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+		oos.writeInt(jar.length);
+		oos.write(jar);
+		oos.writeInt(dependencies.length);
+		for (Classpath dependency: dependencies)
+			dependency.into(oos);
 	}
 }

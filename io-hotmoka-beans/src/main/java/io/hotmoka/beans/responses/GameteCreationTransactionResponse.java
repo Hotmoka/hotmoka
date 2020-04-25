@@ -1,5 +1,7 @@
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,6 +16,7 @@ import io.hotmoka.beans.values.StorageReference;
 public class GameteCreationTransactionResponse implements InitialTransactionResponse, TransactionResponseWithUpdates {
 
 	private static final long serialVersionUID = -95476487153660743L;
+	final static byte SELECTOR = 0;
 
 	/**
 	 * The updates resulting from the execution of the transaction.
@@ -55,5 +58,16 @@ public class GameteCreationTransactionResponse implements InitialTransactionResp
 	 */
 	public StorageReference getOutcome() {
 		return gamete;
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+
+		oos.writeInt(updates.length);
+		for (Update update: updates)
+			update.into(oos);
+
+		gamete.into(oos);
 	}
 }

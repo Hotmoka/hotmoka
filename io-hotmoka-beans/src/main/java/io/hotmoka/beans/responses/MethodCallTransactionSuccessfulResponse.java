@@ -1,5 +1,7 @@
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -18,6 +20,7 @@ import io.hotmoka.beans.values.StorageValue;
 public class MethodCallTransactionSuccessfulResponse extends MethodCallTransactionResponse implements TransactionResponseWithEvents {
 
 	private static final long serialVersionUID = 2888406427592732867L;
+	final static byte SELECTOR = 9;
 
 	/**
 	 * The return value of the method.
@@ -61,5 +64,17 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	@Override
 	public StorageValue getOutcome() {
 		return result;
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		super.into(oos);
+
+		result.into(oos);
+
+		oos.writeInt(events.length);
+		for (StorageReference event: events)
+			event.into(oos);
 	}
 }

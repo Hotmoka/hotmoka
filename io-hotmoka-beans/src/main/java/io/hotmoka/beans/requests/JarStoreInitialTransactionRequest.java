@@ -1,5 +1,7 @@
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -14,6 +16,7 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 public class JarStoreInitialTransactionRequest implements InitialTransactionRequest<JarStoreInitialTransactionResponse>, AbstractJarStoreTransactionRequest {
 
 	private static final long serialVersionUID = -3166257105103213569L;
+	final static byte SELECTOR = 1;
 
 	/**
 	 * The bytes of the jar to install.
@@ -84,5 +87,15 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
 	@Override
 	public int hashCode() {
 		return Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies);
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		oos.writeByte(SELECTOR);
+		oos.writeInt(jar.length);
+		oos.write(jar);
+		oos.writeInt(dependencies.length);
+		for (Classpath dependency: dependencies)
+			dependency.into(oos);
 	}
 }

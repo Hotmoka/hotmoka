@@ -1,8 +1,11 @@
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
@@ -77,5 +80,14 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	@Override
 	public int hashCode() {
 		return caller.hashCode() ^ gasLimit.hashCode() ^ gasPrice.hashCode() ^ classpath.hashCode() ^ nonce.hashCode();
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		caller.into(oos);
+		MarshallingUtils.marshal(gasLimit, oos);
+		MarshallingUtils.marshal(gasPrice, oos);
+		classpath.into(oos);
+		MarshallingUtils.marshal(nonce, oos);
 	}
 }

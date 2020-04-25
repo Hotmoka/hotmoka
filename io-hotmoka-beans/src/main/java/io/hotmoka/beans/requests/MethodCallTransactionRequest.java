@@ -1,5 +1,7 @@
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 
@@ -59,5 +61,11 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ method.hashCode();
+	}
+
+	@Override
+	public void into(ObjectOutputStream oos) throws IOException {
+		super.into(oos);
+		method.into(oos);
 	}
 }
