@@ -100,7 +100,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 		super.into(oos);
 		oos.writeInt(instrumentedJar.length);
 		oos.write(instrumentedJar);
-		oos.write(dependencies.length);
+		oos.writeInt(dependencies.length);
 		for (Classpath dependency: dependencies)
 			dependency.into(oos);
 	}

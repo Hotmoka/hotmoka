@@ -172,7 +172,7 @@ public interface TransactionResponse extends Serializable {
 	private static byte[] instrumentedJarFrom(ObjectInputStream ois) throws IOException {
 		int instrumentedJarLength = ois.readInt();
 		byte[] instrumentedJar = new byte[instrumentedJarLength];
-		if (instrumentedJarLength != ois.read(instrumentedJar))
+		if (instrumentedJarLength != ois.readNBytes(instrumentedJar, 0, instrumentedJarLength))
 			throw new IOException("jar length mismatch");
 
 		return instrumentedJar;

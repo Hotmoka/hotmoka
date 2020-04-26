@@ -26,7 +26,7 @@ public interface TransactionResponseFailed extends TransactionResponseWithGas, T
 	String getClassNameOfCause();
 
 	/**
-	 * Yields the message of the cause exception. This might be {@code null}.
+	 * Yields the message of the cause exception.
 	 */
 	String getMessageOfCause();
 }

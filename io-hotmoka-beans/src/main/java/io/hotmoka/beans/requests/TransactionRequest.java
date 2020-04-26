@@ -52,15 +52,15 @@ public interface TransactionRequest<R extends TransactionResponse> extends Seria
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: {
 			StorageReference caller = (StorageReference) StorageValue.from(ois);
-			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
 			BigInteger gasLimit = UnmarshallingUtils.unmarshallBigInteger(ois);
 			BigInteger gasPrice = UnmarshallingUtils.unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
-			ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(ois);
+			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
 			int actualsCount = ois.readInt();
 			StorageValue[] actuals = new StorageValue[actualsCount];
 			for (int pos = 0; pos < actualsCount; pos++)
 				actuals[pos] = StorageValue.from(ois);
+			ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(ois);
 
 			return new ConstructorCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, constructor, actuals);
 		}
@@ -71,23 +71,23 @@ public interface TransactionRequest<R extends TransactionResponse> extends Seria
 		}
 		case InstanceMethodCallTransactionRequest.SELECTOR: {
 			StorageReference caller = (StorageReference) StorageValue.from(ois);
-			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
 			BigInteger gasLimit = UnmarshallingUtils.unmarshallBigInteger(ois);
 			BigInteger gasPrice = UnmarshallingUtils.unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
-			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
-			StorageReference receiver = (StorageReference) StorageValue.from(ois);
+			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
 			int actualsCount = ois.readInt();
 			StorageValue[] actuals = new StorageValue[actualsCount];
 			for (int pos = 0; pos < actualsCount; pos++)
 				actuals[pos] = StorageValue.from(ois);
+			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
+			StorageReference receiver = (StorageReference) StorageValue.from(ois);
 
 			return new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
 		case JarStoreInitialTransactionRequest.SELECTOR: {
 			int jarLength = ois.readInt();
 			byte[] jar = new byte[jarLength];
-			if (jarLength != ois.read(jar))
+			if (jarLength != ois.readNBytes(jar, 0, jarLength))
 				throw new IOException("jar length mismatch in request");
 
 			int dependenciesLength = ois.readInt();
@@ -99,14 +99,14 @@ public interface TransactionRequest<R extends TransactionResponse> extends Seria
 		}
 		case JarStoreTransactionRequest.SELECTOR: {
 			StorageReference caller = (StorageReference) StorageValue.from(ois);
-			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
 			BigInteger gasLimit = UnmarshallingUtils.unmarshallBigInteger(ois);
 			BigInteger gasPrice = UnmarshallingUtils.unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
+			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
 
 			int jarLength = ois.readInt();
 			byte[] jar = new byte[jarLength];
-			if (jarLength != ois.read(jar))
+			if (jarLength != ois.readNBytes(jar, 0, jarLength))
 				throw new IOException("jar length mismatch in request");
 
 			int dependenciesLength = ois.readInt();
@@ -125,15 +125,15 @@ public interface TransactionRequest<R extends TransactionResponse> extends Seria
 		}
 		case StaticMethodCallTransactionRequest.SELECTOR: {
 			StorageReference caller = (StorageReference) StorageValue.from(ois);
-			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
 			BigInteger gasLimit = UnmarshallingUtils.unmarshallBigInteger(ois);
 			BigInteger gasPrice = UnmarshallingUtils.unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
-			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
+			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
 			int actualsCount = ois.readInt();
 			StorageValue[] actuals = new StorageValue[actualsCount];
 			for (int pos = 0; pos < actualsCount; pos++)
 				actuals[pos] = StorageValue.from(ois);
+			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
 
 			return new StaticMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 		}

@@ -3,7 +3,6 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
@@ -32,12 +31,12 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	public final String classNameOfCause;
 
 	/**
-	 * The message of the cause exception. This might be {@code null}.
+	 * The message of the cause exception.
 	 */
 	public final String messageOfCause;
 
 	/**
-	 * The program point where the cause exception occurred. This might be {@code null}.
+	 * The program point where the cause exception occurred.
 	 */
 	public final String where;
 
@@ -58,8 +57,8 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
 		this.classNameOfCause = classNameOfCause;
-		this.messageOfCause = messageOfCause;
-		this.where = where;
+		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
+		this.where = where == null ? "" : where;
 	}
 
 	@Override
@@ -68,8 +67,8 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 			MethodCallTransactionFailedResponse otherCast = (MethodCallTransactionFailedResponse) other;
 			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
 				&& classNameOfCause.equals(otherCast.classNameOfCause)
-				&& Objects.equals(messageOfCause, otherCast.messageOfCause)
-				&& Objects.equals(where, otherCast.where);
+				&& messageOfCause.equals(otherCast.messageOfCause)
+				&& where.equals(otherCast.where);
 		}
 		else
 			return false;
@@ -78,7 +77,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ gasConsumedForPenalty.hashCode() ^ classNameOfCause.hashCode()
-			^ Objects.hashCode(messageOfCause) ^ Objects.hashCode(where);
+			^ messageOfCause.hashCode() ^ where.hashCode();
 	}
 
 	@Override

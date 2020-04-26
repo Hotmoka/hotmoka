@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,12 +34,12 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	public final String classNameOfCause;
 
 	/**
-	 * The message of the cause exception. This might be {@code null}.
+	 * The message of the cause exception.
 	 */
 	public final String messageOfCause;
 
 	/**
-	 * The program point where the cause exception occurred. This might be {@code null}.
+	 * The program point where the cause exception occurred.
 	 */
 	public final String where;
 
@@ -61,8 +60,8 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 
 		this.events = events.toArray(StorageReference[]::new);
 		this.classNameOfCause = classNameOfCause;
-		this.messageOfCause = messageOfCause;
-		this.where = where;
+		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
+		this.where = where == null ? "" : where;
 	}
 
 	@Override
@@ -76,8 +75,8 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 			ConstructorCallTransactionExceptionResponse otherCast = (ConstructorCallTransactionExceptionResponse) other;
 			return super.equals(other) && Arrays.equals(events, otherCast.events)
 				&& classNameOfCause.equals(otherCast.classNameOfCause)
-				&& Objects.equals(messageOfCause, otherCast.messageOfCause)
-				&& Objects.equals(where, otherCast.where);
+				&& messageOfCause.equals(otherCast.messageOfCause)
+				&& where.equals(otherCast.where);
 		}
 		else
 			return false;
@@ -86,12 +85,12 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ Arrays.hashCode(events) ^ classNameOfCause.hashCode()
-			^ Objects.hashCode(messageOfCause) ^ Objects.hashCode(where);
+			^ messageOfCause.hashCode() ^ where.hashCode();
 	}
 
 	@Override
 	public String toString() {
-		if (messageOfCause == null)
+		if (messageOfCause.isEmpty())
 			return super.toString() + "\n  throws: " + classNameOfCause + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));
 		else
 			return super.toString() + "\n  throws: " + classNameOfCause + ":" + messageOfCause + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));

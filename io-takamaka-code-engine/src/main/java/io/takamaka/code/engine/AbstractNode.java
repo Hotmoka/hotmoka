@@ -1,8 +1,14 @@
 package io.takamaka.code.engine;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -236,7 +242,36 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 			expandHistoryWith(reference, (TransactionResponseWithUpdates) response);
 
 		getResponseAtCache.put(reference, response);
+
+		/*
+		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(Paths.get("request.byte"))))) {
+			request.into(oos);
+		}
+		catch (Throwable t) {
+			System.out.println("into " + request.getClass().getName());
+			t.printStackTrace();
+		}
+
+		long diff1 = Files.size(Paths.get("request.byte"));
+		requests += diff1;
+
+		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(Paths.get("response.byte"))))) {
+			response.into(oos);
+		}
+		catch (Throwable t) {
+			System.out.println("into " + response.getClass().getName());
+			t.printStackTrace();
+		}
+
+		TransactionResponse response2 = null;
+		long diff2 = Files.size(Paths.get("response.byte"));
+		responses += diff2;
+		System.out.println("requests = " + requests + " [+" + diff1 + "]" + " and responses = " + responses + " [+" + diff2 + "]");
+			*/
 	}
+
+	private static long requests;
+	private static long responses;
 
 	/**
 	 * Runs the given task with the executor service of this node.

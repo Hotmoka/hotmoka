@@ -18,7 +18,7 @@ public class TransactionException extends Exception {
 	 */
 	public TransactionException(String classNameOfCause, String messageOfCause, String where) {
 		super(classNameOfCause
-			+ (messageOfCause == null ? "" : (": " + messageOfCause))
-			+ (where == null ? "" : "@" + where));
+			+ (messageOfCause.isEmpty() ? "" : (": " + messageOfCause))
+			+ (where.isEmpty() ? "" : "@" + where));
 	}
 }

@@ -57,9 +57,9 @@ public abstract class TakamakaTest {
 	 * Change in order to specify the default blockchain to use in tests.
 	 */
 	protected final void mkBlockchain(BigInteger... coins) throws Exception {
-		Config config = new Config(Paths.get("chain"), 26657, 26658);
-		node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
-		//node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		//Config config = new Config(Paths.get("chain"), 26657, 26658);
+		//node = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		node = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
 	}
 
 	protected final void mkRedGreenBlockchain(BigInteger... coins) throws Exception {

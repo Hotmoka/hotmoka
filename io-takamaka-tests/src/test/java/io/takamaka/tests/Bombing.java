@@ -30,7 +30,7 @@ import io.takamaka.code.constants.Constants;
  */
 class Bombing extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
-	private static final int TRANSFERS = 15;
+	private static final int TRANSFERS = 1500;
 	private static final int ACCOUNTS = 16;
 	private static final VoidMethodSignature RECEIVE = new VoidMethodSignature(Constants.PAYABLE_CONTRACT_NAME, "receive", BasicTypes.INT);
 	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);

@@ -31,7 +31,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	public final String classNameOfCause;
 
 	/**
-	 * The message of the cause exception. This might be {@code null}.
+	 * The message of the cause exception.
 	 */
 	public final String messageOfCause;
 
@@ -51,7 +51,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.classNameOfCause = classNameOfCause;
-		this.messageOfCause = messageOfCause;
+		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
 	}
 
@@ -99,7 +99,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 
 	@Override
 	public TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException {
-		throw new TransactionException(classNameOfCause, messageOfCause, null);
+		throw new TransactionException(classNameOfCause, messageOfCause, "");
 	}
 
 	@Override

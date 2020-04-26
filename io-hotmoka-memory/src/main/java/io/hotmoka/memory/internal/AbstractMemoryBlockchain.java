@@ -242,12 +242,12 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 		ensureDeleted(parent);
 		Files.createDirectories(parent);
 
-		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(requestPath)))) {
-			os.writeObject(request);
+		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(requestPath)))) {
+			request.into(oos);
 		}
 
-		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor((LocalTransactionReference) reference, RESPONSE_NAME))))) {
-			os.writeObject(response);
+		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor((LocalTransactionReference) reference, RESPONSE_NAME))))) {
+			response.into(oos);
 		}
 
 		// we write the textual request and response in a background thread, since they are not needed
@@ -296,7 +296,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	protected TransactionResponse getResponseAtInternal(TransactionReference reference) throws IOException, ClassNotFoundException {
 		Path response = getPathFor((LocalTransactionReference) reference, RESPONSE_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
-			return (TransactionResponse) in.readObject();
+			return TransactionResponse.from(in);
 		}
 	}
 

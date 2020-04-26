@@ -22,8 +22,8 @@ public class CodeExecutionException extends Exception {
 	 */
 	public CodeExecutionException(String classNameOfCause, String messageOfCause, String where) {
 		super(classNameOfCause
-			+ (messageOfCause == null ? "" : (": " + messageOfCause))
-			+ (where == null ? "" : "@" + where));
+			+ (messageOfCause.isEmpty() ? "" : (": " + messageOfCause))
+			+ (where.isEmpty() ? "" : "@" + where));
 
 		this.classNameOfCause = classNameOfCause;
 	}
