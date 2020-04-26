@@ -2,6 +2,7 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,6 +38,21 @@ public class GameteCreationTransactionResponse implements InitialTransactionResp
 	public GameteCreationTransactionResponse(Stream<Update> updates, StorageReference gamete) {
 		this.updates = updates.toArray(Update[]::new);
 		this.gamete = gamete;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof GameteCreationTransactionResponse) {
+			GameteCreationTransactionResponse otherCast = (GameteCreationTransactionResponse) other;
+			return Arrays.equals(updates, otherCast.updates) && gamete.equals(otherCast.gamete);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return gamete.hashCode() ^ Arrays.hashCode(updates);
 	}
 
 	@Override

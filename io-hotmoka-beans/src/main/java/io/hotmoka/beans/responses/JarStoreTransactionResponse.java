@@ -3,6 +3,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,6 +61,22 @@ public abstract class JarStoreTransactionResponse implements NonInitialTransacti
 	@Override
 	public final Stream<Update> getUpdates() {
 		return Stream.of(updates);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof JarStoreTransactionResponse) {
+			JarStoreTransactionResponse otherCast = (JarStoreTransactionResponse) other;
+			return Arrays.equals(updates, otherCast.updates) && gasConsumedForCPU.equals(otherCast.gasConsumedForCPU)
+				&& gasConsumedForRAM.equals(otherCast.gasConsumedForRAM) && gasConsumedForStorage.equals(otherCast.gasConsumedForStorage);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.hashCode(updates) ^ gasConsumedForCPU.hashCode() ^ gasConsumedForRAM.hashCode() ^ gasConsumedForStorage.hashCode();
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,6 +46,21 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	@Override
 	public Stream<StorageReference> getEvents() {
 		return Stream.of(events);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof VoidMethodCallTransactionSuccessfulResponse) {
+			VoidMethodCallTransactionSuccessfulResponse otherCast = (VoidMethodCallTransactionSuccessfulResponse) other;
+			return super.equals(other) && Arrays.equals(events, otherCast.events);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ Arrays.hashCode(events);
 	}
 
 	@Override

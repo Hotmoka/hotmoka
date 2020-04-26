@@ -3,6 +3,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
@@ -60,6 +61,22 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	@Override
 	public Stream<Classpath> getDependencies() {
 		return Stream.of(dependencies);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof JarStoreTransactionSuccessfulResponse) {
+			JarStoreTransactionSuccessfulResponse otherCast = (JarStoreTransactionSuccessfulResponse) other;
+			return super.equals(other) && Arrays.equals(instrumentedJar, otherCast.instrumentedJar)
+				&& Arrays.equals(dependencies, otherCast.dependencies);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ Arrays.hashCode(instrumentedJar) ^ Arrays.hashCode(dependencies);
 	}
 
 	@Override

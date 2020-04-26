@@ -3,6 +3,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,6 +51,22 @@ public abstract class CodeExecutionTransactionResponse implements NonInitialTran
 		this.gasConsumedForCPU = gasConsumedForCPU;
 		this.gasConsumedForRAM = gasConsumedForRAM;
 		this.gasConsumedForStorage = gasConsumedForStorage;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof CodeExecutionTransactionResponse) {
+			CodeExecutionTransactionResponse otherCast = (CodeExecutionTransactionResponse) other;
+			return Arrays.equals(updates, otherCast.updates) && gasConsumedForCPU.equals(gasConsumedForCPU)
+				&& gasConsumedForRAM.equals(gasConsumedForRAM) && gasConsumedForStorage.equals(gasConsumedForStorage);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return Arrays.hashCode(updates) ^ gasConsumedForCPU.hashCode() ^ gasConsumedForRAM.hashCode() ^ gasConsumedForStorage.hashCode();
 	}
 
 	@Override

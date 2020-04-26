@@ -105,7 +105,7 @@ public abstract class Update implements Serializable, Comparable<Update> {
 	 * @throws IOException if the update could not be unmarshalled
 	 * @throws ClassNotFoundException if the update could not be unmarshalled
 	 */
-	static Update from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static Update from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
 		switch (selector) {
 		case ClassTag.SELECTOR: return new ClassTag((StorageReference) StorageValue.from(ois), ois.readUTF(), TransactionReference.from(ois));

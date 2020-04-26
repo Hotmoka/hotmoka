@@ -3,6 +3,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
@@ -60,6 +61,25 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 		this.classNameOfCause = classNameOfCause;
 		this.messageOfCause = messageOfCause;
 		this.where = where;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof ConstructorCallTransactionFailedResponse) {
+			ConstructorCallTransactionFailedResponse otherCast = (ConstructorCallTransactionFailedResponse) other;
+			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
+				&& classNameOfCause.equals(otherCast.classNameOfCause)
+				&& Objects.equals(messageOfCause, otherCast.messageOfCause)
+				&& Objects.equals(where, otherCast.where);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ gasConsumedForPenalty.hashCode() ^ classNameOfCause.hashCode()
+			^ Objects.hashCode(messageOfCause) ^ Objects.hashCode(where);
 	}
 
 	@Override

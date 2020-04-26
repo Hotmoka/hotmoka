@@ -3,6 +3,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,6 +59,21 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	@Override
 	public Stream<StorageReference> getEvents() {
 		return Stream.of(events);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other instanceof ConstructorCallTransactionSuccessfulResponse) {
+			ConstructorCallTransactionSuccessfulResponse otherCast = (ConstructorCallTransactionSuccessfulResponse) other;
+			return super.equals(other) && Arrays.equals(events, otherCast.events) && newObject.equals(otherCast.newObject);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ Arrays.hashCode(events) ^ newObject.hashCode();
 	}
 
 	@Override

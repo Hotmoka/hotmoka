@@ -76,6 +76,22 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	}
 
 	@Override
+	public boolean equals(Object other) {
+		if (other instanceof JarStoreTransactionFailedResponse) {
+			JarStoreTransactionFailedResponse otherCast = (JarStoreTransactionFailedResponse) other;
+			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
+				&& classNameOfCause.equals(classNameOfCause) && messageOfCause.equals(otherCast.messageOfCause);
+		}
+		else
+			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode() ^ gasConsumedForPenalty.hashCode() ^ classNameOfCause.hashCode() ^ messageOfCause.hashCode();
+	}
+
+	@Override
 	public String toString() {
         return super.toString()
         	+ "\n  cause: " + classNameOfCause + ":" + messageOfCause;
