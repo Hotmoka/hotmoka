@@ -34,7 +34,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		byte selector = ois.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: {
-			StorageReference caller = (StorageReference) StorageValue.from(ois);
+			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
@@ -53,7 +53,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			return new GameteCreationTransactionRequest(classpath, initialAmount);
 		}
 		case InstanceMethodCallTransactionRequest.SELECTOR: {
-			StorageReference caller = (StorageReference) StorageValue.from(ois);
+			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
@@ -63,7 +63,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			for (int pos = 0; pos < actualsCount; pos++)
 				actuals[pos] = StorageValue.from(ois);
 			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
-			StorageReference receiver = (StorageReference) StorageValue.from(ois);
+			StorageReference receiver = StorageReference.from(ois);
 
 			return new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
@@ -81,7 +81,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			return new JarStoreInitialTransactionRequest(jar, dependencies);
 		}
 		case JarStoreTransactionRequest.SELECTOR: {
-			StorageReference caller = (StorageReference) StorageValue.from(ois);
+			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
@@ -107,7 +107,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			return new RedGreenGameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount);
 		}
 		case StaticMethodCallTransactionRequest.SELECTOR: {
-			StorageReference caller = (StorageReference) StorageValue.from(ois);
+			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);

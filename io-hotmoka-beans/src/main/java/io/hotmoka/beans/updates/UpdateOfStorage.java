@@ -69,6 +69,6 @@ public final class UpdateOfStorage extends AbstractUpdateOfField {
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		value.into(oos);
+		value.intoWithoutSelector(oos);
 	}
 }

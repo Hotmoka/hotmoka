@@ -370,6 +370,15 @@ class State implements AutoCloseable {
 		}
 	}
 
+	private static ArrayByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
+		try {
+			return new ArrayByteIterable(reference.toByteArrayWithoutSelector());
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
+
 	private static ArrayByteIterable intoByteArray(Marshallable[] marshallables) throws UncheckedIOException {
 		try {
 			return new ArrayByteIterable(Marshallable.toByteArray(marshallables));

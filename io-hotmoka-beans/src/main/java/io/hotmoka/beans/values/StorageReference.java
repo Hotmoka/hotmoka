@@ -1,6 +1,8 @@
 package io.hotmoka.beans.values;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,7 +83,37 @@ public final class StorageReference extends StorageValue {
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
+		intoWithoutSelector(oos);
+	}
+
+	public void intoWithoutSelector(ObjectOutputStream oos) throws IOException {
 		transaction.into(oos);
 		marshal(progressive, oos);
+	}
+
+	/**
+	 * Marshals this object into a byte array.
+	 * 
+	 * @return the byte array resulting from marshalling this object
+	 * @throws IOException if this object cannot be marshalled
+	 */
+	public final byte[] toByteArrayWithoutSelector() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoWithoutSelector(oos);
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	/**
+	 * Factory method that unmarshals a storage reference from the given stream.
+	 * 
+	 * @param ois the stream
+	 * @return the storage reference
+	 * @throws IOException if the storage reference could not be unmarshalled
+	 * @throws ClassNotFoundException if the storage reference could not be unmarshalled
+	 */
+	public static StorageReference from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		return StorageReference.mk(TransactionReference.from(ois), unmarshallBigInteger(ois));
 	}
 }

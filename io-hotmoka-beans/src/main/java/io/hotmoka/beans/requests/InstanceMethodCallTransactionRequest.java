@@ -59,6 +59,6 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		receiver.into(oos);
+		receiver.intoWithoutSelector(oos);
 	}
 }

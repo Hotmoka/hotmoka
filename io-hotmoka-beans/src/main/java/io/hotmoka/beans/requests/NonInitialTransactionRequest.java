@@ -82,7 +82,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		caller.into(oos);
+		caller.intoWithoutSelector(oos);
 		marshal(gasLimit, oos);
 		marshal(gasPrice, oos);
 		classpath.into(oos);

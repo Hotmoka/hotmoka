@@ -17,6 +17,8 @@ import io.hotmoka.beans.values.StorageValue;
 @Immutable
 public final class UpdateOfInt extends AbstractUpdateOfField {
 	final static byte SELECTOR = 20;
+	final static byte SELECTOR_SMALL = 21;
+	final static byte SELECTOR_VERY_SMALL = 22;
 
 	/**
 	 * The new value of the field.
@@ -62,8 +64,23 @@ public final class UpdateOfInt extends AbstractUpdateOfField {
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
+		boolean isSmall = ((short) value) == value;
+		boolean isVerySmall = ((byte) value) == value;
+
+		if (isVerySmall)
+			oos.writeByte(SELECTOR_VERY_SMALL);
+		else if (isSmall)
+			oos.writeByte(SELECTOR_SMALL);
+		else
+			oos.writeByte(SELECTOR);
+
 		super.into(oos);
-		oos.writeInt(value);
+
+		if (isVerySmall)
+			oos.writeByte((byte) value);
+		else if (isSmall)
+			oos.writeShort((short) value);
+		else
+			oos.writeInt(value);
 	}
 }

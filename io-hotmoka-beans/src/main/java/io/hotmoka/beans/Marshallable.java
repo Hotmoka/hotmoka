@@ -104,7 +104,27 @@ public abstract class Marshallable {
 	 * @throws IOException if the big integer could not be marshalled
 	 */
 	protected final static void marshal(BigInteger bi, ObjectOutputStream oos) throws IOException {
-		oos.writeObject(bi);
+		short small = bi.shortValue();
+		if (BigInteger.valueOf(small).equals(bi)) {
+			if (0 <= small && small <= 251)
+				oos.writeByte(4 + small);
+			else {
+				oos.writeByte(0);
+				oos.writeShort(small);
+			}
+		}
+		else if (BigInteger.valueOf(bi.intValue()).equals(bi)) {
+			oos.writeByte(1);
+			oos.writeInt(bi.intValue());
+		}
+		else if (BigInteger.valueOf(bi.longValue()).equals(bi)) {
+			oos.writeByte(2);
+			oos.writeLong(bi.longValue());
+		}
+		else {
+			oos.writeByte(3);
+			oos.writeObject(bi);
+		}
 	}
 
 	/**
@@ -117,6 +137,18 @@ public abstract class Marshallable {
 	 * @throws IOException if the big integer could not be unmarshalled
 	 */
 	protected final static BigInteger unmarshallBigInteger(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-		return (BigInteger) ois.readObject();
+		byte selector = ois.readByte();
+		switch (selector) {
+		case 0: return BigInteger.valueOf(ois.readShort());
+		case 1: return BigInteger.valueOf(ois.readInt());
+		case 2: return BigInteger.valueOf(ois.readLong());
+		case 3: return (BigInteger) ois.readObject();
+		default: {
+			if (selector - 4 < 0)
+				return BigInteger.valueOf(selector + 252);
+			else
+				return BigInteger.valueOf(selector - 4);
+		}
+		}
 	}
 }

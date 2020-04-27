@@ -237,6 +237,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	private static ByteString byteStringSerializationOf(TransactionReference reference) throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
 			reference.into(oos);
+			oos.flush();
 			return ByteString.copyFrom(baos.toByteArray());
 		}
 	}
