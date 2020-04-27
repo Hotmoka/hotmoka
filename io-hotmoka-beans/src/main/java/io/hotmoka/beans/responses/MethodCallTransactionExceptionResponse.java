@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,8 +20,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public class MethodCallTransactionExceptionResponse extends MethodCallTransactionResponse implements TransactionResponseWithEvents {
-
-	private static final long serialVersionUID = 5236790249190745461L;
 	final static byte SELECTOR = 7;
 
 	/**
@@ -107,9 +104,7 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		oos.writeInt(events.length);
-		for (StorageReference event: events)
-			event.into(oos);
+		intoArray(events, oos);
 		oos.writeUTF(classNameOfCause);
 		oos.writeUTF(messageOfCause);
 		oos.writeUTF(where);

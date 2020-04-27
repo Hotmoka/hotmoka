@@ -3,10 +3,9 @@ package io.hotmoka.beans.updates;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
+import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.UnmarshallingUtils;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -18,9 +17,7 @@ import io.hotmoka.beans.values.StorageValue;
  * describe the shape of storage objects.
  */
 @Immutable
-public abstract class Update implements Serializable, Comparable<Update> {
-
-	private static final long serialVersionUID = 1921751386937488337L;
+public abstract class Update extends Marshallable implements Comparable<Update> {
 
 	/**
 	 * The storage reference of the object whose field is modified.
@@ -109,8 +106,8 @@ public abstract class Update implements Serializable, Comparable<Update> {
 		byte selector = ois.readByte();
 		switch (selector) {
 		case ClassTag.SELECTOR: return new ClassTag((StorageReference) StorageValue.from(ois), ois.readUTF(), TransactionReference.from(ois));
-		case UpdateOfBalance.SELECTOR: return new UpdateOfBalance((StorageReference) StorageValue.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
-		case UpdateOfBigInteger.SELECTOR: return new UpdateOfBigInteger((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
+		case UpdateOfBalance.SELECTOR: return new UpdateOfBalance((StorageReference) StorageValue.from(ois), unmarshallBigInteger(ois));
+		case UpdateOfBigInteger.SELECTOR: return new UpdateOfBigInteger((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), unmarshallBigInteger(ois));
 		case UpdateOfBoolean.SELECTOR_FALSE: return new UpdateOfBoolean((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), false);
 		case UpdateOfBoolean.SELECTOR_TRUE: return new UpdateOfBoolean((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), true);
 		case UpdateOfByte.SELECTOR: return new UpdateOfByte((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readByte());
@@ -121,9 +118,9 @@ public abstract class Update implements Serializable, Comparable<Update> {
 		case UpdateOfFloat.SELECTOR: return new UpdateOfFloat((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readFloat());
 		case UpdateOfInt.SELECTOR: return new UpdateOfInt((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readInt());
 		case UpdateOfLong.SELECTOR: return new UpdateOfLong((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readLong());
-		case UpdateOfNonce.SELECTOR: return new UpdateOfNonce((StorageReference) StorageValue.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
-		case UpdateOfRedBalance.SELECTOR: return new UpdateOfRedBalance((StorageReference) StorageValue.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
-		case UpdateOfRedGreenNonce.SELECTOR: return new UpdateOfRedGreenNonce((StorageReference) StorageValue.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
+		case UpdateOfNonce.SELECTOR: return new UpdateOfNonce((StorageReference) StorageValue.from(ois), unmarshallBigInteger(ois));
+		case UpdateOfRedBalance.SELECTOR: return new UpdateOfRedBalance((StorageReference) StorageValue.from(ois), unmarshallBigInteger(ois));
+		case UpdateOfRedGreenNonce.SELECTOR: return new UpdateOfRedGreenNonce((StorageReference) StorageValue.from(ois), unmarshallBigInteger(ois));
 		case UpdateOfShort.SELECTOR: return new UpdateOfShort((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readShort());
 		case UpdateOfStorage.SELECTOR: return new UpdateOfStorage((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), (StorageReference) StorageValue.from(ois));
 		case UpdateOfString.SELECTOR: return new UpdateOfString((StorageReference) StorageValue.from(ois), FieldSignature.from(ois), ois.readUTF());

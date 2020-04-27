@@ -15,7 +15,6 @@ import io.hotmoka.beans.values.StorageValue;
 
 @Immutable
 public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTransactionResponse> extends NonInitialTransactionRequest<R> {
-	private static final long serialVersionUID = 6397242982438061162L;
 
 	/**
 	 * The actual arguments passed to the method.
@@ -67,8 +66,6 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		super.into(oos);
-		oos.writeInt(actuals.length);
-		for (StorageValue actual: actuals)
-			actual.into(oos);
+		intoArray(actuals, oos);
 	}
 }

@@ -52,7 +52,7 @@ public abstract class Runtime {
 	 */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) throws Exception {
 		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
-		return responseCreator.deserializeLastLazyUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return responseCreator.deserializeLastLazyUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), new FieldSignature(definingClass, name, new ClassType(fieldClassName)));
 	}
 
 	/**
@@ -68,7 +68,7 @@ public abstract class Runtime {
 	 */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) throws Exception {
 		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
-		return responseCreator.deserializeLastLazyUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), FieldSignature.mk(definingClass, name, ClassType.mk(fieldClassName)));
+		return responseCreator.deserializeLastLazyUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), new FieldSignature(definingClass, name, new ClassType(fieldClassName)));
 	}
 
 	/**

@@ -16,8 +16,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public final class UpdateToNullEager extends AbstractUpdateOfField {
-
-	private static final long serialVersionUID = 6580694465259569417L;
 	final static byte SELECTOR = 18;
 
 	/**

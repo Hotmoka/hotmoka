@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 
@@ -19,9 +18,7 @@ import io.hotmoka.beans.updates.Update;
  * @param <Outcome> the type of the outcome of the execution having this response
  */
 @Immutable
-public abstract class JarStoreTransactionResponse implements NonInitialTransactionResponse, TransactionResponseWithGas, TransactionResponseWithUpdates {
-
-	private static final long serialVersionUID = -8888957484092351352L;
+public abstract class JarStoreTransactionResponse extends NonInitialTransactionResponse implements TransactionResponseWithGas, TransactionResponseWithUpdates {
 
 	/**
 	 * The updates resulting from the execution of the transaction.
@@ -123,12 +120,9 @@ public abstract class JarStoreTransactionResponse implements NonInitialTransacti
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeInt(updates.length);
-		for (Update update: updates)
-			update.into(oos);
-
-		MarshallingUtils.marshal(gasConsumedForCPU, oos);
-		MarshallingUtils.marshal(gasConsumedForRAM, oos);
-		MarshallingUtils.marshal(gasConsumedForStorage, oos);
+		intoArray(updates, oos);
+		marshal(gasConsumedForCPU, oos);
+		marshal(gasConsumedForRAM, oos);
+		marshal(gasConsumedForStorage, oos);
 	}
 }

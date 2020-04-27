@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 
@@ -16,8 +15,6 @@ import io.hotmoka.beans.updates.Update;
  */
 @Immutable
 public class JarStoreTransactionFailedResponse extends JarStoreTransactionResponse implements TransactionResponseFailed {
-
-	private static final long serialVersionUID = -8888957484092351352L;
 	final static byte SELECTOR = 3;
 
 	/**
@@ -106,7 +103,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		MarshallingUtils.marshal(gasConsumedForPenalty, oos);
+		marshal(gasConsumedForPenalty, oos);
 		oos.writeUTF(classNameOfCause);
 		oos.writeUTF(messageOfCause);
 	}

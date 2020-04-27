@@ -13,8 +13,6 @@ import io.hotmoka.beans.types.StorageType;
 @Immutable
 public abstract class MethodSignature extends CodeSignature {
 
-	private static final long serialVersionUID = -1068494776407417852L;
-
 	/**
 	 * The name of the method.
 	 */

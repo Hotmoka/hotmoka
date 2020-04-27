@@ -16,8 +16,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public final class UpdateToNullLazy extends AbstractUpdateOfField {
-
-	private static final long serialVersionUID = -8022647081096859934L;
 	final static byte SELECTOR = 19;
 
 	/**

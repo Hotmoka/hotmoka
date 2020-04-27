@@ -7,5 +7,5 @@ import io.hotmoka.beans.responses.TransactionResponse;
  * A response for a non-initial transaction.
  */
 @Immutable
-public interface NonInitialTransactionResponse extends TransactionResponse {
+public abstract class NonInitialTransactionResponse extends TransactionResponse {
 }

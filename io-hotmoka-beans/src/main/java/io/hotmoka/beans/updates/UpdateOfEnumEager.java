@@ -18,8 +18,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public final class UpdateOfEnumEager extends AbstractUpdateOfField {
-
-	private static final long serialVersionUID = 1502304606798344063L;
 	final static byte SELECTOR = 8;
 
 	/**

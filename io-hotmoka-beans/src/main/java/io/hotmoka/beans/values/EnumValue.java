@@ -9,9 +9,7 @@ import io.hotmoka.beans.annotations.Immutable;
  * An element of an enumeration stored in blockchain.
  */
 @Immutable
-public final class EnumValue implements StorageValue {
-
-	private static final long serialVersionUID = -3771826841516937906L;
+public final class EnumValue extends StorageValue {
 	static final byte SELECTOR = 12;
 
 	/**

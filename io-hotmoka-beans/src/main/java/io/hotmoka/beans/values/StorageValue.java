@@ -2,27 +2,15 @@ package io.hotmoka.beans.values;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
-import io.hotmoka.beans.internal.UnmarshallingUtils;
+import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.references.TransactionReference;
 
 /**
  * A value that can be stored in the blockchain, passed as argument to an entry
  * or returned from an entry.
  */
-public interface StorageValue extends Serializable, Comparable<StorageValue> {
-
-	/**
-	 * Marshals this value into the given stream. This method
-	 * in general performs better than standard Java serialization, wrt the size
-	 * of the marshalled data.
-	 * 
-	 * @param oos the stream
-	 * @throws IOException if the value cannot be marshalled
-	 */
-	void into(ObjectOutputStream oos) throws IOException;
+public abstract class StorageValue extends Marshallable implements Comparable<StorageValue> {
 
 	/**
 	 * Factory method that unmarshals a value from the given stream.
@@ -32,10 +20,10 @@ public interface StorageValue extends Serializable, Comparable<StorageValue> {
 	 * @throws IOException if the value could not be unmarshalled
 	 * @throws ClassNotFoundException if the value could not be unmarshalled
 	 */
-	static StorageValue from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static StorageValue from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
 		switch (selector) {
-		case BigIntegerValue.SELECTOR: return new BigIntegerValue(UnmarshallingUtils.unmarshallBigInteger(ois));
+		case BigIntegerValue.SELECTOR: return new BigIntegerValue(unmarshallBigInteger(ois));
 		case BooleanValue.SELECTOR_TRUE: return BooleanValue.TRUE;
 		case BooleanValue.SELECTOR_FALSE: return BooleanValue.FALSE;
 		case ByteValue.SELECTOR: return new ByteValue(ois.readByte());
@@ -47,7 +35,7 @@ public interface StorageValue extends Serializable, Comparable<StorageValue> {
 		case LongValue.SELECTOR: return new LongValue(ois.readLong());
 		case NullValue.SELECTOR: return NullValue.INSTANCE;
 		case ShortValue.SELECTOR: return new ShortValue(ois.readShort());
-		case StorageReference.SELECTOR: return StorageReference.mk(TransactionReference.from(ois), UnmarshallingUtils.unmarshallBigInteger(ois));
+		case StorageReference.SELECTOR: return StorageReference.mk(TransactionReference.from(ois), unmarshallBigInteger(ois));
 		case StringValue.SELECTOR: return new StringValue(ois.readUTF());
 		default: throw new IOException("unexpected value selector: " + selector);
 		}

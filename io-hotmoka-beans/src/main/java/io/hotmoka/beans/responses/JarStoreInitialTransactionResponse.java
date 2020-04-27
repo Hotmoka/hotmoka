@@ -13,9 +13,7 @@ import io.hotmoka.beans.references.TransactionReference;
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
  */
 @Immutable
-public class JarStoreInitialTransactionResponse implements InitialTransactionResponse, TransactionResponseWithInstrumentedJar {
-
-	private static final long serialVersionUID = 7320005929052884412L;
+public class JarStoreInitialTransactionResponse extends InitialTransactionResponse implements TransactionResponseWithInstrumentedJar {
 	final static byte SELECTOR = 1;
 
 	/**
@@ -96,8 +94,6 @@ public class JarStoreInitialTransactionResponse implements InitialTransactionRes
 		oos.writeByte(SELECTOR);
 		oos.writeInt(instrumentedJar.length);
 		oos.write(instrumentedJar);
-		oos.writeInt(dependencies.length);
-		for (Classpath dependency: dependencies)
-			dependency.into(oos);
+		intoArray(dependencies, oos);
 	}
 }

@@ -13,8 +13,6 @@ import io.hotmoka.beans.values.StorageValue;
 @Immutable
 public abstract class UpdateOfField extends Update {
 
-	private static final long serialVersionUID = 555146480608531290L;
-
 	/**
 	 * Builds an update.
 	 * 

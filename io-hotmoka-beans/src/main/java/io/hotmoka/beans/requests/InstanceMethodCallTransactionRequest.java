@@ -15,8 +15,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public class InstanceMethodCallTransactionRequest extends MethodCallTransactionRequest {
-
-	private static final long serialVersionUID = -1016861794592561931L;
 	final static byte SELECTOR = 5;
 
 	/**

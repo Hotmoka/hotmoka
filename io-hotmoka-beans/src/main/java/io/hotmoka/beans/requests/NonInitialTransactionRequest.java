@@ -5,14 +5,12 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
 @Immutable
-public abstract class NonInitialTransactionRequest<R extends NonInitialTransactionResponse> implements TransactionRequest<R> {
-	private static final long serialVersionUID = 8584281399116101538L;
+public abstract class NonInitialTransactionRequest<R extends NonInitialTransactionResponse> extends TransactionRequest<R> {
 
 	/**
 	 * The externally owned caller contract that pays for the transaction.
@@ -85,9 +83,9 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		caller.into(oos);
-		MarshallingUtils.marshal(gasLimit, oos);
-		MarshallingUtils.marshal(gasPrice, oos);
+		marshal(gasLimit, oos);
+		marshal(gasPrice, oos);
 		classpath.into(oos);
-		MarshallingUtils.marshal(nonce, oos);
+		marshal(nonce, oos);
 	}
 }

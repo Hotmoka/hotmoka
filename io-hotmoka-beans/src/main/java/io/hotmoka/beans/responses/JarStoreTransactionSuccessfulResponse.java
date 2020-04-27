@@ -16,8 +16,6 @@ import io.hotmoka.beans.updates.Update;
  */
 @Immutable
 public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionResponse implements TransactionResponseWithInstrumentedJar {
-
-	private static final long serialVersionUID = -8888957484092351352L;
 	final static byte SELECTOR = 2;
 
 	/**
@@ -100,8 +98,6 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 		super.into(oos);
 		oos.writeInt(instrumentedJar.length);
 		oos.write(instrumentedJar);
-		oos.writeInt(dependencies.length);
-		for (Classpath dependency: dependencies)
-			dependency.into(oos);
+		intoArray(dependencies, oos);
 	}
 }

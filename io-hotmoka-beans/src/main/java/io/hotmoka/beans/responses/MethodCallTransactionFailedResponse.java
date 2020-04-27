@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageValue;
 
@@ -16,8 +15,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public class MethodCallTransactionFailedResponse extends MethodCallTransactionResponse implements TransactionResponseFailed {
-
-	private static final long serialVersionUID = -4635934226304384321L;
 	final static byte SELECTOR = 8;
 
 	/**
@@ -115,7 +112,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		MarshallingUtils.marshal(gasConsumedForPenalty, oos);
+		marshal(gasConsumedForPenalty, oos);
 		oos.writeUTF(classNameOfCause);
 		oos.writeUTF(messageOfCause);
 		oos.writeUTF(where);

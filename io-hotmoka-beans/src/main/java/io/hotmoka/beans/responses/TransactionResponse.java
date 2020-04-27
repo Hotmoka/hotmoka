@@ -2,12 +2,10 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.internal.UnmarshallingUtils;
+import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -16,21 +14,7 @@ import io.hotmoka.beans.values.StorageValue;
 /**
  * The response of a transaction.
  */
-public interface TransactionResponse extends Serializable {
-
-	boolean equals(Object other);
-
-	int hashCode();
-
-	/**
-	 * Marshals this response into the given stream. This method
-	 * in general performs better than standard Java serialization, wrt the size
-	 * of the marshalled data.
-	 * 
-	 * @param oos the stream
-	 * @throws IOException if the response cannot be marshalled
-	 */
-	void into(ObjectOutputStream oos) throws IOException;
+public abstract class TransactionResponse extends Marshallable {
 
 	/**
 	 * Factory method that unmarshals a response from the given stream.
@@ -40,7 +24,7 @@ public interface TransactionResponse extends Serializable {
 	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	static TransactionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static TransactionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
 		switch (selector) {
 		case GameteCreationTransactionResponse.SELECTOR: {
@@ -51,10 +35,10 @@ public interface TransactionResponse extends Serializable {
 		}
 		case JarStoreTransactionFailedResponse.SELECTOR: {
 			Stream<Update> updates = updatesFrom(ois);
-			BigInteger gasConsumedForCPU = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForPenalty = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForPenalty = unmarshallBigInteger(ois);
 			String classNameOfCause = ois.readUTF();
 			String messageOfCause = ois.readUTF();
 
@@ -62,9 +46,9 @@ public interface TransactionResponse extends Serializable {
 		}
 		case JarStoreTransactionSuccessfulResponse.SELECTOR: {
 			Stream<Update> updates = updatesFrom(ois);
-			BigInteger gasConsumedForCPU = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			byte[] instrumentedJar = instrumentedJarFrom(ois);
 			Stream<Classpath> dependencies = dependenciesFrom(ois);
 
@@ -72,9 +56,9 @@ public interface TransactionResponse extends Serializable {
 		}
 		case ConstructorCallTransactionExceptionResponse.SELECTOR: {
 			Stream<Update> updates = updatesFrom(ois);
-			BigInteger gasConsumedForCPU = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			Stream<StorageReference> events = eventsFrom(ois);
 			String classNameOfCause = ois.readUTF();
 			String messageOfCause = ois.readUTF();
@@ -84,10 +68,10 @@ public interface TransactionResponse extends Serializable {
 		}
 		case ConstructorCallTransactionFailedResponse.SELECTOR: {
 			Stream<Update> updates = updatesFrom(ois);
-			BigInteger gasConsumedForCPU = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForPenalty = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForPenalty = unmarshallBigInteger(ois);
 			String classNameOfCause = ois.readUTF();
 			String messageOfCause = ois.readUTF();
 			String where = ois.readUTF();
@@ -96,9 +80,9 @@ public interface TransactionResponse extends Serializable {
 		}
 		case ConstructorCallTransactionSuccessfulResponse.SELECTOR: {
 			Stream<Update> updates = updatesFrom(ois);
-			BigInteger gasConsumedForCPU = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			Stream<StorageReference> events = eventsFrom(ois);
 			StorageReference newObject = (StorageReference) StorageValue.from(ois);
 
@@ -106,9 +90,9 @@ public interface TransactionResponse extends Serializable {
 		}
 		case MethodCallTransactionExceptionResponse.SELECTOR: {
 			Stream<Update> updates = updatesFrom(ois);
-			BigInteger gasConsumedForCPU = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			Stream<StorageReference> events = eventsFrom(ois);
 			String classNameOfCause = ois.readUTF();
 			String messageOfCause = ois.readUTF();
@@ -118,10 +102,10 @@ public interface TransactionResponse extends Serializable {
 		}
 		case MethodCallTransactionFailedResponse.SELECTOR: {
 			Stream<Update> updates = updatesFrom(ois);
-			BigInteger gasConsumedForCPU = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForPenalty = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForPenalty = unmarshallBigInteger(ois);
 			String classNameOfCause = ois.readUTF();
 			String messageOfCause = ois.readUTF();
 			String where = ois.readUTF();
@@ -130,9 +114,9 @@ public interface TransactionResponse extends Serializable {
 		}
 		case MethodCallTransactionSuccessfulResponse.SELECTOR: {
 			Stream<Update> updates = updatesFrom(ois);
-			BigInteger gasConsumedForCPU = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			StorageValue result = StorageValue.from(ois);
 			Stream<StorageReference> events = eventsFrom(ois);
 
@@ -140,9 +124,9 @@ public interface TransactionResponse extends Serializable {
 		}
 		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR: {
 			Stream<Update> updates = updatesFrom(ois);
-			BigInteger gasConsumedForCPU = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForRAM = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasConsumedForStorage = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			Stream<StorageReference> events = eventsFrom(ois);			
 
 			return new VoidMethodCallTransactionSuccessfulResponse(updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);

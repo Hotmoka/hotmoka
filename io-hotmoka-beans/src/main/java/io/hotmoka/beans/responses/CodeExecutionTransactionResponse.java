@@ -8,15 +8,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.updates.Update;
 
 /**
  * A response for a transaction that calls a constructor or method.
  */
 @Immutable
-public abstract class CodeExecutionTransactionResponse implements NonInitialTransactionResponse, TransactionResponseWithGas, TransactionResponseWithUpdates {
-	private static final long serialVersionUID = -2880123766185847031L;
+public abstract class CodeExecutionTransactionResponse extends NonInitialTransactionResponse implements TransactionResponseWithGas, TransactionResponseWithUpdates {
 
 	/**
 	 * The updates resulting from the execution of the transaction.
@@ -108,12 +106,9 @@ public abstract class CodeExecutionTransactionResponse implements NonInitialTran
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeInt(updates.length);
-		for (Update update: updates)
-			update.into(oos);
-
-		MarshallingUtils.marshal(gasConsumedForCPU, oos);
-		MarshallingUtils.marshal(gasConsumedForRAM, oos);
-		MarshallingUtils.marshal(gasConsumedForStorage, oos);
+		intoArray(updates, oos);
+		marshal(gasConsumedForCPU, oos);
+		marshal(gasConsumedForRAM, oos);
+		marshal(gasConsumedForStorage, oos);
 	}
 }

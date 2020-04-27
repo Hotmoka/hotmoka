@@ -178,7 +178,7 @@ public class UpdatesExtractor {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Object s) {
-				FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
+				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, new ClassType(fieldClassName));
 
 				if (s == null)
 					//the field has been set to null
@@ -228,7 +228,7 @@ public class UpdatesExtractor {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, boolean s) {
-				updates.add(new UpdateOfBoolean(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), s));
+				updates.add(new UpdateOfBoolean(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BOOLEAN), s));
 			}
 
 			/**
@@ -239,7 +239,7 @@ public class UpdatesExtractor {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, byte s) {
-				updates.add(new UpdateOfByte(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.BYTE), s));
+				updates.add(new UpdateOfByte(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.BYTE), s));
 			}
 
 			/**
@@ -250,7 +250,7 @@ public class UpdatesExtractor {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, char s) {
-				updates.add(new UpdateOfChar(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.CHAR), s));
+				updates.add(new UpdateOfChar(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.CHAR), s));
 			}
 
 			/**
@@ -261,7 +261,7 @@ public class UpdatesExtractor {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, double s) {
-				updates.add(new UpdateOfDouble(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), s));
+				updates.add(new UpdateOfDouble(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.DOUBLE), s));
 			}
 
 			/**
@@ -272,7 +272,7 @@ public class UpdatesExtractor {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, float s) {
-				updates.add(new UpdateOfFloat(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.FLOAT), s));
+				updates.add(new UpdateOfFloat(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.FLOAT), s));
 			}
 
 			/**
@@ -283,7 +283,7 @@ public class UpdatesExtractor {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, int s) {
-				updates.add(new UpdateOfInt(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.INT), s));
+				updates.add(new UpdateOfInt(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.INT), s));
 			}
 
 			/**
@@ -294,7 +294,7 @@ public class UpdatesExtractor {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, long s) {
-				updates.add(new UpdateOfLong(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.LONG), s));
+				updates.add(new UpdateOfLong(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.LONG), s));
 			}
 
 			/**
@@ -305,7 +305,7 @@ public class UpdatesExtractor {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, short s) {
-				updates.add(new UpdateOfShort(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, BasicTypes.SHORT), s));
+				updates.add(new UpdateOfShort(storageReference, new FieldSignature(fieldDefiningClass, fieldName, BasicTypes.SHORT), s));
 			}
 
 			/**
@@ -317,9 +317,9 @@ public class UpdatesExtractor {
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String s) {
 				if (s == null)
-					updates.add(new UpdateToNullEager(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING)));
+					updates.add(new UpdateToNullEager(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING)));
 				else
-					updates.add(new UpdateOfString(storageReference, FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.STRING), s));
+					updates.add(new UpdateOfString(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING), s));
 			}
 
 			/**
@@ -330,7 +330,7 @@ public class UpdatesExtractor {
 			 * @param bi the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, BigInteger bi) {
-				FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
+				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
 				if (bi == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else if (field.equals(FieldSignature.BALANCE_FIELD))
@@ -354,7 +354,7 @@ public class UpdatesExtractor {
 			 * @param element the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Enum<?> element) {
-				FieldSignature field = FieldSignature.mk(fieldDefiningClass, fieldName, ClassType.mk(fieldClassName));
+				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, new ClassType(fieldClassName));
 				if (element == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else

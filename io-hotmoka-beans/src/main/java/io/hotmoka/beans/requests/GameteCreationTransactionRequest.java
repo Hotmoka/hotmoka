@@ -5,7 +5,6 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 
@@ -13,9 +12,7 @@ import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
  * A request for creating an initial gamete.
  */
 @Immutable
-public class GameteCreationTransactionRequest implements InitialTransactionRequest<GameteCreationTransactionResponse> {
-
-	private static final long serialVersionUID = -6733566802012789524L;
+public class GameteCreationTransactionRequest extends InitialTransactionRequest<GameteCreationTransactionResponse> {
 	final static byte SELECTOR = 0;
 
 	/**
@@ -68,6 +65,6 @@ public class GameteCreationTransactionRequest implements InitialTransactionReque
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		classpath.into(oos);
-		MarshallingUtils.marshal(initialAmount, oos);
+		marshal(initialAmount, oos);
 	}
 }

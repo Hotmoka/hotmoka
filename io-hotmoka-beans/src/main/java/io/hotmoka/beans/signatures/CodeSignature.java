@@ -3,11 +3,11 @@ package io.hotmoka.beans.signatures;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -16,9 +16,7 @@ import io.hotmoka.beans.types.StorageType;
  * The signature of a method or constructor.
  */
 @Immutable
-public abstract class CodeSignature implements Serializable {
-
-	private static final long serialVersionUID = 2342747645709601285L;
+public abstract class CodeSignature extends Marshallable {
 
 	/**
 	 * The class of the method or constructor.
@@ -48,7 +46,7 @@ public abstract class CodeSignature implements Serializable {
 	 * @param formals the formal arguments of the method or constructor
 	 */
 	public CodeSignature(String definingClass, StorageType... formals) {
-		this(ClassType.mk(definingClass), formals);
+		this(new ClassType(definingClass), formals);
 	}
 
 	/**
@@ -82,14 +80,7 @@ public abstract class CodeSignature implements Serializable {
 		return definingClass.hashCode() ^ Arrays.hashCode(formals);
 	}
 
-	/**
-	 * Marshals this code signature into the given stream. This method
-	 * in general performs better than standard Java serialization, wrt the size
-	 * of the marshalled data.
-	 * 
-	 * @param oos the stream
-	 * @throws IOException if the code signature cannot be marshalled
-	 */
+	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeUTF(definingClass.name);
 		oos.writeInt(formals.length);

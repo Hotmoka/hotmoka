@@ -3,8 +3,8 @@ package io.hotmoka.beans.references;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
+import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
@@ -12,9 +12,7 @@ import io.hotmoka.beans.annotations.Immutable;
  */
 
 @Immutable
-public final class Classpath implements Serializable {
-
-	private static final long serialVersionUID = -9014808081346651444L;
+public final class Classpath extends Marshallable {
 
 	/**
 	 * The transaction that stored the jar.
@@ -52,14 +50,7 @@ public final class Classpath implements Serializable {
 		return transaction.hashCode();
 	}
 
-	/**
-	 * Marshals this classpath into the given stream. This method
-	 * in general performs better than standard Java serialization, wrt the size
-	 * of the marshalled data.
-	 * 
-	 * @param oos the stream
-	 * @throws IOException if the classpath cannot be marshalled
-	 */
+	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		if (recursive)
 			oos.writeByte(1);

@@ -1,22 +1,23 @@
 package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.ExodusException;
@@ -174,16 +175,16 @@ class State implements AutoCloseable {
 	 */
 	void putResponseOf(TransactionReference transactionReference, TransactionResponse response) throws IOException {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> responses.put(txn, byteArraySerializationOf(transactionReference), byteArraySerializationOf(response)));
+		env.executeInTransaction(txn -> responses.put(txn, intoByteArray(transactionReference), intoByteArray(response)));
 		responsesRecent.put(transactionReference, response);
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
-	void setHistory(StorageReference transactionReference, Stream<TransactionReference> history) {
+	void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		long start = System.currentTimeMillis();
 		TransactionReference[] historyAsArray = history.toArray(TransactionReference[]::new);
-		env.executeInTransaction(txn -> this.history.put(txn, byteArraySerializationOf(transactionReference), byteArraySerializationOf(historyAsArray)));
-		historyRecent.put(transactionReference, historyAsArray);
+		env.executeInTransaction(txn -> this.history.put(txn, intoByteArray(object), intoByteArray(historyAsArray)));
+		historyRecent.put(object, historyAsArray);
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -195,7 +196,7 @@ class State implements AutoCloseable {
 	 */
 	void putTakamakaCode(Classpath takamakaCode) {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, TAKAMAKA_CODE, byteArraySerializationOf(takamakaCode)));
+		env.executeInTransaction(txn -> info.put(txn, TAKAMAKA_CODE, intoByteArray(takamakaCode)));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -207,13 +208,13 @@ class State implements AutoCloseable {
 	 */
 	void putJar(Classpath jar) {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, JAR, byteArraySerializationOf(jar)));
+		env.executeInTransaction(txn -> info.put(txn, JAR, intoByteArray(jar)));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
 	void putNext(TransactionReference next) {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, NEXT, byteArraySerializationOf(next)));
+		env.executeInTransaction(txn -> info.put(txn, NEXT, intoByteArray(next)));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -224,7 +225,7 @@ class State implements AutoCloseable {
 	 */
 	void addAccount(StorageReference account) {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, byteArraySerializationOf(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new))));
+		env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, intoByteArray(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new))));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -251,9 +252,9 @@ class State implements AutoCloseable {
 
 		return env.computeInReadonlyTransaction(txn -> {
 			Store responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable response = responses.get(txn, byteArraySerializationOf(transactionReference));
+			ByteIterable response = responses.get(txn, intoByteArray(transactionReference));
 			stateTime += (System.currentTimeMillis() - start);
-			return response == null ? Optional.empty() : Optional.of(deserializationOfResponse(response));
+			return response == null ? Optional.empty() : Optional.of(fromByteArray(TransactionResponse::from, response));
 		});
 	}
 
@@ -265,9 +266,9 @@ class State implements AutoCloseable {
 
 		return env.computeInReadonlyTransaction(txn -> {
 			Store history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable old = history.get(txn, byteArraySerializationOf(object));
+			ByteIterable old = history.get(txn, intoByteArray(object));
 			stateTime += (System.currentTimeMillis() - start);
-			return old == null ? Optional.empty() : Optional.of(Stream.of((TransactionReference[]) deserializationOf(old)));
+			return old == null ? Optional.empty() : Optional.of(Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, old)));
 		});
 	}
 
@@ -277,7 +278,7 @@ class State implements AutoCloseable {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable count = info.get(txn, COMMIT_COUNT);
 			stateTime += (System.currentTimeMillis() - start);
-			return count == null ? 0L : (long) deserializationOf(count);
+			return count == null ? 0L : Long.valueOf(new String(count.getBytesUnsafe()));
 		};
 
 		return env.computeInReadonlyTransaction(computable);
@@ -294,7 +295,7 @@ class State implements AutoCloseable {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable takamakaCode = info.get(txn, TAKAMAKA_CODE);
 			stateTime += (System.currentTimeMillis() - start);
-			return takamakaCode == null ? Optional.empty() : Optional.of((Classpath) deserializationOf(takamakaCode));
+			return takamakaCode == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, takamakaCode));
 		});
 	}
 
@@ -310,17 +311,17 @@ class State implements AutoCloseable {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable jar = info.get(txn, JAR);
 			stateTime += (System.currentTimeMillis() - start);
-			return jar == null ? Optional.empty() : Optional.of((Classpath) deserializationOf(jar));
+			return jar == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, jar));
 		});
 	}
 
-	Optional<LocalTransactionReference> getNext() {
+	Optional<TransactionReference> getNext() {
 		long start = System.currentTimeMillis();
 		return env.computeInReadonlyTransaction(txn -> {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable next = info.get(txn, NEXT);
 			stateTime += (System.currentTimeMillis() - start);
-			return next == null ? Optional.empty() : Optional.of((LocalTransactionReference) deserializationOf(next));
+			return next == null ? Optional.empty() : Optional.of(fromByteArray(LocalTransactionReference::from, next));
 		});
 	}
 
@@ -335,7 +336,7 @@ class State implements AutoCloseable {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable accounts = info.get(txn, ACCOUNTS);
 			stateTime += (System.currentTimeMillis() - start);
-			return accounts == null ? Stream.empty() : Stream.of((StorageReference[]) deserializationOf(accounts));
+			return accounts == null ? Stream.empty() : Stream.of((StorageReference[]) fromByteArray(StorageValue::from, StorageReference[]::new, accounts));
 		});
 	}
 
@@ -357,47 +358,30 @@ class State implements AutoCloseable {
 	}
 
 	private void increaseNumberOfCommits() {
-		info.put(txn, COMMIT_COUNT, byteArraySerializationOf(getNumberOfCommits() + 1));
+		info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(getNumberOfCommits() + 1).getBytes()));
 	}
 
-	/**
-	 * Yields the serialization of the given transaction reference into a byte array, that can be
-	 * used in a store. This is more compact than the standard byte array serialization.
-	 * 
-	 * @param transactionReference the transaction reference
-	 * @return the byte array
-	 */
-	private static ArrayByteIterable byteArraySerializationOf(TransactionReference transactionReference) {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			transactionReference.into(oos);
-			oos.flush();
-			return new ArrayByteIterable(baos.toByteArray());
+	private static ArrayByteIterable intoByteArray(Marshallable marshallable) throws UncheckedIOException {
+		try {
+			return new ArrayByteIterable(marshallable.toByteArray());
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
 
-	/**
-	 * Serializes the given object into a byte array.
-	 * 
-	 * @param object the object
-	 * @return the serialization of {@code object}
-	 * @throws UncheckedIOException if serialization fails
-	 */
-	private static ArrayByteIterable byteArraySerializationOf(Serializable object) throws UncheckedIOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			oos.writeObject(object);
-			return new ArrayByteIterable(baos.toByteArray());
+	private static ArrayByteIterable intoByteArray(Marshallable[] marshallables) throws UncheckedIOException {
+		try {
+			return new ArrayByteIterable(Marshallable.toByteArray(marshallables));
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
 
-	private static Object deserializationOf(ByteIterable bytes) throws UncheckedIOException {
+	private static <T extends Marshallable> T fromByteArray(Unmarshaller<T> unmarshaller, ByteIterable bytes) throws UncheckedIOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe()))) {
-			return ois.readObject();
+			return unmarshaller.from(ois);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -407,20 +391,9 @@ class State implements AutoCloseable {
 		}
 	}
 
-	private static ArrayByteIterable byteArraySerializationOf(TransactionResponse response) throws UncheckedIOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			response.into(oos);
-			oos.flush();
-			return new ArrayByteIterable(baos.toByteArray());
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	private static TransactionResponse deserializationOfResponse(ByteIterable bytes) throws UncheckedIOException {
+	private static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe()))) {
-			return TransactionResponse.from(ois);
+			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, ois);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

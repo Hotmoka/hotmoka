@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.references.TransactionReference;
 
 /**
@@ -16,9 +15,7 @@ import io.hotmoka.beans.references.TransactionReference;
  * same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public final class StorageReference implements StorageValue {
-
-	private static final long serialVersionUID = 5215119613321482697L;
+public final class StorageReference extends StorageValue {
 	static final byte SELECTOR = 11;
 
 	/**
@@ -85,6 +82,6 @@ public final class StorageReference implements StorageValue {
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		transaction.into(oos);
-		MarshallingUtils.marshal(progressive, oos);
+		marshal(progressive, oos);
 	}
 }

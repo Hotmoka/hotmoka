@@ -9,9 +9,7 @@ import io.hotmoka.beans.annotations.Immutable;
  * A {@code char} value stored in blockchain.
  */
 @Immutable
-public final class CharValue implements StorageValue {
-
-	private static final long serialVersionUID = 2752558282237382571L;
+public final class CharValue extends StorageValue {
 	static final byte SELECTOR = 3;
 
 	/**

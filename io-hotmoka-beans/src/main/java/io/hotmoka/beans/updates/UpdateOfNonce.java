@@ -5,7 +5,6 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -16,8 +15,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public final class UpdateOfNonce extends UpdateOfField {
-
-	private static final long serialVersionUID = 6043020907916137622L;
 	final static byte SELECTOR = 12;
 
 	/**
@@ -71,6 +68,6 @@ public final class UpdateOfNonce extends UpdateOfField {
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		MarshallingUtils.marshal(nonce, oos);
+		marshal(nonce, oos);
 	}
 }

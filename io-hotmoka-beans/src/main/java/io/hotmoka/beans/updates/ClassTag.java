@@ -14,8 +14,6 @@ import io.hotmoka.beans.values.StorageReference;
  */
 @Immutable
 public final class ClassTag extends Update {
-
-	private static final long serialVersionUID = 7597397926867306935L;
 	final static byte SELECTOR = 0;
 
 	/**

@@ -13,9 +13,7 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
  * A request for a transaction that installs a jar in a yet not initialized blockchain.
  */
 @Immutable
-public class JarStoreInitialTransactionRequest implements InitialTransactionRequest<JarStoreInitialTransactionResponse>, AbstractJarStoreTransactionRequest {
-
-	private static final long serialVersionUID = -3166257105103213569L;
+public class JarStoreInitialTransactionRequest extends InitialTransactionRequest<JarStoreInitialTransactionResponse> implements AbstractJarStoreTransactionRequest {
 	final static byte SELECTOR = 1;
 
 	/**
@@ -94,8 +92,6 @@ public class JarStoreInitialTransactionRequest implements InitialTransactionRequ
 		oos.writeByte(SELECTOR);
 		oos.writeInt(jar.length);
 		oos.write(jar);
-		oos.writeInt(dependencies.length);
-		for (Classpath dependency: dependencies)
-			dependency.into(oos);
+		intoArray(dependencies, oos);
 	}
 }

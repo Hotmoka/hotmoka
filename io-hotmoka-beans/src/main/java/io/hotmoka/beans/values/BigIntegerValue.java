@@ -5,15 +5,12 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 
 /**
  * A big integer stored in blockchain.
  */
 @Immutable
-public final class BigIntegerValue implements StorageValue {
-
-	private static final long serialVersionUID = 5290050934759989938L;
+public final class BigIntegerValue extends StorageValue {
 	static final byte SELECTOR = 13;
 
 	/**
@@ -57,6 +54,6 @@ public final class BigIntegerValue implements StorageValue {
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
-		MarshallingUtils.marshal(value, oos);
+		marshal(value, oos);
 	}
 }

@@ -19,8 +19,6 @@ import io.hotmoka.beans.values.StorageReference;
  */
 @Immutable
 public class ConstructorCallTransactionExceptionResponse extends ConstructorCallTransactionResponse implements TransactionResponseWithEvents {
-
-	private static final long serialVersionUID = -1571448149485752630L;
 	final static byte SELECTOR = 4;
 
 	/**
@@ -105,9 +103,7 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		oos.writeInt(events.length);
-		for (StorageReference event: events)
-			event.into(oos);
+		intoArray(events, oos);
 		oos.writeUTF(classNameOfCause);
 		oos.writeUTF(messageOfCause);
 		oos.writeUTF(where);

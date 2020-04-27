@@ -12,8 +12,6 @@ import io.hotmoka.beans.types.StorageType;
  */
 @Immutable
 public final class VoidMethodSignature extends MethodSignature {
-
-	private static final long serialVersionUID = 7990082363207586877L;
 	final static byte SELECTOR = 2;
 
 	/**
@@ -35,7 +33,7 @@ public final class VoidMethodSignature extends MethodSignature {
 	 * @param formals the formal arguments of the method
 	 */
 	public VoidMethodSignature(String definingClass, String methodName, StorageType... formals) {
-		this(ClassType.mk(definingClass), methodName, formals);
+		this(new ClassType(definingClass), methodName, formals);
 	}
 
 	@Override

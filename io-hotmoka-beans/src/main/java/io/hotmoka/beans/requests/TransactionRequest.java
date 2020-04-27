@@ -2,12 +2,10 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.UnmarshallingUtils;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -22,22 +20,7 @@ import io.hotmoka.beans.values.StorageValue;
  * @param <R> the type of the response expected for this request
  */
 @Immutable
-public interface TransactionRequest<R extends TransactionResponse> extends Serializable {
-	boolean equals(Object obj);
-
-	int hashCode();
-
-	String toString();
-
-	/**
-	 * Marshals this request into the given stream. This method
-	 * in general performs better than standard Java serialization, wrt the size
-	 * of the marshalled data.
-	 * 
-	 * @param oos the stream
-	 * @throws IOException if the request cannot be marshalled
-	 */
-	void into(ObjectOutputStream oos) throws IOException;
+public abstract class TransactionRequest<R extends TransactionResponse> extends Marshallable {
 
 	/**
 	 * Factory method that unmarshals a request from the given stream.
@@ -47,15 +30,15 @@ public interface TransactionRequest<R extends TransactionResponse> extends Seria
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	static TransactionRequest<?> from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	public static TransactionRequest<?> from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: {
 			StorageReference caller = (StorageReference) StorageValue.from(ois);
-			BigInteger gasLimit = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasPrice = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasLimit = unmarshallBigInteger(ois);
+			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
-			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger nonce = unmarshallBigInteger(ois);
 			int actualsCount = ois.readInt();
 			StorageValue[] actuals = new StorageValue[actualsCount];
 			for (int pos = 0; pos < actualsCount; pos++)
@@ -66,15 +49,15 @@ public interface TransactionRequest<R extends TransactionResponse> extends Seria
 		}
 		case GameteCreationTransactionRequest.SELECTOR: {
 			Classpath classpath = Classpath.from(ois);
-			BigInteger initialAmount = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger initialAmount = unmarshallBigInteger(ois);
 			return new GameteCreationTransactionRequest(classpath, initialAmount);
 		}
 		case InstanceMethodCallTransactionRequest.SELECTOR: {
 			StorageReference caller = (StorageReference) StorageValue.from(ois);
-			BigInteger gasLimit = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasPrice = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasLimit = unmarshallBigInteger(ois);
+			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
-			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger nonce = unmarshallBigInteger(ois);
 			int actualsCount = ois.readInt();
 			StorageValue[] actuals = new StorageValue[actualsCount];
 			for (int pos = 0; pos < actualsCount; pos++)
@@ -99,10 +82,10 @@ public interface TransactionRequest<R extends TransactionResponse> extends Seria
 		}
 		case JarStoreTransactionRequest.SELECTOR: {
 			StorageReference caller = (StorageReference) StorageValue.from(ois);
-			BigInteger gasLimit = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasPrice = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasLimit = unmarshallBigInteger(ois);
+			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
-			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger nonce = unmarshallBigInteger(ois);
 
 			int jarLength = ois.readInt();
 			byte[] jar = new byte[jarLength];
@@ -118,17 +101,17 @@ public interface TransactionRequest<R extends TransactionResponse> extends Seria
 		}
 		case RedGreenGameteCreationTransactionRequest.SELECTOR: {
 			Classpath classpath = Classpath.from(ois);
-			BigInteger initialAmount = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger redInitialAmount = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger initialAmount = unmarshallBigInteger(ois);
+			BigInteger redInitialAmount = unmarshallBigInteger(ois);
 
 			return new RedGreenGameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount);
 		}
 		case StaticMethodCallTransactionRequest.SELECTOR: {
 			StorageReference caller = (StorageReference) StorageValue.from(ois);
-			BigInteger gasLimit = UnmarshallingUtils.unmarshallBigInteger(ois);
-			BigInteger gasPrice = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger gasLimit = unmarshallBigInteger(ois);
+			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
-			BigInteger nonce = UnmarshallingUtils.unmarshallBigInteger(ois);
+			BigInteger nonce = unmarshallBigInteger(ois);
 			int actualsCount = ois.readInt();
 			StorageValue[] actuals = new StorageValue[actualsCount];
 			for (int pos = 0; pos < actualsCount; pos++)

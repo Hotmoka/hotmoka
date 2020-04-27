@@ -19,8 +19,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public class MethodCallTransactionSuccessfulResponse extends MethodCallTransactionResponse implements TransactionResponseWithEvents {
-
-	private static final long serialVersionUID = 2888406427592732867L;
 	final static byte SELECTOR = 9;
 
 	/**
@@ -86,11 +84,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-
 		result.into(oos);
-
-		oos.writeInt(events.length);
-		for (StorageReference event: events)
-			event.into(oos);
+		intoArray(events, oos);
 	}
 }

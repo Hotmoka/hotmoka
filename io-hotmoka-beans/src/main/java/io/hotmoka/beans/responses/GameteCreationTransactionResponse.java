@@ -14,9 +14,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
  */
 @Immutable
-public class GameteCreationTransactionResponse implements InitialTransactionResponse, TransactionResponseWithUpdates {
-
-	private static final long serialVersionUID = -95476487153660743L;
+public class GameteCreationTransactionResponse extends InitialTransactionResponse implements TransactionResponseWithUpdates {
 	final static byte SELECTOR = 0;
 
 	/**
@@ -79,11 +77,7 @@ public class GameteCreationTransactionResponse implements InitialTransactionResp
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
-
-		oos.writeInt(updates.length);
-		for (Update update: updates)
-			update.into(oos);
-
+		intoArray(updates, oos);
 		gamete.into(oos);
 	}
 }

@@ -3,10 +3,8 @@ package io.hotmoka.beans.signatures;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
+import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -15,9 +13,7 @@ import io.hotmoka.beans.types.StorageType;
  * The signature of a field of a class.
  */
 @Immutable
-public final class FieldSignature implements Serializable, Comparable<FieldSignature> {
-
-	private static final long serialVersionUID = -233403674197930650L;
+public final class FieldSignature extends Marshallable implements Comparable<FieldSignature> {
 
 	/**
 	 * The field that holds the balance in contracts.
@@ -55,41 +51,27 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	public final StorageType type;
 
 	/**
-	 * A cache for {@link io.hotmoka.beans.signatures.FieldSignature#mk(String, String, StorageType)}.
-	 */
-	private static Map<FieldSignature, FieldSignature> cache = new ConcurrentHashMap<>();
-
-	/**
 	 * Builds the signature of a field.
 	 * 
 	 * @param definingClass the class of the field
 	 * @param name the name of the field
 	 * @param type the type of the field
 	 */
-	private FieldSignature(ClassType definingClass, String name, StorageType type) {
+	public FieldSignature(ClassType definingClass, String name, StorageType type) {
 		this.definingClass = definingClass;
 		this.name = name.intern(); // to reduce the size at serialization time
 		this.type = type;
 	}
 
 	/**
-	 * Yields a field signature.
-	 * This corresponds to the constructor, but adds a caching layer.
+	 * Builds the signature of a field.
 	 * 
 	 * @param definingClass the name of the class of the field
 	 * @param name the name of the field
 	 * @param type the type of the field
 	 */
-	public static FieldSignature mk(String definingClass, String name, StorageType type) {
-		FieldSignature sig = new FieldSignature(ClassType.mk(definingClass), name, type);
-		return cache.computeIfAbsent(sig, __ -> sig);
-	}
-
-	/**
-	 * Clears the cache used for {@link io.hotmoka.beans.signatures.FieldSignature#mk(String, String, StorageType)}.
-	 */
-	public static void clearCache() {
-		cache.clear();
+	public FieldSignature(String definingClass, String name, StorageType type) {
+		this(new ClassType(definingClass), name, type);
 	}
 
 	@Override
@@ -118,14 +100,7 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 		return diff != 0 ? diff : type.compareAgainst(other.type);
 	}
 
-	/**
-	 * Marshals this field signature into the given stream. This method
-	 * in general performs better than standard Java serialization, wrt the size
-	 * of the marshalled data.
-	 * 
-	 * @param oos the stream
-	 * @throws IOException if the field signature cannot be marshalled
-	 */
+	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeUTF(definingClass.name);
 		oos.writeUTF(name);
@@ -141,6 +116,6 @@ public final class FieldSignature implements Serializable, Comparable<FieldSigna
 	 * @throws ClassNotFoundException if the field signature could not be unmarshalled
 	 */
 	public static FieldSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return mk(ois.readUTF(), ois.readUTF(), StorageType.from(ois));
+		return new FieldSignature(ois.readUTF(), ois.readUTF(), StorageType.from(ois));
 	}
 }

@@ -9,9 +9,7 @@ import io.hotmoka.beans.annotations.Immutable;
  * A {@code float} value stored in blockchain.
  */
 @Immutable
-public final class FloatValue implements StorageValue {
-
-	private static final long serialVersionUID = -291587794739536709L;
+public final class FloatValue extends StorageValue {
 	static final byte SELECTOR = 5;
 
 	/**

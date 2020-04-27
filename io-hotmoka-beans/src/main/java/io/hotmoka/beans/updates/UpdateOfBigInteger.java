@@ -5,7 +5,6 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.internal.MarshallingUtils;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -20,8 +19,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public final class UpdateOfBigInteger extends AbstractUpdateOfField {
-
-	private static final long serialVersionUID = 7267869415886381162L;
 	final static byte SELECTOR = 2;
 
 	/**
@@ -76,6 +73,6 @@ public final class UpdateOfBigInteger extends AbstractUpdateOfField {
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		MarshallingUtils.marshal(value, oos);
+		marshal(value, oos);
 	}
 }

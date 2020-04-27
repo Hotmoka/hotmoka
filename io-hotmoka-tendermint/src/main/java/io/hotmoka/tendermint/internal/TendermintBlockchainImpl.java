@@ -335,7 +335,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	protected void setNext(LocalTransactionReference next) {
+	protected void setNext(TransactionReference next) {
 		super.setNext(next);
 		state.putNext(next);
 	}

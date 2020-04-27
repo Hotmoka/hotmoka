@@ -16,8 +16,6 @@ import io.hotmoka.beans.values.StorageReference;
  */
 @Immutable
 public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest {
-
-	private static final long serialVersionUID = -986118537465436635L;
 	final static byte SELECTOR = 3;
 
 	/**
@@ -113,8 +111,6 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 		super.into(oos);
 		oos.writeInt(jar.length);
 		oos.write(jar);
-		oos.writeInt(dependencies.length);
-		for (Classpath dependency: dependencies)
-			dependency.into(oos);
+		intoArray(dependencies, oos);
 	}
 }

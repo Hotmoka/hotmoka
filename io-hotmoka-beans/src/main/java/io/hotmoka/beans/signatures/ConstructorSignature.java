@@ -12,8 +12,6 @@ import io.hotmoka.beans.types.StorageType;
  */
 @Immutable
 public final class ConstructorSignature extends CodeSignature {
-
-	private static final long serialVersionUID = -3069430655042860986L;
 	final static byte SELECTOR = 0;
 
 	/**

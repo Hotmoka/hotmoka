@@ -14,7 +14,6 @@ import io.hotmoka.beans.values.StorageReference;
  */
 @Immutable
 public abstract class ConstructorCallTransactionResponse extends CodeExecutionTransactionResponse {
-	private static final long serialVersionUID = 6999069256965379003L;
 
 	/**
 	 * Builds the transaction response.

@@ -149,7 +149,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	protected void setNext(LocalTransactionReference next) {
+	protected void setNext(TransactionReference next) {
 		super.setNext(next);
 
 		if (next.getNumber().remainder(TRANSACTIONS_PER_BLOCK).signum() == 0)

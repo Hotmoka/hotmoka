@@ -16,8 +16,6 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @Immutable
 public final class UpdateOfLong extends AbstractUpdateOfField {
-
-	private static final long serialVersionUID = -2226960173435837206L;
 	final static byte SELECTOR = 11;
 
 	/**

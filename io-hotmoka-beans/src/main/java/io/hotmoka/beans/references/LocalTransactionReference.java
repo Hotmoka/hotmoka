@@ -4,14 +4,10 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
-import io.hotmoka.beans.internal.MarshallingUtils;
-
 /**
  * A transaction reference that refers to a transaction in the local store of a node.
  */
-public final class LocalTransactionReference implements TransactionReference {
-	private static final long serialVersionUID = 5911713300386882185L;
-
+public final class LocalTransactionReference extends TransactionReference {
 	public final BigInteger number;
 
 	/**
@@ -61,6 +57,6 @@ public final class LocalTransactionReference implements TransactionReference {
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		MarshallingUtils.marshal(number, oos);
+		marshal(number, oos);
 	}
 }
