@@ -28,15 +28,6 @@ public final class LocalTransactionReference implements TransactionReference {
 		this.number = number;
 	}
 
-	/**
-	 * Builds a transaction reference.
-	 * 
-	 * @param number the number of the transaction
-	 */
-	public LocalTransactionReference(String s) {
-		this.number = new BigInteger(s, 16);
-	}
-
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof TransactionReference &&

@@ -174,7 +174,7 @@ class State implements AutoCloseable {
 	 */
 	void putResponseOf(TransactionReference transactionReference, TransactionResponse response) throws IOException {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> responses.put(txn, compactByteArraySerializationOf(transactionReference), byteArraySerializationOf(response)));
+		env.executeInTransaction(txn -> responses.put(txn, byteArraySerializationOf(transactionReference), byteArraySerializationOf(response)));
 		responsesRecent.put(transactionReference, response);
 		stateTime += (System.currentTimeMillis() - start);
 	}
@@ -251,9 +251,9 @@ class State implements AutoCloseable {
 
 		return env.computeInReadonlyTransaction(txn -> {
 			Store responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable response = responses.get(txn, compactByteArraySerializationOf(transactionReference));
+			ByteIterable response = responses.get(txn, byteArraySerializationOf(transactionReference));
 			stateTime += (System.currentTimeMillis() - start);
-			return response == null ? Optional.empty() : Optional.of((TransactionResponse) deserializationOf(response));
+			return response == null ? Optional.empty() : Optional.of(deserializationOfResponse(response));
 		});
 	}
 
@@ -367,9 +367,15 @@ class State implements AutoCloseable {
 	 * @param transactionReference the transaction reference
 	 * @return the byte array
 	 */
-	private static ArrayByteIterable compactByteArraySerializationOf(TransactionReference transactionReference) {
-		// the serialization of the toString() is shorter than the serialization of the transaction reference object
-		return new ArrayByteIterable(transactionReference.toString().getBytes());
+	private static ArrayByteIterable byteArraySerializationOf(TransactionReference transactionReference) {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			transactionReference.into(oos);
+			oos.flush();
+			return new ArrayByteIterable(baos.toByteArray());
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	/**
@@ -392,6 +398,29 @@ class State implements AutoCloseable {
 	private static Object deserializationOf(ByteIterable bytes) throws UncheckedIOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe()))) {
 			return ois.readObject();
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static ArrayByteIterable byteArraySerializationOf(TransactionResponse response) throws UncheckedIOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			response.into(oos);
+			oos.flush();
+			return new ArrayByteIterable(baos.toByteArray());
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
+
+	private static TransactionResponse deserializationOfResponse(ByteIterable bytes) throws UncheckedIOException {
+		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe()))) {
+			return TransactionResponse.from(ois);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

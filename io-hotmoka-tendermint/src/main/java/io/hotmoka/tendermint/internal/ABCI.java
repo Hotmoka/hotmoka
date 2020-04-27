@@ -83,24 +83,24 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         ByteString tx = tendermintRequest.getTx();
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
-        boolean checked;
         TransactionRequest<?> request = null;
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	request = (TransactionRequest<?>) ois.readObject();
-
+        	request = TransactionRequest.from(ois);
         	node.checkTransaction(request);
         	responseBuilder.setCode(0);
-        	checked = true;
         }
         catch (TransactionRejectedException e) {
         	responseBuilder.setCode(1);
         	responseBuilder.setInfo(e.getMessage());
-        	checked = false;
+        	if (request != null)
+        		node.releaseWhoWasWaitingFor(request);
 		}
         catch (Throwable t) {
+        	t.printStackTrace();
         	responseBuilder.setCode(2);
         	responseBuilder.setInfo(t.toString());
-        	checked = false;
+        	if (request != null)
+        		node.releaseWhoWasWaitingFor(request);
 		}
 
         ResponseCheckTx resp = responseBuilder
@@ -108,9 +108,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-
-        if (!checked && request != null)
-    		node.releaseWhoWasWaitingFor(request);
         //System.out.println("]");
     }
 
@@ -147,10 +144,9 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
         TransactionRequest<?> request = null;
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
-        	request = (TransactionRequest<?>) ois.readObject();
+        	request = TransactionRequest.from(ois);
         	TransactionReference next = node.nextAndIncrement();
         	node.deliverTransaction(node.checkTransaction(request), next);
-
         	responseBuilder.setCode(0);
         	responseBuilder.setData(byteStringSerializationOf(next));
         }

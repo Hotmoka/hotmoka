@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -328,15 +327,16 @@ class Tendermint implements AutoCloseable {
 	}
 
 	/**
-	 * Serializes the given object and Base64-encodes its serialization into a string.
+	 * Serializes the given request and Base64-encodes its serialization into a string.
 	 * 
-	 * @param object the object
-	 * @return the Base64-encoded serialization of {@code object}
+	 * @param request the request
+	 * @return the Base64-encoded serialization of {@code request}
 	 * @throws IOException if serialization fails
 	 */
-	private static String base64EncodedSerializationOf(Serializable object) throws IOException {
+	private static String base64EncodedSerializationOf(TransactionRequest<?> request) throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			oos.writeObject(object);
+			request.into(oos);
+			oos.flush();
 			return Base64.getEncoder().encodeToString(baos.toByteArray());
 		}
 	}
