@@ -52,8 +52,8 @@ public final class IntValue extends StorageValue {
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		if (value >= 0 && value < 256 - SELECTOR)
-			oos.writeByte(SELECTOR + value);
+		if (value >= 0 && value < 255 - SELECTOR)
+			oos.writeByte(SELECTOR + 1 + value);
 		else {
 			oos.writeByte(SELECTOR);
 			oos.writeInt(value);
