@@ -10,7 +10,7 @@ import io.hotmoka.beans.annotations.Immutable;
  */
 @Immutable
 public final class IntValue extends StorageValue {
-	static final byte SELECTOR = 6;
+	static final byte SELECTOR = 13;
 
 	/**
 	 * The value.
@@ -52,7 +52,11 @@ public final class IntValue extends StorageValue {
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.write(SELECTOR);
-		oos.writeInt(value);
+		if (value >= 0 && value < 256 - SELECTOR)
+			oos.writeByte(SELECTOR + value);
+		else {
+			oos.writeByte(SELECTOR);
+			oos.writeInt(value);
+		}
 	}
 }

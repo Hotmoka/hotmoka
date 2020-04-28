@@ -46,6 +46,26 @@ public interface Constants {
 	public final static String PAYABLE_CONTRACT_NAME = "io.takamaka.code.lang.PayableContract";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageMap}.
+	 */
+	public final static String STORAGE_MAP_NAME = "io.takamaka.code.util.StorageMap";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageList}.
+	 */
+	public final static String STORAGE_LIST_NAME = "io.takamaka.code.util.StorageList";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageMap.Node}.
+	 */
+	public final static String STORAGE_MAP_NODE_NAME = "io.takamaka.code.util.StorageMap$Node";
+
+	/**
+	 * The name of the class type for {@link io.takamaka.code.util.StorageList.Node}.
+	 */
+	public final static String STORAGE_LIST_NODE_NAME = "io.takamaka.code.util.StorageList$Node";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.RedGreenPayableContract}.
 	 */
 	public final static String RGPAYABLE_CONTRACT_NAME = "io.takamaka.code.lang.RedGreenPayableContract";

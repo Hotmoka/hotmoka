@@ -11,7 +11,7 @@ import io.hotmoka.beans.annotations.Immutable;
  */
 @Immutable
 public final class BigIntegerValue extends StorageValue {
-	static final byte SELECTOR = 13;
+	static final byte SELECTOR = 6;
 
 	/**
 	 * The big integer.

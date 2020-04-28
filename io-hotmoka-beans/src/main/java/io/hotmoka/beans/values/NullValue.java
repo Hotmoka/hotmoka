@@ -43,6 +43,6 @@ public final class NullValue extends StorageValue {
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.write(SELECTOR);
+		oos.writeByte(SELECTOR);
 	}
 }

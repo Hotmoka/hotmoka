@@ -102,7 +102,7 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeUTF(definingClass.name);
+		definingClass.into(oos);
 		oos.writeUTF(name);
 		type.into(oos);
 	}
@@ -116,6 +116,6 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	 * @throws ClassNotFoundException if the field signature could not be unmarshalled
 	 */
 	public static FieldSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return new FieldSignature(ois.readUTF(), ois.readUTF(), StorageType.from(ois));
+		return new FieldSignature((ClassType) StorageType.from(ois), ois.readUTF(), StorageType.from(ois));
 	}
 }

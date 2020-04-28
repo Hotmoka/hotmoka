@@ -82,7 +82,7 @@ public abstract class CodeSignature extends Marshallable {
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeUTF(definingClass.name);
+		definingClass.into(oos);
 		oos.writeInt(formals.length);
 		for (StorageType formal: formals)
 			formal.into(oos);
@@ -98,7 +98,7 @@ public abstract class CodeSignature extends Marshallable {
 	 */
 	public static CodeSignature from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
-		String definingClass = ois.readUTF();
+		ClassType definingClass = (ClassType) StorageType.from(ois);
 		int formalsCount = ois.readInt();
 		StorageType[] formals = new StorageType[formalsCount];
 		for (int pos = 0; pos < formalsCount; pos++)

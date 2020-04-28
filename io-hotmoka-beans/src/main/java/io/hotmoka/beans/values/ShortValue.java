@@ -52,7 +52,7 @@ public final class ShortValue extends StorageValue {
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.write(SELECTOR);
+		oos.writeByte(SELECTOR);
 		oos.writeShort(value);
 	}
 }

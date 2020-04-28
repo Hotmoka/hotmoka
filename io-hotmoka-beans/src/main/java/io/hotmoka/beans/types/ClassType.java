@@ -12,8 +12,15 @@ import io.takamaka.code.constants.Constants;
  */
 @Immutable
 public final class ClassType implements StorageType {
-
-	private static final long serialVersionUID = -501005311788239209L;
+	final static byte SELECTOR = 8;
+	final static byte SELECTOR_BIGINTEGER = 9;
+	final static byte SELECTOR_PAYABLE_CONTRACT = 10;
+	final static byte SELECTOR_STORAGE_MAP = 11;
+	final static byte SELECTOR_STORAGE_LIST = 12;
+	final static byte SELECTOR_STORAGE_MAP_NODE = 13;
+	final static byte SELECTOR_STORAGE_LIST_NODE = 14;
+	final static byte SELECTOR_EOA = 15;
+	final static byte SELECTOR_TEOA = 16;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -118,12 +125,22 @@ public final class ClassType implements StorageType {
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageList}.
 	 */
-	public final static ClassType STORAGE_LIST = new ClassType("io.takamaka.code.util.StorageList");
+	public final static ClassType STORAGE_LIST = new ClassType(Constants.STORAGE_LIST_NAME);
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
-	public final static ClassType STORAGE_MAP = new ClassType("io.takamaka.code.util.StorageMap");
+	public final static ClassType STORAGE_MAP = new ClassType(Constants.STORAGE_MAP_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageList.Node}.
+	 */
+	public final static ClassType STORAGE_LIST_NODE = new ClassType(Constants.STORAGE_LIST_NODE_NAME);
+
+	/**
+	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap.Node}.
+	 */
+	public final static ClassType STORAGE_MAP_NODE = new ClassType(Constants.STORAGE_MAP_NODE_NAME);
 
 	/**
 	 * The name of the class type.
@@ -164,7 +181,27 @@ public final class ClassType implements StorageType {
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(8); // to distinguish from the basic types
-		oos.writeUTF(name);
+		if (name.equals(BigInteger.class.getName()))
+			oos.writeByte(SELECTOR_BIGINTEGER);
+		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
+			oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
+		else if (name.equals(Constants.STORAGE_MAP_NAME))
+			oos.writeByte(SELECTOR_STORAGE_MAP);
+		else if (name.equals(Constants.STORAGE_LIST_NAME))
+			oos.writeByte(SELECTOR_STORAGE_LIST);
+		else if (name.equals(Constants.STORAGE_MAP_NODE_NAME))
+			oos.writeByte(SELECTOR_STORAGE_MAP_NODE);
+		else if (name.equals(Constants.STORAGE_LIST_NODE_NAME))
+			oos.writeByte(SELECTOR_STORAGE_LIST_NODE);
+		else if (name.equals(Constants.PAYABLE_CONTRACT_NAME))
+			oos.writeByte(SELECTOR_PAYABLE_CONTRACT);
+		else if (name.equals(Constants.EOA_NAME))
+			oos.writeByte(SELECTOR_EOA);
+		else if (name.equals(Constants.TEOA_NAME))
+			oos.writeByte(SELECTOR_TEOA);
+		else {
+			oos.writeByte(SELECTOR); // to distinguish from the basic types
+			oos.writeObject(name);
+		}
 	}
 }
