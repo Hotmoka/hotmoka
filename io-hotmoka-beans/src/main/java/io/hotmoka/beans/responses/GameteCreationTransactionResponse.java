@@ -78,6 +78,6 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		intoArray(updates, oos);
-		gamete.into(oos);
+		gamete.intoWithoutSelector(oos);
 	}
 }

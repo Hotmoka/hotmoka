@@ -39,7 +39,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
-			StorageValue[] actuals = Marshallable.unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
+			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
 			ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(ois);
 
 			return new ConstructorCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, constructor, actuals);
@@ -55,7 +55,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
-			StorageValue[] actuals = Marshallable.unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
+			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
 			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
 			StorageReference receiver = StorageReference.from(ois);
 
@@ -67,7 +67,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (jarLength != ois.readNBytes(jar, 0, jarLength))
 				throw new IOException("jar length mismatch in request");
 
-			Classpath[] dependencies = Marshallable.unmarshallingOfArray(Classpath::from, Classpath[]::new, ois);
+			Classpath[] dependencies = unmarshallingOfArray(Classpath::from, Classpath[]::new, ois);
 
 			return new JarStoreInitialTransactionRequest(jar, dependencies);
 		}
@@ -83,7 +83,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (jarLength != ois.readNBytes(jar, 0, jarLength))
 				throw new IOException("jar length mismatch in request");
 
-			Classpath[] dependencies = Marshallable.unmarshallingOfArray(Classpath::from, Classpath[]::new, ois);
+			Classpath[] dependencies = unmarshallingOfArray(Classpath::from, Classpath[]::new, ois);
 
 			return new JarStoreTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, jar, dependencies);
 		}
@@ -100,7 +100,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			BigInteger gasPrice = unmarshallBigInteger(ois);
 			Classpath classpath = Classpath.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
-			StorageValue[] actuals = Marshallable.unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
+			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
 			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
 
 			return new StaticMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);

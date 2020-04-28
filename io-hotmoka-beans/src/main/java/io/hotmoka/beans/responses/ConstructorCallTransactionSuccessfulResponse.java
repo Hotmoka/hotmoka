@@ -83,7 +83,7 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		intoArray(events, oos);
-		newObject.into(oos);
+		intoArrayWithoutSelector(events, oos);
+		newObject.intoWithoutSelector(oos);
 	}
 }

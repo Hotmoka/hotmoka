@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -38,16 +36,9 @@ public final class StorageReference extends StorageValue {
 	 * @param progressive the progressive number of the object among those that have been created
 	 *                    during the same transaction
 	 */
-	private StorageReference(TransactionReference transaction, BigInteger progressive) {
+	public StorageReference(TransactionReference transaction, BigInteger progressive) {
 		this.progressive = progressive;
 		this.transaction = transaction;
-	}
-
-	private final static ConcurrentMap<StorageReference, StorageReference> cache = new ConcurrentHashMap<>();
-
-	public static StorageReference mk(TransactionReference transaction, BigInteger progressive) {
-		StorageReference ref = new StorageReference(transaction, progressive);
-		return cache.computeIfAbsent(ref, __ -> ref);
 	}
 
 	@Override
@@ -114,6 +105,6 @@ public final class StorageReference extends StorageValue {
 	 * @throws ClassNotFoundException if the storage reference could not be unmarshalled
 	 */
 	public static StorageReference from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return StorageReference.mk(TransactionReference.from(ois), unmarshallBigInteger(ois));
+		return new StorageReference(TransactionReference.from(ois), unmarshallBigInteger(ois));
 	}
 }

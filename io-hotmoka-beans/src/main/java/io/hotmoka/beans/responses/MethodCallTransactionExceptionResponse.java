@@ -104,7 +104,7 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
-		intoArray(events, oos);
+		intoArrayWithoutSelector(events, oos);
 		oos.writeUTF(classNameOfCause);
 		oos.writeUTF(messageOfCause);
 		oos.writeUTF(where);

@@ -201,7 +201,7 @@ public final class ClassType implements StorageType {
 			oos.writeByte(SELECTOR_TEOA);
 		else {
 			oos.writeByte(SELECTOR); // to distinguish from the basic types
-			oos.writeObject(name);
+			oos.writeObject(name.intern());
 		}
 	}
 }

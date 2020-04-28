@@ -245,7 +245,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		public final StorageReference getNextStorageReference() {
 			BigInteger result = nextProgressive;
 			nextProgressive = nextProgressive.add(BigInteger.ONE);
-			return StorageReference.mk(current, result);
+			return new StorageReference(current, result);
 		}
 
 		/**

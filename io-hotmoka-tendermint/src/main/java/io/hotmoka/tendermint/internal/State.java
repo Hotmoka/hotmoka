@@ -17,7 +17,6 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.ExodusException;
@@ -225,7 +224,7 @@ class State implements AutoCloseable {
 	 */
 	void addAccount(StorageReference account) {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, intoByteArray(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new))));
+		env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, intoByteArrayWithoutSelector(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new))));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -336,7 +335,7 @@ class State implements AutoCloseable {
 			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
 			ByteIterable accounts = info.get(txn, ACCOUNTS);
 			stateTime += (System.currentTimeMillis() - start);
-			return accounts == null ? Stream.empty() : Stream.of((StorageReference[]) fromByteArray(StorageValue::from, StorageReference[]::new, accounts));
+			return accounts == null ? Stream.empty() : Stream.of(fromByteArray(StorageReference::from, StorageReference[]::new, accounts));
 		});
 	}
 
@@ -382,6 +381,15 @@ class State implements AutoCloseable {
 	private static ArrayByteIterable intoByteArray(Marshallable[] marshallables) throws UncheckedIOException {
 		try {
 			return new ArrayByteIterable(Marshallable.toByteArray(marshallables));
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
+
+	private static ArrayByteIterable intoByteArrayWithoutSelector(StorageReference[] references) throws UncheckedIOException {
+		try {
+			return new ArrayByteIterable(Marshallable.toByteArrayWithoutSelector(references));
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

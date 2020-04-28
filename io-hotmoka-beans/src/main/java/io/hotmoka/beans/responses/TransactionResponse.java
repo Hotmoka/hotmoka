@@ -26,15 +26,18 @@ public abstract class TransactionResponse extends Marshallable {
 	 */
 	public static TransactionResponse from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte selector = ois.readByte();
+
 		switch (selector) {
 		case GameteCreationTransactionResponse.SELECTOR: {
-			return new GameteCreationTransactionResponse(updatesFrom(ois), (StorageReference) StorageValue.from(ois));
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
+			return new GameteCreationTransactionResponse(updates, StorageReference.from(ois));
 		}
 		case JarStoreInitialTransactionResponse.SELECTOR: {
-			return new JarStoreInitialTransactionResponse(instrumentedJarFrom(ois), dependenciesFrom(ois));
+			Stream<Classpath> dependencies = Stream.of(unmarshallingOfArray(Classpath::from, Classpath[]::new, ois));
+			return new JarStoreInitialTransactionResponse(instrumentedJarFrom(ois), dependencies);
 		}
 		case JarStoreTransactionFailedResponse.SELECTOR: {
-			Stream<Update> updates = updatesFrom(ois);
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
@@ -45,21 +48,21 @@ public abstract class TransactionResponse extends Marshallable {
 			return new JarStoreTransactionFailedResponse(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 		}
 		case JarStoreTransactionSuccessfulResponse.SELECTOR: {
-			Stream<Update> updates = updatesFrom(ois);
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			byte[] instrumentedJar = instrumentedJarFrom(ois);
-			Stream<Classpath> dependencies = dependenciesFrom(ois);
+			Stream<Classpath> dependencies = Stream.of(unmarshallingOfArray(Classpath::from, Classpath[]::new, ois));
 
 			return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
 		case ConstructorCallTransactionExceptionResponse.SELECTOR: {
-			Stream<Update> updates = updatesFrom(ois);
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = eventsFrom(ois);
+			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
 			String classNameOfCause = ois.readUTF();
 			String messageOfCause = ois.readUTF();
 			String where = ois.readUTF();
@@ -67,7 +70,7 @@ public abstract class TransactionResponse extends Marshallable {
 			return new ConstructorCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
 		case ConstructorCallTransactionFailedResponse.SELECTOR: {
-			Stream<Update> updates = updatesFrom(ois);
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
@@ -79,21 +82,21 @@ public abstract class TransactionResponse extends Marshallable {
 			return new ConstructorCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 		}
 		case ConstructorCallTransactionSuccessfulResponse.SELECTOR: {
-			Stream<Update> updates = updatesFrom(ois);
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = eventsFrom(ois);
-			StorageReference newObject = (StorageReference) StorageValue.from(ois);
+			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
+			StorageReference newObject = StorageReference.from(ois);
 
 			return new ConstructorCallTransactionSuccessfulResponse(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
 		case MethodCallTransactionExceptionResponse.SELECTOR: {
-			Stream<Update> updates = updatesFrom(ois);
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = eventsFrom(ois);
+			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
 			String classNameOfCause = ois.readUTF();
 			String messageOfCause = ois.readUTF();
 			String where = ois.readUTF();
@@ -101,7 +104,7 @@ public abstract class TransactionResponse extends Marshallable {
 			return new MethodCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
 		case MethodCallTransactionFailedResponse.SELECTOR: {
-			Stream<Update> updates = updatesFrom(ois);
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
@@ -113,44 +116,26 @@ public abstract class TransactionResponse extends Marshallable {
 			return new MethodCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 		}
 		case MethodCallTransactionSuccessfulResponse.SELECTOR: {
-			Stream<Update> updates = updatesFrom(ois);
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			StorageValue result = StorageValue.from(ois);
-			Stream<StorageReference> events = eventsFrom(ois);
+			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));
 
 			return new MethodCallTransactionSuccessfulResponse(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
 		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR: {
-			Stream<Update> updates = updatesFrom(ois);
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
-			Stream<StorageReference> events = eventsFrom(ois);			
+			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));		
 
 			return new VoidMethodCallTransactionSuccessfulResponse(updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
 		default: throw new IOException("unexpected response selector: " + selector);
 		}
-	}
-
-	private static Stream<StorageReference> eventsFrom(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int eventsLength = ois.readInt();
-		StorageReference[] events = new StorageReference[eventsLength];
-		for (int pos = 0; pos < eventsLength; pos++)
-			events[pos] = (StorageReference) StorageValue.from(ois);
-
-		return Stream.of(events);
-	}
-
-	private static Stream<Classpath> dependenciesFrom(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int dependenciesLength = ois.readInt();
-		Classpath[] dependencies = new Classpath[dependenciesLength];
-		for (int pos = 0; pos < dependenciesLength; pos++)
-			dependencies[pos] = Classpath.from(ois);
-
-		return Stream.of(dependencies);
 	}
 
 	private static byte[] instrumentedJarFrom(ObjectInputStream ois) throws IOException {
@@ -160,14 +145,5 @@ public abstract class TransactionResponse extends Marshallable {
 			throw new IOException("jar length mismatch");
 
 		return instrumentedJar;
-	}
-
-	private static Stream<Update> updatesFrom(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int updatesLength = ois.readInt();
-		Update[] updates = new Update[updatesLength];
-		for (int pos = 0; pos < updatesLength; pos++)
-			updates[pos] = Update.from(ois);
-
-		return Stream.of(updates);
 	}
 }

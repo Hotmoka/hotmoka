@@ -7,6 +7,8 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.util.function.Function;
 
+import io.hotmoka.beans.values.StorageReference;
+
 /**
  * An object that can be marshalled into a stream, in a way
  * more compact than standard Java serialization. TYpically,
@@ -32,9 +34,34 @@ public abstract class Marshallable {
 	 * @throws IOException if some element could not be marshalled
 	 */
 	public static void intoArray(Marshallable[] marshallables, ObjectOutputStream oos) throws IOException {
-		oos.writeInt(marshallables.length);
+		writeLength(marshallables, oos);
+
 		for (Marshallable marshallable: marshallables)
 			marshallable.into(oos);
+	}
+
+	/**
+	 * Marshals an array of marshallables into the given stream.
+	 * 
+	 * @param marshallables the array of marshallables
+	 * @param oos the stream
+	 * @throws IOException if some element could not be marshalled
+	 */
+	public static void intoArrayWithoutSelector(StorageReference[] references, ObjectOutputStream oos) throws IOException {
+		writeLength(references, oos);
+
+		for (StorageReference reference: references)
+			reference.intoWithoutSelector(oos);
+	}
+
+	private static void writeLength(Marshallable[] marshallables, ObjectOutputStream oos) throws IOException {
+		int length = marshallables.length;
+		if (length < 255)
+			oos.writeByte(length);
+		else {
+			oos.writeByte(255);
+			oos.writeInt(length);
+		}
 	}
 
 	/**
@@ -46,6 +73,20 @@ public abstract class Marshallable {
 	public final byte[] toByteArray() throws IOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
 			into(oos);
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	/**
+	 * Marshals an array of storage references into a byte array.
+	 * 
+	 * @return the byte array resulting from marshalling the array of storage references
+	 * @throws IOException if some storage reference could not be marshalled
+	 */
+	public final static byte[] toByteArrayWithoutSelector(StorageReference[] references) throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoArrayWithoutSelector(references, oos);
 			oos.flush();
 			return baos.toByteArray();
 		}
@@ -86,7 +127,13 @@ public abstract class Marshallable {
 	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
 	 */
 	public static <T extends Marshallable> T[] unmarshallingOfArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int length = ois.readInt();
+		int length = ois.readByte();
+		if (length < 0)
+			length += 256;
+
+		if (length == 255)
+			length = ois.readInt();
+
 		T[] result = supplier.apply(length);
 		for (int pos = 0; pos < length; pos++)
 			result[pos] = unmarshaller.from(ois);

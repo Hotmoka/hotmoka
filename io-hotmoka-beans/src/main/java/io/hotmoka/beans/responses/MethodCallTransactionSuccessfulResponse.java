@@ -85,6 +85,6 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 		oos.writeByte(SELECTOR);
 		super.into(oos);
 		result.into(oos);
-		intoArray(events, oos);
+		intoArrayWithoutSelector(events, oos);
 	}
 }

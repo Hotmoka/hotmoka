@@ -35,7 +35,7 @@ public abstract class StorageValue extends Marshallable implements Comparable<St
 		case LongValue.SELECTOR: return new LongValue(ois.readLong());
 		case NullValue.SELECTOR: return NullValue.INSTANCE;
 		case ShortValue.SELECTOR: return new ShortValue(ois.readShort());
-		case StorageReference.SELECTOR: return StorageReference.mk(TransactionReference.from(ois), unmarshallBigInteger(ois));
+		case StorageReference.SELECTOR: return new StorageReference(TransactionReference.from(ois), unmarshallBigInteger(ois));
 		case StringValue.SELECTOR: return new StringValue(ois.readUTF());
 		default:
 			if (selector < 0)
