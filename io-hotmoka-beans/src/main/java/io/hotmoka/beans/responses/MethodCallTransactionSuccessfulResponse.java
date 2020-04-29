@@ -20,6 +20,7 @@ import io.hotmoka.beans.values.StorageValue;
 @Immutable
 public class MethodCallTransactionSuccessfulResponse extends MethodCallTransactionResponse implements TransactionResponseWithEvents {
 	final static byte SELECTOR = 9;
+	final static byte SELECTOR_NO_EVENTS = 10;
 
 	/**
 	 * The return value of the method.
@@ -82,9 +83,10 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		oos.writeByte(SELECTOR);
+		oos.writeByte(events.length == 0 ? SELECTOR_NO_EVENTS : SELECTOR);
 		super.into(oos);
 		result.into(oos);
-		intoArrayWithoutSelector(events, oos);
+		if (events.length > 0)
+			intoArrayWithoutSelector(events, oos);
 	}
 }

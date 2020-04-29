@@ -21,6 +21,7 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransferTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -133,6 +134,16 @@ public abstract class TakamakaTest {
 
 	/**
 	 * Takes care of computing the next nonce.
+	 * @throws CodeExecutionException 
+	 * @throws TransactionException 
+	 */
+	protected final void addTransferTransaction(StorageReference caller, BigInteger gasPrice, Classpath classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		BigInteger nonce = getNonceOf(caller, classpath);
+		node.addInstanceMethodCallTransaction(new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch));
+	}
+
+	/**
+	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue runViewInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		return node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, receiver, actuals));
@@ -156,6 +167,14 @@ public abstract class TakamakaTest {
 	protected final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException {
 		BigInteger nonce = getNonceOf(caller, classpath);
 		return node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals));
+	}
+
+	/**
+	 * Takes care of computing the next nonce.
+	 */
+	protected final CodeSupplier<StorageValue> postTransferTransaction(StorageReference caller, BigInteger gasPrice, Classpath classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException {
+		BigInteger nonce = getNonceOf(caller, classpath);
+		return node.postInstanceMethodCallTransaction(new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch));
 	}
 
 	/**

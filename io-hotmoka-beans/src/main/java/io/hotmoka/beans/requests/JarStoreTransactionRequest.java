@@ -12,7 +12,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * A request for a transaction that installs a jar in an initialized blockchain.
+ * A request for a transaction that installs a jar in an initialized node.
  */
 @Immutable
 public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreTransactionResponse> implements AbstractJarStoreTransactionRequest {

@@ -6,7 +6,7 @@ import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
 
 /**
- * A request for a transaction that installs a jar in a blockchain.
+ * A request for a transaction that installs a jar in a node.
  */
 @Immutable
 public interface AbstractJarStoreTransactionRequest {

@@ -13,7 +13,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 
 /**
- * A request for calling a static method of a storage class in blockchain.
+ * A request for calling a static method of a storage class in a node.
  */
 @Immutable
 public abstract class MethodCallTransactionRequest extends CodeExecutionTransactionRequest<MethodCallTransactionResponse> {

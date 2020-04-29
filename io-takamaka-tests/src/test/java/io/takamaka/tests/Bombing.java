@@ -17,11 +17,8 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.constants.Constants;
 
@@ -32,7 +29,6 @@ class Bombing extends TakamakaTest {
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final int TRANSFERS = 1500;
 	private static final int ACCOUNTS = 16;
-	private static final VoidMethodSignature RECEIVE = new VoidMethodSignature(Constants.PAYABLE_CONTRACT_NAME, "receive", BasicTypes.INT);
 	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
 
 	@BeforeEach
@@ -55,13 +51,13 @@ class Bombing extends TakamakaTest {
 			}
 			while (to == from); // we want a different account than from
 
-			IntValue amount = new IntValue(1 + random.nextInt(10));
+			int amount = 1 + random.nextInt(10);
 			//System.out.println(amount + ": " + from + " -> " + to);
 			if (i < TRANSFERS - 1)
-				postInstanceMethodCallTransaction(from, _10_000, ZERO, takamakaCode(), RECEIVE, to, amount);
+				postTransferTransaction(from, ZERO, takamakaCode(), to, amount);
 			else
 				// the last transaction requires to wait until everything is committed
-				addInstanceMethodCallTransaction(from, _10_000, ZERO, takamakaCode(), RECEIVE, to, amount);
+				addTransferTransaction(from, ZERO, takamakaCode(), to, amount);
 		}
 
 		long time = System.currentTimeMillis() - start;

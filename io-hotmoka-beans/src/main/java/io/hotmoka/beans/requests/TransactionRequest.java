@@ -105,6 +105,36 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 
 			return new StaticMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 		}
+		case TransferTransactionRequest.SELECTOR_TRANSFER_INT: {
+			StorageReference caller = StorageReference.from(ois);
+			BigInteger gasPrice = unmarshallBigInteger(ois);
+			Classpath classpath = Classpath.from(ois);
+			BigInteger nonce = unmarshallBigInteger(ois);
+			StorageReference receiver = StorageReference.from(ois);
+			int howMuch = ois.readInt();
+
+			return new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch);
+		}
+		case TransferTransactionRequest.SELECTOR_TRANSFER_LONG: {
+			StorageReference caller = StorageReference.from(ois);
+			BigInteger gasPrice = unmarshallBigInteger(ois);
+			Classpath classpath = Classpath.from(ois);
+			BigInteger nonce = unmarshallBigInteger(ois);
+			StorageReference receiver = StorageReference.from(ois);
+			long howMuch = ois.readLong();
+
+			return new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch);
+		}
+		case TransferTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER: {
+			StorageReference caller = StorageReference.from(ois);
+			BigInteger gasPrice = unmarshallBigInteger(ois);
+			Classpath classpath = Classpath.from(ois);
+			BigInteger nonce = unmarshallBigInteger(ois);
+			StorageReference receiver = StorageReference.from(ois);
+			BigInteger howMuch = unmarshallBigInteger(ois);
+
+			return new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch);
+		}
 		default: throw new IOException("unexpected request selector: " + selector);
 		}
 	}

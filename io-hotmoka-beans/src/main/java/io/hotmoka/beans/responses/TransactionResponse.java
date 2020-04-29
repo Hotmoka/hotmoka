@@ -91,6 +91,16 @@ public abstract class TransactionResponse extends Marshallable {
 
 			return new ConstructorCallTransactionSuccessfulResponse(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
+		case ConstructorCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: {
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+			Stream<StorageReference> events = Stream.empty();
+			StorageReference newObject = StorageReference.from(ois);
+
+			return new ConstructorCallTransactionSuccessfulResponse(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		}
 		case MethodCallTransactionExceptionResponse.SELECTOR: {
 			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
@@ -125,12 +135,31 @@ public abstract class TransactionResponse extends Marshallable {
 
 			return new MethodCallTransactionSuccessfulResponse(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
+		case MethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: {
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+			StorageValue result = StorageValue.from(ois);
+			Stream<StorageReference> events = Stream.empty();
+
+			return new MethodCallTransactionSuccessfulResponse(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		}
 		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR: {
 			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			Stream<StorageReference> events = Stream.of(unmarshallingOfArray(StorageReference::from, StorageReference[]::new, ois));		
+
+			return new VoidMethodCallTransactionSuccessfulResponse(updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		}
+		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: {
+			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
+			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
+			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
+			Stream<StorageReference> events = Stream.empty();		
 
 			return new VoidMethodCallTransactionSuccessfulResponse(updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}

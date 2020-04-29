@@ -10,7 +10,7 @@ import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 
 /**
- * A request for a transaction that installs a jar in a yet not initialized blockchain.
+ * A request for a transaction that installs a jar in a yet not initialized node.
  */
 @Immutable
 public class JarStoreInitialTransactionRequest extends InitialTransactionRequest<JarStoreInitialTransactionResponse> implements AbstractJarStoreTransactionRequest {

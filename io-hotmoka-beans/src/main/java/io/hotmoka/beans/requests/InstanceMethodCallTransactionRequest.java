@@ -11,7 +11,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 
 /**
- * A request for calling an instance method of a storage object in blockchain.
+ * A request for calling an instance method of a storage object in a node.
  */
 @Immutable
 public class InstanceMethodCallTransactionRequest extends MethodCallTransactionRequest {
