@@ -4,6 +4,9 @@ import java.math.BigInteger;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.GuardedBy;
 import io.hotmoka.beans.references.TransactionReference;
@@ -12,6 +15,7 @@ import io.takamaka.code.engine.ResponseBuilder;
 
 public class Mempool {
 	public final static int MAX_CAPACITY = 200_000;
+	private final static Logger logger = LoggerFactory.getLogger(Mempool.class);
 
 	private final BlockingQueue<RequestWithId> mempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
 	private final BlockingQueue<RequestWithId> checkedMempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
@@ -68,6 +72,7 @@ public class Mempool {
 					//System.out.println(current + ": checked");
 				}
 				catch (TransactionRejectedException e) {
+					
 					node.setTransactionErrorFor(current.id, e.getMessage());
 					node.releaseWhoWasWaitingFor(current.request);
 				}
@@ -86,19 +91,19 @@ public class Mempool {
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
 				RequestWithId current = checkedMempool.take();
-				//System.out.println(current + ": delivering");
 
 				try {
 					ResponseBuilder<?,?> builder = node.checkTransaction(current.request);
 					TransactionReference next = node.nextAndIncrement();
 					node.deliverTransaction(builder, next);
 					node.setTransactionReferenceFor(current.id, next);
-					//System.out.println(current + ": delivered");
 				}
 				catch (TransactionRejectedException e) {
+					logger.error("failed delivering", e);
 					node.setTransactionErrorFor(current.id, e.getMessage());
 				}
 	            catch (Throwable t) {
+	            	logger.error("failed delivering", t);
 	            	node.setTransactionErrorFor(current.id, t.toString());
 	    		}
 

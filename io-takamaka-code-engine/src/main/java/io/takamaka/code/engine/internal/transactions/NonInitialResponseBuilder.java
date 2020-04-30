@@ -145,7 +145,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 					increaseNonceOfCaller();
 			}
 			catch (Throwable t) {
-				throw new TransactionRejectedException(t);
+				throw wrapAsTransactionRejectedException(t);
 			}
 		}
 
@@ -304,12 +304,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		/**
 		 * Checks if the caller has the same nonce as the request.
 		 * 
-		 * @throws IllegalArgumentException if the nonce of the caller is not equal to that in {@code request}
+		 * @throws TransactionRejectedException if the nonce of the caller is not equal to that in {@code request}
 		 */
-		private void callerAndRequestMustAgreeOnNonce() {
+		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 			BigInteger expected = classLoader.getNonceOf(deserializedCaller);
 			if (!expected.equals(request.nonce))
-				throw new IllegalArgumentException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
+				throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
 		}
 
 		/**
@@ -322,14 +322,14 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		/**
 		 * Sells to the caller of the transaction all gas promised for the transaction.
 		 * 
-		 * @throws IllegalStateException if the caller has not enough money to buy the promised gas
+		 * @throws TransactionRejectedException if the caller has not enough money to buy the promised gas
 		 */
-		private void sellAllGasToCaller() {
+		private void sellAllGasToCaller() throws TransactionRejectedException {
 			BigInteger balance = classLoader.getBalanceOf(deserializedCaller);
 			BigInteger cost = costOf(request.gasLimit);
 
 			if (balance.subtract(cost).signum() < 0)
-				throw new IllegalStateException("caller has not enough funds to buy " + request.gasLimit + " units of gas");
+				throw new TransactionRejectedException("caller has not enough funds to buy " + request.gasLimit + " units of gas");
 
 			classLoader.setBalanceOf(deserializedCaller, balance.subtract(cost));
 		}
