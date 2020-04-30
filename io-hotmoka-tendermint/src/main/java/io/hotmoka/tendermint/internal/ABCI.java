@@ -1,10 +1,10 @@
 package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -41,7 +41,9 @@ import types.Types.ResponseSetOption;
 class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	private final TendermintBlockchainImpl node;
 
-    /**
+	private final static Logger logger = LoggerFactory.getLogger(ABCI.class);
+
+	/**
     * The current time of the blockchain, set at the time of creation of each block.
     */
     private long now;
@@ -90,13 +92,14 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	responseBuilder.setCode(0);
         }
         catch (TransactionRejectedException e) {
+        	logger.error("checkTx failed", e);
         	responseBuilder.setCode(1);
         	responseBuilder.setInfo(e.getMessage());
         	if (request != null)
         		node.releaseWhoWasWaitingFor(request);
 		}
         catch (Throwable t) {
-        	t.printStackTrace();
+        	logger.error("checkTx failed", t);
         	responseBuilder.setCode(2);
         	responseBuilder.setInfo(t.toString());
         	if (request != null)
@@ -148,13 +151,15 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	TransactionReference next = node.nextAndIncrement();
         	node.deliverTransaction(node.checkTransaction(request), next);
         	responseBuilder.setCode(0);
-        	responseBuilder.setData(byteStringSerializationOf(next));
+        	responseBuilder.setData(ByteString.copyFrom(next.toByteArray()));
         }
         catch (TransactionRejectedException e) {
+        	logger.error("deliverTx failed", e);
         	responseBuilder.setCode(1);
         	responseBuilder.setInfo(e.getMessage());
         }
         catch (Throwable t) {
+        	logger.error("deliverTx failed", t);
         	responseBuilder.setCode(2);
         	responseBuilder.setInfo(t.toString());
         }
@@ -225,20 +230,5 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
      */
     long getNow() {
 		return now;
-	}
-
-	/**
-	 * Serializes the given object into a byte string.
-	 * 
-	 * @param object the object
-	 * @return the serialization of {@code object}
-	 * @throws IOException if serialization fails
-	 */
-	private static ByteString byteStringSerializationOf(TransactionReference reference) throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			reference.into(oos);
-			oos.flush();
-			return ByteString.copyFrom(baos.toByteArray());
-		}
 	}
 }
