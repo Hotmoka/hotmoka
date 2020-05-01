@@ -93,7 +93,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @return the wrapped or original exception
 	 */
 	protected final static TransactionRejectedException wrapAsTransactionRejectedException(Throwable t) {
-		return t instanceof TransactionRejectedException ? (TransactionRejectedException) t : new TransactionRejectedException(t.getMessage());
+		return t instanceof TransactionRejectedException ? (TransactionRejectedException) t : new TransactionRejectedException(t);
 	}
 
 	/**

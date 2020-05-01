@@ -92,6 +92,8 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 */
 	final State state;
 
+	//private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
+
 	/**
 	 * Builds a Tendermint blockchain and initializes user accounts with the given initial funds.
 	 * This constructor spawns the Tendermint process on localhost and connects it to an ABCI application
@@ -342,7 +344,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected TransactionResponse getResponseAtInternal(TransactionReference transactionReference) throws Exception {
-		return state.getResponseOf(transactionReference)
+		return state.getResponse(transactionReference)
 			.orElseThrow(() -> new IllegalStateException("cannot find no response for transaction " + transactionReference));
 	}
 
@@ -384,7 +386,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
-		return state.getHistoryOf(object).orElseGet(Stream::empty);
+		return state.getHistory(object).orElseGet(Stream::empty);
 	}
 
 	@Override
@@ -394,7 +396,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	protected void expandStoreWith(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
-		state.putResponseOf(reference, response);
+		state.putResponse(reference, response);
 		super.expandStoreWith(reference, request, response);
 	}
 

@@ -4,11 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
@@ -17,6 +18,7 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.takamaka.code.engine.LRUCache;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.ExodusException;
@@ -25,7 +27,6 @@ import jetbrains.exodus.env.Environments;
 import jetbrains.exodus.env.Store;
 import jetbrains.exodus.env.StoreConfig;
 import jetbrains.exodus.env.Transaction;
-import jetbrains.exodus.env.TransactionalComputable;
 
 /**
  * The state of the blockchain. It is a transactional database that keeps
@@ -34,53 +35,52 @@ import jetbrains.exodus.env.TransactionalComputable;
  * its hash is stored in blockchain at the end of each block, for consensus.
  */
 class State implements AutoCloseable {
+
+	/**
+	 * The exodus environment that holds the state.
+	 */
 	private final Environment env;
 
 	/**
-	 * The transaction that contains all changes from begin of block to commit of block.
+	 * The transaction that accumulates all changes from begin of block to commit of block.
 	 */
 	private Transaction txn;
 
+	/**
+	 * The store that holds the responses to the transactions.
+	 */
 	private Store responses;
-	private final Map<TransactionReference, TransactionResponse> responsesRecent = new HashMap<>();
 
+	/**
+	 * The store that holds the history of each storage reference, ie, a list of
+	 * transaction references where the storage reference has been updated.
+	 */
 	private Store history;
-    private final Map<StorageReference, TransactionReference[]> historyRecent = new HashMap<>();
 
+	/**
+	 * A cache in memory to speed up access to {@linkplain #history}.
+	 */
+	private final LRUCache<StorageReference, TransactionReference[]> historyRecent = new LRUCache<>(10_000);
+
+	/**
+	 * The store the holds miscellaneous information about the state.
+	 */
     private Store info;
 
     /**
-     * The name of the store where responses of transactions are kept.
-     */
-    private final static String RESPONSES = "responses";
-
-    /**
-     * The name of the store that keeps, for each storage reference, the list of
-     * transaction references where that storage reference has been modified,
-     * from youngest to oldest.
-     */
-    private final static String HISTORY = "history";
-
-    /**
-     * The name of the store that keeps information about the state, for
-     * instance the height of the last processed block.
-     */
-    private final static String INFO = "info";
-
-    /**
-     * The key used inside the {@code INFO} store to keep the transaction reference
+     * The key used inside {@linkplain #info} to keep the transaction reference
      * that installed the Takamaka base classes in blockchain.
      */
     private final static ByteIterable TAKAMAKA_CODE = ArrayByteIterable.fromByte((byte) 0);
 
     /**
-     * The key used inside the {@code INFO} store to keep the transaction reference
+     * The key used inside {@linkplain #info} to keep the transaction reference
      * that installed a user jar in blockchain, if any. This is mainly used to simplify the tests.
      */
     private final static ByteIterable JAR = ArrayByteIterable.fromByte((byte) 1);
 
     /**
-     * The key used inside the {@code INFO} store to keep the storage references
+     * The key used inside {@linkplain #info} to keep the storage references
      * of the initial accounts in blockchain, created in the constructor of
      * {@linkplain io.hotmoka.tendermint.internal.TendermintBlockchainImpl}.
      * This is an array of storage references, from the first account to the last account.
@@ -88,22 +88,26 @@ class State implements AutoCloseable {
     private final static ByteIterable ACCOUNTS = ArrayByteIterable.fromByte((byte) 2);
 
     /**
-     * The key used inside the {@code INFO} store to keep the number of
-     * commits executed with this state.
+     * The key used inside {@linkplain #info} to keep the number of commits executed over this state.
      */
     private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 3);
 
     /**
-     * The key used inside the {@code INFO} store to know if the blockchain is initialized.
+     * The key used inside {@linkplain #info} to know if the blockchain is initialized.
      */
     private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 4);
 
     /**
-     * The key used inside the {@code INFO} store to know the last committed transaction reference.
+     * The key used inside {@linkplain #info} to know the last committed transaction reference.
      */
     private final static ByteIterable NEXT = ArrayByteIterable.fromByte((byte) 4);
 
+    /**
+     * The time spent inside the state procedures, for profiling.
+     */
     private long stateTime;
+
+    private final static Logger logger = LoggerFactory.getLogger(State.class);
 
     /**
      * Creates a state that gets persisted inside the given directory.
@@ -116,9 +120,9 @@ class State implements AutoCloseable {
 
     	// we enforce that all stores are created
     	env.executeInTransaction(txn -> {
-    		responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
-            history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
-            info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+    		responses = env.openStore("responses", StoreConfig.WITHOUT_DUPLICATES, txn);
+            history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
+            info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
 		});
 
     	stateTime += (System.currentTimeMillis() - start);
@@ -126,16 +130,16 @@ class State implements AutoCloseable {
 
     @Override
     public void close() {
-    	//System.out.println("state time: " + stateTime);
     	if (txn != null && !txn.isFinished())
-    		// blockchain closed with uncommitted transactions: we commit them
-    		commitTransaction();
+    		// blockchain closed with yet uncommitted transactions: we commit them
+    		if (!txn.commit())
+    			logger.info("transaction commit returned false");
 
     	try {
     		env.close();
     	}
     	catch (ExodusException e) {
-    		// this seems a big in Exodus: jetbrains.exodus.ExodusException: Finish all transactions before closing database environment
+    		logger.info("failed to close environment", e);
     	}
     }
 
@@ -147,42 +151,50 @@ class State implements AutoCloseable {
 	void beginTransaction() {
 		long start = System.currentTimeMillis();
 		txn = env.beginTransaction();
-        responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
-        responsesRecent.clear();
-        history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
-        historyRecent.clear();
-        info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
+        responses = env.openStore("responses", StoreConfig.WITHOUT_DUPLICATES, txn);
+        history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
+        info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
         stateTime += (System.currentTimeMillis() - start);
 	}
 
 	/**
-	 * Commits all updates during the current transaction.
+	 * Commits all updates occurred during the current transaction.
 	 */
 	void commitTransaction() {
 		long start = System.currentTimeMillis();
 		increaseNumberOfCommits();
-		txn.commit();
+		if (!txn.commit())
+			logger.info("transaction commit returned false");
+
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
 	/**
 	 * Puts in state the result of a transaction having the given reference.
 	 * 
-	 * @param transactionReference the reference of the transaction
+	 * @param reference the reference of the transaction
 	 * @param response the response of the transaction
 	 * @throws IOException if the response cannot be saved in state
 	 */
-	void putResponseOf(TransactionReference transactionReference, TransactionResponse response) throws IOException {
+	void putResponse(TransactionReference reference, TransactionResponse response) throws IOException {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> responses.put(txn, intoByteArray(transactionReference), intoByteArray(response)));
-		responsesRecent.put(transactionReference, response);
+		env.executeInTransaction(txn -> responses.put(txn, intoByteArray(reference), intoByteArray(response)));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
+	/**
+	 * Sets the history of the given object.
+	 * 
+	 * @param object the object
+	 * @param history the history, that is, the references to the transactions that
+	 *                can contain the current values of the fields of the object
+	 */
 	void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		long start = System.currentTimeMillis();
 		TransactionReference[] historyAsArray = history.toArray(TransactionReference[]::new);
-		env.executeInTransaction(txn -> this.history.put(txn, intoByteArray(object), intoByteArray(historyAsArray)));
+		ArrayByteIterable historyAsByteArray = intoByteArray(historyAsArray);
+		ArrayByteIterable objectAsByteArray = intoByteArray(object);
+		env.executeInTransaction(txn -> this.history.put(txn, objectAsByteArray, historyAsByteArray));
 		historyRecent.put(object, historyAsArray);
 		stateTime += (System.currentTimeMillis() - start);
 	}
@@ -195,7 +207,8 @@ class State implements AutoCloseable {
 	 */
 	void putTakamakaCode(Classpath takamakaCode) {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, TAKAMAKA_CODE, intoByteArray(takamakaCode)));
+		ArrayByteIterable takamakaCodeAsByteArray = intoByteArray(takamakaCode);
+		env.executeInTransaction(txn -> info.put(txn, TAKAMAKA_CODE, takamakaCodeAsByteArray));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -207,13 +220,20 @@ class State implements AutoCloseable {
 	 */
 	void putJar(Classpath jar) {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, JAR, intoByteArray(jar)));
+		ArrayByteIterable jarAsByteArray = intoByteArray(jar);
+		env.executeInTransaction(txn -> info.put(txn, JAR, jarAsByteArray));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
+	/**
+	 * Puts in state the reference that can be used for the next transaction.
+	 * 
+	 * @param next the reference
+	 */
 	void putNext(TransactionReference next) {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, NEXT, intoByteArray(next)));
+		ArrayByteIterable nextAsByteArray = intoByteArray(next);
+		env.executeInTransaction(txn -> info.put(txn, NEXT, nextAsByteArray));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -224,7 +244,8 @@ class State implements AutoCloseable {
 	 */
 	void addAccount(StorageReference account) {
 		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, intoByteArrayWithoutSelector(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new))));
+		ArrayByteIterable accountsAsByteArray = intoByteArrayWithoutSelector(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new));
+		env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, accountsAsByteArray));
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -238,49 +259,48 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Yields the result of a transaction having the given reference.
+	 * Yields the response of the transaction having the given reference.
 	 * 
-	 * @param transactionReference the reference of the transaction
+	 * @param reference the reference of the transaction
 	 * @return the response, if any
 	 */
-	Optional<TransactionResponse> getResponseOf(TransactionReference transactionReference) {
+	Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		long start = System.currentTimeMillis();
-		TransactionResponse result = responsesRecent.get(transactionReference);
-		if (result != null)
-			return Optional.of(result);
 
-		return env.computeInReadonlyTransaction(txn -> {
-			Store responses = env.openStore(RESPONSES, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable response = responses.get(txn, intoByteArray(transactionReference));
-			stateTime += (System.currentTimeMillis() - start);
-			return response == null ? Optional.empty() : Optional.of(fromByteArray(TransactionResponse::from, response));
-		});
+		ArrayByteIterable referenceAsByteArray = intoByteArray(reference);
+		ByteIterable responseAsByteArray = env.computeInReadonlyTransaction(txn -> responses.get(txn, referenceAsByteArray));
+		stateTime += (System.currentTimeMillis() - start);
+
+		return responseAsByteArray == null ? Optional.empty() : Optional.of(fromByteArray(TransactionResponse::from, responseAsByteArray));
 	}
 
-	Optional<Stream<TransactionReference>> getHistoryOf(StorageReference object) {
+	/**
+	 * Yields the history of the given object, that is, the references of the transactions
+	 * that provide information about the current values of its fields.
+	 * 
+	 * @param object the reference of the object
+	 * @return the history, if any
+	 */
+	Optional<Stream<TransactionReference>> getHistory(StorageReference object) {
 		long start = System.currentTimeMillis();
 		TransactionReference[] result = historyRecent.get(object);
 		if (result != null)
 			return Optional.of(Stream.of(result));
 
-		return env.computeInReadonlyTransaction(txn -> {
-			Store history = env.openStore(HISTORY, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable old = history.get(txn, intoByteArray(object));
-			stateTime += (System.currentTimeMillis() - start);
-			return old == null ? Optional.empty() : Optional.of(Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, old)));
-		});
+		ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> history.get(txn, intoByteArray(object)));
+		stateTime += (System.currentTimeMillis() - start);
+
+		return historyAsByteArray == null ? Optional.empty() : Optional.of(Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray)));
 	}
 
+	/**
+	 * Yields the number of commits already performed over this state.
+	 * 
+	 * @return the number of commits
+	 */
 	long getNumberOfCommits() {
-		long start = System.currentTimeMillis();
-		TransactionalComputable<Long> computable = txn -> {
-			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable count = info.get(txn, COMMIT_COUNT);
-			stateTime += (System.currentTimeMillis() - start);
-			return count == null ? 0L : Long.valueOf(new String(count.getBytesUnsafe()));
-		};
-
-		return env.computeInReadonlyTransaction(computable);
+		ByteIterable count = getFromInfo(COMMIT_COUNT);
+		return count == null ? 0L : Long.valueOf(new String(count.getBytesUnsafe()));
 	}
 
 	/**
@@ -289,13 +309,8 @@ class State implements AutoCloseable {
 	 * @return the classpath
 	 */
 	Optional<Classpath> getTakamakaCode() {
-		long start = System.currentTimeMillis();
-		return env.computeInReadonlyTransaction(txn -> {
-			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable takamakaCode = info.get(txn, TAKAMAKA_CODE);
-			stateTime += (System.currentTimeMillis() - start);
-			return takamakaCode == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, takamakaCode));
-		});
+		ByteIterable takamakaCode = getFromInfo(TAKAMAKA_CODE);
+		return takamakaCode == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, takamakaCode));
 	}
 
 	/**
@@ -305,23 +320,18 @@ class State implements AutoCloseable {
 	 * @return the classpath
 	 */
 	Optional<Classpath> getJar() {
-		long start = System.currentTimeMillis();
-		return env.computeInReadonlyTransaction(txn -> {
-			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable jar = info.get(txn, JAR);
-			stateTime += (System.currentTimeMillis() - start);
-			return jar == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, jar));
-		});
+		ByteIterable jar = getFromInfo(JAR);
+		return jar == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, jar));
 	}
 
+	/**
+	 * Yields the reference that can be used for the next transaction.
+	 * 
+	 * @return the reference, if any
+	 */
 	Optional<TransactionReference> getNext() {
-		long start = System.currentTimeMillis();
-		return env.computeInReadonlyTransaction(txn -> {
-			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable next = info.get(txn, NEXT);
-			stateTime += (System.currentTimeMillis() - start);
-			return next == null ? Optional.empty() : Optional.of(fromByteArray(LocalTransactionReference::from, next));
-		});
+		ByteIterable next = getFromInfo(NEXT);
+		return next == null ? Optional.empty() : Optional.of(fromByteArray(LocalTransactionReference::from, next));
 	}
 
 	/**
@@ -330,34 +340,38 @@ class State implements AutoCloseable {
 	 * @return the accounts, as an ordered stream from the first to the last account
 	 */
 	Stream<StorageReference> getAccounts() {
-		long start = System.currentTimeMillis();
-		return env.computeInReadonlyTransaction(txn -> {
-			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
-			ByteIterable accounts = info.get(txn, ACCOUNTS);
-			stateTime += (System.currentTimeMillis() - start);
-			return accounts == null ? Stream.empty() : Stream.of(fromByteArray(StorageReference::from, StorageReference[]::new, accounts));
-		});
+		ByteIterable accounts = getFromInfo(ACCOUNTS);
+		return accounts == null ? Stream.empty() : Stream.of(fromByteArray(StorageReference::from, StorageReference[]::new, accounts));
 	}
 
 	/**
-	 * Yields the initialized property from this state.
+	 * Determines if the blockchain is already initialized.
 	 * 
 	 * @return true if and only if {@code markAsInitialized()} has been already called
 	 */
 	boolean isInitialized() {
-		long start = System.currentTimeMillis();
-
-		TransactionalComputable<Boolean> computable = txn -> {
-			Store info = env.openStore(INFO, StoreConfig.WITHOUT_DUPLICATES, txn);
-			stateTime += (System.currentTimeMillis() - start);
-			return info.get(txn, INITIALIZED) != null;
-		};
-
-		return env.computeInReadonlyTransaction(computable);
+		return getFromInfo(INITIALIZED) != null;
 	}
 
+	/**
+	 * Increases the number of commits performed over this state.
+	 */
 	private void increaseNumberOfCommits() {
-		info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(getNumberOfCommits() + 1).getBytes()));
+		env.executeInTransaction(txn ->
+			info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(getNumberOfCommits() + 1).getBytes())));
+	}
+
+	/**
+	 * Yields the value of the given property in the info store.
+	 * 
+	 * @return true if and only if {@code markAsInitialized()} has been already called
+	 */
+	private ByteIterable getFromInfo(ByteIterable key) {
+		long start = System.currentTimeMillis();
+		return env.computeInReadonlyTransaction(txn -> {
+			stateTime += (System.currentTimeMillis() - start);
+			return info.get(txn, key);
+		});
 	}
 
 	private static ArrayByteIterable intoByteArray(Marshallable marshallable) throws UncheckedIOException {
