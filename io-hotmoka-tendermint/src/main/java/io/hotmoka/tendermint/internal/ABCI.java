@@ -38,16 +38,24 @@ import types.Types.ResponseQuery;
 import types.Types.ResponseQuery.Builder;
 import types.Types.ResponseSetOption;
 
+/**
+ * The Tendermint interface that links a Hotmoka Tendermint node to a Tendermint process.
+ * It implements a set of handlers that Tendermint calls to notify events.
+ */
 class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
+
+	/**
+	 * The Tendermint blockchain linked to Tendermint.
+	 */
 	private final TendermintBlockchainImpl node;
 
 	private final static Logger logger = LoggerFactory.getLogger(ABCI.class);
 
-	/**
-    * The current time of the blockchain, set at the time of creation of each block.
-    */
-    private long now;
-
+    /**
+     * Builds the Tendermint ABCI interface that executes Takamaka transactions.
+     * 
+     * @param node
+     */
     ABCI(TendermintBlockchainImpl node) {
     	this.node = node;
     }
@@ -61,27 +69,22 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void info(RequestInfo req, StreamObserver<ResponseInfo> responseObserver) {
-    	//System.out.print("[info");
         ResponseInfo resp = ResponseInfo.newBuilder()
         		//.setLastBlockAppHash(ByteString.copyFrom(new byte[8])) // LastBlockAppHash
-        		.setLastBlockHeight(node.state.getNumberOfCommits()).build();
+        		.setLastBlockHeight(node.getNumberOfCommits()).build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        //System.out.println("]");
     }
 
     @Override
     public void setOption(RequestSetOption req, StreamObserver<ResponseSetOption> responseObserver) {
-    	System.out.print("[setOption");
         ResponseSetOption resp = ResponseSetOption.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("]");
     }
 
     @Override
     public void checkTx(RequestCheckTx tendermintRequest, StreamObserver<ResponseCheckTx> responseObserver) {
-    	//System.out.print("[checkTx");
         ByteString tx = tendermintRequest.getTx();
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
@@ -92,14 +95,14 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	responseBuilder.setCode(0);
         }
         catch (TransactionRejectedException e) {
-        	logger.error("checkTx failed", e);
+        	logger.error("failed to check transaction request", e);
         	responseBuilder.setCode(1);
         	responseBuilder.setInfo(e.getMessage());
         	if (request != null)
         		node.releaseWhoWasWaitingFor(request);
 		}
         catch (Throwable t) {
-        	logger.error("checkTx failed", t);
+        	logger.error("failed to check transaction request", t);
         	responseBuilder.setCode(2);
         	responseBuilder.setInfo(t.toString());
         	if (request != null)
@@ -111,38 +114,27 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        //System.out.println("]");
     }
 
     @Override
     public void initChain(RequestInitChain req, StreamObserver<ResponseInitChain> responseObserver) {
-    	//System.out.print("[initChain");
         ResponseInitChain resp = ResponseInitChain.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        //System.out.println("]");
     }
 
     @Override
     public void beginBlock(RequestBeginBlock req, StreamObserver<ResponseBeginBlock> responseObserver) {
-    	//System.out.print("[beginBlock");
-    	node.state.beginTransaction();
-    	//System.out.println("committed " + req.getHeader().getNumTxs() + " transactions");
-        Timestamp time = req.getHeader().getTime();
-    	now = time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L;
+    	Timestamp time = req.getHeader().getTime();
+    	node.beginBlock(time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L);
         ResponseBeginBlock resp = ResponseBeginBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        //System.out.print("]");
     }
-
-    //private long deliverTxTime;
 
     @Override
     public synchronized void deliverTx(RequestDeliverTx tendermintRequest, StreamObserver<ResponseDeliverTx> responseObserver) {
     	ByteString tx = tendermintRequest.getTx();
-        //System.out.print("[deliverTx ");
-        //long start = System.currentTimeMillis();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
         TransactionRequest<?> request = null;
@@ -154,12 +146,12 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	responseBuilder.setData(ByteString.copyFrom(next.toByteArray()));
         }
         catch (TransactionRejectedException e) {
-        	logger.error("deliverTx failed", e);
+        	logger.error("failed delivering transaction", e);
         	responseBuilder.setCode(1);
         	responseBuilder.setInfo(e.getMessage());
         }
         catch (Throwable t) {
-        	logger.error("deliverTx failed", t);
+        	logger.error("failed delivering transaction", t);
         	responseBuilder.setCode(2);
         	responseBuilder.setInfo(t.toString());
         }
@@ -169,66 +161,38 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         responseObserver.onCompleted();
 
         if (request != null)
-    		node.releaseWhoWasWaitingFor(request);
-        //deliverTxTime += (System.currentTimeMillis() - start);
-        //System.out.println(deliverTxTime + "]");
+        	node.releaseWhoWasWaitingFor(request);
     }
 
     @Override
     public void endBlock(RequestEndBlock req, StreamObserver<ResponseEndBlock> responseObserver) {
-    	//System.out.print("[endBlock");
         ResponseEndBlock resp = ResponseEndBlock.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        //System.out.print("]");
     }
 
     @Override
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
-    	//System.out.print("[commit");
-    	node.state.commitTransaction();
+    	node.commitBlock();
         ResponseCommit resp = ResponseCommit.newBuilder()
                 //.setData(ByteString.copyFrom(new byte[8])) // hash of the Merkle root of the application state
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        //System.out.print("]");
     }
 
     @Override
     public void query(RequestQuery req, StreamObserver<ResponseQuery> responseObserver) {
-    	System.out.print("[query");
-        /*byte[] k = req.getData().toByteArray();
-        byte[] v = getPersistedValue(k);*/
-        Builder builder = ResponseQuery.newBuilder();
-        /*if (v == null)
-            builder.setLog("does not exist");
-        else {*/
-            builder.setLog("exists");
-            //builder.setKey(ByteString.copyFrom(k));
-            //builder.setValue(ByteString.copyFrom(v));
-        //}
+        Builder builder = ResponseQuery.newBuilder().setLog("nop");
         ResponseQuery resp = builder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-        System.out.println("]");
     }
 
     @Override
     public void flush(RequestFlush request, StreamObserver<ResponseFlush> responseObserver) {
-    	//System.out.println("flush");
     	ResponseFlush resp = ResponseFlush.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }
-
-    /**
-     * Yields the current time of the blockchain, set at the time of
-     * creation of each block.
-     * 
-     * @return the current time
-     */
-    long getNow() {
-		return now;
-	}
 }

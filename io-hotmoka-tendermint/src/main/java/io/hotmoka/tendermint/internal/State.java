@@ -18,7 +18,6 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.takamaka.code.engine.LRUCache;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.ExodusException;
@@ -56,11 +55,6 @@ class State implements AutoCloseable {
 	 * transaction references where the storage reference has been updated.
 	 */
 	private Store history;
-
-	/**
-	 * A cache in memory to speed up access to {@linkplain #history}.
-	 */
-	private final LRUCache<StorageReference, TransactionReference[]> historyRecent = new LRUCache<>(10_000);
 
 	/**
 	 * The store the holds miscellaneous information about the state.
@@ -195,7 +189,6 @@ class State implements AutoCloseable {
 		ArrayByteIterable historyAsByteArray = intoByteArray(historyAsArray);
 		ArrayByteIterable objectAsByteArray = intoByteArray(object);
 		env.executeInTransaction(txn -> this.history.put(txn, objectAsByteArray, historyAsByteArray));
-		historyRecent.put(object, historyAsArray);
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
@@ -279,18 +272,15 @@ class State implements AutoCloseable {
 	 * that provide information about the current values of its fields.
 	 * 
 	 * @param object the reference of the object
-	 * @return the history, if any
+	 * @return the history. Yields an empty stream if there is no history for {@code object}
 	 */
-	Optional<Stream<TransactionReference>> getHistory(StorageReference object) {
+	Stream<TransactionReference> getHistory(StorageReference object) {
 		long start = System.currentTimeMillis();
-		TransactionReference[] result = historyRecent.get(object);
-		if (result != null)
-			return Optional.of(Stream.of(result));
 
 		ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> history.get(txn, intoByteArray(object)));
 		stateTime += (System.currentTimeMillis() - start);
 
-		return historyAsByteArray == null ? Optional.empty() : Optional.of(Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray)));
+		return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
 	}
 
 	/**

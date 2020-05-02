@@ -28,6 +28,11 @@ public class Mempool {
 	private final Thread checker;
 	private final Thread deliverer;
 
+	/**
+	 * Builds a mempool.
+	 * 
+	 * @param node
+	 */
 	Mempool(AbstractMemoryBlockchain node) {
 		this.node = node;
 		this.id = BigInteger.ZERO;
@@ -63,20 +68,19 @@ public class Mempool {
 				RequestWithId current = mempool.take();
 
 				try {
-					//System.out.println(current + ": checking");
 					node.checkTransaction(current.request);
 					if (!checkedMempool.offer(current)) {
 						deliverer.interrupt();
 						throw new IllegalStateException("mempool overflow");
 					}
-					//System.out.println(current + ": checked");
 				}
 				catch (TransactionRejectedException e) {
-					
+					logger.error("failed to check transaction request", e);
 					node.setTransactionErrorFor(current.id, e.getMessage());
 					node.releaseWhoWasWaitingFor(current.request);
 				}
 	            catch (Throwable t) {
+	            	logger.error("failed to check transaction request", t);
 	            	node.setTransactionErrorFor(current.id, t.toString());
 	            	node.releaseWhoWasWaitingFor(current.request);
 	    		}
@@ -99,11 +103,11 @@ public class Mempool {
 					node.setTransactionReferenceFor(current.id, next);
 				}
 				catch (TransactionRejectedException e) {
-					logger.error("failed delivering", e);
+					logger.error("failed delivering transaction", e);
 					node.setTransactionErrorFor(current.id, e.getMessage());
 				}
 	            catch (Throwable t) {
-	            	logger.error("failed delivering", t);
+	            	logger.error("failed delivering transaction", t);
 	            	node.setTransactionErrorFor(current.id, t.toString());
 	    		}
 

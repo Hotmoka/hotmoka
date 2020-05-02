@@ -85,6 +85,11 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 */
 	private final LRUCache<TransactionRequest<?>, ResponseBuilder<?,?>> builders = new LRUCache<>(10_000);
 
+	/**
+	 * A cache for {@linkplain #getHistory(StorageReference)}.
+	 */
+	private final LRUCache<StorageReference, TransactionReference[]> historyCache = new LRUCache<>(10_000);
+
 	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
 
 	private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -99,6 +104,8 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 */
 	private final Object lockGetNext = new Object();
 
+	private final ConcurrentMap<TransactionRequest<?>, Semaphore> semaphores = new ConcurrentHashMap<>();
+
 	/**
 	 * Sets the reference that will be used to refer to the next transaction that will be executed
 	 * with this node.
@@ -112,41 +119,6 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	}
 
 	/**
-	 * This method is called when a view transaction gets scheduled for execution.
-	 * It must yield a transaction reference that can be used to reference the
-	 * scheduled transaction at that moment. This method must be
-	 * thread-safe, that is, more thread must be able to call into it.
-	 * 
-	 * @return the transaction reference
-	 */
-	protected final TransactionReference next() {
-		synchronized (lockGetNext) {
-			return next;
-		}
-	}
-
-	/**
-	 * This method is called when a non-view transaction gets scheduled for execution.
-	 * It must yield a transaction reference that can be used to reference the
-	 * scheduled transaction at that moment. It is guaranteed that next time this
-	 * method will be called, a different reference will be returned, never seen
-	 * before. This method must be thread-safe, that is, more thread must be able to call into it.
-	 * 
-	 * @return the transaction reference
-	 */
-	protected TransactionReference nextAndIncrement() {
-		TransactionReference result;
-	
-		synchronized (lockGetNext) {
-			result = next;
-			next = next.getNext();
-			setNext(next);
-		}
-	
-		return result;
-	}
-
-	/**
 	 * Yields the history of the given object, that is,
 	 * the references to the transactions that might have updated the
 	 * given object, in reverse chronological order (from newest to oldest).
@@ -157,10 +129,10 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 * 
 	 * @param object the object whose update history must be looked for
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest). If {@code object} has currently no history, can yield an
+	 *         (from newest to oldest). If {@code object} has currently no history, it can yield an
 	 *         empty stream, but never throw an exception
 	 */
-	protected abstract Stream<TransactionReference> getHistoryOf(StorageReference object);
+	protected abstract Stream<TransactionReference> getHistory(StorageReference object);
 
 	/**
 	 * Sets the history of the given object, that is,
@@ -171,29 +143,9 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 * 
 	 * @param object the object whose history is set
 	 * @param history the stream that will become the history of the object,
-	 *                replacing its previous history, if any
+	 *                replacing its previous history
 	 */
 	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
-
-	/**
-	 * Process the updates contained in the given response, expanding the history of the affected objects.
-	 * This method should be called at the end of a transaction, to keep in store the updates to the objects.
-	 * 
-	 * @param transactionReference the transaction that has generated the given response
-	 * @param response the response
-	 * @throws Exception if the history could not be expanded
-	 */
-	private void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws Exception {
-		// we collect the storage references that have been updated in the response; for each of them,
-		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
-		// in front of such lists and store back the updated lists, replacing the old ones
-		Stream<StorageReference> affectedObjects = response.getUpdates()
-			.map(Update::getObject)
-			.distinct();
-	
-		for (StorageReference object: affectedObjects.toArray(StorageReference[]::new))
-			setHistory(object, simplifiedHistoryOf(object, transactionReference, response, getHistoryOf(object)));
-	}
 
 	/**
 	 * Determines if this node allows to execute initial transactions.
@@ -247,6 +199,10 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	private static long requests;
 	private static long responses;
 
+	public long checkTime;
+
+	public long deliverTime;
+
 	/**
 	 * Runs the given task with the executor service of this node.
 	 * 
@@ -269,7 +225,38 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		executor.submit(what);
 	}
 
-	public long checkTime, deliverTime;
+	/**
+	 * Yields the transaction reference that will be used to refer to the
+	 * next transaction that will be executed with this node.
+	 * This-method is thread-safe.
+	 * 
+	 * @return the transaction reference
+	 */
+	public final TransactionReference next() {
+		synchronized (lockGetNext) {
+			return next;
+		}
+	}
+
+	/**
+	 * Yields the transaction reference that will be used to refer to the
+	 * next transaction that will be executed with this node. Increments that
+	 * reference, so that next call will yield a different reference.
+	 * This method is thread-safe.
+	 * 
+	 * @return the transaction reference
+	 */
+	public final TransactionReference nextAndIncrement() {
+		TransactionReference result;
+	
+		synchronized (lockGetNext) {
+			result = next;
+			next = next.getNext();
+			setNext(next);
+		}
+	
+		return result;
+	}
 
 	/**
 	 * Checks that the given transaction request is valid.
@@ -311,6 +298,11 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		deliverTime += (System.currentTimeMillis() - start);
 	}
 
+	/**
+	 * Releases who was waiting for the result of the given request, if any.
+	 * 
+	 * @param request the request
+	 */
 	public final void releaseWhoWasWaitingFor(TransactionRequest<?> request) {
 		Semaphore semaphore = semaphores.remove(request);
 		if (semaphore != null)
@@ -389,7 +381,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	@Override
 	public final UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
-		for (TransactionReference transaction: getHistoryOf(object).collect(Collectors.toList())) {
+		for (TransactionReference transaction: getHistoryWithCache(object).collect(Collectors.toList())) {
 			Optional<UpdateOfField> update = getLastUpdateFor(object, field, transaction, chargeForCPU);
 			if (update.isPresent())
 				return update.get();
@@ -495,22 +487,6 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		});
 	}
 
-	private void createSemaphoreFor(TransactionRequest<?> request) {
-		Semaphore semaphore = new Semaphore(0);
-		if (semaphores.putIfAbsent(request, semaphore) != null)
-			throw new IllegalStateException("repeated request");
-	}
-
-	private final ConcurrentMap<TransactionRequest<?>, Semaphore> semaphores = new ConcurrentHashMap<>();
-
-	private TransactionResponse waitForResponseOf(TransactionRequest<?> request, String id) throws Exception {
-		Semaphore semaphore = semaphores.get(request);
-		if (semaphore != null)
-			semaphore.acquire();
-
-		return getResponseAt(getTransactionReferenceFor(id));
-	}
-
 	@Override
 	public final CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
@@ -521,7 +497,82 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		});
 	}
 
-	private Stream<TransactionReference> simplifiedHistoryOf(StorageReference object, TransactionReference added, TransactionResponseWithUpdates response, Stream<TransactionReference> old) throws Exception {
+	/**
+	 * Yields the history of the given object, that is,
+	 * the references to the transactions that might have updated the
+	 * given object, in reverse chronological order (from newest to oldest).
+	 * This stream is an over-approximation, hence it might also contain transactions
+	 * that did not affect the object, but it must include all that did it.
+	 * If the node has some form of commit, this history must include also
+	 * transactions executed but not yet committed.
+	 * It uses a cache for repeated calls.
+	 * 
+	 * @param object the object whose update history must be looked for
+	 * @return the transactions that compose the history of {@code object}, as an ordered stream
+	 *         (from newest to oldest). If {@code object} has currently no history, it can yield an
+	 *         empty stream, but never throw an exception
+	 */
+	private Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
+		TransactionReference[] result = historyCache.get(object);
+		if (result != null)
+			return Stream.of(result);
+	
+		return getHistory(object);
+	}
+
+	/**
+	 * Sets the history of the given object, that is,
+	 * the references to the transactions that might have updated the
+	 * given object, in reverse chronological order (from newest to oldest).
+	 * This stream is an over-approximation, hence it might also contain transactions
+	 * that did not affect the object, but it must include all that did it.
+	 * It puts the history in a cache for future quick look-up.
+	 * 
+	 * @param object the object whose history is set
+	 * @param history the stream that will become the history of the object,
+	 *                replacing its previous history
+	 */
+	private void setHistoryWithCache(StorageReference object, List<TransactionReference> history) {
+		TransactionReference[] historyAsArray = history.toArray(new TransactionReference[history.size()]);
+		setHistory(object, history.stream());
+		historyCache.put(object, historyAsArray);
+	}
+
+	/**
+	 * Process the updates contained in the given response, expanding the history of the affected objects.
+	 * This method should be called at the end of a transaction, to keep in store the updates to the objects.
+	 * 
+	 * @param transactionReference the transaction that has generated the given response
+	 * @param response the response
+	 * @throws Exception if the history could not be expanded
+	 */
+	private void expandHistoryWith(TransactionReference transactionReference, TransactionResponseWithUpdates response) throws Exception {
+		// we collect the storage references that have been updated in the response; for each of them,
+		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
+		// in front of such lists and store back the updated lists, replacing the old ones
+		Stream<StorageReference> affectedObjects = response.getUpdates()
+			.map(Update::getObject)
+			.distinct();
+	
+		for (StorageReference object: affectedObjects.toArray(StorageReference[]::new))
+			setHistoryWithCache(object, simplifiedHistoryOf(object, transactionReference, response, getHistoryWithCache(object)));
+	}
+
+	private void createSemaphoreFor(TransactionRequest<?> request) {
+		Semaphore semaphore = new Semaphore(0);
+		if (semaphores.putIfAbsent(request, semaphore) != null)
+			throw new IllegalStateException("repeated request");
+	}
+
+	private TransactionResponse waitForResponseOf(TransactionRequest<?> request, String id) throws Exception {
+		Semaphore semaphore = semaphores.get(request);
+		if (semaphore != null)
+			semaphore.acquire();
+
+		return getResponseAt(getTransactionReferenceFor(id));
+	}
+
+	private List<TransactionReference> simplifiedHistoryOf(StorageReference object, TransactionReference added, TransactionResponseWithUpdates response, Stream<TransactionReference> old) throws Exception {
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
 		Set<Update> covered = response.getUpdates().filter(update -> update.getObject() == object).collect(Collectors.toSet());
@@ -537,7 +588,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		if (length >= 1)
 			simplified.add(oldAsArray[length - 1]);
 	
-		return simplified.stream();
+		return simplified;
 	}
 
 	private void addIfUseful(TransactionReference cursor, StorageReference object, Set<Update> covered, List<TransactionReference> simplified) throws Exception {
@@ -579,7 +630,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 */
 	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields, Consumer<BigInteger> chargeForCPU) throws Exception {
 		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
-		for (TransactionReference transaction: getHistoryOf(object).collect(Collectors.toList()))
+		for (TransactionReference transaction: getHistoryWithCache(object).collect(Collectors.toList()))
 			if (updates.size() <= eagerFields)
 				addEagerUpdatesFor(object, transaction, updates, chargeForCPU);
 			else

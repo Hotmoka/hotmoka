@@ -160,11 +160,6 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	protected TransactionReference nextAndIncrement() {
-		return super.nextAndIncrement();
-	}
-
-	@Override
 	public void close() throws Exception {
 		mempool.stop();
 		super.close();
@@ -201,7 +196,7 @@ public abstract class AbstractMemoryBlockchain extends AbstractNode {
 	}
 
 	@Override
-	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
+	protected Stream<TransactionReference> getHistory(StorageReference object) {
 		TransactionReference[] history = histories.get(object);
 		return history == null ? Stream.empty() : Stream.of(history);
 	}

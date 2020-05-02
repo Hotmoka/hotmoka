@@ -78,7 +78,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 */
 	private boolean initialized;
 
-    private final Server server;
+	/**
+	 * The current time of the blockchain, set at the time of creation of each block.
+	 */
+	private long now;
+
+	private final Server server;
 
 	private final ABCI abci;
 
@@ -90,7 +95,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	/**
 	 * The state where blockchain data is persisted.
 	 */
-	final State state;
+	private final State state;
 
 	//private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
 
@@ -349,11 +354,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	protected TransactionReference nextAndIncrement() {
-		return super.nextAndIncrement();
-	}
-
-	@Override
 	protected Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception {
 		String response = tendermint.broadcastTxAsync(request);
 
@@ -381,12 +381,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	public long getNow() throws Exception {
-		return abci.getNow();
+		return now;
 	}
 
 	@Override
-	protected Stream<TransactionReference> getHistoryOf(StorageReference object) {
-		return state.getHistory(object).orElseGet(Stream::empty);
+	protected Stream<TransactionReference> getHistory(StorageReference object) {
+		return state.getHistory(object);
 	}
 
 	@Override
@@ -411,6 +411,34 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			state.markAsInitialized();
 			initialized = true;
 		}
+	}
+
+	/**
+	 * Yields the number of commits already performed with thi sblockchain.
+	 * 
+	 * @return the number of commits
+	 */
+	long getNumberOfCommits() {
+		return state.getNumberOfCommits();
+	}
+
+	/**
+	 * Starts a new block, at the given time.
+	 * This is called by the ABCI when it needs to create a new block.
+	 * 
+	 * @param now the time when the block is being created
+	 */
+	void beginBlock(long now) {
+		state.beginTransaction();
+		this.now = now;
+	}
+
+	/**
+	 * Commits the current block.
+	 * This is called by the ABCI when it needs to commit the current block.
+	 */
+	void commitBlock() {
+		state.commitTransaction();
 	}
 
 	/**
