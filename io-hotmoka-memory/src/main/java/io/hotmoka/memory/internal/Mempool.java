@@ -75,12 +75,12 @@ public class Mempool {
 					}
 				}
 				catch (TransactionRejectedException e) {
-					logger.error("failed to check transaction request", e);
+					logger.info("Failed to check transaction request", e);
 					node.setTransactionErrorFor(current.id, e.getMessage());
 					node.releaseWhoWasWaitingFor(current.request);
 				}
 	            catch (Throwable t) {
-	            	logger.error("failed to check transaction request", t);
+	            	logger.error("Failed to check transaction request", t);
 	            	node.setTransactionErrorFor(current.id, t.toString());
 	            	node.releaseWhoWasWaitingFor(current.request);
 	    		}
@@ -103,11 +103,11 @@ public class Mempool {
 					node.setTransactionReferenceFor(current.id, next);
 				}
 				catch (TransactionRejectedException e) {
-					logger.error("failed delivering transaction", e);
+					logger.info("Failed delivering transaction", e);
 					node.setTransactionErrorFor(current.id, e.getMessage());
 				}
 	            catch (Throwable t) {
-	            	logger.error("failed delivering transaction", t);
+	            	logger.error("Failed delivering transaction", t);
 	            	node.setTransactionErrorFor(current.id, t.toString());
 	    		}
 

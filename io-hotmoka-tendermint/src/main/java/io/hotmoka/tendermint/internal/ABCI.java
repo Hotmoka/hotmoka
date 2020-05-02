@@ -95,14 +95,14 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	responseBuilder.setCode(0);
         }
         catch (TransactionRejectedException e) {
-        	logger.error("failed to check transaction request", e);
+        	logger.info("Failed to check transaction request", e);
         	responseBuilder.setCode(1);
         	responseBuilder.setInfo(e.getMessage());
         	if (request != null)
         		node.releaseWhoWasWaitingFor(request);
 		}
         catch (Throwable t) {
-        	logger.error("failed to check transaction request", t);
+        	logger.error("Failed to check transaction request", t);
         	responseBuilder.setCode(2);
         	responseBuilder.setInfo(t.toString());
         	if (request != null)
@@ -146,12 +146,12 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	responseBuilder.setData(ByteString.copyFrom(next.toByteArray()));
         }
         catch (TransactionRejectedException e) {
-        	logger.error("failed delivering transaction", e);
+        	logger.info("Failed delivering transaction", e);
         	responseBuilder.setCode(1);
         	responseBuilder.setInfo(e.getMessage());
         }
         catch (Throwable t) {
-        	logger.error("failed delivering transaction", t);
+        	logger.error("Failed delivering transaction", t);
         	responseBuilder.setCode(2);
         	responseBuilder.setInfo(t.toString());
         }

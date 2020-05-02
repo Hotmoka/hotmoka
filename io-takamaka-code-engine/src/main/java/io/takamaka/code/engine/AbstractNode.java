@@ -21,6 +21,9 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -105,6 +108,21 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	private final Object lockGetNext = new Object();
 
 	private final ConcurrentMap<TransactionRequest<?>, Semaphore> semaphores = new ConcurrentHashMap<>();
+
+	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
+
+	//private static long requests;
+	//private static long responses;
+
+	/**
+	 * The time spent for checking requests.
+	 */
+	private long checkTime;
+
+	/**
+	 * The time spent for delivering transactions.
+	 */
+	private long deliverTime;
 
 	/**
 	 * Sets the reference that will be used to refer to the next transaction that will be executed
@@ -196,12 +214,8 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		System.out.println("requests = " + requests + " [+" + diff1 + "]" + " and responses = " + responses + " [+" + diff2 + "]");*/
 	}
 
-	private static long requests;
-	private static long responses;
-
-	public long checkTime;
-
-	public long deliverTime;
+	//private static long requests;
+	//private static long responses;
 
 	/**
 	 * Runs the given task with the executor service of this node.
@@ -312,6 +326,9 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	@Override
 	public void close() throws Exception {
 		executor.shutdown();
+
+		logger.info("Time spent checking requests: " + checkTime + "ms");
+		logger.info("Time spent delivering requests: " + deliverTime + "ms");
 	}
 
 	@Override

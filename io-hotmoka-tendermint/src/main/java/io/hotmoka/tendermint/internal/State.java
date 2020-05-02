@@ -32,6 +32,22 @@ import jetbrains.exodus.env.Transaction;
  * information about the state of the objects created by the transactions executed
  * by the blockchain. Such information is not kept in blockchain, but only
  * its hash is stored in blockchain at the end of each block, for consensus.
+ * The information kept in state consists in:
+ * 
+ * <ul>
+ * <li> a map from transaction reference to the response computed for that transaction
+ * <li> a map from storage reference to the transaction references that contribute
+ *      to the fields of the storage object at that reference
+ * <li> some miscellaneous control information, such as  where the jar with basic
+ *      Takamaka classes is installed, or which is the reference that must be
+ *      used for the next transaction 
+ * </ul>
+ * 
+ * This information is added in store by put methods and accessed through get methods.
+ * Information between a begin transaction and commit transaction is committed into
+ * the file system.
+ * 
+ * The implementation of this state uses JetBrains's Xodus transactional database.
  */
 class State implements AutoCloseable {
 
@@ -62,6 +78,11 @@ class State implements AutoCloseable {
     private Store info;
 
     /**
+	 * The time spent inside the state procedures, for profiling.
+	 */
+	private long stateTime;
+
+	/**
      * The key used inside {@linkplain #info} to keep the transaction reference
      * that installed the Takamaka base classes in blockchain.
      */
@@ -96,11 +117,6 @@ class State implements AutoCloseable {
      */
     private final static ByteIterable NEXT = ArrayByteIterable.fromByte((byte) 4);
 
-    /**
-     * The time spent inside the state procedures, for profiling.
-     */
-    private long stateTime;
-
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
     /**
@@ -109,17 +125,16 @@ class State implements AutoCloseable {
      * @param dir the directory where the state is persisted
      */
     State(String dir) {
-    	long start = System.currentTimeMillis();
     	this.env = Environments.newInstance(dir);
 
-    	// we enforce that all stores are created
-    	env.executeInTransaction(txn -> {
-    		responses = env.openStore("responses", StoreConfig.WITHOUT_DUPLICATES, txn);
-            history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
-            info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
-		});
-
-    	stateTime += (System.currentTimeMillis() - start);
+    	// enforces that all stores exist
+    	recordTime(() ->
+    		env.executeInTransaction(txn -> {
+    			responses = env.openStore("responses", StoreConfig.WITHOUT_DUPLICATES, txn);
+    			history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
+    			info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
+    		})
+    	);
     }
 
     @Override
@@ -127,14 +142,16 @@ class State implements AutoCloseable {
     	if (txn != null && !txn.isFinished())
     		// blockchain closed with yet uncommitted transactions: we commit them
     		if (!txn.commit())
-    			logger.info("transaction commit returned false");
+    			logger.error("Transaction commit returned false");
 
     	try {
     		env.close();
     	}
     	catch (ExodusException e) {
-    		logger.info("failed to close environment", e);
+    		logger.error("Failed to close environment", e);
     	}
+
+    	logger.info("Time spent in state procedures: " + stateTime + "ms");
     }
 
     /**
@@ -142,25 +159,24 @@ class State implements AutoCloseable {
      * if the transaction will later be committed. This is called at the beginning
      * of the execution of the transactions inside a block.
      */
-	void beginTransaction() {
-		long start = System.currentTimeMillis();
-		txn = env.beginTransaction();
-        responses = env.openStore("responses", StoreConfig.WITHOUT_DUPLICATES, txn);
-        history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
-        info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
-        stateTime += (System.currentTimeMillis() - start);
-	}
+    void beginTransaction() {
+    	recordTime(() -> {
+    		txn = env.beginTransaction();
+    		responses = env.openStore("responses", StoreConfig.USE_EXISTING, txn);
+    		history = env.openStore("history", StoreConfig.USE_EXISTING, txn);
+    		info = env.openStore("info", StoreConfig.USE_EXISTING, txn);
+    	});
+    }
 
 	/**
 	 * Commits all updates occurred during the current transaction.
 	 */
 	void commitTransaction() {
-		long start = System.currentTimeMillis();
-		increaseNumberOfCommits();
-		if (!txn.commit())
-			logger.info("transaction commit returned false");
-
-		stateTime += (System.currentTimeMillis() - start);
+		recordTime(() -> {
+			increaseNumberOfCommits();
+			if (!txn.commit())
+				logger.info("Transaction commit returned false");
+		});
 	}
 
 	/**
@@ -168,12 +184,13 @@ class State implements AutoCloseable {
 	 * 
 	 * @param reference the reference of the transaction
 	 * @param response the response of the transaction
-	 * @throws IOException if the response cannot be saved in state
 	 */
-	void putResponse(TransactionReference reference, TransactionResponse response) throws IOException {
-		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> responses.put(txn, intoByteArray(reference), intoByteArray(response)));
-		stateTime += (System.currentTimeMillis() - start);
+	void putResponse(TransactionReference reference, TransactionResponse response) {
+		recordTime(() -> {
+			ByteIterable referenceAsByteArray = intoByteArray(reference);
+			ByteIterable responseAsByteArray = intoByteArray(response);
+			env.executeInTransaction(txn -> responses.put(txn, referenceAsByteArray, responseAsByteArray));
+		});
 	}
 
 	/**
@@ -184,12 +201,11 @@ class State implements AutoCloseable {
 	 *                can contain the current values of the fields of the object
 	 */
 	void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		long start = System.currentTimeMillis();
-		TransactionReference[] historyAsArray = history.toArray(TransactionReference[]::new);
-		ArrayByteIterable historyAsByteArray = intoByteArray(historyAsArray);
-		ArrayByteIterable objectAsByteArray = intoByteArray(object);
-		env.executeInTransaction(txn -> this.history.put(txn, objectAsByteArray, historyAsByteArray));
-		stateTime += (System.currentTimeMillis() - start);
+		recordTime(() -> {
+			ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
+			ByteIterable objectAsByteArray = intoByteArray(object);
+			env.executeInTransaction(txn -> this.history.put(txn, objectAsByteArray, historyAsByteArray));
+		});
 	}
 
 	/**
@@ -199,10 +215,10 @@ class State implements AutoCloseable {
 	 * @param takamakaCode the classpath
 	 */
 	void putTakamakaCode(Classpath takamakaCode) {
-		long start = System.currentTimeMillis();
-		ArrayByteIterable takamakaCodeAsByteArray = intoByteArray(takamakaCode);
-		env.executeInTransaction(txn -> info.put(txn, TAKAMAKA_CODE, takamakaCodeAsByteArray));
-		stateTime += (System.currentTimeMillis() - start);
+		recordTime(() -> {
+			ByteIterable takamakaCodeAsByteArray = intoByteArray(takamakaCode);
+			env.executeInTransaction(txn -> info.put(txn, TAKAMAKA_CODE, takamakaCodeAsByteArray));
+		});
 	}
 
 	/**
@@ -212,10 +228,10 @@ class State implements AutoCloseable {
 	 * @param takamakaCode the classpath
 	 */
 	void putJar(Classpath jar) {
-		long start = System.currentTimeMillis();
-		ArrayByteIterable jarAsByteArray = intoByteArray(jar);
-		env.executeInTransaction(txn -> info.put(txn, JAR, jarAsByteArray));
-		stateTime += (System.currentTimeMillis() - start);
+		recordTime(() -> {
+			ByteIterable jarAsByteArray = intoByteArray(jar);
+			env.executeInTransaction(txn -> info.put(txn, JAR, jarAsByteArray));
+		});
 	}
 
 	/**
@@ -224,10 +240,10 @@ class State implements AutoCloseable {
 	 * @param next the reference
 	 */
 	void putNext(TransactionReference next) {
-		long start = System.currentTimeMillis();
-		ArrayByteIterable nextAsByteArray = intoByteArray(next);
-		env.executeInTransaction(txn -> info.put(txn, NEXT, nextAsByteArray));
-		stateTime += (System.currentTimeMillis() - start);
+		recordTime(() -> {
+			ByteIterable nextAsByteArray = intoByteArray(next);
+			env.executeInTransaction(txn -> info.put(txn, NEXT, nextAsByteArray));
+		});
 	}
 
 	/**
@@ -236,19 +252,17 @@ class State implements AutoCloseable {
 	 * @param account the storage reference of the account to add
 	 */
 	void addAccount(StorageReference account) {
-		long start = System.currentTimeMillis();
-		ArrayByteIterable accountsAsByteArray = intoByteArrayWithoutSelector(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new));
-		env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, accountsAsByteArray));
-		stateTime += (System.currentTimeMillis() - start);
+		recordTime(() -> {
+			ByteIterable accountsAsByteArray = intoByteArrayWithoutSelector(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new));
+			env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, accountsAsByteArray));
+		});
 	}
 
 	/**
 	 * Sets the initialized property in this state.
 	 */
 	void markAsInitialized() {
-		long start = System.currentTimeMillis();
-		env.executeInTransaction(txn -> info.put(txn, INITIALIZED, ByteIterable.EMPTY));
-		stateTime += (System.currentTimeMillis() - start);
+		recordTime(() -> env.executeInTransaction(txn -> info.put(txn, INITIALIZED, ByteIterable.EMPTY)));
 	}
 
 	/**
@@ -258,13 +272,11 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		long start = System.currentTimeMillis();
-
-		ArrayByteIterable referenceAsByteArray = intoByteArray(reference);
-		ByteIterable responseAsByteArray = env.computeInReadonlyTransaction(txn -> responses.get(txn, referenceAsByteArray));
-		stateTime += (System.currentTimeMillis() - start);
-
-		return responseAsByteArray == null ? Optional.empty() : Optional.of(fromByteArray(TransactionResponse::from, responseAsByteArray));
+		return recordTime(() -> {
+			ByteIterable referenceAsByteArray = intoByteArray(reference);
+			ByteIterable responseAsByteArray = env.computeInReadonlyTransaction(txn -> responses.get(txn, referenceAsByteArray));
+			return responseAsByteArray == null ? Optional.empty() : Optional.of(fromByteArray(TransactionResponse::from, responseAsByteArray));
+		});
 	}
 
 	/**
@@ -275,12 +287,10 @@ class State implements AutoCloseable {
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
 	 */
 	Stream<TransactionReference> getHistory(StorageReference object) {
-		long start = System.currentTimeMillis();
-
-		ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> history.get(txn, intoByteArray(object)));
-		stateTime += (System.currentTimeMillis() - start);
-
-		return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+		return recordTime(() -> {
+			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> history.get(txn, intoByteArray(object)));
+			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+		});
 	}
 
 	/**
@@ -347,8 +357,9 @@ class State implements AutoCloseable {
 	 * Increases the number of commits performed over this state.
 	 */
 	private void increaseNumberOfCommits() {
-		env.executeInTransaction(txn ->
-			info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(getNumberOfCommits() + 1).getBytes())));
+		recordTime(() -> 
+			env.executeInTransaction(txn ->
+				info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(getNumberOfCommits() + 1).getBytes()))));
 	}
 
 	/**
@@ -357,11 +368,35 @@ class State implements AutoCloseable {
 	 * @return true if and only if {@code markAsInitialized()} has been already called
 	 */
 	private ByteIterable getFromInfo(ByteIterable key) {
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> info.get(txn, key)));
+	}
+
+	/**
+	 * Executes the given task, taking note of the time required for it.
+	 * 
+	 * @param task the task
+	 */
+	private void recordTime(Runnable task) {
 		long start = System.currentTimeMillis();
-		return env.computeInReadonlyTransaction(txn -> {
-			stateTime += (System.currentTimeMillis() - start);
-			return info.get(txn, key);
-		});
+		task.run();
+		stateTime += (System.currentTimeMillis() - start);
+	}
+
+	private interface TimedTask<T> {
+		T call();
+	}
+
+	/**
+	 * Executes the given task, taking note of the time required for it.
+	 * 
+	 * @param task the task
+	 * @throws Exception 
+	 */
+	private <T> T recordTime(TimedTask<T> task) {
+		long start = System.currentTimeMillis();
+		T result = task.call();
+		stateTime += (System.currentTimeMillis() - start);
+		return result;
 	}
 
 	private static ArrayByteIterable intoByteArray(Marshallable marshallable) throws UncheckedIOException {

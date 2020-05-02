@@ -83,6 +83,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 */
 	private long now;
 
+	/**
+	 * True if this blockchain has been closed already. Useful to avoid double-closing in the
+	 * shutdown hook.
+	 */
+	private volatile boolean closed;
+
 	private final Server server;
 
 	private final ABCI abci;
@@ -312,18 +318,22 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	public void close() throws Exception {
-		super.close();
+		if (!closed) {
+			super.close();
 
-		if (tendermint != null)
-			tendermint.close();
+			if (tendermint != null)
+				tendermint.close();
 
-		if (server != null && !server.isShutdown()) {
-			server.shutdown();
-			server.awaitTermination();
+			if (server != null && !server.isShutdown()) {
+				server.shutdown();
+				server.awaitTermination();
+			}
+
+			if (state != null)
+				state.close();
+
+			closed = true;
 		}
-
-		if (state != null)
-			state.close();
 	}
 
 	@Override
