@@ -1,13 +1,9 @@
 package io.hotmoka.memory;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
 import io.hotmoka.nodes.InitializedNode;
 
@@ -26,13 +22,10 @@ public interface MemoryBlockchain extends InitializedNode {
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode()}
 	 * @param funds the initial funds of the accounts that are created
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
-	 * @throws TransactionRejectedException if some transaction could not be started
+	 * @throws Exception if the blockchain could not be created
 	 */
-	static MemoryBlockchain of(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
-		return new MemoryBlockchainImpl(takamakaCodePath, Optional.empty(), funds);
+	static MemoryBlockchain of(Path takamakaCodePath, BigInteger... funds) throws Exception {
+		return new MemoryBlockchainImpl(takamakaCodePath, Optional.empty(), false, funds);
 	}
 
 	/**
@@ -41,15 +34,12 @@ public interface MemoryBlockchain extends InitializedNode {
 	 * account are red/green externally owned accounts.
 	 * 
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
-	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.RedGreenMemoryBlockchain#takamakaCode()}
+	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode()}
 	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
 	 *              initial funds of each account (green before red)
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
-	 * @throws TransactionRejectedException if some transaction could not be started
+	 * @throws Exception if the blockchain could not be created
 	 */
-	static MemoryBlockchain ofRedGreen(Path takamakaCodePath, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
+	static MemoryBlockchain ofRedGreen(Path takamakaCodePath, BigInteger... funds) throws Exception {
 		return new MemoryBlockchainImpl(takamakaCodePath, Optional.empty(), true, funds);
 	}
 
@@ -60,13 +50,10 @@ public interface MemoryBlockchain extends InitializedNode {
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode()}
 	 * @param jar the path of a user jar that must be installed. This is optional and mainly useful to simplify the implementation of tests
 	 * @param funds the initial funds of the accounts that are created
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
-	 * @throws TransactionRejectedException if some transaction could not be started
+	 * @throws Exception if the blockchain could not be created
 	 */
-	static MemoryBlockchain of(Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
-		return new MemoryBlockchainImpl(takamakaCodePath, Optional.of(jar), funds);
+	static MemoryBlockchain of(Path takamakaCodePath, Path jar, BigInteger... funds) throws Exception {
+		return new MemoryBlockchainImpl(takamakaCodePath, Optional.of(jar), false, funds);
 	}
 
 	/**
@@ -75,15 +62,12 @@ public interface MemoryBlockchain extends InitializedNode {
 	 * account are red/green externally owned accounts.
 	 * 
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
-	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.RedGreenMemoryBlockchain#takamakaCode()}
+	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode()}
 	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
 	 *              initial funds of each account (green before red)
-	 * @throws IOException if a disk error occurs
-	 * @throws TransactionException if some transaction for initialization fails
-	 * @throws CodeExecutionException if some transaction for initialization throws an exception
-	 * @throws TransactionRejectedException if some transaction could not be started
+	 * @throws Exception if the blockchain could not be created
 	 */
-	static MemoryBlockchain ofRedGreen(Path takamakaCodePath, Path jar, BigInteger... funds) throws IOException, TransactionException, CodeExecutionException, TransactionRejectedException {
+	static MemoryBlockchain ofRedGreen(Path takamakaCodePath, Path jar, BigInteger... funds) throws Exception {
 		return new MemoryBlockchainImpl(takamakaCodePath, Optional.of(jar), true, funds);
 	}
 }

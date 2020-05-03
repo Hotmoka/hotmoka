@@ -19,7 +19,7 @@ public class Mempool {
 
 	private final BlockingQueue<RequestWithId> mempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
 	private final BlockingQueue<RequestWithId> checkedMempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
-	private final AbstractMemoryBlockchain node;
+	private final MemoryBlockchainImpl node;
 	private final Object idLock = new Object();
 
 	@GuardedBy("idLock")
@@ -33,7 +33,7 @@ public class Mempool {
 	 * 
 	 * @param node
 	 */
-	Mempool(AbstractMemoryBlockchain node) {
+	Mempool(MemoryBlockchainImpl node) {
 		this.node = node;
 		this.id = BigInteger.ZERO;
 		this.checker = new Thread(this::check);

@@ -12,5 +12,5 @@ module io.takamaka.code.engine {
 	requires io.takamaka.code.instrumentation;
 	requires io.takamaka.code.verification;
 	requires io.takamaka.code.whitelisting;
-	requires slf4j.api;
+	requires org.slf4j;
 }

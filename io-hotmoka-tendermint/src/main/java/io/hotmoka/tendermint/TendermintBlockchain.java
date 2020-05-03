@@ -24,7 +24,7 @@ public interface TendermintBlockchain extends InitializedNode {
 	 * @throws Exception if the blockchain could not be created
 	 */
 	static TendermintBlockchain of(Config config, Path takamakaCodePath, BigInteger... funds) throws Exception {
-		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.empty(), funds);
+		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.empty(), false, funds);
 	}
 
 	/**
@@ -56,7 +56,7 @@ public interface TendermintBlockchain extends InitializedNode {
 	 * @throws Exception if the blockchain could not be created
 	 */
 	static TendermintBlockchain of(Config config, Path takamakaCodePath, Path jar, BigInteger... funds) throws Exception {
-		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.of(jar), funds);
+		return new TendermintBlockchainImpl(config, takamakaCodePath, Optional.of(jar), false, funds);
 	}
 
 	/**

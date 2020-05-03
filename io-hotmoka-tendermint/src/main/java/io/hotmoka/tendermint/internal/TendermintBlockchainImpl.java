@@ -7,10 +7,8 @@ import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -22,18 +20,8 @@ import io.grpc.ServerBuilder;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -42,6 +30,7 @@ import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
 import io.hotmoka.tendermint.internal.beans.TxError;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.Initialization;
 
 /**
  * An implementation of a blockchain integrated over the Tendermint generic
@@ -73,17 +62,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	private final StorageReference[] accounts;
 
 	/**
-	 * True if and only if this node doesn't accept initial transactions anymore.
-	 * This is copy of the information in the state, for efficiency.
-	 */
-	private boolean initialized;
-
-	/**
-	 * The current time of the blockchain, set at the time of creation of each block.
-	 */
-	private long now;
-
-	/**
 	 * True if this blockchain has been closed already. Useful to avoid double-closing in the
 	 * shutdown hook.
 	 */
@@ -103,7 +81,16 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 */
 	private final State state;
 
-	//private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
+	/**
+	 * True if and only if this node doesn't accept initial transactions anymore.
+	 * This is copy of the information in the state, for efficiency.
+	 */
+	private boolean initialized;
+
+	/**
+	 * The current time of the blockchain, set at the time of creation of each block.
+	 */
+	private long now;
 
 	/**
 	 * Builds a Tendermint blockchain and initializes user accounts with the given initial funds.
@@ -112,87 +99,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
-	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
+	 *                         installed in blockchain and will be available later as {@linkplain #takamakaCode()}
 	 * @param jar the path of a jar that must be installed after the creation of the gamete. This is optional and mainly
 	 *            useful to simplify the implementation of tests
-	 * @param funds the initial funds of the accounts that are created
-	 * @throws Exception if the blockchain could not be created
-	 */
-	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, BigInteger... funds) throws Exception {
-		try {
-			this.abci = new ABCI(this);
-			deleteDir(config.dir);
-			this.state = new State(config.dir + "/state");
-			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
-			this.server.start();
-			this.tendermint = new Tendermint(config, true);
-
-			addShutdownHook();
-
-			this.takamakaCode = new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
-			state.putTakamakaCode(takamakaCode);
-
-			// we compute the total amount of funds needed to create the accounts
-			BigInteger sum = Stream.of(funds).reduce(BigInteger.ZERO, BigInteger::add);
-
-			StorageReference gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
-
-			BigInteger nonce = BigInteger.ZERO;
-			JarSupplier jarSupplier;
-
-			if (jar.isPresent()) {
-				jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
-				nonce = nonce.add(BigInteger.ONE);
-			}
-			else
-				jarSupplier = null;
-
-			// let us create the accounts
-			this.accounts = new StorageReference[funds.length];
-			ConstructorSignature constructor = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
-			BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
-			List<CodeSupplier<StorageReference>> accounts = new ArrayList<>();
-
-			for (BigInteger fund: funds) {
-				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(fund))));
-
-				nonce = nonce.add(BigInteger.ONE);
-			}
-
-			int i = 0;
-			for (CodeSupplier<StorageReference> account: accounts)
-				state.addAccount(this.accounts[i++] = account.get());
-
-			if (jar.isPresent()) {
-				this.jar = new Classpath(jarSupplier.get(), true);
-				state.putJar(this.jar);
-			}
-			else
-				this.jar = null;
-		}
-		catch (Throwable t) {
-			try {
-				deleteDir(config.dir); // do not leave zombies behind
-				close();
-			}
-			catch (Exception e2) {}
-
-			throw t;
-		}
-	}
-
-	/**
-	 * Builds a Tendermint blockchain and initializes red/green user accounts with the given initial funds.
-	 * 
-	 * @param config the configuration of the blockchain
-	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
-	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode}
-	 * @param jar the path of a jar that must be installed after the creation of the gamete. This is optional and mainly
-	 *            useful to simplify the implementation of tests
-	 * @param redGreen unused; only meant to distinguish the signature of this constructor from that of the previous one
-	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
-	 *              initial funds of each account (green before red)
+	 * @param redGreen true if a red/green accounts must be created
+	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
+	 *              they must be understood in pairs, each pair for the green/red initial funds of each account (green before red)
 	 * @throws Exception if the blockchain could not be created
 	 */
 	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {
@@ -206,63 +118,17 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 			addShutdownHook();
 
-			this.takamakaCode = new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
+			Initialization init = new Initialization(this, takamakaCodePath, jar.isPresent() ? jar.get() : null, redGreen, funds);
+			this.jar = init.jar;
+			this.accounts = init.accounts().toArray(StorageReference[]::new);
+			this.takamakaCode = init.takamakaCode;
+
 			state.putTakamakaCode(takamakaCode);
+			for (StorageReference account: accounts)
+				state.addAccount(account);
 
-			// we compute the total amount of funds needed to create the accounts
-			BigInteger green = BigInteger.ZERO;
-			for (int pos = 0; pos < funds.length; pos += 2)
-				green = green.add(funds[pos]);
-
-			BigInteger red = BigInteger.ZERO;
-			for (int pos = 1; pos < funds.length; pos += 2)
-				red = red.add(funds[pos]);
-
-			StorageReference gamete = addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode(), green, red));
-
-			BigInteger nonce = BigInteger.ZERO;
-			JarSupplier jarSupplier;
-
-			if (jar.isPresent()) {
-				jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), BigInteger.ZERO, takamakaCode(), Files.readAllBytes(jar.get()), new Classpath(takamakaCode().transaction, true)));
-				nonce = nonce.add(BigInteger.ONE);
-			}
-			else
-				jarSupplier = null;
-
-			// let us create the accounts
-			this.accounts = new StorageReference[funds.length / 2];
-			BigInteger gas = BigInteger.valueOf(10000); // enough for creating an account
-			ConstructorSignature constructor = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER);
-			VoidMethodSignature receiveRed = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
-
-			List<CodeSupplier<StorageReference>> accounts = new ArrayList<>();
-
-			for (int i = 0; i < this.accounts.length; i++) {
-				// the constructor provides the green coins
-				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(), constructor, new BigIntegerValue(funds[i * 2]))));
-
-				nonce = nonce.add(BigInteger.ONE);
-			}
-
-			int i = 0;
-			for (CodeSupplier<StorageReference> account: accounts) {
-				// then we add the red coins
-				state.addAccount(this.accounts[i] = account.get());
-				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, BigInteger.ZERO, takamakaCode(),
-					receiveRed, this.accounts[i], new BigIntegerValue(funds[1 + i * 2])));
-
-				nonce = nonce.add(BigInteger.ONE);
-				i++;
-			}
-
-			if (jar.isPresent()) {
-				this.jar = new Classpath(jarSupplier.get(), true);
+			if (jar.isPresent())
 				state.putJar(this.jar);
-			}
-			else
-				this.jar = null;
 		}
 		catch (Throwable t) {
 			try {
@@ -283,10 +149,9 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * its configuration directory.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @throws IOException if a disk error occurs
-	 * @throws InterruptedException if the Java process has been interrupted while starting Tendermint
+	 * @throws Exception if the blockchain could not be created
 	 */
-	public TendermintBlockchainImpl(Config config) throws IOException, InterruptedException {
+	public TendermintBlockchainImpl(Config config) throws Exception {
 		this.abci = new ABCI(this);
 
 		try {
