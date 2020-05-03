@@ -28,16 +28,6 @@ import io.takamaka.code.engine.AbstractNode;
 class Tendermint implements AutoCloseable {
 
 	/**
-	 * The maximal number of connection attempts to the Tendermint process during ping,
-	 */
-	private final static int MAX_PING_ATTEMPTS = 20;
-
-	/**
-	 * The delay between successive ping attempts.
-	 */
-	private final static int PING_DELAY = 200;
-
-	/**
 	 * The configuration of the blockchain.
 	 */
 	private final Config config;
@@ -108,21 +98,6 @@ class Tendermint implements AutoCloseable {
 	}
 
 	/**
-	 * Sends a {@code tx} request to the Tendermint process, to read the
-	 * committed data about the Tendermint transaction with the given hash.
-	 * 
-	 * @param hash the hash of the Tendermint transaction to look for
-	 * @return the response of Tendermint
-	 * @throws IOException if the connection couldn't be opened or the request could not be sent
-	 */
-	private String tx(String hash) throws IOException, TimeoutException, InterruptedException {
-		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
-			Base64.getEncoder().encodeToString(hexStringToByteArray(hash)) + "\", \"prove\": false }}";
-
-		return postToTendermint(jsonTendermintRequest);
-	}
-
-	/**
 	 * Pools Tendermint until a transaction with the given hash has been successfully committed.
 	 * 
 	 * @param hash the hash of the transaction to look for
@@ -149,6 +124,21 @@ class Tendermint implements AutoCloseable {
 	}
 
 	/**
+	 * Sends a {@code tx} request to the Tendermint process, to read the
+	 * committed data about the Tendermint transaction with the given hash.
+	 * 
+	 * @param hash the hash of the Tendermint transaction to look for
+	 * @return the response of Tendermint
+	 * @throws IOException if the connection couldn't be opened or the request could not be sent
+	 */
+	private String tx(String hash) throws IOException, TimeoutException, InterruptedException {
+		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
+			Base64.getEncoder().encodeToString(hexStringToByteArray(hash)) + "\", \"prove\": false }}";
+	
+		return postToTendermint(jsonTendermintRequest);
+	}
+
+	/**
 	 * Waits until the Tendermint process responds to ping.
 	 * It gives up after {@MAX_CONNECTION_ATTEMPTS}, with an exception.
 	 * 
@@ -156,7 +146,7 @@ class Tendermint implements AutoCloseable {
 	 * @throws InterruptedException if interrupted while pinging
 	 */
 	private void ping() throws IOException, InterruptedException {
-		for (int reconnections = 1; reconnections <= MAX_PING_ATTEMPTS; reconnections++) {
+		for (int reconnections = 1; reconnections <= config.maxPingAttempts; reconnections++) {
 			try {
 				HttpURLConnection connection = openPostConnectionToTendermint();
 				try (OutputStream os = connection.getOutputStream()) {
@@ -165,11 +155,11 @@ class Tendermint implements AutoCloseable {
 			}
 			catch (ConnectException e) {
 				// take a nap, then try again
-				Thread.sleep(PING_DELAY);
+				Thread.sleep(config.pingDelay);
 			}
 		}
 	
-		throw new IOException("Cannot connect to Tendermint process at " + url() + ". Tried " + MAX_PING_ATTEMPTS + " times");
+		throw new IOException("Cannot connect to Tendermint process at " + url() + ". Tried " + config.maxPingAttempts + " times");
 	}
 
 	/**
@@ -235,11 +225,10 @@ class Tendermint implements AutoCloseable {
 	 * @param jsonTendermintRequest the request
 	 * @throws IOException if the request cannot be written
 	 */
-	private static void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
-		int delay = PING_DELAY;
+	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
 		byte[] input = jsonTendermintRequest.getBytes("utf-8");
 
-		for (int i = 0; i < MAX_PING_ATTEMPTS; i++) {
+		for (int i = 0; i < config.maxPingAttempts; i++) {
 			try (OutputStream os = connection.getOutputStream()) {
 				os.write(input, 0, input.length);
 				return;
@@ -247,12 +236,11 @@ class Tendermint implements AutoCloseable {
 			catch (ConnectException e) {
 				// not sure why this happens, randomly. It seems that the connection
 				// to the Tendermint process is flaky
-				Thread.sleep(delay);
-				delay = delay * 130 / 100;
+				Thread.sleep(config.pingDelay);
 			}
 		}
 
-		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + MAX_PING_ATTEMPTS + " times");
+		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + config.maxPingAttempts + " times");
 	}
 
 	/**
