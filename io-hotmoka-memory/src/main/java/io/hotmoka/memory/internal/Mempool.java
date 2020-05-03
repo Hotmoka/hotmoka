@@ -13,25 +13,51 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.takamaka.code.engine.ResponseBuilder;
 
-public class Mempool {
+/**
+ * A mempool receives transaction requests and schedules them for execution,
+ * respecting the order in which they have been proposed.
+ */
+class Mempool {
 	public final static int MAX_CAPACITY = 200_000;
 	private final static Logger logger = LoggerFactory.getLogger(Mempool.class);
 
+	/**
+	 * The queue of requests to check.
+	 */
 	private final BlockingQueue<RequestWithId> mempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
+
+	/**
+	 * The queue of the already checked requests, that still need to be executed.
+	 */
 	private final BlockingQueue<RequestWithId> checkedMempool = new LinkedBlockingDeque<>(MAX_CAPACITY);
+
+	/**
+	 * The node for which requests are executed.
+	 */
 	private final MemoryBlockchainImpl node;
+
 	private final Object idLock = new Object();
 
+	/**
+	 * The next id that can be used for the next submitted request.
+	 */
 	@GuardedBy("idLock")
 	private BigInteger id;
 
+	/**
+	 * The thread that checks requests when they are submitted.
+	 */
 	private final Thread checker;
+
+	/**
+	 * The thread the execution requests that have already been checked.
+	 */
 	private final Thread deliverer;
 
 	/**
 	 * Builds a mempool.
 	 * 
-	 * @param node
+	 * @param node the node for which the mempool works
 	 */
 	Mempool(MemoryBlockchainImpl node) {
 		this.node = node;
@@ -42,6 +68,12 @@ public class Mempool {
 		this.deliverer.start();
 	}
 
+	/**
+	 * Adds a request to the mempool. Eventually, it will be checked and executed.
+	 * 
+	 * @param request the request
+	 * @return the unique identifier that can be used to wait for the outcome of the request
+	 */
 	public String add(TransactionRequest<?> request) {
 		String result;
 
@@ -57,11 +89,17 @@ public class Mempool {
 		return result;
 	}
 
+	/**
+	 * Stops the mempool, by stopping its working threads.
+	 */
 	public void stop() {
 		checker.interrupt();
 		deliverer.interrupt();
 	}
 
+	/**
+	 * The body of the checking thread. Its pops a request from the mempool and checks it.
+	 */
 	private void check() {
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
@@ -91,6 +129,9 @@ public class Mempool {
 		}
 	}
 
+	/**
+	 * The body of the thread that executes requests. Its pops a request from the checked mempool and executes it.
+	 */
 	private void deliver() {
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
@@ -119,8 +160,17 @@ public class Mempool {
 		}
 	}
 
+	/**
+	 * A request with the associated identifier that can be used to wait for its result.
+	 */
 	private static class RequestWithId {
 		private final TransactionRequest<?> request;
+
+		/**
+		 * The id that can be used to wait for the result of the request.
+		 * This is chosen at the moment of submitting the request and used
+		 * when it is fully executed, to signal who might be waiting for the result.
+		 */
 		private final String id;
 
 		private RequestWithId(TransactionRequest<?> request, String id) {
