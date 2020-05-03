@@ -12,7 +12,7 @@ import io.hotmoka.beans.values.StorageReference;
 public interface InitializedNode extends Node {
 
 	/**
-	 * Yields the reference, in the store of the node, where the base Takamaka classes have been installed.
+	 * Yields the reference, in the store of the node, where the base Takamaka base classes have been installed.
 	 */
 	Classpath takamakaCode();
 

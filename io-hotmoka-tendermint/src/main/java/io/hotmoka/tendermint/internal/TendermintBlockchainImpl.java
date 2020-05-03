@@ -170,9 +170,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			}
 			else
 				this.jar = null;
-
-			tendermint.pollingTime = 0L;
-			tendermint.writingTime = 0L;
 		}
 		catch (Throwable t) {
 			try {
@@ -382,7 +379,11 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 		if (data == null)
 			throw new IllegalStateException(tx_result.info);
 
-		Object dataAsObject = base64DeserializationOf(data);
+		Object dataAsObject;
+		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.getDecoder().decode(data)))) {
+			dataAsObject = TransactionReference.from(ois);
+		}
+
 		if (!(dataAsObject instanceof TransactionReference))
 			throw new IllegalStateException("no Hotmoka transaction reference found in data field of Tendermint transaction");
 
@@ -493,11 +494,5 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			throw new IllegalStateException("missing hash in Tendermint response");
 	
 		return hash;
-	}
-
-	private static TransactionReference base64DeserializationOf(String s) throws IOException, ClassNotFoundException {
-		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.getDecoder().decode(s)))) {
-			return TransactionReference.from(ois);
-		}
 	}
 }
