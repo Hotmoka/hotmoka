@@ -20,8 +20,11 @@ import com.google.gson.Gson;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
+import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
+import io.hotmoka.tendermint.internal.beans.TxError;
 
 /**
  * A proxy object that connects to the Tendermint process, sends requests to it
@@ -116,6 +119,31 @@ class Tendermint implements AutoCloseable {
 		}
 
 		return Optional.empty();
+	}
+
+	/**
+	 * Extracts the Tendermint hash associated to a transaction whose response is given.
+	 * 
+	 * @param response the Tendermint response
+	 * @return the hash
+	 */
+	String extractHashFromBroadcastTxResponse(String response) {
+		TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
+	
+		TxError error = parsedResponse.error;
+		if (error != null)
+			throw new IllegalStateException("Tendermint transaction failed: " + error.message + ": " + error.data);
+	
+		TendermintTopLevelResult result = parsedResponse.result;
+	
+		if (result == null)
+			throw new IllegalStateException("missing result in Tendermint response");
+	
+		String hash = result.hash;
+		if (hash == null)
+			throw new IllegalStateException("missing hash in Tendermint response");
+	
+		return hash;
 	}
 
 	/**

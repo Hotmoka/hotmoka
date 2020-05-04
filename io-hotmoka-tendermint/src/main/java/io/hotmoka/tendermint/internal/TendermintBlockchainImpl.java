@@ -10,8 +10,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import com.google.gson.Gson;
-
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.hotmoka.beans.references.Classpath;
@@ -22,15 +20,16 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
-import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
-import io.hotmoka.tendermint.internal.beans.TxError;
 import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.Initialization;
 
 /**
- * An implementation of a blockchain integrated over the Tendermint generic
- * blockchain engine. It provides support for the creation of a given number of initial accounts.
+ * An implementation of a blockchain working over the Tendermint generic blockchain engine.
+ * Requests sent to this blockchain are forwarded to a Tendermint process. This process
+ * checks and deliver such requests, by calling the ABCI interface. The result contains
+ * the Hotmoka transaction reference that has been selected for each request that gets executed,
+ * or an error message. This blockchain keeps its state in a transaction database
+ * implemented in a state object.
  */
 public class TendermintBlockchainImpl extends AbstractNode implements TendermintBlockchain {
 
@@ -40,19 +39,30 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	private final Config config;
 
 	/**
+	 * The GRPC server that runs the ABCI process.
+	 */
+	private final Server abci;
+
+	/**
 	 * A proxy to the Tendermint process.
 	 */
 	private final Tendermint tendermint;
 
 	/**
+	 * The transactional state where blockchain data is persisted.
+	 */
+	private final State state;
+
+	/**
 	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
-	 * This is copy of the information in the state, for efficiency.
+	 * This is copy of information in the state, for efficiency.
 	 */
 	private final Classpath takamakaCode;
 
 	/**
 	 * The classpath of a user jar that has been installed, if any.
-	 * This jar is typically referred to at construction time of the node.
+	 * This is mainly used to simplify the tests.
+	 * This is copy of information in the state, for efficiency.
 	 */
 	private final Classpath jar;
 
@@ -63,35 +73,20 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	private final StorageReference[] accounts;
 
 	/**
-	 * True if this blockchain has been closed already. Useful to avoid double-closing in the
-	 * shutdown hook.
+	 * True if and only if this blockchain doesn't accept initial transactions anymore.
+	 * This is copy of information in the state, for efficiency.
+	 */
+	private volatile boolean initialized;
+
+	/**
+	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
 	 */
 	private volatile boolean closed;
-
-	private final Server server;
-
-	private final ABCI abci;
-
-	/**
-	 * An object for JSON manipulation.
-	 */
-	private final Gson gson = new Gson();
-
-	/**
-	 * The state where blockchain data is persisted.
-	 */
-	private final State state;
-
-	/**
-	 * True if and only if this node doesn't accept initial transactions anymore.
-	 * This is copy of the information in the state, for efficiency.
-	 */
-	private boolean initialized;
 
 	/**
 	 * The current time of the blockchain, set at the time of creation of each block.
 	 */
-	private long now;
+	private volatile long now;
 
 	/**
 	 * Builds a Tendermint blockchain and initializes user accounts with the given initial funds.
@@ -101,22 +96,21 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@linkplain #takamakaCode()}
-	 * @param jar the path of a jar that must be installed after the creation of the gamete. This is optional and mainly
+	 * @param jar the path of a jar that must be installed in blockchain. This is optional and mainly
 	 *            useful to simplify the implementation of tests
-	 * @param redGreen true if a red/green accounts must be created
+	 * @param redGreen true if red/green accounts must be created; if false, normal accounts are created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
 	 *              they must be understood in pairs, each pair for the green/red initial funds of each account (green before red)
 	 * @throws Exception if the blockchain could not be created
 	 */
 	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {
 		this.config = config;
-		this.abci = new ABCI(this);
 
 		try {
 			deleteDir(config.dir);
 			this.state = new State(config.dir + "/state");
-			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
-			this.server.start();
+			this.abci = ServerBuilder.forPort(config.abciPort).addService(new ABCI(this)).build();
+			this.abci.start();
 			this.tendermint = new Tendermint(this, true);
 
 			addShutdownHook();
@@ -127,19 +121,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			this.takamakaCode = init.takamakaCode;
 
 			state.putTakamakaCode(takamakaCode);
-			for (StorageReference account: accounts)
-				state.addAccount(account);
-
-			if (jar.isPresent())
-				state.putJar(this.jar);
+			Stream.of(accounts).forEach(state::addAccount);
+			jar.ifPresent(__ -> state.putJar(this.jar));
 		}
 		catch (Throwable t) {
-			try {
-				deleteDir(config.dir); // do not leave zombies behind
-				close();
-			}
-			catch (Exception e2) {}
-
+			deleteDir(config.dir); // do not leave zombies behind
+			close();
 			throw t;
 		}
 	}
@@ -156,43 +143,38 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 */
 	public TendermintBlockchainImpl(Config config) throws Exception {
 		this.config = config;
-		this.abci = new ABCI(this);
 
 		try {
 			this.state = new State(config.dir + "/state");
-			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
-			this.server.start();
+			this.abci = ServerBuilder.forPort(config.abciPort).addService(new ABCI(this)).build();
+			this.abci.start();
 			this.tendermint = new Tendermint(this, false);
 
 			addShutdownHook();
 
-			this.takamakaCode = state.getTakamakaCode().get();
 			this.jar = state.getJar().orElse(null);
-			this.initialized = state.isInitialized();
 			this.accounts = state.getAccounts().toArray(StorageReference[]::new);
+			this.takamakaCode = state.getTakamakaCode().get();
+			this.initialized = state.isInitialized();
 			setNext(state.getNext().orElse(LocalTransactionReference.FIRST));
 		}
-		catch (Exception e) {
-			try {
-				close();
-			}
-			catch (Exception e2) {}
-
-			throw e;
+		catch (Throwable t) {
+			close();
+			throw t;
 		}
 	}
 
 	@Override
 	public void close() throws Exception {
-		if (!closed) {
+		if (!closed) { // avoid double close
 			super.close();
 
 			if (tendermint != null)
 				tendermint.close();
 
-			if (server != null && !server.isShutdown()) {
-				server.shutdown();
-				server.awaitTermination();
+			if (abci != null && !abci.isShutdown()) {
+				abci.shutdown();
+				abci.awaitTermination();
 			}
 
 			if (state != null)
@@ -223,13 +205,18 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
+	public long getNow() throws Exception {
+		return now;
+	}
+
+	@Override
 	protected void setNext(TransactionReference next) {
 		super.setNext(next);
 		state.putNext(next);
 	}
 
 	@Override
-	protected TransactionResponse getResponseAtInternal(TransactionReference transactionReference) throws Exception {
+	protected TransactionResponse getResponse(TransactionReference transactionReference) throws Exception {
 		return state.getResponse(transactionReference)
 			.orElseThrow(() -> new IllegalStateException("cannot find no response for transaction " + transactionReference));
 	}
@@ -237,17 +224,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	@Override
 	protected Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception {
 		String response = tendermint.broadcastTxAsync(request);
-		return () -> extractHashFromBroadcastTxResponse(response);
-	}
-
-	@Override
-	protected Optional<TransactionReference> getTransactionReferenceFor(String id) throws Exception {
-		return tendermint.getTransactionReferenceFor(id);
-	}
-
-	@Override
-	public long getNow() throws Exception {
-		return now;
+		return () -> tendermint.extractHashFromBroadcastTxResponse(response); // extraction is done lazily
 	}
 
 	@Override
@@ -261,9 +238,14 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
-	protected void expandStoreWith(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
+	protected Optional<TransactionReference> getTransactionReference(String id) throws Exception {
+		return tendermint.getTransactionReferenceFor(id);
+	}
+
+	@Override
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
 		state.putResponse(reference, response);
-		super.expandStoreWith(reference, request, response);
+		super.expandStore(reference, request, response);
 	}
 
 	@Override
@@ -280,7 +262,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	/**
-	 * Yields the number of commits already performed with thi sblockchain.
+	 * Yields the number of commits already performed with this blockchain.
 	 * 
 	 * @return the number of commits
 	 */
@@ -321,6 +303,9 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 				.forEach(File::delete);
 	}
 
+	/**
+	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM is shut down.
+	 */
 	private void addShutdownHook() {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
@@ -330,24 +315,5 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 				throw new RuntimeException(e);
 			}
 		}));
-	}
-
-	private String extractHashFromBroadcastTxResponse(String response) {
-		TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
-	
-		TxError error = parsedResponse.error;
-		if (error != null)
-			throw new IllegalStateException("Tendermint transaction failed: " + error.message + ": " + error.data);
-	
-		TendermintTopLevelResult result = parsedResponse.result;
-	
-		if (result == null)
-			throw new IllegalStateException("missing result in Tendermint response");
-	
-		String hash = result.hash;
-		if (hash == null)
-			throw new IllegalStateException("missing hash in Tendermint response");
-	
-		return hash;
 	}
 }

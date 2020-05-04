@@ -53,7 +53,7 @@ public interface Node extends AutoCloseable {
 	 * @throws Exception if the transaction reference cannot be retrieved or if the execution of the
 	 *                   transaction led into an exception or if a timeout expires
 	 */
-	TransactionReference pollTransactionReferenceFor(String id) throws TimeoutException, InterruptedException, Exception;
+	TransactionReference pollTransactionReference(String id) throws TimeoutException, InterruptedException, Exception;
 
 	/**
 	 * Yields the most recent eager updates for the given storage reference.

@@ -205,7 +205,7 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	}
 
 	@Override
-	protected Optional<TransactionReference> getTransactionReferenceFor(String id) throws TimeoutException, InterruptedException {
+	protected Optional<TransactionReference> getTransactionReference(String id) throws TimeoutException, InterruptedException {
 		String error = transactionErrors.get(id);
 		if (error != null)
 			throw new IllegalStateException(error);
@@ -241,7 +241,7 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	}
 
 	@Override
-	protected void expandStoreWith(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
 		Path requestPath = getPathFor((LocalTransactionReference) reference, REQUEST_NAME);
 		Path parent = requestPath.getParent();
 		ensureDeleted(parent);
@@ -272,11 +272,11 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 			}
 		});
 
-		super.expandStoreWith(reference, request, response);
+		super.expandStore(reference, request, response);
 	}
 
 	@Override
-	protected TransactionResponse getResponseAtInternal(TransactionReference reference) throws IOException, ClassNotFoundException {
+	protected TransactionResponse getResponse(TransactionReference reference) throws IOException, ClassNotFoundException {
 		Path response = getPathFor((LocalTransactionReference) reference, RESPONSE_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
 			return TransactionResponse.from(in);
