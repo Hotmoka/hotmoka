@@ -19,7 +19,6 @@ import com.google.gson.Gson;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResponse;
@@ -35,7 +34,7 @@ class Tendermint implements AutoCloseable {
 	/**
 	 * The blockchain for which the Tendermint process works.
 	 */
-	private final TendermintBlockchain node;
+	private final TendermintBlockchainImpl node;
 
 	/**
 	 * The Tendermint process;
@@ -56,7 +55,7 @@ class Tendermint implements AutoCloseable {
 	 *              the directory of the blockchain gets deleted
 	 * @throws Exception if the Tendermint process cannot be spawned
 	 */
-	Tendermint(TendermintBlockchain node, boolean reset) throws Exception {
+	Tendermint(TendermintBlockchainImpl node, boolean reset) throws Exception {
 		this.node = node;
 
 		if (reset)

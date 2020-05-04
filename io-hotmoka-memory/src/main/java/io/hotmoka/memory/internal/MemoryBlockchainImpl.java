@@ -33,6 +33,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.memory.Config;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.Initialization;
@@ -81,11 +82,6 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	private final static Path RESPONSE_TXT_NAME = Paths.get("response.txt");
 
 	/**
-	 * The root path where the blocks are stored.
-	 */
-	private final Path root;
-
-	/**
 	 * The mempool where transaction requests are stored and eventually executed.
 	 */
 	private final Mempool mempool;
@@ -132,6 +128,7 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	/**
 	 * Builds a blockchain in disk memory and initializes user accounts with the given initial funds.
 	 * 
+	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@linkplain #takamakaCode()}
 	 * @param jar the path of a jar that must be installed after the creation of the gamete. This is optional and mainly
@@ -141,10 +138,11 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	 *              they must be understood in pairs, each pair for the green/red initial funds of each account (green before red)
 	 * @throws Exception if the blockchain could not be created
 	 */
-	public MemoryBlockchainImpl(Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {
-		this.root = Paths.get("chain");
-		ensureDeleted(root);  // cleans the directory where the blockchain lives
-		Files.createDirectories(root);
+	public MemoryBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {
+		super(config);
+
+		ensureDeleted(config.dir);  // cleans the directory where the blockchain lives
+		Files.createDirectories(config.dir);
 		createHeaderOfCurrentBlock();
 		this.mempool = new Mempool(this);
 
@@ -320,7 +318,7 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	 * @return the path
 	 */
 	private Path getPathFor(LocalTransactionReference reference, Path fileName) {
-		return root.resolve("b" + blockNumber(reference)).resolve("t" + transactionNumber(reference)).resolve(fileName);
+		return getConfig().dir.resolve("b" + blockNumber(reference)).resolve("t" + transactionNumber(reference)).resolve(fileName);
 	}
 
 	/**
@@ -331,7 +329,7 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	 * @return the path
 	 */
 	private Path getPathInBlockFor(BigInteger blockNumber, Path fileName) {
-		return root.resolve("b" + blockNumber).resolve(fileName);
+		return getConfig().dir.resolve("b" + blockNumber).resolve(fileName);
 	}
 
 	/**

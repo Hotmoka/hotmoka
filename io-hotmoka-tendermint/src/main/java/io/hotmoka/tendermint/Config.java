@@ -1,15 +1,12 @@
 package io.hotmoka.tendermint;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
- * The configuration of the Tendermint blockchain.
+ * The configuration of a Tendermint blockchain.
  */
 @Immutable
-public class Config {
+public class Config extends io.takamaka.code.engine.Config {
 
 	/**
 	 * The port of the Tendermint process. This will be spawned on localhost.
@@ -24,12 +21,6 @@ public class Config {
 	public final int abciPort;
 
 	/**
-	 * The directory where blocks and state will be persisted.
-	 * Defaults to {@code chain} in the current directory.
-	 */
-	public final Path dir;
-
-	/**
 	 * The maximal number of connection attempts to the Tendermint process during ping.
 	 * Defaults to 20.
 	 */
@@ -41,23 +32,11 @@ public class Config {
 	public final int pingDelay;
 
 	/**
-	 * Creates the configuration of a Tendermint blockchain.
-	 * 
-	 * @param dir the directory where blocks and state will be persisted
-	 */
-	public Config(Path dir) {
-		this.dir = dir;
-		this.tendermintPort = 26657;
-		this.abciPort = 26658;
-		this.maxPingAttempts = 20;
-		this.pingDelay = 200;
-	}
-
-	/**
 	 * Full constructor for the builder pattern.
 	 */
-	private Config(Path dir, int tendermintPort, int abciPort, int maxPingAttemps, int pingDelay) {
-		this.dir = dir;
+	protected Config(io.takamaka.code.engine.Config superConfig, int tendermintPort, int abciPort, int maxPingAttemps, int pingDelay) {
+		super(superConfig);
+
 		this.tendermintPort = tendermintPort;
 		this.abciPort = abciPort;
 		this.maxPingAttempts = maxPingAttemps;
@@ -67,24 +46,11 @@ public class Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder {
+	public static class Builder extends io.takamaka.code.engine.Config.Builder {
 		private int tendermintPort = 26657;
 		private int abciPort = 26658;
-		private Path dir = Paths.get("chain");
 		private int maxPingAttempts = 20;
 		private int pingDelay = 200;
-
-		/**
-		 * Sets the directory where blocks and state will be persisted.
-		 * Defaults to {@code chain} in the current directory.
-		 * 
-		 * @param dir the directory
-		 * @return this builder
-		 */
-		public Builder setDir(Path dir) {
-			this.dir = dir;
-			return this;
-		}
 
 		/**
 		 * Sets the port of the Tendermint process. This will be spawned on localhost.
@@ -133,13 +99,9 @@ public class Config {
 			return this;
 		}
 
-		/**
-		 * Builds the configuration.
-		 * 
-		 * @return the configuration
-		 */
+		@Override
 		public Config build() {
-			return new Config(dir, tendermintPort, abciPort, maxPingAttempts, pingDelay);
+			return new Config(super.build(), tendermintPort, abciPort, maxPingAttempts, pingDelay);
 		}
 	}
 }

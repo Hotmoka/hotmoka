@@ -66,22 +66,16 @@ import io.takamaka.code.engine.internal.transactions.AbstractNodeWithCache;
 public abstract class AbstractNode extends AbstractNodeWithCache implements Node {
 
 	/**
+	 * The configuration of the node.
+	 */
+	private final Config config;
+	
+	/**
 	 * The size of the cache for the {@linkplain #getResponseAt(TransactionReference)} method.
 	 */
 	private static final int GET_RESPONSE_CACHE_SIZE = 1000;
 
 	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache = new LRUCache<>(1000, GET_RESPONSE_CACHE_SIZE);
-
-	/**
-	 * The maximal number of polling attempts, while waiting for the result of a posted transaction.
-	 */
-	private final static int MAX_POLLING_ATTEMPTS = 100;
-
-	/**
-	 * The delay of two subsequent polling attempts, while waiting for the result of a posted transaction.
-	 * This delay is then increased by 10% at each subsequent attempt.
-	 */
-	private final static int POLLING_DELAY = 10;
 
 	/**
 	 * A cache where {@linkplain #checkTransaction(TransactionRequest)} stores the builders and
@@ -124,6 +118,24 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	 * The time spent for delivering transactions.
 	 */
 	private long deliverTime;
+
+	/**
+	 * Builds the node.
+	 * 
+	 * @param config the configuration of the node
+	 */
+	protected AbstractNode(Config config) {
+		this.config = config;
+	}
+
+	/**
+	 * Yields the configuration of this node.
+	 * 
+	 * @return the configuration of this node
+	 */
+	public Config getConfig() {
+		return config;
+	}
 
 	/**
 	 * Sets the reference that will be used to refer to the next transaction that will be executed
@@ -193,7 +205,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 
 	@Override
 	public final TransactionReference pollTransactionReference(String id) throws Exception {
-		for (int i = 0, delay = POLLING_DELAY; i < MAX_POLLING_ATTEMPTS; delay = 110 * delay / 100, i++) {
+		for (int i = 0, delay = config.pollingDelay; i < config.maxPollingAttempts; delay = 110 * delay / 100, i++) {
 			Optional<TransactionReference> reference = getTransactionReference(id);
 			if (reference.isPresent())
 				return reference.get();

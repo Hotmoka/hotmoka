@@ -34,11 +34,6 @@ import io.takamaka.code.engine.Initialization;
 public class TendermintBlockchainImpl extends AbstractNode implements TendermintBlockchain {
 
 	/**
-	 * The configuration of this blockchain.
-	 */
-	private final Config config;
-
-	/**
 	 * The GRPC server that runs the ABCI process.
 	 */
 	private final Server abci;
@@ -104,7 +99,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @throws Exception if the blockchain could not be created
 	 */
 	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {
-		this.config = config;
+		super(config);
 
 		try {
 			deleteDir(config.dir);
@@ -142,7 +137,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @throws Exception if the blockchain could not be created
 	 */
 	public TendermintBlockchainImpl(Config config) throws Exception {
-		this.config = config;
+		super(config);
 
 		try {
 			this.state = new State(config.dir + "/state");
@@ -186,7 +181,7 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 	@Override
 	public Config getConfig() {
-		return config;
+		return (Config) super.getConfig(); // cast to more specific configuration class
 	}
 
 	@Override
