@@ -2,6 +2,7 @@ package io.hotmoka.nodes;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -42,14 +43,17 @@ public interface Node extends AutoCloseable {
 
 	/**
 	 * Yields the transaction reference that has been generated for a request
-	 * whose posting yielded the given identifier.
+	 * whose posting got the given identifier. This method will block
+	 * until the transaction reference is available or a timeout expires.
 	 * 
 	 * @param id the identifier
 	 * @return the transaction reference
+	 * @throws TimeoutException if the timeout expired but the transaction reference is not available yet
+	 * @throws InterruptedException if the current thread was interrupted while waiting for the transaction reference
 	 * @throws Exception if the transaction reference cannot be retrieved or if the execution of the
-	 *                   transaction led into an exception
+	 *                   transaction led into an exception or if a timeout expires
 	 */
-	TransactionReference getTransactionReferenceFor(String id) throws Exception;
+	TransactionReference pollTransactionReferenceFor(String id) throws TimeoutException, InterruptedException, Exception;
 
 	/**
 	 * Yields the most recent eager updates for the given storage reference.

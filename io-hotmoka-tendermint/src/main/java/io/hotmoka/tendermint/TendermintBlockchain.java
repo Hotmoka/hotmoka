@@ -89,4 +89,11 @@ public interface TendermintBlockchain extends InitializedNode {
 	static TendermintBlockchain of(Config config) throws Exception {
 		return new TendermintBlockchainImpl(config);
 	}
+
+	/**
+	 * Yields the configuration of this Tendermint blockchain.
+	 * 
+	 * @return the configuration
+	 */
+	Config getConfig();
 }

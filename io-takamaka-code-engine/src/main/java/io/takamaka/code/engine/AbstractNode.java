@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -74,13 +75,13 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	/**
 	 * The maximal number of polling attempts, while waiting for the result of a posted transaction.
 	 */
-	public final static int MAX_POLLING_ATTEMPTS = 100;
+	private final static int MAX_POLLING_ATTEMPTS = 100;
 
 	/**
 	 * The delay of two subsequent polling attempts, while waiting for the result of a posted transaction.
 	 * This delay is then increased by 10% at each subsequent attempt.
 	 */
-	public final static int POLLING_DELAY = 10;
+	private final static int POLLING_DELAY = 10;
 
 	/**
 	 * A cache where {@linkplain #checkTransaction(TransactionRequest)} stores the builders and
@@ -189,6 +190,30 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 	protected abstract TransactionResponse getResponseAtInternal(TransactionReference reference) throws Exception;
 
 	protected abstract Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception;
+
+	@Override
+	public final TransactionReference pollTransactionReferenceFor(String id) throws Exception {
+		for (int i = 0, delay = POLLING_DELAY; i < MAX_POLLING_ATTEMPTS; delay = 110 * delay / 100, i++) {
+			Optional<TransactionReference> reference = getTransactionReferenceFor(id);
+			if (reference.isPresent())
+				return reference.get();
+		
+			Thread.sleep(delay);
+		}
+
+		throw new TimeoutException("cannot find transaction " + id);
+	}
+
+	/**
+	 * Yields the transaction reference that has been generated for a request
+	 * whose posting got the given identifier, if any. This method does not block.
+	 * 
+	 * @param id the identifier
+	 * @return the transaction reference
+	 * @throws Exception if the transaction reference cannot be retrieved or if the execution of the
+	 *                   transaction led into an exception
+	 */
+	protected abstract Optional<TransactionReference> getTransactionReferenceFor(String id) throws Exception;
 
 	/**
 	 * Expands the store of this node with a transaction. If this method is redefined in
@@ -418,7 +443,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		return wrapInCaseOfExceptionSimple(() -> {
 			requireNodeUninitialized();
 			String id = postTransaction(request).get();
-			TransactionReference reference = getTransactionReferenceFor(id);
+			TransactionReference reference = pollTransactionReferenceFor(id);
 			return ((JarStoreInitialTransactionResponse) getResponseAt(reference)).getOutcomeAt(reference);
 		});
 	}
@@ -428,7 +453,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		return wrapInCaseOfExceptionSimple(() -> {
 			requireNodeUninitialized();
 			String id = postTransaction(request).get();
-			return ((GameteCreationTransactionResponse) getResponseAt(getTransactionReferenceFor(id))).getOutcome();
+			return ((GameteCreationTransactionResponse) getResponseAt(pollTransactionReferenceFor(id))).getOutcome();
 		});
 	}
 
@@ -437,7 +462,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		return wrapInCaseOfExceptionSimple(() -> {
 			requireNodeUninitialized();
 			String id = postTransaction(request).get();
-			return ((GameteCreationTransactionResponse) getResponseAt(getTransactionReferenceFor(id))).getOutcome();
+			return ((GameteCreationTransactionResponse) getResponseAt(pollTransactionReferenceFor(id))).getOutcome();
 		});
 	}
 
@@ -478,7 +503,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 			createSemaphoreFor(request);
 			Supplier<String> id = postTransaction(request);
 			return jarSupplierFor(_id -> {
-				TransactionReference reference = getTransactionReferenceFor(_id);
+				TransactionReference reference = pollTransactionReferenceFor(_id);
 				return ((JarStoreTransactionResponse) waitForResponseOf(request, _id)).getOutcomeAt(reference);
 			}, id);
 		});
@@ -586,7 +611,7 @@ public abstract class AbstractNode extends AbstractNodeWithCache implements Node
 		if (semaphore != null)
 			semaphore.acquire();
 
-		return getResponseAt(getTransactionReferenceFor(id));
+		return getResponseAt(pollTransactionReferenceFor(id));
 	}
 
 	private List<TransactionReference> simplifiedHistoryOf(StorageReference object, TransactionReference added, TransactionResponseWithUpdates response, Stream<TransactionReference> old) throws Exception {

@@ -1,13 +1,10 @@
 package io.hotmoka.tendermint.internal;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -27,7 +24,6 @@ import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
-import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
 import io.hotmoka.tendermint.internal.beans.TxError;
 import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.Initialization;
@@ -37,6 +33,11 @@ import io.takamaka.code.engine.Initialization;
  * blockchain engine. It provides support for the creation of a given number of initial accounts.
  */
 public class TendermintBlockchainImpl extends AbstractNode implements TendermintBlockchain {
+
+	/**
+	 * The configuration of this blockchain.
+	 */
+	private final Config config;
 
 	/**
 	 * A proxy to the Tendermint process.
@@ -108,13 +109,15 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @throws Exception if the blockchain could not be created
 	 */
 	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {
+		this.config = config;
+		this.abci = new ABCI(this);
+
 		try {
-			this.abci = new ABCI(this);
 			deleteDir(config.dir);
 			this.state = new State(config.dir + "/state");
 			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
 			this.server.start();
-			this.tendermint = new Tendermint(config, true);
+			this.tendermint = new Tendermint(this, true);
 
 			addShutdownHook();
 
@@ -152,13 +155,14 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * @throws Exception if the blockchain could not be created
 	 */
 	public TendermintBlockchainImpl(Config config) throws Exception {
+		this.config = config;
 		this.abci = new ABCI(this);
 
 		try {
 			this.state = new State(config.dir + "/state");
 			this.server = ServerBuilder.forPort(config.abciPort).addService(abci).build();
 			this.server.start();
-			this.tendermint = new Tendermint(config, false);
+			this.tendermint = new Tendermint(this, false);
 
 			addShutdownHook();
 
@@ -199,6 +203,11 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	}
 
 	@Override
+	public Config getConfig() {
+		return config;
+	}
+
+	@Override
 	public StorageReference account(int i) {
 		return accounts[i];
 	}
@@ -228,31 +237,12 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	@Override
 	protected Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception {
 		String response = tendermint.broadcastTxAsync(request);
-
 		return () -> extractHashFromBroadcastTxResponse(response);
 	}
 
 	@Override
-	public TransactionReference getTransactionReferenceFor(String id) throws Exception {
-		TendermintTopLevelResult tendermintResult = tendermint.poll(id);
-
-		TendermintTxResult tx_result = tendermintResult.tx_result;
-		if (tx_result == null)
-			throw new IllegalStateException("no result for transaction " + id);
-
-		String data = tx_result.data;
-		if (data == null)
-			throw new IllegalStateException(tx_result.info);
-
-		Object dataAsObject;
-		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.getDecoder().decode(data)))) {
-			dataAsObject = TransactionReference.from(ois);
-		}
-
-		if (!(dataAsObject instanceof TransactionReference))
-			throw new IllegalStateException("no Hotmoka transaction reference found in data field of Tendermint transaction");
-
-		return (TransactionReference) dataAsObject;
+	protected Optional<TransactionReference> getTransactionReferenceFor(String id) throws Exception {
+		return tendermint.getTransactionReferenceFor(id);
 	}
 
 	@Override

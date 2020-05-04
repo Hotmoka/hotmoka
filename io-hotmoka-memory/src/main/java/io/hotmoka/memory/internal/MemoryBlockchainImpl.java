@@ -205,25 +205,12 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	}
 
 	@Override
-	public TransactionReference getTransactionReferenceFor(String id) throws Exception {
-		int delay = POLLING_DELAY;
+	protected Optional<TransactionReference> getTransactionReferenceFor(String id) throws TimeoutException, InterruptedException {
+		String error = transactionErrors.get(id);
+		if (error != null)
+			throw new IllegalStateException(error);
 
-		for (int i = 0; i < MAX_POLLING_ATTEMPTS; i++) {
-			TransactionReference result = transactions.get(id);
-			if (result != null)
-				return result;
-
-			String error = transactionErrors.get(id);
-			if (error != null)
-				throw new IllegalStateException(error);
-
-			Thread.sleep(delay);
-
-			// we increase the delay, for next attempt
-			delay = 110 * delay / 100;
-		}
-
-		throw new TimeoutException("cannot find transaction " + id);
+		return Optional.ofNullable(transactions.get(id));
 	}
 
 	@Override

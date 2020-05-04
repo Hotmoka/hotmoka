@@ -1,41 +1,38 @@
 package io.hotmoka.tendermint.internal;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.tendermint.Config;
-import io.hotmoka.tendermint.internal.beans.TendermintTopLevelResult;
+import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.internal.beans.TendermintTxResponse;
-import io.takamaka.code.engine.AbstractNode;
+import io.hotmoka.tendermint.internal.beans.TendermintTxResult;
 
 /**
- * A proxy object that connects to the Tendermint process, sends transactions to it
+ * A proxy object that connects to the Tendermint process, sends requests to it
  * and gets responses from it.
  */
 class Tendermint implements AutoCloseable {
 
 	/**
-	 * The configuration of the blockchain.
+	 * The blockchain for which the Tendermint process works.
 	 */
-	private final Config config;
-
-	/**
-	 * An object for JSON manipulation.
-	 */
-	private final Gson gson = new Gson();
+	private final TendermintBlockchain node;
 
 	/**
 	 * The Tendermint process;
@@ -43,39 +40,30 @@ class Tendermint implements AutoCloseable {
 	private final Process process;
 
 	/**
-	 * Spawns the Tendermint process and creates a proxy to it.
-	 * It assumes that the {@code tendermint} command can be executed
-	 * from the command path.
-	 * 
-	 * @param config the configuration of the blockchain
-	 * @param reset true if and only if the blockchain must be initialized
-	 * @throws IOException if the Tendermint process cannot be spawned
-	 * @throws InterruptedException if the Tendermint process is interrupted while resetting its state
+	 * An object for JSON manipulation.
 	 */
-	Tendermint(Config config, boolean reset) throws IOException, InterruptedException {
-		this.config = config;
-
-		if (reset)
-			if (run("tendermint init --home " + config.dir + "/blocks").waitFor() != 0)
-				throw new IOException("Tendermint initialization failed");
-
-		this.process = run("tendermint node --home " + config.dir + "/blocks --abci grpc --proxy_app tcp://127.0.0.1:" + config.abciPort); // process remains in background
-
-		ping();
-	}
+	private final Gson gson = new Gson();
 
 	/**
-	 * Runs the given command.
+	 * Spawns the Tendermint process and creates a proxy to it. It assumes that
+	 * the {@code tendermint} command can be executed from the command path.
 	 * 
-	 * @param command the command to run, as if in a shell
-	 * @return the process into which the command is running
-	 * @throws IOException if the command cannot be run
+	 * @param config the configuration of the blockchain
+	 * @param reset true if and only if the blockchain must be initialized from scratch; in that case,
+	 *              the directory of the blockchain gets deleted
+	 * @throws Exception if the Tendermint process cannot be spawned
 	 */
-	private static Process run(String command) throws IOException {
-		if (System.getProperty("os.name").startsWith("Windows"))
-			command = "cmd.exe /c " + command;
+	Tendermint(TendermintBlockchain node, boolean reset) throws Exception {
+		this.node = node;
 
-		return Runtime.getRuntime().exec(command);
+		if (reset)
+			if (run("tendermint init --home " + node.getConfig().dir + "/blocks").waitFor() != 0)
+				throw new IOException("Tendermint initialization failed");
+
+		// spawns a process that remains in background
+		this.process = run("tendermint node --home " + node.getConfig().dir + "/blocks --abci grpc --proxy_app tcp://127.0.0.1:" + node.getConfig().abciPort);
+		// wait until it is up and running
+		ping();
 	}
 
 	@Override
@@ -85,42 +73,63 @@ class Tendermint implements AutoCloseable {
 	}
 
 	/**
-	 * Sends the given {@code request} to the Tendermint process, inside
-	 * a {@code broadcast_tx_async} Tendermint request.
+	 * Sends the given {@code request} to the Tendermint process, inside a {@code broadcast_tx_async} Tendermint request.
 	 * 
 	 * @param request the request to send
 	 * @return the response of Tendermint
-	 * @throws IOException if the connection couldn't be opened or the request could not be sent
+	 * @throws Exception if the connection couldn't be opened or the request could not be sent
 	 */
-	String broadcastTxAsync(TransactionRequest<?> request) throws IOException, TimeoutException, InterruptedException {
-		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + base64EncodedSerializationOf(request) + "\"}}";
+	String broadcastTxAsync(TransactionRequest<?> request) throws Exception {
+		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" +  Base64.getEncoder().encodeToString(request.toByteArray()) + "\"}}";
 		return postToTendermint(jsonTendermintRequest);
 	}
 
 	/**
-	 * Pools Tendermint until a transaction with the given hash has been successfully committed.
+	 * Yields the Hotmoka transaction reference specified in the Tendermint result for the Tendermint
+	 * transaction with the given hash.
 	 * 
 	 * @param hash the hash of the transaction to look for
-	 * @return the result of the transaction
-	 * @throws TimeoutException if the transaction could not be found in the expected timeout interval
-	 * @throws IOException if the connection couldn't be opened or the request could not be sent
-	 * @throws InterruptedException if the waiting thread has been interrupted
+	 * @return the Hotmoka transaction reference
+	 * @throws Exception if the connection couldn't be opened or the request could not be sent or the result was incorrect
 	 */
-	TendermintTopLevelResult poll(String hash) throws TimeoutException, IOException, InterruptedException {
-		int delay = AbstractNode.POLLING_DELAY;
+	Optional<TransactionReference> getTransactionReferenceFor(String hash) throws Exception {
+		TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
+		if (response.error == null) {
+			TendermintTxResult tx_result = response.result.tx_result;
 
-		for (int i = 0; i < AbstractNode.MAX_POLLING_ATTEMPTS; i++) {
-			TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
-			if (response.error == null)
-				return response.result;
+			if (tx_result == null)
+				throw new IllegalStateException("no result for transaction " + hash);
 
-			Thread.sleep(delay);
+			String data = tx_result.data;
+			if (data == null)
+				throw new IllegalStateException(tx_result.info);
 
-			// we increase the delay, for next attempt
-			delay = 110 * delay / 100;
+			Object dataAsObject;
+			try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(Base64.getDecoder().decode(data)))) {
+				dataAsObject = TransactionReference.from(ois);
+			}
+
+			if (!(dataAsObject instanceof TransactionReference))
+				throw new IllegalStateException("no Hotmoka transaction reference found in data field of Tendermint transaction");
+
+			return Optional.of((TransactionReference) dataAsObject);
 		}
 
-		throw new TimeoutException("cannot find transaction " + hash);
+		return Optional.empty();
+	}
+
+	/**
+	 * Runs the given command in operating system shell.
+	 * 
+	 * @param command the command to run, as if in a shell
+	 * @return the process into which the command is running
+	 * @throws IOException if the command cannot be run
+	 */
+	private static Process run(String command) throws IOException {
+		if (System.getProperty("os.name").startsWith("Windows")) // Windows is different
+			command = "cmd.exe /c " + command;
+	
+		return Runtime.getRuntime().exec(command);
 	}
 
 	/**
@@ -129,9 +138,9 @@ class Tendermint implements AutoCloseable {
 	 * 
 	 * @param hash the hash of the Tendermint transaction to look for
 	 * @return the response of Tendermint
-	 * @throws IOException if the connection couldn't be opened or the request could not be sent
+	 * @throws Exception if the connection couldn't be opened or the request could not be sent
 	 */
-	private String tx(String hash) throws IOException, TimeoutException, InterruptedException {
+	private String tx(String hash) throws Exception {
 		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
 			Base64.getEncoder().encodeToString(hexStringToByteArray(hash)) + "\", \"prove\": false }}";
 	
@@ -140,13 +149,13 @@ class Tendermint implements AutoCloseable {
 
 	/**
 	 * Waits until the Tendermint process responds to ping.
-	 * It gives up after {@MAX_CONNECTION_ATTEMPTS}, with an exception.
 	 * 
 	 * @throws IOException if it is not possible to connect to the Tendermint process
+	 * @throws TimeoutException if tried many times, but never got a reply
 	 * @throws InterruptedException if interrupted while pinging
 	 */
-	private void ping() throws IOException, InterruptedException {
-		for (int reconnections = 1; reconnections <= config.maxPingAttempts; reconnections++) {
+	private void ping() throws TimeoutException, InterruptedException, IOException {
+		for (int reconnections = 1; reconnections <= node.getConfig().maxPingAttempts; reconnections++) {
 			try {
 				HttpURLConnection connection = openPostConnectionToTendermint();
 				try (OutputStream os = connection.getOutputStream()) {
@@ -155,11 +164,11 @@ class Tendermint implements AutoCloseable {
 			}
 			catch (ConnectException e) {
 				// take a nap, then try again
-				Thread.sleep(config.pingDelay);
+				Thread.sleep(node.getConfig().pingDelay);
 			}
 		}
 	
-		throw new IOException("Cannot connect to Tendermint process at " + url() + ". Tried " + config.maxPingAttempts + " times");
+		throw new TimeoutException("Cannot connect to Tendermint process at " + url() + ". Tried " + node.getConfig().maxPingAttempts + " times");
 	}
 
 	/**
@@ -184,7 +193,7 @@ class Tendermint implements AutoCloseable {
 	 * @throws MalformedURLException if the URL is not well formed
 	 */
 	private URL url() throws MalformedURLException {
-		return new URL("http://127.0.0.1:" + config.tendermintPort);
+		return new URL("http://127.0.0.1:" + node.getConfig().tendermintPort);
 	}
 
 	/**
@@ -192,9 +201,9 @@ class Tendermint implements AutoCloseable {
 	 * 
 	 * @param jsonTendermintRequest the request to post, in JSON format
 	 * @return the response
-	 * @throws IOException if the request couldn't be sent
+	 * @throws Exception if the request couldn't be sent
 	 */
-	private String postToTendermint(String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
+	private String postToTendermint(String jsonTendermintRequest) throws Exception {
 		HttpURLConnection connection = openPostConnectionToTendermint();
 		writeInto(connection, jsonTendermintRequest);
 		return readFrom(connection);
@@ -209,12 +218,7 @@ class Tendermint implements AutoCloseable {
 	 */
 	private static String readFrom(HttpURLConnection connection) throws IOException {
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
-			StringBuilder response = new StringBuilder();
-			String responseLine;
-			while ((responseLine = br.readLine()) != null)
-				response.append(responseLine.trim());
-
-			return response.toString();
+			return br.lines().collect(Collectors.joining());
 		}
 	}
 
@@ -223,24 +227,23 @@ class Tendermint implements AutoCloseable {
 	 * 
 	 * @param connection the connection
 	 * @param jsonTendermintRequest the request
-	 * @throws IOException if the request cannot be written
+	 * @throws Exception if the request cannot be written
 	 */
-	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
+	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws Exception {
 		byte[] input = jsonTendermintRequest.getBytes("utf-8");
 
-		for (int i = 0; i < config.maxPingAttempts; i++) {
+		for (int i = 0; i < node.getConfig().maxPingAttempts; i++) {
 			try (OutputStream os = connection.getOutputStream()) {
 				os.write(input, 0, input.length);
 				return;
 			}
 			catch (ConnectException e) {
-				// not sure why this happens, randomly. It seems that the connection
-				// to the Tendermint process is flaky
-				Thread.sleep(config.pingDelay);
+				// not sure why this happens, randomly. It seems that the connection to the Tendermint process is flaky
+				Thread.sleep(node.getConfig().pingDelay);
 			}
 		}
 
-		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + config.maxPingAttempts + " times");
+		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + node.getConfig().maxPingAttempts + " times");
 	}
 
 	/**
@@ -257,20 +260,5 @@ class Tendermint implements AutoCloseable {
 		con.setDoOutput(true);
 
 		return con;
-	}
-
-	/**
-	 * Serializes the given request and Base64-encodes its serialization into a string.
-	 * 
-	 * @param request the request
-	 * @return the Base64-encoded serialization of {@code request}
-	 * @throws IOException if serialization fails
-	 */
-	private static String base64EncodedSerializationOf(TransactionRequest<?> request) throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-			request.into(oos);
-			oos.flush();
-			return Base64.getEncoder().encodeToString(baos.toByteArray());
-		}
 	}
 }
