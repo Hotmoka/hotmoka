@@ -1,5 +1,6 @@
 package io.hotmoka.tendermint.internal;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -28,23 +29,23 @@ import jetbrains.exodus.env.StoreConfig;
 import jetbrains.exodus.env.Transaction;
 
 /**
- * The state of the blockchain. It is a transactional database that keeps
+ * The state of a blockchain built over Tendermint. It is a transactional database that keeps
  * information about the state of the objects created by the transactions executed
- * by the blockchain. Such information is not kept in blockchain, but only
+ * by the blockchain. This state is external to the blockchain and only
  * its hash is stored in blockchain at the end of each block, for consensus.
- * The information kept in state consists in:
+ * The information kept in this state consists of:
  * 
  * <ul>
- * <li> a map from transaction reference to the response computed for that transaction
- * <li> a map from storage reference to the transaction references that contribute
- *      to the fields of the storage object at that reference
+ * <li> a map from each Hotmoka transaction reference to the response computed for that transaction
+ * <li> a map from each storage reference to the transaction references that contribute
+ *      to provide values to the fields of the storage object at that reference
  * <li> some miscellaneous control information, such as  where the jar with basic
  *      Takamaka classes is installed, or which is the reference that must be
  *      used for the next transaction 
  * </ul>
  * 
  * This information is added in store by put methods and accessed through get methods.
- * Information between a begin transaction and commit transaction is committed into
+ * Information between paired begin transaction and commit transaction is committed into
  * the file system.
  * 
  * The implementation of this state uses JetBrains's Xodus transactional database.
@@ -52,7 +53,7 @@ import jetbrains.exodus.env.Transaction;
 class State implements AutoCloseable {
 
 	/**
-	 * The exodus environment that holds the state.
+	 * The Xodus environment that holds the state.
 	 */
 	private final Environment env;
 
@@ -68,12 +69,13 @@ class State implements AutoCloseable {
 
 	/**
 	 * The store that holds the history of each storage reference, ie, a list of
-	 * transaction references where the storage reference has been updated.
+	 * transaction references that contribute
+	 * to provide values to the fields of the storage object at that reference.
 	 */
 	private Store history;
 
 	/**
-	 * The store the holds miscellaneous information about the state.
+	 * The store that holds miscellaneous information about the state.
 	 */
     private Store info;
 
@@ -108,7 +110,7 @@ class State implements AutoCloseable {
     private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 3);
 
     /**
-     * The key used inside {@linkplain #info} to know the last committed transaction reference.
+     * The key used inside {@linkplain #info} to keep the last committed transaction reference.
      */
     private final static ByteIterable NEXT = ArrayByteIterable.fromByte((byte) 4);
 
@@ -164,7 +166,7 @@ class State implements AutoCloseable {
     }
 
 	/**
-	 * Commits all updates occurred during the current transaction.
+	 * Commits all data put from last call to {@linkplain #beginTransaction()}.
 	 */
 	void commitTransaction() {
 		recordTime(() -> {
@@ -192,10 +194,10 @@ class State implements AutoCloseable {
 	 * Sets the history of the given object.
 	 * 
 	 * @param object the object
-	 * @param history the history, that is, the references to the transactions that
-	 *                can contain the current values of the fields of the object
+	 * @param history the history, that is, the transaction references transaction references that contribute
+	 *                to provide values to the fields of {@code object}
 	 */
-	void setHistory(StorageReference object, Stream<TransactionReference> history) {
+	void putHistory(StorageReference object, Stream<TransactionReference> history) {
 		recordTime(() -> {
 			ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
 			ByteIterable objectAsByteArray = intoByteArray(object);
@@ -210,10 +212,7 @@ class State implements AutoCloseable {
 	 * @param takamakaCode the classpath
 	 */
 	void putTakamakaCode(Classpath takamakaCode) {
-		recordTime(() -> {
-			ByteIterable takamakaCodeAsByteArray = intoByteArray(takamakaCode);
-			env.executeInTransaction(txn -> info.put(txn, TAKAMAKA_CODE, takamakaCodeAsByteArray));
-		});
+		putIntoInfo(TAKAMAKA_CODE, takamakaCode);
 	}
 
 	/**
@@ -223,10 +222,7 @@ class State implements AutoCloseable {
 	 * @param takamakaCode the classpath
 	 */
 	void putJar(Classpath jar) {
-		recordTime(() -> {
-			ByteIterable jarAsByteArray = intoByteArray(jar);
-			env.executeInTransaction(txn -> info.put(txn, JAR, jarAsByteArray));
-		});
+		putIntoInfo(JAR, jar);
 	}
 
 	/**
@@ -235,10 +231,7 @@ class State implements AutoCloseable {
 	 * @param next the reference
 	 */
 	void putNext(TransactionReference next) {
-		recordTime(() -> {
-			ByteIterable nextAsByteArray = intoByteArray(next);
-			env.executeInTransaction(txn -> info.put(txn, NEXT, nextAsByteArray));
-		});
+		putIntoInfo(NEXT, next);
 	}
 
 	/**
@@ -246,7 +239,7 @@ class State implements AutoCloseable {
 	 * 
 	 * @param account the storage reference of the account to add
 	 */
-	void addAccount(StorageReference account) {
+	void putAccount(StorageReference account) {
 		recordTime(() -> {
 			ByteIterable accountsAsByteArray = intoByteArrayWithoutSelector(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new));
 			env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, accountsAsByteArray));
@@ -287,8 +280,8 @@ class State implements AutoCloseable {
 	 * @return the number of commits
 	 */
 	long getNumberOfCommits() {
-		ByteIterable count = getFromInfo(COMMIT_COUNT);
-		return count == null ? 0L : Long.valueOf(new String(count.getBytesUnsafe()));
+		ByteIterable numberOfCommitsAsByteIterable = getFromInfo(COMMIT_COUNT);
+		return numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytesUnsafe()));
 	}
 
 	/**
@@ -337,17 +330,33 @@ class State implements AutoCloseable {
 	 */
 	private void increaseNumberOfCommits() {
 		recordTime(() -> 
-			env.executeInTransaction(txn ->
-				info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(getNumberOfCommits() + 1).getBytes()))));
+			env.executeInTransaction(txn -> {
+				ByteIterable numberOfCommitsAsByteIterable = info.get(txn, COMMIT_COUNT);
+				long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytesUnsafe()));
+				info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(numberOfCommits + 1).getBytes()));
+			}));
 	}
 
 	/**
-	 * Yields the value of the given property in the info store.
+	 * Yields the value of the given property in the {@linkplain #info} store.
 	 * 
 	 * @return true if and only if {@code markAsInitialized()} has been already called
 	 */
 	private ByteIterable getFromInfo(ByteIterable key) {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> info.get(txn, key)));
+	}
+
+	/**
+	 * Puts in state the given value, inside the {@linkplain #info} store.
+	 * 
+	 * @param key the key where the value must be put
+	 * @param value the value to put
+	 */
+	private void putIntoInfo(ByteIterable key, Marshallable value) {
+		recordTime(() -> {
+			ByteIterable valueAAsByteArray = intoByteArray(value);
+			env.executeInTransaction(txn -> info.put(txn, key, valueAAsByteArray));
+		});
 	}
 
 	/**
@@ -369,7 +378,6 @@ class State implements AutoCloseable {
 	 * Executes the given task, taking note of the time required for it.
 	 * 
 	 * @param task the task
-	 * @throws Exception 
 	 */
 	private <T> T recordTime(TimedTask<T> task) {
 		long start = System.currentTimeMillis();
@@ -389,7 +397,7 @@ class State implements AutoCloseable {
 
 	private static ArrayByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
 		try {
-			return new ArrayByteIterable(reference.toByteArrayWithoutSelector());
+			return new ArrayByteIterable(reference.toByteArrayWithoutSelector()); // more optimized than a normal marshallable
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -407,7 +415,7 @@ class State implements AutoCloseable {
 
 	private static ArrayByteIterable intoByteArrayWithoutSelector(StorageReference[] references) throws UncheckedIOException {
 		try {
-			return new ArrayByteIterable(Marshallable.toByteArrayWithoutSelector(references));
+			return new ArrayByteIterable(Marshallable.toByteArrayWithoutSelector(references)); // more optimized than an array of normal marshallables
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -415,7 +423,7 @@ class State implements AutoCloseable {
 	}
 
 	private static <T extends Marshallable> T fromByteArray(Unmarshaller<T> unmarshaller, ByteIterable bytes) throws UncheckedIOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe()))) {
+		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe())))) {
 			return unmarshaller.from(ois);
 		}
 		catch (IOException e) {
@@ -427,7 +435,7 @@ class State implements AutoCloseable {
 	}
 
 	private static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe()))) {
+		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe())))) {
 			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, ois);
 		}
 		catch (IOException e) {

@@ -106,9 +106,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
-	//private static long requests;
-	//private static long responses;
-
 	/**
 	 * The time spent for checking requests.
 	 */
@@ -222,16 +219,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
 
 		getResponseAtCache.put(reference, response);
-
-		/*int diff1 = request.toByteArray().length;
-		int diff2 = response.toByteArray().length;
-		requests += diff1;
-		responses += diff2;
-		System.out.println("requests = " + requests + " [+" + diff1 + "]" + " and responses = " + responses + " [+" + diff2 + "]");*/
 	}
-
-	//private static long requests;
-	//private static long responses;
 
 	/**
 	 * Yields the configuration of this node.

@@ -121,7 +121,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@linkplain #takamakaCode()}
-	 * @param jar the path of a jar that must be installed after the creation of the gamete. This is optional and mainly
+	 * @param jar the path of a jar that must be further installed after the creation of the gamete. This is optional and mainly
 	 *            useful to simplify the implementation of tests
 	 * @param redGreen true if a red/green blockchain must be created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
