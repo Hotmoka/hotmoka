@@ -1,10 +1,7 @@
 package io.takamaka.code.engine;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -17,7 +14,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -46,9 +43,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
@@ -57,6 +51,8 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.Node;
+import io.takamaka.code.engine.internal.Deserializer;
+import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.transactions.AbstractNodeWithCache;
 
 /**
@@ -75,8 +71,14 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	private static final int GET_RESPONSE_CACHE_SIZE = 1000;
 
-	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache = new LRUCache<>(1000, GET_RESPONSE_CACHE_SIZE);
+	/**
+	 * The size of the cache for the {@linkplain #getRequestAt(TransactionReference)} method.
+	 */
+	private static final int GET_REQUEST_CACHE_SIZE = 1000;
 
+	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache = new LRUCache<>(1000, GET_RESPONSE_CACHE_SIZE);
+	private final LRUCache<TransactionReference, TransactionRequest<?>> getRequestAtCache = new LRUCache<>(1000, GET_REQUEST_CACHE_SIZE);
+	
 	/**
 	 * A cache where {@linkplain #checkTransaction(TransactionRequest)} stores the builders and
 	 * from where {@linkplain #deliverTransaction(TransactionRequest)} can retrieve them.
@@ -176,6 +178,17 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @throws Exception if the response cannot be found
 	 */
 	protected abstract TransactionResponse getResponse(TransactionReference reference) throws Exception;
+
+	/**
+	 * Yields the request that generated the transaction with the given reference.
+	 * The result of this method is wrapped into a cache in order to implement
+	 * {@linkplain #getRequestAt(TransactionReference)}.
+	 * 
+	 * @param transactionReference the reference of the transaction
+	 * @return the request
+	 * @throws Exception if the request cannot be found
+	 */
+	protected abstract TransactionRequest<?> getRequest(TransactionReference reference) throws Exception;
 
 	protected abstract Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception;
 
@@ -344,9 +357,25 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		logger.info("Time spent delivering requests: " + deliverTime + "ms");
 	}
 
-	@Override
+	/**
+	 * Yields the gas cost model of this node.
+	 * 
+	 * @return the gas cost model
+	 */
 	public GasCostModel getGasCostModel() {
 		return defaultGasCostModel;
+	}
+
+	@Override
+	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws Exception {
+		TransactionRequest<?> request = getRequestAtCache.get(reference);
+		if (request != null)
+			return request;
+	
+		request = getRequest(reference);
+		getRequestAtCache.put(reference, request);
+	
+		return request;
 	}
 
 	@Override
@@ -362,7 +391,19 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	@Override
-	public final ClassTag getClassTagOf(StorageReference storageReference, Consumer<BigInteger> chargeForCPU) throws Exception {
+	public final ClassTag getClassTag(StorageReference storageReference) throws Exception {
+		return getClassTag(storageReference, __ -> {});
+	}
+
+	/**
+	 * Yields the class tag of the object with the given storage reference.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param chargeForCPU a function called to charge CPU costs
+	 * @return the class tag
+	 * @throws Exception if the class tag could not be found
+	 */
+	public final ClassTag getClassTag(StorageReference storageReference, Consumer<BigInteger> chargeForCPU) throws Exception {
 		// we go straight to the transaction that created the object
 		TransactionResponse response = getResponseAndCharge(storageReference.transaction, chargeForCPU);
 
@@ -376,52 +417,57 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	@Override
-	public final Stream<Update> getLastEagerUpdatesFor(StorageReference reference, Consumer<BigInteger> chargeForCPU, Function<String, Stream<Field>> eagerFields) throws Exception {
-		TransactionReference transaction = reference.transaction;
-	
-		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new DeserializationError("Storage reference " + reference + " does not contain updates");
-	
-		Set<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update.object.equals(reference) && update.isEager())
-				.collect(Collectors.toSet());
-	
-		Optional<ClassTag> classTag = updates.stream()
-				.filter(update -> update instanceof ClassTag)
-				.map(update -> (ClassTag) update)
-				.findAny();
-	
-		if (!classTag.isPresent())
-			throw new DeserializationError("No class tag found for " + reference);
-	
-		// we drop updates to non-final fields
-		Set<Field> allEagerFields = eagerFields.apply(classTag.get().className).collect(Collectors.toSet());
-		Iterator<Update> it = updates.iterator();
-		while (it.hasNext())
-			if (updatesNonFinalField(it.next(), allEagerFields))
-				it.remove();
-	
-		// the updates set contains the updates to eager final fields now:
-		// we must still collect the latest updates to the eager non-final fields
-		collectEagerUpdatesFor(reference, updates, allEagerFields.size(), chargeForCPU);
-
-		return updates.stream();
+	public final Stream<Update> getLastEagerUpdates(StorageReference reference) throws Exception {
+		ClassTag classTag = getClassTag(reference);
+		EngineClassLoader classLoader = new EngineClassLoader(new Classpath(classTag.jar, true), this);
+		Deserializer deserializer = new Deserializer(this, classLoader);
+		return deserializer.getLastEagerUpdates(reference);
 	}
 
 	@Override
-	public final UpdateOfField getLastLazyUpdateToNonFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
-		for (TransactionReference transaction: getHistoryWithCache(object).collect(Collectors.toList())) {
-			Optional<UpdateOfField> update = getLastUpdateFor(object, field, transaction, chargeForCPU);
+	public final UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field) throws Exception {
+		return getLastLazyUpdateToNonFinalField(storageReference, field, __ -> {}); // no charge
+	}
+
+	/**
+	 * Yields the most recent update for the given non-{@code final} field,
+	 * of lazy type, of the object with the given storage reference.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param field the field whose update is being looked for
+	 * @param chargeForCPU a function called to charge CPU costs
+	 * @return the update
+	 * @throws Exception if the update could not be found
+	 */
+	public final UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
+		for (TransactionReference transaction: getHistoryWithCache(storageReference).collect(Collectors.toList())) {
+			Optional<UpdateOfField> update = getLastUpdateFor(storageReference, field, transaction, chargeForCPU);
 			if (update.isPresent())
 				return update.get();
 		}
 
-		throw new DeserializationError("Did not find the last update for " + field + " of " + object);
+		throw new DeserializationError("Did not find the last update for " + field + " of " + storageReference);
 	}
 
 	@Override
-	public final UpdateOfField getLastLazyUpdateToFinalFieldOf(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
+	public final UpdateOfField getLastLazyUpdateToFinalField(StorageReference storageReference, FieldSignature field) throws Exception {
+		return getLastLazyUpdateToFinalField(storageReference, field, __ -> {}); // no charge
+	}
+
+	/**
+	 * Yields the most recent update for the given {@code final} field,
+	 * of lazy type, of the object with the given storage reference.
+	 * Its implementation can be identical to
+	 * that of {@link #getLastLazyUpdateToNonFinalField(StorageReference, FieldSignature, Consumer<BigInteger>)},
+	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param field the field whose update is being looked for
+	 * @param chargeForCPU a function called to charge CPU costs
+	 * @return the update
+	 * @throws Exception if the update could not be found
+	 */
+	public final UpdateOfField getLastLazyUpdateToFinalField(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) throws Exception {
 		// accesses directly the transaction that created the object
 		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
@@ -535,7 +581,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 *         (from newest to oldest). If {@code object} has currently no history, it can yield an
 	 *         empty stream, but never throw an exception
 	 */
-	private Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
+	public Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
 		TransactionReference[] result = historyCache.get(object);
 		if (result != null)
 			return Stream.of(result);
@@ -630,43 +676,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Adds, to the given set, all the latest updates for the fields of eager type of the
-	 * object at the given storage reference.
-	 * 
-	 * @param object the storage reference
-	 * @param updates the set where the latest updates must be added
-	 * @param eagerFields the number of eager fields whose latest update needs to be found
-	 * @param chargeForCPU the code to run to charge gas for CPU execution
-	 * @throws Exception if the operation fails
-	 */
-	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields, Consumer<BigInteger> chargeForCPU) throws Exception {
-		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
-		for (TransactionReference transaction: getHistoryWithCache(object).collect(Collectors.toList()))
-			if (updates.size() <= eagerFields)
-				addEagerUpdatesFor(object, transaction, updates, chargeForCPU);
-			else
-				return;
-	}
-
-	/**
-	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param transaction the reference to the transaction
-	 * @param updates the set where they must be added
-	 * @param chargeForCPU the code to run to charge gas for CPU execution
-	 * @throws Exception if there is an error accessing the updates
-	 */
-	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates, Consumer<BigInteger> chargeForCPU) throws Exception {
-		TransactionResponse response = getResponseAndCharge(transaction, chargeForCPU);
-		if (response instanceof TransactionResponseWithUpdates)
-			((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
-				.forEach(updates::add);
-	}
-
-	/**
 	 * Yields the response that generated the given transaction and charges for that operation.
 	 * 
 	 * @param transaction the reference to the transaction
@@ -713,52 +722,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 				.findAny();
 	
 		return Optional.empty();
-	}
-
-	/**
-	 * Determines if the given update affects a non-{@code final} eager field contained in the given set.
-	 * 
-	 * @param update the update
-	 * @param eagerFields the set of all possible eager fields
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean updatesNonFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
-		if (update instanceof UpdateOfField) {
-			FieldSignature sig = ((UpdateOfField) update).getField();
-			StorageType type = sig.type;
-			String name = sig.name;
-			return eagerFields.stream()
-				.anyMatch(field -> !Modifier.isFinal(field.getModifiers()) && hasType(field, type) && field.getName().equals(name));
-		}
-
-		return false;
-	}
-
-	/**
-	 * Determines if the given field has the given storage type.
-	 * 
-	 * @param field the field
-	 * @param type the type
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean hasType(Field field, StorageType type) {
-		Class<?> fieldType = field.getType();
-		if (type instanceof BasicTypes)
-			switch ((BasicTypes) type) {
-			case BOOLEAN: return fieldType == boolean.class;
-			case BYTE: return fieldType == byte.class;
-			case CHAR: return fieldType == char.class;
-			case SHORT: return fieldType == short.class;
-			case INT: return fieldType == int.class;
-			case LONG: return fieldType == long.class;
-			case FLOAT: return fieldType == float.class;
-			case DOUBLE: return fieldType == double.class;
-			default: throw new IllegalStateException("unexpected basic type " + type);
-			}
-		else if (type instanceof ClassType)
-			return ((ClassType) type).name.equals(fieldType.getName());
-		else
-			throw new IllegalStateException("unexpected storage type " + type);
 	}
 
 	private static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {

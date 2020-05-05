@@ -246,6 +246,14 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
+	protected TransactionRequest<?> getRequest(TransactionReference reference) throws IOException, ClassNotFoundException {
+		Path response = getPathFor((LocalTransactionReference) reference, REQUEST_NAME);
+		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
+			return TransactionRequest.from(in);
+		}
+	}
+
+	@Override
 	protected TransactionResponse getResponse(TransactionReference reference) throws IOException, ClassNotFoundException {
 		Path response = getPathFor((LocalTransactionReference) reference, RESPONSE_NAME);
 		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {

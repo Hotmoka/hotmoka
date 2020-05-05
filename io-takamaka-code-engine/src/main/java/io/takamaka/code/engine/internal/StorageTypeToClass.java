@@ -11,17 +11,28 @@ import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 public class StorageTypeToClass {
 
 	/**
-	 * The builder of the transaction for which the translation is performed.
+	 * The class loader that can be used to load classes for the transaction being performed.
 	 */
-	private final AbstractResponseBuilder<?,?> builder;
+	private final EngineClassLoader classLoader;
 
 	/**
-	 * Builds an object that translates storage types into their run-time class tag.
+	 * Builds an object that translates storage types into their run-time class tag,
+	 * by using the class loader of the given response builder.
 	 * 
 	 * @param builder the builder of the transaction for which the translation is performed
 	 */
 	public StorageTypeToClass(AbstractResponseBuilder<?,?> builder) {
-		this.builder = builder;
+		this.classLoader = builder.classLoader;
+	}
+
+	/**
+	 * Builds an object that translates storage types into their run-time class tag,
+	 * by using a given class loader.
+	 * 
+	 * @param classLoader the class loader to use
+	 */
+	public StorageTypeToClass(EngineClassLoader classLoader) {
+		this.classLoader = classLoader;
 	}
 
 	/**
@@ -46,7 +57,7 @@ public class StorageTypeToClass {
 			}
 		}
 		else if (type instanceof ClassType)
-			return builder.classLoader.loadClass(((ClassType) type).name);
+			return classLoader.loadClass(((ClassType) type).name);
 	
 		throw new IllegalArgumentException("unexpected storage type");
 	}

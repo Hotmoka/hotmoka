@@ -76,7 +76,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @throws IllegalArgumentException if the caller is not an externally owned account
 	 */
 	private void callerMustBeExternallyOwnedAccount() throws Exception {
-		ClassTag classTag = node.getClassTagOf(request.caller, i -> {});
+		ClassTag classTag = node.getClassTag(request.caller, i -> {});
 		Class<?> clazz = classLoader.loadClass(classTag.className);
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))

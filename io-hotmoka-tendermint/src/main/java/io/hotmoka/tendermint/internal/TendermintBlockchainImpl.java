@@ -195,6 +195,12 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 	}
 
 	@Override
+	protected TransactionRequest<?> getRequest(TransactionReference reference) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	protected TransactionResponse getResponse(TransactionReference transactionReference) throws Exception {
 		return state.getResponse(transactionReference)
 			.orElseThrow(() -> new IllegalStateException("cannot find response for transaction " + transactionReference));

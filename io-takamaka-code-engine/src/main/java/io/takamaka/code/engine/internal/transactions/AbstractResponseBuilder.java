@@ -37,7 +37,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The object that translates storage types into their run-time class tag.
 	 */
-	public final StorageTypeToClass storageTypeToClass = new StorageTypeToClass(this);
+	public final StorageTypeToClass storageTypeToClass;
 
 	/**
 	 * The class loader used for the transaction.
@@ -52,7 +52,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The object that knows about the size of data once serialized.
 	 */
-	protected final SizeCalculator sizeCalculator = new SizeCalculator(this);
+	protected final SizeCalculator sizeCalculator;
 
 	/**
 	 * Creates the builder of the response.
@@ -66,6 +66,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.request = request;
 			this.node = node;
 			this.classLoader = mkClassLoader();
+			this.storageTypeToClass = new StorageTypeToClass(this);
+			this.sizeCalculator = new SizeCalculator(this);
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -218,7 +220,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @throws Exception if the look up fails
 		 */
 		public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
-			return deserializer.deserialize(node.getLastLazyUpdateToNonFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
+			return deserializer.deserialize(node.getLastLazyUpdateToNonFinalField(reference, field, this::chargeGasForCPU).getValue());
 		}
 
 		/**
@@ -232,7 +234,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @throws Exception if the look up fails
 		 */
 		public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
-			return deserializer.deserialize(node.getLastLazyUpdateToFinalFieldOf(reference, field, this::chargeGasForCPU).getValue());
+			return deserializer.deserialize(node.getLastLazyUpdateToFinalField(reference, field, this::chargeGasForCPU).getValue());
 		}
 
 		/**
