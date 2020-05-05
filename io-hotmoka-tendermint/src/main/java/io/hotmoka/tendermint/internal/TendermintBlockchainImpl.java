@@ -31,7 +31,7 @@ import io.takamaka.code.engine.Initialization;
  * or an error message. This blockchain keeps its state in a transaction database
  * implemented in a state object.
  */
-public class TendermintBlockchainImpl extends AbstractNode implements TendermintBlockchain {
+public class TendermintBlockchainImpl extends AbstractNode<Config>implements TendermintBlockchain {
 
 	/**
 	 * The GRPC server that runs the ABCI process.
@@ -66,12 +66,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	 * This is copy of the information in the state, for efficiency.
 	 */
 	private final StorageReference[] accounts;
-
-	/**
-	 * True if and only if this blockchain doesn't accept initial transactions anymore.
-	 * This is copy of information in the state, for efficiency.
-	 */
-	private volatile boolean initialized;
 
 	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
@@ -150,7 +144,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 			this.jar = state.getJar().orElse(null);
 			this.accounts = state.getAccounts().toArray(StorageReference[]::new);
 			this.takamakaCode = state.getTakamakaCode().get();
-			this.initialized = state.isInitialized();
 			setNext(state.getNext().orElse(LocalTransactionReference.FIRST));
 		}
 		catch (Throwable t) {
@@ -177,11 +170,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 
 			closed = true;
 		}
-	}
-
-	@Override
-	public Config getConfig() {
-		return (Config) super.getConfig(); // cast to more specific configuration class
 	}
 
 	@Override
@@ -241,19 +229,6 @@ public class TendermintBlockchainImpl extends AbstractNode implements Tendermint
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
 		state.putResponse(reference, response);
 		super.expandStore(reference, request, response);
-	}
-
-	@Override
-	protected boolean isInitialized() {
-		return initialized;
-	}
-
-	@Override
-	protected void markAsInitialized() {
-		if (!initialized) {
-			state.markAsInitialized();
-			initialized = true;
-		}
 	}
 
 	/**

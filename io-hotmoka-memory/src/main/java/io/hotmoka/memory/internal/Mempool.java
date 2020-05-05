@@ -3,6 +3,7 @@ package io.hotmoka.memory.internal;
 import java.math.BigInteger;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,12 +56,30 @@ class Mempool {
 	private final Thread deliverer;
 
 	/**
+	 * The task to run when a request with a given id has been executed and
+	 * generated a transaction.
+	 */
+	private final BiConsumer<String, TransactionReference> transactionReferenceSetter;
+
+	/**
+	 * The task to run when a request with a given id has been executed and
+	 * generated an error.
+	 */
+	private final BiConsumer<String, String> transactionErrorSetter;
+
+	/**
 	 * Builds a mempool.
 	 * 
 	 * @param node the node for which the mempool works
+	 * @param transactionReferenceSetter a task to run when a request with a given id has been executed and
+	 *                                   generated a transaction
+	 * @param transactionErrorSetter a task to run when a request with a given id has been executed and
+	 *                               generated a transaction
 	 */
-	Mempool(MemoryBlockchainImpl node) {
+	Mempool(MemoryBlockchainImpl node, BiConsumer<String, TransactionReference> transactionReferenceSetter, BiConsumer<String, String> transactionErrorSetter) {
 		this.node = node;
+		this.transactionReferenceSetter = transactionReferenceSetter;
+		this.transactionErrorSetter = transactionErrorSetter;
 		this.id = BigInteger.ZERO;
 		this.checker = new Thread(this::check);
 		this.checker.start();
@@ -114,12 +133,12 @@ class Mempool {
 				}
 				catch (TransactionRejectedException e) {
 					logger.info("Failed to check transaction request", e);
-					node.setTransactionErrorFor(current.id, e.getMessage());
+					transactionErrorSetter.accept(current.id, e.getMessage());
 					node.releaseWhoWasWaitingFor(current.request);
 				}
 	            catch (Throwable t) {
 	            	logger.error("Failed to check transaction request", t);
-	            	node.setTransactionErrorFor(current.id, t.toString());
+	            	transactionErrorSetter.accept(current.id, t.toString());
 	            	node.releaseWhoWasWaitingFor(current.request);
 	    		}
 			}
@@ -141,15 +160,15 @@ class Mempool {
 					ResponseBuilder<?,?> builder = node.checkTransaction(current.request);
 					TransactionReference next = node.nextAndIncrement();
 					node.deliverTransaction(builder, next);
-					node.setTransactionReferenceFor(current.id, next);
+					transactionReferenceSetter.accept(current.id, next);
 				}
 				catch (TransactionRejectedException e) {
 					logger.info("Failed delivering transaction", e);
-					node.setTransactionErrorFor(current.id, e.getMessage());
+					transactionErrorSetter.accept(current.id, e.getMessage());
 				}
 	            catch (Throwable t) {
 	            	logger.error("Failed delivering transaction", t);
-	            	node.setTransactionErrorFor(current.id, t.toString());
+	            	transactionErrorSetter.accept(current.id, t.toString());
 	    		}
 
 				node.releaseWhoWasWaitingFor(current.request);

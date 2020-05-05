@@ -72,7 +72,7 @@ public class Config {
 		 * while waiting for the result of a posted transaction.
 		 * It defaults to 100.
 		 * 
-		 * @param dir the directory
+		 * @param maxPollingAttempts the the maximal number of polling attempts
 		 * @return this builder
 		 */
 		public Builder setMaxPollingAttempts(int maxPollingAttempts) {
@@ -81,12 +81,12 @@ public class Config {
 		}
 
 		/**
-		 * Sets delay of two subsequent polling attempts, in milliseconds,
+		 * Sets the delay of two subsequent polling attempts, in milliseconds,
 		 * while waiting for the result of a posted transaction.
 		 * This delay is then increased by 10% at each subsequent attempt.
 		 * It defaults to 10.
 		 * 
-		 * @param dir the directory
+		 * @param pollingDelay the delay
 		 * @return this builder
 		 */
 		public Builder setPollingDelay(int pollingDelay) {

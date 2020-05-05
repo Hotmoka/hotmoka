@@ -108,11 +108,6 @@ class State implements AutoCloseable {
     private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 3);
 
     /**
-     * The key used inside {@linkplain #info} to know if the blockchain is initialized.
-     */
-    private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 4);
-
-    /**
      * The key used inside {@linkplain #info} to know the last committed transaction reference.
      */
     private final static ByteIterable NEXT = ArrayByteIterable.fromByte((byte) 4);
@@ -259,13 +254,6 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Sets the initialized property in this state.
-	 */
-	void markAsInitialized() {
-		recordTime(() -> env.executeInTransaction(txn -> info.put(txn, INITIALIZED, ByteIterable.EMPTY)));
-	}
-
-	/**
 	 * Yields the response of the transaction having the given reference.
 	 * 
 	 * @param reference the reference of the transaction
@@ -342,15 +330,6 @@ class State implements AutoCloseable {
 	Stream<StorageReference> getAccounts() {
 		ByteIterable accounts = getFromInfo(ACCOUNTS);
 		return accounts == null ? Stream.empty() : Stream.of(fromByteArray(StorageReference::from, StorageReference[]::new, accounts));
-	}
-
-	/**
-	 * Determines if the blockchain is already initialized.
-	 * 
-	 * @return true if and only if {@code markAsInitialized()} has been already called
-	 */
-	boolean isInitialized() {
-		return getFromInfo(INITIALIZED) != null;
 	}
 
 	/**

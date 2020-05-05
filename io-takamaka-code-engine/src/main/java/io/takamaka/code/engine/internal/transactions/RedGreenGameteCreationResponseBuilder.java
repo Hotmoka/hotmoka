@@ -21,7 +21,7 @@ public class RedGreenGameteCreationResponseBuilder extends InitialResponseBuilde
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public RedGreenGameteCreationResponseBuilder(RedGreenGameteCreationTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
+	public RedGreenGameteCreationResponseBuilder(RedGreenGameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
 		super(request, node);
 
 		try {

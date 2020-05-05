@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -44,12 +43,7 @@ import io.takamaka.code.engine.Initialization;
  * really a blockchain, since there is no peer-to-peer network, nor mining.
  * Updates are stored inside the blocks, rather than in an external database.
  */
-public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockchain {
-
-	/**
-	 * The number of transactions that fit inside a block.
-	 */
-	public final static BigInteger TRANSACTIONS_PER_BLOCK = BigInteger.valueOf(5);
+public class MemoryBlockchainImpl extends AbstractNode<Config> implements MemoryBlockchain {
 
 	/**
 	 * The name used for the file containing the serialized header of a block.
@@ -121,12 +115,8 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	private final StorageReference[] accounts;
 
 	/**
-	 * True if and only if this node doesn't allow initial transactions anymore.
-	 */
-	private boolean initialized;
-
-	/**
-	 * Builds a blockchain in disk memory and initializes user accounts with the given initial funds.
+	 * Builds a blockchain in disk memory, installs some jars in blockchain
+	 * and initializes user accounts with the given initial funds.
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
@@ -144,10 +134,9 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 		ensureDeleted(config.dir);  // cleans the directory where the blockchain lives
 		Files.createDirectories(config.dir);
 		createHeaderOfCurrentBlock();
-		this.mempool = new Mempool(this);
+		this.mempool = new Mempool(this, transactions::put, transactionErrors::put);
 
 		Initialization init = new Initialization(this, takamakaCodePath, jar.isPresent() ? jar.get() : null, redGreen, funds);
-
 		this.jar = init.jar;
 		this.accounts = init.accounts().toArray(StorageReference[]::new);
 		this.takamakaCode = init.takamakaCode;
@@ -178,10 +167,17 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	}
 
 	@Override
+	public void close() throws Exception {
+		mempool.stop();
+		super.close();
+	}
+
+	@Override
 	protected void setNext(TransactionReference next) {
 		super.setNext(next);
 
-		if (next.getNumber().remainder(TRANSACTIONS_PER_BLOCK).signum() == 0)
+		// if we are moving to the first transaction of a new block, we create the header of the new block
+		if (next.getNumber().remainder(BigInteger.valueOf(getConfig().transactionsPerBlock)).signum() == 0)
 			try {
 				createHeaderOfCurrentBlock();
 			}
@@ -189,21 +185,7 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	}
 
 	@Override
-	public void close() throws Exception {
-		mempool.stop();
-		super.close();
-	}
-
-	protected void setTransactionReferenceFor(String id, TransactionReference reference) {
-		transactions.put(id, reference);
-	}
-
-	protected void setTransactionErrorFor(String id, String message) {
-		transactionErrors.put(id, message);
-	}
-
-	@Override
-	protected Optional<TransactionReference> getTransactionReference(String id) throws TimeoutException, InterruptedException {
+	protected Optional<TransactionReference> getTransactionReference(String id) throws Exception {
 		String error = transactionErrors.get(id);
 		if (error != null)
 			throw new IllegalStateException(error);
@@ -223,16 +205,6 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	}
 
 	@Override
-	protected boolean isInitialized() {
-		return initialized;
-	}
-
-	@Override
-	protected void markAsInitialized() {
-		initialized = true;
-	}
-
-	@Override
 	protected Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception {
 		String id = mempool.add(request);
 		return () -> id.toString();
@@ -244,14 +216,6 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 		Path parent = requestPath.getParent();
 		ensureDeleted(parent);
 		Files.createDirectories(parent);
-
-		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(requestPath)))) {
-			request.into(oos);
-		}
-
-		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor((LocalTransactionReference) reference, RESPONSE_NAME))))) {
-			response.into(oos);
-		}
 
 		// we write the textual request and response in a background thread, since they are not needed
 		// to the blockchain itself but are only useful for the user who wants to see the transactions
@@ -270,6 +234,14 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 			}
 		});
 
+		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(requestPath)))) {
+			request.into(oos);
+		}
+
+		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor((LocalTransactionReference) reference, RESPONSE_NAME))))) {
+			response.into(oos);
+		}
+
 		super.expandStore(reference, request, response);
 	}
 
@@ -281,12 +253,24 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 		}
 	}
 
-	private static BigInteger blockNumber(TransactionReference reference) {
-		return reference.getNumber().divide(TRANSACTIONS_PER_BLOCK);
+	/**
+	 * Yields the number of the block that holds the given Hotmoka transaction.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the number of the block
+	 */
+	private BigInteger blockNumber(TransactionReference reference) {
+		return reference.getNumber().divide(BigInteger.valueOf(getConfig().transactionsPerBlock));
 	}
 
-	private static BigInteger transactionNumber(TransactionReference reference) {
-		return reference.getNumber().remainder(TRANSACTIONS_PER_BLOCK);
+	/**
+	 * Yields the progressive number of the transaction inside the block that holds the given Hotmoka transaction.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the progressive number of the transaction inside its block
+	 */
+	private BigInteger transactionNumber(TransactionReference reference) {
+		return reference.getNumber().remainder(BigInteger.valueOf(getConfig().transactionsPerBlock));
 	}
 
 	/**
@@ -312,24 +296,25 @@ public class MemoryBlockchainImpl extends AbstractNode implements MemoryBlockcha
 	}
 
 	/**
-	 * Yields the path for the given file name inside the directory for the given transaction.
+	 * Yields the path for a file inside the directory for the given transaction.
 	 * 
-	 * @param fileName the name of the file
-	 * @return the path
+	 * @param reference the transaction reference
+	 * @param path the relative path of the file
+	 * @return the resulting path
 	 */
-	private Path getPathFor(LocalTransactionReference reference, Path fileName) {
-		return getConfig().dir.resolve("b" + blockNumber(reference)).resolve("t" + transactionNumber(reference)).resolve(fileName);
+	private Path getPathFor(LocalTransactionReference reference, Path path) {
+		return getConfig().dir.resolve("b" + blockNumber(reference)).resolve("t" + transactionNumber(reference)).resolve(path);
 	}
 
 	/**
 	 * Yields the path for a file inside the given block.
 	 * 
 	 * @param blockNumber the number of the block
-	 * @param fileName the file name
-	 * @return the path
+	 * @param path the relative path of the file
+	 * @return the resulting path
 	 */
-	private Path getPathInBlockFor(BigInteger blockNumber, Path fileName) {
-		return getConfig().dir.resolve("b" + blockNumber).resolve(fileName);
+	private Path getPathInBlockFor(BigInteger blockNumber, Path path) {
+		return getConfig().dir.resolve("b" + blockNumber).resolve(path);
 	}
 
 	/**

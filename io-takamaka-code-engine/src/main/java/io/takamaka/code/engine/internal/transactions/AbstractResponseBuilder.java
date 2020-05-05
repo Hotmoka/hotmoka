@@ -32,7 +32,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The HotMoka node that is creating the response.
 	 */
-	public final AbstractNode node;
+	public final AbstractNode<?> node;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -61,7 +61,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(Request request, AbstractNode node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(Request request, AbstractNode<?> node) throws TransactionRejectedException {
 		try {
 			this.request = request;
 			this.node = node;

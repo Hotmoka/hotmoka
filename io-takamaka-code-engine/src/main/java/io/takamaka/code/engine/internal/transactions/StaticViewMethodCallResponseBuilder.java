@@ -17,7 +17,7 @@ public class StaticViewMethodCallResponseBuilder extends StaticMethodCallRespons
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public StaticViewMethodCallResponseBuilder(StaticMethodCallTransactionRequest request, AbstractNode node) throws TransactionRejectedException {
+	public StaticViewMethodCallResponseBuilder(StaticMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
 		super(request, node);
 	}
 }
