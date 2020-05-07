@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -71,12 +70,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 	/**
 	 * Checks if the caller is an externally owned account or subclass.
-	 * @throws Exception 
-	 * 
-	 * @throws IllegalArgumentException if the caller is not an externally owned account
+	 *
+	 * @throws TransactionRejectedException if the caller is not an externally owned account
+	 * @throws Exception if the class of the caller cannot be determined
 	 */
 	private void callerMustBeExternallyOwnedAccount() throws Exception {
-		ClassTag classTag = node.getClassTag(request.caller, i -> {});
+		ClassTag classTag = node.getClassTag(request.caller);
 		Class<?> clazz = classLoader.loadClass(classTag.className);
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz)
 				&& !classLoader.getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
@@ -124,9 +123,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		private BigInteger gasConsumedForStorage = BigInteger.ZERO;
 
-		protected ResponseCreator(TransactionReference current) throws TransactionRejectedException {
-			super(current);
-
+		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.gas = request.gasLimit;
 

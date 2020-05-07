@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
@@ -45,8 +44,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	}
 
 	@Override
-	public ConstructorCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		return new ResponseCreator(current).create();
+	public ConstructorCallTransactionResponse build() throws TransactionRejectedException {
+		return new ResponseCreator().create();
 	}
 
 	private class ResponseCreator extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse>.ResponseCreator {
@@ -56,8 +55,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator(TransactionReference current) throws TransactionRejectedException {
-			super(current);
+		private ResponseCreator() throws TransactionRejectedException {
 		}
 
 		@Override

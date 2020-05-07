@@ -1,7 +1,6 @@
 package io.takamaka.code.engine.internal.transactions;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.takamaka.code.engine.AbstractNode;
@@ -31,8 +30,8 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 	}
 
 	@Override
-	public JarStoreInitialTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		return this.new ResponseCreator(current) {
+	public JarStoreInitialTransactionResponse build() throws TransactionRejectedException {
+		return this.new ResponseCreator() {
 
 			@Override
 			protected JarStoreInitialTransactionResponse body() throws Exception {

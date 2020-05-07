@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.types.StorageType;
@@ -110,9 +109,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		 */
 		private final List<Object> events = new ArrayList<>();
 
-		protected ResponseCreator(TransactionReference current) throws TransactionRejectedException {
-			super(current);
-
+		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.serializer = new Serializer(CodeCallResponseBuilder.this);
 			}

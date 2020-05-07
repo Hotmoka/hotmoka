@@ -3,4 +3,5 @@ module io.hotmoka.memory {
 	requires transitive io.takamaka.code.engine;
 	requires io.hotmoka.nodes;
 	requires org.slf4j;
+	requires io.hotmoka.beans;
 }

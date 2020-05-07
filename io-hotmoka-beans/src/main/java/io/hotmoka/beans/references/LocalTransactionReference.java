@@ -2,61 +2,53 @@ package io.hotmoka.beans.references;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.math.BigInteger;
 
 /**
  * A transaction reference that refers to a transaction in the local store of a node.
  */
 public final class LocalTransactionReference extends TransactionReference {
-	public final BigInteger number;
 
 	/**
-	 * The initial local transaction reference.
+	 * The hash of the request that generated the transaction.
 	 */
-	public final static LocalTransactionReference FIRST = new LocalTransactionReference(BigInteger.ZERO);
+	public final String hash;
 
 	/**
 	 * Builds a transaction reference.
 	 * 
 	 * @param number the number of the transaction
 	 */
-	LocalTransactionReference(BigInteger number) {
-		this.number = number;
+	public LocalTransactionReference(String hash) {
+		this.hash = hash;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof TransactionReference &&
-			((TransactionReference) other).getNumber().equals(number);
+		return other instanceof LocalTransactionReference && ((LocalTransactionReference) other).getHash().equals(hash);
 	}
 
 	@Override
 	public int hashCode() {
-		return number.hashCode();
+		return hash.hashCode();
 	}
 
 	@Override
 	public String toString() {
-		return number.toString(16);
+		return hash.toLowerCase();
 	}
 
 	@Override
 	public int compareTo(TransactionReference other) {
-		return number.compareTo(other.getNumber());
+		return hash.compareTo(other.getHash());
 	}
 
 	@Override
-	public LocalTransactionReference getNext() {
-		return new LocalTransactionReference(number.add(BigInteger.ONE));
-	}
-
-	@Override
-	public BigInteger getNumber() {
-		return number;
+	public String getHash() {
+		return hash;
 	}
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
-		marshal(number, oos);
+		oos.writeObject(hash);
 	}
 }

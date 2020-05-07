@@ -44,11 +44,10 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	/**
 	 * Builds the response of the transaction.
 	 * 
-	 * @param current the reference that can be used to refer to the transaction
 	 * @return the response
 	 * @throws TransactionRejectedException if the response cannot be built
 	 */
-	Response build(TransactionReference current) throws TransactionRejectedException;
+	Response build() throws TransactionRejectedException;
 
 	/**
 	 * Yield the request for which this builder was created.

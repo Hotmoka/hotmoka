@@ -39,6 +39,8 @@ import jetbrains.exodus.env.Transaction;
  * <li> a map from each Hotmoka transaction reference to the response computed for that transaction
  * <li> a map from each storage reference to the transaction references that contribute
  *      to provide values to the fields of the storage object at that reference
+ * <li> a map from each Hotmoka transaction reference to the hash of the corresponding
+ *      Tendermint transaction 
  * <li> some miscellaneous control information, such as  where the jar with basic
  *      Takamaka classes is installed, or which is the reference that must be
  *      used for the next transaction 
@@ -73,6 +75,12 @@ class State implements AutoCloseable {
 	 * to provide values to the fields of the storage object at that reference.
 	 */
 	private Store history;
+
+	/**
+	 * The store that holds a map from each Hotmoka transaction reference to the hash of the
+	 * corresponding Tendermint transaction 
+	 */
+	private Store hashes;
 
 	/**
 	 * The store that holds miscellaneous information about the state.
@@ -129,6 +137,7 @@ class State implements AutoCloseable {
     		env.executeInTransaction(txn -> {
     			responses = env.openStore("responses", StoreConfig.WITHOUT_DUPLICATES, txn);
     			history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
+    			hashes = env.openStore("hashes", StoreConfig.WITHOUT_DUPLICATES, txn);
     			info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
     		})
     	);
@@ -161,6 +170,7 @@ class State implements AutoCloseable {
     		txn = env.beginTransaction();
     		responses = env.openStore("responses", StoreConfig.USE_EXISTING, txn);
     		history = env.openStore("history", StoreConfig.USE_EXISTING, txn);
+    		hashes = env.openStore("hashes", StoreConfig.USE_EXISTING, txn);
     		info = env.openStore("info", StoreConfig.USE_EXISTING, txn);
     	});
     }
@@ -187,6 +197,20 @@ class State implements AutoCloseable {
 			ByteIterable referenceAsByteArray = intoByteArray(reference);
 			ByteIterable responseAsByteArray = intoByteArray(response);
 			env.executeInTransaction(txn -> responses.put(txn, referenceAsByteArray, responseAsByteArray));
+		});
+	}
+
+	/**
+	 * Puts in state the hash that Tendermint uses to refer to the Hotmoka transaction having the given reference.
+	 * 
+	 * @param reference the reference of the Hotmoka transaction
+	 * @param hash the Tendermint hash
+	 */
+	void putHash(TransactionReference reference, String hash) {
+		recordTime(() -> {
+			ByteIterable referenceAsByteArray = intoByteArray(reference);
+			ByteIterable hashAsByteArray = new ArrayByteIterable(hash.getBytes());
+			env.executeInTransaction(txn -> hashes.put(txn, referenceAsByteArray, hashAsByteArray));
 		});
 	}
 
@@ -257,6 +281,20 @@ class State implements AutoCloseable {
 			ByteIterable referenceAsByteArray = intoByteArray(reference);
 			ByteIterable responseAsByteArray = env.computeInReadonlyTransaction(txn -> responses.get(txn, referenceAsByteArray));
 			return responseAsByteArray == null ? Optional.empty() : Optional.of(fromByteArray(TransactionResponse::from, responseAsByteArray));
+		});
+	}
+
+	/**
+	 * Yields the hash that Tendermint uses to refer to the given Hotmoka transaction.
+	 * 
+	 * @param reference the reference of the Hotmoka transaction
+	 * @return the hash, if any
+	 */
+	Optional<String> getHash(TransactionReference reference) {
+		return recordTime(() -> {
+			ByteIterable referenceAsByteArray = intoByteArray(reference);
+			ByteIterable responseAsByteArray = env.computeInReadonlyTransaction(txn -> hashes.get(txn, referenceAsByteArray));
+			return responseAsByteArray == null ? Optional.empty() : Optional.of(new String(responseAsByteArray.getBytesUnsafe()));
 		});
 	}
 

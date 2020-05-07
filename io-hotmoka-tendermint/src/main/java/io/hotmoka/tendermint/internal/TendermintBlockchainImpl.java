@@ -6,14 +6,18 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -76,6 +80,8 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 	 * The current time of the blockchain, set when each block gets created.
 	 */
 	private volatile long now;
+
+	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
 
 	/**
 	 * Builds a Tendermint blockchain, install the basic jar in it
@@ -140,7 +146,6 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 			this.jar = state.getJar().orElse(null);
 			this.accounts = state.getAccounts().toArray(StorageReference[]::new);
 			this.takamakaCode = state.getTakamakaCode().get();
-			setNext(state.getNext().orElse(LocalTransactionReference.FIRST));
 		}
 		catch (Throwable t) {
 			close();
@@ -189,27 +194,39 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 	}
 
 	@Override
-	protected void setNext(TransactionReference next) {
-		super.setNext(next);
-		state.putNext(next); // we keep it in the state as well
-	}
-
-	@Override
-	protected TransactionRequest<?> getRequest(TransactionReference reference) throws Exception {
+	protected TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	protected TransactionResponse getResponse(TransactionReference transactionReference) throws Exception {
-		return state.getResponse(transactionReference)
-			.orElseThrow(() -> new IllegalStateException("cannot find response for transaction " + transactionReference));
+	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+		try {
+			tendermint.getErrorMessage(reference.getHash())
+				.ifPresent(TransactionRejectedException::new);
+
+			return state.getResponse(reference)
+				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
+		}
+		catch (TransactionRejectedException | NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw new IllegalStateException(e);
+		}
 	}
 
 	@Override
-	protected Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception {
-		String response = tendermint.broadcastTxAsync(request);
-		return () -> tendermint.extractHashFromBroadcastTxResponse(response); // extraction is done lazily
+	protected void postTransaction(TransactionRequest<?> request) {
+		try {
+			String response = tendermint.broadcastTxAsync(request);
+			tendermint.checkBroadcastTxResponse(response);
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
 	}
 
 	@Override
@@ -223,14 +240,9 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 	}
 
 	@Override
-	protected Optional<TransactionReference> getTransactionReference(String id) throws Exception {
-		return tendermint.getTransactionReferenceFor(id);
-	}
-
-	@Override
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
-		state.putResponse(reference, response); // we add the response in the state
-		super.expandStore(reference, request, response);
+	protected void expandStore(TransactionRequest<?> request, TransactionResponse response) {
+		state.putResponse(referenceOf(request), response);
+		super.expandStore(request, response);
 	}
 
 	/**

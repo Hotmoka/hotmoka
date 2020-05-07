@@ -11,7 +11,6 @@ import com.google.protobuf.Timestamp;
 
 import io.grpc.stub.StreamObserver;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import types.ABCIApplicationGrpc;
 import types.Types.RequestBeginBlock;
@@ -94,19 +93,12 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	node.checkTransaction(request);
         	responseBuilder.setCode(0);
         }
-        catch (TransactionRejectedException e) {
-        	logger.info("Failed to check transaction request", e);
-        	responseBuilder.setCode(1);
-        	responseBuilder.setInfo(e.getMessage());
-        	if (request != null)
-        		node.releaseWhoWasWaitingFor(request);
-		}
         catch (Throwable t) {
         	logger.error("Failed to check transaction request", t);
-        	responseBuilder.setCode(2);
-        	responseBuilder.setInfo(t.toString());
+        	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
+        	responseBuilder.setInfo(t.getMessage());
         	if (request != null)
-        		node.releaseWhoWasWaitingFor(request);
+        		node.notifyTransactionUndelivered(request, t.getMessage());
 		}
 
         ResponseCheckTx resp = responseBuilder
@@ -140,28 +132,20 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         TransactionRequest<?> request = null;
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
         	request = TransactionRequest.from(ois);
-        	TransactionReference next = node.nextAndIncrement();
-        	node.deliverTransaction(node.checkTransaction(request), next);
+        	node.deliverTransaction(node.checkTransaction(request));
         	responseBuilder.setCode(0);
-        	responseBuilder.setData(ByteString.copyFrom(next.toByteArray()));
-        }
-        catch (TransactionRejectedException e) {
-        	logger.info("Failed delivering transaction", e);
-        	responseBuilder.setCode(1);
-        	responseBuilder.setInfo(e.getMessage());
+        	node.notifyTransactionDelivered(request);
         }
         catch (Throwable t) {
         	logger.error("Failed delivering transaction", t);
-        	responseBuilder.setCode(2);
-        	responseBuilder.setInfo(t.toString());
+        	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
+        	responseBuilder.setInfo(t.getMessage());
+        	node.notifyTransactionUndelivered(request, t.getMessage());
         }
 
         ResponseDeliverTx resp = responseBuilder.build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
-
-        if (request != null)
-        	node.releaseWhoWasWaitingFor(request);
     }
 
     @Override
@@ -183,6 +167,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void query(RequestQuery req, StreamObserver<ResponseQuery> responseObserver) {
+    	req.getData();
         Builder builder = ResponseQuery.newBuilder().setLog("nop");
         ResponseQuery resp = builder.build();
         responseObserver.onNext(resp);

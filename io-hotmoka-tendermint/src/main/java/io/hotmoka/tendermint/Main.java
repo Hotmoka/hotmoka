@@ -14,6 +14,7 @@ public class Main {
 				(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000))) {
 			System.out.println(blockchain.takamakaCode());
 			System.out.println(blockchain.account(0));
+			Thread.sleep(100_000_000);
 		}
 		catch (Throwable e) {
 			e.printStackTrace();

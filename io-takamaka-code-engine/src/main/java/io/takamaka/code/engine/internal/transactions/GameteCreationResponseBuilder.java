@@ -3,7 +3,6 @@ package io.takamaka.code.engine.internal.transactions;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.takamaka.code.engine.AbstractNode;
@@ -39,8 +38,8 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	}
 
 	@Override
-	public GameteCreationTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		return this.new ResponseCreator(current) {
+	public GameteCreationTransactionResponse build() throws TransactionRejectedException {
+		return this.new ResponseCreator() {
 
 			@Override
 			protected GameteCreationTransactionResponse body() throws Exception {

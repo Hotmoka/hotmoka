@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
@@ -50,8 +49,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 	protected abstract class ResponseCreator extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse>.ResponseCreator {
 
-		protected ResponseCreator(TransactionReference current) throws TransactionRejectedException {
-			super(current);
+		protected ResponseCreator() throws TransactionRejectedException {
 		}
 
 		/**

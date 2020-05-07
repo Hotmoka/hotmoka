@@ -4,5 +4,5 @@ public class TendermintTxResponse {
 	public String jsonrpc;
 	public long id;
 	public TendermintTopLevelResult result;
-	public Object error;
+	public String error;
 }

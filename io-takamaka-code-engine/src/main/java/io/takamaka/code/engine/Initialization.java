@@ -23,7 +23,6 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.Node.JarSupplier;
 
@@ -79,7 +78,7 @@ public final class Initialization {
 	 *              each pair for the green/red initial funds of each account (green before red)
 	 * @throws Exception if some of the transactions that install jars or create accounts fails
 	 */
-	public Initialization(Node node, Path takamakaCodePath, Path jar, boolean redGreen, BigInteger... funds) throws Exception {
+	public Initialization(AbstractNode<?> node, Path takamakaCodePath, Path jar, boolean redGreen, BigInteger... funds) throws Exception {
 		this.takamakaCode = new Classpath(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCodePath))), false);
 
 		StorageReference gamete;

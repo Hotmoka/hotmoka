@@ -2,36 +2,23 @@ package io.hotmoka.beans.references;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.math.BigInteger;
 
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.annotations.Immutable;
 
 /**
- * A unique identifier for a transaction. This can be anything, from a
- * progressive number to a block/transaction pair to a database reference.
- * Each specific implementation of {@link io.hotmoka.nodes.Node}
- * provides its implementation of this interface. The order of comparison
- * is arbitrary, as long as it is a total order.
+ * A unique identifier for a transaction.
  */
 @Immutable
 public abstract class TransactionReference extends Marshallable implements Comparable<TransactionReference> {
 
 	/**
-	 * Yields the number of this transaction reference. It uniquely identifies the transaction
-	 * inside the node that generated it.
+	 * Yields the hash of the request that generated the transaction.
 	 * 
-	 * @return the number
+	 * @return the hash
 	 */
-	public abstract BigInteger getNumber();
-
-	/**
-	 * Yields the subsequent transaction reference, that comes after this.
-	 * 
-	 * @return the subsequent transaction reference
-	 */
-	public abstract TransactionReference getNext();
-
+	public abstract String getHash();
+	
 	/**
 	 * Factory method that unmarshals a transaction reference from the given stream.
 	 * 
@@ -41,6 +28,6 @@ public abstract class TransactionReference extends Marshallable implements Compa
 	 * @throws ClassNotFoundException if the transaction reference could not be unmarshalled
 	 */
 	public static TransactionReference from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		return new LocalTransactionReference(unmarshallBigInteger(ois));
+		return new LocalTransactionReference((String) ois.readObject());
 	}
 }

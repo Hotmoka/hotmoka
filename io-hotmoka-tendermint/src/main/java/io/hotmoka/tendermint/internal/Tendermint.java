@@ -10,12 +10,14 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -121,12 +123,63 @@ class Tendermint implements AutoCloseable {
 	}
 
 	/**
-	 * Extracts the Tendermint hash associated to a transaction whose response is given.
+	 * Yields the Hotmoka transaction reference specified in the Tendermint result for the Tendermint
+	 * transaction with the given hash.
+	 * 
+	 * @param hash the hash of the transaction to look for
+	 * @return the Hotmoka transaction reference
+	 * @throws JsonSyntaxException 
+	 * @throws Exception if the connection couldn't be opened or the request could not be sent or the result was incorrect
+	 */
+	Optional<String> getErrorMessage(String hash) throws Exception {
+		String error;
+
+		TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
+		if (response.error != null)
+			error = response.error;
+		else {
+			TendermintTxResult tx_result = response.result.tx_result;
+			if (tx_result == null)
+				error = "no result for Tendermint transaction " + hash;
+			else if (tx_result.info != null)
+				error = tx_result.info;
+			else
+				error = null;
+		}
+
+		return Optional.ofNullable(error);
+	}
+
+	/**
+	 * Yields the Hotmoka request specified in the Tendermint result for the Tendermint
+	 * transaction with the given hash.
+	 * 
+	 * @param hash the hash of the transaction to look for
+	 * @return the Hotmoka transaction request
+	 * @throws Exception if the connection couldn't be opened or the Tendermint request could not be sent or the result was incorrect
+	 */
+	Optional<TransactionRequest<?>> getRequest(String hash) throws Exception {
+		TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
+		if (response.error == null) {
+			String tx = response.result.tx;
+			if (tx == null)
+				throw new IllegalStateException("no Hotmoka request in Tendermint response");
+
+			byte[] decoded = Base64.getDecoder().decode(tx);
+			try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decoded))) {
+				return Optional.of(TransactionRequest.from(ois));
+			}
+		}
+
+		return Optional.empty();
+	}
+
+	/**
+	 * Checks if the response of Tendermint contains errors.
 	 * 
 	 * @param response the Tendermint response
-	 * @return the hash
 	 */
-	String extractHashFromBroadcastTxResponse(String response) {
+	void checkBroadcastTxResponse(String response) {
 		TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
 	
 		TxError error = parsedResponse.error;
@@ -141,8 +194,6 @@ class Tendermint implements AutoCloseable {
 		String hash = result.hash;
 		if (hash == null)
 			throw new IllegalStateException("missing hash in Tendermint response");
-	
-		return hash;
 	}
 
 	/**
@@ -167,10 +218,45 @@ class Tendermint implements AutoCloseable {
 	 * @return the response of Tendermint
 	 * @throws Exception if the connection couldn't be opened or the request could not be sent
 	 */
-	private String tx(String hash) throws Exception {
+	public String tx(String hash) throws Exception {
 		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
 			Base64.getEncoder().encodeToString(hexStringToByteArray(hash)) + "\", \"prove\": false }}";
 	
+		return postToTendermint(jsonTendermintRequest);
+	}
+
+	/**
+	 * Sends a {@code tx} request to the Tendermint process, to read the
+	 * committed data about the Tendermint transaction with the given hash.
+	 * 
+	 * @param hash the hash of the Tendermint transaction to look for
+	 * @return the response of Tendermint
+	 * @throws Exception if the connection couldn't be opened or the request could not be sent
+	 */
+	public String tx_search(String query) throws Exception {
+		String jsonTendermintRequest = "{\"method\": \"tx_search\", \"params\": {\"query\": \"" +
+			//Base64.getEncoder().encodeToString(
+			query + "\", \"prove\": false, \"page\": \"1\", \"per_page\": \"30\", \"order_by\": \"asc\" }}";
+
+		System.out.println(jsonTendermintRequest);
+		return postToTendermint(jsonTendermintRequest);
+	}
+
+	/**
+	 * Sends a {@code tx} request to the Tendermint process, to read the
+	 * committed data about the Tendermint transaction with the given hash.
+	 * 
+	 * @param hash the hash of the Tendermint transaction to look for
+	 * @return the response of Tendermint
+	 * @throws Exception if the connection couldn't be opened or the request could not be sent
+	 */
+	public String abci_query(String path, String data) throws Exception {
+		String jsonTendermintRequest = "{\"method\": \"abci_query\", \"params\": {\"data\": \""
+				+ bytesToHex(data.getBytes())
+				//+ Base64.getEncoder().encodeToString(data.getBytes())
+				+ "\", \"prove\": true }}";
+
+		System.out.println(jsonTendermintRequest);
 		return postToTendermint(jsonTendermintRequest);
 	}
 
@@ -196,6 +282,18 @@ class Tendermint implements AutoCloseable {
 		}
 	
 		throw new TimeoutException("Cannot connect to Tendermint process at " + url() + ". Tried " + node.getConfig().maxPingAttempts + " times");
+	}
+
+	private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes();
+
+	private static String bytesToHex(byte[] bytes) {
+	    byte[] hexChars = new byte[bytes.length * 2];
+	    for (int j = 0; j < bytes.length; j++) {
+	        int v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+	    }
+	    return new String(hexChars, StandardCharsets.UTF_8);
 	}
 
 	/**

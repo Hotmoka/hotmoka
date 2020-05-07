@@ -6,4 +6,5 @@ public class TendermintTopLevelResult {
 	public Object check_tx;
 	public Object deliver_tx;
 	public TendermintTxResult tx_result;
+	public String tx;
 }

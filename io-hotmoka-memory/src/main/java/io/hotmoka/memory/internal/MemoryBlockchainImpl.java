@@ -1,31 +1,30 @@
 package io.hotmoka.memory.internal;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
@@ -44,16 +43,6 @@ import io.takamaka.code.engine.Initialization;
  * Updates are stored inside the blocks, rather than in an external database.
  */
 public class MemoryBlockchainImpl extends AbstractNode<Config> implements MemoryBlockchain {
-
-	/**
-	 * The name used for the file containing the serialized header of a block.
-	 */
-	private static final Path HEADER_NAME = Paths.get("header");
-
-	/**
-	 * The name used for the file containing the textual header of a block.
-	 */
-	private final static Path HEADER_TXT_NAME = Paths.get("header.txt");
 
 	/**
 	 * The name used for the file containing the serialized request of a transaction.
@@ -86,17 +75,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 */
 	private final Map<StorageReference, TransactionReference[]> histories = new HashMap<>();
 
-	/**
-	 * A map from the identifier created at time of posting a request to
-	 * the transaction that has been computed, if any.
-	 */
-	private final ConcurrentMap<String, TransactionReference> transactions = new ConcurrentHashMap<>();
-
-	/**
-	 * A map from the identifier created at time of posting a request to
-	 * the error message that resulted from the post, if any.
-	 */
-	private final ConcurrentMap<String, String> transactionErrors = new ConcurrentHashMap<>();
+	private final Map<TransactionReference, String> errors = new HashMap<>();
 
 	/**
 	 * The path of the basic Takamaka classes installed in blockchain.
@@ -113,6 +92,8 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 * The accounts created during initialization.
 	 */
 	private final StorageReference[] accounts;
+
+	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
 
 	/**
 	 * Builds a blockchain in disk memory, installs some jars in blockchain
@@ -133,8 +114,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 
 		ensureDeleted(config.dir);  // cleans the directory where the blockchain lives
 		Files.createDirectories(config.dir);
-		createHeaderOfCurrentBlock();
-		this.mempool = new Mempool(this, transactions::put, transactionErrors::put);
+		this.mempool = new Mempool(this);
 
 		Initialization init = new Initialization(this, takamakaCodePath, jar.isPresent() ? jar.get() : null, redGreen, funds);
 		this.jar = init.jar;
@@ -158,39 +138,14 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
-	public long getNow() throws Exception {
-		// we access the block header where the transaction would be added
-		Path headerPath = getPathInBlockFor(blockNumber(next()), HEADER_NAME);
-		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(headerPath)))) {
-			return ((MemoryBlockHeader) in.readObject()).time;
-		}
+	public long getNow() {
+		return System.currentTimeMillis();
 	}
 
 	@Override
 	public void close() throws Exception {
 		mempool.stop();
 		super.close();
-	}
-
-	@Override
-	protected void setNext(TransactionReference next) {
-		super.setNext(next);
-
-		// if we are moving to the first transaction of a new block, we create the header of the new block
-		if (next.getNumber().remainder(BigInteger.valueOf(getConfig().transactionsPerBlock)).signum() == 0)
-			try {
-				createHeaderOfCurrentBlock();
-			}
-			catch (Exception e) {}
-	}
-
-	@Override
-	protected Optional<TransactionReference> getTransactionReference(String id) throws Exception {
-		String error = transactionErrors.get(id);
-		if (error != null)
-			throw new IllegalStateException(error);
-
-		return Optional.ofNullable(transactions.get(id));
 	}
 
 	@Override
@@ -205,101 +160,101 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
-	protected Supplier<String> postTransaction(TransactionRequest<?> request) throws Exception {
-		String id = mempool.add(request);
-		return () -> id.toString();
+	protected void postTransaction(TransactionRequest<?> request) {
+		mempool.add(request);
 	}
 
 	@Override
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws Exception {
-		Path requestPath = getPathFor((LocalTransactionReference) reference, REQUEST_NAME);
-		Path parent = requestPath.getParent();
-		ensureDeleted(parent);
-		Files.createDirectories(parent);
+	protected void expandStore(TransactionRequest<?> request, TransactionResponse response) {
+		try {
+			TransactionReference reference = referenceOf(request);
+			Path requestPath = getPathFor(reference, REQUEST_NAME);
+			Path parent = requestPath.getParent();
+			ensureDeleted(parent);
+			Files.createDirectories(parent);
 
-		// we write the textual request and response in a background thread, since they are not needed
-		// to the blockchain itself but are only useful for the user who wants to see the transactions
-		submit(() -> {
-			try {
-				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((LocalTransactionReference) reference, RESPONSE_TXT_NAME)))) {
-					output.print(response);
+			// we write the textual request and response in a background thread, since they are not needed
+			// to the blockchain itself but are only useful for the user who wants to see the transactions
+			submit(() -> {
+				try {
+					try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, RESPONSE_TXT_NAME)))) {
+						output.print(response);
+					}
+
+					try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, REQUEST_TXT_NAME)))) {
+						output.print(request);
+					}
 				}
-
-				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor((LocalTransactionReference) reference, REQUEST_TXT_NAME)))) {
-					output.print(request);
+				catch (IOException e) {
+					throw new UncheckedIOException(e);
 				}
-			}
-			catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-		});
+			});
 
-		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(requestPath)))) {
-			request.into(oos);
+			try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {
+				request.into(oos);
+			}
+
+			try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(getPathFor((LocalTransactionReference) reference, RESPONSE_NAME)))) {
+				response.into(oos);
+			}
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
 		}
 
-		try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(getPathFor((LocalTransactionReference) reference, RESPONSE_NAME))))) {
-			response.into(oos);
-		}
-
-		super.expandStore(reference, request, response);
+		super.expandStore(request, response);
 	}
 
 	@Override
-	protected TransactionRequest<?> getRequest(TransactionReference reference) throws IOException, ClassNotFoundException {
-		Path response = getPathFor((LocalTransactionReference) reference, REQUEST_NAME);
-		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
-			return TransactionRequest.from(in);
+	protected TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
+		try {
+			Path response = getPathFor(reference, REQUEST_NAME);
+			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
+				return TransactionRequest.from(in);
+			}
+		}
+		catch (FileNotFoundException e) {
+			throw new NoSuchElementException("unknown transaction reference " + reference);
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
 		}
 	}
 
 	@Override
-	protected TransactionResponse getResponse(TransactionReference reference) throws IOException, ClassNotFoundException {
-		Path response = getPathFor((LocalTransactionReference) reference, RESPONSE_NAME);
-		try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
-			return TransactionResponse.from(in);
+	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+		try {
+			String error = errors.get(reference);
+			if (error != null)
+				throw new TransactionRejectedException(error);
+
+			Path response = getPathFor(reference, RESPONSE_NAME);
+			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
+				return TransactionResponse.from(in);
+			}
+		}
+		catch (TransactionRejectedException e) {
+			throw e;
+		}
+		catch (NoSuchFileException e) {
+			throw new NoSuchElementException("unknown transaction reference " + reference);
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
 		}
 	}
 
-	/**
-	 * Yields the number of the block that holds the given Hotmoka transaction.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the number of the block
-	 */
-	private BigInteger blockNumber(TransactionReference reference) {
-		return reference.getNumber().divide(BigInteger.valueOf(getConfig().transactionsPerBlock));
-	}
-
-	/**
-	 * Yields the progressive number of the transaction inside the block that holds the given Hotmoka transaction.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the progressive number of the transaction inside its block
-	 */
-	private BigInteger transactionNumber(TransactionReference reference) {
-		return reference.getNumber().remainder(BigInteger.valueOf(getConfig().transactionsPerBlock));
-	}
-
-	/**
-	 * Creates the header of the current block.
-	 * 
-	 * @throws IOException if the header cannot be created
-	 */
-	private void createHeaderOfCurrentBlock() throws IOException {
-		BigInteger blockNumber = blockNumber(next());
-		Path headerPath = getPathInBlockFor(blockNumber, HEADER_NAME);
-		ensureDeleted(headerPath.getParent());
-		Files.createDirectories(headerPath.getParent());
-	
-		MemoryBlockHeader header = new MemoryBlockHeader();
-	
-		try (ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(Files.newOutputStream(headerPath)))) {
-			os.writeObject(header);
+	@Override
+	public void notifyTransactionUndelivered(TransactionRequest<?> request, String errorMessage) {
+		try {
+			errors.put(referenceOf(request), errorMessage);
+			super.notifyTransactionUndelivered(request, errorMessage);
 		}
-	
-		try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathInBlockFor(blockNumber, HEADER_TXT_NAME)))) {
-			output.print(header);
+		catch (Exception e) {
+			throw InternalFailureException.of(e);
 		}
 	}
 
@@ -310,19 +265,8 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 * @param path the relative path of the file
 	 * @return the resulting path
 	 */
-	private Path getPathFor(LocalTransactionReference reference, Path path) {
-		return getConfig().dir.resolve("b" + blockNumber(reference)).resolve("t" + transactionNumber(reference)).resolve(path);
-	}
-
-	/**
-	 * Yields the path for a file inside the given block.
-	 * 
-	 * @param blockNumber the number of the block
-	 * @param path the relative path of the file
-	 * @return the resulting path
-	 */
-	private Path getPathInBlockFor(BigInteger blockNumber, Path path) {
-		return getConfig().dir.resolve("b" + blockNumber).resolve(path);
+	private Path getPathFor(TransactionReference reference, Path path) {
+		return getConfig().dir.resolve(reference.getHash()).resolve(path);
 	}
 
 	/**
@@ -337,29 +281,5 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 				.sorted(Comparator.reverseOrder())
 				.map(Path::toFile)
 				.forEach(File::delete);
-	}
-
-	/**
-	 * The header of a block. It contains the time that must be used
-	 * as {@code now} by the transactions that will be added to the block.
-	 */
-	private static class MemoryBlockHeader implements Serializable {
-		private static final long serialVersionUID = 6163345302977772036L;
-		private final static DateFormat formatter;
-
-		static {
-			formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
-			formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-		}
-
-		/**
-		 * The time of creation of the block, as returned by {@link java.lang.System#currentTimeMillis()}.
-		 */
-		private final long time = System.currentTimeMillis();
-
-		@Override
-		public String toString() {
-			return "block creation time: " + time + " [" + formatter.format(new Date(time)) + " UTC]";
-		}
 	}
 }

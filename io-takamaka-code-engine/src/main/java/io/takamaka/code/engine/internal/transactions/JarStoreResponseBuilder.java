@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
@@ -53,14 +52,13 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	}
 
 	@Override
-	public JarStoreTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		return new ResponseCreator(current).create();
+	public JarStoreTransactionResponse build() throws TransactionRejectedException {
+		return new ResponseCreator().create();
 	}
 
 	private class ResponseCreator extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {
 		
-		private ResponseCreator(TransactionReference current) throws TransactionRejectedException {
-			super(current);
+		private ResponseCreator() throws TransactionRejectedException {
 		}
 
 		@Override

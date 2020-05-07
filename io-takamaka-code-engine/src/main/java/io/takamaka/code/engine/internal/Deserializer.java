@@ -208,7 +208,7 @@ public class Deserializer {
 	 */
 	private Object deserializeAnew(StorageReference reference) {
 		try {
-			return createStorageObject(reference, getLastEagerUpdates(reference));
+			return createStorageObject(reference);
 		}
 		catch (DeserializationError e) {
 			throw e;
@@ -247,6 +247,39 @@ public class Deserializer {
 		// the updates set contains the updates to eager final fields now:
 		// we must still collect the latest updates to the eager non-final fields
 		collectEagerUpdatesFor(reference, updates, allEagerFields.size());
+
+		return updates.stream();
+	}
+
+	public Stream<Update> getLastUpdates(StorageReference reference) throws Exception {
+		TransactionReference transaction = reference.transaction;
+	
+		TransactionResponse response = getResponseAndCharge(transaction);
+		if (!(response instanceof TransactionResponseWithUpdates))
+			throw new DeserializationError("Storage reference " + reference + " does not contain updates");
+	
+		Set<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update.object.equals(reference))
+				.collect(Collectors.toSet());
+	
+		Optional<ClassTag> classTag = updates.stream()
+				.filter(update -> update instanceof ClassTag)
+				.map(update -> (ClassTag) update)
+				.findAny();
+	
+		if (!classTag.isPresent())
+			throw new DeserializationError("No class tag found for " + reference);
+	
+		// we drop updates to non-final fields
+		Set<Field> allFields = collectAllFieldsOf(classTag.get().className).collect(Collectors.toSet());
+		Iterator<Update> it = updates.iterator();
+		while (it.hasNext())
+			if (updatesNonFinalField(it.next(), allFields))
+				it.remove();
+	
+		// the updates set contains the updates to final fields now:
+		// we must still collect the latest updates to non-final fields
+		collectUpdatesFor(reference, updates, allFields.size());
 
 		return updates.stream();
 	}
@@ -304,7 +337,6 @@ public class Deserializer {
 	 * @param object the storage reference
 	 * @param updates the set where the latest updates must be added
 	 * @param eagerFields the number of eager fields whose latest update needs to be found
-	 * @param chargeForCPU the code to run to charge gas for CPU execution
 	 * @throws Exception if the operation fails
 	 */
 	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields) throws Exception {
@@ -314,6 +346,41 @@ public class Deserializer {
 				addEagerUpdatesFor(object, transaction, updates);
 			else
 				return;
+	}
+
+	/**
+	 * Adds, to the given set, all the latest updates for the fields of the
+	 * object at the given storage reference.
+	 * 
+	 * @param object the storage reference
+	 * @param updates the set where the latest updates must be added
+	 * @param fields the number of fields whose latest update needs to be found
+	 * @throws Exception if the operation fails
+	 */
+	private void collectUpdatesFor(StorageReference object, Set<Update> updates, int fields) throws Exception {
+		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
+		for (TransactionReference transaction: node.getHistoryWithCache(object).collect(Collectors.toList()))
+			if (updates.size() <= fields)
+				addUpdatesFor(object, transaction, updates);
+			else
+				return;
+	}
+
+	/**
+	 * Adds, to the given set, the updates of fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param transaction the reference to the transaction
+	 * @param updates the set where they must be added
+	 * @throws Exception if there is an error accessing the updates
+	 */
+	private void addUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) throws Exception {
+		TransactionResponse response = getResponseAndCharge(transaction);
+		if (response instanceof TransactionResponseWithUpdates)
+			((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn(update, updates))
+				.forEach(updates::add);
 	}
 
 	/**
@@ -384,14 +451,38 @@ public class Deserializer {
 	}
 
 	/**
+	 * Collect the instance fields in the given class or in its superclasses.
+	 * 
+	 * @param className the name of the class
+	 * @return the fields
+	 */
+	private Stream<Field> collectAllFieldsOf(String className) {
+		Set<Field> bag = new HashSet<>();
+		Class<?> storage = classLoader.getStorage();
+
+		try {
+			// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
+			for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
+				Stream.of(clazz.getDeclaredFields())
+					.filter(field -> !Modifier.isTransient(field.getModifiers())
+						&& !Modifier.isStatic(field.getModifiers()))
+					.forEach(bag::add);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IncompleteClasspathError(e);
+		}
+
+		return bag.stream();
+	}
+
+	/**
 	 * Creates a storage object in RAM.
 	 * 
 	 * @param reference the reference of the object inside the node's store
-	 * @param updates the eager updates of the object, including its class tag
 	 * @return the object
 	 * @throws DeserializationError if the object could not be created
 	 */
-	private Object createStorageObject(StorageReference reference, Stream<Update> updates) {
+	private Object createStorageObject(StorageReference reference) {
 		try {
 			ClassTag classTag = null;
 			List<Class<?>> formals = new ArrayList<>();
@@ -401,6 +492,8 @@ public class Deserializer {
 			formals.add(Object.class);
 			actuals.add(reference);
 
+			// we set the value for eager fields only; other fields will be loaded lazily
+			Stream<Update> updates = getLastEagerUpdates(reference);
 			// we process the updates in the same order they have in the deserialization constructor
 			for (Update update: updates.collect(Collectors.toCollection(() -> new TreeSet<>(updateComparator))))
 				if (update instanceof ClassTag)

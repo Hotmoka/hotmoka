@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
@@ -37,8 +36,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	@Override
-	public MethodCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		return new ResponseCreator(current).create();
+	public MethodCallTransactionResponse build() throws TransactionRejectedException {
+		return new ResponseCreator().create();
 	}
 
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {
@@ -53,8 +52,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator(TransactionReference current) throws TransactionRejectedException {
-			super(current);
+		private ResponseCreator() throws TransactionRejectedException {
 		}
 
 		@Override

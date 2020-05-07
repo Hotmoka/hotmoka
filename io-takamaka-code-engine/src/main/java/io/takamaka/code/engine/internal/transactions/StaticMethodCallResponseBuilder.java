@@ -6,7 +6,6 @@ import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
@@ -33,8 +32,8 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	}
 
 	@Override
-	public final MethodCallTransactionResponse build(TransactionReference current) throws TransactionRejectedException {
-		return new ResponseCreator(current).create();
+	public final MethodCallTransactionResponse build() throws TransactionRejectedException {
+		return new ResponseCreator().create();
 	}
 
 	private class ResponseCreator extends MethodCallResponseBuilder<StaticMethodCallTransactionRequest>.ResponseCreator {
@@ -44,8 +43,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator(TransactionReference current) throws TransactionRejectedException {
-			super(current);
+		private ResponseCreator() throws TransactionRejectedException {
 		}
 
 		@Override
