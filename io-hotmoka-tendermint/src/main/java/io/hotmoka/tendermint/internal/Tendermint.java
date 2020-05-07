@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -69,9 +70,16 @@ class Tendermint implements AutoCloseable {
 	}
 
 	@Override
-	public void close() throws InterruptedException {
-		process.destroy();
-		process.waitFor();
+	public void close() throws InterruptedException, UnsupportedEncodingException, IOException {
+		
+			process.children().forEach(ProcessHandle::destroy);
+			process.destroy();
+			process.waitFor();
+			
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream(), "utf-8"))) {
+				System.out.println(br.lines().collect(Collectors.joining()));
+			}
+
 	}
 
 	/**
