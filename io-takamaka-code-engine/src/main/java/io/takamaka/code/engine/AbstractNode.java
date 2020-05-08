@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -330,6 +331,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	@Override
 	public void close() throws Exception {
 		executor.shutdown();
+		executor.awaitTermination(10, TimeUnit.SECONDS);
 
 		logger.info("Time spent checking requests: " + checkTime + "ms");
 		logger.info("Time spent delivering requests: " + deliverTime + "ms");
