@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * LRUCache: Class to cache objects based on LRU (Least Recently Used) cache eviction strategy,
+ * A class to cache objects based on LRU (Least Recently Used) cache eviction strategy,
  * wherein if the cache size has reached the maximum allocated capacity, the
  * least recently used objects in the cache will be evicted.
  * 
@@ -108,6 +108,7 @@ public final class LRUCache<K, V> {
 			tail = node;
 		}
 	}
+
 	/**
 	 * Adds a new object to the cache. If the cache size has reached it's capacity,
 	 * then the least recently accessed object will be evicted.
@@ -133,6 +134,7 @@ public final class LRUCache<K, V> {
 			map.put(key, node);
 		}
 	}
+
 	/**
 	 * Fetches an object from the cache (could be null if no such mapping exists).
 	 * If the object is found in the cache, then it will be moved to the tail-end of the
@@ -150,5 +152,30 @@ public final class LRUCache<K, V> {
 		offerNode(node);
 
 		return node.value;
+	}
+
+	public interface ValueSupplier<K,V> {
+		public V supply(K key) throws Exception;
+	}
+
+	/**
+	 * Adds a new object to the cache, if its key was unbound.
+	 * In that case, it calls a supplier to provide the new object to add.
+	 * 
+	 * @param key the key of the cached value
+	 * @param supplier the supplier that produces the value to put in cache
+	 * @return the current (old or computed) value in cache for {@¢ode key} at the end of the method
+	 */
+	public synchronized V computeIfAbsent(K key, ValueSupplier<K,V> supplier) throws Exception {
+		V old = get(key);
+		if (old == null) {
+			V _new = supplier.supply(key);
+			if (_new != null)
+				put(key, _new);
+
+			return _new;
+		}
+		else
+			return old;
 	}
 }

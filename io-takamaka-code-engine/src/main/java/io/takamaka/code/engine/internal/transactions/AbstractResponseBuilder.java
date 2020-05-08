@@ -219,7 +219,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the value of the field
 		 * @throws Exception if the look up fails
 		 */
-		public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) throws Exception {
+		public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) {
 			return deserializer.deserialize(node.getLastLazyUpdateToNonFinalField(reference, field, this::chargeGasForCPU).getValue());
 		}
 
@@ -231,9 +231,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param reference the storage reference
 		 * @param field the field, of lazy type
 		 * @return the value of the field
-		 * @throws Exception if the look up fails
 		 */
-		public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) throws Exception {
+		public final Object deserializeLastLazyUpdateForFinal(StorageReference reference, FieldSignature field) {
 			return deserializer.deserialize(node.getLastLazyUpdateToFinalField(reference, field, this::chargeGasForCPU).getValue());
 		}
 

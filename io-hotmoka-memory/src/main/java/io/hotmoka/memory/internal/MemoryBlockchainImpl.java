@@ -266,7 +266,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 * @return the resulting path
 	 */
 	private Path getPathFor(TransactionReference reference, Path path) {
-		return getConfig().dir.resolve(reference.getHash()).resolve(path);
+		return config.dir.resolve(reference.getHash()).resolve(path);
 	}
 
 	/**

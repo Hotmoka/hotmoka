@@ -61,11 +61,11 @@ class Tendermint implements AutoCloseable {
 		this.node = node;
 
 		if (reset)
-			if (run("tendermint init --home " + node.getConfig().dir + "/blocks").waitFor() != 0)
+			if (run("tendermint init --home " + node.config.dir + "/blocks").waitFor() != 0)
 				throw new IOException("Tendermint initialization failed");
 
 		// spawns a process that remains in background
-		this.process = run("tendermint node --home " + node.getConfig().dir + "/blocks --abci grpc --proxy_app tcp://127.0.0.1:" + node.getConfig().abciPort);
+		this.process = run("tendermint node --home " + node.config.dir + "/blocks --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort);
 		// wait until it is up and running
 		ping();
 	}
@@ -268,7 +268,7 @@ class Tendermint implements AutoCloseable {
 	 * @throws InterruptedException if interrupted while pinging
 	 */
 	private void ping() throws TimeoutException, InterruptedException, IOException {
-		for (int reconnections = 1; reconnections <= node.getConfig().maxPingAttempts; reconnections++) {
+		for (int reconnections = 1; reconnections <= node.config.maxPingAttempts; reconnections++) {
 			try {
 				HttpURLConnection connection = openPostConnectionToTendermint();
 				try (OutputStream os = connection.getOutputStream()) {
@@ -277,11 +277,11 @@ class Tendermint implements AutoCloseable {
 			}
 			catch (ConnectException e) {
 				// take a nap, then try again
-				Thread.sleep(node.getConfig().pingDelay);
+				Thread.sleep(node.config.pingDelay);
 			}
 		}
 	
-		throw new TimeoutException("Cannot connect to Tendermint process at " + url() + ". Tried " + node.getConfig().maxPingAttempts + " times");
+		throw new TimeoutException("Cannot connect to Tendermint process at " + url() + ". Tried " + node.config.maxPingAttempts + " times");
 	}
 
 	private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes();
@@ -318,7 +318,7 @@ class Tendermint implements AutoCloseable {
 	 * @throws MalformedURLException if the URL is not well formed
 	 */
 	private URL url() throws MalformedURLException {
-		return new URL("http://127.0.0.1:" + node.getConfig().tendermintPort);
+		return new URL("http://127.0.0.1:" + node.config.tendermintPort);
 	}
 
 	/**
@@ -357,18 +357,18 @@ class Tendermint implements AutoCloseable {
 	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws Exception {
 		byte[] input = jsonTendermintRequest.getBytes("utf-8");
 
-		for (int i = 0; i < node.getConfig().maxPingAttempts; i++) {
+		for (int i = 0; i < node.config.maxPingAttempts; i++) {
 			try (OutputStream os = connection.getOutputStream()) {
 				os.write(input, 0, input.length);
 				return;
 			}
 			catch (ConnectException e) {
 				// not sure why this happens, randomly. It seems that the connection to the Tendermint process is flaky
-				Thread.sleep(node.getConfig().pingDelay);
+				Thread.sleep(node.config.pingDelay);
 			}
 		}
 
-		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + node.getConfig().maxPingAttempts + " times");
+		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + node.config.maxPingAttempts + " times");
 	}
 
 	/**

@@ -3,7 +3,6 @@ package io.takamaka.code.engine;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -68,7 +67,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	/**
 	 * The configuration of the node.
 	 */
-	private final C config;
+	public final C config;
 	
 	/**
 	 * The cache for the {@linkplain #getRequestAt(TransactionReference)} method.
@@ -79,11 +78,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * The cache for the {@linkplain #getResponseAt(TransactionReference)} method.
 	 */
 	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache;
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes();
 
 	/**
 	 * A cache where {@linkplain #checkTransaction(TransactionRequest)} stores the builders and
@@ -97,17 +91,12 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	private final LRUCache<StorageReference, TransactionReference[]> historyCache;
 
-	/**
-	 * The default gas model of the node.
-	 */
-	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
+	private final ConcurrentMap<TransactionRequest<?>, Semaphore> semaphores = new ConcurrentHashMap<>();
 
 	/**
 	 * An executor for short background tasks.
 	 */
 	private final ExecutorService executor = Executors.newCachedThreadPool();
-
-	private final ConcurrentMap<TransactionRequest<?>, Semaphore> semaphores = new ConcurrentHashMap<>();
 
 	/**
 	 * The time spent for checking requests.
@@ -122,12 +111,21 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
+	 * The array of hexadecimal digits.
+	 */
+	private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes();
+
+	/**
+	 * The default gas model of the node.
+	 */
+	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
+
+	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
-	 * @throws NoSuchAlgorithmException if the default hashing algorithm for requests cannot be found
 	 */
-	protected AbstractNode(C config) throws NoSuchAlgorithmException {
+	protected AbstractNode(C config) {
 		this.config = config;
 		this.getRequestAtCache = new LRUCache<>(config.requestCacheSize);
 		this.getResponseAtCache = new LRUCache<>(config.responseCacheSize);
@@ -137,26 +135,22 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 	/**
 	 * Yields the history of the given object, that is,
-	 * the references to the transactions that might have updated the
-	 * given object, in reverse chronological order (from newest to oldest).
-	 * This stream is an over-approximation, hence it might also contain transactions
-	 * that did not affect the object, but it must include all that did it.
+	 * the references to the transactions that provide information about
+	 * its current state, in reverse chronological order (from newest to oldest).
 	 * If the node has some form of commit, this history must include also
 	 * transactions executed but not yet committed.
 	 * 
 	 * @param object the object whose update history must be looked for
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest). If {@code object} has currently no history, it can yield an
+	 *         (from newest to oldest). If {@code object} has currently no history, it yields an
 	 *         empty stream, but never throw an exception
 	 */
 	protected abstract Stream<TransactionReference> getHistory(StorageReference object);
 
 	/**
 	 * Sets the history of the given object, that is,
-	 * the references to the transactions that might have updated the
-	 * given object, in reverse chronological order (from newest to oldest).
-	 * This stream is an over-approximation, hence it might also contain transactions
-	 * that did not affect the object, but it must include all that did it.
+	 * the references to the transactions that provide information about
+	 * its current state, in reverse chronological order (from newest to oldest).
 	 * 
 	 * @param object the object whose history is set
 	 * @param history the stream that will become the history of the object,
@@ -166,31 +160,31 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.
-	 * The result of this method is wrapped into a cache in order to implement
+	 * The result of this method is wrapped into a cache and used to implement
 	 * {@linkplain #getRequestAt(TransactionReference)}.
 	 * 
-	 * @param transactionReference the reference of the transaction
+	 * @param reference the reference of the transaction
 	 * @return the request
 	 * @throws NoSuchElementException if the request cannot be found
 	 */
 	protected abstract TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException;
 
 	/**
-	 * Yields the response generated by the transaction with the given reference.
-	 * The result of this method is wrapped into a cache in order to implement
+	 * Yields the response generated for the request for the given transaction.
+	 * The result of this method is wrapped into a cache and used to implement
 	 * {@linkplain #getResponseAt(TransactionReference)}.
 	 * 
-	 * @param transactionReference the reference to the transaction
+	 * @param reference the reference to the transaction
 	 * @return the response
-	 * @throws TransactionRejectedException if an attempt to execute the transaction generated this exception
-	 * @throws NoSuchElementException if the response cannot be found
+	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
+	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
 	 */
 	protected abstract TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
 
 	/**
-	 * Post the given request. It will be scheduled, eventually, and executed.
+	 * Post the given request to this node. It will be scheduled, eventually, checked and delivered.
 	 * 
-	 * @param request the request that gets posted
+	 * @param request the request to post
 	 */
 	protected abstract void postTransaction(TransactionRequest<?> request);
 
@@ -212,36 +206,8 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	private static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
-	    for (int j = 0; j < bytes.length; j++) {
-	        int v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-	    }
-
-	    return new String(hexChars, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * Yields the transaction reference to the translation that would be originated for
-	 * the given request.
-	 * 
-	 * @param request the request
-	 * @return the transaction reference
-	 */
-	public final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
-		return new LocalTransactionReference(hash(request));
-	}
-
-	/**
 	 * Expands the store of this node with a transaction. If this method is redefined in
-	 * subclasses, such redefinitions should call into this at the end.
+	 * subclasses, such redefinitions must call into this at their end.
 	 * 
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
@@ -255,33 +221,34 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Yields the configuration of this node.
+	 * Yields the reference to the translation that would be originated for the given request.
 	 * 
-	 * @return the configuration of this node
+	 * @param request the request
+	 * @return the transaction reference
 	 */
-	public final C getConfig() {
-		return config;
+	public final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
+		return new LocalTransactionReference(hash(request));
 	}
 
 	/**
 	 * Runs the given task with the executor service of this node.
 	 * 
 	 * @param <T> the type of the result of the task
-	 * @param what the task
+	 * @param task the task
 	 * @return the return value computed by the task
 	 */
-	public final <T> Future<T> submit(Callable<T> what) {
-		return executor.submit(what);
+	public final <T> Future<T> submit(Callable<T> task) {
+		return executor.submit(task);
 	}
 
 	/**
 	 * Runs the given task with the executor service of this node.
 	 * 
-	 * @param what the task
+	 * @param task the task
 	 * @return the return value computed by the task
 	 */
-	public final void submit(Runnable what) {
-		executor.submit(what);
+	public final void submit(Runnable task) {
+		executor.submit(task);
 	}
 
 	/**
@@ -294,21 +261,23 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final ResponseBuilder<?,?> checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		ResponseBuilder<?,?> builder = builders.get(request);
-		if (builder == null) {
-			builder = ResponseBuilder.of(request, this);
-			// we store the builder where next call might be able to find it
-			builders.put(request, builder);
+		try {
+			return builders.computeIfAbsent(request, _request -> ResponseBuilder.of(_request, this));
 		}
-
-		checkTime += (System.currentTimeMillis() - start);
-		return builder;
+		catch (TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+		finally {
+			checkTime += (System.currentTimeMillis() - start);
+		}
 	}
 
 	/**
-	 * Uses the given response builder to build a response, adds it to the store of the
-	 * node and yields the response. It guarantees that responses are computed in increasing
-	 * order of reference.
+	 * Uses the given response builder to build a response and adds it to the store of the node.
 	 * 
 	 * @param builder the builder
 	 * @throws TransactionRejectedException if the response cannot be built
@@ -316,11 +285,21 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final void deliverTransaction(ResponseBuilder<?,?> builder) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		TransactionRequest<?> request = builder.getRequest();
-		TransactionResponse response = builder.build();
-		expandStore(request, response);
-	
-		deliverTime += (System.currentTimeMillis() - start);
+		try {
+			TransactionRequest<?> request = builder.getRequest();
+			TransactionResponse response = builder.build();
+			expandStore(request, response);
+		}
+		catch (TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+		finally {
+			deliverTime += (System.currentTimeMillis() - start);
+		}
 	}
 
 	/**
@@ -359,7 +338,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	/**
 	 * Yields the gas cost model of this node.
 	 * 
-	 * @return the gas cost model
+	 * @return the default gas cost model. Subclasses may redefine
 	 */
 	public GasCostModel getGasCostModel() {
 		return defaultGasCostModel;
@@ -368,14 +347,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	@Override
 	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
 		try {
-			TransactionRequest<?> request = getRequestAtCache.get(reference);
-			if (request == null) {
-				request = getRequest(reference);
-				if (request != null)
-					getRequestAtCache.put(reference, request);
-			}
-
-			return request;
+			return getRequestAtCache.computeIfAbsent(reference, this::getRequest);
 		}
 		catch (NoSuchElementException e) {
 			throw e;
@@ -389,16 +361,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	@Override
 	public final TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
 		try {
-			TransactionResponse response = getResponseAtCache.get(reference);
-			if (response == null) {
-				response = getResponse(reference);
-				if (response != null)
-					getResponseAtCache.put(reference, response);
-				else
-					throw new NoSuchElementException("unknown transaction reference " + reference);
-			}
-
-			return response;
+			return getResponseAtCache.computeIfAbsent(reference, this::getResponse);
 		}
 		catch (TransactionRejectedException | NoSuchElementException e) {
 			throw e;
@@ -469,7 +432,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @param field the field whose update is being looked for
 	 * @param chargeForCPU a function called to charge CPU costs
 	 * @return the update
-	 * @throws Exception if the update could not be found
 	 */
 	public final UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
 		for (TransactionReference transaction: getHistoryWithCache(storageReference).collect(Collectors.toList())) {
@@ -492,7 +454,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @param field the field whose update is being looked for
 	 * @param chargeForCPU a function called to charge CPU costs
 	 * @return the update
-	 * @throws Exception if the update could not be found
 	 */
 	public final UpdateOfField getLastLazyUpdateToFinalField(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
 		// accesses directly the transaction that created the object
@@ -513,6 +474,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
+			createSemaphore(request);
 			postTransaction(request);
 			return ((JarStoreInitialTransactionResponse) waitForResponse(request)).getOutcomeAt(referenceOf(request));
 		});
@@ -529,6 +491,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
+			createSemaphore(request);
 			postTransaction(request);
 			return ((GameteCreationTransactionResponse) waitForResponse(request)).getOutcome();
 		});
@@ -545,6 +508,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
+			createSemaphore(request);
 			postTransaction(request);
 			return ((GameteCreationTransactionResponse) waitForResponse(request)).getOutcome();
 		});
@@ -585,10 +549,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		return wrapInCaseOfExceptionSimple(() -> {
 			createSemaphore(request);
 			postTransaction(request);
-			return jarSupplierFor(() -> {
-				TransactionReference reference = referenceOf(request);
-				return ((JarStoreTransactionResponse) waitForResponse(request)).getOutcomeAt(reference);
-			});
+			return jarSupplierFor(() -> ((JarStoreTransactionResponse) waitForResponse(request)).getOutcomeAt(referenceOf(request)));
 		});
 	}
 
@@ -620,19 +581,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Yields the history of the given object, that is,
-	 * the references to the transactions that might have updated the
-	 * given object, in reverse chronological order (from newest to oldest).
-	 * This stream is an over-approximation, hence it might also contain transactions
-	 * that did not affect the object, but it must include all that did it.
-	 * If the node has some form of commit, this history must include also
-	 * transactions executed but not yet committed.
-	 * It uses a cache for repeated calls.
+	 * A cached version of {@linkplain #getHistory(StorageReference)}.
 	 * 
-	 * @param object the object whose update history must be looked for
+	 * @param object the object whose history must be looked for
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest). If {@code object} has currently no history, it can yield an
-	 *         empty stream, but never throw an exception
+	 *         (from newest to oldest)
 	 */
 	public Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
 		TransactionReference[] result = historyCache.get(object);
@@ -640,12 +593,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Sets the history of the given object, that is,
-	 * the references to the transactions that might have updated the
-	 * given object, in reverse chronological order (from newest to oldest).
-	 * This stream is an over-approximation, hence it might also contain transactions
-	 * that did not affect the object, but it must include all that did it.
-	 * It puts the history in a cache for future quick look-up.
+	 * A cached version of {@linkplain #setHistory(StorageReference, Stream).
 	 * 
 	 * @param object the object whose history is set
 	 * @param history the stream that will become the history of the object,
@@ -659,7 +607,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.
-	 * This method should be called at the end of a transaction, to keep in store the updates to the objects.
+	 * This method is called at the end of a transaction, to keep in store the updates to the objects.
 	 * 
 	 * @param reference the transaction that has generated the given response
 	 * @param response the response
@@ -671,14 +619,28 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		response.getUpdates()
 			.map(Update::getObject)
 			.distinct()
-			.forEachOrdered(object -> setHistoryWithCache(object, simplifiedHistory(object, reference, response, getHistoryWithCache(object))));
+			.forEachOrdered(object -> setHistoryWithCache(object, simplifiedHistory(object, reference, response.getUpdates(), getHistoryWithCache(object))));
 	}
 
+	/**
+	 * Creates a semaphore for those who will wait for the result of the given request.
+	 * 
+	 * @param request the request
+	 */
 	private void createSemaphore(TransactionRequest<?> request) {
 		if (semaphores.putIfAbsent(request, new Semaphore(0)) != null)
 			throw new InternalFailureException("repeated request");
 	}
 
+	/**
+	 * Waits until the given request has been checked and delivered, or until its delivering fails.
+	 * 
+	 * @param request the request
+	 * @return the response computed for {@code request}
+	 * @throws TransactionRejectedException if the request failed to be delivered, because of this exception
+	 * @throws TimeoutException if the polling delay has expired but the request did not get delivered
+	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
+	 */
 	private TransactionResponse waitForResponse(TransactionRequest<?> request) throws TransactionRejectedException, TimeoutException, InterruptedException {
 		try {
 			Semaphore semaphore = semaphores.get(request);
@@ -705,17 +667,30 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		}
 	}
 
-	private List<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, TransactionResponseWithUpdates response, Stream<TransactionReference> old) {
+	/**
+	 * Adds the given transaction reference to the history of the given object and yields the simplified
+	 * history. Simplification means that some elements of the previous history might not be useful anymore,
+	 * since they get shadowed by the updates in the added transaction reference. This occurs when the value
+	 * of some fields are updated in {@code added} and the useless old history element provided only values
+	 * for the newly updated fields.
+	 * 
+	 * @param object the object whose history is being simplified
+	 * @param added the transaction reference to add in front of the history of {@code object}
+	 * @param addedUpdates the updates generated in {@code added}
+	 * @param old the old history
+	 * @return the simplified history, with {@code added} in front followed by a subset of {@code old}
+	 */
+	private List<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates, Stream<TransactionReference> old) {
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
-		Set<Update> covered = response.getUpdates().filter(update -> update.getObject() == object).collect(Collectors.toSet());
+		Set<Update> covered = addedUpdates.filter(update -> update.getObject() == object).collect(Collectors.toSet());
 		List<TransactionReference> simplified = new ArrayList<>();
 		simplified.add(added);
 	
 		TransactionReference[] oldAsArray = old.toArray(TransactionReference[]::new);
 		int length = oldAsArray.length;
 		for (int pos = 0; pos < length - 1; pos++)
-			addIfUseful(oldAsArray[pos], object, covered, simplified);
+			addIfUncovered(oldAsArray[pos], object, covered, simplified);
 	
 		// the last is always useful, since it contains the final fields and the class tag of the object
 		if (length >= 1)
@@ -724,41 +699,43 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		return simplified;
 	}
 
-	private void addIfUseful(TransactionReference cursor, StorageReference object, Set<Update> covered, List<TransactionReference> simplified) {
+	/**
+	 * Adds the given transaction reference to the history of the given object,
+	 * if it provides updates for fields that have not yet been covered by other updates.
+	 * 
+	 * @param reference the transaction reference
+	 * @param object the object
+	 * @param covered the set of updates for the already covered fields
+	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
+	 */
+	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) {
 		TransactionResponse response;
 
 		try {
-			response = getResponseAt(cursor);
+			response = getResponseAt(reference);
 		}
 		catch (NoSuchElementException | TransactionRejectedException e) {
 			logger.error("history contains a reference to a missing or failed transaction", e);
 			throw new InternalFailureException("history contains a reference to a missing or failed transaction");
 		}
 
-		if (response instanceof TransactionResponseWithUpdates) {
-			Set<Update> diff = ((TransactionResponseWithUpdates) response).getUpdates()
-					.filter(update -> update.getObject().equals(object))
-					.filter(update -> !isAlreadyIn(update, covered))
-					.collect(Collectors.toSet());
-
-			if (!diff.isEmpty()) {
-				// the transaction reference actually adds at least one useful update
-				simplified.add(cursor);
-				covered.addAll(diff);
-			}
+		if (!(response instanceof TransactionResponseWithUpdates)) {
+			logger.error("history contains a reference to a transaction without updates");
+			throw new InternalFailureException("history contains a reference to a transaction without updates");
 		}
-	}
 
-	/**
-	 * Determines if the given set of updates contains an update for the
-	 * same object and field as the given update.
-	 * 
-	 * @param update the given update
-	 * @param updates the set
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
-		return updates.stream().anyMatch(update::isForSamePropertyAs);
+		// we check if there is at least an update for a field of the object
+		// that is not yet covered by another update in a previous element of the history
+		Set<Update> diff = ((TransactionResponseWithUpdates) response).getUpdates()
+			.filter(update -> update.getObject().equals(object))
+			.filter(update -> covered.stream().noneMatch(update::isForSamePropertyAs))
+			.collect(Collectors.toSet());
+
+		if (!diff.isEmpty()) {
+			// the transaction reference actually adds at least one useful update
+			history.add(reference);
+			covered.addAll(diff);
+		}
 	}
 
 	/**
@@ -780,7 +757,8 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			response = getResponseAt(transaction);
 		}
 		catch (NoSuchElementException | TransactionRejectedException e) {
-			return Optional.empty();
+			logger.error("history contains a reference to a missing or failed transaction", e);
+			throw new InternalFailureException("history contains a reference to a missing or failed transaction");
 		}
 
 		if (response instanceof TransactionResponseWithUpdates)
@@ -788,9 +766,26 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
 				.filter(update -> update.object.equals(object) && update.getField().equals(field))
-				.findAny();
+				.findFirst();
 	
 		return Optional.empty();
+	}
+
+	/**
+	 * Translates an array of bytes into a hexadecimal string.
+	 * 
+	 * @param bytes the bytes
+	 * @return the string
+	 */
+	private static String bytesToHex(byte[] bytes) {
+	    byte[] hexChars = new byte[bytes.length * 2];
+	    for (int j = 0; j < bytes.length; j++) {
+	        int v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+	    }
+	
+	    return new String(hexChars, StandardCharsets.UTF_8);
 	}
 
 	private static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
@@ -832,48 +827,37 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		}
 	}
 
+	/**
+	 * Yields an adaptor of a callable into a jar supplier.
+	 * 
+	 * @param task the callable
+	 * @return the jar supplier
+	 */
 	private JarSupplier jarSupplierFor(Callable<TransactionReference> task) {
 		return new JarSupplier() {
 			private volatile TransactionReference cachedGet;
 
 			@Override
 			public TransactionReference get() throws TransactionRejectedException, TransactionException {
-				if (cachedGet != null)
-					return cachedGet;
-
-				try {
-					return cachedGet = task.call();
-				}
-				catch (TransactionRejectedException | TransactionException e) {
-					throw e;
-				}
-				catch (Throwable t) {
-					logger.error("transaction rejected", t);
-					throw new TransactionRejectedException(t);
-				}
+				return cachedGet != null ? cachedGet : (cachedGet = wrapInCaseOfExceptionMedium(task));
 			}
 		};
 	}
 
+	/**
+	 * Yields an adaptor of a callable into a code supplier.
+	 * 
+	 * @param <W> the return value of the callable
+	 * @param task the callable
+	 * @return the code supplier
+	 */
 	private <W extends StorageValue> CodeSupplier<W> codeSupplierFor(Callable<W> task) {
 		return new CodeSupplier<>() {
 			private volatile W cachedGet;
 
 			@Override
 			public W get() throws TransactionRejectedException, TransactionException {
-				if (cachedGet != null)
-					return cachedGet;
-
-				try {
-					return cachedGet = task.call();
-				}
-				catch (TransactionRejectedException | TransactionException e) {
-					throw e;
-				}
-				catch (Throwable t) {
-					logger.error("transaction rejected", t);
-					throw new TransactionRejectedException(t);
-				}
+				return cachedGet != null ? cachedGet : (cachedGet = wrapInCaseOfExceptionMedium(task));
 			}
 		};
 	}
