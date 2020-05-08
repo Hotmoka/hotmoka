@@ -3,6 +3,8 @@ package io.takamaka.code.engine;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import io.hotmoka.beans.references.TransactionReference;
+
 /**
  * The configuration of a node.
  */
@@ -30,12 +32,40 @@ public class Config {
 	public final int pollingDelay;
 
 	/**
+	 * The size of the cache for the {@linkplain io.hotmoka.nodes.Node#getRequestAt(TransactionReference)} method.
+	 * It defaults to 1,000.
+	 */
+	public final int requestCacheSize;
+
+	/**
+	 * The size of the cache for the {@linkplain io.hotmoka.nodes.Node#getResponseAt(TransactionReference)} method.
+	 * It defaults to 1,000.
+	 */
+	public final int responseCacheSize;
+
+	/**
+	 * The size of the cache for the response builders of the node.
+	 * It defaults to 10,000.
+	 */
+	public final int builderCacheSize;
+
+	/**
+	 * The size of the cache for the object histories of the node.
+	 * It defaults to 10,000.
+	 */
+	public final int historyCacheSize;
+
+	/**
 	 * Full constructor for the builder pattern.
 	 */
-	private Config(Path dir, int maxPollingAttempts, int pollingDelay) {
+	private Config(Path dir, int maxPollingAttempts, int pollingDelay, int requestCacheSize, int responseCacheSize, int builderCacheSize, int historyCacheSize) {
 		this.dir = dir;
 		this.maxPollingAttempts = maxPollingAttempts;
 		this.pollingDelay = pollingDelay;
+		this.requestCacheSize = requestCacheSize;
+		this.responseCacheSize = responseCacheSize;
+		this.builderCacheSize = builderCacheSize;
+		this.historyCacheSize = historyCacheSize;
 	}
 
 	/**
@@ -45,6 +75,10 @@ public class Config {
 		this.dir = parent.dir;
 		this.maxPollingAttempts = parent.maxPollingAttempts;
 		this.pollingDelay = parent.pollingDelay;
+		this.requestCacheSize = parent.requestCacheSize;
+		this.responseCacheSize = parent.responseCacheSize;
+		this.builderCacheSize = parent.builderCacheSize;
+		this.historyCacheSize = parent.historyCacheSize;
 	}
 
 	/**
@@ -54,6 +88,10 @@ public class Config {
 		private Path dir = Paths.get("chain");
 		private int maxPollingAttempts = 100;
 		private int pollingDelay = 10;
+		private int requestCacheSize = 1_000;
+		private int responseCacheSize = 1_000;
+		private int builderCacheSize = 10_000;
+		private int historyCacheSize = 10_000;
 
 		/**
 		 * Sets the directory where the node's data will be persisted.
@@ -95,12 +133,60 @@ public class Config {
 		}
 
 		/**
+		 * Sets size of the cache for the {@linkplain io.hotmoka.nodes.Node#getRequestAt(TransactionReference)} method.
+		 * It defaults to 1,000.
+		 * 
+		 * @param requestCacheSize the cache size
+		 * @return this builder
+		 */
+		public Builder setRequestCacheSize(int requestCacheSize) {
+			this.requestCacheSize = requestCacheSize;
+			return this;
+		}
+
+		/**
+		 * Sets size of the cache for the {@linkplain io.hotmoka.nodes.Node#getResponseAt(TransactionReference)} method.
+		 * It defaults to 1,000.
+		 * 
+		 * @param builderCacheSize the cache size
+		 * @return this builder
+		 */
+		public Builder setResponseCacheSize(int responseCacheSize) {
+			this.responseCacheSize = responseCacheSize;
+			return this;
+		}
+
+		/**
+		 * Sets size of the cache for the response builders of the node.
+		 * It defaults to 10,000.
+		 * 
+		 * @param builderCacheSize the cache size
+		 * @return this builder
+		 */
+		public Builder setBuilderCacheSize(int builderCacheSize) {
+			this.builderCacheSize = builderCacheSize;
+			return this;
+		}
+
+		/**
+		 * Sets size of the cache for the object histories of the node.
+		 * It defaults to 10,000.
+		 * 
+		 * @param historyCacheSize the cache size
+		 * @return this builder
+		 */
+		public Builder setHistoryCacheSize(int historyCacheSize) {
+			this.historyCacheSize = historyCacheSize;
+			return this;
+		}
+
+		/**
 		 * Builds the configuration.
 		 * 
 		 * @return the configuration
 		 */
 		public Config build() {
-			return new Config(dir, maxPollingAttempts, pollingDelay);
+			return new Config(dir, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, builderCacheSize, historyCacheSize);
 		}
 	}
 }

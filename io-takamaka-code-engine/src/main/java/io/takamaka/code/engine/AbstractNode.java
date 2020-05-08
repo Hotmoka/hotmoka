@@ -71,24 +71,14 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private final C config;
 	
 	/**
-	 * The size of the cache for the {@linkplain #getRequestAt(TransactionReference)} method.
-	 */
-	private static final int GET_REQUEST_CACHE_SIZE = 1000;
-
-	/**
-	 * The size of the cache for the {@linkplain #getResponseAt(TransactionReference)} method.
-	 */
-	private static final int GET_RESPONSE_CACHE_SIZE = 1000;
-
-	/**
 	 * The cache for the {@linkplain #getRequestAt(TransactionReference)} method.
 	 */
-	private final LRUCache<TransactionReference, TransactionRequest<?>> getRequestAtCache = new LRUCache<>(1000, GET_REQUEST_CACHE_SIZE);
+	private final LRUCache<TransactionReference, TransactionRequest<?>> getRequestAtCache;
 
 	/**
 	 * The cache for the {@linkplain #getResponseAt(TransactionReference)} method.
 	 */
-	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache = new LRUCache<>(1000, GET_RESPONSE_CACHE_SIZE);
+	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache;
 
 	/**
 	 * The array of hexadecimal digits.
@@ -97,15 +87,19 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 	/**
 	 * A cache where {@linkplain #checkTransaction(TransactionRequest)} stores the builders and
-	 * from where {@linkplain #deliverTransaction(TransactionRequest)} can retrieve them.
+	 * from where {@linkplain #deliverTransaction(TransactionRequest)} can retrieve them
+	 * (instead of recreating them, when not found).
 	 */
-	private final LRUCache<TransactionRequest<?>, ResponseBuilder<?,?>> builders = new LRUCache<>(10_000);
+	private final LRUCache<TransactionRequest<?>, ResponseBuilder<?,?>> builders;
 
 	/**
 	 * A cache for {@linkplain #getHistory(StorageReference)}.
 	 */
-	private final LRUCache<StorageReference, TransactionReference[]> historyCache = new LRUCache<>(10_000);
+	private final LRUCache<StorageReference, TransactionReference[]> historyCache;
 
+	/**
+	 * The default gas model of the node.
+	 */
 	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
 
 	/**
@@ -114,8 +108,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private final ExecutorService executor = Executors.newCachedThreadPool();
 
 	private final ConcurrentMap<TransactionRequest<?>, Semaphore> semaphores = new ConcurrentHashMap<>();
-
-	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
 	 * The time spent for checking requests.
@@ -127,6 +119,8 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	private long deliverTime;
 
+	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
+
 	/**
 	 * Builds the node.
 	 * 
@@ -135,6 +129,10 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	protected AbstractNode(C config) throws NoSuchAlgorithmException {
 		this.config = config;
+		this.getRequestAtCache = new LRUCache<>(config.requestCacheSize);
+		this.getResponseAtCache = new LRUCache<>(config.responseCacheSize);
+		this.builders = new LRUCache<>(config.builderCacheSize);
+		this.historyCache = new LRUCache<>(config.historyCacheSize);
 	}
 
 	/**

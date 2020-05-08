@@ -43,8 +43,8 @@ public interface Node extends AutoCloseable {
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response
-	 * @throws TransactionRejectedException if the transaction with the given reference failed with this exception
-	 * @throws NoSuchElementException if there is no response with that reference
+	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
+	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
 	 */
 	TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
 
