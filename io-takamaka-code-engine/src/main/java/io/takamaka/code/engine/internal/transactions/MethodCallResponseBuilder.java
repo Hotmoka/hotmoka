@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
@@ -30,12 +31,13 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	/**
 	 * Builds the creator of the response.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected MethodCallResponseBuilder(Request request, AbstractNode<?> node) throws TransactionRejectedException {
-		super(request, node);
+	protected MethodCallResponseBuilder(TransactionReference reference, Request request, AbstractNode<?> node) throws TransactionRejectedException {
+		super(reference, request, node);
 	}
 
 	@Override

@@ -97,8 +97,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	logger.error("Failed to check transaction request", t);
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
         	responseBuilder.setInfo(t.getMessage());
-        	if (request != null)
-        		node.notifyTransactionUndelivered(request, t.getMessage());
 		}
 
         ResponseCheckTx resp = responseBuilder
@@ -134,13 +132,11 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         	request = TransactionRequest.from(ois);
         	node.deliverTransaction(node.checkTransaction(request));
         	responseBuilder.setCode(0);
-        	node.notifyTransactionDelivered(request);
         }
         catch (Throwable t) {
         	logger.error("Failed delivering transaction", t);
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
         	responseBuilder.setInfo(t.getMessage());
-        	node.notifyTransactionUndelivered(request, t.getMessage());
         }
 
         ResponseDeliverTx resp = responseBuilder.build();

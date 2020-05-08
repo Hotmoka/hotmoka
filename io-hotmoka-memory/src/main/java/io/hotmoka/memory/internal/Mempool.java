@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.takamaka.code.engine.ResponseBuilder;
 
 /**
  * A mempool receives transaction requests and schedules them for execution,
@@ -91,7 +90,6 @@ class Mempool {
 				}
 	            catch (Throwable t) {
 	            	logger.error("Failed to check transaction request", t);
-	            	node.notifyTransactionUndelivered(current, t.getMessage());
 	    		}
 			}
 			catch (InterruptedException e) {
@@ -109,13 +107,10 @@ class Mempool {
 				TransactionRequest<?> current = checkedMempool.take();
 
 				try {
-					ResponseBuilder<?,?> builder = node.checkTransaction(current);
-					node.deliverTransaction(builder);
-					node.notifyTransactionDelivered(current);
+					node.deliverTransaction(node.checkTransaction(current));
 				}
 	            catch (Throwable t) {
 	            	logger.error("Failed delivering transaction", t);
-	            	node.notifyTransactionUndelivered(current, t.getMessage());
 	    		}
 			}
 			catch (InterruptedException e) {

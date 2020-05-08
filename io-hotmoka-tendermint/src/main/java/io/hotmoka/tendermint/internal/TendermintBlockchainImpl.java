@@ -213,7 +213,7 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
-			throw new IllegalStateException(e);
+			throw InternalFailureException.of(e);
 		}
 	}
 
@@ -240,9 +240,9 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 	}
 
 	@Override
-	protected void expandStore(TransactionRequest<?> request, TransactionResponse response) {
-		state.putResponse(referenceOf(request), response);
-		super.expandStore(request, response);
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		state.putResponse(reference, response);
+		super.expandStore(reference, request, response);
 	}
 
 	/**

@@ -85,14 +85,18 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * from where {@linkplain #deliverTransaction(TransactionRequest)} can retrieve them
 	 * (instead of recreating them, when not found).
 	 */
-	private final LRUCache<TransactionRequest<?>, ResponseBuilder<?,?>> builders;
+	private final LRUCache<TransactionReference, ResponseBuilder<?,?>> builders;
 
 	/**
 	 * A cache for {@linkplain #getHistory(StorageReference)}.
 	 */
 	private final LRUCache<StorageReference, TransactionReference[]> historyCache;
 
-	private final ConcurrentMap<TransactionRequest<?>, Semaphore> semaphores = new ConcurrentHashMap<>();
+	/**
+	 * A map that provides a semaphore for each currently executing transaction.
+	 * It is used to block threads waiting for the outcome of transactions.
+	 */
+	private final ConcurrentMap<TransactionReference, Semaphore> semaphores = new ConcurrentHashMap<>();
 
 	/**
 	 * An executor for short background tasks.
@@ -122,16 +126,28 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
 
 	/**
+	 * The default hashing algorithm.
+	 */
+	private final MessageDigest digest;
+
+	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
 	 */
 	protected AbstractNode(C config) {
-		this.config = config;
-		this.getRequestAtCache = new LRUCache<>(config.requestCacheSize);
-		this.getResponseAtCache = new LRUCache<>(config.responseCacheSize);
-		this.builders = new LRUCache<>(config.builderCacheSize);
-		this.historyCache = new LRUCache<>(config.historyCacheSize);
+		try {
+			this.config = config;
+			this.getRequestAtCache = new LRUCache<>(config.requestCacheSize);
+			this.getResponseAtCache = new LRUCache<>(config.responseCacheSize);
+			this.builders = new LRUCache<>(config.builderCacheSize);
+			this.historyCache = new LRUCache<>(config.historyCacheSize);
+			this.digest = MessageDigest.getInstance("SHA-256");
+		}
+		catch (Exception e) {
+			logger.error("failed to create the node", e);
+			throw InternalFailureException.of(e);
+		}
 	}
 
 	/**
@@ -197,8 +213,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	protected String hash(TransactionRequest<?> request) {
 		try {
-			MessageDigest digest = MessageDigest.getInstance("SHA-256");
-			return bytesToHex(digest.digest(request.toByteArray()));
+			synchronized (digest) {
+				String hash = bytesToHex(digest.digest(request.toByteArray()));
+				digest.reset();
+				return hash;
+			}
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);
@@ -210,26 +229,24 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * Expands the store of this node with a transaction. If this method is redefined in
 	 * subclasses, such redefinitions must call into this at their end.
 	 * 
+	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	protected void expandStore(TransactionRequest<?> request, TransactionResponse response) {
-		TransactionReference reference = referenceOf(request);
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		if (response instanceof TransactionResponseWithUpdates)
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
-
-		getResponseAtCache.put(reference, response);
 	}
 
 	/**
-	 * Yields the reference to the translation that would be originated for the given request.
+	 * Expands the store of this node with a transaction that could not be delivered
+	 * since an error occurred.
 	 * 
+	 * @param reference the reference of the request
 	 * @param request the request
-	 * @return the transaction reference
+	 * @param errorMessage an description of why delivering failed
 	 */
-	public final LocalTransactionReference referenceOf(TransactionRequest<?> request) {
-		return new LocalTransactionReference(hash(request));
-	}
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {}
 
 	/**
 	 * Runs the given task with the executor service of this node.
@@ -262,13 +279,28 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final ResponseBuilder<?,?> checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
+		TransactionReference reference = null;
+
 		try {
-			return builders.computeIfAbsent(request, _request -> ResponseBuilder.of(_request, this));
+			reference = referenceOf(request);
+			return builders.computeIfAbsent(reference, _reference -> ResponseBuilder.of(_reference, request, this));
 		}
 		catch (TransactionRejectedException e) {
+			// we wake up who was waiting for the outcome of the request
+			signalSemaphore(reference);
+
+			expandStore(reference, request, e.getMessage());
+
 			throw e;
 		}
 		catch (Exception e) {
+			// we wake up who was waiting for the outcome of the request
+			if (reference != null) {
+				signalSemaphore(reference);
+
+				expandStore(reference, request, e.getMessage());
+			}
+
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -286,46 +318,28 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final void deliverTransaction(ResponseBuilder<?,?> builder) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
+		TransactionRequest<?> request = builder.getRequest();
+		TransactionReference reference = builder.getTransaction();
+
 		try {
-			TransactionRequest<?> request = builder.getRequest();
 			TransactionResponse response = builder.build();
-			expandStore(request, response);
+			expandStore(reference, request, response);
+			getResponseAtCache.put(reference, response);
 		}
 		catch (TransactionRejectedException e) {
+			expandStore(reference, request, e.getMessage());
 			throw e;
 		}
 		catch (Exception e) {
+			expandStore(reference, request, e.getMessage());
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
 		finally {
+			signalSemaphore(reference);
+
 			deliverTime += (System.currentTimeMillis() - start);
 		}
-	}
-
-	/**
-	 * Takes note that the transaction for the given request did not manage to be correctly delivered
-	 * into the store of the node.
-	 * 
-	 * @param request the request
-	 * @param errorMessage an description of why delivering failed
-	 */
-	public void notifyTransactionUndelivered(TransactionRequest<?> request, String errorMessage) {
-		Semaphore semaphore = semaphores.remove(request);
-		if (semaphore != null)
-			semaphore.release();
-	}
-
-	/**
-	 * Takes note that the transaction for the given request has been correctly delivered
-	 * into the store of the node.
-	 * 
-	 * @param request the request
-	 */
-	public void notifyTransactionDelivered(TransactionRequest<?> request) {
-		Semaphore semaphore = semaphores.remove(request);
-		if (semaphore != null)
-			semaphore.release();
 	}
 
 	@Override
@@ -476,9 +490,10 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			createSemaphore(request);
+			TransactionReference reference = referenceOf(request);
+			createSemaphore(reference);
 			postTransaction(request);
-			return ((JarStoreInitialTransactionResponse) waitForResponse(request)).getOutcomeAt(referenceOf(request));
+			return ((JarStoreInitialTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference);
 		});
 	}
 
@@ -493,9 +508,10 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			createSemaphore(request);
+			TransactionReference reference = referenceOf(request);
+			createSemaphore(reference);
 			postTransaction(request);
-			return ((GameteCreationTransactionResponse) waitForResponse(request)).getOutcome();
+			return ((GameteCreationTransactionResponse) waitForResponse(reference)).getOutcome();
 		});
 	}
 
@@ -510,9 +526,10 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			createSemaphore(request);
+			TransactionReference reference = referenceOf(request);
+			createSemaphore(reference);
 			postTransaction(request);
-			return ((GameteCreationTransactionResponse) waitForResponse(request)).getOutcome();
+			return ((GameteCreationTransactionResponse) waitForResponse(reference)).getOutcome();
 		});
 	}
 
@@ -538,47 +555,51 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 	@Override
 	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> ResponseBuilder.ofView(request, this).build().getOutcome());
+		return wrapInCaseOfExceptionFull(() -> ResponseBuilder.ofView(referenceOf(request), request, this).build().getOutcome());
 	}
 
 	@Override
 	public final StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> ResponseBuilder.ofView(request, this).build().getOutcome());
+		return wrapInCaseOfExceptionFull(() -> ResponseBuilder.ofView(referenceOf(request), request, this).build().getOutcome());
 	}
 
 	@Override
 	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			createSemaphore(request);
+			TransactionReference reference = referenceOf(request);
+			createSemaphore(reference);
 			postTransaction(request);
-			return jarSupplierFor(() -> ((JarStoreTransactionResponse) waitForResponse(request)).getOutcomeAt(referenceOf(request)));
+			return jarSupplierFor(() -> ((JarStoreTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference));
 		});
 	}
 
 	@Override
 	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			createSemaphore(request);
+			TransactionReference reference = referenceOf(request);
+			createSemaphore(reference);
 			postTransaction(request);
-			return codeSupplierFor(() -> ((ConstructorCallTransactionResponse) waitForResponse(request)).getOutcome());
+			return codeSupplierFor(() -> ((ConstructorCallTransactionResponse) waitForResponse(reference)).getOutcome());
 		});
 	}
 
 	@Override
 	public final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			createSemaphore(request);
+			TransactionReference reference = referenceOf(request);
+			createSemaphore(reference);
 			postTransaction(request);
-			return codeSupplierFor(() -> ((MethodCallTransactionResponse) waitForResponse(request)).getOutcome());
+			return codeSupplierFor(() -> ((MethodCallTransactionResponse) waitForResponse(reference)).getOutcome());
 		});
 	}
 
 	@Override
 	public final CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			createSemaphore(request);
+			TransactionReference reference = referenceOf(request);
+			createSemaphore(reference);
 			postTransaction(request);
-			return codeSupplierFor(() -> ((MethodCallTransactionResponse) waitForResponse(request)).getOutcome());
+			return codeSupplierFor(() -> ((MethodCallTransactionResponse) waitForResponse(reference)).getOutcome());
 		});
 	}
 
@@ -589,9 +610,19 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
 	 *         (from newest to oldest)
 	 */
-	public Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
+	public final Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
 		TransactionReference[] result = historyCache.get(object);
 		return result != null ? Stream.of(result) : getHistory(object);
+	}
+
+	/**
+	 * Yields the reference to the translation that would be originated for the given request.
+	 * 
+	 * @param request the request
+	 * @return the transaction reference
+	 */
+	private LocalTransactionReference referenceOf(TransactionRequest<?> request) {
+		return new LocalTransactionReference(hash(request));
 	}
 
 	/**
@@ -627,29 +658,39 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	/**
 	 * Creates a semaphore for those who will wait for the result of the given request.
 	 * 
-	 * @param request the request
+	 * @param reference the reference of the transaction for the request
 	 */
-	private void createSemaphore(TransactionRequest<?> request) {
-		if (semaphores.putIfAbsent(request, new Semaphore(0)) != null)
+	private void createSemaphore(TransactionReference reference) {
+		if (semaphores.putIfAbsent(reference, new Semaphore(0)) != null)
 			throw new InternalFailureException("repeated request");
 	}
 
 	/**
-	 * Waits until the given request has been checked and delivered, or until its delivering fails.
+	 * Wakes up who was waiting for the outcome of the given transaction.
 	 * 
-	 * @param request the request
+	 * @param reference the reference of the transaction
+	 */
+	private void signalSemaphore(TransactionReference reference) {
+		Semaphore semaphore = semaphores.remove(reference);
+		if (semaphore != null)
+			semaphore.release();
+	}
+
+	/**
+	 * Waits until a transaction has been checked and delivered, or until its delivering fails.
+	 * 
+	 * @param reference the reference of the transaction
 	 * @return the response computed for {@code request}
 	 * @throws TransactionRejectedException if the request failed to be delivered, because of this exception
 	 * @throws TimeoutException if the polling delay has expired but the request did not get delivered
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	private TransactionResponse waitForResponse(TransactionRequest<?> request) throws TransactionRejectedException, TimeoutException, InterruptedException {
+	private TransactionResponse waitForResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
 		try {
-			Semaphore semaphore = semaphores.get(request);
+			Semaphore semaphore = semaphores.get(reference);
 			if (semaphore != null)
 				semaphore.acquire();
 
-			LocalTransactionReference reference = referenceOf(request);
 			for (int attempt = 1, delay = config.pollingDelay; attempt < config.maxPollingAttempts; attempt++, delay = delay * 110 / 100)
 				try {
 					return getResponseAt(reference);

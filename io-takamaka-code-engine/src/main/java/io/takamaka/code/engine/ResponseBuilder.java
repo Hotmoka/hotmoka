@@ -57,6 +57,13 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	Request getRequest();
 
 	/**
+	 * Yield the reference to the transaction for the request.
+	 * 
+	 * @return the reference to the transaction
+	 */
+	TransactionReference getTransaction();
+
+	/**
 	 * Yields the builder of a response for a request of a transaction
 	 * that installs a jar in the given node.
 	 * This transaction can only occur during initialization of the node. It has no caller
@@ -64,13 +71,14 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * likely needed as dependencies by future jars. For instance, the jar containing the
 	 * basic Takamaka classes.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> of(JarStoreInitialTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		return new JarStoreInitialResponseBuilder(request, node);
+	static ResponseBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> of(TransactionReference reference, JarStoreInitialTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new JarStoreInitialResponseBuilder(reference, request, node);
 	}
 
 	/**
@@ -80,13 +88,14 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * This transaction can only occur during initialization of the node. It has
 	 * no caller and requires no gas.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse> of(GameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		return new GameteCreationResponseBuilder(request, node);
+	static ResponseBuilder<GameteCreationTransactionRequest, GameteCreationTransactionResponse> of(TransactionReference reference, GameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new GameteCreationResponseBuilder(reference, request, node);
 	}
 
 	/**
@@ -96,26 +105,28 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * This transaction can only occur during initialization of the node. It has
 	 * no caller and requires no gas.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> of(RedGreenGameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		return new RedGreenGameteCreationResponseBuilder(request, node);
+	static ResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> of(TransactionReference reference, RedGreenGameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new RedGreenGameteCreationResponseBuilder(reference, request, node);
 	}
 
 	/**
 	 * Yields the builder of a response for a request of a transaction
 	 * that installs a jar in this node. The goal is to install a jar, with its dependencies.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> of(JarStoreTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		return new JarStoreResponseBuilder(request, node);
+	static ResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> of(TransactionReference reference, JarStoreTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new JarStoreResponseBuilder(reference, request, node);
 	}
 
 	/**
@@ -123,13 +134,14 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * that calls a constructor of a class installed in the node.
 	 * The goal is to run the constructor and compute a reference to the freshly created object.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> of(ConstructorCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		return new ConstructorCallResponseBuilder(request, node);
+	static ResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> of(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new ConstructorCallResponseBuilder(reference, request, node);
 	}
 
 	/**
@@ -137,26 +149,28 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * that calls an instance method of an object in the node.
 	 * The goal is to run the method and compute its returned value (if any).
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> of(InstanceMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		return new InstanceMethodCallResponseBuilder(request, node);
+	static ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> of(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new InstanceMethodCallResponseBuilder(reference, request, node);
 	}
 
 	/**
 	 * Yields the builder of a response for a request of a transaction
 	 * that calls a static method. The goal is to run the method and compute its returned value (if any).
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> of(StaticMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		return new StaticMethodCallResponseBuilder(request, node);
+	static ResponseBuilder<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> of(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new StaticMethodCallResponseBuilder(reference, request, node);
 	}
 
 	/**
@@ -165,13 +179,14 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * The goal is to run the method and compute its returned value (if any).
 	 * The method must be annotated as {@linkplain io.hotmoka.code.lang.View}.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> ofView(InstanceMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		return new InstanceViewMethodCallResponseBuilder(request, node);
+	static ResponseBuilder<InstanceMethodCallTransactionRequest, MethodCallTransactionResponse> ofView(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new InstanceViewMethodCallResponseBuilder(reference, request, node);
 	}
 
 	/**
@@ -179,39 +194,41 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * that calls a static method. The goal is to run the method and compute its returned value (if any).
 	 * The method must be annotated as {@linkplain io.hotmoka.code.lang.View}.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> ofView(StaticMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		return new StaticViewMethodCallResponseBuilder(request, node);
+	static ResponseBuilder<StaticMethodCallTransactionRequest, MethodCallTransactionResponse> ofView(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new StaticViewMethodCallResponseBuilder(reference, request, node);
 	}
 
 	/**
 	 * Yields the builder of a response for a request of a transaction.
 	 * It forwards the call to any of the most specified {@code of} methods.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
 	 * @param node the node that executes the transaction
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	static ResponseBuilder<?,?> of(TransactionRequest<?> request, AbstractNode<?> node) throws TransactionRejectedException {
+	static ResponseBuilder<?,?> of(TransactionReference reference, TransactionRequest<?> request, AbstractNode<?> node) throws TransactionRejectedException {
 		if (request instanceof JarStoreInitialTransactionRequest)
-			return of((JarStoreInitialTransactionRequest) request, node);
+			return of(reference, (JarStoreInitialTransactionRequest) request, node);
 		else if (request instanceof RedGreenGameteCreationTransactionRequest)
-			return of((RedGreenGameteCreationTransactionRequest) request, node);
+			return of(reference, (RedGreenGameteCreationTransactionRequest) request, node);
     	else if (request instanceof GameteCreationTransactionRequest)
-    		return of((GameteCreationTransactionRequest) request, node);
+    		return of(reference, (GameteCreationTransactionRequest) request, node);
     	else if (request instanceof JarStoreTransactionRequest)
-    		return of((JarStoreTransactionRequest) request, node);
+    		return of(reference, (JarStoreTransactionRequest) request, node);
     	else if (request instanceof ConstructorCallTransactionRequest)
-    		return of((ConstructorCallTransactionRequest) request, node);
+    		return of(reference, (ConstructorCallTransactionRequest) request, node);
     	else if (request instanceof InstanceMethodCallTransactionRequest)
-    		return of((InstanceMethodCallTransactionRequest) request, node);
+    		return of(reference, (InstanceMethodCallTransactionRequest) request, node);
     	else if (request instanceof StaticMethodCallTransactionRequest)
-    		return of((StaticMethodCallTransactionRequest) request, node);
+    		return of(reference, (StaticMethodCallTransactionRequest) request, node);
     	else
     		throw new TransactionRejectedException("unexpected transaction request of class " + request.getClass().getName());
 	}

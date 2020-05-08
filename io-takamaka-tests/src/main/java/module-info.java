@@ -8,4 +8,5 @@ open module io.takamaka.tests {
 	requires org.junit.jupiter.api;
 	requires io.takamaka.code.instrumentation;
 	requires io.takamaka.code.engine;
+	requires org.slf4j;
 }

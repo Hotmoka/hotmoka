@@ -60,16 +60,17 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	protected final SizeCalculator sizeCalculator;
 
 	/**
-	 * Creates the builder of the response.
+	 * Creates the builder of a response.
 	 * 
-	 * @param request the request of the response
+	 * @param reference the reference to the transaction that is building the response
+	 * @param request the request for which the response is being built
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(Request request, AbstractNode<?> node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractNode<?> node) throws TransactionRejectedException {
 		try {
 			this.request = request;
-			this.reference = node.referenceOf(request);
+			this.reference = reference;
 			this.node = node;
 			this.classLoader = mkClassLoader();
 			this.storageTypeToClass = new StorageTypeToClass(this);
@@ -83,6 +84,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	@Override
 	public final Request getRequest() {
 		return request;
+	}
+
+	@Override
+	public TransactionReference getTransaction() {
+		return reference;
 	}
 
 	/**

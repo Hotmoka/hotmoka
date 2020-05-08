@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -32,12 +33,13 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	/**
 	 * Creates a the builder of the response.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilder(Request request, AbstractNode<?> node) throws TransactionRejectedException {
-		super(request, node);
+	protected NonInitialResponseBuilder(TransactionReference reference, Request request, AbstractNode<?> node) throws TransactionRejectedException {
+		super(reference, request, node);
 
 		try {
 			callerMustBeExternallyOwnedAccount();

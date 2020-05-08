@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -33,6 +35,7 @@ import io.hotmoka.nodes.InitializedNode;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.Node.JarSupplier;
 import io.takamaka.code.constants.Constants;
+import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
@@ -46,6 +49,8 @@ public abstract class TakamakaTest {
 	 * The nonce of each externally owned account used in the test.
 	 */
 	private final Map<StorageReference, BigInteger> nonces = new HashMap<>();
+
+	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	public interface TestBody {
 		public void run() throws Exception;
@@ -312,6 +317,7 @@ public abstract class TakamakaTest {
 			return nonce;
 		}
 		catch (Exception e) {
+			logger.error("failed computing nonce", e);
 			throw new TransactionRejectedException("cannot compute the nonce of " + account);
 		}
 	}

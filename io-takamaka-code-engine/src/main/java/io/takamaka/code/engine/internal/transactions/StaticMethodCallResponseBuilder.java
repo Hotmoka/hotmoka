@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
@@ -23,12 +24,13 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	/**
 	 * Creates the builder of the response.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public StaticMethodCallResponseBuilder(StaticMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		super(request, node);
+	public StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		super(reference, request, node);
 	}
 
 	@Override

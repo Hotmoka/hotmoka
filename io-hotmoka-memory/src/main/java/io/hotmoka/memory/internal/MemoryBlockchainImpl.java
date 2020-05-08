@@ -158,9 +158,8 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
-	protected void expandStore(TransactionRequest<?> request, TransactionResponse response) {
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		try {
-			TransactionReference reference = referenceOf(request);
 			progressive.put(reference, transactionsCount++);
 			Path requestPath = getPathFor(reference, "request");
 			Path parent = requestPath.getParent();
@@ -192,13 +191,13 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 			try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(getPathFor(reference, "response")))) {
 				response.into(oos);
 			}
+
+			super.expandStore(reference, request, response);
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-
-		super.expandStore(request, response);
 	}
 
 	@Override
@@ -243,9 +242,8 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
-	public void notifyTransactionUndelivered(TransactionRequest<?> request, String errorMessage) {
-		errors.put(referenceOf(request), errorMessage);
-		super.notifyTransactionUndelivered(request, errorMessage);
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		errors.put(reference, errorMessage);
 	}
 
 	/**

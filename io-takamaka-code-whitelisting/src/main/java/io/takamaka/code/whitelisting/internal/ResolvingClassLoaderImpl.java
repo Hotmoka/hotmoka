@@ -55,7 +55,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	}
 
 	@Override
-    public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+    public synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         Class<?> clazz = findLoadedClass(name);
         if (clazz == null)
         	try {

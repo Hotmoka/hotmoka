@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
@@ -21,12 +22,13 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	/**
 	 * Creates the builder of the response.
 	 * 
+	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreResponseBuilder(JarStoreTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
-		super(request, node);
+	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		super(reference, request, node);
 	}
 
 
