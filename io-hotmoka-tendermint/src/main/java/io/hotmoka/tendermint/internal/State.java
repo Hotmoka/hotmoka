@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
@@ -77,12 +76,6 @@ class State implements AutoCloseable {
 	private Store history;
 
 	/**
-	 * The store that holds a map from each Hotmoka transaction reference to the hash of the
-	 * corresponding Tendermint transaction 
-	 */
-	private Store hashes;
-
-	/**
 	 * The store that holds miscellaneous information about the state.
 	 */
     private Store info;
@@ -117,11 +110,6 @@ class State implements AutoCloseable {
      */
     private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 3);
 
-    /**
-     * The key used inside {@linkplain #info} to keep the last committed transaction reference.
-     */
-    private final static ByteIterable NEXT = ArrayByteIterable.fromByte((byte) 4);
-
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
     /**
@@ -137,7 +125,6 @@ class State implements AutoCloseable {
     		env.executeInTransaction(txn -> {
     			responses = env.openStore("responses", StoreConfig.WITHOUT_DUPLICATES, txn);
     			history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
-    			hashes = env.openStore("hashes", StoreConfig.WITHOUT_DUPLICATES, txn);
     			info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
     		})
     	);
@@ -170,7 +157,6 @@ class State implements AutoCloseable {
     		txn = env.beginTransaction();
     		responses = env.openStore("responses", StoreConfig.USE_EXISTING, txn);
     		history = env.openStore("history", StoreConfig.USE_EXISTING, txn);
-    		hashes = env.openStore("hashes", StoreConfig.USE_EXISTING, txn);
     		info = env.openStore("info", StoreConfig.USE_EXISTING, txn);
     	});
     }
@@ -197,20 +183,6 @@ class State implements AutoCloseable {
 			ByteIterable referenceAsByteArray = intoByteArray(reference);
 			ByteIterable responseAsByteArray = intoByteArray(response);
 			env.executeInTransaction(txn -> responses.put(txn, referenceAsByteArray, responseAsByteArray));
-		});
-	}
-
-	/**
-	 * Puts in state the hash that Tendermint uses to refer to the Hotmoka transaction having the given reference.
-	 * 
-	 * @param reference the reference of the Hotmoka transaction
-	 * @param hash the Tendermint hash
-	 */
-	void putHash(TransactionReference reference, String hash) {
-		recordTime(() -> {
-			ByteIterable referenceAsByteArray = intoByteArray(reference);
-			ByteIterable hashAsByteArray = new ArrayByteIterable(hash.getBytes());
-			env.executeInTransaction(txn -> hashes.put(txn, referenceAsByteArray, hashAsByteArray));
 		});
 	}
 
@@ -250,15 +222,6 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Puts in state the reference that can be used for the next transaction.
-	 * 
-	 * @param next the reference
-	 */
-	void putNext(TransactionReference next) {
-		putIntoInfo(NEXT, next);
-	}
-
-	/**
 	 * Puts in state the storage reference to a new initial account.
 	 * 
 	 * @param account the storage reference of the account to add
@@ -281,20 +244,6 @@ class State implements AutoCloseable {
 			ByteIterable referenceAsByteArray = intoByteArray(reference);
 			ByteIterable responseAsByteArray = env.computeInReadonlyTransaction(txn -> responses.get(txn, referenceAsByteArray));
 			return responseAsByteArray == null ? Optional.empty() : Optional.of(fromByteArray(TransactionResponse::from, responseAsByteArray));
-		});
-	}
-
-	/**
-	 * Yields the hash that Tendermint uses to refer to the given Hotmoka transaction.
-	 * 
-	 * @param reference the reference of the Hotmoka transaction
-	 * @return the hash, if any
-	 */
-	Optional<String> getHash(TransactionReference reference) {
-		return recordTime(() -> {
-			ByteIterable referenceAsByteArray = intoByteArray(reference);
-			ByteIterable responseAsByteArray = env.computeInReadonlyTransaction(txn -> hashes.get(txn, referenceAsByteArray));
-			return responseAsByteArray == null ? Optional.empty() : Optional.of(new String(responseAsByteArray.getBytesUnsafe()));
 		});
 	}
 
@@ -341,16 +290,6 @@ class State implements AutoCloseable {
 	Optional<Classpath> getJar() {
 		ByteIterable jar = getFromInfo(JAR);
 		return jar == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, jar));
-	}
-
-	/**
-	 * Yields the reference that can be used for the next transaction.
-	 * 
-	 * @return the reference, if any
-	 */
-	Optional<TransactionReference> getNext() {
-		ByteIterable next = getFromInfo(NEXT);
-		return next == null ? Optional.empty() : Optional.of(fromByteArray(LocalTransactionReference::from, next));
 	}
 
 	/**

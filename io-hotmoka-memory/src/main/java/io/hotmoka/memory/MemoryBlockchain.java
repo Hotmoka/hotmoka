@@ -37,8 +37,8 @@ public interface MemoryBlockchain extends InitializedNode {
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode()}
-	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
-	 *              initial funds of each account (green before red)
+	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the red/green
+	 *              initial funds of each account (red before green)
 	 * @throws Exception if the blockchain could not be created
 	 */
 	static MemoryBlockchain ofRedGreen(Config config, Path takamakaCodePath, BigInteger... funds) throws Exception {
@@ -67,8 +67,8 @@ public interface MemoryBlockchain extends InitializedNode {
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode()}
-	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the green/red
-	 *              initial funds of each account (green before red)
+	 * @param funds the initial funds of the accounts that are created; they must be understood in pairs, each pair for the red/green
+	 *              initial funds of each account (red before green)
 	 * @throws Exception if the blockchain could not be created
 	 */
 	static MemoryBlockchain ofRedGreen(Config config, Path takamakaCodePath, Path jar, BigInteger... funds) throws Exception {

@@ -32,11 +32,11 @@ class RedGreenDistributor extends TakamakaTest {
 	void beforeEach() throws Exception {
 		mkRedGreenBlockchain(
 			"redgreendistributor.jar",
-			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // green/red of first account
-			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of second account
-			BigInteger.valueOf(100_000L), BigInteger.ZERO, // green/red of third account
-			BigInteger.ZERO, BigInteger.valueOf(100_000L), // green/red of fourth account
-			BigInteger.ZERO, BigInteger.ZERO  // green/red of fifth account
+			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // red/green of first account
+			BigInteger.ZERO, BigInteger.valueOf(100_000L), // red/green of second account
+			BigInteger.ZERO, BigInteger.valueOf(100_000L), // red/green of third account
+			BigInteger.valueOf(100_000L), BigInteger.ZERO, // red/green of fourth account
+			BigInteger.ZERO, BigInteger.ZERO  // red/green of fifth account
 		);
 	}
 

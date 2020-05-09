@@ -288,16 +288,13 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		catch (TransactionRejectedException e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
-
 			expandStore(reference, request, e.getMessage());
-
 			throw e;
 		}
 		catch (Exception e) {
 			// we wake up who was waiting for the outcome of the request
 			if (reference != null) {
 				signalSemaphore(reference);
-
 				expandStore(reference, request, e.getMessage());
 			}
 

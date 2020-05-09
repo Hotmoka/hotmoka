@@ -99,7 +99,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 * @param redGreen true if red/green accounts must be created; otherwise, normal externally owned
 	 *                 accounts will be created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
-	 *              they must be understood in pairs, each pair for the green/red initial funds of each account (green before red)
+	 *              they must be understood in pairs, each pair for the green/red initial funds of each account (red before green)
 	 * @throws Exception if the blockchain could not be created
 	 */
 	public MemoryBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {

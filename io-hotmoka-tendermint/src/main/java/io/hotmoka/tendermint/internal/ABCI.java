@@ -96,7 +96,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         catch (Throwable t) {
         	logger.error("Failed to check transaction request", t);
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-        	responseBuilder.setInfo(t.getMessage());
+        	responseBuilder.setInfo(t.getMessage()); // TODO. use data?
 		}
 
         ResponseCheckTx resp = responseBuilder
@@ -136,7 +136,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         catch (Throwable t) {
         	logger.error("Failed delivering transaction", t);
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-        	responseBuilder.setInfo(t.getMessage());
+        	responseBuilder.setInfo(t.getMessage()); //TODO: use data?
         }
 
         ResponseDeliverTx resp = responseBuilder.build();
@@ -163,7 +163,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
     @Override
     public void query(RequestQuery req, StreamObserver<ResponseQuery> responseObserver) {
-    	req.getData();
         Builder builder = ResponseQuery.newBuilder().setLog("nop");
         ResponseQuery resp = builder.build();
         responseObserver.onNext(resp);

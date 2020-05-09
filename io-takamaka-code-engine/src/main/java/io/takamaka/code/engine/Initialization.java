@@ -74,8 +74,8 @@ public final class Initialization {
 	 *            a first jar in the node
 	 * @param redGreen true if and only if red/green externally owned accounts must be created; otherwise, normal
 	 *                 externally owned accounts are created
-	 * @param funds the initial funds of the accounts to create; for red/green accounts, they must be understood in pairs,
-	 *              each pair for the green/red initial funds of each account (green before red)
+	 * @param funds the initial funds of the accounts to create; for green/red accounts, they must be understood in pairs,
+	 *              each pair for the green/red initial funds of each account (red before green)
 	 * @throws Exception if some of the transactions that install jars or create accounts fails
 	 */
 	public Initialization(AbstractNode<?> node, Path takamakaCodePath, Path jar, boolean redGreen, BigInteger... funds) throws Exception {
@@ -84,10 +84,10 @@ public final class Initialization {
 		StorageReference gamete;
 		if (redGreen) {
 			// we compute the total amount of red/green funds needed to create the accounts
-			BigInteger green = IntStream.iterate(0, i -> i < funds.length, i -> i + 2)
+			BigInteger red = IntStream.iterate(0, i -> i < funds.length, i -> i + 2)
 				.mapToObj(i -> funds[i]).reduce(ZERO, BigInteger::add);
 
-			BigInteger red = IntStream.iterate(1, i -> i < funds.length, i -> i + 2)
+			BigInteger green = IntStream.iterate(1, i -> i < funds.length, i -> i + 2)
 				.mapToObj(i -> funds[i]).reduce(ZERO, BigInteger::add);
 
 			gamete = node.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode, green, red));

@@ -30,12 +30,10 @@ import io.takamaka.code.engine.Initialization;
 /**
  * An implementation of a blockchain working over the Tendermint generic blockchain engine.
  * Requests sent to this blockchain are forwarded to a Tendermint process. This process
- * checks and delivers such requests, by calling the ABCI interface. The Tendermint response contains
- * the Hotmoka transaction reference that has been selected for each request that gets executed,
- * or an error message. This blockchain keeps its state in a transactional database
- * implemented by the {@linkplain State} class.
+ * checks and delivers such requests, by calling the ABCI interface. This blockchain keeps
+ * its state in a transactional database implemented by the {@linkplain State} class.
  */
-public class TendermintBlockchainImpl extends AbstractNode<Config>implements TendermintBlockchain {
+public class TendermintBlockchainImpl extends AbstractNode<Config> implements TendermintBlockchain {
 
 	/**
 	 * The GRPC server that runs the ABCI process.
@@ -84,8 +82,8 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
 
 	/**
-	 * Builds a Tendermint blockchain, install the basic jar in it
-	 * and initializes user accounts with the given initial funds.
+	 * Builds a Tendermint blockchain, installs the basic jar in it
+	 * and initializes user accounts with initial funds.
 	 * This constructor spawns the Tendermint process on localhost and connects it to an ABCI application
 	 * for handling its transactions. Blockchain data gets deleted if it already existed.
 	 * 
@@ -94,9 +92,9 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 	 *                         installed in blockchain and will be available later as {@linkplain #takamakaCode()}
 	 * @param jar the path of a jar that must be further installed in blockchain. This is optional and mainly
 	 *            useful to simplify the implementation of tests
-	 * @param redGreen true if red/green accounts must be created; if false, normal accounts are created
+	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
-	 *              they must be understood in pairs, each pair for the green/red initial funds of each account (green before red)
+	 *              they must be understood in pairs, each pair for the green/red initial funds of each account (red before green)
 	 * @throws Exception if the blockchain could not be created
 	 */
 	public TendermintBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {
@@ -202,8 +200,9 @@ public class TendermintBlockchainImpl extends AbstractNode<Config>implements Ten
 	@Override
 	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
 		try {
-			tendermint.getErrorMessage(reference.getHash())
-				.ifPresent(TransactionRejectedException::new);
+			Optional<String> error = tendermint.getErrorMessage(reference.getHash());
+			if (error.isPresent())
+				throw new TransactionRejectedException(error.get());
 
 			return state.getResponse(reference)
 				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
