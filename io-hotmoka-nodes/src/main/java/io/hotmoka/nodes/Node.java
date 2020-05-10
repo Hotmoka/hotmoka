@@ -31,6 +31,8 @@ public interface Node extends AutoCloseable {
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.
+	 * If this method succeeds and this node has some form of commit, then the transaction
+	 * has been definitely committed in this node.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the request
@@ -40,6 +42,8 @@ public interface Node extends AutoCloseable {
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
+	 * If this method succeeds and this node has some form of commit, then the transaction
+	 * has been definitely committed in this node.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response
@@ -50,6 +54,8 @@ public interface Node extends AutoCloseable {
 
 	/**
 	 * Yields the current state of the object at the given storage reference.
+	 * If this method succeeds and this node has some form of commit, then the transaction
+	 * of the storage reference has been definitely committed in this node.
 	 * 
 	 * @param reference the storage reference of the object
 	 * @return the last updates of all its instance fields; these updates include

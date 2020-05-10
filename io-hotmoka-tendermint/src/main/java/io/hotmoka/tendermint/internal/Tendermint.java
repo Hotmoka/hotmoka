@@ -16,6 +16,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -52,9 +53,11 @@ class Tendermint implements AutoCloseable {
 	 * @param config the configuration of the blockchain
 	 * @param reset true if and only if the blockchain must be initialized from scratch; in that case,
 	 *              the directory of the blockchain gets deleted
-	 * @throws Exception if the Tendermint process cannot be spawned
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if Tendermint did not spawn up in the expected time
+	 * @throws InterruptedException if the current thread was interrupted while waiting for the Tendermint process to run
 	 */
-	Tendermint(TendermintBlockchainImpl node, boolean reset) throws Exception {
+	Tendermint(TendermintBlockchainImpl node, boolean reset) throws IOException, InterruptedException, TimeoutException {
 		this.node = node;
 
 		if (reset)
@@ -78,9 +81,11 @@ class Tendermint implements AutoCloseable {
 	 * 
 	 * @param request the request to send
 	 * @return the response of Tendermint
-	 * @throws Exception if the connection couldn't be opened or the request could not be sent
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing the request failed after repeated trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing the request
 	 */
-	String broadcastTxAsync(TransactionRequest<?> request) throws Exception {
+	String broadcastTxAsync(TransactionRequest<?> request) throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" +  Base64.getEncoder().encodeToString(request.toByteArray()) + "\"}}";
 		return postToTendermint(jsonTendermintRequest);
 	}
@@ -89,28 +94,29 @@ class Tendermint implements AutoCloseable {
 	 * Yields the Hotmoka error in the Tendermint transaction with the given hash.
 	 * 
 	 * @param hash the hash of the transaction to look for
-	 * @return the error, if any
-	 * @throws Exception if the connection couldn't be opened or the request could not be sent or the result was incorrect
+	 * @return the error, if any. If the transaction didn't commit, the result is an empty optional.
+	 *         If the transaction was successfully committed, the answer is an empty optional
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing the request failed after repeated trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing the request
+	 * @throws JsonSyntaxException if the Tendermint response didn't match the expected syntax
 	 */
-	Optional<String> getErrorMessage(String hash) throws Exception {
-		String error;
-
+	Optional<String> getErrorMessage(String hash) throws JsonSyntaxException, IOException, TimeoutException, InterruptedException {
 		TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
+
 		if (response.error != null)
 			// the Tendermint request failed
-			error = null;
+			return Optional.empty();
 		else {
 			// the Tendermint request succeeded
 			TendermintTxResult tx_result = response.result.tx_result;
 			if (tx_result == null)
 				throw new IllegalStateException("no result for Tendermint transaction " + hash);
-			else if (tx_result.info != null) // TODO: put in data instead? Base64 encoding
-				error = tx_result.info;
+			else if (tx_result.info != null && !tx_result.info.isEmpty()) // TODO: put in data instead? Base64 encoding
+				return Optional.of(tx_result.info);
 			else
-				error = null;
+				return Optional.empty();
 		}
-
-		return Optional.ofNullable(error);
 	}
 
 	/**
@@ -119,12 +125,17 @@ class Tendermint implements AutoCloseable {
 	 * 
 	 * @param hash the hash of the transaction to look for
 	 * @return the Hotmoka transaction request
-	 * @throws Exception if the connection couldn't be opened or the Tendermint request could not be sent or the result was incorrect
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing the Tendermint request failed after repeated trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing the Tendermint request
+	 * @throws JsonSyntaxException if the Tendermint response didn't match the expected syntax
+	 * @throws ClassNotFoundException if the Tendermint response contained an object of unknown class
 	 */
-	Optional<TransactionRequest<?>> getRequest(String hash) throws Exception {
+	Optional<TransactionRequest<?>> getRequest(String hash) throws JsonSyntaxException, IOException, TimeoutException, InterruptedException, ClassNotFoundException {
 		TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
-		if (response.result == null)
-			throw new IllegalStateException("no Tendermint response for transaction " + hash);
+		if (response.error != null)
+			// the Tendermint request failed
+			return Optional.empty();
 
 		String tx = response.result.tx;
 		if (tx == null)
@@ -169,9 +180,11 @@ class Tendermint implements AutoCloseable {
 	 * 
 	 * @param hash the hash of the Tendermint transaction to look for
 	 * @return the response of Tendermint
-	 * @throws Exception if the connection couldn't be opened or the request could not be sent
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing the request failed after repeated trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing the request
 	 */
-	private String tx(String hash) throws Exception {
+	private String tx(String hash) throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
 			Base64.getEncoder().encodeToString(hexStringToByteArray(hash)) + "\", \"prove\": false }}";
 	
@@ -250,9 +263,11 @@ class Tendermint implements AutoCloseable {
 	 * 
 	 * @param jsonTendermintRequest the request to post, in JSON format
 	 * @return the response
-	 * @throws Exception if the request couldn't be sent
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing failed after repeated trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing
 	 */
-	private String postToTendermint(String jsonTendermintRequest) throws Exception {
+	private String postToTendermint(String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
 		HttpURLConnection connection = openPostConnectionToTendermint();
 		writeInto(connection, jsonTendermintRequest);
 		return readFrom(connection);
@@ -276,9 +291,11 @@ class Tendermint implements AutoCloseable {
 	 * 
 	 * @param connection the connection
 	 * @param jsonTendermintRequest the request
-	 * @throws Exception if the request cannot be written
+	 * @throws IOException if an I/O error occurred
+	 * @throws TimeoutException if writing failed after repeated trying for some time
+	 * @throws InterruptedException if the current thread was interrupted while writing
 	 */
-	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws Exception {
+	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
 		byte[] input = jsonTendermintRequest.getBytes("utf-8");
 
 		for (int i = 0; i < node.config.maxPingAttempts; i++) {

@@ -6,7 +6,6 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -192,23 +191,51 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	}
 
 	@Override
-	protected TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
-		// TODO Auto-generated method stub
-		return null;
+	protected boolean isCommitted(TransactionReference reference) {
+		try {
+			return tendermint.getRequest(reference.getHash()).isPresent();
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
 	}
 
 	@Override
-	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+	protected TransactionRequest<?> getRequest(TransactionReference reference) {
+		try {
+			return tendermint.getRequest(reference.getHash()).get();
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException {
 		try {
 			Optional<String> error = tendermint.getErrorMessage(reference.getHash());
 			if (error.isPresent())
 				throw new TransactionRejectedException(error.get());
-
-			return state.getResponse(reference)
-				.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
+			else
+				return state.getResponse(reference)
+					.orElseThrow(() -> new InternalFailureException("transaction reference " + reference + " is committed but the state has no information about it"));
 		}
-		catch (TransactionRejectedException | NoSuchElementException e) {
+		catch (TransactionRejectedException e) {
 			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	protected TransactionResponse getResponseUncommitted(TransactionReference reference) {
+		try {
+			return state.getResponse(reference)
+				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);

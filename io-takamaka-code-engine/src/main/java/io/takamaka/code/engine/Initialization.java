@@ -113,7 +113,7 @@ public final class Initialization {
 		List<CodeSupplier<StorageReference>> accounts = new ArrayList<>();
 
 		if (redGreen)
-			for (int i = 0; i < funds.length; i += 2, nonce = nonce.add(ONE))
+			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE))
 				// the constructor provides the green coins
 				accounts.add(node.postConstructorCallTransaction(new ConstructorCallTransactionRequest
 					(gamete, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
@@ -128,12 +128,12 @@ public final class Initialization {
 		int i = 0;
 		this.accounts = new StorageReference[redGreen ? funds.length / 2 : funds.length];
 		for (CodeSupplier<StorageReference> account: accounts) {
-			// then we add the red coins
 			this.accounts[i] = account.get();
 
 			if (redGreen) {
+				// then we add the red coins
 				node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, ZERO, takamakaCode,
-					RECEIVE_RED, this.accounts[i], new BigIntegerValue(funds[1 + i * 2])));
+					RECEIVE_RED, this.accounts[i], new BigIntegerValue(funds[i * 2])));
 
 				nonce = nonce.add(ONE);
 			}

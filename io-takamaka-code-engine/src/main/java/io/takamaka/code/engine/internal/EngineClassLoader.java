@@ -226,7 +226,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		if (jars.stream().mapToLong(bytes -> bytes.length).sum() > MAX_SIZE_OF_DEPENDENCIES)
 			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + MAX_SIZE_OF_DEPENDENCIES + " bytes");
 
-		TransactionResponse response = node.getResponseAt(classpath.transaction);
+		TransactionResponse response = node.getResponseUncommittedAt(classpath.transaction);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new IllegalStateException("expected a jar store response at " + classpath.transaction);
 

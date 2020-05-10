@@ -176,27 +176,50 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
 
 	/**
+	 * Determines if the transaction with the given reference has been committed.
+	 * If this mode has no form of commit, then answer true, always.
+	 * 
+	 * @param reference the reference
+	 * @return true if and only if {@code reference} has been committed already
+	 */
+	protected abstract boolean isCommitted(TransactionReference reference);
+
+	/**
 	 * Yields the request that generated the transaction with the given reference.
-	 * The result of this method is wrapped into a cache and used to implement
+	 * If this node has some form of commit, then this method is called only when
+	 * the transaction has been already committed.
+	 * The successful result of this method is wrapped into a cache and used to implement
 	 * {@linkplain #getRequestAt(TransactionReference)}.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the request
-	 * @throws NoSuchElementException if the request cannot be found
 	 */
-	protected abstract TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException;
+	protected abstract TransactionRequest<?> getRequest(TransactionReference reference);
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
-	 * The result of this method is wrapped into a cache and used to implement
+	 * If this node has some form of commit, then this method is called only when
+	 * the transaction has been already committed.
+	 * The successful result of this method is wrapped into a cache and used to implement
 	 * {@linkplain #getResponseAt(TransactionReference)}.
 	 * 
 	 * @param reference the reference to the transaction
 	 * @return the response
 	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
-	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
 	 */
-	protected abstract TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
+	protected abstract TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException;
+
+	/**
+	 * Yields the response generated for the request for the given transaction.
+	 * It is guaranteed that the transaction has been already successfully delivered,
+	 * hence a response must exist in store.
+	 * The successful result of this method is wrapped into a cache and used to implement
+	 * {@linkplain #getResponseUncommittedAt(TransactionReference)}.
+	 * 
+	 * @param reference the reference to the transaction
+	 * @return the response
+	 */
+	protected abstract TransactionResponse getResponseUncommitted(TransactionReference reference);
 
 	/**
 	 * Post the given request to this node. It will be scheduled, eventually, checked and delivered.
@@ -246,7 +269,19 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @param request the request
 	 * @param errorMessage an description of why delivering failed
 	 */
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {}
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+	}
+
+	@Override
+	public final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
+		try {
+			return getResponseAtCache.computeIfAbsent(reference, this::getResponseUncommitted);
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
 
 	/**
 	 * Runs the given task with the executor service of this node.
@@ -321,7 +356,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		try {
 			TransactionResponse response = builder.build();
 			expandStore(reference, request, response);
-			getResponseAtCache.put(reference, response);
 		}
 		catch (TransactionRejectedException e) {
 			expandStore(reference, request, e.getMessage());
@@ -344,8 +378,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
 
-		logger.info("Time spent checking requests: " + checkTime + "ms");
-		logger.info("Time spent delivering requests: " + deliverTime + "ms");
+		logger.info("Time spent checking requests: " + checkTime + "ms\nTime spent delivering requests: " + deliverTime + "ms");
 	}
 
 	/**
@@ -360,6 +393,9 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	@Override
 	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
 		try {
+			if (!isCommitted(reference))
+				throw new NoSuchElementException("unknown transaction reference " + reference);
+
 			return getRequestAtCache.computeIfAbsent(reference, this::getRequest);
 		}
 		catch (NoSuchElementException e) {
@@ -374,6 +410,9 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	@Override
 	public final TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
 		try {
+			if (!isCommitted(reference))
+				throw new NoSuchElementException("unknown transaction reference " + reference);
+
 			return getResponseAtCache.computeIfAbsent(reference, this::getResponse);
 		}
 		catch (TransactionRejectedException | NoSuchElementException e) {
@@ -674,12 +713,14 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Waits until a transaction has been checked and delivered, or until its delivering fails.
+	 * Waits until a transaction has been committed, or until its delivering fails.
+	 * If this method succeeds and this node has some form of commit, then the
+	 * transaction has been definitely committed.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response computed for {@code request}
-	 * @throws TransactionRejectedException if the request failed to be delivered, because of this exception
-	 * @throws TimeoutException if the polling delay has expired but the request did not get delivered
+	 * @throws TransactionRejectedException if the request failed to be committed, because of this exception
+	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
 	private TransactionResponse waitForResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
@@ -688,7 +729,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			if (semaphore != null)
 				semaphore.acquire();
 
-			for (int attempt = 1, delay = config.pollingDelay; attempt < config.maxPollingAttempts; attempt++, delay = delay * 110 / 100)
+			for (int attempt = 1, delay = config.pollingDelay; attempt <= Math.max(1, config.maxPollingAttempts); attempt++, delay = delay * 110 / 100)
 				try {
 					return getResponseAt(reference);
 				}
@@ -749,15 +790,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
 	 */
 	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) {
-		TransactionResponse response;
-
-		try {
-			response = getResponseAt(reference);
-		}
-		catch (NoSuchElementException | TransactionRejectedException e) {
-			logger.error("history contains a reference to a missing or failed transaction", e);
-			throw new InternalFailureException("history contains a reference to a missing or failed transaction");
-		}
+		TransactionResponse response = getResponseUncommittedAt(reference);
 
 		if (!(response instanceof TransactionResponseWithUpdates)) {
 			logger.error("history contains a reference to a transaction without updates");
@@ -792,14 +825,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction, Consumer<BigInteger> chargeForCPU) {
 		chargeForCPU.accept(getGasCostModel().cpuCostForGettingResponseAt(transaction));
 
-		TransactionResponse response;
-		try {
-			response = getResponseAt(transaction);
-		}
-		catch (NoSuchElementException | TransactionRejectedException e) {
-			logger.error("history contains a reference to a missing or failed transaction", e);
-			throw new InternalFailureException("history contains a reference to a missing or failed transaction");
-		}
+		TransactionResponse response = getResponseUncommittedAt(transaction);
 
 		if (response instanceof TransactionResponseWithUpdates)
 			return ((TransactionResponseWithUpdates) response).getUpdates()

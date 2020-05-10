@@ -8,12 +8,10 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -142,6 +140,11 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
+	protected boolean isCommitted(TransactionReference reference) {
+		return true; // there is no commit in this blockchain
+	}
+
+	@Override
 	protected Stream<TransactionReference> getHistory(StorageReference object) {
 		TransactionReference[] history = histories.get(object);
 		return history == null ? Stream.empty() : Stream.of(history);
@@ -201,15 +204,12 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
-	protected TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
+	protected TransactionRequest<?> getRequest(TransactionReference reference) {
 		try {
 			Path response = getPathFor(reference, "request");
 			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
 				return TransactionRequest.from(in);
 			}
-		}
-		catch (NoSuchFileException e) {
-			throw new NoSuchElementException("unknown transaction reference " + reference);
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
@@ -218,7 +218,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
-	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException {
 		try {
 			String error = errors.get(reference);
 			if (error != null)
@@ -232,8 +232,19 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 		catch (TransactionRejectedException e) {
 			throw e;
 		}
-		catch (NoSuchFileException e) {
-			throw new NoSuchElementException("unknown transaction reference " + reference);
+		catch (Exception e) {
+			logger.error("unexpected exception " + e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	protected TransactionResponse getResponseUncommitted(TransactionReference reference) {
+		try {
+			Path response = getPathFor(reference, "response");
+			try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(response)))) {
+				return TransactionResponse.from(in);
+			}
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
