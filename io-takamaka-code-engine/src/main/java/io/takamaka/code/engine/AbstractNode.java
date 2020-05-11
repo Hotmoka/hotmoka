@@ -378,7 +378,8 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
 
-		logger.info("Time spent checking requests: " + checkTime + "ms\nTime spent delivering requests: " + deliverTime + "ms");
+		logger.info("Time spent checking requests: " + checkTime + "ms");
+		logger.info("Time spent delivering requests: " + deliverTime + "ms");
 	}
 
 	/**
@@ -861,6 +862,15 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		catch (TransactionRejectedException e) {
 			throw e;
 		}
+		catch (InternalFailureException e) {
+			if (e.getCause() != null) {
+				logger.error("transaction rejected", e.getCause());
+				throw new TransactionRejectedException(e.getCause());
+			}
+
+			logger.error("transaction rejected", e);
+			throw new TransactionRejectedException(e);
+		}
 		catch (Throwable t) {
 			logger.error("transaction rejected", t);
 			throw new TransactionRejectedException(t);
@@ -874,6 +884,15 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		catch (TransactionRejectedException | TransactionException e) {
 			throw e;
 		}
+		catch (InternalFailureException e) {
+			if (e.getCause() != null) {
+				logger.error("transaction rejected", e.getCause());
+				throw new TransactionRejectedException(e.getCause());
+			}
+
+			logger.error("transaction rejected", e);
+			throw new TransactionRejectedException(e);
+		}
 		catch (Throwable t) {
 			logger.error("transaction rejected", t);
 			throw new TransactionRejectedException(t);
@@ -886,6 +905,15 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		}
 		catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
 			throw e;
+		}
+		catch (InternalFailureException e) {
+			if (e.getCause() != null) {
+				logger.error("transaction rejected", e.getCause());
+				throw new TransactionRejectedException(e.getCause());
+			}
+
+			logger.error("transaction rejected", e);
+			throw new TransactionRejectedException(e);
 		}
 		catch (Throwable t) {
 			logger.error("transaction rejected", t);

@@ -3,6 +3,7 @@ package io.hotmoka.tendermint.internal;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.OutputStream;
@@ -14,6 +15,9 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -46,6 +50,8 @@ class Tendermint implements AutoCloseable {
 	 */
 	private final Gson gson = new Gson();
 
+	private final static Logger logger = LoggerFactory.getLogger(Tendermint.class);
+
 	/**
 	 * Spawns the Tendermint process and creates a proxy to it. It assumes that
 	 * the {@code tendermint} command can be executed from the command path.
@@ -68,12 +74,15 @@ class Tendermint implements AutoCloseable {
 		this.process = run("tendermint node --home " + node.config.dir + "/blocks --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort);
 		// wait until it is up and running
 		ping();
+
+		logger.error("The Tendermint process is up and running");
 	}
 
 	@Override
 	public void close() throws InterruptedException {
 		process.destroy();
 		process.waitFor();
+		logger.error("The Tendermint process has been shut down");
 	}
 
 	/**
@@ -94,8 +103,8 @@ class Tendermint implements AutoCloseable {
 	 * Yields the Hotmoka error in the Tendermint transaction with the given hash.
 	 * 
 	 * @param hash the hash of the transaction to look for
-	 * @return the error, if any. If the transaction didn't commit, the result is an empty optional.
-	 *         If the transaction was successfully committed, the answer is an empty optional
+	 * @return the error, if any. If the transaction didn't commit or committed successfully,
+	 *         the result is an empty optional
 	 * @throws IOException if an I/O error occurred
 	 * @throws TimeoutException if writing the request failed after repeated trying for some time
 	 * @throws InterruptedException if the current thread was interrupted while writing the request
@@ -105,16 +114,17 @@ class Tendermint implements AutoCloseable {
 		TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
 
 		if (response.error != null)
-			// the Tendermint request failed
+			// the Tendermint transaction didn't commit successfully
 			return Optional.empty();
 		else {
-			// the Tendermint request succeeded
+			// the Tendermint transaction committed successfully
 			TendermintTxResult tx_result = response.result.tx_result;
 			if (tx_result == null)
-				throw new IllegalStateException("no result for Tendermint transaction " + hash);
-			else if (tx_result.info != null && !tx_result.info.isEmpty()) // TODO: put in data instead? Base64 encoding
-				return Optional.of(tx_result.info);
+				throw new InternalFailureException("no result for Tendermint transaction " + hash);
+			else if (tx_result.data != null && !tx_result.data.isEmpty())
+				return Optional.of(new String(Base64.getDecoder().decode(tx_result.data)));
 			else
+				// there is no HOtmoka error in this transaction
 				return Optional.empty();
 		}
 	}
@@ -134,12 +144,12 @@ class Tendermint implements AutoCloseable {
 	Optional<TransactionRequest<?>> getRequest(String hash) throws JsonSyntaxException, IOException, TimeoutException, InterruptedException, ClassNotFoundException {
 		TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
 		if (response.error != null)
-			// the Tendermint request failed
+			// the Tendermint transaction didn't commit successfully
 			return Optional.empty();
 
 		String tx = response.result.tx;
 		if (tx == null)
-			throw new IllegalStateException("no Hotmoka request in Tendermint response");
+			throw new InternalFailureException("no Hotmoka request in Tendermint response");
 
 		byte[] decoded = Base64.getDecoder().decode(tx);
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decoded))) {
@@ -210,7 +220,7 @@ class Tendermint implements AutoCloseable {
 	}*/
 
 	/**
-	 * Waits until the Tendermint process responds to ping.
+	 * Waits until the Tendermint process acknowledges a ping.
 	 * 
 	 * @throws IOException if it is not possible to connect to the Tendermint process
 	 * @throws TimeoutException if tried many times, but never got a reply
@@ -220,7 +230,7 @@ class Tendermint implements AutoCloseable {
 		for (int reconnections = 1; reconnections <= node.config.maxPingAttempts; reconnections++) {
 			try {
 				HttpURLConnection connection = openPostConnectionToTendermint();
-				try (OutputStream os = connection.getOutputStream()) {
+				try (OutputStream os = connection.getOutputStream(); InputStream is = connection.getInputStream()) {
 					return;
 				}
 			}

@@ -254,6 +254,9 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		if (errorMessage.length() > config.maxErrorLength)
+			errorMessage = errorMessage.substring(0, config.maxErrorLength) + "...";
+
 		errors.put(reference, errorMessage);
 	}
 

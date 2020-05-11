@@ -96,7 +96,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         catch (Throwable t) {
         	logger.error("Failed to check transaction request", t);
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-        	responseBuilder.setInfo(t.getMessage()); // TODO. use data?
+        	responseBuilder.setData(trimmedMessage(t));
 		}
 
         ResponseCheckTx resp = responseBuilder
@@ -136,7 +136,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         catch (Throwable t) {
         	logger.error("Failed delivering transaction", t);
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-        	responseBuilder.setInfo(t.getMessage()); //TODO: use data?
+        	responseBuilder.setData(trimmedMessage(t));
         }
 
         ResponseDeliverTx resp = responseBuilder.build();
@@ -174,5 +174,23 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     	ResponseFlush resp = ResponseFlush.newBuilder().build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
+    }
+
+    /**
+     * Yields the error message in a format that can be put in the data field
+     * of Tendermint responses. The message is trimmed, to avoid overflow.
+     * It will be automatically Base64 encoded by Tendermint, so that there
+     * is no risk of injections.
+     *
+     * @param t the throwable whose error message is processed
+     * @return the resulting message
+     */
+    private ByteString trimmedMessage(Throwable t) {
+    	String message = t.getMessage();
+		int length = message.length();
+		if (length > node.config.maxErrorLength)
+			message = message.substring(0, node.config.maxErrorLength) + "...";
+
+		return ByteString.copyFromUtf8(message);
     }
 }

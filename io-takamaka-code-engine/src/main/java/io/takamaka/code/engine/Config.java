@@ -56,9 +56,20 @@ public class Config {
 	public final int historyCacheSize;
 
 	/**
+	 * The maximal length of the error message kept in the store of the node.
+	 * Beyond this threshold, the message gets truncated.
+	 * It defaults to 200 characters.
+	 */
+	public final int maxErrorLength;
+
+	/**
 	 * Full constructor for the builder pattern.
 	 */
-	private Config(Path dir, int maxPollingAttempts, int pollingDelay, int requestCacheSize, int responseCacheSize, int builderCacheSize, int historyCacheSize) {
+	private Config(Path dir, int maxPollingAttempts,
+			       int pollingDelay, int requestCacheSize,
+			       int responseCacheSize, int builderCacheSize,
+			       int historyCacheSize, int maxErrorLength) {
+
 		this.dir = dir;
 		this.maxPollingAttempts = maxPollingAttempts;
 		this.pollingDelay = pollingDelay;
@@ -66,6 +77,7 @@ public class Config {
 		this.responseCacheSize = responseCacheSize;
 		this.builderCacheSize = builderCacheSize;
 		this.historyCacheSize = historyCacheSize;
+		this.maxErrorLength = maxErrorLength;
 	}
 
 	/**
@@ -79,6 +91,7 @@ public class Config {
 		this.responseCacheSize = parent.responseCacheSize;
 		this.builderCacheSize = parent.builderCacheSize;
 		this.historyCacheSize = parent.historyCacheSize;
+		this.maxErrorLength = parent.maxErrorLength;
 	}
 
 	/**
@@ -92,6 +105,7 @@ public class Config {
 		private int responseCacheSize = 1_000;
 		private int builderCacheSize = 10_000;
 		private int historyCacheSize = 10_000;
+		private int maxErrorLength = 200;
 
 		/**
 		 * Sets the directory where the node's data will be persisted.
@@ -181,12 +195,25 @@ public class Config {
 		}
 
 		/**
+		 * Sets the maximal length of the error message kept in the store of the node.
+		 * Beyond this threshold, the message gets truncated.
+		 * It defaults to 200 characters.
+		 * 
+		 * @param maxErrorLength the maximal error length
+		 * @return this builder
+		 */
+		public Builder setMaxErrorLength(int maxErrorLength) {
+			this.maxErrorLength = maxErrorLength;
+			return this;
+		}
+
+		/**
 		 * Builds the configuration.
 		 * 
 		 * @return the configuration
 		 */
 		public Config build() {
-			return new Config(dir, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, builderCacheSize, historyCacheSize);
+			return new Config(dir, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, builderCacheSize, historyCacheSize, maxErrorLength);
 		}
 	}
 }
