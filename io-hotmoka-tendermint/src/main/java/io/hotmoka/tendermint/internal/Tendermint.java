@@ -79,9 +79,18 @@ class Tendermint implements AutoCloseable {
 	}
 
 	@Override
-	public void close() throws InterruptedException {
+	public void close() throws InterruptedException, IOException {
+		// the following is important under Windows, since the shell script to start Tendermint
+		// spawns it as a subprocess
+		process.children().forEach(ProcessHandle::destroy);
 		process.destroy();
 		process.waitFor();
+
+		// this seems important under Windows
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+			System.out.println(br.lines().collect(Collectors.joining()));
+		}
+
 		logger.error("The Tendermint process has been shut down");
 	}
 
