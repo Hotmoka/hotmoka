@@ -5,8 +5,8 @@ package io.hotmoka.tendermint;
  */
 public class MainRecycle {
 	public static void main(String[] args) throws Exception {
-		Config config = (Config) (new Config.Builder()
-			.setDelete(false))
+		Config config = new Config.Builder()
+			.setDelete(false)
 			.build();
 
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {

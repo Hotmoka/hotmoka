@@ -29,7 +29,7 @@ public class Config extends io.takamaka.code.engine.Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder extends io.takamaka.code.engine.Config.Builder {
+	public static class Builder extends io.takamaka.code.engine.Config.Builder<Builder> {
 
 		/**
 		 * The number of transactions that fit inside a block.
@@ -50,6 +50,11 @@ public class Config extends io.takamaka.code.engine.Config {
 		 */
 		public Builder setTransactionsPerBlock(int transactionsPerBlock) {
 			this.transactionsPerBlock = transactionsPerBlock;
+			return this;
+		}
+
+		@Override
+		protected Builder getThis() {
 			return this;
 		}
 	}

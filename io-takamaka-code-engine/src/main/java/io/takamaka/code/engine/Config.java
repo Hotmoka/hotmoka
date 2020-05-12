@@ -105,7 +105,7 @@ public class Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder {
+	public abstract static class Builder<T extends Builder<T>> {
 		private Path dir = Paths.get("chain");
 		private boolean delete = true;
 		private int maxPollingAttempts = 100;
@@ -117,15 +117,20 @@ public class Config {
 		private int maxErrorLength = 200;
 
 		/**
+		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
+		 */
+		protected abstract T getThis();
+
+		/**
 		 * Sets the directory where the node's data will be persisted.
 		 * It defaults to {@code chain} in the current directory.
 		 * 
 		 * @param dir the directory
 		 * @return this builder
 		 */
-		public Builder setDir(Path dir) {
+		public T setDir(Path dir) {
 			this.dir = dir;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -136,9 +141,9 @@ public class Config {
 		 * @param delete the new value of the flag
 		 * @return this builder
 		 */
-		public Builder setDelete(boolean delete) {
+		public T setDelete(boolean delete) {
 			this.delete = delete;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -149,9 +154,9 @@ public class Config {
 		 * @param maxPollingAttempts the the maximal number of polling attempts
 		 * @return this builder
 		 */
-		public Builder setMaxPollingAttempts(int maxPollingAttempts) {
+		public T setMaxPollingAttempts(int maxPollingAttempts) {
 			this.maxPollingAttempts = maxPollingAttempts;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -163,9 +168,9 @@ public class Config {
 		 * @param pollingDelay the delay
 		 * @return this builder
 		 */
-		public Builder setPollingDelay(int pollingDelay) {
+		public T setPollingDelay(int pollingDelay) {
 			this.pollingDelay = pollingDelay;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -175,9 +180,9 @@ public class Config {
 		 * @param requestCacheSize the cache size
 		 * @return this builder
 		 */
-		public Builder setRequestCacheSize(int requestCacheSize) {
+		public T setRequestCacheSize(int requestCacheSize) {
 			this.requestCacheSize = requestCacheSize;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -187,9 +192,9 @@ public class Config {
 		 * @param builderCacheSize the cache size
 		 * @return this builder
 		 */
-		public Builder setResponseCacheSize(int responseCacheSize) {
+		public T setResponseCacheSize(int responseCacheSize) {
 			this.responseCacheSize = responseCacheSize;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -199,9 +204,9 @@ public class Config {
 		 * @param builderCacheSize the cache size
 		 * @return this builder
 		 */
-		public Builder setBuilderCacheSize(int builderCacheSize) {
+		public T setBuilderCacheSize(int builderCacheSize) {
 			this.builderCacheSize = builderCacheSize;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -211,9 +216,9 @@ public class Config {
 		 * @param historyCacheSize the cache size
 		 * @return this builder
 		 */
-		public Builder setHistoryCacheSize(int historyCacheSize) {
+		public T setHistoryCacheSize(int historyCacheSize) {
 			this.historyCacheSize = historyCacheSize;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -224,9 +229,9 @@ public class Config {
 		 * @param maxErrorLength the maximal error length
 		 * @return this builder
 		 */
-		public Builder setMaxErrorLength(int maxErrorLength) {
+		public T setMaxErrorLength(int maxErrorLength) {
 			this.maxErrorLength = maxErrorLength;
-			return this;
+			return getThis();
 		}
 
 		/**

@@ -46,7 +46,7 @@ public class Config extends io.takamaka.code.engine.Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder extends io.takamaka.code.engine.Config.Builder {
+	public static class Builder extends io.takamaka.code.engine.Config.Builder<Builder> {
 		private int tendermintPort = 26657;
 		private int abciPort = 26658;
 		private int maxPingAttempts = 20;
@@ -102,6 +102,11 @@ public class Config extends io.takamaka.code.engine.Config {
 		@Override
 		public Config build() {
 			return new Config(super.build(), tendermintPort, abciPort, maxPingAttempts, pingDelay);
+		}
+
+		@Override
+		protected Builder getThis() {
+			return this;
 		}
 	}
 }
