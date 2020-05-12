@@ -41,8 +41,7 @@ import jetbrains.exodus.env.Transaction;
  * <li> a map from each Hotmoka transaction reference to the hash of the corresponding
  *      Tendermint transaction 
  * <li> some miscellaneous control information, such as  where the jar with basic
- *      Takamaka classes is installed, or which is the reference that must be
- *      used for the next transaction 
+ *      Takamaka classes is installed or the current number of commits
  * </ul>
  * 
  * This information is added in store by put methods and accessed through get methods.
@@ -92,23 +91,9 @@ class State implements AutoCloseable {
     private final static ByteIterable TAKAMAKA_CODE = ArrayByteIterable.fromByte((byte) 0);
 
     /**
-     * The key used inside {@linkplain #info} to keep the transaction reference
-     * that installed a user jar in blockchain, if any. This is mainly used to simplify the tests.
-     */
-    private final static ByteIterable JAR = ArrayByteIterable.fromByte((byte) 1);
-
-    /**
-     * The key used inside {@linkplain #info} to keep the storage references
-     * of the initial accounts in blockchain, created in the constructor of
-     * {@linkplain io.hotmoka.tendermint.internal.TendermintBlockchainImpl}.
-     * This is an array of storage references, from the first account to the last account.
-     */
-    private final static ByteIterable ACCOUNTS = ArrayByteIterable.fromByte((byte) 2);
-
-    /**
      * The key used inside {@linkplain #info} to keep the number of commits executed over this state.
      */
-    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 3);
+    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 1);
 
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
@@ -212,28 +197,6 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Puts in state the classpath of the transaction that installed a user jar in blockchain.
-	 * This might be missing and is mainly used to simplify the tests.
-	 * 
-	 * @param takamakaCode the classpath
-	 */
-	void putJar(Classpath jar) {
-		putIntoInfo(JAR, jar);
-	}
-
-	/**
-	 * Puts in state the storage reference to a new initial account.
-	 * 
-	 * @param account the storage reference of the account to add
-	 */
-	void putAccount(StorageReference account) {
-		recordTime(() -> {
-			ByteIterable accountsAsByteArray = intoByteArrayWithoutSelector(Stream.concat(getAccounts(), Stream.of(account)).toArray(StorageReference[]::new));
-			env.executeInTransaction(txn -> info.put(txn, ACCOUNTS, accountsAsByteArray));
-		});
-	}
-
-	/**
 	 * Yields the response of the transaction having the given reference.
 	 * 
 	 * @param reference the reference of the transaction
@@ -279,27 +242,6 @@ class State implements AutoCloseable {
 	Optional<Classpath> getTakamakaCode() {
 		ByteIterable takamakaCode = getFromInfo(TAKAMAKA_CODE);
 		return takamakaCode == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, takamakaCode));
-	}
-
-	/**
-	 * Yields the classpath of a user jar installed in blockchain, if any.
-	 * This is mainly used to simplify the tests.
-	 * 
-	 * @return the classpath
-	 */
-	Optional<Classpath> getJar() {
-		ByteIterable jar = getFromInfo(JAR);
-		return jar == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, jar));
-	}
-
-	/**
-	 * Yields the initial accounts.
-	 * 
-	 * @return the accounts, as an ordered stream from the first to the last account
-	 */
-	Stream<StorageReference> getAccounts() {
-		ByteIterable accounts = getFromInfo(ACCOUNTS);
-		return accounts == null ? Stream.empty() : Stream.of(fromByteArray(StorageReference::from, StorageReference[]::new, accounts));
 	}
 
 	/**
@@ -384,15 +326,6 @@ class State implements AutoCloseable {
 	private static ArrayByteIterable intoByteArray(Marshallable[] marshallables) throws UncheckedIOException {
 		try {
 			return new ArrayByteIterable(Marshallable.toByteArray(marshallables));
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	private static ArrayByteIterable intoByteArrayWithoutSelector(StorageReference[] references) throws UncheckedIOException {
-		try {
-			return new ArrayByteIterable(Marshallable.toByteArrayWithoutSelector(references)); // more optimized than an array of normal marshallables
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

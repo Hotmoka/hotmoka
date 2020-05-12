@@ -9,7 +9,6 @@ public class MainRecycle {
 
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
 			System.out.println(blockchain.takamakaCode());
-			System.out.println(blockchain.account(0));
 		}
 	}
 }

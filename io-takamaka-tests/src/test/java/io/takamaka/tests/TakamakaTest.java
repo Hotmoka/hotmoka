@@ -33,8 +33,11 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.InitializedNode;
+import io.hotmoka.nodes.InitializedNodeWithHistory;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.Node.JarSupplier;
+import io.hotmoka.nodes.NodeWithHistory;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.verification.VerificationException;
@@ -61,31 +64,67 @@ public abstract class TakamakaTest {
 	 * Change in order to specify the default blockchain to use in tests.
 	 */
 	protected final void mkBlockchain(BigInteger... coins) throws Exception {
+		Node blockchain;
 		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-		node = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		blockchain = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
 		//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-		//node = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		//blockchain = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+		setNode(blockchain, coins);
 	}
 
 	protected final void mkRedGreenBlockchain(BigInteger... coins) throws Exception {
+		Node blockchain;
 		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-		node = io.hotmoka.tendermint.TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		blockchain = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
 		//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-		//node = io.hotmoka.memory.MemoryBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), coins);
+		//blockchain = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+		setNodeRedGreen(blockchain, coins);
 	}
 
 	protected final void mkBlockchain(String jar, BigInteger... coins) throws Exception {
+		Node blockchain;
 		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-		node = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		blockchain = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
 		//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-		//node = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		//blockchain = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+		setNode(blockchain, pathOfExample(jar), coins);
 	}
 
 	protected final void mkRedGreenBlockchain(String jar, BigInteger... coins) throws Exception {
+		Node blockchain;
 		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-		node = io.hotmoka.tendermint.TendermintBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		blockchain = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
 		//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-		//node = io.hotmoka.memory.MemoryBlockchain.ofRedGreen(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), pathOfExample(jar), coins);
+		//blockchain = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+		setNodeRedGreen(blockchain, pathOfExample(jar), coins);
+	}
+
+	private void setNode(Node node, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		if (node instanceof NodeWithHistory)
+			this.node = InitializedNodeWithHistory.of((NodeWithHistory) node, coins);
+		else
+			this.node = InitializedNode.of(node, coins);
+	}
+
+	private void setNodeRedGreen(Node node, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		if (node instanceof NodeWithHistory)
+			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) node, coins);
+		else
+			this.node = InitializedNode.ofRedGreen(node, coins);
+	}
+
+	private void setNode(Node node, Path jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		if (node instanceof NodeWithHistory)
+			this.node = InitializedNodeWithHistory.of((NodeWithHistory) node, jar, coins);
+		else
+			this.node = InitializedNode.of(node, jar, coins);
+	}
+
+	private void setNodeRedGreen(Node node, Path jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		if (node instanceof NodeWithHistory)
+			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) node, jar, coins);
+		else
+			this.node = InitializedNode.ofRedGreen(node, jar, coins);
 	}
 
 	@AfterEach
@@ -106,7 +145,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected final TransactionRequest<?> getRequestAt(TransactionReference reference) {
-		return node.getRequestAt(reference);
+		return ((NodeWithHistory) node).getRequestAt(reference);
 	}
 
 	/**

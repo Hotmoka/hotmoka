@@ -6,13 +6,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -28,7 +26,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.memory.Config;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.takamaka.code.engine.AbstractNode;
-import io.takamaka.code.engine.Initialization;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -56,21 +53,6 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	private final Map<TransactionReference, String> errors = new HashMap<>();
 
 	/**
-	 * The path of the basic Takamaka classes installed in blockchain.
-	 */
-	private final Classpath takamakaCode;
-
-	/**
-	 * The classpath of a user jar that has been installed, if any.
-	 */
-	private final Classpath jar;
-
-	/**
-	 * The accounts created during initialization.
-	 */
-	private final StorageReference[] accounts;
-
-	/**
 	 * The number of transactions added to the store. This is used to associate
 	 * each transaction to its progressive number.
 	 */
@@ -90,42 +72,18 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 * and initializes user accounts with the given initial funds.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
-	 *                         installed in blockchain and will be available later as {@linkplain #takamakaCode()}
-	 * @param jar the path of a jar that must be further installed in blockchain. This is optional and mainly
-	 *            useful to simplify the implementation of tests
-	 * @param redGreen true if red/green accounts must be created; otherwise, normal externally owned
-	 *                 accounts will be created
-	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
-	 *              they must be understood in pairs, each pair for the green/red initial funds of each account (red before green)
-	 * @throws Exception if the blockchain could not be created
+	 * @param takamakaCode the path where the base Takamaka classes can be found. They will be
+	 *                     installed in blockchain and will be available later as {@linkplain #takamakaCode()}
+	 * @throws TransactionRejectedException if the initialization transaction that stores {@code takamakaCode} fails
+	 * @throws IOException if {@code takamakaCode} cannot be accessed
 	 */
-	public MemoryBlockchainImpl(Config config, Path takamakaCodePath, Optional<Path> jar, boolean redGreen, BigInteger... funds) throws Exception {
+	public MemoryBlockchainImpl(Config config, Path takamakaCode) throws TransactionRejectedException, IOException {
 		super(config);
 
 		ensureDeleted(config.dir);  // cleans the directory where the blockchain lives
 		Files.createDirectories(config.dir);
 		this.mempool = new Mempool(this);
-
-		Initialization init = new Initialization(this, takamakaCodePath, jar.isPresent() ? jar.get() : null, redGreen, funds);
-		this.jar = init.jar;
-		this.accounts = init.accounts().toArray(StorageReference[]::new);
-		this.takamakaCode = init.takamakaCode;
-	}
-
-	@Override
-	public Classpath takamakaCode() {
-		return takamakaCode;
-	}
-
-	@Override
-	public Optional<Classpath> jar() {
-		return Optional.ofNullable(jar);
-	}
-
-	@Override
-	public StorageReference account(int i) {
-		return accounts[i];
+		completeCreation(takamakaCode);
 	}
 
 	@Override
@@ -258,6 +216,11 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 			errorMessage = errorMessage.substring(0, config.maxErrorLength) + "...";
 
 		errors.put(reference, errorMessage);
+	}
+
+	@Override
+	protected Classpath recoverTakamakaCode() {
+		throw new UnsupportedOperationException("this blockchain does not support recreation");
 	}
 
 	/**

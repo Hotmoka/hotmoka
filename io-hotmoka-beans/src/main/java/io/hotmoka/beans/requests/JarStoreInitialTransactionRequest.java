@@ -17,6 +17,12 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	final static byte SELECTOR = 1;
 
 	/**
+	 * True if and only if the result of this request, once successfully processed,
+	 * must be set as the reference of the basic Takamaka classes inside the node.
+	 */
+	public final boolean setAsTakamakaCode;
+
+	/**
 	 * The bytes of the jar to install.
 	 */
 	private final byte[] jar;
@@ -29,10 +35,13 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param setAsTakamakaCode true if and only if the result of this request, once successfully processed,
+	 *                          must be set as the reference of the basic Takamaka classes inside the node
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
-	public JarStoreInitialTransactionRequest(byte[] jar, Classpath... dependencies) {
+	public JarStoreInitialTransactionRequest(boolean setAsTakamakaCode, byte[] jar, Classpath... dependencies) {
+		this.setAsTakamakaCode = setAsTakamakaCode;
 		this.jar = jar.clone();
 		this.dependencies = dependencies.clone();
 	}
@@ -68,6 +77,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
             sb.append(String.format("%02x", b));
 
         return getClass().getSimpleName() + ":\n"
+        	+ "  setAsTakamakaCode: " + setAsTakamakaCode + "\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb.toString();
 	}
@@ -76,7 +86,9 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	public boolean equals(Object other) {
 		if (other instanceof JarStoreInitialTransactionRequest) {
 			JarStoreInitialTransactionRequest otherCast = (JarStoreInitialTransactionRequest) other;
-			return Arrays.equals(dependencies, otherCast.dependencies) && Arrays.equals(jar, otherCast.jar);
+			return setAsTakamakaCode == otherCast.setAsTakamakaCode &&
+				Arrays.equals(dependencies, otherCast.dependencies) &&
+				Arrays.equals(jar, otherCast.jar);
 		}
 		else
 			return false;
@@ -84,12 +96,13 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 
 	@Override
 	public int hashCode() {
-		return Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies);
+		return Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies) ^ Boolean.hashCode(setAsTakamakaCode);
 	}
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
+		oos.writeBoolean(setAsTakamakaCode);
 		oos.writeInt(jar.length);
 		oos.write(jar);
 		intoArray(dependencies, oos);

@@ -1,7 +1,10 @@
 package io.takamaka.code.engine;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +57,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.GasCostModel;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.NodeWithHistory;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 import io.takamaka.code.engine.internal.transactions.AbstractNodeWithCache;
@@ -63,13 +66,13 @@ import io.takamaka.code.engine.internal.transactions.AbstractNodeWithCache;
  * A generic implementation of a node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
-public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCache implements Node {
+public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCache implements NodeWithHistory {
 
 	/**
 	 * The configuration of the node.
 	 */
 	public final C config;
-	
+
 	/**
 	 * The cache for the {@linkplain #getRequestAt(TransactionReference)} method.
 	 */
@@ -102,6 +105,12 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * An executor for short background tasks.
 	 */
 	private final ExecutorService executor = Executors.newCachedThreadPool();
+
+	/**
+	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
+	 * This is copy of information in the state, for efficiency.
+	 */
+	private Classpath takamakaCode;
 
 	/**
 	 * The time spent for checking requests.
@@ -149,6 +158,38 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			throw InternalFailureException.of(e);
 		}
 	}
+
+	/**
+	 * Subclasses call this at the end of their constructors that
+	 * create a node and reinitialize it. This method will run a transaction
+	 * that installs the given jar in the node and assign it as classpath
+	 * for the basic Takamaka classes.
+	 * 
+	 * @param takamakaCode the path to the basic Takamaka classes that must be added to the node
+	 * @throws TransactionRejectedException if the jar installation transaction fails
+	 * @throws IOException if the jar cannot be accessed
+	 */
+	protected final void completeCreation(Path takamakaCode) throws TransactionRejectedException, IOException {
+		new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(true, Files.readAllBytes(takamakaCode))), true);		
+	}
+
+	/**
+	 * Subclasses call this at the end of their constructors that recreate
+	 * a node from information already existing, hence without re-initialization.
+	 * This method will reset the classpath of the basic Takamaka classes
+	 * to the classpath remembered by the node.
+	 */
+	protected final void completeRecreation() {
+		this.takamakaCode = recoverTakamakaCode();
+	}
+
+	/**
+	 * Called when a node is recreated. It must yield the classpath
+	 * where the basic Takamaka classes have been previously installed in the node.
+	 * 
+	 * @return the classpath of the basic Takamaka classes
+	 */
+	protected abstract Classpath recoverTakamakaCode();
 
 	/**
 	 * Yields the history of the given object, that is,
@@ -259,6 +300,9 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		if (response instanceof TransactionResponseWithUpdates)
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
+
+		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode)
+			takamakaCode = new Classpath(reference, true);
 	}
 
 	/**
@@ -318,12 +362,18 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 		try {
 			reference = referenceOf(request);
-			return builders.computeIfAbsent(reference, _reference -> ResponseBuilder.of(_reference, request, this));
+			return builders.computeIfAbsent(reference, _reference -> {
+				logger.info(_reference + ": checking start");
+				ResponseBuilder<?, ?> builder = ResponseBuilder.of(_reference, request, this);
+				logger.info(_reference + ": checking success");
+				return builder;
+			});
 		}
 		catch (TransactionRejectedException e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
 			expandStore(reference, request, e.getMessage());
+			logger.info(reference + ": checking failed");
 			throw e;
 		}
 		catch (Exception e) {
@@ -333,7 +383,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 				expandStore(reference, request, e.getMessage());
 			}
 
-			logger.error("unexpected exception", e);
+			logger.error(reference + ": checking failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
 		finally {
@@ -352,18 +402,21 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 		TransactionRequest<?> request = builder.getRequest();
 		TransactionReference reference = builder.getTransaction();
+		logger.info(reference + ": delivering start");
 
 		try {
 			TransactionResponse response = builder.build();
 			expandStore(reference, request, response);
+			logger.info(reference + ": delivering success");
 		}
 		catch (TransactionRejectedException e) {
 			expandStore(reference, request, e.getMessage());
+			logger.info(reference + ": delivering failed", e);
 			throw e;
 		}
 		catch (Exception e) {
 			expandStore(reference, request, e.getMessage());
-			logger.error("unexpected exception", e);
+			logger.error(reference + ": delivering failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
 		finally {
@@ -389,6 +442,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	public GasCostModel getGasCostModel() {
 		return defaultGasCostModel;
+	}
+
+	@Override
+	public final Classpath takamakaCode() {
+		return takamakaCode;
 	}
 
 	@Override
@@ -513,18 +571,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
 
-	/**
-	 * Expands the store of this node with a transaction that
-	 * installs a jar in it. It has no caller and requires no gas. The goal is to install, in the
-	 * node, some basic jars that are likely needed as dependencies by future jars.
-	 * For instance, the jar containing the basic contract classes.
-	 * This installation have special privileges, such as that of installing
-	 * packages in {@code io.takamaka.code.lang.*}.
-	 * 
-	 * @param request the transaction request
-	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
-	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	 */
+	@Override
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
@@ -534,15 +581,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		});
 	}
 
-	/**
-	 * Expands the store of this node with a transaction that creates a gamete, that is,
-	 * an externally owned contract with the given initial amount of coins.
-	 * This transaction has no caller and requires no gas.
-	 * 
-	 * @param request the transaction request
-	 * @return the reference to the freshly created gamete
-	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	 */
+	@Override
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
@@ -552,15 +591,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		});
 	}
 
-	/**
-	 * Expands the store of this node with a transaction that creates a red/green gamete, that is,
-	 * a red/green externally owned contract with the given initial amount of coins.
-	 * This transaction has no caller and requires no gas.
-	 * 
-	 * @param request the transaction request
-	 * @return the reference to the freshly created gamete
-	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-	 */
+	@Override
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);

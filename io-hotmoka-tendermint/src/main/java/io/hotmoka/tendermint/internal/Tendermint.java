@@ -75,7 +75,7 @@ class Tendermint implements AutoCloseable {
 		// wait until it is up and running
 		ping();
 
-		logger.error("The Tendermint process is up and running");
+		logger.info("The Tendermint process is up and running");
 	}
 
 	@Override
@@ -92,7 +92,7 @@ class Tendermint implements AutoCloseable {
 				br.lines().collect(Collectors.joining());
 			}
 
-		logger.error("The Tendermint process has been shut down");
+		logger.info("The Tendermint process has been shut down");
 	}
 
 	/**

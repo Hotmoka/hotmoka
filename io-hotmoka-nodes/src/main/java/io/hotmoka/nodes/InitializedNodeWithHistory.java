@@ -10,13 +10,13 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.internal.InitializedNodeImpl;
+import io.hotmoka.nodes.internal.InitializedNodeWithHistoryImpl;
 
 /**
- * A node that provides access to a previously installed jar and to
+ * A node with history that provides access to a previously installed jar and to
  * a predefined set of accounts. This is a useful interface for writing tests.
  */
-public interface InitializedNode extends Node {
+public interface InitializedNodeWithHistory extends NodeWithHistory, InitializedNode {
 
 	/**
 	 * Yields the reference, in the store of the node, where the a user jar has been installed, if any.
@@ -43,8 +43,8 @@ public interface InitializedNode extends Node {
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	static InitializedNode of(Node parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new InitializedNodeImpl(parent, jar, false, funds);
+	static InitializedNodeWithHistory of(NodeWithHistory parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		return new InitializedNodeWithHistoryImpl(parent, jar, false, funds);
 	}
 
 	/**
@@ -59,8 +59,8 @@ public interface InitializedNode extends Node {
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	static InitializedNode ofRedGreen(Node parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new InitializedNodeImpl(parent, jar, true, funds);
+	static InitializedNodeWithHistory ofRedGreen(NodeWithHistory parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		return new InitializedNodeWithHistoryImpl(parent, jar, true, funds);
 	}
 
 	/**
@@ -74,8 +74,8 @@ public interface InitializedNode extends Node {
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	static InitializedNode of(Node parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new InitializedNodeImpl(parent, null, false, funds);
+	static InitializedNodeWithHistory of(NodeWithHistory parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		return new InitializedNodeWithHistoryImpl(parent, null, false, funds);
 	}
 
 	/**
@@ -89,7 +89,7 @@ public interface InitializedNode extends Node {
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	static InitializedNode ofRedGreen(Node parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new InitializedNodeImpl(parent, null, true, funds);
+	static InitializedNodeWithHistory ofRedGreen(NodeWithHistory parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		return new InitializedNodeWithHistoryImpl(parent, null, true, funds);
 	}
 }

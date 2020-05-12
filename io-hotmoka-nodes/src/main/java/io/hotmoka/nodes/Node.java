@@ -6,13 +6,15 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -30,27 +32,9 @@ import io.hotmoka.beans.values.StorageValue;
 public interface Node extends AutoCloseable {
 
 	/**
-	 * Yields the request that generated the transaction with the given reference.
-	 * If this method succeeds and this node has some form of commit, then the transaction
-	 * has been definitely committed in this node.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the request
-	 * @throws NoSuchElementException if there is no request with that reference
+	 * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.
 	 */
-	TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException;
-
-	/**
-	 * Yields the response generated for the request for the given transaction.
-	 * If this method succeeds and this node has some form of commit, then the transaction
-	 * has been definitely committed in this node.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the response
-	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
-	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
-	 */
-	TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
+	Classpath takamakaCode();
 
 	/**
 	 * Yields the current state of the object at the given storage reference.
@@ -71,6 +55,42 @@ public interface Node extends AutoCloseable {
 	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
 	 */
 	long getNow();
+
+	/**
+	 * Expands the store of this node with a transaction that
+	 * installs a jar in it. It has no caller and requires no gas. The goal is to install, in the
+	 * node, some basic jars that are likely needed as dependencies by future jars.
+	 * For instance, the jar containing the basic contract classes.
+	 * This installation have special privileges, such as that of installing
+	 * packages in {@code io.takamaka.code.lang.*}.
+	 * 
+	 * @param request the transaction request
+	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 */
+	TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException;
+
+	/**
+	 * Expands the store of this node with a transaction that creates a gamete, that is,
+	 * an externally owned contract with the given initial amount of coins.
+	 * This transaction has no caller and requires no gas.
+	 * 
+	 * @param request the transaction request
+	 * @return the reference to the freshly created gamete
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 */
+	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException;
+
+	/**
+	 * Expands the store of this node with a transaction that creates a red/green gamete, that is,
+	 * a red/green externally owned contract with the given initial amount of coins.
+	 * This transaction has no caller and requires no gas.
+	 * 
+	 * @param request the transaction request
+	 * @return the reference to the freshly created gamete
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 */
+	StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Expands the store of this node with a transaction that installs a jar in it.
