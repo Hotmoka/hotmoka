@@ -12,9 +12,15 @@ public class Config {
 
 	/**
 	 * The directory where the node's data will be persisted.
-	 * Defaults to {@code chain} in the current directory.
+	 * It defaults to {@code chain} in the current directory.
 	 */
 	public final Path dir;
+
+	/**
+	 * True if and only if {@linkplain #dir} must be deleted when
+	 * the node starts. It defaults to true.
+	 */
+	public final boolean delete;
 
 	/**
 	 * The maximal number of polling attempts, in milliseconds,
@@ -65,12 +71,13 @@ public class Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	private Config(Path dir, int maxPollingAttempts,
+	private Config(Path dir, boolean delete, int maxPollingAttempts,
 			       int pollingDelay, int requestCacheSize,
 			       int responseCacheSize, int builderCacheSize,
 			       int historyCacheSize, int maxErrorLength) {
 
 		this.dir = dir;
+		this.delete = delete;
 		this.maxPollingAttempts = maxPollingAttempts;
 		this.pollingDelay = pollingDelay;
 		this.requestCacheSize = requestCacheSize;
@@ -85,6 +92,7 @@ public class Config {
 	 */
 	protected Config(Config parent) {
 		this.dir = parent.dir;
+		this.delete = parent.delete;
 		this.maxPollingAttempts = parent.maxPollingAttempts;
 		this.pollingDelay = parent.pollingDelay;
 		this.requestCacheSize = parent.requestCacheSize;
@@ -99,6 +107,7 @@ public class Config {
 	 */
 	public static class Builder {
 		private Path dir = Paths.get("chain");
+		private boolean delete = true;
 		private int maxPollingAttempts = 100;
 		private int pollingDelay = 10;
 		private int requestCacheSize = 1_000;
@@ -116,6 +125,19 @@ public class Config {
 		 */
 		public Builder setDir(Path dir) {
 			this.dir = dir;
+			return this;
+		}
+
+		/**
+		 * Sets the flag that determines if the directory where
+		 * the node stores its data must be deleted at start-up.
+		 * It defaults to true.
+		 * 
+		 * @param delete the new value of the flag
+		 * @return this builder
+		 */
+		public Builder setDelete(boolean delete) {
+			this.delete = delete;
 			return this;
 		}
 
@@ -213,7 +235,7 @@ public class Config {
 		 * @return the configuration
 		 */
 		public Config build() {
-			return new Config(dir, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, builderCacheSize, historyCacheSize, maxErrorLength);
+			return new Config(dir, delete, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, builderCacheSize, historyCacheSize, maxErrorLength);
 		}
 	}
 }

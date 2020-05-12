@@ -1,5 +1,6 @@
 package io.takamaka.code.engine;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -7,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -152,6 +154,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			this.builders = new LRUCache<>(config.builderCacheSize);
 			this.historyCache = new LRUCache<>(config.historyCacheSize);
 			this.digest = MessageDigest.getInstance("SHA-256");
+
+			if (config.delete) {
+				deleteRecursively(config.dir);  // cleans the directory where the node's data live
+				Files.createDirectories(config.dir);
+			}
 		}
 		catch (Exception e) {
 			logger.error("failed to create the node", e);
@@ -160,36 +167,61 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Subclasses call this at the end of their constructors that
-	 * create a node and reinitialize it. This method will run a transaction
-	 * that installs the given jar in the node and assign it as classpath
-	 * for the basic Takamaka classes.
+	 * Deletes the given directory, recursively.
 	 * 
-	 * @param takamakaCode the path to the basic Takamaka classes that must be added to the node
-	 * @throws TransactionRejectedException if the jar installation transaction fails
-	 * @throws IOException if the jar cannot be accessed
+	 * @param dir the directory to delete
+	 * @throws IOException if the directory or some of its subdirectories cannot be deleted
 	 */
-	protected final void completeCreation(Path takamakaCode) throws TransactionRejectedException, IOException {
-		new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(true, Files.readAllBytes(takamakaCode))), true);		
+	private static void deleteRecursively(Path dir) throws IOException {
+		if (Files.exists(dir))
+			Files.walk(dir)
+				.sorted(Comparator.reverseOrder())
+				.map(Path::toFile)
+				.forEach(File::delete);
+	}
+
+	public interface TakamakCodeSupplier {
+		Classpath get() throws TransactionRejectedException, IOException;
 	}
 
 	/**
-	 * Subclasses call this at the end of their constructors that recreate
-	 * a node from information already existing, hence without re-initialization.
-	 * This method will reset the classpath of the basic Takamaka classes
-	 * to the classpath remembered by the node.
+	 * Subclasses must call into this at the end of their constructors,
+	 * providing a supplier of the value that will be later returned
+	 * by {@linkplain #takamakaCode()}.
+	 * 
+	 * @param supplier the supplier of the value to set for {@linkplain #takamakCode()}
+	 * @throws Exception if that exception is thrown by the supplier
 	 */
-	protected final void completeRecreation() {
-		this.takamakaCode = recoverTakamakaCode();
+	protected final void completeCreation(Callable<Classpath> supplier) throws Exception {
+		takamakaCode = supplier.call();
+		addShutdownHook();
 	}
 
 	/**
-	 * Called when a node is recreated. It must yield the classpath
-	 * where the basic Takamaka classes have been previously installed in the node.
-	 * 
-	 * @return the classpath of the basic Takamaka classes
+	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM terminates.
 	 */
-	protected abstract Classpath recoverTakamakaCode();
+	private void addShutdownHook() {
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			try {
+				close();
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}));
+	}
+
+	/**
+	 * Installs the given jar in the store of the node, with an initial jar store transaction.
+	 * 
+	 * @param jar the jar to install
+	 * @return the classpath where it has been installed
+	 * @throws TransactionRejectedException if the initial jar store transaction throws this
+	 * @throws IOException if {@code jar} cannot be accessed
+	 */
+	protected final Classpath installJar(Path jar) throws TransactionRejectedException, IOException {
+		return new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(true, Files.readAllBytes(jar))), true);
+	}
 
 	/**
 	 * Yields the history of the given object, that is,

@@ -57,16 +57,14 @@ class Tendermint implements AutoCloseable {
 	 * the {@code tendermint} command can be executed from the command path.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param reset true if and only if the blockchain must be initialized from scratch; in that case,
-	 *              the directory of the blockchain gets deleted
 	 * @throws IOException if an I/O error occurred
 	 * @throws TimeoutException if Tendermint did not spawn up in the expected time
 	 * @throws InterruptedException if the current thread was interrupted while waiting for the Tendermint process to run
 	 */
-	Tendermint(TendermintBlockchainImpl node, boolean reset) throws IOException, InterruptedException, TimeoutException {
+	Tendermint(TendermintBlockchainImpl node) throws IOException, InterruptedException, TimeoutException {
 		this.node = node;
 
-		if (reset)
+		if (node.config.delete)
 			if (run("tendermint init --home " + node.config.dir + "/blocks").waitFor() != 0)
 				throw new IOException("Tendermint initialization failed");
 

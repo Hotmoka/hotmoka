@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -75,15 +74,30 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 * @param takamakaCode the path where the base Takamaka classes can be found. They will be
 	 *                     installed in blockchain and will be available later as {@linkplain #takamakaCode()}
 	 * @throws TransactionRejectedException if the initialization transaction that stores {@code takamakaCode} fails
-	 * @throws IOException if {@code takamakaCode} cannot be accessed
 	 */
-	public MemoryBlockchainImpl(Config config, Path takamakaCode) throws TransactionRejectedException, IOException {
+	public MemoryBlockchainImpl(Config config, Path takamakaCode) throws TransactionRejectedException {
 		super(config);
 
-		ensureDeleted(config.dir);  // cleans the directory where the blockchain lives
-		Files.createDirectories(config.dir);
-		this.mempool = new Mempool(this);
-		completeCreation(takamakaCode);
+		try {
+			this.mempool = new Mempool(this);
+			completeCreation(() -> installJar(takamakaCode));
+		}
+		catch (Exception e) {
+			logger.error("failed creating memory blockchain", e);
+
+			try {
+				close();
+			}
+			catch (Exception e1) {
+				logger.error("cannot close the blockchain", e1);
+				throw InternalFailureException.of(e1);
+			}
+
+			if (e instanceof TransactionRejectedException)
+				throw (TransactionRejectedException) e;
+			else
+				throw InternalFailureException.of(e);
+		}
 	}
 
 	@Override
@@ -216,11 +230,6 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 			errorMessage = errorMessage.substring(0, config.maxErrorLength) + "...";
 
 		errors.put(reference, errorMessage);
-	}
-
-	@Override
-	protected Classpath recoverTakamakaCode() {
-		throw new UnsupportedOperationException("this blockchain does not support recreation");
 	}
 
 	/**

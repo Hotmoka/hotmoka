@@ -1,7 +1,7 @@
 package io.hotmoka.tendermint;
 
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.nodes.NodeWithHistory;
@@ -20,11 +20,10 @@ public interface TendermintBlockchain extends NodeWithHistory {
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCode the path where the base Takamaka classes can be found. They will be
 	 *                         installed in blockchain and will be available later as {@linkplain #takamakaCode()}
-	 * @throws TransactionRejectedException if the initialization transaction that stores {@code takamakaCode} fails
-	 * @throws IOException if {@code takamakaCode} cannot be accessed
+	 * @throws TransactionRejectedException if some initialization transaction failed
 	 */
-	static TendermintBlockchain of(Config config, Path takamakaCode) throws TransactionRejectedException, IOException {
-		return new TendermintBlockchainImpl(config, takamakaCode);
+	static TendermintBlockchain of(Config config, Path takamakaCode) throws TransactionRejectedException {
+		return new TendermintBlockchainImpl(config, Optional.of(takamakaCode));
 	}
 
 	/**
@@ -35,8 +34,9 @@ public interface TendermintBlockchain extends NodeWithHistory {
 	 * its configuration directory.
 	 * 
 	 * @param config the configuration of the blockchain
+	 * @throws TransactionRejectedException if some initialization transaction failed
 	 */
-	static TendermintBlockchain of(Config config) {
-		return new TendermintBlockchainImpl(config);
+	static TendermintBlockchain of(Config config) throws TransactionRejectedException {
+		return new TendermintBlockchainImpl(config, Optional.empty());
 	}
 }

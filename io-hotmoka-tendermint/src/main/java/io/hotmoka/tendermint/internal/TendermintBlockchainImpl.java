@@ -1,10 +1,6 @@
 package io.hotmoka.tendermint.internal;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -15,7 +11,6 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -62,76 +57,45 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
 
 	/**
-	 * Builds a Tendermint blockchain and installs the basic jar in it.
+	 * Builds a Tendermint blockchain and installs a jar in it.
 	 * This constructor spawns the Tendermint process on localhost and connects it to an ABCI application
 	 * for handling its transactions. Blockchain data gets deleted if it already existed.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param takamakaCode the path where the base Takamaka classes can be found. They will be
-	 *                     installed in blockchain and will be available later as {@linkplain #takamakaCode()}
-	 * @throws TransactionRejectedException if the initialization transaction that stores {@code takamakaCode} fails
-	 * @throws IOException if {@code takamakaCode} cannot be accessed
+	 * @param takamakaCode the path where the base Takamaka classes can be found. If present, it will be
+	 *                     installed in blockchain and will be available later as {@linkplain #takamakaCode()}.
+	 *                     If absent, the previous jar installed to that purpose will be used, if the
+	 *                     directory of the blockchain has not been deleted
+	 * @throws TransactionRejectedException if some initialization transaction failed
 	 */
-	public TendermintBlockchainImpl(Config config, Path takamakaCode) throws TransactionRejectedException, IOException {
-		super(config);
-
-		try {
-			deleteDir(config.dir);
-			this.state = new State(config.dir + "/state");
-			this.abci = ServerBuilder.forPort(config.abciPort).addService(new ABCI(this)).build();
-			this.abci.start();
-			this.tendermint = new Tendermint(this, true);
-			addShutdownHook();
-			completeCreation(takamakaCode);
-		}
-		catch (Exception e) {
-			logger.error("failed creating Tendermint blockchain", e);
-			deleteDir(config.dir); // do not leave zombies behind
-
-			try {
-				close();
-			}
-			catch (Exception e1) {
-				logger.error("cannot close the blockchain", e1);
-				throw InternalFailureException.of(e1);
-			}
-
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	/**
-	 * Builds a Tendermint blockchain and initializes it with the information already
-	 * existing at its configuration directory. This constructor can be used to
-	 * recover a blockchain already created in the past, with all its information.
-	 * A Tendermint blockchain must have been already successfully created at
-	 * its configuration directory.
-	 * 
-	 * @param config the configuration of the blockchain
-	 */
-	public TendermintBlockchainImpl(Config config) {
+	public TendermintBlockchainImpl(Config config, Optional<Path> takamakaCode) throws TransactionRejectedException {
 		super(config);
 
 		try {
 			this.state = new State(config.dir + "/state");
 			this.abci = ServerBuilder.forPort(config.abciPort).addService(new ABCI(this)).build();
 			this.abci.start();
-			this.tendermint = new Tendermint(this, false);
-			addShutdownHook();
-			completeRecreation();
+			this.tendermint = new Tendermint(this);
+
+			if (takamakaCode.isPresent())
+				completeCreation(() -> installJar(takamakaCode.get()));
+			else
+				completeCreation(() -> state.getTakamakaCode().orElse(null));
 		}
 		catch (Exception e) {
-			logger.error("failed creating Tendermint blockchain", e);
+			logger.error("failed creating the Tendermint blockchain", e);
 
 			try {
 				close();
 			}
 			catch (Exception e1) {
 				logger.error("cannot close the blockchain", e1);
-				throw InternalFailureException.of(e1);
 			}
 
-			throw InternalFailureException.of(e);
+			if (e instanceof TransactionRejectedException)
+				throw (TransactionRejectedException) e;
+			else
+				throw InternalFailureException.of(e);
 		}
 	}
 
@@ -158,11 +122,6 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	@Override
 	public long getNow() {
 		return now;
-	}
-
-	@Override
-	protected Classpath recoverTakamakaCode() {
-		return state.getTakamakaCode().orElseThrow(() -> new InternalFailureException("missing previous Takamaka basic classes"));
 	}
 
 	@Override
@@ -275,33 +234,5 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	 */
 	void commitBlock() {
 		state.commitTransaction();
-	}
-
-	/**
-	 * Deletes the given directory, recursively.
-	 * 
-	 * @param dir the directory to delete
-	 * @throws IOException if the directory or some of its subdirectories cannot be deleted
-	 */
-	private static void deleteDir(Path dir) throws IOException {
-		if (Files.exists(dir))
-			Files.walk(dir)
-				.sorted(Comparator.reverseOrder())
-				.map(Path::toFile)
-				.forEach(File::delete);
-	}
-
-	/**
-	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM terminates.
-	 */
-	private void addShutdownHook() {
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			try {
-				close();
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}));
 	}
 }
