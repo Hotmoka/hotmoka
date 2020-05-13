@@ -70,6 +70,7 @@ class Tendermint implements AutoCloseable {
 
 		// spawns a process that remains in background
 		this.process = run("tendermint node --home " + node.config.dir + "/blocks --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort);
+
 		// wait until it is up and running
 		ping();
 
@@ -87,7 +88,7 @@ class Tendermint implements AutoCloseable {
 		if (System.getProperty("os.name").startsWith("Windows"))
 			// this seems important under Windows
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-				br.lines().collect(Collectors.joining());
+				logger.info(br.lines().collect(Collectors.joining()));
 			}
 
 		logger.info("The Tendermint process has been shut down");
