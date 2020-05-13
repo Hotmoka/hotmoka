@@ -180,10 +180,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 				.forEach(File::delete);
 	}
 
-	public interface TakamakCodeSupplier {
-		Classpath get() throws TransactionRejectedException, IOException;
-	}
-
 	/**
 	 * Subclasses must call into this at the end of their constructors,
 	 * providing a supplier of the value that will be later returned

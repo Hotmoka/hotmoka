@@ -1,4 +1,7 @@
-package io.hotmoka.tendermint;
+package io.hotmoka.tendermint.runs;
+
+import io.hotmoka.tendermint.Config;
+import io.hotmoka.tendermint.TendermintBlockchain;
 
 /**
  * Reopens an already created blockchain.

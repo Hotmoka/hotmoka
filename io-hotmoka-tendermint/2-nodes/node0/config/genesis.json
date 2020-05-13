@@ -1,0 +1,40 @@
+{
+  "genesis_time": "2020-05-13T11:11:29.789089962Z",
+  "chain_id": "chain-NmbFha",
+  "consensus_params": {
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "-1",
+      "time_iota_ms": "1000"
+    },
+    "evidence": {
+      "max_age": "100000"
+    },
+    "validator": {
+      "pub_key_types": [
+        "ed25519"
+      ]
+    }
+  },
+  "validators": [
+    {
+      "address": "5C94AA7D3D11459BBE3880FA72FB3BEF7E8DABCC",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "mc6H5lrsjNpFBf1k+PQTdSt1FoTRx0nhYZkXBRe/itc="
+      },
+      "power": "1",
+      "name": "node0"
+    },
+    {
+      "address": "D53030A7BC499C62097F4C86E600D7E20BA9E012",
+      "pub_key": {
+        "type": "tendermint/PubKeyEd25519",
+        "value": "m5E+Il9sJgflwD9RCUHc2vIi7joyp57yB/bPF0pRzIg="
+      },
+      "power": "1",
+      "name": "node1"
+    }
+  ],
+  "app_hash": ""
+}

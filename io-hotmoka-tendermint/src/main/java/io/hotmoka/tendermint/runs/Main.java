@@ -1,9 +1,11 @@
-package io.hotmoka.tendermint;
+package io.hotmoka.tendermint.runs;
 
 import java.math.BigInteger;
 import java.nio.file.Paths;
 
 import io.hotmoka.nodes.InitializedNode;
+import io.hotmoka.tendermint.Config;
+import io.hotmoka.tendermint.TendermintBlockchain;
 
 /**
  * Creates a brand new blockchain.
