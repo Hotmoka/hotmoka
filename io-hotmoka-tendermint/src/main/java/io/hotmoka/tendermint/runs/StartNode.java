@@ -11,6 +11,7 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.nodes.InitializedNode;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -57,10 +58,13 @@ public class StartNode {
 		else {
 			try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
 				while (true) {
-					System.out.println(node.takamakaCode());
-					String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
-							Base64.getEncoder().encodeToString(hexStringToByteArray(node.takamakaCode().transaction.getHash())) + "\", \"prove\": false }}";
-					System.out.println(jsonTendermintRequest);
+					Classpath tak = node.takamakaCode();
+					System.out.println(tak);
+					if (tak != null) {
+						String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
+							Base64.getEncoder().encodeToString(hexStringToByteArray(tak.transaction.getHash())) + "\", \"prove\": false }}";
+						System.out.println(jsonTendermintRequest);
+					}
 					Thread.sleep(1000);
 				}
 			}
