@@ -7,11 +7,9 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.nodes.InitializedNode;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -58,32 +56,11 @@ public class StartNode {
 		else {
 			try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
 				while (true) {
-					Classpath tak = node.takamakaCode();
-					System.out.println(tak);
-					if (tak != null) {
-						String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
-							Base64.getEncoder().encodeToString(hexStringToByteArray(tak.transaction.getHash())) + "\", \"prove\": false }}";
-						System.out.println(jsonTendermintRequest);
-					}
+					System.out.println(node.takamakaCode());
 					Thread.sleep(1000);
 				}
 			}
 		}
-	}
-
-	/**
-	 * Transforms a hexadecimal string into a byte array.
-	 * 
-	 * @param s the string
-	 * @return the byte array
-	 */
-	private static byte[] hexStringToByteArray(String s) {
-	    int len = s.length();
-	    byte[] data = new byte[len / 2];
-	    for (int i = 0; i < len; i += 2)
-	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i+1), 16));
-	
-	    return data;
 	}
 
 	/**
