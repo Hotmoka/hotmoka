@@ -329,8 +329,10 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		if (response instanceof TransactionResponseWithUpdates)
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
 
-		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode)
+		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode) {
+			System.out.println(reference + ": setting as takamakaCode");
 			takamakaCode = new Classpath(reference, true);
+		}
 	}
 
 	/**
