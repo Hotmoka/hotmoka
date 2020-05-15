@@ -613,6 +613,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
+			System.out.println("creating gamete " + reference);
 			createSemaphore(reference);
 			postTransaction(request);
 			return ((GameteCreationTransactionResponse) waitForResponse(reference)).getOutcome();
@@ -673,6 +674,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
+			System.out.println("postConstructorCall " + reference);
 			createSemaphore(reference);
 			postTransaction(request);
 			return codeSupplierFor(() -> ((ConstructorCallTransactionResponse) waitForResponse(reference)).getOutcome());
