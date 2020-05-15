@@ -106,7 +106,7 @@ public class StartNode {
 					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(node, node.account(0), _10_000, ZERO, node.takamakaCode(), GET_BALANCE, node.account(i))).value);
 
 				// no money got lost in translation
-				System.out.println(sum + " should be " + ACCOUNTS * 10_000);
+				System.out.println(sum + " should be " + ACCOUNTS * 200_000);
 
 				while (true) {
 					System.out.println(node.takamakaCode());
