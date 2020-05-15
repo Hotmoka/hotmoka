@@ -602,6 +602,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
+			System.out.println("installing basic jar " + reference);
 			createSemaphore(reference);
 			postTransaction(request);
 			return ((JarStoreInitialTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference);
