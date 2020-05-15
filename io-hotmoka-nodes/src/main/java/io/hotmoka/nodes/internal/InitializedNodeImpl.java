@@ -94,6 +94,8 @@ public class InitializedNodeImpl implements InitializedNode {
 		this.parent = parent;
 
 		StorageReference gamete;
+		Classpath takamakaCode = takamakaCode();
+
 		if (redGreen) {
 			// we compute the total amount of red/green funds needed to create the accounts
 			BigInteger red = IntStream.iterate(0, i -> i < funds.length, i -> i + 2)
@@ -102,13 +104,13 @@ public class InitializedNodeImpl implements InitializedNode {
 			BigInteger green = IntStream.iterate(1, i -> i < funds.length, i -> i + 2)
 				.mapToObj(i -> funds[i]).reduce(ZERO, BigInteger::add);
 
-			gamete = addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode(), green, red));
+			gamete = addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode, green, red));
 		}
 		else {
 			// we compute the total amount of funds needed to create the accounts
 			BigInteger sum = Stream.of(funds).reduce(ZERO, BigInteger::add);
 			logger.info("creating gamete");
-			gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
+			gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode, sum));
 			logger.info("created gamete");
 		}
 
@@ -116,7 +118,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		JarSupplier jarSupplier;
 
 		if (jar != null) {
-			jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), ZERO, takamakaCode(), Files.readAllBytes(jar), takamakaCode()));
+			jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
 			nonce = nonce.add(ONE);
 		}
 		else
@@ -130,12 +132,12 @@ public class InitializedNodeImpl implements InitializedNode {
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE))
 				// the constructor provides the green coins
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, nonce, gas, ZERO, takamakaCode(), TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
+					(gamete, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
 		else
 			for (BigInteger fund: funds) {
 				logger.info("creating account");
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, nonce, gas, ZERO, takamakaCode(), TEOA_CONSTRUCTOR, new BigIntegerValue(fund))));
+					(gamete, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(fund))));
 
 				nonce = nonce.add(ONE);
 			}
@@ -148,7 +150,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 			if (redGreen) {
 				// then we add the red coins
-				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, ZERO, takamakaCode(),
+				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, ZERO, takamakaCode,
 					RECEIVE_RED, this.accounts[i], new BigIntegerValue(funds[i * 2])));
 
 				nonce = nonce.add(ONE);

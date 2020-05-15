@@ -64,7 +64,7 @@ public class Config {
 	/**
 	 * The maximal length of the error message kept in the store of the node.
 	 * Beyond this threshold, the message gets truncated.
-	 * It defaults to 200 characters.
+	 * It defaults to 300 characters.
 	 */
 	public final int maxErrorLength;
 
@@ -114,7 +114,7 @@ public class Config {
 		private int responseCacheSize = 1_000;
 		private int builderCacheSize = 10_000;
 		private int historyCacheSize = 10_000;
-		private int maxErrorLength = 200;
+		private int maxErrorLength = 300;
 
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
@@ -224,7 +224,7 @@ public class Config {
 		/**
 		 * Sets the maximal length of the error message kept in the store of the node.
 		 * Beyond this threshold, the message gets truncated.
-		 * It defaults to 200 characters.
+		 * It defaults to 300 characters.
 		 * 
 		 * @param maxErrorLength the maximal error length
 		 * @return this builder
