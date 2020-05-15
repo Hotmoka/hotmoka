@@ -80,7 +80,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 
 		try {
 			this.mempool = new Mempool(this);
-			completeCreation(() -> installJar(takamakaCode));
+			installInitialJar(takamakaCode);
 		}
 		catch (Exception e) {
 			logger.error("failed creating memory blockchain", e);

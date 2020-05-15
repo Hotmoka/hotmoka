@@ -59,7 +59,7 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	/**
 	 * Builds a Tendermint blockchain and installs a jar in it.
 	 * This constructor spawns the Tendermint process on localhost and connects it to an ABCI application
-	 * for handling its transactions. Blockchain data gets deleted if it already existed.
+	 * for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param takamakaCode the path where the base Takamaka classes can be found. If present, it will be
@@ -78,9 +78,9 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 			this.tendermint = new Tendermint(this);
 
 			if (takamakaCode.isPresent())
-				completeCreation(() -> installJar(takamakaCode.get()));
+				installInitialJar(takamakaCode.get());
 			else
-				completeCreation(() -> state.getTakamakaCode().orElse(null));
+				setTakamakaCodeIfUndefined(state.getTakamakaCode().orElse(null));
 		}
 		catch (Exception e) {
 			logger.error("failed creating the Tendermint blockchain", e);

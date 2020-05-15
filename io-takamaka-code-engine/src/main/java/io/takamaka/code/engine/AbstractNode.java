@@ -23,6 +23,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -113,17 +114,17 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
 	 * This is copy of information in the state, for efficiency.
 	 */
-	private volatile Classpath takamakaCode;
+	private final AtomicReference<Classpath> takamakaCode = new AtomicReference<>();
 
 	/**
 	 * The time spent for checking requests.
 	 */
-	private AtomicLong checkTime = new AtomicLong();
+	private final AtomicLong checkTime = new AtomicLong();
 
 	/**
 	 * The time spent for delivering transactions.
 	 */
-	private AtomicLong deliverTime = new AtomicLong();
+	private final AtomicLong deliverTime = new AtomicLong();
 
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
@@ -160,6 +161,8 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
 				Files.createDirectories(config.dir);
 			}
+
+			addShutdownHook();
 		}
 		catch (Exception e) {
 			logger.error("failed to create the node", e);
@@ -182,19 +185,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Subclasses must call into this at the end of their constructors,
-	 * providing a supplier of the value that will be later returned
-	 * by {@linkplain #takamakaCode()}.
-	 * 
-	 * @param supplier the supplier of the value to set for {@linkplain #takamakCode()}
-	 * @throws Exception if that exception is thrown by the supplier
-	 */
-	protected final void completeCreation(Callable<Classpath> supplier) throws Exception {
-		takamakaCode = supplier.call();
-		addShutdownHook();
-	}
-
-	/**
 	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM terminates.
 	 */
 	private void addShutdownHook() {
@@ -212,12 +202,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * Installs the given jar in the store of the node, with an initial jar store transaction.
 	 * 
 	 * @param jar the jar to install
-	 * @return the classpath where it has been installed
 	 * @throws TransactionRejectedException if the initial jar store transaction throws this
 	 * @throws IOException if {@code jar} cannot be accessed
 	 */
-	protected final Classpath installJar(Path jar) throws TransactionRejectedException, IOException {
-		return new Classpath(addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(true, Files.readAllBytes(jar))), true);
+	protected final void installInitialJar(Path jar) throws TransactionRejectedException, IOException {
+		addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(true, Files.readAllBytes(jar)));
 	}
 
 	/**
@@ -330,10 +319,18 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		if (response instanceof TransactionResponseWithUpdates)
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
 
-		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode) {
-			System.out.println(reference + ": setting as takamakaCode");
-			takamakaCode = new Classpath(reference, true);
-		}
+		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode)
+			takamakaCode.set(new Classpath(reference, true));
+	}
+
+	/**
+	 * Sets the classpath were the basic Takamaka classes are stored,
+	 * but only if it was not previously set.
+	 * 
+	 * @param classpath the value to set
+	 */
+	protected final void setTakamakaCodeIfUndefined(Classpath classpath) {
+		takamakaCode.compareAndSet(null, classpath);
 	}
 
 	/**
@@ -476,7 +473,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 	@Override
 	public final Classpath takamakaCode() {
-		return takamakaCode;
+		return takamakaCode.get();
 	}
 
 	@Override
