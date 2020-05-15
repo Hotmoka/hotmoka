@@ -50,12 +50,6 @@ public class Config {
 	public final int responseCacheSize;
 
 	/**
-	 * The size of the cache for the response builders of the node.
-	 * It defaults to 10,000.
-	 */
-	public final int builderCacheSize;
-
-	/**
 	 * The size of the cache for the object histories of the node.
 	 * It defaults to 10,000.
 	 */
@@ -73,8 +67,7 @@ public class Config {
 	 */
 	private Config(Path dir, boolean delete, int maxPollingAttempts,
 			       int pollingDelay, int requestCacheSize,
-			       int responseCacheSize, int builderCacheSize,
-			       int historyCacheSize, int maxErrorLength) {
+			       int responseCacheSize, int historyCacheSize, int maxErrorLength) {
 
 		this.dir = dir;
 		this.delete = delete;
@@ -82,7 +75,6 @@ public class Config {
 		this.pollingDelay = pollingDelay;
 		this.requestCacheSize = requestCacheSize;
 		this.responseCacheSize = responseCacheSize;
-		this.builderCacheSize = builderCacheSize;
 		this.historyCacheSize = historyCacheSize;
 		this.maxErrorLength = maxErrorLength;
 	}
@@ -97,7 +89,6 @@ public class Config {
 		this.pollingDelay = parent.pollingDelay;
 		this.requestCacheSize = parent.requestCacheSize;
 		this.responseCacheSize = parent.responseCacheSize;
-		this.builderCacheSize = parent.builderCacheSize;
 		this.historyCacheSize = parent.historyCacheSize;
 		this.maxErrorLength = parent.maxErrorLength;
 	}
@@ -112,7 +103,6 @@ public class Config {
 		private int pollingDelay = 10;
 		private int requestCacheSize = 1_000;
 		private int responseCacheSize = 1_000;
-		private int builderCacheSize = 10_000;
 		private int historyCacheSize = 10_000;
 		private int maxErrorLength = 300;
 
@@ -198,18 +188,6 @@ public class Config {
 		}
 
 		/**
-		 * Sets size of the cache for the response builders of the node.
-		 * It defaults to 10,000.
-		 * 
-		 * @param builderCacheSize the cache size
-		 * @return this builder
-		 */
-		public T setBuilderCacheSize(int builderCacheSize) {
-			this.builderCacheSize = builderCacheSize;
-			return getThis();
-		}
-
-		/**
 		 * Sets size of the cache for the object histories of the node.
 		 * It defaults to 10,000.
 		 * 
@@ -240,7 +218,7 @@ public class Config {
 		 * @return the configuration
 		 */
 		public Config build() {
-			return new Config(dir, delete, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, builderCacheSize, historyCacheSize, maxErrorLength);
+			return new Config(dir, delete, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, historyCacheSize, maxErrorLength);
 		}
 	}
 }
