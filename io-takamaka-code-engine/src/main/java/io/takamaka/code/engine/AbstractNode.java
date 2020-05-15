@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -112,17 +113,17 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
 	 * This is copy of information in the state, for efficiency.
 	 */
-	private Classpath takamakaCode;
+	private volatile Classpath takamakaCode;
 
 	/**
 	 * The time spent for checking requests.
 	 */
-	private long checkTime;
+	private AtomicLong checkTime = new AtomicLong();
 
 	/**
 	 * The time spent for delivering transactions.
 	 */
-	private long deliverTime;
+	private AtomicLong deliverTime = new AtomicLong();
 
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
@@ -417,7 +418,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			throw InternalFailureException.of(e);
 		}
 		finally {
-			checkTime += (System.currentTimeMillis() - start);
+			checkTime.addAndGet(System.currentTimeMillis() - start);
 		}
 	}
 
@@ -451,8 +452,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		}
 		finally {
 			signalSemaphore(reference);
-
-			deliverTime += (System.currentTimeMillis() - start);
+			deliverTime.addAndGet(System.currentTimeMillis() - start);
 		}
 	}
 
