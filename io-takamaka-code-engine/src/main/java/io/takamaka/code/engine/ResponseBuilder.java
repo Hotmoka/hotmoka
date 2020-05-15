@@ -57,13 +57,6 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	Request getRequest();
 
 	/**
-	 * Yield the reference to the transaction for the request.
-	 * 
-	 * @return the reference to the transaction
-	 */
-	TransactionReference getTransaction();
-
-	/**
 	 * Yields the builder of a response for a request of a transaction
 	 * that installs a jar in the given node.
 	 * This transaction can only occur during initialization of the node. It has no caller

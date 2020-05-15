@@ -107,7 +107,7 @@ class Mempool {
 				TransactionRequest<?> current = checkedMempool.take();
 
 				try {
-					node.deliverTransaction(node.checkTransaction(current));
+					node.deliverTransaction(current);
 				}
 	            catch (Throwable t) {
 	            	logger.error("Failed delivering transaction", t);

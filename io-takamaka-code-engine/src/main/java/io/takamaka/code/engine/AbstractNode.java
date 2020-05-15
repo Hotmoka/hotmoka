@@ -88,13 +88,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache;
 
 	/**
-	 * A cache where {@linkplain #checkTransaction(TransactionRequest)} stores the builders and
-	 * from where {@linkplain #deliverTransaction(TransactionRequest)} can retrieve them
-	 * (instead of recreating them, when not found).
-	 */
-	private final LRUCache<TransactionReference, ResponseBuilder<?,?>> builders;
-
-	/**
 	 * A cache for {@linkplain #getHistory(StorageReference)}.
 	 */
 	private final LRUCache<StorageReference, TransactionReference[]> historyCache;
@@ -153,7 +146,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			this.config = config;
 			this.getRequestAtCache = new LRUCache<>(config.requestCacheSize);
 			this.getResponseAtCache = new LRUCache<>(config.responseCacheSize);
-			this.builders = new LRUCache<>(config.builderCacheSize);
 			this.historyCache = new LRUCache<>(config.historyCacheSize);
 			this.digest = MessageDigest.getInstance("SHA-256");
 
@@ -380,22 +372,17 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * Checks that the given transaction request is valid.
 	 * 
 	 * @param request the request
-	 * @return the builder of the response
 	 * @throws TransactionRejectedException if the request is not valid
 	 */
-	public final ResponseBuilder<?,?> checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		TransactionReference reference = null;
+		TransactionReference reference = referenceOf(request);
 
 		try {
-			reference = referenceOf(request);
-			return builders.computeIfAbsent(reference, _reference -> {
-				logger.info(_reference + ": checking start");
-				ResponseBuilder<?, ?> builder = ResponseBuilder.of(_reference, request, this);
-				logger.info(_reference + ": checking success");
-				return builder;
-			});
+			logger.info(reference + ": checking start");
+			request.check();
+			logger.info(reference + ": checking success");
 		}
 		catch (TransactionRejectedException e) {
 			// we wake up who was waiting for the outcome of the request
@@ -406,11 +393,8 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		}
 		catch (Exception e) {
 			// we wake up who was waiting for the outcome of the request
-			if (reference != null) {
-				signalSemaphore(reference);
-				expandStore(reference, request, e.getMessage());
-			}
-
+			signalSemaphore(reference);
+			expandStore(reference, request, e.getMessage());
 			logger.error(reference + ": checking failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
@@ -420,20 +404,19 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Uses the given response builder to build a response and adds it to the store of the node.
+	 * Builds a response for the given request and adds it to the store of the node.
 	 * 
-	 * @param builder the builder
+	 * @param request the request
 	 * @throws TransactionRejectedException if the response cannot be built
 	 */
-	public final void deliverTransaction(ResponseBuilder<?,?> builder) throws TransactionRejectedException {
+	public final void deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		TransactionRequest<?> request = builder.getRequest();
-		TransactionReference reference = builder.getTransaction();
+		TransactionReference reference = referenceOf(request);
 		logger.info(reference + ": delivering start");
 
 		try {
-			TransactionResponse response = builder.build();
+			TransactionResponse response = ResponseBuilder.of(reference, request, this).build();
 			expandStore(reference, request, response);
 			logger.info(reference + ": delivering success");
 		}
@@ -602,7 +585,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
-			logger.info("installing basic jar " + reference);
 			createSemaphore(reference);
 			postTransaction(request);
 			return ((JarStoreInitialTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference);
@@ -613,7 +595,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
-			logger.info("creating gamete " + reference);
 			createSemaphore(reference);
 			postTransaction(request);
 			return ((GameteCreationTransactionResponse) waitForResponse(reference)).getOutcome();

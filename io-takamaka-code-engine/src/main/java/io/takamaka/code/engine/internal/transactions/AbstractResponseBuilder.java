@@ -86,11 +86,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		return request;
 	}
 
-	@Override
-	public TransactionReference getTransaction() {
-		return reference;
-	}
-
 	/**
 	 * Creates the class loader for computing the response.
 	 * 

@@ -3,9 +3,6 @@ package io.hotmoka.tendermint.internal;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 
@@ -48,7 +45,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	 */
 	private final TendermintBlockchainImpl node;
 
-	private final static Logger logger = LoggerFactory.getLogger(ABCI.class);
+	//private final static Logger logger = LoggerFactory.getLogger(ABCI.class);
 
     /**
      * Builds the Tendermint ABCI interface that executes Takamaka transactions.
@@ -129,7 +126,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
         TransactionRequest<?> request = null;
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(tx.toByteArray()))) {
         	request = TransactionRequest.from(ois);
-        	node.deliverTransaction(node.checkTransaction(request));
+        	node.deliverTransaction(request);
         	responseBuilder.setCode(0);
         }
         catch (Throwable t) {
