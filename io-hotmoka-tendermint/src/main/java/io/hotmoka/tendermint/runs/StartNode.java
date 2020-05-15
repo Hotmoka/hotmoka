@@ -1,5 +1,7 @@
 package io.hotmoka.tendermint.runs;
 
+import static java.math.BigInteger.ZERO;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -8,13 +10,40 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.TransferTransactionRequest;
+import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.InitializedNode;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
+import io.takamaka.code.constants.Constants;
 
 public class StartNode {
+	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
+	private static final int TRANSFERS = 1500;
+	private static final int ACCOUNTS = 4;
+	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
+
+	/**
+	 * The nonce of each externally owned account used in the test.
+	 */
+	private final static Map<StorageReference, BigInteger> nonces = new HashMap<>();
 
 	public static void main(String[] args) throws Exception {
 		Config config = new Config.Builder().setDelete(false).build();
@@ -45,7 +74,39 @@ public class StartNode {
 
 		if (takamakaCode != null) {
 			try (TendermintBlockchain blockchain = TendermintBlockchain.of(config, takamakaCode);
-				 InitializedNode node = InitializedNode.of(blockchain, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000))) {
+				 InitializedNode node = InitializedNode.of(blockchain, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000))) {
+
+				Random random = new Random();
+				long start = System.currentTimeMillis();
+
+				for (int i = 0; i < TRANSFERS; i++) {
+					StorageReference from = node.account(random.nextInt(ACCOUNTS));
+
+					StorageReference to;
+					do {
+						to = node.account(random.nextInt(ACCOUNTS));
+					}
+					while (to == from); // we want a different account than from
+
+					int amount = 1 + random.nextInt(10);
+					//System.out.println(amount + ": " + from + " -> " + to);
+					if (i < TRANSFERS - 1)
+						postTransferTransaction(node, from, ZERO, node.takamakaCode(), to, amount);
+					else
+						// the last transaction requires to wait until everything is committed
+						addTransferTransaction(node, from, ZERO, node.takamakaCode(), to, amount);
+				}
+
+				long time = System.currentTimeMillis() - start;
+				System.out.println(TRANSFERS + " money transfer transactions in " + time + "ms [" + (TRANSFERS * 1000L / time) + " tx/s]");
+
+				// we compute the sum of the balances of the accounts
+				BigInteger sum = ZERO;
+				for (int i = 0; i < ACCOUNTS; i++)
+					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(node, node.account(0), _10_000, ZERO, node.takamakaCode(), GET_BALANCE, node.account(i))).value);
+
+				// no money got lost in translation
+				System.out.println(sum + " should be " + ACCOUNTS * 10_000);
 
 				while (true) {
 					System.out.println(node.takamakaCode());
@@ -60,6 +121,55 @@ public class StartNode {
 					Thread.sleep(1000);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Takes care of computing the next nonce.
+	 */
+	private static CodeSupplier<StorageValue> postTransferTransaction(Node node, StorageReference caller, BigInteger gasPrice, Classpath classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException {
+		BigInteger nonce = getNonceOf(node, caller, classpath);
+		return node.postInstanceMethodCallTransaction(new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch));
+	}
+
+	/**
+	 * Takes care of computing the next nonce.
+	 */
+	private static void addTransferTransaction(Node node, StorageReference caller, BigInteger gasPrice, Classpath classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		BigInteger nonce = getNonceOf(node, caller, classpath);
+		node.addInstanceMethodCallTransaction(new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch));
+	}
+
+	/**
+	 * Takes care of computing the next nonce.
+	 */
+	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+		return node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, receiver, actuals));
+	}
+
+	/**
+	 * Gets the nonce of the given account. It calls the {@code Account.nonce()} method.
+	 * 
+	 * @param account the account
+	 * @param classpath the path where the execution must be performed
+	 * @return the nonce
+	 * @throws TransactionException if the nonce cannot be found
+	 */
+	private static BigInteger getNonceOf(Node node, StorageReference account, Classpath classpath) throws TransactionRejectedException {
+		try {
+			BigInteger nonce = nonces.get(account);
+			if (nonce != null)
+				nonce = nonce.add(BigInteger.ONE);
+			else
+				// we ask the account: 10,000 units of gas should be enough to run the method
+				nonce = ((BigIntegerValue) node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(account, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+
+			nonces.put(account, nonce);
+			return nonce;
+		}
+		catch (Exception e) {
+			throw new TransactionRejectedException("cannot compute the nonce of " + account);
 		}
 	}
 
