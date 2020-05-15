@@ -401,7 +401,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
 			expandStore(reference, request, e.getMessage());
-			logger.info(reference + ": checking failed");
+			logger.info(reference + ": checking failed", e);
 			throw e;
 		}
 		catch (Exception e) {
