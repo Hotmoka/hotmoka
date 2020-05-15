@@ -147,6 +147,5 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * @throws TransactionRejectedException if this request is not syntactically valid
 	 */
 	public void check() throws TransactionRejectedException {
-		// TODO Auto-generated method stub
 	}
 }
