@@ -53,8 +53,6 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 			try {
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 
-				formalsAndActualsMustMatch();
-
 				Method methodJVM = getMethod();
 				boolean isView = hasAnnotation(methodJVM, Constants.VIEW_NAME);
 				validateCallee(methodJVM, isView);

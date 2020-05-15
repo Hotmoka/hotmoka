@@ -63,8 +63,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				this.deserializedReceiver = deserializer.deserialize(request.receiver);
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 
-				formalsAndActualsMustMatch();
-
 				Object[] deserializedActuals;
 				Method methodJVM;
 

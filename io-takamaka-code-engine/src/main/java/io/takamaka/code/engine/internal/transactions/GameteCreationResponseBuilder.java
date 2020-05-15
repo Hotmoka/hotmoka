@@ -24,14 +24,6 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	 */
 	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
 		super(reference, request, node);
-
-		try {
-			if (request.initialAmount.signum() < 0)
-				throw new TransactionRejectedException("the gamete must be initialized with a non-negative amount of coins");
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
 	}
 
 	@Override

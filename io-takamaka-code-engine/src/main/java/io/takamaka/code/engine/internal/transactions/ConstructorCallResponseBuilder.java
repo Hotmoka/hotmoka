@@ -65,7 +65,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 			try {
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 		
-				formalsAndActualsMustMatch();
 				Object[] deserializedActuals;
 				Constructor<?> constructorJVM;
 		

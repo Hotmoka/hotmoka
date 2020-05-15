@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
@@ -67,5 +68,13 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	public void into(ObjectOutputStream oos) throws IOException {
 		super.into(oos);
 		intoArray(actuals, oos);
+	}
+
+	@Override
+	public void check() throws TransactionRejectedException {
+		if (getStaticTarget().formals().count() != actuals.length)
+			throw new TransactionRejectedException("argument count mismatch between formals and actuals");
+
+		super.check();
 	}
 }

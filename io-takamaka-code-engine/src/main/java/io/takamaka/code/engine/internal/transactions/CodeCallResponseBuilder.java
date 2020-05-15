@@ -128,16 +128,6 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		protected abstract Stream<Object> getDeserializedActuals();
 
 		/**
-		 * Checks that the number of formal and actual arguments is the same.
-		 * 
-		 * @throws IllegalArgumentException if the numbers do not match
-		 */
-		protected final void formalsAndActualsMustMatch() {
-			if (request.getStaticTarget().formals().count() != request.actuals().count())
-				throw new IllegalArgumentException("argument count mismatch between formals and actuals");
-		}
-
-		/**
 		 * Checks that the caller of the transaction is a red/green externally owned account or subclass.
 		 * 
 		 * @throws IllegalArgumentException if the object is not a red/green externally owned account

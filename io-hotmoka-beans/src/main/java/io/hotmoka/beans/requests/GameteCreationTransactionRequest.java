@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
@@ -66,5 +67,13 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 		oos.writeByte(SELECTOR);
 		classpath.into(oos);
 		marshal(initialAmount, oos);
+	}
+
+	@Override
+	public void check() throws TransactionRejectedException {
+		if (initialAmount.signum() < 0)
+			throw new TransactionRejectedException("the gamete must be initialized with a non-negative amount of coins");
+
+		super.check();
 	}
 }

@@ -655,7 +655,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
-			logger.info("postConstructorCall " + reference);
 			createSemaphore(reference);
 			postTransaction(request);
 			return codeSupplierFor(() -> ((ConstructorCallTransactionResponse) waitForResponse(reference)).getOutcome());
