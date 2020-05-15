@@ -47,10 +47,10 @@ public class StartNode {
 			try (TendermintBlockchain blockchain = TendermintBlockchain.of(config, takamakaCode);
 				 InitializedNode node = InitializedNode.of(blockchain, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000))) {
 
-				System.out.println(node.takamakaCode());
-				System.out.println(node.account(0));
-
-				Thread.sleep(100_000);
+				while (true) {
+					System.out.println(node.takamakaCode());
+					Thread.sleep(1000);
+				}
 			}
 		}
 		else {
