@@ -14,6 +14,9 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -72,6 +75,8 @@ public class InitializedNodeImpl implements InitializedNode {
 	 */
 	private final static ConstructorSignature TRGEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER);
 
+	private final static Logger logger = LoggerFactory.getLogger(InitializedNodeImpl.class);
+
 	/**
 	 * Creates a decorated node by storing into it a jar and creating initial accounts.
 	 * 
@@ -102,7 +107,9 @@ public class InitializedNodeImpl implements InitializedNode {
 		else {
 			// we compute the total amount of funds needed to create the accounts
 			BigInteger sum = Stream.of(funds).reduce(ZERO, BigInteger::add);
+			logger.info("creating gamete");
 			gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode(), sum));
+			logger.info("created gamete");
 		}
 
 		BigInteger nonce = ZERO;
@@ -126,6 +133,7 @@ public class InitializedNodeImpl implements InitializedNode {
 					(gamete, nonce, gas, ZERO, takamakaCode(), TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
 		else
 			for (BigInteger fund: funds) {
+				logger.info("creating account");
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
 					(gamete, nonce, gas, ZERO, takamakaCode(), TEOA_CONSTRUCTOR, new BigIntegerValue(fund))));
 
@@ -135,6 +143,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		int i = 0;
 		this.accounts = new StorageReference[redGreen ? funds.length / 2 : funds.length];
 		for (CodeSupplier<StorageReference> account: accounts) {
+			logger.info("waiting for account " + i);
 			this.accounts[i] = account.get();
 
 			if (redGreen) {
@@ -149,6 +158,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		}
 
 		this.jar = jarSupplier != null ? new Classpath(jarSupplier.get(), true) : null;
+		logger.info("done initializing");
 	}
 
 	@Override

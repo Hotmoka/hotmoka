@@ -602,7 +602,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
-			System.out.println("installing basic jar " + reference);
+			logger.info("installing basic jar " + reference);
 			createSemaphore(reference);
 			postTransaction(request);
 			return ((JarStoreInitialTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference);
@@ -613,7 +613,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
-			System.out.println("creating gamete " + reference);
+			logger.info("creating gamete " + reference);
 			createSemaphore(reference);
 			postTransaction(request);
 			return ((GameteCreationTransactionResponse) waitForResponse(reference)).getOutcome();
@@ -674,7 +674,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = referenceOf(request);
-			System.out.println("postConstructorCall " + reference);
+			logger.info("postConstructorCall " + reference);
 			createSemaphore(reference);
 			postTransaction(request);
 			return codeSupplierFor(() -> ((ConstructorCallTransactionResponse) waitForResponse(reference)).getOutcome());
