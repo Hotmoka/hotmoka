@@ -22,7 +22,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * A test for basic storage and contract Takamaka classes.
+ * A test for {@linkplain #AbstractNode#getRequestAt(io.hotmoka.beans.references.TransactionReference)}}.
  */
 class GetRequest extends TakamakaTest {
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000_000);

@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -64,6 +65,11 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 */
 	private final Map<TransactionReference, Integer> progressive = new HashMap<>();
 
+	/**
+	 * True if and only if this node is initialized.
+	 */
+	private AtomicBoolean isInitialized = new AtomicBoolean();
+
 	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
 
 	/**
@@ -109,6 +115,16 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	public void close() throws Exception {
 		mempool.stop();
 		super.close();
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return isInitialized.get();
+	}
+
+	@Override
+	protected void initialize() {
+		isInitialized.set(true);
 	}
 
 	@Override

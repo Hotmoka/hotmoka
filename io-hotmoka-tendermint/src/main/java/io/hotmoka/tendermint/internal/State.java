@@ -95,6 +95,11 @@ class State implements AutoCloseable {
      */
     private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 1);
 
+    /**
+     * The key used inside {@linkplain #info} to keep note that the node is initialized.
+     */
+    private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 2);
+
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
     /**
@@ -197,6 +202,13 @@ class State implements AutoCloseable {
 	}
 
 	/**
+	 * Takes note that the node is initialized.
+	 */
+	void initialize() {
+		recordTime(() -> env.executeInTransaction(txn -> info.put(txn, INITIALIZED, INITIALIZED)));
+	}
+
+	/**
 	 * Yields the response of the transaction having the given reference.
 	 * 
 	 * @param reference the reference of the transaction
@@ -242,6 +254,10 @@ class State implements AutoCloseable {
 	Optional<Classpath> getTakamakaCode() {
 		ByteIterable takamakaCode = getFromInfo(TAKAMAKA_CODE);
 		return takamakaCode == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, takamakaCode));
+	}
+
+	boolean isInitialized() {
+		return getFromInfo(INITIALIZED) != null;
 	}
 
 	/**

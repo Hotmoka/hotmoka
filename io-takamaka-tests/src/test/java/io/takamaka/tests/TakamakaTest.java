@@ -21,6 +21,7 @@ import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -146,6 +147,10 @@ public abstract class TakamakaTest {
 
 	protected final TransactionRequest<?> getRequestAt(TransactionReference reference) {
 		return ((NodeWithHistory) node).getRequestAt(reference);
+	}
+
+	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, Classpath... dependencies) throws TransactionException, TransactionRejectedException {
+		return node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(false, jar, dependencies));
 	}
 
 	/**

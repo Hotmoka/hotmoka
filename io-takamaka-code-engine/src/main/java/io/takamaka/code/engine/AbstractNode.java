@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -43,6 +44,7 @@ import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -135,6 +137,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * The default hashing algorithm.
 	 */
 	private final MessageDigest digest;
+
+	/**
+	 * A cache to avoid repeated calls to {@linkplain #initialize()}.
+	 */
+	private final AtomicBoolean isInitialized = new AtomicBoolean();
 
 	/**
 	 * Builds the node.
@@ -313,6 +320,20 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode)
 			takamakaCode.set(new Classpath(reference, true));
+
+		if (request instanceof NonInitialTransactionRequest && !isInitialized.getAndSet(true))
+			initialize();
+	}
+
+	/**
+	 * Expands the store of this node with a transaction that could not be delivered
+	 * since an error occurred.
+	 * 
+	 * @param reference the reference of the request
+	 * @param request the request
+	 * @param errorMessage an description of why delivering failed
+	 */
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
 	}
 
 	/**
@@ -326,15 +347,17 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
-	 * Expands the store of this node with a transaction that could not be delivered
-	 * since an error occurred.
+	 * Determines if this node is initialized, that is, if at least one
+	 * non-initial transaction succeeded.
 	 * 
-	 * @param reference the reference of the request
-	 * @param request the request
-	 * @param errorMessage an description of why delivering failed
+	 * @return true if and only if that condition holds
 	 */
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-	}
+	public abstract boolean isInitialized();
+
+	/**
+	 * Mark this node as initialized. This happens when a non-initial transaction succeeds.
+	 */
+	protected abstract void initialize();
 
 	@Override
 	public final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
