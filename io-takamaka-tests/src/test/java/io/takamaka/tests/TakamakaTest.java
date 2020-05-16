@@ -10,6 +10,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +74,11 @@ public abstract class TakamakaTest {
 	private final Map<StorageReference, BigInteger> nonces = new HashMap<>();
 
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
+
+	@BeforeEach
+	void logTestName(TestInfo testInfo) {
+		logger.info("**** Starting test " + testInfo.getDisplayName());
+	}
 
 	public interface TestBody {
 		public void run() throws Exception;
