@@ -34,7 +34,7 @@ class AbstractFail extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("abstractfail.jar", _1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
+		setNode("abstractfail.jar", _1_000_000_000, BigInteger.valueOf(100_000L), BigInteger.valueOf(1_000_000L));
 	}
 
 	@Test @DisplayName("new AbstractFail() throws InstantiationException")

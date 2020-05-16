@@ -37,7 +37,7 @@ class SimplePyramidWithBalance extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("ponzi.jar", _200_000, _200_000, _200_000);
+		setNode("ponzi.jar", _200_000, _200_000, _200_000);
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")

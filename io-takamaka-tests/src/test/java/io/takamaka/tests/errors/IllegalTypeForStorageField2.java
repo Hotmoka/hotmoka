@@ -24,7 +24,7 @@ class IllegalTypeForStorageField2 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("illegaltypeforstoragefield2.jar", _1_000_000_000);
+		setNode("illegaltypeforstoragefield2.jar", _1_000_000_000);
 	}
 
 	@Test @DisplayName("store mutable enum into Object")

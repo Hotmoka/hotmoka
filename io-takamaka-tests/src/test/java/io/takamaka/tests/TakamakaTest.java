@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.AfterEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +22,7 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.requests.TransferTransactionRequest;
@@ -46,7 +46,23 @@ import io.takamaka.code.verification.VerificationException;
 public abstract class TakamakaTest {
 
 	/**
-	 * The node under test. This is recreated before each test.
+	 * The node that gets created before starting running the tests.
+	 * This node will hence be created only once and
+	 * each test will decorate it into {@linkplain #node},
+	 * with the addition of the jar and accounts that the test needs.
+	 */
+	private final static Node initialNode;
+
+	/**
+	 * The account that can be used to pay for the initialization of
+	 * {@linkplain #initialNode} before each test runs.
+	 */
+	private final static StorageReference gamete;
+
+	/**
+	 * The node under test. This is a view of {@linkplain #initialNode},
+	 * with the addition of a jar to test and of some initial accounts,
+	 * recreated before each test.
 	 */
 	private InitializedNode node;
 
@@ -61,76 +77,48 @@ public abstract class TakamakaTest {
 		public void run() throws Exception;
 	}
 
-	/**
-	 * Change in order to specify the default blockchain to use in tests.
-	 */
-	protected final void mkBlockchain(BigInteger... coins) throws Exception {
-		Node blockchain;
-		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-		blockchain = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
-		//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-		//blockchain = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
-		setNode(blockchain, coins);
+	static {
+		try {
+			io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
+			initialNode = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+			//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+			//initialNode = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+
+			// the gamete has both red and green coins, enough for all tests
+			gamete = initialNode.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(initialNode.takamakaCode(), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new ExceptionInInitializerError(e);
+		}
 	}
 
-	protected final void mkRedGreenBlockchain(BigInteger... coins) throws Exception {
-		Node blockchain;
-		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-		blockchain = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
-		//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-		//blockchain = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
-		setNodeRedGreen(blockchain, coins);
-	}
-
-	protected final void mkBlockchain(String jar, BigInteger... coins) throws Exception {
-		Node blockchain;
-		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-		blockchain = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
-		//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-		//blockchain = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
-		setNode(blockchain, pathOfExample(jar), coins);
-	}
-
-	protected final void mkRedGreenBlockchain(String jar, BigInteger... coins) throws Exception {
-		Node blockchain;
-		io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-		blockchain = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
-		//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-		//blockchain = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
-		setNodeRedGreen(blockchain, pathOfExample(jar), coins);
-	}
-
-	private void setNode(Node node, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		if (node instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.of((NodeWithHistory) node, coins);
+	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		if (initialNode instanceof NodeWithHistory)
+			this.node = InitializedNodeWithHistory.of((NodeWithHistory) initialNode, gamete, coins);
 		else
-			this.node = InitializedNode.of(node, coins);
+			this.node = InitializedNode.of(initialNode, gamete, coins);
 	}
 
-	private void setNodeRedGreen(Node node, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		if (node instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) node, coins);
+	protected final void setNodeRedGreen(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		if (initialNode instanceof NodeWithHistory)
+			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) initialNode, gamete, coins);
 		else
-			this.node = InitializedNode.ofRedGreen(node, coins);
+			this.node = InitializedNode.ofRedGreen(initialNode, gamete, coins);
 	}
 
-	private void setNode(Node node, Path jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		if (node instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.of((NodeWithHistory) node, jar, coins);
+	protected final void setNode(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		if (initialNode instanceof NodeWithHistory)
+			this.node = InitializedNodeWithHistory.of((NodeWithHistory) initialNode, gamete, pathOfExample(jar), coins);
 		else
-			this.node = InitializedNode.of(node, jar, coins);
+			this.node = InitializedNode.of(initialNode, gamete, pathOfExample(jar), coins);
 	}
 
-	private void setNodeRedGreen(Node node, Path jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		if (node instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) node, jar, coins);
+	protected final void setNodeRedGreen(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		if (initialNode instanceof NodeWithHistory)
+			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) initialNode, gamete, pathOfExample(jar), coins);
 		else
-			this.node = InitializedNode.ofRedGreen(node, jar, coins);
-	}
-
-	@AfterEach
-	protected void afterEach() throws Exception {
-		node.close();
+			this.node = InitializedNode.ofRedGreen(initialNode, gamete, pathOfExample(jar), coins);
 	}
 
 	protected final Classpath takamakaCode() {

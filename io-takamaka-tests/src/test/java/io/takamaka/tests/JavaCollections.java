@@ -30,7 +30,7 @@ class JavaCollections extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("javacollections.jar", ALL_FUNDS);
+		setNode("javacollections.jar", ALL_FUNDS);
 	}
 
 	@Test @DisplayName("HashMapTests.testToString1() == [how, are, hello, you, ?]")

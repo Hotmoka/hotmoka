@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -27,6 +26,7 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.Update;
@@ -35,6 +35,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.nodes.InitializedNode;
 import io.hotmoka.nodes.Node;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.
@@ -76,6 +77,9 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * Creates a decorated node by storing into it a jar and creating initial accounts.
 	 * 
 	 * @param parent the node that gets decorated
+	 * @param payer the payer of the initialization transactions; if red/green accounts are being created,
+	 *              then this must be a red/green externally owned account; otherwise, it can also be
+	 *              a normal externally owned account
 	 * @param jar the path of a jar that must be further installed in blockchain. This might be {@code null}
 	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
@@ -85,33 +89,17 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	public InitializedNodeImpl(Node parent, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+	public InitializedNodeImpl(Node parent, StorageReference payer, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		this.parent = parent;
 
-		StorageReference gamete;
 		Classpath takamakaCode = takamakaCode();
+		
+		BigInteger nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(payer, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
 
-		if (redGreen) {
-			// we compute the total amount of red/green funds needed to create the accounts
-			BigInteger red = IntStream.iterate(0, i -> i < funds.length, i -> i + 2)
-				.mapToObj(i -> funds[i]).reduce(ZERO, BigInteger::add);
-
-			BigInteger green = IntStream.iterate(1, i -> i < funds.length, i -> i + 2)
-				.mapToObj(i -> funds[i]).reduce(ZERO, BigInteger::add);
-
-			gamete = addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode, green, red));
-		}
-		else {
-			// we compute the total amount of funds needed to create the accounts
-			BigInteger sum = Stream.of(funds).reduce(ZERO, BigInteger::add);
-			gamete = addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCode, sum));
-		}
-
-		BigInteger nonce = ZERO;
 		JarSupplier jarSupplier;
-
 		if (jar != null) {
-			jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
+			jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(payer, nonce, BigInteger.valueOf(1_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
 			nonce = nonce.add(ONE);
 		}
 		else
@@ -125,11 +113,11 @@ public class InitializedNodeImpl implements InitializedNode {
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE))
 				// the constructor provides the green coins
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
+					(payer, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
 		else
 			for (BigInteger fund: funds) {
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(fund))));
+					(payer, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(fund))));
 
 				nonce = nonce.add(ONE);
 			}
@@ -141,7 +129,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 			if (redGreen) {
 				// then we add the red coins
-				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, ZERO, takamakaCode,
+				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, nonce, gas, ZERO, takamakaCode,
 					RECEIVE_RED, this.accounts[i], new BigIntegerValue(funds[i * 2])));
 
 				nonce = nonce.add(ONE);

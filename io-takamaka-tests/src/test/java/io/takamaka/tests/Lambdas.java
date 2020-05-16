@@ -44,7 +44,7 @@ class Lambdas extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("lambdas.jar", ALL_FUNDS);
+		setNode("lambdas.jar", ALL_FUNDS);
 		eoa = account(0);
 	}
 

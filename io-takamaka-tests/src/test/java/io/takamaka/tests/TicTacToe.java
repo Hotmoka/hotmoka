@@ -55,7 +55,7 @@ class TicTacToe extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("tictactoe.jar", _1_000_000_000, BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
+		setNode("tictactoe.jar", _1_000_000_000, BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L), BigInteger.valueOf(100_000_000L));
 		creator = account(1);
 		player1 = account(2);
 		player2 = account(3);

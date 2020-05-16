@@ -24,7 +24,7 @@ class Initialization extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain(ALL_FUNDS);
+		setNode(ALL_FUNDS);
 	}
 
 	@Test @DisplayName("an initial transaction fails in an initialized node")

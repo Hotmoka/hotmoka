@@ -30,7 +30,7 @@ class RedGreenDistributor extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkRedGreenBlockchain(
+		setNodeRedGreen(
 			"redgreendistributor.jar",
 			BigInteger.valueOf(1_100_000L), BigInteger.valueOf(1_100_000L), // red/green of first account
 			BigInteger.ZERO, BigInteger.valueOf(100_000L), // red/green of second account

@@ -42,7 +42,7 @@ class Storage extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("storage.jar", ALL_FUNDS);
+		setNode("storage.jar", ALL_FUNDS);
 		eoa = account(0);
 	}
 

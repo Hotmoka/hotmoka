@@ -26,7 +26,7 @@ class View extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("view.jar", _1_000_000_000);
+		setNode("view.jar", _1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar then call to View.no1() fails")

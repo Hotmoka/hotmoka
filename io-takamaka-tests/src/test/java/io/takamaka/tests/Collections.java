@@ -47,7 +47,7 @@ class Collections extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("collections.jar", ALL_FUNDS);
+		setNode("collections.jar", ALL_FUNDS);
 		eoa = account(0);
 	}
 

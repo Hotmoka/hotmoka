@@ -11,6 +11,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.InitializedNodeWithHistory;
 import io.hotmoka.nodes.NodeWithHistory;
 
@@ -24,6 +25,9 @@ public class InitializedNodeWithHistoryImpl extends InitializedNodeImpl implemen
 	 * Creates a decorated node by storing into it a jar and creating initial accounts.
 	 * 
 	 * @param parent the node that gets decorated
+	 * @param payer the payer of the initialization transactions; if red/green accounts are being created,
+	 *              then this must be a red/green externally owned account; otherwise, it can also be
+	 *              a normal externally owned account
 	 * @param jar the path of a jar that must be further installed in blockchain. This might be {@code null}
 	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
@@ -33,8 +37,8 @@ public class InitializedNodeWithHistoryImpl extends InitializedNodeImpl implemen
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	public InitializedNodeWithHistoryImpl(NodeWithHistory parent, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		super(parent, jar, redGreen, funds);
+	public InitializedNodeWithHistoryImpl(NodeWithHistory parent, StorageReference payer, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		super(parent, payer, jar, redGreen, funds);
 	}
 
 	@Override

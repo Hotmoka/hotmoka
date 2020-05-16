@@ -20,7 +20,7 @@ class IllegalCallToNonWhiteListedMethod10 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("illegalcalltononwhitelistedmethod10.jar", _1_000_000_000);
+		setNode("illegalcalltononwhitelistedmethod10.jar", _1_000_000_000);
 	}
 
 	@Test @DisplayName("C.foo()")

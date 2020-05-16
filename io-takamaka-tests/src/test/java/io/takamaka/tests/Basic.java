@@ -69,7 +69,7 @@ class Basic extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("basicdependency.jar", ALL_FUNDS, BigInteger.ZERO);
+		setNode("basicdependency.jar", ALL_FUNDS, BigInteger.ZERO);
 		master = account(0);
 		// true relevant below
 		classpath = new Classpath(addJarStoreTransaction(master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), new Classpath(jar().transaction, true)), true);

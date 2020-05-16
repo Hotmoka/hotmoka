@@ -24,7 +24,7 @@ class LegalCall3 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("legalcall3.jar", _1_000_000_000);
+		setNode("legalcall3.jar", _1_000_000_000);
 	}
 
 	@Test @DisplayName("C.test() == false")

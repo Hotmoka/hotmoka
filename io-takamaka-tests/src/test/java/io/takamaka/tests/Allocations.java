@@ -24,7 +24,7 @@ class Allocations extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("allocations.jar", _1_000_000_000, BigInteger.valueOf(100_000L));
+		setNode("allocations.jar", _1_000_000_000, BigInteger.valueOf(100_000L));
 	}
 
 	@Test @DisplayName("new Allocations()")

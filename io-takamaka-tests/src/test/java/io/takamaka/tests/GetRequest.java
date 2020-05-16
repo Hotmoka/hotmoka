@@ -31,7 +31,7 @@ class GetRequest extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain("abstractfail.jar", ALL_FUNDS);
+		setNode("abstractfail.jar", ALL_FUNDS);
 	}
 
 	@Test @DisplayName("getRequestAt works")

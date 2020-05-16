@@ -62,7 +62,7 @@ class StorageMap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain(ALL_FUNDS);
+		setNode(ALL_FUNDS);
 		classpath = takamakaCode();
 		gamete = account(0);
 	}

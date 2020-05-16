@@ -34,7 +34,7 @@ class Bombing extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// ACCOUNTS accounts
-		mkBlockchain(_10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000);
+		setNode(_10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000, _10_000);
 	}
 
 	@Test @DisplayName(TRANSFERS + " random transfers between accounts")

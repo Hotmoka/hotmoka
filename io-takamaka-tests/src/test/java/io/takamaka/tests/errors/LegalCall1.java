@@ -18,7 +18,7 @@ class LegalCall1 extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain(_1_000_000_000);
+		setNode(_1_000_000_000);
 	}
 
 	@Test @DisplayName("install jar")

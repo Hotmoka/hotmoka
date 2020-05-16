@@ -59,7 +59,7 @@ class ClassSwap extends TakamakaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
-		mkBlockchain(ALL_FUNDS);
+		setNode(ALL_FUNDS);
 		account = account(0);
 
 		JarSupplier c13 = postJarStoreTransaction

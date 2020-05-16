@@ -42,7 +42,7 @@ class WTSC2020 extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		// create a RAM simulation of a blockchain with 4 initial accounts
-		mkBlockchain("wtsc2020.jar", _20_000_000, _20_000_000, _20_000_000, _20_000_000);
+		setNode("wtsc2020.jar", _20_000_000, _20_000_000, _20_000_000, _20_000_000);
 	}
 
 	@Test @DisplayName("two investors do not get their investment back yet")

@@ -97,7 +97,7 @@ class BlindAuction extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		digest = MessageDigest.getInstance("SHA-256");
-		mkBlockchain("auction.jar", _10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
+		setNode("auction.jar", _10_000_000_000, _10_000_000_000, _10_000_000_000, _10_000_000_000);
 	}
 
 	@Test @DisplayName("three players put bids before end of bidding time")
