@@ -77,7 +77,7 @@ public abstract class TakamakaTest {
 
 	@BeforeEach
 	void logTestName(TestInfo testInfo) {
-		logger.info("**** Starting test " + testInfo.getDisplayName());
+		logger.info("**** Starting test " + testInfo.getTestClass().get().getSimpleName() + "." + testInfo.getTestMethod().get().getName() + ": " + testInfo.getDisplayName());
 	}
 
 	public interface TestBody {
