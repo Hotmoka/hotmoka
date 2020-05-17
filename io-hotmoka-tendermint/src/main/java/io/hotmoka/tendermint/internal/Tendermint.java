@@ -190,11 +190,11 @@ class Tendermint implements AutoCloseable {
 	 * @return the process into which the command is running
 	 * @throws IOException if the command cannot be run
 	 */
-	private Process run(String command, Optional<String> redirection) throws IOException {
+	private static Process run(String command, Optional<String> redirection) throws IOException {
 		ProcessBuilder processBuilder = new ProcessBuilder();
 
 		if (System.getProperty("os.name").startsWith("Windows")) // Windows is different
-			command = "comd.exe /c " + command;
+			command = "cmd.exe /c " + command;
 
 		processBuilder.command(command.split(" "));
 
