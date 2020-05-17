@@ -2,6 +2,7 @@ package io.hotmoka.tendermint.internal;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -64,12 +65,14 @@ class Tendermint implements AutoCloseable {
 	Tendermint(TendermintBlockchainImpl node) throws IOException, InterruptedException, TimeoutException {
 		this.node = node;
 
+		String tendermintHome = node.config.dir + "/blocks";
+
 		if (node.config.delete)
-			if (run("tendermint init --home " + node.config.dir + "/blocks").waitFor() != 0)
+			if (run("tendermint init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
 				throw new IOException("Tendermint initialization failed");
 
 		// spawns a process that remains in background
-		this.process = run("tendermint node --home " + node.config.dir + "/blocks --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort);
+		this.process = run("tendermint node --home " + tendermintHome + " --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of(tendermintHome + "/tendermint.log"));
 
 		// wait until it is up and running
 		ping();
@@ -183,14 +186,22 @@ class Tendermint implements AutoCloseable {
 	 * Runs the given command in the operating system shell.
 	 * 
 	 * @param command the command to run, as if in a shell
+	 * @param redirection the file into which the standard output of the command must be redirected
 	 * @return the process into which the command is running
 	 * @throws IOException if the command cannot be run
 	 */
-	private static Process run(String command) throws IOException {
+	private Process run(String command, Optional<String> redirection) throws IOException {
+		ProcessBuilder processBuilder = new ProcessBuilder();
+
 		if (System.getProperty("os.name").startsWith("Windows")) // Windows is different
-			command = "cmd.exe /c " + command;
-	
-		return Runtime.getRuntime().exec(command);
+			command = "comd.exe /c " + command;
+
+		processBuilder.command(command.split(" "));
+
+        if (redirection.isPresent())
+        	processBuilder.redirectOutput(new File(redirection.get()));
+
+        return processBuilder.start();
 	}
 
 	/**
