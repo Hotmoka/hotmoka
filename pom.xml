@@ -15,6 +15,7 @@
       <module>io-takamaka-code-verification</module>
       <module>io-hotmoka-beans</module>
       <module>io-hotmoka-nodes</module>
+      <module>io-hotmoka-patricia</module>
       <module>io-takamaka-code-instrumentation</module>
       <module>io-takamaka-code-engine</module>
       <module>io-takamaka-code-tools</module>
