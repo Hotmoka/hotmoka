@@ -8,6 +8,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -237,9 +238,9 @@ class State implements AutoCloseable {
 				KeyValueStore keyValueStore = getKeyValueStore(txn);
 				PatriciaTrie<TransactionReference, TransactionResponse> trie = PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
 				trie.put(reference, response);
-				TransactionResponse response2 = trie.get(reference);
-				if (!response2.equals(response))
-					throw new IllegalStateException("responses are inconsistent");
+				//TransactionResponse response2 = trie.get(reference);
+				//if (!response2.equals(response))
+					//throw new IllegalStateException("responses are inconsistent");
 			});
 		});
 	}
@@ -335,11 +336,26 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTime(() -> {
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> {
+			KeyValueStore keyValueStore = getKeyValueStore(txn);
+			PatriciaTrie<TransactionReference, TransactionResponse> trie = PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+
+			TransactionResponse resp1;
+			try {
+				resp1 = trie.get(reference);
+			}
+			catch (NoSuchElementException e) {
+				resp1 = null;
+			}
+
 			ByteIterable referenceAsByteArray = intoByteArray(reference);
-			ByteIterable responseAsByteArray = env.computeInReadonlyTransaction(txn -> responses.get(txn, referenceAsByteArray));
-			return responseAsByteArray == null ? Optional.empty() : Optional.of(fromByteArray(TransactionResponse::from, responseAsByteArray));
-		});
+			ByteIterable responseAsByteArray = responses.get(txn, referenceAsByteArray);
+			TransactionResponse resp2 = responseAsByteArray == null ? null : fromByteArray(TransactionResponse::from, responseAsByteArray);
+
+			if (!Objects.equals(resp1, resp2))
+				System.out.println("resp1:\n" + resp1 + "\nresp2:\n" + resp2);
+			return Optional.ofNullable(resp2);
+		}));
 	}
 
 	/**

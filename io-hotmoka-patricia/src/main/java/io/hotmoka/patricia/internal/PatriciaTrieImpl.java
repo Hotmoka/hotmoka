@@ -74,6 +74,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 			return getNodeFromHash(hashOfRoot).get(nibblesOfHashedKey, 0);
 		}
+		catch (NoSuchElementException e) {
+			throw e;
+		}
 		catch (Exception e) {
 			logger.error("error while getting key from Patricia trie", e);
 			throw InternalFailureException.of("error while getting key from Patricia trie", e);
@@ -90,7 +93,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			byte[] hashOfRoot = store.getRoot();
 			if (hashOfRoot == null)
 				// the trie was empty: a leaf node with the value becomes the new root of the trie
-				newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray());
+				newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
 			else
 				newRoot = getNodeFromHash(hashOfRoot).put(nibblesOfHashedKey, 0, value);
 
@@ -227,6 +230,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			return this;
 		}
+
+		protected final AbstractNode putInStore() throws IOException {
+			// we bind it to its hash in the store
+			store.put(hashingForNodes.hash(this), toByteArray());
+			return this;
+		}
 	}
 
 	/**
@@ -246,12 +255,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 * 
 		 * @param children the hashes of the branching children of the node.
 		 *                 If the nth child is missing the array will hold null for it
-		 * @throws IOException if this node cannot be marshalled in store
 		 */
-		private Branch(byte[][] children) throws IOException {
+		private Branch(byte[][] children) {
 			this.children = children;
-			// we bind it to its hash in the store
-			store.put(hashingForNodes.hash(this), toByteArray());
 		}
 
 		/**
@@ -303,7 +309,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				// there was no path for this selection: we attach a leaf with the remaining nibbles
 				byte[] nibblesButFirst = new byte[nibblesOfHashedKey.length - cursor - 1];
 				System.arraycopy(nibblesOfHashedKey, cursor + 1, nibblesButFirst, 0, nibblesButFirst.length);
-				child = new Leaf(nibblesButFirst, value.toByteArray());
+				child = new Leaf(nibblesButFirst, value.toByteArray()).putInStore();
 			}
 			else
 				// there was already a path for this selection: we recur
@@ -313,7 +319,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			byte[][] childrenCopy = children.clone();
 			childrenCopy[selection] = hashingForNodes.hash(child);
 
-			return new Branch(childrenCopy);
+			return new Branch(childrenCopy).putInStore();
 		}
 
 		@Override
@@ -359,13 +365,10 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 *                      It 4 most significant bits are constantly set to 0.
 		 *                      This array is never empty
 		 * @param next the hash of the next node, the only child of the extension node
-		 * @throws IOException if this node cannot be marshalled in store
 		 */
-		private Extension(byte[] sharedNibbles, byte[] next) throws IOException {
+		private Extension(byte[] sharedNibbles, byte[] next) {
 			this.sharedNibbles = sharedNibbles;
 			this.next = next;
-			// we bind it to its hash in the store
-			store.put(hashingForNodes.hash(this), toByteArray());
 		}
 
 		@Override
@@ -400,7 +403,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (lengthOfDistinctPortion == 0) {
 				// we recur
 				AbstractNode newNext = getNodeFromHash(next).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
-				return new Extension(sharedNibbles, hashingForNodes.hash(newNext));
+				return new Extension(sharedNibbles, hashingForNodes.hash(newNext)).putInStore();
 			}
 			else {
 				byte[] sharedNibbles1 = new byte[sharedNibbles.length - lengthOfSharedPortion - 1];
@@ -415,18 +418,18 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				if (sharedNibbles1.length == 0)
 					child1 = getNodeFromHash(next); //TODO: avoid recomputation
 				else
-					child1 = new Extension(sharedNibbles1, next);
+					child1 = new Extension(sharedNibbles1, next).putInStore();
 					
-				AbstractNode child2 = new Leaf(keyEnd2, value.toByteArray());
+				AbstractNode child2 = new Leaf(keyEnd2, value.toByteArray()).putInStore();
 				children[selection1] = hashingForNodes.hash(child1);
 				children[selection2] = hashingForNodes.hash(child2);
-				Branch branch = new Branch(children);
+				AbstractNode branch = new Branch(children).putInStore();
 
 				if (lengthOfSharedPortion > 0) {
 					// yield an extension node linked to a branch node with two alternatives
 					byte[] sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(this.sharedNibbles, 0, sharedNibbles, 0, lengthOfSharedPortion);
-					return new Extension(sharedNibbles, hashingForNodes.hash(branch));
+					return new Extension(sharedNibbles, hashingForNodes.hash(branch)).putInStore();
 				}
 				else
 					// yield a branch node with two alternatives
@@ -467,13 +470,10 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 *               Its 4 most significant bits are constantly set to 0. This
 		 *               array can be empty
 		 * @param value the marshalled bytes of the value bound to the key leading to this node
-		 * @throws IOException if this node cannot be marshalled in store
 		 */
-		private Leaf(byte[] keyEnd, byte[] value) throws IOException {
+		private Leaf(byte[] keyEnd, byte[] value) {
 			this.keyEnd = keyEnd;
 			this.value = value;
-			// we bind it to its hash in the store
-			store.put(hashingForNodes.hash(this), toByteArray());
 		}
 
 		@Override
@@ -510,7 +510,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			if (lengthOfDistinctPortion == 0)
 				// the keys coincide
-				return new Leaf(keyEnd, value.toByteArray());
+				return new Leaf(keyEnd, value.toByteArray()).putInStore();
 			else {
 				// since there is a distinct portion, there must be at least a nibble in keyEnd
 				byte[] keyEnd1 = new byte[keyEnd.length - lengthOfSharedPortion - 1];
@@ -520,17 +520,17 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				byte selection1 = keyEnd[lengthOfSharedPortion];
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
 				byte[][] children = new byte[16][];
-				Leaf leaf1 = new Leaf(keyEnd1, this.value);
-				Leaf leaf2 = new Leaf(keyEnd2, value.toByteArray());
+				AbstractNode leaf1 = new Leaf(keyEnd1, this.value).putInStore();
+				AbstractNode leaf2 = new Leaf(keyEnd2, value.toByteArray()).putInStore();
 				children[selection1] = hashingForNodes.hash(leaf1);
 				children[selection2] = hashingForNodes.hash(leaf2);
-				Branch branch = new Branch(children);
+				AbstractNode branch = new Branch(children).putInStore();
 
 				if (lengthOfSharedPortion > 0) {
 					// yield an extension node linked to a branch node with two alternatives leaves
 					byte[] sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(keyEnd, 0, sharedNibbles, 0, lengthOfSharedPortion);
-					return new Extension(sharedNibbles, hashingForNodes.hash(branch));
+					return new Extension(sharedNibbles, hashingForNodes.hash(branch)).putInStore();
 				}
 				else
 					// yield a branch node with two alternatives leaves
