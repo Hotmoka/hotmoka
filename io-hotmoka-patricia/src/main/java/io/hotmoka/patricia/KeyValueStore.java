@@ -42,11 +42,4 @@ public interface KeyValueStore {
 	 * @throws NoSuchElementException if the key is not associated in this store
 	 */
 	byte[] get(byte[] key) throws NoSuchElementException;
-
-	/**
-	 * Removes a key from the associations of this store, if it was there.
-	 * 
-	 * @param key the key to remove
-	 */
-	void remove(byte[] key);
 }

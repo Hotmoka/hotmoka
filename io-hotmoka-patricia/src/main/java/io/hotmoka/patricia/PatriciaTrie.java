@@ -36,16 +36,15 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 * 
 	 * @param store the store used to store a mapping from nodes' hashes to their content
 	 * @param hashingForKeys the hashing algorithm for the keys
-	 * @param hashingForValues the hashing algorithm for the values
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
 	 * @return the trie
 	 */
 	static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
-			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Value> hashingForValues, HashingAlgorithm<? super Node> hashingForNodes,
+			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller) {
 
-		return new PatriciaTrieImpl<Key, Value>(store, hashingForKeys, hashingForValues, hashingForNodes, valueUnmarshaller);
+		return new PatriciaTrieImpl<Key, Value>(store, hashingForKeys, hashingForNodes, valueUnmarshaller);
 	}
 }
