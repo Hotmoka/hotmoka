@@ -5,10 +5,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -68,11 +66,6 @@ class State implements AutoCloseable {
 	 * The transaction that accumulates all changes from begin of block to commit of block.
 	 */
 	private Transaction txn;
-
-	/**
-	 * The store that holds the responses to the transactions.
-	 */
-	private Store responses;
 
 	/**
 	 * The store that holds the Merkle-Patricia trie of the responses to the transactions.
@@ -172,7 +165,6 @@ class State implements AutoCloseable {
     	// enforces that all stores exist
     	recordTime(() ->
     		env.executeInTransaction(txn -> {
-    			responses = env.openStore("responses", StoreConfig.WITHOUT_DUPLICATES, txn);
     			patricia = env.openStore("patricia", StoreConfig.WITHOUT_DUPLICATES, txn);
     			history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
     			info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
@@ -205,7 +197,6 @@ class State implements AutoCloseable {
     void beginTransaction() {
     	recordTime(() -> {
     		txn = env.beginTransaction();
-    		responses = env.openStore("responses", StoreConfig.USE_EXISTING, txn);
     		patricia = env.openStore("patricia", StoreConfig.USE_EXISTING, txn);
     		history = env.openStore("history", StoreConfig.USE_EXISTING, txn);
     		info = env.openStore("info", StoreConfig.USE_EXISTING, txn);
@@ -231,10 +222,10 @@ class State implements AutoCloseable {
 	 */
 	void putResponse(TransactionReference reference, TransactionResponse response) {
 		recordTime(() -> {
-			ByteIterable referenceAsByteArray = intoByteArray(reference);
-			ByteIterable responseAsByteArray = intoByteArray(response);
+			//ByteIterable referenceAsByteArray = intoByteArray(reference);
+			//ByteIterable responseAsByteArray = intoByteArray(response);
 			env.executeInTransaction(txn -> {
-				responses.put(txn, referenceAsByteArray, responseAsByteArray);
+				//responses.put(txn, referenceAsByteArray, responseAsByteArray);
 				KeyValueStore keyValueStore = getKeyValueStore(txn);
 				PatriciaTrie<TransactionReference, TransactionResponse> trie = PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
 				trie.put(reference, response);
@@ -243,28 +234,6 @@ class State implements AutoCloseable {
 					//throw new IllegalStateException("responses are inconsistent");
 			});
 		});
-	}
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes();
-
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	private static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
-	    for (int j = 0; j < bytes.length; j++) {
-	        int v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
 	}
 
 	private KeyValueStore getKeyValueStore(Transaction txn) {
@@ -340,21 +309,16 @@ class State implements AutoCloseable {
 			KeyValueStore keyValueStore = getKeyValueStore(txn);
 			PatriciaTrie<TransactionReference, TransactionResponse> trie = PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
 
-			TransactionResponse resp1;
 			try {
-				resp1 = trie.get(reference);
+				return Optional.of(trie.get(reference));
 			}
 			catch (NoSuchElementException e) {
-				resp1 = null;
+				return Optional.empty();
 			}
 
-			ByteIterable referenceAsByteArray = intoByteArray(reference);
-			ByteIterable responseAsByteArray = responses.get(txn, referenceAsByteArray);
-			TransactionResponse resp2 = responseAsByteArray == null ? null : fromByteArray(TransactionResponse::from, responseAsByteArray);
-
-			if (!Objects.equals(resp1, resp2))
-				System.out.println("resp1:\n" + resp1 + "\nresp2:\n" + resp2);
-			return Optional.ofNullable(resp2);
+			//ByteIterable referenceAsByteArray = intoByteArray(reference);
+			//ByteIterable responseAsByteArray = responses.get(txn, referenceAsByteArray);
+			//TransactionResponse resp2 = responseAsByteArray == null ? null : fromByteArray(TransactionResponse::from, responseAsByteArray);
 		}));
 	}
 
