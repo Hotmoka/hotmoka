@@ -5,7 +5,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
@@ -36,6 +40,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * A function able to unmarshall a value from its byte representation.
 	 */
 	private final Unmarshaller<? extends Value> valueUnmarshaller;
+
+	private final static Logger logger = LoggerFactory.getLogger(PatriciaTrieImpl.class);
 
 	/**
 	 * Creates a new Merkle-Patricia trie supported by the underlying store,
@@ -69,7 +75,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			return getNodeFromHash(hashOfRoot).get(nibblesOfHashedKey, 0);
 		}
 		catch (Exception e) {
-			throw InternalFailureException.of(e);
+			logger.error("error while getting key from Patricia trie", e);
+			throw InternalFailureException.of("error while getting key from Patricia trie", e);
 		}
 	}
 
@@ -79,7 +86,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			byte[] hashedKey = hashingForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 
-			Node newRoot;
+			AbstractNode newRoot;
 			byte[] hashOfRoot = store.getRoot();
 			if (hashOfRoot == null)
 				// the trie was empty: a leaf node with the value becomes the new root of the trie
@@ -90,7 +97,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			store.setRoot(hashingForNodes.hash(newRoot));
 		}
 		catch (Exception e) {
-			throw InternalFailureException.of(e);
+			logger.error("error while putting key into Patricia trie", e);
+			throw InternalFailureException.of("error while putting key into Patricia trie", e);
 		}
 	}
 
@@ -208,13 +216,24 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 * @throws IOException if some data could not be unmarshalled
 		 */
 		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException, ClassNotFoundException;
+
+		protected abstract int depth() throws NoSuchElementException, ClassNotFoundException, IOException;
+
+		protected AbstractNode check(AbstractNode original) throws NoSuchElementException, ClassNotFoundException, IOException {
+			int d1 = depth();
+			int d2 = original.depth();
+			if (d1 != d2)
+				throw new IllegalStateException("inconsistent trie heights before: " + d2 + " after: " + d1);
+
+			return this;
+		}
 	}
 
 	/**
 	 * A branch node of a Patricia trie.
 	 */
-	public class Branch extends AbstractNode {
-		public final static byte SELECTOR = 1;
+	private class Branch extends AbstractNode {
+		private final static byte SELECTOR = 1;
 
 		/**
 		 * The hashes of the branching children of the node. If the nth child is missing,
@@ -229,7 +248,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 *                 If the nth child is missing the array will hold null for it
 		 * @throws IOException if this node cannot be marshalled in store
 		 */
-		public Branch(byte[][] children) throws IOException {
+		private Branch(byte[][] children) throws IOException {
 			this.children = children;
 			// we bind it to its hash in the store
 			store.put(hashingForNodes.hash(this), toByteArray());
@@ -261,7 +280,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
+		protected Value get(byte[] nibblesOfHashedKey, final int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
 			if (cursor >= nibblesOfHashedKey.length - 1)
 				throw new InternalFailureException("inconsistent key length in Patricia trie");
 
@@ -273,7 +292,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException, ClassNotFoundException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) throws IOException, ClassNotFoundException {
 			if (cursor >= nibblesOfHashedKey.length - 1)
 				throw new InternalFailureException("inconsistent key length in Patricia trie");
 
@@ -296,13 +315,28 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			return new Branch(childrenCopy);
 		}
+
+		@Override
+		protected int depth() throws NoSuchElementException, ClassNotFoundException, IOException {
+			int height = 0;
+			for (byte[] child: children)
+				if (child != null) {
+					int d = getNodeFromHash(child).depth() + 1;
+					if (height > 0 && height != d)
+						throw new IllegalStateException(height + " vs " + d);
+
+					height = d;
+				}
+
+			return height;
+		}
 	}
 
 	/**
 	 * An extension node of a Patricia trie.
 	 */
-	public class Extension extends AbstractNode {
-		public final static byte SELECTOR = 0;
+	private class Extension extends AbstractNode {
+		private final static byte SELECTOR = 0;
 
 		/**
 		 * The prefix nibbles shared among all paths passing through this node.
@@ -327,7 +361,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 * @param next the hash of the next node, the only child of the extension node
 		 * @throws IOException if this node cannot be marshalled in store
 		 */
-		public Extension(byte[] sharedNibbles, byte[] next) throws IOException {
+		private Extension(byte[] sharedNibbles, byte[] next) throws IOException {
 			this.sharedNibbles = sharedNibbles;
 			this.next = next;
 			// we bind it to its hash in the store
@@ -348,17 +382,17 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				if (sharedNibbles[cursor1] != nibblesOfHashedKey[cursor])
 					throw new NoSuchElementException("key not found in Patricia trie");
 
-			if (cursor1 != sharedNibbles.length || cursor == nibblesOfHashedKey.length)
+			if (cursor1 != sharedNibbles.length || cursor >= nibblesOfHashedKey.length)
 				throw new InternalFailureException("inconsistent key length in Patricia trie");
 
 			return getNodeFromHash(next).get(nibblesOfHashedKey, cursor);
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException, ClassNotFoundException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) throws IOException, ClassNotFoundException {
 			int lengthOfSharedPortion = 0;
 
-			while (lengthOfSharedPortion < sharedNibbles.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == nibblesOfHashedKey[lengthOfSharedPortion])
+			while (lengthOfSharedPortion < sharedNibbles.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == sharedNibbles[lengthOfSharedPortion])
 				 lengthOfSharedPortion++;
 
 			int lengthOfDistinctPortion = sharedNibbles.length - lengthOfSharedPortion;
@@ -366,12 +400,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (lengthOfDistinctPortion == 0) {
 				// we recur
 				AbstractNode newNext = getNodeFromHash(next).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
-				return new Extension(sharedNibbles, newNext.toByteArray());
+				return new Extension(sharedNibbles, hashingForNodes.hash(newNext));
 			}
 			else {
 				byte[] sharedNibbles1 = new byte[sharedNibbles.length - lengthOfSharedPortion - 1];
 				System.arraycopy(sharedNibbles, lengthOfSharedPortion + 1, sharedNibbles1, 0, sharedNibbles1.length);
-				byte[] keyEnd2 = new byte[sharedNibbles1.length];
+				byte[] keyEnd2 = new byte[nibblesOfHashedKey.length - cursor - lengthOfSharedPortion - 1];
 				System.arraycopy(nibblesOfHashedKey, lengthOfSharedPortion + cursor + 1, keyEnd2, 0, keyEnd2.length);
 				byte selection1 = sharedNibbles[lengthOfSharedPortion];
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
@@ -399,13 +433,18 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 					return branch;
 			}
 		}
+
+		@Override
+		protected int depth() throws NoSuchElementException, ClassNotFoundException, IOException {
+			return sharedNibbles.length + getNodeFromHash(next).depth();
+		}
 	}
 
 	/**
 	 * A leaf node of a Patricia trie.
 	 */
-	public class Leaf extends AbstractNode {
-		public final static byte SELECTOR = 2;
+	private class Leaf extends AbstractNode {
+		private final static byte SELECTOR = 2;
 
 		/**
 		 * The key end of the only path passing through this node.
@@ -430,7 +469,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 * @param value the marshalled bytes of the value bound to the key leading to this node
 		 * @throws IOException if this node cannot be marshalled in store
 		 */
-		public Leaf(byte[] keyEnd, byte[] value) throws IOException {
+		private Leaf(byte[] keyEnd, byte[] value) throws IOException {
 			this.keyEnd = keyEnd;
 			this.value = value;
 			// we bind it to its hash in the store
@@ -453,7 +492,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 					throw new NoSuchElementException("key not found in Patricia trie");
 
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
-				throw new InternalFailureException("inconsistent key length in Patricia trie");
+				throw new InternalFailureException("inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
 			try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(value)))) {
 				return valueUnmarshaller.from(ois);
@@ -498,5 +537,32 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 					return branch;
 			}
 		}
+
+		@Override
+		protected int depth() throws NoSuchElementException, ClassNotFoundException, IOException {
+			return keyEnd.length;
+		}
+	}
+
+	/**
+	 * The array of hexadecimal digits.
+	 */
+	private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes();
+
+	/**
+	 * Translates an array of bytes into a hexadecimal string.
+	 * 
+	 * @param bytes the bytes
+	 * @return the string
+	 */
+	private static String bytesToHex(byte[] bytes) {
+	    byte[] hexChars = new byte[bytes.length * 2];
+	    for (int j = 0; j < bytes.length; j++) {
+	        int v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+	    }
+	
+	    return new String(hexChars, StandardCharsets.UTF_8);
 	}
 }

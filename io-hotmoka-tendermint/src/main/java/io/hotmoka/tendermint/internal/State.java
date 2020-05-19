@@ -5,6 +5,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -18,6 +21,9 @@ import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.patricia.HashingAlgorithm;
+import io.hotmoka.patricia.KeyValueStore;
+import io.hotmoka.patricia.PatriciaTrie;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.ExodusException;
@@ -68,6 +74,11 @@ class State implements AutoCloseable {
 	private Store responses;
 
 	/**
+	 * The store that holds the Merkle-Patricia trie of the responses to the transactions.
+	 */
+	private Store patricia;
+
+	/**
 	 * The store that holds the history of each storage reference, ie, a list of
 	 * transaction references that contribute
 	 * to provide values to the fields of the storage object at that reference.
@@ -100,20 +111,68 @@ class State implements AutoCloseable {
      */
     private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 2);
 
+    /**
+     * The key used inside {@linkplain #info} to keep the hash of the root of the Patricia trie
+     * of the responses.
+     */
+    private final static ByteIterable ROOT = ArrayByteIterable.fromByte((byte) 3);
+
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
+    /**
+     * The hashing algorithm applied to the keys of the Merkle-Patricia trie.
+     * Since these keys are transaction reference, they are already hashes. Hence,
+     * this algorithm just amounts to extracting the bytes from the reference.
+     */
+    private final HashingAlgorithm<TransactionReference> hashingForTransactionReferences = new HashingAlgorithm<>() {
+
+		@Override
+		public byte[] hash(TransactionReference reference) {
+			return hexStringToByteArray(reference.getHash());
+		}
+
+		@Override
+		public int length() {
+			return 32; // transaction references in this blockchain are SHA256 hashes, hence 32 bytes
+		}
+
+		/**
+		 * Transforms a hexadecimal string into a byte array.
+		 * 
+		 * @param s the string
+		 * @return the byte array
+		 */
+		private byte[] hexStringToByteArray(String s) {
+		    int len = s.length();
+		    byte[] data = new byte[len / 2];
+		    for (int i = 0; i < len; i += 2)
+		        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
+		
+		    return data;
+		}
+    };
+
+    /**
+     * The hashing algorithm applied to the nodes of the Merkle-Patricia trie.
+     */
+    private final HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes;
+    
     /**
      * Creates a state that gets persisted inside the given directory.
      * 
      * @param dir the directory where the state is persisted
+     * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie
+     *                                  is not available
      */
-    State(String dir) {
+    State(String dir) throws NoSuchAlgorithmException {
     	this.env = Environments.newInstance(dir);
+    	this.hashingForNodes = HashingAlgorithm.sha256();
 
     	// enforces that all stores exist
     	recordTime(() ->
     		env.executeInTransaction(txn -> {
     			responses = env.openStore("responses", StoreConfig.WITHOUT_DUPLICATES, txn);
+    			patricia = env.openStore("patricia", StoreConfig.WITHOUT_DUPLICATES, txn);
     			history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
     			info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
     		})
@@ -146,6 +205,7 @@ class State implements AutoCloseable {
     	recordTime(() -> {
     		txn = env.beginTransaction();
     		responses = env.openStore("responses", StoreConfig.USE_EXISTING, txn);
+    		patricia = env.openStore("patricia", StoreConfig.USE_EXISTING, txn);
     		history = env.openStore("history", StoreConfig.USE_EXISTING, txn);
     		info = env.openStore("info", StoreConfig.USE_EXISTING, txn);
     	});
@@ -172,8 +232,68 @@ class State implements AutoCloseable {
 		recordTime(() -> {
 			ByteIterable referenceAsByteArray = intoByteArray(reference);
 			ByteIterable responseAsByteArray = intoByteArray(response);
-			env.executeInTransaction(txn -> responses.put(txn, referenceAsByteArray, responseAsByteArray));
+			env.executeInTransaction(txn -> {
+				responses.put(txn, referenceAsByteArray, responseAsByteArray);
+				KeyValueStore keyValueStore = getKeyValueStore(txn);
+				PatriciaTrie<TransactionReference, TransactionResponse> trie = PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+				trie.put(reference, response);
+				TransactionResponse response2 = trie.get(reference);
+				if (!response2.equals(response))
+					throw new IllegalStateException("responses are inconsistent");
+			});
 		});
+	}
+
+	/**
+	 * The array of hexadecimal digits.
+	 */
+	private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes();
+
+	/**
+	 * Translates an array of bytes into a hexadecimal string.
+	 * 
+	 * @param bytes the bytes
+	 * @return the string
+	 */
+	private static String bytesToHex(byte[] bytes) {
+	    byte[] hexChars = new byte[bytes.length * 2];
+	    for (int j = 0; j < bytes.length; j++) {
+	        int v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+	    }
+	
+	    return new String(hexChars, StandardCharsets.UTF_8);
+	}
+
+	private KeyValueStore getKeyValueStore(Transaction txn) {
+		return new KeyValueStore() {
+
+			@Override
+			public byte[] getRoot() {
+				ByteIterable root = info.get(txn, ROOT);
+				return root == null ? null : root.getBytesUnsafe();
+			}
+
+			@Override
+			public void setRoot(byte[] root) {
+				info.put(txn, ROOT, new ArrayByteIterable(root));
+			}
+
+			@Override
+			public void put(byte[] key, byte[] value) {
+				patricia.put(txn, new ArrayByteIterable(key), new ArrayByteIterable(value));
+			}
+
+			@Override
+			public byte[] get(byte[] key) throws NoSuchElementException {
+				ByteIterable result = patricia.get(txn, new ArrayByteIterable(key));
+				if (result == null)
+					throw new NoSuchElementException("no Merkle-Patricia trie node");
+				else
+					return result.getBytesUnsafe();
+			}
+		};
 	}
 
 	/**

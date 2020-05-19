@@ -10,6 +10,10 @@ public class InternalFailureException extends RuntimeException {
 		super("unexpected exception", e);
 	}
 
+	private InternalFailureException(String message, Exception e) {
+		super(message, e);
+	}
+
 	public InternalFailureException(String message) {
 		super(message);
 	}
@@ -19,5 +23,12 @@ public class InternalFailureException extends RuntimeException {
 			return (InternalFailureException) e;
 		else
 			return new InternalFailureException(e);
+	}
+
+	public static InternalFailureException of(String message, Exception e) {
+		if (e instanceof InternalFailureException)
+			return (InternalFailureException) e;
+		else
+			return new InternalFailureException(message, e);
 	}
 }

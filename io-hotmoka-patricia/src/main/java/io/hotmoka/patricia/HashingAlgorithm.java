@@ -1,9 +1,14 @@
 package io.hotmoka.patricia;
 
+import java.security.NoSuchAlgorithmException;
+
+import io.hotmoka.beans.Marshallable;
+import io.hotmoka.patricia.internal.SHA256;
+
 /**
  * An algorithm that hashes values into bytes.
  *
- * @param <T> the type of the values that get hashed.
+ * @param <T> the type of values that get hashed.
  */
 public interface HashingAlgorithm<T> {
 
@@ -22,4 +27,16 @@ public interface HashingAlgorithm<T> {
 	 * @return the length
 	 */
 	int length();
+
+	/**
+	 * Yields a hashing algorithm for marshallable values, that uses the
+	 * SHA256 hashing algorithm.
+	 * 
+	 * @param <T> the type of values that get hashed
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256 algorithm
+	 */
+	static <T extends Marshallable> HashingAlgorithm<T> sha256() throws NoSuchAlgorithmException {
+		return new SHA256<T>();
+	}
 }

@@ -295,8 +295,8 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	protected String hash(TransactionRequest<?> request) {
 		try {
 			synchronized (digest) {
-				String hash = bytesToHex(digest.digest(request.toByteArray()));
 				digest.reset();
+				String hash = bytesToHex(digest.digest(request.toByteArray()));
 				return hash;
 			}
 		}

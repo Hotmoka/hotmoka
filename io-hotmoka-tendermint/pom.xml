@@ -29,6 +29,11 @@
         <artifactId>io-takamaka-code-engine</artifactId>
         <version>1.0</version>
     </dependency>
+	<dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-hotmoka-patricia</artifactId>
+        <version>1.0</version>
+    </dependency>
     <dependency>
       <groupId>org.jetbrains.xodus</groupId>
       <artifactId>xodus-environment</artifactId>
