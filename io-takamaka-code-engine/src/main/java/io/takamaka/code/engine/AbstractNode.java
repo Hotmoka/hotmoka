@@ -479,7 +479,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 	@Override
 	public final Classpath takamakaCode() {
-		return takamakaCode.get();
+		Classpath result = takamakaCode.get();
+		if (result != null && !isCommitted(result.transaction))
+			return null;
+
+		return result;
 	}
 
 	@Override
