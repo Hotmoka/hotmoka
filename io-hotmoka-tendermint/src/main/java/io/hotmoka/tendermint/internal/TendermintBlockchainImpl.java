@@ -217,8 +217,6 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 
 		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode)
 			state.putTakamakaCode(new Classpath(reference, true)); // for future recreation
-
-		logger.info(reference + ": hash " + bytesToHex(getStateHash()));
 	}
 
 	/**
