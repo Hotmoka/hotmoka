@@ -118,11 +118,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	private AbstractNode from(ObjectInputStream ois, final int cursor) throws IOException, ClassNotFoundException {
 		byte kind = ois.readByte();
 
-		if (kind == Extension.SELECTOR) {
+		if (kind == 0x00 || (kind & 0xf0) == 0x10) {
 			int nodeHashSize = hashingForNodes.length();
-			int sharedBytesLength = ois.available() - nodeHashSize;
+			int sharedBytesLength = ois.available() - nodeHashSize + 1;
 			byte[] sharedBytes = new byte[sharedBytesLength];
-			if (sharedBytesLength != ois.readNBytes(sharedBytes, 0, sharedBytesLength))
+			sharedBytes[0] = kind;
+			if (sharedBytesLength - 1 != ois.readNBytes(sharedBytes, 1, sharedBytesLength - 1))
 				throw new IOException("nibbles length mismatch in an extension node of a Patricia trie");
 
 			byte[] sharedNibbles = expandBytesIntoNibbles(sharedBytes, (byte) 0x00);
@@ -130,7 +131,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			return new Extension(sharedNibbles, next);
 		}
-		else if (kind == Branch.SELECTOR) {
+		else if (kind == 0x04) {
 			short selector = ois.readShort();
 			int nodeHashSize = hashingForNodes.length();
 			byte[][] children = new byte[16][];
@@ -143,7 +144,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			return new Branch(children);
 		}
-		else if (kind == Leaf.SELECTOR) {
+		else if (kind == 0x02 || (kind & 0xf0) == 0x30) {
 			int expected;
 			if (cursor % 2 == 0)
 				expected = hashingForKeys.length() - cursor / 2 + 1;
@@ -151,7 +152,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				expected = hashingForKeys.length() - cursor / 2;
 
 			byte[] nibbles = new byte[expected];
-			if (expected != ois.readNBytes(nibbles, 0, expected))
+			nibbles[0] = kind;
+			if (expected - 1 != ois.readNBytes(nibbles, 1, expected - 1))
 				throw new IOException("keyEnd length mismatch in a leaf node of a Patricia trie");
 
 			byte[] keyEnd = expandBytesIntoNibbles(nibbles, (byte) 0x02);
@@ -305,7 +307,6 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * A branch node of a Patricia trie.
 	 */
 	private class Branch extends AbstractNode {
-		private final static byte SELECTOR = 1;
 
 		/**
 		 * The hashes of the branching children of the node. If the nth child is missing,
@@ -340,7 +341,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(ObjectOutputStream oos) throws IOException {
-			oos.writeByte(SELECTOR);
+			oos.writeByte(0x04);
 			oos.writeShort(selector());
 
 			for (byte[] child: children)
@@ -405,7 +406,6 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * An extension node of a Patricia trie.
 	 */
 	private class Extension extends AbstractNode {
-		private final static byte SELECTOR = 0;
 
 		/**
 		 * The prefix nibbles shared among all paths passing through this node.
@@ -436,7 +436,6 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(ObjectOutputStream oos) throws IOException {
-			oos.writeByte(SELECTOR);
 			oos.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
 			oos.write(next);
 		}
@@ -510,7 +509,6 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * A leaf node of a Patricia trie.
 	 */
 	private class Leaf extends AbstractNode {
-		private final static byte SELECTOR = 2;
 
 		/**
 		 * The key end of the only path passing through this node.
@@ -541,7 +539,6 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(ObjectOutputStream oos) throws IOException {
-			oos.writeByte(SELECTOR);
 			oos.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
 			oos.write(value);
 		}
