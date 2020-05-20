@@ -37,6 +37,6 @@ public interface HashingAlgorithm<T> {
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256 algorithm
 	 */
 	static <T extends Marshallable> HashingAlgorithm<T> sha256() throws NoSuchAlgorithmException {
-		return new SHA256<T>();
+		return new SHA256<>();
 	}
 }

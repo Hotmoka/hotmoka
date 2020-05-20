@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.NoSuchElementException;
 
 import org.slf4j.Logger;
@@ -285,6 +284,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 */
 		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException, ClassNotFoundException;
 
+		/*
 		protected abstract int depth(int cursor) throws NoSuchElementException, ClassNotFoundException, IOException;
 
 		protected AbstractNode check(AbstractNode original) throws NoSuchElementException, ClassNotFoundException, IOException {
@@ -295,6 +295,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			return this;
 		}
+		*/
 
 		protected final AbstractNode putInStore() throws IOException {
 			// we bind it to its hash in the store
@@ -386,6 +387,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			return new Branch(childrenCopy).putInStore();
 		}
 
+		/*
 		@Override
 		protected int depth(int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
 			int height = 0;
@@ -400,6 +402,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			return height;
 		}
+		*/
 	}
 
 	/**
@@ -499,10 +502,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			}
 		}
 
+		/*
 		@Override
 		protected int depth(int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
 			return sharedNibbles.length + getNodeFromHash(next, sharedNibbles.length + cursor).depth(sharedNibbles.length + cursor);
 		}
+		*/
 	}
 
 	/**
@@ -597,31 +602,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			}
 		}
 
+		/*
 		@Override
 		protected int depth(int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
 			return keyEnd.length;
 		}
-	}
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes();
-
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	private static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
-	    for (int j = 0; j < bytes.length; j++) {
-	        int v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
-	        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
+		*/
 	}
 }

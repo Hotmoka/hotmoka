@@ -45,6 +45,6 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller) {
 
-		return new PatriciaTrieImpl<Key, Value>(store, hashingForKeys, hashingForNodes, valueUnmarshaller);
+		return new PatriciaTrieImpl<>(store, hashingForKeys, hashingForNodes, valueUnmarshaller);
 	}
 }
