@@ -925,7 +925,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @param bytes the bytes
 	 * @return the string
 	 */
-	private static String bytesToHex(byte[] bytes) {
+	protected static String bytesToHex(byte[] bytes) {
 	    byte[] hexChars = new byte[bytes.length * 2];
 	    for (int j = 0; j < bytes.length; j++) {
 	        int v = bytes[j] & 0xFF;
