@@ -151,7 +151,7 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
     	node.commitBlock();
     	byte[] hash = new byte[32];
-    	//new Random().nextBytes(hash);
+    	new Random().nextBytes(hash);
         ResponseCommit resp = ResponseCommit.newBuilder()
         		.setData(ByteString.copyFrom(hash))
                 //.setData(ByteString.copyFrom(new byte[8])) // hash of the Merkle root of the application state
