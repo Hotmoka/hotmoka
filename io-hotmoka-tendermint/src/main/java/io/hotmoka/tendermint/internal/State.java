@@ -41,10 +41,9 @@ import jetbrains.exodus.env.Transaction;
  * 
  * <ul>
  * <li> a map from each Hotmoka transaction reference to the response computed for that transaction
+ *      (implemented as a Patricia trie supported by a store)
  * <li> a map from each storage reference to the transaction references that contribute
  *      to provide values to the fields of the storage object at that reference
- * <li> a map from each Hotmoka transaction reference to the hash of the corresponding
- *      Tendermint transaction 
  * <li> some miscellaneous control information, such as  where the jar with basic
  *      Takamaka classes is installed or the current number of commits
  * </ul>

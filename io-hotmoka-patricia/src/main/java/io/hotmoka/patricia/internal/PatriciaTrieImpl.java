@@ -414,14 +414,14 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
 				byte[][] children = new byte[16][];
 
-				AbstractNode child1;
+				byte[] hashOfChild1;
 				if (sharedNibbles1.length == 0)
-					child1 = getNodeFromHash(next); //TODO: avoid recomputation
+					hashOfChild1 = next;
 				else
-					child1 = new Extension(sharedNibbles1, next).putInStore();
+					hashOfChild1 = hashingForNodes.hash(new Extension(sharedNibbles1, next).putInStore());
 					
 				AbstractNode child2 = new Leaf(keyEnd2, value.toByteArray()).putInStore();
-				children[selection1] = hashingForNodes.hash(child1);
+				children[selection1] = hashOfChild1;
 				children[selection2] = hashingForNodes.hash(child2);
 				AbstractNode branch = new Branch(children).putInStore();
 
