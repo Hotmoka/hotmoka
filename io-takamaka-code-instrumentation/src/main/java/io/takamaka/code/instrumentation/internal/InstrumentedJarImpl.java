@@ -88,7 +88,9 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	private static void dumpInstrumentedClass(InstrumentedClass instrumentedClass, JarOutputStream instrumentedJar) {
 		try {
 			// add the same entry to the resulting jar
-			instrumentedJar.putNextEntry(new JarEntry(instrumentedClass.getClassName().replace('.', '/') + ".class"));
+			JarEntry entry = new JarEntry(instrumentedClass.getClassName().replace('.', '/') + ".class");
+			entry.setTime(0L); // we set the timestamp to 0, so that the result is deterministic
+			instrumentedJar.putNextEntry(entry);
 	
 			// dumps the class into the jar file
 			instrumentedClass.toJavaClass().dump(instrumentedJar);
