@@ -115,19 +115,20 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 */
 	private AbstractNode from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		byte kind = ois.readByte();
-		int nodeHashSize = hashingForNodes.length();
 
 		if (kind == Extension.SELECTOR) {
+			int nodeHashSize = hashingForNodes.length();
 			byte[] value = new byte[nodeHashSize];
 			if (nodeHashSize != ois.readNBytes(value, 0, nodeHashSize))
 				throw new IOException("hash length mismatch in an extension node of a Patricia trie");
 
-			byte[] sharedNibbles = ois.readAllBytes(); // TODO: expand
+			byte[] sharedNibbles = expandBytesIntoNibbles(ois.readAllBytes(), (byte) 0x00);
 
 			return new Extension(sharedNibbles, value);
 		}
 		else if (kind == Branch.SELECTOR) {
 			short selector = ois.readShort();
+			int nodeHashSize = hashingForNodes.length();
 			byte[][] children = new byte[16][];
 			for (int pos = 0, bit = 0x8000; pos < 16; pos++, bit >>= 1)
 				if ((selector & bit) != 0) {
@@ -144,7 +145,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (valueLength != ois.readNBytes(value, 0, valueLength))
 				throw new IOException("value length mismatch in a leaf node of a Patricia trie");
 
-			byte[] keyEnd = ois.readAllBytes(); // TODO: expand
+			byte[] keyEnd = expandBytesIntoNibbles(ois.readAllBytes(), (byte) 0x02);
 
 			return new Leaf(keyEnd, value);
 		}
@@ -185,6 +186,56 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 	
 		return split;
+	}
+
+	/**
+	 * Compacts the given nibbles into bytes, using the given selector
+	 * as first nibble if the array has odd length.
+	 * 
+	 * @param nibbles the nibbles
+	 * @param evenSelector the selector byte prefixed to even arrays of nibbles
+	 * @param oddSelector the selector nibble prefixed to odd arrays of nibbles
+	 * @return the resulting bytes
+	 */
+	private static byte[] compactNibblesIntoBytes(byte[] nibbles, byte evenSelector, byte oddSelector) {
+		int length = nibbles.length;
+		byte[] result = new byte[1 + length / 2];
+
+		if (length % 2 == 0) {
+			result[0] = evenSelector;
+			for (int pos = 0; pos < length; pos += 2)
+				result[1 + pos / 2] = (byte) ((nibbles[pos] << 4) | nibbles[pos + 1]);
+		}
+		else {
+			result[0] = (byte) ((oddSelector << 4) | nibbles[0]);
+			for (int pos = 1; pos < length; pos += 2)
+				result[1 + pos / 2] = (byte) ((nibbles[pos] << 4) | nibbles[pos + 1]);
+		}
+
+		return result;
+	}
+
+	private static byte[] expandBytesIntoNibbles(byte[] bytes, byte evenSelector) {
+		byte[] nibbles;
+
+		if (bytes[0] == evenSelector) {
+			nibbles = new byte[(bytes.length - 1) * 2];
+			for (int pos = 1; pos < bytes.length; pos++) {
+				nibbles[(pos - 1) * 2] = (byte) ((bytes[pos] & 0xf0) >> 4);
+				nibbles[pos * 2 - 1] = (byte) (bytes[pos] & 0x0f);
+			}
+		}
+		else {
+			nibbles = new byte[bytes.length * 2 - 1];
+			nibbles[0] = (byte) (bytes[0] & 0x0f);
+
+			for (int pos = 1; pos < bytes.length; pos++) {
+				nibbles[pos * 2 - 1] = (byte) ((bytes[pos] & 0xf0) >> 4);
+				nibbles[pos * 2] = (byte) (bytes[pos] & 0x0f);
+			}
+		}
+
+		return nibbles;
 	}
 
 	private abstract class AbstractNode extends Node {
@@ -375,7 +426,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		public void into(ObjectOutputStream oos) throws IOException {
 			oos.writeByte(SELECTOR);
 			oos.write(next);
-			oos.write(sharedNibbles); // TODO: compaction
+			oos.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
 		}
 
 		@Override
@@ -481,7 +532,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			oos.writeByte(SELECTOR);
 			oos.writeInt(value.length);
 			oos.write(value);
-			oos.write(keyEnd); // TODO: compaction
+			oos.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
 		}
 
 		@Override
