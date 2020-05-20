@@ -109,6 +109,13 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
 	 * This is copy of information in the state, for efficiency.
 	 */
+	private final AtomicReference<Classpath> uncommittedTakamakaCode = new AtomicReference<>();
+
+	/**
+	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
+	 * This is copy of information in the state, for efficiency. This is the same
+	 * as {@linkplain #uncommittedTakamakaCode}, but it's only set if the transaction has been committed.
+	 */
 	private final AtomicReference<Classpath> takamakaCode = new AtomicReference<>();
 
 	/**
@@ -319,7 +326,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
 
 		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode)
-			takamakaCode.set(new Classpath(reference, true));
+			uncommittedTakamakaCode.set(new Classpath(reference, true));
 
 		if (request instanceof NonInitialTransactionRequest && !isInitialized.getAndSet(true))
 			initialize();
@@ -480,10 +487,16 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	@Override
 	public final Classpath takamakaCode() {
 		Classpath result = takamakaCode.get();
-		if (result != null && !isCommitted(result.transaction))
-			return null;
+		if (result != null)
+			return result;
 
-		return result;
+		result = uncommittedTakamakaCode.get();
+		if (result != null && isCommitted(result.transaction)) {
+			takamakaCode.set(result);
+			return result;
+		}
+		else
+			return null;
 	}
 
 	@Override

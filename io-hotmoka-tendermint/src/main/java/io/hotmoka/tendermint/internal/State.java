@@ -220,21 +220,15 @@ class State implements AutoCloseable {
 	 * @param response the response of the transaction
 	 */
 	void putResponse(TransactionReference reference, TransactionResponse response) {
-		recordTime(() -> {
-			//ByteIterable referenceAsByteArray = intoByteArray(reference);
-			//ByteIterable responseAsByteArray = intoByteArray(response);
-			env.executeInTransaction(txn -> {
-				//responses.put(txn, referenceAsByteArray, responseAsByteArray);
-				KeyValueStore keyValueStore = getKeyValueStore(txn);
-				PatriciaTrie<TransactionReference, TransactionResponse> trie = PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
-				trie.put(reference, response);
-				//TransactionResponse response2 = trie.get(reference);
-				//if (!response2.equals(response))
-					//throw new IllegalStateException("responses are inconsistent");
-			});
-		});
+		recordTime(() -> env.executeInTransaction(txn -> getTrie(txn).put(reference, response)));
 	}
 
+	/**
+	 * Yields a key/value store that uses the given transaction for reading or writing data.
+	 * 
+	 * @param txn the transaction
+	 * @return the key/value store
+	 */
 	private KeyValueStore getKeyValueStore(Transaction txn) {
 		return new KeyValueStore() {
 
@@ -305,20 +299,24 @@ class State implements AutoCloseable {
 	 */
 	Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> {
-			KeyValueStore keyValueStore = getKeyValueStore(txn);
-			PatriciaTrie<TransactionReference, TransactionResponse> trie = PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
-
 			try {
-				return Optional.of(trie.get(reference));
+				return Optional.of(getTrie(txn).get(reference));
 			}
 			catch (NoSuchElementException e) {
 				return Optional.empty();
 			}
-
-			//ByteIterable referenceAsByteArray = intoByteArray(reference);
-			//ByteIterable responseAsByteArray = responses.get(txn, referenceAsByteArray);
-			//TransactionResponse resp2 = responseAsByteArray == null ? null : fromByteArray(TransactionResponse::from, responseAsByteArray);
 		}));
+	}
+
+	/**
+	 * Yields the Merkle-Patricia trie for this state.
+	 * 
+	 * @param txn the transaction for which the trie is being built
+	 * @return the trie
+	 */
+	private PatriciaTrie<TransactionReference, TransactionResponse> getTrie(Transaction txn) {
+		KeyValueStore keyValueStore = getKeyValueStore(txn);
+		return PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
 	}
 
 	/**
@@ -357,6 +355,19 @@ class State implements AutoCloseable {
 
 	boolean isInitialized() {
 		return getFromInfo(INITIALIZED) != null;
+	}
+
+	/**
+	 * Yields the hash of this state.
+	 * 
+	 * @return the hash. If the state is currently empty, it yields an array of a single, 0 byte
+	 */
+	byte[] getHash() {
+		ByteIterable hashOfTrieRoot = getFromInfo(ROOT);
+		if (hashOfTrieRoot == null)
+			return new byte[0];
+		else
+			return hashOfTrieRoot.getBytesUnsafe();
 	}
 
 	/**

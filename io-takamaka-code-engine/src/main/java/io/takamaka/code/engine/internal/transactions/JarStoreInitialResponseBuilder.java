@@ -40,6 +40,9 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 				if (node.isInitialized())
 					throw new TransactionRejectedException("cannot run a " + JarStoreInitialTransactionRequest.class.getSimpleName() + " in an already initialized node");
 
+				if (request.setAsTakamakaCode && node.takamakaCode() != null)
+					throw new TransactionRejectedException("Takamaka code has already been set");
+
 				InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true), node.getGasCostModel());
 				return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies());
 			}

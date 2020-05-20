@@ -11,6 +11,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -215,7 +216,7 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 		super.expandStore(reference, request, response);
 
 		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode)
-			state.putTakamakaCode(takamakaCode()); // for future recreation
+			state.putTakamakaCode(new Classpath(reference, true)); // for future recreation
 	}
 
 	/**
@@ -244,5 +245,14 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	 */
 	void commitBlock() {
 		state.commitTransaction();
+	}
+
+	/**
+	 * Yields the hash of the state.
+	 * 
+	 * @return the hash
+	 */
+	byte[] getStateHash() {
+		return state.getHash();
 	}
 }

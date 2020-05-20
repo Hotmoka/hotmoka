@@ -2,7 +2,6 @@ package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
-import java.util.Random;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -150,11 +149,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
     public void commit(RequestCommit req, StreamObserver<ResponseCommit> responseObserver) {
     	node.commitBlock();
-    	byte[] hash = new byte[32];
-    	new Random().nextBytes(hash);
         ResponseCommit resp = ResponseCommit.newBuilder()
-        		.setData(ByteString.copyFrom(hash))
-                //.setData(ByteString.copyFrom(new byte[8])) // hash of the Merkle root of the application state
+        		.setData(ByteString.copyFrom(node.getStateHash())) // root of Merkle-Patricia trie used for consensus
                 .build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
