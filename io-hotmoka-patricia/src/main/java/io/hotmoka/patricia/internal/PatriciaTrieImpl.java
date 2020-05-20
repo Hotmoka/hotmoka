@@ -72,7 +72,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		try {
 			byte[] hashedKey = hashingForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
-			return getNodeFromHash(hashOfRoot).get(nibblesOfHashedKey, 0);
+			return getNodeFromHash(hashOfRoot, 0).get(nibblesOfHashedKey, 0);
 		}
 		catch (NoSuchElementException e) {
 			throw e;
@@ -95,7 +95,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				// the trie was empty: a leaf node with the value becomes the new root of the trie
 				newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
 			else
-				newRoot = getNodeFromHash(hashOfRoot).put(nibblesOfHashedKey, 0, value);
+				newRoot = getNodeFromHash(hashOfRoot, 0).put(nibblesOfHashedKey, 0, value);
 
 			store.setRoot(hashingForNodes.hash(newRoot));
 		}
@@ -109,22 +109,26 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * Factory method that unmarshals a node from the given stream.
 	 * 
 	 * @param ois the stream
+	 * @param cursor the number of nibbles in the path from the root of the trie to the node;
+	 *               this is needed in order to foresee the size of the leaves
 	 * @return the node
 	 * @throws IOException if the node could not be unmarshalled
 	 * @throws ClassNotFoundException if the node could not be unmarshalled
 	 */
-	private AbstractNode from(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	private AbstractNode from(ObjectInputStream ois, final int cursor) throws IOException, ClassNotFoundException {
 		byte kind = ois.readByte();
 
 		if (kind == Extension.SELECTOR) {
 			int nodeHashSize = hashingForNodes.length();
-			byte[] value = new byte[nodeHashSize];
-			if (nodeHashSize != ois.readNBytes(value, 0, nodeHashSize))
-				throw new IOException("hash length mismatch in an extension node of a Patricia trie");
+			int sharedBytesLength = ois.available() - nodeHashSize;
+			byte[] sharedBytes = new byte[sharedBytesLength];
+			if (sharedBytesLength != ois.readNBytes(sharedBytes, 0, sharedBytesLength))
+				throw new IOException("nibbles length mismatch in an extension node of a Patricia trie");
 
-			byte[] sharedNibbles = expandBytesIntoNibbles(ois.readAllBytes(), (byte) 0x00);
+			byte[] sharedNibbles = expandBytesIntoNibbles(sharedBytes, (byte) 0x00);
+			byte[] next = ois.readAllBytes();
 
-			return new Extension(sharedNibbles, value);
+			return new Extension(sharedNibbles, next);
 		}
 		else if (kind == Branch.SELECTOR) {
 			short selector = ois.readShort();
@@ -140,12 +144,18 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			return new Branch(children);
 		}
 		else if (kind == Leaf.SELECTOR) {
-			int valueLength = ois.readInt();
-			byte[] value = new byte[valueLength];
-			if (valueLength != ois.readNBytes(value, 0, valueLength))
-				throw new IOException("value length mismatch in a leaf node of a Patricia trie");
+			int expected;
+			if (cursor % 2 == 0)
+				expected = hashingForKeys.length() - cursor / 2 + 1;
+			else
+				expected = hashingForKeys.length() - cursor / 2;
 
-			byte[] keyEnd = expandBytesIntoNibbles(ois.readAllBytes(), (byte) 0x02);
+			byte[] nibbles = new byte[expected];
+			if (expected != ois.readNBytes(nibbles, 0, expected))
+				throw new IOException("keyEnd length mismatch in a leaf node of a Patricia trie");
+
+			byte[] keyEnd = expandBytesIntoNibbles(nibbles, (byte) 0x02);
+			byte[] value = ois.readAllBytes();
 
 			return new Leaf(keyEnd, value);
 		}
@@ -157,14 +167,16 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * Yields the node whose hash is the given one.
 	 * 
 	 * @param hash the hash of the node to look up
+	 * @param cursor the number of nibbles in the path from the root of the trie to the node;
+	 *               this is needed in order to foresee the size of the leaves
 	 * @return the node
 	 * @throws NoSuchElementException if the store has no node with the given {@code hash}
 	 * @throws IOException if the node could not be unmarshalled
 	 * @throws ClassNotFoundException if the node could not be unmarshalled
 	 */
-	private AbstractNode getNodeFromHash(byte[] hash) throws NoSuchElementException, ClassNotFoundException, IOException {
+	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
-			return from(ois);
+			return from(ois, cursor);
 		}
 	}
 
@@ -271,11 +283,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 */
 		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException, ClassNotFoundException;
 
-		protected abstract int depth() throws NoSuchElementException, ClassNotFoundException, IOException;
+		protected abstract int depth(int cursor) throws NoSuchElementException, ClassNotFoundException, IOException;
 
 		protected AbstractNode check(AbstractNode original) throws NoSuchElementException, ClassNotFoundException, IOException {
-			int d1 = depth();
-			int d2 = original.depth();
+			int d1 = depth(0);
+			int d2 = original.depth(0);
 			if (d1 != d2)
 				throw new IllegalStateException("inconsistent trie heights before: " + d2 + " after: " + d1);
 
@@ -345,7 +357,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (children[selection] == null)
 				throw new NoSuchElementException("key not found in Patricia trie");
 
-			return getNodeFromHash(children[selection]).get(nibblesOfHashedKey, cursor + 1);
+			return getNodeFromHash(children[selection], cursor + 1).get(nibblesOfHashedKey, cursor + 1);
 		}
 
 		@Override
@@ -364,7 +376,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			}
 			else
 				// there was already a path for this selection: we recur
-				child = getNodeFromHash(children[selection]).put(nibblesOfHashedKey, cursor + 1, value);
+				child = getNodeFromHash(children[selection], cursor + 1).put(nibblesOfHashedKey, cursor + 1, value);
 
 
 			byte[][] childrenCopy = children.clone();
@@ -374,11 +386,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected int depth() throws NoSuchElementException, ClassNotFoundException, IOException {
+		protected int depth(int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
 			int height = 0;
 			for (byte[] child: children)
 				if (child != null) {
-					int d = getNodeFromHash(child).depth() + 1;
+					int d = getNodeFromHash(child, cursor + 1).depth(cursor + 1) + 1;
 					if (height > 0 && height != d)
 						throw new IllegalStateException(height + " vs " + d);
 
@@ -425,8 +437,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		@Override
 		public void into(ObjectOutputStream oos) throws IOException {
 			oos.writeByte(SELECTOR);
-			oos.write(next);
 			oos.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
+			oos.write(next);
 		}
 
 		@Override
@@ -439,7 +451,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (cursor1 != sharedNibbles.length || cursor >= nibblesOfHashedKey.length)
 				throw new InternalFailureException("inconsistent key length in Patricia trie");
 
-			return getNodeFromHash(next).get(nibblesOfHashedKey, cursor);
+			return getNodeFromHash(next, cursor).get(nibblesOfHashedKey, cursor);
 		}
 
 		@Override
@@ -453,7 +465,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			if (lengthOfDistinctPortion == 0) {
 				// we recur
-				AbstractNode newNext = getNodeFromHash(next).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
+				AbstractNode newNext = getNodeFromHash(next, sharedNibbles.length + cursor).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
 				return new Extension(sharedNibbles, hashingForNodes.hash(newNext)).putInStore();
 			}
 			else {
@@ -489,8 +501,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected int depth() throws NoSuchElementException, ClassNotFoundException, IOException {
-			return sharedNibbles.length + getNodeFromHash(next).depth();
+		protected int depth(int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
+			return sharedNibbles.length + getNodeFromHash(next, sharedNibbles.length + cursor).depth(sharedNibbles.length + cursor);
 		}
 	}
 
@@ -530,9 +542,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		@Override
 		public void into(ObjectOutputStream oos) throws IOException {
 			oos.writeByte(SELECTOR);
-			oos.writeInt(value.length);
-			oos.write(value);
 			oos.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
+			oos.write(value);
 		}
 
 		@Override
@@ -590,7 +601,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected int depth() throws NoSuchElementException, ClassNotFoundException, IOException {
+		protected int depth(int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
 			return keyEnd.length;
 		}
 	}
