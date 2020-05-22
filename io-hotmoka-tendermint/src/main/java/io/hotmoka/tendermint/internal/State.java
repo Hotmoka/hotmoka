@@ -208,13 +208,17 @@ class State implements AutoCloseable {
 	/**
 	 * Commits all data put from last call to {@linkplain #beginTransaction()}.
 	 */
-	void commitTransaction() {
-		recordTime(() -> {
-			increaseNumberOfCommits();
-			if (!txn.commit())
-				logger.info("Transaction commit returned false");
-		});
-	}
+    void commitTransaction() {
+    	recordTime(() -> {
+    		// we increase the number of commits performed over this state
+    		ByteIterable numberOfCommitsAsByteIterable = info.get(txn, COMMIT_COUNT);
+    		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytesUnsafe()));
+    		info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(numberOfCommits + 1).getBytes()));
+
+    		if (!txn.commit())
+    			logger.info("Transaction commit failed");
+    	});
+    }
 
 	/**
 	 * Yields the response of the transaction having the given reference.
@@ -231,53 +235,6 @@ class State implements AutoCloseable {
 				return Optional.empty();
 			}
 		}));
-	}
-
-	/**
-	 * Yields a key/value store that uses the given transaction for reading or writing data.
-	 * 
-	 * @param txn the transaction
-	 * @return the key/value store
-	 */
-	private KeyValueStore getKeyValueStore(Transaction txn) {
-		return new KeyValueStore() {
-	
-			@Override
-			public byte[] getRoot() {
-				ByteIterable root = info.get(txn, ROOT);
-				return root == null ? null : root.getBytesUnsafe();
-			}
-	
-			@Override
-			public void setRoot(byte[] root) {
-				info.put(txn, ROOT, new ArrayByteIterable(root));
-			}
-	
-			@Override
-			public void put(byte[] key, byte[] value) {
-				patricia.put(txn, new ArrayByteIterable(key), new ArrayByteIterable(value));
-			}
-	
-			@Override
-			public byte[] get(byte[] key) throws NoSuchElementException {
-				ByteIterable result = patricia.get(txn, new ArrayByteIterable(key));
-				if (result == null)
-					throw new NoSuchElementException("no Merkle-Patricia trie node");
-				else
-					return result.getBytesUnsafe();
-			}
-		};
-	}
-
-	/**
-	 * Yields the Merkle-Patricia trie for this state.
-	 * 
-	 * @param txn the transaction for which the trie is being built
-	 * @return the trie
-	 */
-	private PatriciaTrie<TransactionReference, TransactionResponse> getTrie(Transaction txn) {
-		KeyValueStore keyValueStore = getKeyValueStore(txn);
-		return PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
 	}
 
 	/**
@@ -381,15 +338,41 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Increases the number of commits performed over this state.
+	 * Yields the Merkle-Patricia trie for this state.
+	 * 
+	 * @param txn the transaction for which the trie is being built
+	 * @return the trie
 	 */
-	private void increaseNumberOfCommits() {
-		recordTime(() -> 
-			env.executeInTransaction(txn -> {
-				ByteIterable numberOfCommitsAsByteIterable = info.get(txn, COMMIT_COUNT);
-				long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytesUnsafe()));
-				info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(numberOfCommits + 1).getBytes()));
-			}));
+	private PatriciaTrie<TransactionReference, TransactionResponse> getTrie(Transaction txn) {
+		KeyValueStore keyValueStore = new KeyValueStore() {
+	
+			@Override
+			public byte[] getRoot() {
+				ByteIterable root = info.get(txn, ROOT);
+				return root == null ? null : root.getBytesUnsafe();
+			}
+	
+			@Override
+			public void setRoot(byte[] root) {
+				info.put(txn, ROOT, new ArrayByteIterable(root));
+			}
+	
+			@Override
+			public void put(byte[] key, byte[] value) {
+				patricia.put(txn, new ArrayByteIterable(key), new ArrayByteIterable(value));
+			}
+	
+			@Override
+			public byte[] get(byte[] key) throws NoSuchElementException {
+				ByteIterable result = patricia.get(txn, new ArrayByteIterable(key));
+				if (result == null)
+					throw new NoSuchElementException("no Merkle-Patricia trie node");
+				else
+					return result.getBytesUnsafe();
+			}
+		};
+
+		return PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
 	}
 
 	/**

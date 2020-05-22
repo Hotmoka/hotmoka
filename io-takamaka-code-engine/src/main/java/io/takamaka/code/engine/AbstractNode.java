@@ -712,12 +712,13 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * A cached version of {@linkplain #getHistory(StorageReference)}.
 	 * 
 	 * @param object the object whose history must be looked for
+	 * @param getHistory the function to call in case of cache miss
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
 	 *         (from newest to oldest)
 	 */
 	Stream<TransactionReference> getHistoryWithCache(StorageReference object, Function<StorageReference, Stream<TransactionReference>> getHistory) {
-		TransactionReference[] result = historyCache.get(object);
-		return result != null ? Stream.of(result) : getHistory.apply(object);
+		TransactionReference[] result = historyCache.computeIfAbsentNoException(object, reference -> getHistory.apply(reference).toArray(TransactionReference[]::new));
+		return result != null ? Stream.of(result) : Stream.empty();
 	}
 
 	/**

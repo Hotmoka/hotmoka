@@ -3,6 +3,7 @@ package io.takamaka.code.engine;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * A class to cache objects based on LRU (Least Recently Used) cache eviction strategy,
@@ -170,6 +171,27 @@ public final class LRUCache<K, V> {
 		V old = get(key);
 		if (old == null) {
 			V _new = supplier.supply(key);
+			if (_new != null)
+				put(key, _new);
+
+			return _new;
+		}
+		else
+			return old;
+	}
+
+	/**
+	 * Adds a new object to the cache, if its key was unbound.
+	 * In that case, it calls a supplier to provide the new object to add.
+	 * 
+	 * @param key the key of the cached value
+	 * @param supplier the supplier that produces the value to put in cache
+	 * @return the current (old or computed) value in cache for {@¢ode key} at the end of the method
+	 */
+	public synchronized V computeIfAbsentNoException(K key, Function<K,V> supplier) {
+		V old = get(key);
+		if (old == null) {
+			V _new = supplier.apply(key);
 			if (_new != null)
 				put(key, _new);
 
