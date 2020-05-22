@@ -4,7 +4,7 @@ import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalSynchronizationError;
 
 /**
- * A check the method is not synchronized.
+ * A check that the method is not synchronized.
  */
 public class IsNotSynchronizedCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 

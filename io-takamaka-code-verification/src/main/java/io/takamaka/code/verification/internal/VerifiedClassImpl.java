@@ -50,6 +50,7 @@ import io.takamaka.code.verification.internal.checksOnMethods.CallerIsUsedOnThis
 import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsConsistentWithClassHierarchyCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.EntryCodeIsInstanceAndInContractsCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.ExceptionHandlersAreForCheckedExceptionsCheck;
+import io.takamaka.code.verification.internal.checksOnMethods.IsNotFinalizerCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotNativeCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotStaticInitializerCheck;
 import io.takamaka.code.verification.internal.checksOnMethods.IsNotSynchronizedCheck;
@@ -444,6 +445,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 				new ThrowsExceptionsIsConsistentWithClassHierarchyCheck(this);
 				new IsNotStaticInitializerCheck(this);
 				new IsNotNativeCheck(this);
+				new IsNotFinalizerCheck(this);
 				new BytecodesAreLegalCheck(this);
 				new IsNotSynchronizedCheck(this);
 				new CallerIsUsedOnThisAndInEntryCheck(this);

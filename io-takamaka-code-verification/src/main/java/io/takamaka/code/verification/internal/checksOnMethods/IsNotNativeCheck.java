@@ -4,7 +4,7 @@ import io.takamaka.code.verification.internal.VerifiedClassImpl;
 import io.takamaka.code.verification.issues.IllegalNativeMethodError;
 
 /**
- * A check the method is not synchronized.
+ * A check that the method is not native.
  */
 public class IsNotNativeCheck extends VerifiedClassImpl.Builder.MethodVerification.Check {
 
