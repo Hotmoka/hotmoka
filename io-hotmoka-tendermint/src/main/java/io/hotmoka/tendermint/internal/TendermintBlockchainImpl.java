@@ -11,11 +11,8 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.tendermint.Config;
@@ -206,17 +203,8 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	}
 
 	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		state.putHistory(object, history);
-	}
-
-	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		state.putResponse(reference, response);
-		super.expandStore(reference, request, response);
-
-		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode)
-			state.putTakamakaCode(new Classpath(reference, true)); // for future recreation
+		state.expand(this, reference, request, response);
 	}
 
 	/**

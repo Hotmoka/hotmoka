@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -26,6 +27,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.memory.Config;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.StateTransaction;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -139,56 +141,83 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		histories.put(object, history.toArray(TransactionReference[]::new));
-	}
-
-	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
 		mempool.add(request);
 	}
 
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		try {
-			progressive.put(reference, transactionsCount++);
-			Path requestPath = getPathFor(reference, "request");
-			Path parent = requestPath.getParent();
-			ensureDeleted(parent);
-			Files.createDirectories(parent);
+		new StateTransaction(this, reference, request, response) {
 
-			// we write the textual request and response in a background thread, since they are not needed
-			// to the blockchain itself but are only useful for the user who wants to see the transactions
-			submit(() -> {
+			@Override
+			protected void beginTransaction() {
+			}
+
+			@Override
+			protected void initialize() {
+				MemoryBlockchainImpl.this.initialize();
+			}
+
+			@Override
+			protected void setTakamakaCode(Classpath takamakaCode) {
+			}
+
+			@Override
+			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 				try {
-					try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "response.txt")))) {
-						output.print(response);
+					progressive.put(reference, transactionsCount++);
+					Path requestPath = getPathFor(reference, "request");
+					Path parent = requestPath.getParent();
+					ensureDeleted(parent);
+					Files.createDirectories(parent);
+
+					// we write the textual request and response in a background thread, since they are not needed
+					// to the blockchain itself but are only useful for the user who wants to see the transactions
+					submit(() -> {
+						try {
+							try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "response.txt")))) {
+								output.print(response);
+							}
+
+							try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
+								output.print(request);
+							}
+						}
+						catch (IOException e) {
+							logger.error("could not expand the store", e);
+							throw InternalFailureException.of(e);
+						}
+					});
+
+					try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {
+						request.into(oos);
 					}
 
-					try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
-						output.print(request);
+					try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(getPathFor(reference, "response")))) {
+						response.into(oos);
 					}
 				}
-				catch (IOException e) {
-					logger.error("could not expand the store", e);
+				catch (Exception e) {
+					logger.error("unexpected exception", e);
 					throw InternalFailureException.of(e);
 				}
-			});
-
-			try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(requestPath))) {
-				request.into(oos);
 			}
 
-			try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(getPathFor(reference, "response")))) {
-				response.into(oos);
+			@Override
+			protected Stream<TransactionReference> getHistory(StorageReference object) {
+				TransactionReference[] history = histories.get(object);
+				return history == null ? Stream.empty() : Stream.of(history);
 			}
 
-			super.expandStore(reference, request, response);
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
+			@Override
+			protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
+				histories.put(object, history.toArray(TransactionReference[]::new));
+			}
+
+			@Override
+			protected void endTransaction() {
+			}
+		};
 	}
 
 	@Override

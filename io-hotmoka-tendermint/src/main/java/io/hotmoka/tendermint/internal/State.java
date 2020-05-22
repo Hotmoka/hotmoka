@@ -18,11 +18,14 @@ import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.PatriciaTrie;
+import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.StateTransaction;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.ExodusException;
@@ -214,77 +217,6 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Puts in state the result of a transaction having the given reference.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @param response the response of the transaction
-	 */
-	void putResponse(TransactionReference reference, TransactionResponse response) {
-		recordTime(() -> env.executeInTransaction(txn -> getTrie(txn).put(reference, response)));
-	}
-
-	/**
-	 * Yields a key/value store that uses the given transaction for reading or writing data.
-	 * 
-	 * @param txn the transaction
-	 * @return the key/value store
-	 */
-	private KeyValueStore getKeyValueStore(Transaction txn) {
-		return new KeyValueStore() {
-
-			@Override
-			public byte[] getRoot() {
-				ByteIterable root = info.get(txn, ROOT);
-				return root == null ? null : root.getBytesUnsafe();
-			}
-
-			@Override
-			public void setRoot(byte[] root) {
-				info.put(txn, ROOT, new ArrayByteIterable(root));
-			}
-
-			@Override
-			public void put(byte[] key, byte[] value) {
-				patricia.put(txn, new ArrayByteIterable(key), new ArrayByteIterable(value));
-			}
-
-			@Override
-			public byte[] get(byte[] key) throws NoSuchElementException {
-				ByteIterable result = patricia.get(txn, new ArrayByteIterable(key));
-				if (result == null)
-					throw new NoSuchElementException("no Merkle-Patricia trie node");
-				else
-					return result.getBytesUnsafe();
-			}
-		};
-	}
-
-	/**
-	 * Sets the history of the given object.
-	 * 
-	 * @param object the object
-	 * @param history the history, that is, the transaction references transaction references that contribute
-	 *                to provide values to the fields of {@code object}
-	 */
-	void putHistory(StorageReference object, Stream<TransactionReference> history) {
-		recordTime(() -> {
-			ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
-			ByteIterable objectAsByteArray = intoByteArray(object);
-			env.executeInTransaction(txn -> this.history.put(txn, objectAsByteArray, historyAsByteArray));
-		});
-	}
-
-	/**
-	 * Puts in state the classpath of the transaction that installed the Takamaka
-	 * base classes in blockchain.
-	 * 
-	 * @param takamakaCode the classpath
-	 */
-	void putTakamakaCode(Classpath takamakaCode) {
-		putIntoInfo(TAKAMAKA_CODE, takamakaCode);
-	}
-
-	/**
 	 * Takes note that the node is initialized.
 	 */
 	void initialize() {
@@ -306,6 +238,42 @@ class State implements AutoCloseable {
 				return Optional.empty();
 			}
 		}));
+	}
+
+	/**
+	 * Yields a key/value store that uses the given transaction for reading or writing data.
+	 * 
+	 * @param txn the transaction
+	 * @return the key/value store
+	 */
+	private KeyValueStore getKeyValueStore(Transaction txn) {
+		return new KeyValueStore() {
+	
+			@Override
+			public byte[] getRoot() {
+				ByteIterable root = info.get(txn, ROOT);
+				return root == null ? null : root.getBytesUnsafe();
+			}
+	
+			@Override
+			public void setRoot(byte[] root) {
+				info.put(txn, ROOT, new ArrayByteIterable(root));
+			}
+	
+			@Override
+			public void put(byte[] key, byte[] value) {
+				patricia.put(txn, new ArrayByteIterable(key), new ArrayByteIterable(value));
+			}
+	
+			@Override
+			public byte[] get(byte[] key) throws NoSuchElementException {
+				ByteIterable result = patricia.get(txn, new ArrayByteIterable(key));
+				if (result == null)
+					throw new NoSuchElementException("no Merkle-Patricia trie node");
+				else
+					return result.getBytesUnsafe();
+			}
+		};
 	}
 
 	/**
@@ -370,6 +338,51 @@ class State implements AutoCloseable {
 			return hashOfTrieRoot.getBytesUnsafe();
 	}
 
+	void expand(AbstractNode<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		new StateTransaction(node, reference, request, response) {
+			private Transaction txn;
+
+			@Override
+			protected void beginTransaction() {
+				txn = env.beginTransaction();
+			}
+
+			@Override
+			protected void initialize() {
+				info.put(txn, INITIALIZED, INITIALIZED);
+			}
+
+			@Override
+			protected void setTakamakaCode(Classpath takamakaCode) {
+				info.put(txn, TAKAMAKA_CODE, intoByteArray(takamakaCode));
+			}
+
+			@Override
+			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+				getTrie(txn).put(reference, response);
+				// the request is inside the blockchain itself, is not kept in state
+			}
+
+			@Override
+			protected Stream<TransactionReference> getHistory(StorageReference object) {
+				ByteIterable historyAsByteArray = history.get(txn, intoByteArray(object));
+				return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+			}
+
+			@Override
+			protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
+				ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
+				ByteIterable objectAsByteArray = intoByteArray(object);
+				State.this.history.put(txn, objectAsByteArray, historyAsByteArray);
+			}
+
+			@Override
+			protected void endTransaction() {
+				txn.commit();
+			}
+		};
+	}
+
 	/**
 	 * Increases the number of commits performed over this state.
 	 */
@@ -389,19 +402,6 @@ class State implements AutoCloseable {
 	 */
 	private ByteIterable getFromInfo(ByteIterable key) {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> info.get(txn, key)));
-	}
-
-	/**
-	 * Puts in state the given value, inside the {@linkplain #info} store.
-	 * 
-	 * @param key the key where the value must be put
-	 * @param value the value to put
-	 */
-	private void putIntoInfo(ByteIterable key, Marshallable value) {
-		recordTime(() -> {
-			ByteIterable valueAAsByteArray = intoByteArray(value);
-			env.executeInTransaction(txn -> info.put(txn, key, valueAAsByteArray));
-		});
 	}
 
 	/**

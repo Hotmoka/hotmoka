@@ -7,12 +7,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -25,7 +23,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,7 +44,6 @@ import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -192,17 +191,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	protected abstract Stream<TransactionReference> getHistory(StorageReference object);
 
 	/**
-	 * Sets the history of the given object, that is,
-	 * the references to the transactions that provide information about
-	 * its current state, in reverse chronological order (from newest to oldest).
-	 * 
-	 * @param object the object whose history is set
-	 * @param history the stream that will become the history of the object,
-	 *                replacing its previous history
-	 */
-	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
-
-	/**
 	 * Determines if the transaction with the given reference has been committed.
 	 * If this mode has no form of commit, then answer true, always.
 	 * 
@@ -287,16 +275,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		if (response instanceof TransactionResponseWithUpdates)
-			expandHistory(reference, (TransactionResponseWithUpdates) response);
-
-		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode)
-			uncommittedTakamakaCode.set(new Classpath(reference, true));
-
-		if (request instanceof NonInitialTransactionRequest && !isInitialized.getAndSet(true))
-			initialize();
-	}
+	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
 
 	/**
 	 * Expands the store of this node with a transaction that could not be delivered
@@ -559,7 +538,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @return the update
 	 */
 	public final UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
-		for (TransactionReference transaction: getHistoryWithCache(storageReference).collect(Collectors.toList())) {
+		for (TransactionReference transaction: getHistoryWithCache(storageReference, this::getHistory).collect(Collectors.toList())) {
 			Optional<UpdateOfField> update = getLastUpdateFor(storageReference, field, transaction, chargeForCPU);
 			if (update.isPresent())
 				return update.get();
@@ -692,9 +671,20 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
 	 *         (from newest to oldest)
 	 */
-	public final Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
+	Stream<TransactionReference> getHistoryWithCache(StorageReference object, Function<StorageReference, Stream<TransactionReference>> getHistory) {
 		TransactionReference[] result = historyCache.get(object);
-		return result != null ? Stream.of(result) : getHistory(object);
+		return result != null ? Stream.of(result) : getHistory.apply(object);
+	}
+
+	/**
+	 * A cached version of {@linkplain #getHistory(StorageReference)}.
+	 * 
+	 * @param object the object whose history must be looked for
+	 * @return the transactions that compose the history of {@code object}, as an ordered stream
+	 *         (from newest to oldest)
+	 */
+	public final Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
+		return getHistoryWithCache(object, this::getHistory);
 	}
 
 	/**
@@ -742,27 +732,28 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @param history the stream that will become the history of the object,
 	 *                replacing its previous history
 	 */
-	private void setHistoryWithCache(StorageReference object, List<TransactionReference> history) {
+	void setHistoryWithCache(StorageReference object, List<TransactionReference> history, BiConsumer<StorageReference, Stream<TransactionReference>> setHistory) {
 		TransactionReference[] historyAsArray = history.toArray(new TransactionReference[history.size()]);
-		setHistory(object, history.stream());
+		setHistory.accept(object, history.stream());
 		historyCache.put(object, historyAsArray);
 	}
 
 	/**
-	 * Process the updates contained in the given response, expanding the history of the affected objects.
-	 * This method is called at the end of a transaction, to keep in store the updates to the objects.
+	 * Takes note that the node becomes initialized.
 	 * 
-	 * @param reference the transaction that has generated the given response
-	 * @param response the response
+	 * @return true only if the node was not previously marked as initialized already.
 	 */
-	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) {
-		// we collect the storage references that have been updated in the response; for each of them,
-		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
-		// in front of such lists and store back the updated lists, replacing the old ones
-		response.getUpdates()
-			.map(Update::getObject)
-			.distinct()
-			.forEachOrdered(object -> setHistoryWithCache(object, simplifiedHistory(object, reference, response.getUpdates(), getHistoryWithCache(object))));
+	boolean markAsInitialized() {
+		return !isInitialized.getAndSet(true);
+	}
+
+	/**
+	 * Sets the uncommitted classpath of the Takamaka basic classes.
+	 * 
+	 * @param takamakaCode the classpath to set
+	 */
+	void setUncommittedTakamakaCode(Classpath takamakaCode) {
+		uncommittedTakamakaCode.set(takamakaCode);
 	}
 
 	/**
@@ -819,69 +810,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		catch (Exception e) {
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
-		}
-	}
-
-	/**
-	 * Adds the given transaction reference to the history of the given object and yields the simplified
-	 * history. Simplification means that some elements of the previous history might not be useful anymore,
-	 * since they get shadowed by the updates in the added transaction reference. This occurs when the value
-	 * of some fields are updated in {@code added} and the useless old history element provided only values
-	 * for the newly updated fields.
-	 * 
-	 * @param object the object whose history is being simplified
-	 * @param added the transaction reference to add in front of the history of {@code object}
-	 * @param addedUpdates the updates generated in {@code added}
-	 * @param old the old history
-	 * @return the simplified history, with {@code added} in front followed by a subset of {@code old}
-	 */
-	private List<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates, Stream<TransactionReference> old) {
-		// we trace the set of updates that are already covered by previous transactions, so that
-		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
-		Set<Update> covered = addedUpdates.filter(update -> update.getObject() == object).collect(Collectors.toSet());
-		List<TransactionReference> simplified = new ArrayList<>();
-		simplified.add(added);
-	
-		TransactionReference[] oldAsArray = old.toArray(TransactionReference[]::new);
-		int length = oldAsArray.length;
-		for (int pos = 0; pos < length - 1; pos++)
-			addIfUncovered(oldAsArray[pos], object, covered, simplified);
-	
-		// the last is always useful, since it contains the final fields and the class tag of the object
-		if (length >= 1)
-			simplified.add(oldAsArray[length - 1]);
-	
-		return simplified;
-	}
-
-	/**
-	 * Adds the given transaction reference to the history of the given object,
-	 * if it provides updates for fields that have not yet been covered by other updates.
-	 * 
-	 * @param reference the transaction reference
-	 * @param object the object
-	 * @param covered the set of updates for the already covered fields
-	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
-	 */
-	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) {
-		TransactionResponse response = getResponseUncommittedAt(reference);
-
-		if (!(response instanceof TransactionResponseWithUpdates)) {
-			logger.error("history contains a reference to a transaction without updates");
-			throw new InternalFailureException("history contains a reference to a transaction without updates");
-		}
-
-		// we check if there is at least an update for a field of the object
-		// that is not yet covered by another update in a previous element of the history
-		Set<Update> diff = ((TransactionResponseWithUpdates) response).getUpdates()
-			.filter(update -> update.getObject().equals(object))
-			.filter(update -> covered.stream().noneMatch(update::isForSamePropertyAs))
-			.collect(Collectors.toSet());
-
-		if (!diff.isEmpty()) {
-			// the transaction reference actually adds at least one useful update
-			history.add(reference);
-			covered.addAll(diff);
 		}
 	}
 
