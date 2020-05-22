@@ -1,11 +1,11 @@
-package io.hotmoka.patricia.internal;
+package io.hotmoka.crypto.internal;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
-import io.hotmoka.patricia.HashingAlgorithm;
+import io.hotmoka.crypto.HashingAlgorithm;
 
 /**
  * The SHA256 hashing algorithm.
@@ -23,9 +23,11 @@ public class SHA256<T extends Marshallable> implements HashingAlgorithm<T>{
 	@Override
 	public byte[] hash(T what) {
 		try {
+			byte[] bytes = what.toByteArray();
+
 			synchronized (digest) {
 				digest.reset();
-				return digest.digest(what.toByteArray());
+				return digest.digest(bytes);
 			}
 		}
 		catch(Exception e) {

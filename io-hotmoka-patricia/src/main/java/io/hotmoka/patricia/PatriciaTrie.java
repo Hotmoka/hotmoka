@@ -4,6 +4,7 @@ import java.util.NoSuchElementException;
 
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
+import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.internal.PatriciaTrieImpl;
 
 /**

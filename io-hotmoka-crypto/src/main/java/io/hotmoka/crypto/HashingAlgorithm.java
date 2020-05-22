@@ -1,9 +1,9 @@
-package io.hotmoka.patricia;
+package io.hotmoka.crypto;
 
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.Marshallable;
-import io.hotmoka.patricia.internal.SHA256;
+import io.hotmoka.crypto.internal.SHA256;
 
 /**
  * An algorithm that hashes values into bytes.

@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -61,6 +61,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.NodeWithHistory;
@@ -106,6 +107,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private final ExecutorService executor = Executors.newCachedThreadPool();
 
 	/**
+	 * The hashing algorithm for transaction requests.
+	 */
+	private final HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
+
+	/**
 	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
 	 * This is copy of information in the state, for efficiency.
 	 */
@@ -128,6 +134,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	private final AtomicLong deliverTime = new AtomicLong();
 
+	/**
+	 * A cache to avoid repeated calls to {@linkplain #initialize()}.
+	 */
+	private final AtomicBoolean isInitialized = new AtomicBoolean();
+
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
@@ -141,16 +152,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
 
 	/**
-	 * The default hashing algorithm.
-	 */
-	private final MessageDigest digest;
-
-	/**
-	 * A cache to avoid repeated calls to {@linkplain #initialize()}.
-	 */
-	private final AtomicBoolean isInitialized = new AtomicBoolean();
-
-	/**
 	 * Builds the node.
 	 * 
 	 * @param config the configuration of the node
@@ -158,10 +159,10 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	protected AbstractNode(C config) {
 		try {
 			this.config = config;
+			this.hashingForRequests = hashingForRequests();
 			this.getRequestAtCache = new LRUCache<>(config.requestCacheSize);
 			this.getResponseAtCache = new LRUCache<>(config.responseCacheSize);
 			this.historyCache = new LRUCache<>(config.historyCacheSize);
-			this.digest = MessageDigest.getInstance("SHA-256");
 
 			if (config.delete) {
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
@@ -174,45 +175,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			logger.error("failed to create the node", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	/**
-	 * Deletes the given directory, recursively.
-	 * 
-	 * @param dir the directory to delete
-	 * @throws IOException if the directory or some of its subdirectories cannot be deleted
-	 */
-	private static void deleteRecursively(Path dir) throws IOException {
-		if (Files.exists(dir))
-			Files.walk(dir)
-				.sorted(Comparator.reverseOrder())
-				.map(Path::toFile)
-				.forEach(File::delete);
-	}
-
-	/**
-	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM terminates.
-	 */
-	private void addShutdownHook() {
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			try {
-				close();
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}));
-	}
-
-	/**
-	 * Installs the given jar in the store of the node, with an initial jar store transaction.
-	 * 
-	 * @param jar the jar to install
-	 * @throws TransactionRejectedException if the initial jar store transaction throws this
-	 * @throws IOException if {@code jar} cannot be accessed
-	 */
-	protected final void installInitialJar(Path jar) throws TransactionRejectedException, IOException {
-		addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(true, Files.readAllBytes(jar)));
 	}
 
 	/**
@@ -294,23 +256,27 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	protected abstract void postTransaction(TransactionRequest<?> request);
 
 	/**
-	 * Yields the hash of the given request.
+	 * Determines if this node is initialized, that is, if at least one
+	 * non-initial transaction succeeded.
 	 * 
-	 * @param request the request
-	 * @return the SHA256 hash of the request; subclasses may redefine
+	 * @return true if and only if that condition holds
 	 */
-	protected String hash(TransactionRequest<?> request) {
-		try {
-			synchronized (digest) {
-				digest.reset();
-				String hash = bytesToHex(digest.digest(request.toByteArray()));
-				return hash;
-			}
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
+	public abstract boolean isInitialized();
+
+	/**
+	 * Mark this node as initialized. This happens when a non-initial transaction succeeds.
+	 */
+	protected abstract void initialize();
+
+	/**
+	 * Yields the hashing algorithm that must be used for hashing
+	 * transaction requests into their hash.
+	 * 
+	 * @return the SHA256 hash of the request; subclasses may redefine
+	 * @throws NoSuchAlgorithmException if the required hashing algorithm is not available in the Java installation
+	 */
+	protected HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests() throws NoSuchAlgorithmException {
+		return HashingAlgorithm.sha256();
 	}
 
 	/**
@@ -344,6 +310,17 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
+	 * Installs the given jar in the store of the node, with an initial jar store transaction.
+	 * 
+	 * @param jar the jar to install
+	 * @throws TransactionRejectedException if the initial jar store transaction throws this
+	 * @throws IOException if {@code jar} cannot be accessed
+	 */
+	protected final void installInitialJar(Path jar) throws TransactionRejectedException, IOException {
+		addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(true, Files.readAllBytes(jar)));
+	}
+
+	/**
 	 * Sets the classpath were the basic Takamaka classes are stored,
 	 * but only if it was not previously set.
 	 * 
@@ -352,19 +329,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	protected final void setTakamakaCodeIfUndefined(Classpath classpath) {
 		takamakaCode.compareAndSet(null, classpath);
 	}
-
-	/**
-	 * Determines if this node is initialized, that is, if at least one
-	 * non-initial transaction succeeded.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	public abstract boolean isInitialized();
-
-	/**
-	 * Mark this node as initialized. This happens when a non-initial transaction succeeds.
-	 */
-	protected abstract void initialize();
 
 	@Override
 	public final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
@@ -734,13 +698,41 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	/**
+	 * Deletes the given directory, recursively.
+	 * 
+	 * @param dir the directory to delete
+	 * @throws IOException if the directory or some of its subdirectories cannot be deleted
+	 */
+	private static void deleteRecursively(Path dir) throws IOException {
+		if (Files.exists(dir))
+			Files.walk(dir)
+				.sorted(Comparator.reverseOrder())
+				.map(Path::toFile)
+				.forEach(File::delete);
+	}
+
+	/**
+	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM terminates.
+	 */
+	private void addShutdownHook() {
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			try {
+				close();
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}));
+	}
+
+	/**
 	 * Yields the reference to the translation that would be originated for the given request.
 	 * 
 	 * @param request the request
 	 * @return the transaction reference
 	 */
 	private LocalTransactionReference referenceOf(TransactionRequest<?> request) {
-		return new LocalTransactionReference(hash(request));
+		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
 	}
 
 	/**
@@ -925,7 +917,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @param bytes the bytes
 	 * @return the string
 	 */
-	protected static String bytesToHex(byte[] bytes) {
+	private static String bytesToHex(byte[] bytes) {
 	    byte[] hexChars = new byte[bytes.length * 2];
 	    for (int j = 0; j < bytes.length; j++) {
 	        int v = bytes[j] & 0xFF;

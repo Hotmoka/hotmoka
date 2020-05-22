@@ -2,9 +2,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>io-hotmoka-patricia</artifactId>
+  <artifactId>io-hotmoka-crypto</artifactId>
   <packaging>jar</packaging>
-  <name>io-hotmoka-patricia</name>
+  <name>io-hotmoka-crypto</name>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -18,10 +18,6 @@
         <artifactId>io-hotmoka-beans</artifactId>
         <version>1.0</version>
     </dependency>
-	<dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-crypto</artifactId>
-        <version>1.0</version>
-    </dependency>
   </dependencies>
+
 </project>

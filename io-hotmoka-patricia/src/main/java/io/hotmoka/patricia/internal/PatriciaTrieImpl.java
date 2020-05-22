@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
-import io.hotmoka.patricia.HashingAlgorithm;
+import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
 import io.hotmoka.patricia.PatriciaTrie;

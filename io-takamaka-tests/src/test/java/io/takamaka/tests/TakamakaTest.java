@@ -86,10 +86,10 @@ public abstract class TakamakaTest {
 
 	static {
 		try {
-			//io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-			//initialNode = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
-			io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-			initialNode = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+			io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
+			initialNode = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+			//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+			//initialNode = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
 
 			// the gamete has both red and green coins, enough for all tests
 			gamete = initialNode.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(initialNode.takamakaCode(), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
