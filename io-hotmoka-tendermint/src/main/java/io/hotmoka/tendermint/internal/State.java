@@ -217,13 +217,6 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Takes note that the node is initialized.
-	 */
-	void initialize() {
-		recordTime(() -> env.executeInTransaction(txn -> info.put(txn, INITIALIZED, INITIALIZED)));
-	}
-
-	/**
 	 * Yields the response of the transaction having the given reference.
 	 * 
 	 * @param reference the reference of the transaction
@@ -344,41 +337,45 @@ class State implements AutoCloseable {
 
 			@Override
 			protected void beginTransaction() {
-				txn = env.beginTransaction();
+				txn = recordTime(() -> env.beginTransaction());
 			}
 
 			@Override
 			protected void initialize() {
-				info.put(txn, INITIALIZED, INITIALIZED);
+				recordTime(() -> info.put(txn, INITIALIZED, INITIALIZED));
 			}
 
 			@Override
 			protected void setTakamakaCode(Classpath takamakaCode) {
-				info.put(txn, TAKAMAKA_CODE, intoByteArray(takamakaCode));
+				recordTime(() -> info.put(txn, TAKAMAKA_CODE, intoByteArray(takamakaCode)));
 			}
 
 			@Override
 			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-				getTrie(txn).put(reference, response);
+				recordTime(() -> getTrie(txn).put(reference, response));
 				// the request is inside the blockchain itself, is not kept in state
 			}
 
 			@Override
 			protected Stream<TransactionReference> getHistory(StorageReference object) {
-				ByteIterable historyAsByteArray = history.get(txn, intoByteArray(object));
-				return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+				return recordTime(() -> {
+					ByteIterable historyAsByteArray = history.get(txn, intoByteArray(object));
+					return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+				});
 			}
 
 			@Override
 			protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-				ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
-				ByteIterable objectAsByteArray = intoByteArray(object);
-				State.this.history.put(txn, objectAsByteArray, historyAsByteArray);
+				recordTime(() -> {
+					ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
+					ByteIterable objectAsByteArray = intoByteArray(object);
+					State.this.history.put(txn, objectAsByteArray, historyAsByteArray);
+				});
 			}
 
 			@Override
 			protected void endTransaction() {
-				txn.commit();
+				recordTime(() -> txn.commit());
 			}
 		};
 	}

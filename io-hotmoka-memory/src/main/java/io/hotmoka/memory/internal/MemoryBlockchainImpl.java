@@ -125,11 +125,6 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
-	protected void initialize() {
-		isInitialized.set(true);
-	}
-
-	@Override
 	protected boolean isCommitted(TransactionReference reference) {
 		return true; // there is no commit in this blockchain
 	}
@@ -155,7 +150,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 
 			@Override
 			protected void initialize() {
-				MemoryBlockchainImpl.this.initialize();
+				isInitialized.set(true);
 			}
 
 			@Override

@@ -128,11 +128,6 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	}
 
 	@Override
-	protected void initialize() {
-		state.initialize();
-	}
-
-	@Override
 	protected boolean isCommitted(TransactionReference reference) {
 		try {
 			return tendermint.getRequest(reference.getHash()).isPresent();

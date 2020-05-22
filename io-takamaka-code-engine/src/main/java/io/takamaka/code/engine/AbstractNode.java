@@ -134,7 +134,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private final AtomicLong deliverTime = new AtomicLong();
 
 	/**
-	 * A cache to avoid repeated calls to {@linkplain #initialize()}.
+	 * A cache to avoid repeated calls to check if the state is initialized.
 	 */
 	private final AtomicBoolean isInitialized = new AtomicBoolean();
 
@@ -250,11 +250,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @return true if and only if that condition holds
 	 */
 	public abstract boolean isInitialized();
-
-	/**
-	 * Mark this node as initialized. This happens when a non-initial transaction succeeds.
-	 */
-	protected abstract void initialize();
 
 	/**
 	 * Yields the hashing algorithm that must be used for hashing
@@ -671,18 +666,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @return the transactions that compose the history of {@code object}, as an ordered stream
 	 *         (from newest to oldest)
 	 */
-	Stream<TransactionReference> getHistoryWithCache(StorageReference object, Function<StorageReference, Stream<TransactionReference>> getHistory) {
-		TransactionReference[] result = historyCache.get(object);
-		return result != null ? Stream.of(result) : getHistory.apply(object);
-	}
-
-	/**
-	 * A cached version of {@linkplain #getHistory(StorageReference)}.
-	 * 
-	 * @param object the object whose history must be looked for
-	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest)
-	 */
 	public final Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
 		return getHistoryWithCache(object, this::getHistory);
 	}
@@ -723,6 +706,18 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	private LocalTransactionReference referenceOf(TransactionRequest<?> request) {
 		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
+	}
+
+	/**
+	 * A cached version of {@linkplain #getHistory(StorageReference)}.
+	 * 
+	 * @param object the object whose history must be looked for
+	 * @return the transactions that compose the history of {@code object}, as an ordered stream
+	 *         (from newest to oldest)
+	 */
+	Stream<TransactionReference> getHistoryWithCache(StorageReference object, Function<StorageReference, Stream<TransactionReference>> getHistory) {
+		TransactionReference[] result = historyCache.get(object);
+		return result != null ? Stream.of(result) : getHistory.apply(object);
 	}
 
 	/**
