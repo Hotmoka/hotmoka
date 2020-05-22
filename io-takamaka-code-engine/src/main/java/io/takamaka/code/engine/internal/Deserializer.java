@@ -218,7 +218,7 @@ public class Deserializer {
 		}
 	}
 
-	public Stream<Update> getLastEagerUpdates(StorageReference reference) throws Exception {
+	public Stream<Update> getLastEagerUpdates(StorageReference reference) {
 		TransactionReference transaction = reference.transaction;
 	
 		TransactionResponse response = getResponseAndCharge(transaction);
@@ -251,7 +251,7 @@ public class Deserializer {
 		return updates.stream();
 	}
 
-	public Stream<Update> getLastUpdates(StorageReference reference) throws Exception {
+	public Stream<Update> getLastUpdates(StorageReference reference) {
 		TransactionReference transaction = reference.transaction;
 	
 		TransactionResponse response = getResponseAndCharge(transaction);
@@ -291,7 +291,7 @@ public class Deserializer {
 	 * @param eagerFields the set of all possible eager fields
 	 * @return true if and only if that condition holds
 	 */
-	private static boolean updatesNonFinalField(Update update, Set<Field> eagerFields) throws ClassNotFoundException {
+	private static boolean updatesNonFinalField(Update update, Set<Field> eagerFields) {
 		if (update instanceof UpdateOfField) {
 			FieldSignature sig = ((UpdateOfField) update).getField();
 			StorageType type = sig.type;
@@ -337,15 +337,13 @@ public class Deserializer {
 	 * @param object the storage reference
 	 * @param updates the set where the latest updates must be added
 	 * @param eagerFields the number of eager fields whose latest update needs to be found
-	 * @throws Exception if the operation fails
 	 */
-	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields) throws Exception {
+	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields) {
 		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
-		for (TransactionReference transaction: node.getHistoryWithCache(object).collect(Collectors.toList()))
+		node.getHistoryWithCache(object).forEachOrdered(transaction -> {
 			if (updates.size() <= eagerFields)
 				addEagerUpdatesFor(object, transaction, updates);
-			else
-				return;
+		});
 	}
 
 	/**
@@ -355,15 +353,13 @@ public class Deserializer {
 	 * @param object the storage reference
 	 * @param updates the set where the latest updates must be added
 	 * @param fields the number of fields whose latest update needs to be found
-	 * @throws Exception if the operation fails
 	 */
-	private void collectUpdatesFor(StorageReference object, Set<Update> updates, int fields) throws Exception {
+	private void collectUpdatesFor(StorageReference object, Set<Update> updates, int fields) {
 		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
-		for (TransactionReference transaction: node.getHistoryWithCache(object).collect(Collectors.toList()))
+		node.getHistoryWithCache(object).forEachOrdered(transaction -> {
 			if (updates.size() <= fields)
 				addUpdatesFor(object, transaction, updates);
-			else
-				return;
+		});
 	}
 
 	/**
@@ -373,9 +369,8 @@ public class Deserializer {
 	 * @param object the reference of the object
 	 * @param transaction the reference to the transaction
 	 * @param updates the set where they must be added
-	 * @throws Exception if there is an error accessing the updates
 	 */
-	private void addUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) throws Exception {
+	private void addUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) {
 		TransactionResponse response = getResponseAndCharge(transaction);
 		if (response instanceof TransactionResponseWithUpdates)
 			((TransactionResponseWithUpdates) response).getUpdates()
@@ -390,9 +385,8 @@ public class Deserializer {
 	 * @param object the reference of the object
 	 * @param transaction the reference to the transaction
 	 * @param updates the set where they must be added
-	 * @throws Exception if there is an error accessing the updates
 	 */
-	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) throws Exception {
+	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) {
 		TransactionResponse response = getResponseAndCharge(transaction);
 		if (response instanceof TransactionResponseWithUpdates)
 			((TransactionResponseWithUpdates) response).getUpdates()
@@ -417,9 +411,8 @@ public class Deserializer {
 	 * 
 	 * @param transaction the reference to the transaction
 	 * @return the response
-	 * @throws Exception if the response could not be found
 	 */
-	private TransactionResponse getResponseAndCharge(TransactionReference transaction) throws Exception {
+	private TransactionResponse getResponseAndCharge(TransactionReference transaction) {
 		chargeGasForCPU.accept(node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
 		return node.getResponseUncommittedAt(transaction);
 	}
@@ -438,8 +431,7 @@ public class Deserializer {
 			// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
 			for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
 				Stream.of(clazz.getDeclaredFields())
-					.filter(field -> !Modifier.isTransient(field.getModifiers())
-						&& !Modifier.isStatic(field.getModifiers())
+					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())
 						&& classLoader.isEagerlyLoaded(field.getType()))
 					.forEach(bag::add);
 		}
@@ -464,8 +456,7 @@ public class Deserializer {
 			// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
 			for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
 				Stream.of(clazz.getDeclaredFields())
-					.filter(field -> !Modifier.isTransient(field.getModifiers())
-						&& !Modifier.isStatic(field.getModifiers()))
+					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.forEach(bag::add);
 		}
 		catch (ClassNotFoundException e) {
