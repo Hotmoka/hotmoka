@@ -66,8 +66,8 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
     @Override
     public void info(RequestInfo req, StreamObserver<ResponseInfo> responseObserver) {
         ResponseInfo resp = ResponseInfo.newBuilder()
-        		//.setLastBlockAppHash(ByteString.copyFrom(new byte[8])) // LastBlockAppHash
-        		.setLastBlockHeight(node.getNumberOfCommits()).build();
+       		.setLastBlockAppHash(ByteString.copyFrom(node.getStateHash())) // root of Merkle-Patricia trie used for consensus
+       		.setLastBlockHeight(node.getNumberOfCommits()).build();
         responseObserver.onNext(resp);
         responseObserver.onCompleted();
     }

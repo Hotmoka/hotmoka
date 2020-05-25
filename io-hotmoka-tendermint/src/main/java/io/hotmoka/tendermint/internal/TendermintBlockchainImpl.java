@@ -171,7 +171,7 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	@Override
 	protected TransactionResponse getResponseUncommitted(TransactionReference reference) {
 		try {
-			return state.getResponse(reference)
+			return state.getResponseUncommitted(reference)
 				.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
 		}
 		catch (Exception e) {

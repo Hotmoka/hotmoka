@@ -108,8 +108,7 @@ class State implements AutoCloseable {
     private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 2);
 
     /**
-     * The key used inside {@linkplain #info} to keep the hash of the root of the Patricia trie
-     * of the responses.
+     * The key used inside {@linkplain #info} to keep the hash of the root of the Patricia trie of the responses.
      */
     private final static ByteIterable ROOT = ArrayByteIterable.fromByte((byte) 3);
 
@@ -152,13 +151,12 @@ class State implements AutoCloseable {
      * The hashing algorithm applied to the nodes of the Merkle-Patricia trie.
      */
     private final HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes;
-    
+
     /**
      * Creates a state that gets persisted inside the given directory.
      * 
      * @param dir the directory where the state is persisted
-     * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie
-     *                                  is not available
+     * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
      */
     State(String dir) throws NoSuchAlgorithmException {
     	this.env = Environments.newInstance(dir);
@@ -176,10 +174,11 @@ class State implements AutoCloseable {
 
     @Override
     public void close() {
-    	if (txn != null && !txn.isFinished())
-    		// blockchain closed with yet uncommitted transactions: we commit them
-    		if (!txn.commit())
-    			logger.error("Transaction commit returned false");
+    	if (txn != null && !txn.isFinished()) {
+    		// blockchain closed with yet uncommitted transactions: we abort them
+    		logger.error("State closed with uncommitted transactions: they are being aborted");
+    		txn.abort();
+    	}
 
     	try {
     		env.close();
@@ -197,15 +196,10 @@ class State implements AutoCloseable {
      * of the execution of the transactions inside a block.
      */
     void beginTransaction() {
-    	recordTime(() -> {
-    		txn = env.beginTransaction();
-    		patricia = env.openStore("patricia", StoreConfig.USE_EXISTING, txn);
-    		history = env.openStore("history", StoreConfig.USE_EXISTING, txn);
-    		info = env.openStore("info", StoreConfig.USE_EXISTING, txn);
-    	});
+    	txn = recordTime((TimedTask<Transaction>) env::beginTransaction);
     }
 
-	/**
+    /**
 	 * Commits all data put from last call to {@linkplain #beginTransaction()}.
 	 */
     void commitTransaction() {
@@ -214,9 +208,8 @@ class State implements AutoCloseable {
     		ByteIterable numberOfCommitsAsByteIterable = info.get(txn, COMMIT_COUNT);
     		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytesUnsafe()));
     		info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(numberOfCommits + 1).getBytes()));
-
     		if (!txn.commit())
-    			logger.info("Transaction commit failed");
+    			logger.info("Block transaction commit failed");
     	});
     }
 
@@ -235,6 +228,31 @@ class State implements AutoCloseable {
 				return Optional.empty();
 			}
 		}));
+	}
+
+	/**
+	 * Yields the response of the transaction having the given reference.
+	 * The response if returned also when it is in the current transaction, not yet committed.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response, if any
+	 */
+	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
+		// this method uses the last updates to the state, possibly also consequence of
+		// transactions inside the current block; however, it might be called also when
+		// a block has been committed and the next is not yet started; this can occur for
+		// runView transaction methods, that are not transactions inside blocks
+		if (txn.isFinished())
+			return getResponse(reference);
+
+		return recordTime(() -> {
+			try {
+				return Optional.of(getTrie(txn).get(reference));
+			}
+			catch (NoSuchElementException e) {
+				return Optional.empty();
+			}
+		});
 	}
 
 	/**
@@ -288,13 +306,20 @@ class State implements AutoCloseable {
 			return hashOfTrieRoot.getBytesUnsafe();
 	}
 
+	/**
+	 * Expands this state with the result of a successful Hotmoka transaction. This method
+	 * is called during the construction of a block, hence {@linkplain #txn} exists and is not yet committed.
+	 * 
+	 * @param node the node having this state
+	 * @param reference the reference of the request
+	 * @param request the request of the transaction
+	 * @param response the response of the transaction
+	 */
 	void expand(AbstractNode<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		new StateTransaction(node, reference, request, response) {
-			private Transaction txn;
 
 			@Override
 			protected void beginTransaction() {
-				txn = recordTime(() -> env.beginTransaction());
 			}
 
 			@Override
@@ -332,7 +357,6 @@ class State implements AutoCloseable {
 
 			@Override
 			protected void endTransaction() {
-				recordTime(() -> txn.commit());
 			}
 		};
 	}
