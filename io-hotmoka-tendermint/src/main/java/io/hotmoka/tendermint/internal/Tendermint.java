@@ -72,7 +72,7 @@ class Tendermint implements AutoCloseable {
 				throw new IOException("Tendermint initialization failed");
 
 		// spawns a process that remains in background
-		this.process = run("tendermint node --home " + tendermintHome + " --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of(tendermintHome + "/tendermint.log"));
+		this.process = run("tendermint node --home " + tendermintHome + " --abci grpc --proxy_app tcp://127.0.0.1:" + node.config.abciPort, Optional.of("tendermint.log"));
 
 		// wait until it is up and running
 		ping();
