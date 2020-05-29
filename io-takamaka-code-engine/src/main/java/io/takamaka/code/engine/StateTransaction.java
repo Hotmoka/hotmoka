@@ -76,14 +76,6 @@ public abstract class StateTransaction {
 	protected abstract void initialize(StorageReference manifest);
 
 	/**
-	 * Sets the given classpath for the
-	 * Takamaka base classes installed in the store of the node.
-	 * 
-	 * @param takamakaCode the classpath
-	 */
-	protected abstract void setTakamakaCode(TransactionReference takamakaCode);
-
-	/**
 	 * Writes in store the given request and response for the given transaction reference.
 	 * 
 	 * @param reference the reference of the transaction

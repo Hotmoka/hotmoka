@@ -77,7 +77,7 @@ public abstract class TakamakaTest {
 
 	@BeforeEach
 	void logTestName(TestInfo testInfo) {
-		logger.info("**** Starting test " + testInfo.getTestClass().get().getSimpleName() + "." + testInfo.getTestMethod().get().getName() + ": " + testInfo.getDisplayName());
+		logger.info("**** Starting test " + testInfo.getTestClass().get().getSimpleName() + '.' + testInfo.getTestMethod().get().getName() + ": " + testInfo.getDisplayName());
 	}
 
 	public interface TestBody {
@@ -97,7 +97,6 @@ public abstract class TakamakaTest {
 			StorageReference manifest = initialNode.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
 			initialNode.addInitializationTransaction(new InitializationTransactionRequest(takamakaCode, manifest));
-			System.out.println("manifest: " + initialNode.getManifest());
 		}
 		catch (Exception e) {
 			e.printStackTrace();

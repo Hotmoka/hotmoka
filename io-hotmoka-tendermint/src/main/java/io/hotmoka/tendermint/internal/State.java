@@ -90,26 +90,20 @@ class State implements AutoCloseable {
 	 */
 	private long stateTime;
 
-	/**
-     * The key used inside {@linkplain #info} to keep the transaction reference
-     * that installed the Takamaka base classes in blockchain.
-     */
-    private final static ByteIterable TAKAMAKA_CODE = ArrayByteIterable.fromByte((byte) 0);
-
     /**
      * The key used inside {@linkplain #info} to keep the number of commits executed over this state.
      */
-    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 1);
+    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 0);
 
     /**
      * The key used inside {@linkplain #info} to keep the hash of the root of the Patricia trie of the responses.
      */
-    private final static ByteIterable ROOT = ArrayByteIterable.fromByte((byte) 3);
+    private final static ByteIterable ROOT = ArrayByteIterable.fromByte((byte) 1);
 
     /**
      * The key used inside {@linkplain #info} to keep the storage reference of the manifest of the node.
      */
-    private final static ByteIterable MANIFEST = ArrayByteIterable.fromByte((byte) 4);
+    private final static ByteIterable MANIFEST = ArrayByteIterable.fromByte((byte) 2);
 
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
@@ -279,15 +273,10 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Yields the classpath of the Takamaka base classes in blockchain.
+	 * Yields the manifest installed when the node is initialized.
 	 * 
-	 * @return the classpath
+	 * @return the manifest
 	 */
-	Optional<TransactionReference> getTakamakaCode() {
-		ByteIterable takamakaCode = getFromInfo(TAKAMAKA_CODE);
-		return takamakaCode == null ? Optional.empty() : Optional.of(fromByteArray(TransactionReference::from, takamakaCode));
-	}
-
 	Optional<StorageReference> getManifest() {
 		ByteIterable manifest = getFromInfo(MANIFEST);
 		return manifest == null ? Optional.empty() : Optional.of(fromByteArray(StorageReference::from, manifest));
@@ -320,11 +309,6 @@ class State implements AutoCloseable {
 
 			@Override
 			protected void beginTransaction() {
-			}
-
-			@Override
-			protected void setTakamakaCode(TransactionReference takamakaCode) {
-				recordTime(() -> info.put(txn, TAKAMAKA_CODE, intoByteArray(takamakaCode)));
 			}
 
 			@Override
@@ -433,15 +417,6 @@ class State implements AutoCloseable {
 		T result = task.call();
 		stateTime += (System.currentTimeMillis() - start);
 		return result;
-	}
-
-	private static ArrayByteIterable intoByteArray(Marshallable marshallable) throws UncheckedIOException {
-		try {
-			return new ArrayByteIterable(marshallable.toByteArray());
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
 	}
 
 	private static ArrayByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {

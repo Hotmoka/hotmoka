@@ -150,10 +150,6 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 			}
 
 			@Override
-			protected void setTakamakaCode(TransactionReference takamakaCode) {
-			}
-
-			@Override
 			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 				try {
 					progressive.put(reference, transactionsCount++);
