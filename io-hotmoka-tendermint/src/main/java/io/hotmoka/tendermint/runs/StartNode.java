@@ -19,9 +19,13 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransferTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -75,9 +79,14 @@ public class StartNode {
 
 		if (takamakaCode != null) {
 			try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
-				StorageReference gamete = blockchain.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(blockchain.getTakamakaCode(), BigInteger.valueOf(999_999_999), BigInteger.valueOf(999_999_999)));
+				TransactionReference takamakaCodeReference = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"))));
+				// the gamete has both red and green coins, enough for all tests
+				StorageReference gamete = blockchain.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
+				StorageReference manifest = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+					(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
+				blockchain.addInitializationTransaction(new InitializationTransactionRequest(takamakaCodeReference, manifest));
 
-				try (InitializedNode node = InitializedNode.of(blockchain, gamete, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000))) {
+				try (InitializedNode node = InitializedNode.of(blockchain, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000))) {
 					Random random = new Random();
 					long start = System.currentTimeMillis();
 

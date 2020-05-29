@@ -78,9 +78,6 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * Creates a decorated node by storing into it a jar and creating initial accounts.
 	 * 
 	 * @param parent the node that gets decorated
-	 * @param payer the payer of the initialization transactions; if red/green accounts are being created,
-	 *              then this must be a red/green externally owned account; otherwise, it can also be
-	 *              a normal externally owned account
 	 * @param jar the path of a jar that must be further installed in blockchain. This might be {@code null}
 	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
@@ -90,17 +87,27 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	public InitializedNodeImpl(Node parent, StorageReference payer, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+	public InitializedNodeImpl(Node parent, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		
-		BigInteger nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
+		StorageReference manifest = parent.getManifest();
+
+		// we get the nonce of the manifest account
+		BigInteger nonce = ((BigIntegerValue) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), manifest))).value;
+
+		// we call its getGamete() method
+		StorageReference gamete = (StorageReference) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, nonce, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), manifest));
+
+		// we get the nonce of the gamete
+		nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), gamete))).value;
 
 		JarSupplier jarSupplier;
 		if (jar != null) {
-			jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(payer, nonce, BigInteger.valueOf(1_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
+			jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
 			nonce = nonce.add(ONE);
 		}
 		else
@@ -114,11 +121,11 @@ public class InitializedNodeImpl implements InitializedNode {
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE))
 				// the constructor provides the green coins
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(payer, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
+					(gamete, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
 		else
 			for (BigInteger fund: funds) {
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(payer, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(fund))));
+					(gamete, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(fund))));
 
 				nonce = nonce.add(ONE);
 			}
@@ -130,7 +137,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 			if (redGreen) {
 				// then we add the red coins
-				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, nonce, gas, ZERO, takamakaCode,
+				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, ZERO, takamakaCode,
 					RECEIVE_RED, this.accounts[i], new BigIntegerValue(funds[i * 2])));
 
 				nonce = nonce.add(ONE);

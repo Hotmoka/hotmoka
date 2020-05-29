@@ -56,12 +56,6 @@ public abstract class TakamakaTest {
 	private final static Node initialNode;
 
 	/**
-	 * The account that can be used to pay for the initialization of
-	 * {@linkplain #initialNode} before each test runs.
-	 */
-	private final static StorageReference gamete;
-
-	/**
 	 * The node under test. This is a view of {@linkplain #initialNode},
 	 * with the addition of a jar to test and of some initial accounts,
 	 * recreated before each test.
@@ -93,7 +87,7 @@ public abstract class TakamakaTest {
 
 			TransactionReference takamakaCode = initialNode.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"))));
 			// the gamete has both red and green coins, enough for all tests
-			gamete = initialNode.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
+			StorageReference gamete = initialNode.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
 			StorageReference manifest = initialNode.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
 			initialNode.addInitializationTransaction(new InitializationTransactionRequest(takamakaCode, manifest));
@@ -106,30 +100,30 @@ public abstract class TakamakaTest {
 
 	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		if (initialNode instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.of((NodeWithHistory) initialNode, gamete, coins);
+			this.node = InitializedNodeWithHistory.of((NodeWithHistory) initialNode, coins);
 		else
-			this.node = InitializedNode.of(initialNode, gamete, coins);
+			this.node = InitializedNode.of(initialNode, coins);
 	}
 
 	protected final void setNodeRedGreen(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		if (initialNode instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) initialNode, gamete, coins);
+			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) initialNode, coins);
 		else
-			this.node = InitializedNode.ofRedGreen(initialNode, gamete, coins);
+			this.node = InitializedNode.ofRedGreen(initialNode, coins);
 	}
 
 	protected final void setNode(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		if (initialNode instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.of((NodeWithHistory) initialNode, gamete, pathOfExample(jar), coins);
+			this.node = InitializedNodeWithHistory.of((NodeWithHistory) initialNode, pathOfExample(jar), coins);
 		else
-			this.node = InitializedNode.of(initialNode, gamete, pathOfExample(jar), coins);
+			this.node = InitializedNode.of(initialNode, pathOfExample(jar), coins);
 	}
 
 	protected final void setNodeRedGreen(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		if (initialNode instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) initialNode, gamete, pathOfExample(jar), coins);
+			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) initialNode, pathOfExample(jar), coins);
 		else
-			this.node = InitializedNode.ofRedGreen(initialNode, gamete, pathOfExample(jar), coins);
+			this.node = InitializedNode.ofRedGreen(initialNode, pathOfExample(jar), coins);
 	}
 
 	protected final TransactionReference takamakaCode() {
