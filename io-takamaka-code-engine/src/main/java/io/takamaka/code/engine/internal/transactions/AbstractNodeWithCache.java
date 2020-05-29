@@ -45,4 +45,12 @@ public abstract class AbstractNodeWithCache {
 	 * @return the response
 	 */
 	public abstract TransactionResponse getResponseUncommittedAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
+
+	/**
+	 * Determines if this node is initialized, that is, a (possibly still uncommitted)
+	 * initialization transaction has been run already on this node.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected abstract boolean isInitialized();
 }

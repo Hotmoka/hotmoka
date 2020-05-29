@@ -87,17 +87,17 @@ public abstract class TakamakaTest {
 	static {
 		try {
 			io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-			initialNode = io.hotmoka.tendermint.TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+			initialNode = io.hotmoka.tendermint.TendermintBlockchain.of(config);
 			//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-			//initialNode = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
+			//initialNode = io.hotmoka.memory.MemoryBlockchain.of(config);
 
-			TransactionReference takamakaCode = initialNode.takamakaCode();
+			TransactionReference takamakaCode = initialNode.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"))));
 			// the gamete has both red and green coins, enough for all tests
 			gamete = initialNode.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
 			StorageReference manifest = initialNode.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
 			initialNode.addInitializationTransaction(new InitializationTransactionRequest(takamakaCode, manifest));
-			System.out.println("manifest: " + initialNode.manifest());
+			System.out.println("manifest: " + initialNode.getManifest());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -134,7 +134,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected final TransactionReference takamakaCode() {
-		return node.takamakaCode();
+		return node.getTakamakaCode();
 	}
 
 	protected final TransactionReference jar() {
@@ -150,7 +150,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException {
-		return node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(false, jar, dependencies));
+		return node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies));
 	}
 
 	/**

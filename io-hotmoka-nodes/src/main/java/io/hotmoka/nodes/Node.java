@@ -34,8 +34,10 @@ public interface Node extends AutoCloseable {
 
 	/**
 	 * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.
+	 * 
+	 * @throws NoSuchElementException if the node has not been initialized yet
 	 */
-	TransactionReference takamakaCode();
+	TransactionReference getTakamakaCode() throws NoSuchElementException;
 
 	/**
 	 * Yields the manifest installed in the store of the node. The manifest is an object of type
@@ -45,7 +47,7 @@ public interface Node extends AutoCloseable {
 	 * @return the reference to the node
 	 * @throws NoSuchElementException if no manifest has been set for this node
 	 */
-	StorageReference manifest() throws NoSuchElementException;
+	StorageReference getManifest() throws NoSuchElementException;
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.

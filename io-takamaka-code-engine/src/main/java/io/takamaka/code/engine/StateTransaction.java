@@ -12,10 +12,8 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.updates.Update;
@@ -58,11 +56,6 @@ public abstract class StateTransaction {
 
 		if (response instanceof TransactionResponseWithUpdates)
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
-
-		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode) {
-			node.setUncommittedTakamakaCode(reference);
-			setTakamakaCode(reference);
-		}
 
 		if (response instanceof InitializationTransactionResponse)
 			initialize(((InitializationTransactionRequest) request).manifest);

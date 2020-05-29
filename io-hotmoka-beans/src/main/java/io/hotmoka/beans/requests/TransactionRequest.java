@@ -68,7 +68,6 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			return new InstanceMethodCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
 		case JarStoreInitialTransactionRequest.SELECTOR: {
-			boolean setAsTakamakaCode = ois.readBoolean();
 			int jarLength = ois.readInt();
 			byte[] jar = new byte[jarLength];
 			if (jarLength != ois.readNBytes(jar, 0, jarLength))
@@ -76,7 +75,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 
 			TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois);
 
-			return new JarStoreInitialTransactionRequest(setAsTakamakaCode, jar, dependencies);
+			return new JarStoreInitialTransactionRequest(jar, dependencies);
 		}
 		case JarStoreTransactionRequest.SELECTOR: {
 			StorageReference caller = StorageReference.from(ois);

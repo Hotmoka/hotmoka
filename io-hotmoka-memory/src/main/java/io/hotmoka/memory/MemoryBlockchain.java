@@ -1,9 +1,5 @@
 package io.hotmoka.memory;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
 import io.hotmoka.nodes.NodeWithHistory;
 
@@ -20,13 +16,9 @@ public interface MemoryBlockchain extends NodeWithHistory {
 	 * Yields a blockchain in disk memory.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param takamakaCodePath the path where the base Takamaka classes can be found. They will be
-	 *                         installed in blockchain and will be available later as {@link io.hotmoka.memory.MemoryBlockchain#takamakaCode()}
-	 * @throws TransactionRejectedException if the initialization transaction that stores {@code takamakaCode} fails
-	 * @throws IOException if {@code takamakaCode} cannot be accessed
 	 */
-	static MemoryBlockchain of(Config config, Path takamakaCodePath) throws TransactionRejectedException, IOException {
-		return new MemoryBlockchainImpl(config, takamakaCodePath);
+	static MemoryBlockchain of(Config config) {
+		return new MemoryBlockchainImpl(config);
 	}
 
 }

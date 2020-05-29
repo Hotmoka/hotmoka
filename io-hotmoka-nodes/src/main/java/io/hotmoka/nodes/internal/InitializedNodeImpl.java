@@ -93,7 +93,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	public InitializedNodeImpl(Node parent, StorageReference payer, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		this.parent = parent;
 
-		TransactionReference takamakaCode = takamakaCode();
+		TransactionReference takamakaCode = getTakamakaCode();
 		
 		BigInteger nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(payer, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
@@ -158,13 +158,18 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageReference manifest() throws NoSuchElementException {
-		return parent.manifest();
+	public StorageReference getManifest() throws NoSuchElementException {
+		return parent.getManifest();
 	}
 
 	@Override
-	public TransactionReference takamakaCode() {
-		return parent.takamakaCode();
+	public TransactionReference getTakamakaCode() {
+		return parent.getTakamakaCode();
+	}
+
+	@Override
+	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
+		return parent.getClassTag(reference);
 	}
 
 	@Override
@@ -240,11 +245,6 @@ public class InitializedNodeImpl implements InitializedNode {
 	@Override
 	public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return parent.postStaticMethodCallTransaction(request);
-	}
-
-	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
-		return parent.getClassTag(reference);
 	}
 
 	@Override

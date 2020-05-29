@@ -75,20 +75,15 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
 
 	/**
-	 * Builds a blockchain in disk memory, installs some jars in blockchain
-	 * and initializes user accounts with the given initial funds.
+	 * Builds a blockchain in disk memory.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param takamakaCode the path where the base Takamaka classes can be found. They will be
-	 *                     installed in blockchain and will be available later as {@linkplain #takamakaCode()}
-	 * @throws TransactionRejectedException if the initialization transaction that stores {@code takamakaCode} fails
 	 */
-	public MemoryBlockchainImpl(Config config, Path takamakaCode) throws TransactionRejectedException {
+	public MemoryBlockchainImpl(Config config) {
 		super(config);
 
 		try {
 			this.mempool = new Mempool(this);
-			installInitialJar(takamakaCode);
 		}
 		catch (Exception e) {
 			logger.error("failed creating memory blockchain", e);
@@ -101,15 +96,12 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 				throw InternalFailureException.of(e1);
 			}
 
-			if (e instanceof TransactionRejectedException)
-				throw (TransactionRejectedException) e;
-			else
-				throw InternalFailureException.of(e);
+			throw InternalFailureException.of(e);
 		}
 	}
 
 	@Override
-	public StorageReference manifest() throws NoSuchElementException {
+	public StorageReference getManifest() throws NoSuchElementException {
 		StorageReference result = manifest.get();
 		if (result != null)
 			return result;
@@ -129,7 +121,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
-	public boolean isInitialized() {
+	protected boolean isInitialized() {
 		return manifest.get() != null;
 	}
 
@@ -225,6 +217,14 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	}
 
 	@Override
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		if (errorMessage.length() > config.maxErrorLength)
+			errorMessage = errorMessage.substring(0, config.maxErrorLength) + "...";
+	
+		errors.put(reference, errorMessage);
+	}
+
+	@Override
 	protected TransactionRequest<?> getRequest(TransactionReference reference) {
 		try {
 			Path response = getPathFor(reference, "request");
@@ -271,14 +271,6 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 			logger.error("unexpected exception " + e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	@Override
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		if (errorMessage.length() > config.maxErrorLength)
-			errorMessage = errorMessage.substring(0, config.maxErrorLength) + "...";
-
-		errors.put(reference, errorMessage);
 	}
 
 	/**

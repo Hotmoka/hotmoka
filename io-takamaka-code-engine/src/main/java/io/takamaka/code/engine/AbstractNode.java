@@ -21,7 +21,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -72,6 +71,7 @@ import io.takamaka.code.engine.internal.transactions.AbstractNodeWithCache;
  * Specific implementations can subclass this and implement the abstract template methods.
  */
 public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCache implements NodeWithHistory {
+	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
 	 * The configuration of the node.
@@ -110,19 +110,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	private final HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
 
 	/**
-	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
-	 * This is copy of information in the state, for efficiency.
-	 */
-	private final AtomicReference<TransactionReference> uncommittedTakamakaCode = new AtomicReference<>();
-
-	/**
-	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
-	 * This is copy of information in the state, for efficiency. This is the same
-	 * as {@linkplain #uncommittedTakamakaCode}, but it's only set if the transaction has been committed.
-	 */
-	private final AtomicReference<TransactionReference> takamakaCode = new AtomicReference<>();
-
-	/**
 	 * The time spent for checking requests.
 	 */
 	private final AtomicLong checkTime = new AtomicLong();
@@ -131,8 +118,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * The time spent for delivering transactions.
 	 */
 	private final AtomicLong deliverTime = new AtomicLong();
-
-	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
 	 * The array of hexadecimal digits.
@@ -238,12 +223,22 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	protected abstract void postTransaction(TransactionRequest<?> request);
 
 	/**
-	 * Determines if this node is initialized, that is, a (possibly still uncommitted)
-	 * initialization transaction has been run already on this node.
+	 * Expands the store of this node with a transaction.
 	 * 
-	 * @return true if and only if that condition holds
+	 * @param reference the reference of the request
+	 * @param request the request of the transaction
+	 * @param response the response of the transaction
 	 */
-	public abstract boolean isInitialized();
+	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+
+	/**
+	 * Expands the store of this node with a transaction that could not be delivered since an error occurred.
+	 * 
+	 * @param reference the reference of the request
+	 * @param request the request
+	 * @param errorMessage an description of why delivering failed
+	 */
+	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage);
 
 	/**
 	 * Yields the hashing algorithm that must be used for hashing
@@ -254,48 +249,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	protected HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests() throws NoSuchAlgorithmException {
 		return HashingAlgorithm.sha256();
-	}
-
-	/**
-	 * Expands the store of this node with a transaction. If this method is redefined in
-	 * subclasses, such redefinitions must call into this at their end.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
-	 */
-	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
-
-	/**
-	 * Expands the store of this node with a transaction that could not be delivered
-	 * since an error occurred.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request
-	 * @param errorMessage an description of why delivering failed
-	 */
-	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-	}
-
-	/**
-	 * Installs the given jar in the store of the node, with an initial jar store transaction.
-	 * 
-	 * @param jar the jar to install
-	 * @throws TransactionRejectedException if the initial jar store transaction throws this
-	 * @throws IOException if {@code jar} cannot be accessed
-	 */
-	protected final void installInitialJar(Path jar) throws TransactionRejectedException, IOException {
-		addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(true, Files.readAllBytes(jar)));
-	}
-
-	/**
-	 * Sets the classpath were the basic Takamaka classes are stored,
-	 * but only if it was not previously set.
-	 * 
-	 * @param classpath the value to set
-	 */
-	protected final void setTakamakaCodeIfUndefined(TransactionReference classpath) {
-		takamakaCode.compareAndSet(null, classpath);
 	}
 
 	@Override
@@ -417,18 +370,8 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	@Override
-	public final TransactionReference takamakaCode() {
-		TransactionReference result = takamakaCode.get();
-		if (result != null)
-			return result;
-
-		result = uncommittedTakamakaCode.get();
-		if (result != null && isCommitted(result)) {
-			takamakaCode.set(result);
-			return result;
-		}
-		else
-			return null;
+	public final TransactionReference getTakamakaCode() throws NoSuchElementException {
+		return getClassTag(getManifest()).jar;
 	}
 
 	@Override
@@ -736,15 +679,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		TransactionReference[] historyAsArray = history.toArray(new TransactionReference[history.size()]);
 		setHistory.accept(object, history.stream());
 		historyCache.put(object, historyAsArray);
-	}
-
-	/**
-	 * Sets the uncommitted classpath of the Takamaka basic classes.
-	 * 
-	 * @param takamakaCode the classpath to set
-	 */
-	void setUncommittedTakamakaCode(TransactionReference takamakaCode) {
-		uncommittedTakamakaCode.set(takamakaCode);
 	}
 
 	/**

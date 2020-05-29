@@ -74,8 +74,8 @@ public class StartNode {
 		copyRecursively(Paths.get(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
 
 		if (takamakaCode != null) {
-			try (TendermintBlockchain blockchain = TendermintBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"))) {
-				StorageReference gamete = blockchain.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(blockchain.takamakaCode(), BigInteger.valueOf(999_999_999), BigInteger.valueOf(999_999_999)));
+			try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
+				StorageReference gamete = blockchain.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(blockchain.getTakamakaCode(), BigInteger.valueOf(999_999_999), BigInteger.valueOf(999_999_999)));
 
 				try (InitializedNode node = InitializedNode.of(blockchain, gamete, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000))) {
 					Random random = new Random();
@@ -93,10 +93,10 @@ public class StartNode {
 						int amount = 1 + random.nextInt(10);
 						//System.out.println(amount + ": " + from + " -> " + to);
 						if (i < TRANSFERS - 1)
-							postTransferTransaction(node, from, ZERO, node.takamakaCode(), to, amount);
+							postTransferTransaction(node, from, ZERO, node.getTakamakaCode(), to, amount);
 						else
 							// the last transaction requires to wait until everything is committed
-							addTransferTransaction(node, from, ZERO, node.takamakaCode(), to, amount);
+							addTransferTransaction(node, from, ZERO, node.getTakamakaCode(), to, amount);
 					}
 
 					long time = System.currentTimeMillis() - start;
@@ -105,13 +105,13 @@ public class StartNode {
 					// we compute the sum of the balances of the accounts
 					BigInteger sum = ZERO;
 					for (int i = 0; i < ACCOUNTS; i++)
-						sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(node, node.account(0), _10_000, ZERO, node.takamakaCode(), GET_BALANCE, node.account(i))).value);
+						sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(node, node.account(0), _10_000, ZERO, node.getTakamakaCode(), GET_BALANCE, node.account(i))).value);
 
 					// no money got lost in translation
 					System.out.println(sum + " should be " + ACCOUNTS * 200_000);
 
 					while (true) {
-						System.out.println(node.takamakaCode());
+						System.out.println(node.getTakamakaCode());
 						Thread.sleep(1000);
 					}
 				}
@@ -120,7 +120,7 @@ public class StartNode {
 		else {
 			try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
 				while (true) {
-					System.out.println(node.takamakaCode());
+					System.out.println(node.getTakamakaCode());
 					Thread.sleep(1000);
 				}
 			}

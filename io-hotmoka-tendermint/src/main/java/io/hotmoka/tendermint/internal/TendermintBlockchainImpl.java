@@ -1,6 +1,5 @@
 package io.hotmoka.tendermint.internal;
 
-import java.nio.file.Path;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -27,6 +26,7 @@ import io.takamaka.code.engine.AbstractNode;
  * its state in a transactional database implemented by the {@linkplain State} class.
  */
 public class TendermintBlockchainImpl extends AbstractNode<Config> implements TendermintBlockchain {
+	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
 
 	/**
 	 * The GRPC server that runs the ABCI process.
@@ -53,21 +53,13 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	 */
 	private volatile long now;
 
-	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
-
 	/**
-	 * Builds a Tendermint blockchain and installs a jar in it.
-	 * This constructor spawns the Tendermint process on localhost and connects it to an ABCI application
-	 * for handling its transactions.
+	 * Builds a Tendermint blockchain. This constructor spawns the Tendermint process on localhost
+	 * and connects it to an ABCI application for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
-	 * @param takamakaCode the path where the base Takamaka classes can be found. If present, it will be
-	 *                     installed in blockchain and will be available later as {@linkplain #takamakaCode()}.
-	 *                     If absent, the previous jar installed to that purpose will be used, if the
-	 *                     directory of the blockchain has not been deleted
-	 * @throws TransactionRejectedException if some initialization transaction failed
 	 */
-	public TendermintBlockchainImpl(Config config, Optional<Path> takamakaCode) throws TransactionRejectedException {
+	public TendermintBlockchainImpl(Config config) {
 		super(config);
 
 		try {
@@ -76,10 +68,7 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 			this.abci.start();
 			this.tendermint = new Tendermint(this);
 
-			if (takamakaCode.isPresent())
-				installInitialJar(takamakaCode.get());
-			else
-				setTakamakaCodeIfUndefined(state.getTakamakaCode().orElse(null));
+			//setTakamakaCodeIfUndefined(state.getTakamakaCode().orElse(null));
 		}
 		catch (Exception e) {
 			logger.error("failed creating the Tendermint blockchain", e);
@@ -91,10 +80,7 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 				logger.error("cannot close the blockchain", e1);
 			}
 
-			if (e instanceof TransactionRejectedException)
-				throw (TransactionRejectedException) e;
-			else
-				throw InternalFailureException.of(e);
+			throw InternalFailureException.of(e);
 		}
 	}
 
@@ -124,17 +110,17 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	}
 
 	@Override
-	public boolean isInitialized() {
-		return state.getManifest().isPresent();
-	}
-
-	@Override
-	public StorageReference manifest() throws NoSuchElementException {
+	public StorageReference getManifest() throws NoSuchElementException {
 		Optional<StorageReference> manifest = state.getManifest();
 		if (!manifest.isPresent() && !isCommitted(manifest.get().transaction))
 			throw new NoSuchElementException("no manifest set for this node");
-
+	
 		return manifest.get();
+	}
+
+	@Override
+	protected boolean isInitialized() {
+		return state.getManifest().isPresent();
 	}
 
 	@Override
@@ -210,6 +196,11 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		state.expand(this, reference, request, response);
+	}
+
+	@Override
+	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		// nothing to do, since Tendermint keeps the error message inside the blockchain, in the field "data" of its transactions
 	}
 
 	/**
