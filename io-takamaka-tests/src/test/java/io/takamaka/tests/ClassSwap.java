@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
@@ -50,12 +49,12 @@ class ClassSwap extends TakamakaTest {
 	/**
 	 * The classpath for the class C whose method get() yields 13.
 	 */
-	private Classpath classpathC13;
+	private TransactionReference classpathC13;
 
 	/**
 	 * The classpath for the class C whose method get() yields 17.
 	 */
-	private Classpath classpathC17;
+	private TransactionReference classpathC17;
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -68,8 +67,8 @@ class ClassSwap extends TakamakaTest {
 		TransactionReference c17 = addJarStoreTransaction
 			(account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c17.jar")), takamakaCode());
 
-		classpathC13 = new Classpath(c13.get(), true);
-		classpathC17 = new Classpath(c17, true);
+		classpathC13 = c13.get();
+		classpathC17 = c17;
 	}
 
 	@Test @DisplayName("c13 new/get works in its classpath")

@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -26,7 +26,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	/**
 	 * The dependencies of the jar, already installed in blockchain
 	 */
-	private final Classpath[] dependencies;
+	private final TransactionReference[] dependencies;
 
 	/**
 	 * Builds the transaction request.
@@ -39,7 +39,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
-	public JarStoreTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, byte[] jar, Classpath... dependencies) {
+	public JarStoreTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.jar = jar.clone();
@@ -57,7 +57,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	}
 
 	@Override
-	public Stream<Classpath> getDependencies() {
+	public Stream<TransactionReference> getDependencies() {
 		return Stream.of(dependencies);
 	}
 

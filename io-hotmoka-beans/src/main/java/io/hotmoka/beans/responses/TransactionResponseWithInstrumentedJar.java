@@ -2,7 +2,7 @@ package io.hotmoka.beans.responses;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 
 /**
  * A response for a transaction that successfully installed a jar in the blockchain.
@@ -28,5 +28,5 @@ public interface TransactionResponseWithInstrumentedJar {
 	 * 
 	 * @return the dependencies
 	 */
-	Stream<Classpath> getDependencies();
+	Stream<TransactionReference> getDependencies();
 }

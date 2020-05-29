@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 
@@ -27,7 +26,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	 * The dependencies of the jar, previously installed in blockchain.
 	 * This is a copy of the same information contained in the request.
 	 */
-	private final Classpath[] dependencies;
+	private final TransactionReference[] dependencies;
 
 	/**
 	 * Builds the transaction response.
@@ -39,11 +38,11 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<Classpath> dependencies, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.instrumentedJar = instrumentedJar.clone();
-		this.dependencies = dependencies.toArray(Classpath[]::new);
+		this.dependencies = dependencies.toArray(TransactionReference[]::new);
 	}
 
 	@Override
@@ -57,7 +56,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreTransactionRe
 	}
 
 	@Override
-	public Stream<Classpath> getDependencies() {
+	public Stream<TransactionReference> getDependencies() {
 		return Stream.of(dependencies);
 	}
 

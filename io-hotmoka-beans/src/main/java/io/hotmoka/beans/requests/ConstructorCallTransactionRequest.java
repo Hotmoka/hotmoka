@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -35,7 +35,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @param constructor the constructor that must be called
 	 * @param actuals the actual arguments passed to the constructor
 	 */
-	public ConstructorCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, ConstructorSignature constructor, StorageValue... actuals) {
+	public ConstructorCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
 		this.constructor = constructor;

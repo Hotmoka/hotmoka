@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -154,7 +153,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 			}
 
 			@Override
-			protected void setTakamakaCode(Classpath takamakaCode) {
+			protected void setTakamakaCode(TransactionReference takamakaCode) {
 			}
 
 			@Override

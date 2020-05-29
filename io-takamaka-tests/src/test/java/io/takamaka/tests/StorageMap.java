@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -58,7 +58,7 @@ class StorageMap extends TakamakaTest {
 	/**
 	 * The classpath of the classes being tested.
 	 */
-	private Classpath classpath;
+	private TransactionReference classpath;
 
 	@BeforeEach
 	void beforeEach() throws Exception {

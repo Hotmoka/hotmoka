@@ -7,7 +7,7 @@ import java.math.BigInteger;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -38,7 +38,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
-			Classpath classpath = Classpath.from(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
 			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
 			ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(ois);
@@ -46,7 +46,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			return new ConstructorCallTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, constructor, actuals);
 		}
 		case GameteCreationTransactionRequest.SELECTOR: {
-			Classpath classpath = Classpath.from(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger initialAmount = unmarshallBigInteger(ois);
 			return new GameteCreationTransactionRequest(classpath, initialAmount);
 		}
@@ -54,7 +54,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
-			Classpath classpath = Classpath.from(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
 			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
 			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
@@ -69,7 +69,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (jarLength != ois.readNBytes(jar, 0, jarLength))
 				throw new IOException("jar length mismatch in request");
 
-			Classpath[] dependencies = unmarshallingOfArray(Classpath::from, Classpath[]::new, ois);
+			TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois);
 
 			return new JarStoreInitialTransactionRequest(setAsTakamakaCode, jar, dependencies);
 		}
@@ -77,7 +77,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
-			Classpath classpath = Classpath.from(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
 
 			int jarLength = ois.readInt();
@@ -85,12 +85,12 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (jarLength != ois.readNBytes(jar, 0, jarLength))
 				throw new IOException("jar length mismatch in request");
 
-			Classpath[] dependencies = unmarshallingOfArray(Classpath::from, Classpath[]::new, ois);
+			TransactionReference[] dependencies = unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois);
 
 			return new JarStoreTransactionRequest(caller, nonce, gasLimit, gasPrice, classpath, jar, dependencies);
 		}
 		case RedGreenGameteCreationTransactionRequest.SELECTOR: {
-			Classpath classpath = Classpath.from(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger initialAmount = unmarshallBigInteger(ois);
 			BigInteger redInitialAmount = unmarshallBigInteger(ois);
 
@@ -100,7 +100,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
-			Classpath classpath = Classpath.from(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
 			StorageValue[] actuals = unmarshallingOfArray(StorageValue::from, StorageValue[]::new, ois);
 			MethodSignature method = (MethodSignature) CodeSignature.from(ois);
@@ -110,7 +110,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		case TransferTransactionRequest.SELECTOR_TRANSFER_INT: {
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
-			Classpath classpath = Classpath.from(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
 			StorageReference receiver = StorageReference.from(ois);
 			int howMuch = ois.readInt();
@@ -120,7 +120,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		case TransferTransactionRequest.SELECTOR_TRANSFER_LONG: {
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
-			Classpath classpath = Classpath.from(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
 			StorageReference receiver = StorageReference.from(ois);
 			long howMuch = ois.readLong();
@@ -130,7 +130,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		case TransferTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER: {
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasPrice = unmarshallBigInteger(ois);
-			Classpath classpath = Classpath.from(ois);
+			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger nonce = unmarshallBigInteger(ois);
 			StorageReference receiver = StorageReference.from(ois);
 			BigInteger howMuch = unmarshallBigInteger(ois);

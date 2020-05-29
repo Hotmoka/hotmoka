@@ -6,7 +6,6 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -15,6 +14,7 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -34,7 +34,16 @@ public interface Node extends AutoCloseable {
 	/**
 	 * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.
 	 */
-	Classpath takamakaCode();
+	TransactionReference takamakaCode();
+
+	/**
+	 * Yields the class tag of the object with the given storage reference.
+	 * 
+	 * @param reference the storage reference
+	 * @return the class tag, if any
+	 * @throws NoSuchElementException if the class tag could not be found
+	 */
+	ClassTag getClassTag(StorageReference reference) throws NoSuchElementException;
 
 	/**
 	 * Yields the current state of the object at the given storage reference.

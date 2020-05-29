@@ -3,7 +3,7 @@ package io.hotmoka.beans.requests;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 
 /**
  * A request for a transaction that installs a jar in a node.
@@ -31,5 +31,5 @@ public interface AbstractJarStoreTransactionRequest {
 	 * @return the dependencies, as an ordered stream. The order should be the same
 	 *         as in the arguments provided to the constructor of the request
 	 */
-	public Stream<Classpath> getDependencies();
+	public Stream<TransactionReference> getDependencies();
 }

@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -38,7 +37,7 @@ class Exceptions extends TakamakaTest {
 		TransactionReference exceptions = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, new Classpath(exceptions, true), new VoidMethodSignature("io.takamaka.tests.errors.exceptions.C", "foo1"));
+			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.takamaka.tests.errors.exceptions.C", "foo1"));
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);
@@ -51,7 +50,7 @@ class Exceptions extends TakamakaTest {
 		TransactionReference exceptions = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, new Classpath(exceptions, true), new VoidMethodSignature("io.takamaka.tests.errors.exceptions.C", "foo2", ClassType.OBJECT), NullValue.INSTANCE);
+			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.takamaka.tests.errors.exceptions.C", "foo2", ClassType.OBJECT), NullValue.INSTANCE);
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);

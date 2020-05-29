@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -28,7 +28,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
 	 */
-	public StaticMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageValue... actuals) {
+	public StaticMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 	}
 

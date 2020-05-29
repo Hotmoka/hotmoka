@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -284,9 +283,9 @@ class State implements AutoCloseable {
 	 * 
 	 * @return the classpath
 	 */
-	Optional<Classpath> getTakamakaCode() {
+	Optional<TransactionReference> getTakamakaCode() {
 		ByteIterable takamakaCode = getFromInfo(TAKAMAKA_CODE);
-		return takamakaCode == null ? Optional.empty() : Optional.of(fromByteArray(Classpath::from, takamakaCode));
+		return takamakaCode == null ? Optional.empty() : Optional.of(fromByteArray(TransactionReference::from, takamakaCode));
 	}
 
 	boolean isInitialized() {
@@ -328,7 +327,7 @@ class State implements AutoCloseable {
 			}
 
 			@Override
-			protected void setTakamakaCode(Classpath takamakaCode) {
+			protected void setTakamakaCode(TransactionReference takamakaCode) {
 				recordTime(() -> info.put(txn, TAKAMAKA_CODE, intoByteArray(takamakaCode)));
 			}
 

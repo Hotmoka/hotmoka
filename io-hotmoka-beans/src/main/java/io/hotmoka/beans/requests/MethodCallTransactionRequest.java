@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -34,7 +34,7 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
 	 */
-	protected MethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageValue... actuals) {
+	protected MethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 		
 		this.method = method;

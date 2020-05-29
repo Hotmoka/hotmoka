@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
@@ -56,7 +56,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @param receiver the receiver of the call
 	 * @param howMuch how much coins must be transferred
 	 */
-	public TransferTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasPrice, Classpath classpath, StorageReference receiver, BigInteger howMuch) {
+	public TransferTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, BigInteger howMuch) {
 		super(caller, nonce, GAS_LIMIT, gasPrice, classpath, receiveBigInteger, receiver, new BigIntegerValue(howMuch));
 	}
 
@@ -70,7 +70,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @param receiver the receiver of the call
 	 * @param howMuch how much coins must be transferred
 	 */
-	public TransferTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasPrice, Classpath classpath, StorageReference receiver, int howMuch) {
+	public TransferTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) {
 		super(caller, nonce, GAS_LIMIT, gasPrice, classpath, receiveInt, receiver, new IntValue(howMuch));
 	}
 
@@ -84,7 +84,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @param receiver the receiver of the call
 	 * @param howMuch how much coins must be transferred
 	 */
-	public TransferTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasPrice, Classpath classpath, StorageReference receiver, long howMuch) {
+	public TransferTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, long howMuch) {
 		super(caller, nonce, GAS_LIMIT, gasPrice, classpath, receiveLong, receiver, new LongValue(howMuch));
 	}
 

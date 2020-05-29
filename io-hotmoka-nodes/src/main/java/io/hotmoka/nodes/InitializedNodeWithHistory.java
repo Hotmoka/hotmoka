@@ -3,12 +3,10 @@ package io.hotmoka.nodes;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
-import java.util.Optional;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.internal.InitializedNodeWithHistoryImpl;
 
@@ -17,19 +15,6 @@ import io.hotmoka.nodes.internal.InitializedNodeWithHistoryImpl;
  * a predefined set of accounts. This is a useful interface for writing tests.
  */
 public interface InitializedNodeWithHistory extends NodeWithHistory, InitializedNode {
-
-	/**
-	 * Yields the reference, in the store of the node, where the a user jar has been installed, if any.
-	 */
-	Optional<Classpath> jar();
-
-	/**
-	 * Yields the {@code i}th account.
-	 * 
-	 * @param i the account number
-	 * @return the reference to the account, in the store of the node. This is a {@link #io.takamaka.code.lang.TestExternallyOwnedAccount}}
-	 */
-	StorageReference account(int i);
 
 	/**
 	 * Yields a decorated node initialized with the given jar and a set of accounts.

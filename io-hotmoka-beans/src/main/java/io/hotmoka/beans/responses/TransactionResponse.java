@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -34,7 +34,7 @@ public abstract class TransactionResponse extends Marshallable {
 		}
 		case JarStoreInitialTransactionResponse.SELECTOR: {
 			byte[] instrumentedJar = instrumentedJarFrom(ois);
-			Stream<Classpath> dependencies = Stream.of(unmarshallingOfArray(Classpath::from, Classpath[]::new, ois));
+			Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
 			return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies);
 		}
 		case JarStoreTransactionFailedResponse.SELECTOR: {
@@ -53,7 +53,7 @@ public abstract class TransactionResponse extends Marshallable {
 			BigInteger gasConsumedForRAM = unmarshallBigInteger(ois);
 			BigInteger gasConsumedForStorage = unmarshallBigInteger(ois);
 			byte[] instrumentedJar = instrumentedJarFrom(ois);
-			Stream<Classpath> dependencies = Stream.of(unmarshallingOfArray(Classpath::from, Classpath[]::new, ois));
+			Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
 			return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		}
 		case ConstructorCallTransactionExceptionResponse.SELECTOR: {

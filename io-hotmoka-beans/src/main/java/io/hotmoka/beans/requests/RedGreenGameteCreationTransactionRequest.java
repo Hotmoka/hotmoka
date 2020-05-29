@@ -6,7 +6,7 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 
 /**
@@ -20,7 +20,7 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 	 * The reference to the jar containing the basic Takamaka classes. This must
 	 * have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}.
 	 */
-	public final Classpath classpath;
+	public final TransactionReference classpath;
 
 	/**
 	 * The amount of coin provided to the gamete.
@@ -42,7 +42,7 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 	 * @param initialAmount the amount of green coins provided to the gamete
 	 * @param redInitialAmount the amount of red coins provided to the gamete
 	 */
-	public RedGreenGameteCreationTransactionRequest(Classpath classpath, BigInteger initialAmount, BigInteger redInitialAmount) {
+	public RedGreenGameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount) {
 		this.classpath = classpath;
 		this.initialAmount = initialAmount;
 		this.redInitialAmount = redInitialAmount;

@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
@@ -134,7 +133,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(Classpath classpath, AbstractNodeWithCache node) throws Exception {
+	public EngineClassLoader(TransactionReference classpath, AbstractNodeWithCache node) throws Exception {
 		this(null, Stream.of(classpath), node);
 	}
 
@@ -146,7 +145,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @throws Exception if an error occurs
 	 */
-	public EngineClassLoader(byte[] jar, Stream<Classpath> dependencies, AbstractNodeWithCache node) throws Exception {
+	public EngineClassLoader(byte[] jar, Stream<TransactionReference> dependencies, AbstractNodeWithCache node) throws Exception {
 		List<byte[]> jars = new ArrayList<>();
 		List<TransactionReference> transactionsOfJars = new ArrayList<>();
 		this.parent = mkTakamakaClassLoader(dependencies, jar, node, jars, transactionsOfJars);
@@ -190,13 +189,13 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @return the class loader
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<Classpath> classpaths, byte[] start, AbstractNodeWithCache node, List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws Exception {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> classpaths, byte[] start, AbstractNodeWithCache node, List<byte[]> jars, List<TransactionReference> transactionsOfJars) throws Exception {
 		if (start != null) {
 			jars.add(start);
 			transactionsOfJars.add(null);
 		}
 
-		for (Classpath classpath: classpaths.toArray(Classpath[]::new))
+		for (TransactionReference classpath: classpaths.toArray(TransactionReference[]::new))
 			addJars(classpath, jars, transactionsOfJars, node);
 
 		TransactionReference[] jarTransactionsAsArray = transactionsOfJars.toArray(new TransactionReference[transactionsOfJars.size()]);
@@ -219,26 +218,25 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private void addJars(Classpath classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractNodeWithCache node) throws Exception {
+	private void addJars(TransactionReference classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractNodeWithCache node) throws Exception {
 		if (jars.size() > MAX_DEPENDENCIES)
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + MAX_DEPENDENCIES);
 
 		if (jars.stream().mapToLong(bytes -> bytes.length).sum() > MAX_SIZE_OF_DEPENDENCIES)
 			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + MAX_SIZE_OF_DEPENDENCIES + " bytes");
 
-		TransactionResponse response = node.getResponseUncommittedAt(classpath.transaction);
+		TransactionResponse response = node.getResponseUncommittedAt(classpath);
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
-			throw new IllegalStateException("expected a jar store response at " + classpath.transaction);
+			throw new IllegalStateException("expected a jar store response at " + classpath);
 
 		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = (TransactionResponseWithInstrumentedJar) response;
 
-		// if the class path is recursive, we consider its dependencies as well, recursively
-		if (classpath.recursive)
-			for (Classpath dependency: responseWithInstrumentedJar.getDependencies().toArray(Classpath[]::new))
-				addJars(dependency, jars, jarTransactions, node);
+		// we consider its dependencies as well, recursively
+		for (TransactionReference dependency: responseWithInstrumentedJar.getDependencies().toArray(TransactionReference[]::new))
+			addJars(dependency, jars, jarTransactions, node);
 
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
-		jarTransactions.add(classpath.transaction);
+		jarTransactions.add(classpath);
 	}
 
 	/**

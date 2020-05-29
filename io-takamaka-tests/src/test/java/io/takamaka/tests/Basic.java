@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -65,14 +65,14 @@ class Basic extends TakamakaTest {
 	/**
 	 * The classpath of the classes being tested.
 	 */
-	private Classpath classpath;
+	private TransactionReference classpath;
 
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setNode("basicdependency.jar", ALL_FUNDS, BigInteger.ZERO);
 		master = account(0);
 		// true relevant below
-		classpath = new Classpath(addJarStoreTransaction(master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), new Classpath(jar().transaction, true)), true);
+		classpath = addJarStoreTransaction(master, BigInteger.valueOf(10000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 
 	@Test @DisplayName("new InternationalTime(13,25,40).toString().equals(\"13:25:40\")")

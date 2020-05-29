@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -29,6 +28,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -51,7 +51,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	/**
 	 * The classpath of a user jar that has been installed, if any.
 	 */
-	public final Classpath jar;
+	public final TransactionReference jar;
 
 	/**
 	 * The accounts created during initialization.
@@ -92,7 +92,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	public InitializedNodeImpl(Node parent, StorageReference payer, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		this.parent = parent;
 
-		Classpath takamakaCode = takamakaCode();
+		TransactionReference takamakaCode = takamakaCode();
 		
 		BigInteger nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(payer, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
@@ -138,11 +138,11 @@ public class InitializedNodeImpl implements InitializedNode {
 			i++;
 		}
 
-		this.jar = jarSupplier != null ? new Classpath(jarSupplier.get(), true) : null;
+		this.jar = jarSupplier != null ? jarSupplier.get() : null;
 	}
 
 	@Override
-	public Optional<Classpath> jar() {
+	public Optional<TransactionReference> jar() {
 		return Optional.ofNullable(jar);
 	}
 
@@ -157,7 +157,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public Classpath takamakaCode() {
+	public TransactionReference takamakaCode() {
 		return parent.takamakaCode();
 	}
 
@@ -234,5 +234,10 @@ public class InitializedNodeImpl implements InitializedNode {
 	@Override
 	public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return parent.postStaticMethodCallTransaction(request);
+	}
+
+	@Override
+	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
+		return parent.getClassTag(reference);
 	}
 }

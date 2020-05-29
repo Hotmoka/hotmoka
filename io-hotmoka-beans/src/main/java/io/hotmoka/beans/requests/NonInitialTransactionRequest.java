@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -30,7 +30,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	/**
 	 * The class path that specifies where the {@code caller} should be interpreted.
 	 */
-	public final Classpath classpath;
+	public final TransactionReference classpath;
 
 	/**
 	 * The nonce used for transaction ordering and to forbid transaction replay.
@@ -46,7 +46,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 */
-	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath) {
+	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath) {
 		this.caller = caller;
 		this.gasLimit = gasLimit;
 		this.gasPrice = gasPrice;

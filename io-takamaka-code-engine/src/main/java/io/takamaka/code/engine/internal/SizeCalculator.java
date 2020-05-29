@@ -2,7 +2,6 @@ package io.takamaka.code.engine.internal;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -100,13 +99,13 @@ public class SizeCalculator {
 		if (request instanceof ConstructorCallTransactionRequest)
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOfValue(request.caller))
-				.add(gasCostModel.storageCostOf(request.gasLimit)).add(sizeOfClasspath(request.classpath))
+				.add(gasCostModel.storageCostOf(request.gasLimit)).add(gasCostModel.storageCostOf(request.classpath))
 				.add(((ConstructorCallTransactionRequest) request).actuals().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
 		else if (request instanceof InstanceMethodCallTransactionRequest) {
 			InstanceMethodCallTransactionRequest instanceMethodCallTransactionRequest = (InstanceMethodCallTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOfValue(request.caller))
-				.add(gasCostModel.storageCostOf(request.gasLimit)).add(sizeOfClasspath(request.classpath))
+				.add(gasCostModel.storageCostOf(request.gasLimit)).add(gasCostModel.storageCostOf(request.classpath))
 				.add(sizeOfCodeSignature(instanceMethodCallTransactionRequest.method))
 				.add(sizeOfValue(instanceMethodCallTransactionRequest.receiver))
 				.add(instanceMethodCallTransactionRequest.actuals().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
@@ -115,15 +114,15 @@ public class SizeCalculator {
 			StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = (StaticMethodCallTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
 				.add(sizeOfValue(request.caller))
-				.add(gasCostModel.storageCostOf(request.gasLimit)).add(sizeOfClasspath(request.classpath))
+				.add(gasCostModel.storageCostOf(request.gasLimit)).add(gasCostModel.storageCostOf(request.classpath))
 				.add(sizeOfCodeSignature(staticMethodCallTransactionRequest.method))
 				.add(staticMethodCallTransactionRequest.actuals().map(this::sizeOfValue).reduce(BigInteger.ZERO, BigInteger::add));
 		}
 		else if (request instanceof JarStoreTransactionRequest) {
 			JarStoreTransactionRequest jarStoreTransactionRequest = (JarStoreTransactionRequest) request;
 			return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-				.add(sizeOfValue(request.caller)).add(gasCostModel.storageCostOf(request.gasLimit)).add(sizeOfClasspath(request.classpath))
-				.add(jarStoreTransactionRequest.getDependencies().map(this::sizeOfClasspath).reduce(BigInteger.ZERO, BigInteger::add))
+				.add(sizeOfValue(request.caller)).add(gasCostModel.storageCostOf(request.gasLimit)).add(gasCostModel.storageCostOf(request.classpath))
+				.add(jarStoreTransactionRequest.getDependencies().map(gasCostModel::storageCostOf).reduce(BigInteger.ZERO, BigInteger::add))
 				.add(gasCostModel.storageCostOfJar(jarStoreTransactionRequest.getJarLength()));
 		}
 		else
@@ -208,20 +207,6 @@ public class SizeCalculator {
 			return size;
 		else
 			throw new IllegalArgumentException("unexpected transaction response");
-	}
-
-	/**
-	 * Yields the size of the given classpath, in terms of storage consumed in store.
-	 * 
-	 * @param classpath the classpath
-	 * @return the size
-	 */
-	public BigInteger sizeOfClasspath(Classpath classpath) {
-		GasCostModel gasCostModel = builder.node.getGasCostModel();
-
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
-			.add(BigInteger.valueOf(gasCostModel.storageCostPerSlot()))
-			.add(gasCostModel.storageCostOf(classpath.transaction));
 	}
 
 	/**

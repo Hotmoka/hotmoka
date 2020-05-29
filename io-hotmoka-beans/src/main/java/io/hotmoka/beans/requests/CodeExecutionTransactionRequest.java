@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -32,7 +32,7 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param actuals the actual arguments passed to the method
 	 */
-	protected CodeExecutionTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, StorageValue... actuals) {
+	protected CodeExecutionTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.actuals = actuals;

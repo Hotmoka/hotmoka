@@ -149,8 +149,8 @@ public final class Bytes32 extends AbstractByteArray {
 		return length;
 	}
 
-	@Override
-	public @View byte get(int index) {
+	@Override @View
+	public byte get(int index) {
 		switch (index) {
 		case 0: return byte0;
 		case 1: return byte1;

@@ -8,7 +8,7 @@ import java.util.Optional;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.internal.InitializedNodeImpl;
 
@@ -21,7 +21,7 @@ public interface InitializedNode extends Node {
 	/**
 	 * Yields the reference, in the store of the node, where the a user jar has been installed, if any.
 	 */
-	Optional<Classpath> jar();
+	Optional<TransactionReference> jar();
 
 	/**
 	 * Yields the {@code i}th account.

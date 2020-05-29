@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.nodes.NonWhiteListedCallException;
@@ -35,6 +34,6 @@ class Loop2 extends TakamakaTest {
 		TransactionReference loop = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop2.jar"), takamakaCode());
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
-			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, new Classpath(loop, true), new VoidMethodSignature("io.takamaka.tests.errors.loop2.Loop", "loop")));
+			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, loop, new VoidMethodSignature("io.takamaka.tests.errors.loop2.Loop", "loop")));
 	}
 }

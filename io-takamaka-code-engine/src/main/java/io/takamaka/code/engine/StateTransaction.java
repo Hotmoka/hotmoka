@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
@@ -60,9 +59,8 @@ public abstract class StateTransaction {
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
 
 		if (response instanceof JarStoreInitialTransactionResponse && ((JarStoreInitialTransactionRequest) request).setAsTakamakaCode) {
-			Classpath takamakaCode = new Classpath(reference, true);
-			node.setUncommittedTakamakaCode(takamakaCode);
-			setTakamakaCode(takamakaCode);
+			node.setUncommittedTakamakaCode(reference);
+			setTakamakaCode(reference);
 		}
 
 		if (request instanceof NonInitialTransactionRequest && node.markAsInitialized())
@@ -87,7 +85,7 @@ public abstract class StateTransaction {
 	 * 
 	 * @param takamakaCode the classpath
 	 */
-	protected abstract void setTakamakaCode(Classpath takamakaCode);
+	protected abstract void setTakamakaCode(TransactionReference takamakaCode);
 
 	/**
 	 * Writes in store the given request and response for the given transaction reference.

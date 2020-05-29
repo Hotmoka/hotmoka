@@ -2,19 +2,21 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.math.BigInteger;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.InitializationTransactionResponse;
+import io.hotmoka.beans.values.StorageReference;
 
 /**
- * A request for creating an initial gamete.
+ * A request to initialize a node. It sets the manifest of a node.
+ * After the manifest has been set, no more initial transactions can be executed,
+ * hence the node is considered initialized. The manifest cannot be set twice.
  */
 @Immutable
-public class GameteCreationTransactionRequest extends InitialTransactionRequest<GameteCreationTransactionResponse> {
-	final static byte SELECTOR = 0;
+public class InitializationTransactionRequest extends InitialTransactionRequest<InitializationTransactionResponse> {
+	final static byte SELECTOR = 10;
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must
@@ -23,35 +25,34 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	public final TransactionReference classpath;
 
 	/**
-	 * The amount of coin provided to the gamete.
+	 * The storage reference that must be set as manifest.
 	 */
-
-	public final BigInteger initialAmount;
+	public final StorageReference manifest;
 
 	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}
-	 * @param initialAmount the amount of coin provided to the gamete
+	 * @param manifest the storage reference that must be set as manifest
 	 */
-	public GameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount) {
+	public InitializationTransactionRequest(TransactionReference classpath, StorageReference manifest) {
 		this.classpath = classpath;
-		this.initialAmount = initialAmount;
+		this.manifest = manifest;
 	}
 
 	@Override
 	public String toString() {
         return getClass().getSimpleName() + ":\n"
         	+ "  class path: " + classpath + "\n"
-        	+ "  initialAmount: " + initialAmount;
+        	+ "  manifest: " + manifest;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof GameteCreationTransactionRequest) {
-			GameteCreationTransactionRequest otherCast = (GameteCreationTransactionRequest) other;
-			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount);
+		if (other instanceof InitializationTransactionRequest) {
+			InitializationTransactionRequest otherCast = (InitializationTransactionRequest) other;
+			return classpath.equals(otherCast.classpath) && manifest.equals(otherCast.manifest);
 		}
 		else
 			return false;
@@ -59,20 +60,20 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public int hashCode() {
-		return classpath.hashCode() ^ initialAmount.hashCode();
+		return classpath.hashCode() ^ manifest.hashCode();
 	}
 
 	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		classpath.into(oos);
-		marshal(initialAmount, oos);
+		manifest.intoWithoutSelector(oos);
 	}
 
 	@Override
 	public void check() throws TransactionRejectedException {
-		if (initialAmount.signum() < 0)
-			throw new TransactionRejectedException("the gamete must be initialized with a non-negative amount of coins");
+		if (manifest == null)
+			throw new TransactionRejectedException("the manifest of a node cannot be set to null");
 
 		super.check();
 	}

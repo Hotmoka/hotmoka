@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -34,7 +34,7 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
 	 */
-	public InstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+	public InstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
 		this.receiver = receiver;

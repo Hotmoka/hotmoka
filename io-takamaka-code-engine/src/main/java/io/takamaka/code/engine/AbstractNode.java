@@ -36,7 +36,6 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -114,14 +113,14 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
 	 * This is copy of information in the state, for efficiency.
 	 */
-	private final AtomicReference<Classpath> uncommittedTakamakaCode = new AtomicReference<>();
+	private final AtomicReference<TransactionReference> uncommittedTakamakaCode = new AtomicReference<>();
 
 	/**
 	 * The reference, in the blockchain, where the base Takamaka classes have been installed.
 	 * This is copy of information in the state, for efficiency. This is the same
 	 * as {@linkplain #uncommittedTakamakaCode}, but it's only set if the transaction has been committed.
 	 */
-	private final AtomicReference<Classpath> takamakaCode = new AtomicReference<>();
+	private final AtomicReference<TransactionReference> takamakaCode = new AtomicReference<>();
 
 	/**
 	 * The time spent for checking requests.
@@ -300,7 +299,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * 
 	 * @param classpath the value to set
 	 */
-	protected final void setTakamakaCodeIfUndefined(Classpath classpath) {
+	protected final void setTakamakaCodeIfUndefined(TransactionReference classpath) {
 		takamakaCode.compareAndSet(null, classpath);
 	}
 
@@ -423,13 +422,13 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	@Override
-	public final Classpath takamakaCode() {
-		Classpath result = takamakaCode.get();
+	public final TransactionReference takamakaCode() {
+		TransactionReference result = takamakaCode.get();
 		if (result != null)
 			return result;
 
 		result = uncommittedTakamakaCode.get();
-		if (result != null && isCommitted(result.transaction)) {
+		if (result != null && isCommitted(result)) {
 			takamakaCode.set(result);
 			return result;
 		}
@@ -510,7 +509,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		try {
 			ClassTag classTag = getClassTag(reference);
-			EngineClassLoader classLoader = new EngineClassLoader(new Classpath(classTag.jar, true), this);
+			EngineClassLoader classLoader = new EngineClassLoader(classTag.jar, this);
 			Deserializer deserializer = new Deserializer(this, classLoader);
 			return deserializer.getLastUpdates(reference);
 		}
@@ -748,7 +747,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * 
 	 * @param takamakaCode the classpath to set
 	 */
-	void setUncommittedTakamakaCode(Classpath takamakaCode) {
+	void setUncommittedTakamakaCode(TransactionReference takamakaCode) {
 		uncommittedTakamakaCode.set(takamakaCode);
 	}
 

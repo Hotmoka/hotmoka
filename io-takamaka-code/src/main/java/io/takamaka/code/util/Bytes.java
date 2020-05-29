@@ -111,8 +111,8 @@ public class Bytes extends AbstractByteArray implements MutableByteArray {
 		return index1 - index2;
 	}
 
-	@Override
-	public @View byte get(int index) {
+	@Override @View
+	public byte get(int index) {
 		if (index < 0 || index >= length)
 			throw new ArrayIndexOutOfBoundsException(index);
 

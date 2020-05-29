@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.Classpath;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransferTransactionRequest;
@@ -130,7 +130,7 @@ public class StartNode {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	private static CodeSupplier<StorageValue> postTransferTransaction(Node node, StorageReference caller, BigInteger gasPrice, Classpath classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException {
+	private static CodeSupplier<StorageValue> postTransferTransaction(Node node, StorageReference caller, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException {
 		BigInteger nonce = getNonceOf(node, caller, classpath);
 		return node.postInstanceMethodCallTransaction(new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch));
 	}
@@ -138,7 +138,7 @@ public class StartNode {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	private static void addTransferTransaction(Node node, StorageReference caller, BigInteger gasPrice, Classpath classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	private static void addTransferTransaction(Node node, StorageReference caller, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		BigInteger nonce = getNonceOf(node, caller, classpath);
 		node.addInstanceMethodCallTransaction(new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch));
 	}
@@ -146,7 +146,7 @@ public class StartNode {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, Classpath classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		return node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
@@ -158,7 +158,7 @@ public class StartNode {
 	 * @return the nonce
 	 * @throws TransactionException if the nonce cannot be found
 	 */
-	private static BigInteger getNonceOf(Node node, StorageReference account, Classpath classpath) throws TransactionRejectedException {
+	private static BigInteger getNonceOf(Node node, StorageReference account, TransactionReference classpath) throws TransactionRejectedException {
 		try {
 			BigInteger nonce = nonces.get(account);
 			if (nonce != null)
