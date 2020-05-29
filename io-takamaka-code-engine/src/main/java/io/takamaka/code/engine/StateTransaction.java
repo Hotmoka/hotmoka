@@ -13,7 +13,6 @@ import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
@@ -65,9 +64,6 @@ public abstract class StateTransaction {
 			setTakamakaCode(reference);
 		}
 
-		if (request instanceof NonInitialTransactionRequest && node.markAsInitialized())
-			initialize();
-
 		if (response instanceof InitializationTransactionResponse)
 			initialize(((InitializationTransactionRequest) request).manifest);
 
@@ -78,11 +74,6 @@ public abstract class StateTransaction {
 	 * Starts the atomic transaction.
 	 */
 	protected abstract void beginTransaction();
-
-	/**
-	 * Mark the node as initialized. This happens when a non-initial transaction succeeds.
-	 */
-	protected abstract void initialize();
 
 	/**
 	 * Mark the node as initialized. This happens when an initialization transaction succeeds.

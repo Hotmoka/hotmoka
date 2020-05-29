@@ -97,6 +97,7 @@ public abstract class TakamakaTest {
 			StorageReference manifest = initialNode.addConstructorCallTransaction(new ConstructorCallTransactionRequest
 				(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
 			initialNode.addInitializationTransaction(new InitializationTransactionRequest(takamakaCode, manifest));
+			System.out.println("manifest: " + initialNode.manifest());
 		}
 		catch (Exception e) {
 			e.printStackTrace();

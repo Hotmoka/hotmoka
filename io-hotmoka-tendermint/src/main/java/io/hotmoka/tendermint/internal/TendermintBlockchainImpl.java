@@ -125,12 +125,16 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 
 	@Override
 	public boolean isInitialized() {
-		return state.isInitialized();
+		return state.getManifest().isPresent();
 	}
 
 	@Override
 	public StorageReference manifest() throws NoSuchElementException {
-		return state.getManifest().orElseThrow(NoSuchElementException::new);
+		Optional<StorageReference> manifest = state.getManifest();
+		if (!manifest.isPresent() && !isCommitted(manifest.get().transaction))
+			throw new NoSuchElementException("no manifest set for this node");
+
+		return manifest.get();
 	}
 
 	@Override

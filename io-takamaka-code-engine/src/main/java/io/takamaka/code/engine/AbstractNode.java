@@ -20,7 +20,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
@@ -133,11 +132,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	private final AtomicLong deliverTime = new AtomicLong();
 
-	/**
-	 * A cache to avoid repeated calls to check if the state is initialized.
-	 */
-	private final AtomicBoolean isInitialized = new AtomicBoolean();
-
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
@@ -244,8 +238,8 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	protected abstract void postTransaction(TransactionRequest<?> request);
 
 	/**
-	 * Determines if this node is initialized, that is, if at least one
-	 * non-initial transaction succeeded.
+	 * Determines if this node is initialized, that is, a (possibly still uncommitted)
+	 * initialization transaction has been run already on this node.
 	 * 
 	 * @return true if and only if that condition holds
 	 */
@@ -742,15 +736,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		TransactionReference[] historyAsArray = history.toArray(new TransactionReference[history.size()]);
 		setHistory.accept(object, history.stream());
 		historyCache.put(object, historyAsArray);
-	}
-
-	/**
-	 * Takes note that the node becomes initialized.
-	 * 
-	 * @return true only if the node was not previously marked as initialized already.
-	 */
-	boolean markAsInitialized() {
-		return !isInitialized.getAndSet(true);
 	}
 
 	/**

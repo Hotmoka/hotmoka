@@ -12,7 +12,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -73,11 +72,6 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	 */
 	private final AtomicReference<StorageReference> manifest = new AtomicReference<>();
 
-	/**
-	 * True if and only if this node is initialized.
-	 */
-	private final AtomicBoolean isInitialized = new AtomicBoolean();
-
 	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
 
 	/**
@@ -136,7 +130,7 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 
 	@Override
 	public boolean isInitialized() {
-		return isInitialized.get();
+		return manifest.get() != null;
 	}
 
 	@Override
@@ -161,11 +155,6 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 
 			@Override
 			protected void beginTransaction() {
-			}
-
-			@Override
-			protected void initialize() {
-				isInitialized.set(true);
 			}
 
 			@Override

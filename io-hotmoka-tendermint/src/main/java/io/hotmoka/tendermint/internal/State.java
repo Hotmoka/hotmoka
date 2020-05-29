@@ -102,11 +102,6 @@ class State implements AutoCloseable {
     private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 1);
 
     /**
-     * The key used inside {@linkplain #info} to keep note that the node is initialized.
-     */
-    private final static ByteIterable INITIALIZED = ArrayByteIterable.fromByte((byte) 2);
-
-    /**
      * The key used inside {@linkplain #info} to keep the hash of the root of the Patricia trie of the responses.
      */
     private final static ByteIterable ROOT = ArrayByteIterable.fromByte((byte) 3);
@@ -293,10 +288,6 @@ class State implements AutoCloseable {
 		return takamakaCode == null ? Optional.empty() : Optional.of(fromByteArray(TransactionReference::from, takamakaCode));
 	}
 
-	boolean isInitialized() {
-		return getFromInfo(INITIALIZED) != null;
-	}
-
 	Optional<StorageReference> getManifest() {
 		ByteIterable manifest = getFromInfo(MANIFEST);
 		return manifest == null ? Optional.empty() : Optional.of(fromByteArray(StorageReference::from, manifest));
@@ -329,11 +320,6 @@ class State implements AutoCloseable {
 
 			@Override
 			protected void beginTransaction() {
-			}
-
-			@Override
-			protected void initialize() {
-				recordTime(() -> info.put(txn, INITIALIZED, INITIALIZED));
 			}
 
 			@Override
