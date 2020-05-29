@@ -35,8 +35,8 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 
 			@Override
 			protected InitializationTransactionResponse body() throws Exception {
-				if (node.isInitialized())
-					throw new TransactionRejectedException("cannot initialize a node twice");
+				//if (node.isInitialized())
+					//throw new TransactionRejectedException("cannot initialize a node twice");
 
 				return new InitializationTransactionResponse();	
 			}

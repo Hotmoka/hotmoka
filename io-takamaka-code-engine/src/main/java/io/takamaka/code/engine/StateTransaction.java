@@ -11,9 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -66,6 +68,9 @@ public abstract class StateTransaction {
 		if (request instanceof NonInitialTransactionRequest && node.markAsInitialized())
 			initialize();
 
+		if (response instanceof InitializationTransactionResponse)
+			initialize(((InitializationTransactionRequest) request).manifest);
+
 		endTransaction();
 	}
 
@@ -78,6 +83,13 @@ public abstract class StateTransaction {
 	 * Mark the node as initialized. This happens when a non-initial transaction succeeds.
 	 */
 	protected abstract void initialize();
+
+	/**
+	 * Mark the node as initialized. This happens when an initialization transaction succeeds.
+	 * 
+	 * @param manifest the manifest to put in the node
+	 */
+	protected abstract void initialize(StorageReference manifest);
 
 	/**
 	 * Sets the given classpath for the

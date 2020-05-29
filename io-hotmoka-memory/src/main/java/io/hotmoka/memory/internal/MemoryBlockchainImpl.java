@@ -11,7 +11,9 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -67,9 +69,14 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 	private final Map<TransactionReference, Integer> progressive = new HashMap<>();
 
 	/**
+	 * The storage reference of the manifest stored inside the node, if any.
+	 */
+	private final AtomicReference<StorageReference> manifest = new AtomicReference<>();
+
+	/**
 	 * True if and only if this node is initialized.
 	 */
-	private AtomicBoolean isInitialized = new AtomicBoolean();
+	private final AtomicBoolean isInitialized = new AtomicBoolean();
 
 	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
 
@@ -105,6 +112,15 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 			else
 				throw InternalFailureException.of(e);
 		}
+	}
+
+	@Override
+	public StorageReference manifest() throws NoSuchElementException {
+		StorageReference result = manifest.get();
+		if (result != null)
+			return result;
+		else
+			throw new NoSuchElementException("no manifest set for this node");
 	}
 
 	@Override
@@ -210,6 +226,11 @@ public class MemoryBlockchainImpl extends AbstractNode<Config> implements Memory
 
 			@Override
 			protected void endTransaction() {
+			}
+
+			@Override
+			protected void initialize(StorageReference manifest) {
+				MemoryBlockchainImpl.this.manifest.set(manifest);
 			}
 		};
 	}

@@ -76,6 +76,11 @@ public interface Constants {
 	public final static String STORAGE_NAME = "io.takamaka.code.lang.Storage";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.system.Manifest}.
+	 */
+	public final static String MANIFEST_NAME = "io.takamaka.code.system.Manifest";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
 	 */
 	public final static String PAYABLE_NAME = "io.takamaka.code.lang.Payable";

@@ -111,6 +111,11 @@ class State implements AutoCloseable {
      */
     private final static ByteIterable ROOT = ArrayByteIterable.fromByte((byte) 3);
 
+    /**
+     * The key used inside {@linkplain #info} to keep the storage reference of the manifest of the node.
+     */
+    private final static ByteIterable MANIFEST = ArrayByteIterable.fromByte((byte) 4);
+
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
     /**
@@ -292,6 +297,11 @@ class State implements AutoCloseable {
 		return getFromInfo(INITIALIZED) != null;
 	}
 
+	Optional<StorageReference> getManifest() {
+		ByteIterable manifest = getFromInfo(MANIFEST);
+		return manifest == null ? Optional.empty() : Optional.of(fromByteArray(StorageReference::from, manifest));
+	}
+
 	/**
 	 * Yields the hash of this state.
 	 * 
@@ -356,6 +366,11 @@ class State implements AutoCloseable {
 
 			@Override
 			protected void endTransaction() {
+			}
+
+			@Override
+			protected void initialize(StorageReference manifest) {
+				recordTime(() -> info.put(txn, MANIFEST, intoByteArray(manifest)));
 			}
 		};
 	}

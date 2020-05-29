@@ -1,6 +1,7 @@
 package io.hotmoka.tendermint.internal;
 
 import java.nio.file.Path;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -125,6 +126,11 @@ public class TendermintBlockchainImpl extends AbstractNode<Config> implements Te
 	@Override
 	public boolean isInitialized() {
 		return state.isInitialized();
+	}
+
+	@Override
+	public StorageReference manifest() throws NoSuchElementException {
+		return state.getManifest().orElseThrow(NoSuchElementException::new);
 	}
 
 	@Override

@@ -40,6 +40,7 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -565,6 +566,16 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			createSemaphore(reference);
 			postTransaction(request);
 			return ((JarStoreInitialTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference);
+		});
+	}
+
+	@Override
+	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
+		wrapInCaseOfExceptionSimple(() -> {
+			TransactionReference reference = referenceOf(request);
+			createSemaphore(reference);
+			postTransaction(request);
+			return waitForResponse(reference); // result unused
 		});
 	}
 

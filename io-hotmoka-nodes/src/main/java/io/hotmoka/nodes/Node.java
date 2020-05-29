@@ -9,6 +9,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -35,6 +36,16 @@ public interface Node extends AutoCloseable {
 	 * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.
 	 */
 	TransactionReference takamakaCode();
+
+	/**
+	 * Yields the manifest installed in the store of the node. The manifest is an object of type
+	 * {@code io.takamaka.code.system.Manifest} that contains some information about the node,
+	 * useful for the users of the node.
+	 * 
+	 * @return the reference to the node
+	 * @throws NoSuchElementException if no manifest has been set for this node
+	 */
+	StorageReference manifest() throws NoSuchElementException;
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.
@@ -100,6 +111,16 @@ public interface Node extends AutoCloseable {
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 */
 	StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException;
+
+	/**
+	 * Expands the store of this node with a transaction that marks the node as
+	 * initialized and installs its manifest. After this transaction, no more initial transactions
+	 * can be executed on the node.
+	 * 
+	 * @param request the transaction request
+	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 */
+	void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException;
 
 	/**
 	 * Expands the store of this node with a transaction that installs a jar in it.

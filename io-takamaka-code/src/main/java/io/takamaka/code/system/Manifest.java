@@ -1,6 +1,6 @@
 package io.takamaka.code.system;
 
-import io.takamaka.code.lang.Account;
+import io.takamaka.code.lang.RedGreenExternallyOwnedAccount;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
 
@@ -9,12 +9,10 @@ import io.takamaka.code.lang.View;
  * that can be helpful to users of the node.
  */
 public final class Manifest extends Storage {
-	public final Account gamete;
-	public final String takamakaCode;
+	public final RedGreenExternallyOwnedAccount gamete;
 
-	public Manifest(Account gamete, String takamakaCode) {
+	public Manifest(RedGreenExternallyOwnedAccount gamete) {
 		this.gamete = gamete;
-		this.takamakaCode = takamakaCode;
 	}
 
 	/**
@@ -23,17 +21,7 @@ public final class Manifest extends Storage {
 	 * 
 	 * @return the account
 	 */
-	public @View Account getGamete() {
+	public @View RedGreenExternallyOwnedAccount getGamete() {
 		return gamete;
-	}
-
-	/**
-	 * Yields the hash of the transaction that installed
-	 * the Takamaka base classes in the node.
-	 * 
-	 * @return the hash
-	 */
-	public @View String getTakamakaCode() {
-		return takamakaCode;
 	}
 }

@@ -19,6 +19,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -157,6 +158,11 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
+	public StorageReference manifest() throws NoSuchElementException {
+		return parent.manifest();
+	}
+
+	@Override
 	public TransactionReference takamakaCode() {
 		return parent.takamakaCode();
 	}
@@ -239,5 +245,10 @@ public class InitializedNodeImpl implements InitializedNode {
 	@Override
 	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
 		return parent.getClassTag(reference);
+	}
+
+	@Override
+	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
+		parent.addInitializationTransaction(request);
 	}
 }

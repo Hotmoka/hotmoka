@@ -37,6 +37,9 @@ public abstract class TransactionResponse extends Marshallable {
 			Stream<TransactionReference> dependencies = Stream.of(unmarshallingOfArray(TransactionReference::from, TransactionReference[]::new, ois));
 			return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies);
 		}
+		case InitializationTransactionResponse.SELECTOR: {
+			return new InitializationTransactionResponse();
+		}
 		case JarStoreTransactionFailedResponse.SELECTOR: {
 			Stream<Update> updates = Stream.of(unmarshallingOfArray(Update::from, Update[]::new, ois));
 			BigInteger gasConsumedForCPU = unmarshallBigInteger(ois);

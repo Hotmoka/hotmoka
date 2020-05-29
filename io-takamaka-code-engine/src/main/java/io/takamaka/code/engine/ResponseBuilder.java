@@ -4,6 +4,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -12,12 +13,14 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.takamaka.code.engine.internal.transactions.ConstructorCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.GameteCreationResponseBuilder;
+import io.takamaka.code.engine.internal.transactions.InitializationResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InstanceMethodCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.InstanceViewMethodCallResponseBuilder;
 import io.takamaka.code.engine.internal.transactions.JarStoreInitialResponseBuilder;
@@ -106,6 +109,23 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 */
 	static ResponseBuilder<RedGreenGameteCreationTransactionRequest, GameteCreationTransactionResponse> of(TransactionReference reference, RedGreenGameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
 		return new RedGreenGameteCreationResponseBuilder(reference, request, node);
+	}
+
+	/**
+	 * Yields the builder of a response for a request of a transaction
+	 * that initializes the node and stores the manifest in it.
+	 * This transaction can only occur during initialization of the node. It has
+	 * no caller and requires no gas. After this transaction, no more initial
+	 * transactions can be run.
+	 * 
+	 * @param reference the reference to the transaction that is building the response
+	 * @param request the request
+	 * @param node the node that executes the transaction
+	 * @return the builder
+	 * @throws TransactionRejectedException if the builder cannot be created
+	 */
+	static ResponseBuilder<InitializationTransactionRequest, InitializationTransactionResponse> of(TransactionReference reference, InitializationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+		return new InitializationResponseBuilder(reference, request, node);
 	}
 
 	/**
@@ -222,6 +242,8 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
     		return of(reference, (InstanceMethodCallTransactionRequest) request, node);
     	else if (request instanceof StaticMethodCallTransactionRequest)
     		return of(reference, (StaticMethodCallTransactionRequest) request, node);
+    	else if (request instanceof InitializationTransactionRequest)
+    		return of(reference, (InitializationTransactionRequest) request, node);
     	else
     		throw new TransactionRejectedException("unexpected transaction request of class " + request.getClass().getName());
 	}

@@ -20,6 +20,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -90,8 +91,12 @@ public abstract class TakamakaTest {
 			//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
 			//initialNode = io.hotmoka.memory.MemoryBlockchain.of(config, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"));
 
+			TransactionReference takamakaCode = initialNode.takamakaCode();
 			// the gamete has both red and green coins, enough for all tests
-			gamete = initialNode.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(initialNode.takamakaCode(), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
+			gamete = initialNode.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
+			StorageReference manifest = initialNode.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+				(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
+			initialNode.addInitializationTransaction(new InitializationTransactionRequest(takamakaCode, manifest));
 		}
 		catch (Exception e) {
 			e.printStackTrace();

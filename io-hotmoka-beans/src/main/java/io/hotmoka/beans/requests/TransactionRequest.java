@@ -50,6 +50,11 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			BigInteger initialAmount = unmarshallBigInteger(ois);
 			return new GameteCreationTransactionRequest(classpath, initialAmount);
 		}
+		case InitializationTransactionRequest.SELECTOR: {
+			TransactionReference classpath = TransactionReference.from(ois);
+			StorageReference manifest = StorageReference.from(ois);
+			return new InitializationTransactionRequest(classpath, manifest);
+		}
 		case InstanceMethodCallTransactionRequest.SELECTOR: {
 			StorageReference caller = StorageReference.from(ois);
 			BigInteger gasLimit = unmarshallBigInteger(ois);
