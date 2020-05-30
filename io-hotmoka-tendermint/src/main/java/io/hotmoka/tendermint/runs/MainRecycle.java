@@ -9,11 +9,11 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 public class MainRecycle {
 	public static void main(String[] args) throws Exception {
 		Config config = new Config.Builder()
-			.setDelete(false)
+			.setDelete(false) // re use the directory already created by a previous execution
 			.build();
 
 		try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
-			System.out.println(blockchain.getTakamakaCode());
+			System.out.println("takamakaCode: " + blockchain.getTakamakaCode());
 		}
 	}
 }

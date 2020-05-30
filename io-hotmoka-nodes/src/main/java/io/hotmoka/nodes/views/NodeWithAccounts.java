@@ -1,4 +1,4 @@
-package io.hotmoka.nodes;
+package io.hotmoka.nodes.views;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -10,13 +10,14 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.internal.InitializedNodeImpl;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.internal.NodeWithAccountsImpl;
 
 /**
  * A node that provides access to a previously installed jar and to
  * a predefined set of accounts. This is a useful interface for writing tests.
  */
-public interface InitializedNode extends Node {
+public interface NodeWithAccounts extends Node {
 
 	/**
 	 * Yields the reference, in the store of the node, where the a user jar has been installed, if any.
@@ -28,6 +29,7 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @param i the account number
 	 * @return the reference to the account, in the store of the node. This is a {@link #io.takamaka.code.lang.TestExternallyOwnedAccount}}
+	 *         or a {@link #io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}}
 	 */
 	StorageReference account(int i);
 
@@ -37,14 +39,14 @@ public interface InitializedNode extends Node {
 	 * @param parent the node to decorate
 	 * @param jar the jar to install in the node
 	 * @param funds the initial funds of the accounts to create
-	 * @return the decorated node
+	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	static InitializedNode of(Node parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new InitializedNodeImpl(parent, jar, false, funds);
+	static NodeWithAccounts of(Node parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		return new NodeWithAccountsImpl(parent, jar, false, funds);
 	}
 
 	/**
@@ -53,14 +55,14 @@ public interface InitializedNode extends Node {
 	 * @param parent the node to decorate
 	 * @param jar the jar to install in the node
 	 * @param funds the initial funds of the accounts to create; they are understood in pairs: green before red of each account
-	 * @return the decorated node
+	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	static InitializedNode ofRedGreen(Node parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new InitializedNodeImpl(parent, jar, true, funds);
+	static NodeWithAccounts ofRedGreen(Node parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		return new NodeWithAccountsImpl(parent, jar, true, funds);
 	}
 
 	/**
@@ -68,14 +70,14 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @param parent the node to decorate
 	 * @param funds the initial funds of the accounts to create
-	 * @return the decorated node
+	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	static InitializedNode of(Node parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new InitializedNodeImpl(parent, null, false, funds);
+	static NodeWithAccounts of(Node parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		return new NodeWithAccountsImpl(parent, null, false, funds);
 	}
 
 	/**
@@ -83,13 +85,13 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @param parent the node to decorate
 	 * @param funds the initial funds of the accounts to create; they are understood in pairs: green before red of each account
-	 * @return the decorated node
+	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
 	 */
-	static InitializedNode ofRedGreen(Node parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new InitializedNodeImpl(parent, null, true, funds);
+	static NodeWithAccounts ofRedGreen(Node parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+		return new NodeWithAccountsImpl(parent, null, true, funds);
 	}
 }

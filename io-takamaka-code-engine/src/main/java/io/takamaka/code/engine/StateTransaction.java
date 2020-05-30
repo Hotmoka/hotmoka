@@ -26,13 +26,12 @@ import io.hotmoka.beans.values.StorageReference;
  * way: either all changes occur or the state update fails.
  */
 public abstract class StateTransaction {
+	private final static Logger logger = LoggerFactory.getLogger(StateTransaction.class);
 
 	/**
 	 * The node that is performing the transaction.
 	 */
 	private final AbstractNode<?> node;
-
-	private final static Logger logger = LoggerFactory.getLogger(StateTransaction.class);
 
 	/**
 	 * This constructor implements a generic algorithm that updates
@@ -57,8 +56,12 @@ public abstract class StateTransaction {
 		if (response instanceof TransactionResponseWithUpdates)
 			expandHistory(reference, (TransactionResponseWithUpdates) response);
 
-		if (response instanceof InitializationTransactionResponse)
-			initialize(((InitializationTransactionRequest) request).manifest);
+		if (response instanceof InitializationTransactionResponse) {
+			StorageReference manifest = ((InitializationTransactionRequest) request).manifest;
+			initialize(manifest);
+			logger.info(manifest + ": set as manifest");
+			logger.info("the node has been initialized");
+		}
 
 		endTransaction();
 	}

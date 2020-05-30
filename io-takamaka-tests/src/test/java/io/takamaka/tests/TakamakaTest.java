@@ -20,11 +20,9 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.requests.TransferTransactionRequest;
@@ -35,12 +33,12 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.nodes.InitializedNode;
-import io.hotmoka.nodes.InitializedNodeWithHistory;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.Node.JarSupplier;
 import io.hotmoka.nodes.NodeWithHistory;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.takamaka.code.constants.Constants;
 import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.verification.VerificationException;
@@ -60,7 +58,7 @@ public abstract class TakamakaTest {
 	 * with the addition of a jar to test and of some initial accounts,
 	 * recreated before each test.
 	 */
-	private InitializedNode node;
+	private NodeWithAccounts node;
 
 	/**
 	 * The nonce of each externally owned account used in the test.
@@ -85,12 +83,8 @@ public abstract class TakamakaTest {
 			//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
 			//initialNode = io.hotmoka.memory.MemoryBlockchain.of(config);
 
-			TransactionReference takamakaCode = initialNode.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"))));
 			// the gamete has both red and green coins, enough for all tests
-			StorageReference gamete = initialNode.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCode, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
-			StorageReference manifest = initialNode.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-				(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
-			initialNode.addInitializationTransaction(new InitializationTransactionRequest(takamakaCode, manifest));
+			InitializedNode.of(initialNode, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -99,31 +93,19 @@ public abstract class TakamakaTest {
 	}
 
 	protected final void setNode(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		if (initialNode instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.of((NodeWithHistory) initialNode, coins);
-		else
-			this.node = InitializedNode.of(initialNode, coins);
+		node = NodeWithAccounts.of(initialNode, coins);
 	}
 
 	protected final void setNodeRedGreen(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		if (initialNode instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) initialNode, coins);
-		else
-			this.node = InitializedNode.ofRedGreen(initialNode, coins);
+		node = NodeWithAccounts.ofRedGreen(initialNode, coins);
 	}
 
 	protected final void setNode(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		if (initialNode instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.of((NodeWithHistory) initialNode, pathOfExample(jar), coins);
-		else
-			this.node = InitializedNode.of(initialNode, pathOfExample(jar), coins);
+		node = NodeWithAccounts.of(initialNode, pathOfExample(jar), coins);
 	}
 
 	protected final void setNodeRedGreen(String jar, BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		if (initialNode instanceof NodeWithHistory)
-			this.node = InitializedNodeWithHistory.ofRedGreen((NodeWithHistory) initialNode, pathOfExample(jar), coins);
-		else
-			this.node = InitializedNode.ofRedGreen(initialNode, pathOfExample(jar), coins);
+		node = NodeWithAccounts.ofRedGreen(initialNode, pathOfExample(jar), coins);
 	}
 
 	protected final TransactionReference takamakaCode() {
@@ -139,7 +121,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected final TransactionRequest<?> getRequestAt(TransactionReference reference) {
-		return ((NodeWithHistory) node).getRequestAt(reference);
+		return ((NodeWithHistory) initialNode).getRequestAt(reference);
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException {

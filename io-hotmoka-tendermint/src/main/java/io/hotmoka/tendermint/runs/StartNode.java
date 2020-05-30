@@ -19,22 +19,18 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.TransferTransactionRequest;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.nodes.InitializedNode;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
@@ -44,6 +40,16 @@ public class StartNode {
 	private static final int TRANSFERS = 1500;
 	private static final int ACCOUNTS = 4;
 	private static final NonVoidMethodSignature GET_BALANCE = new NonVoidMethodSignature(Constants.TEOA_NAME, "getBalance", ClassType.BIG_INTEGER);
+
+	/**
+	 * Initial green stake.
+	 */
+	private final static BigInteger GREEN = BigInteger.valueOf(999_999_999).pow(5);
+
+	/**
+	 * Initial red stake.
+	 */
+	private final static BigInteger RED = BigInteger.valueOf(999_999_999).pow(5);
 
 	/**
 	 * The nonce of each externally owned account used in the test.
@@ -59,15 +65,15 @@ public class StartNode {
 
 		Integer n = Integer.valueOf(args[0]);
 		Integer t = Integer.valueOf(args[1]);
-		Path takamakaCode;
+		Path jarOfTakamakaCode;
 		if (args.length > 2)
-			takamakaCode = Paths.get(args[2]);
+			jarOfTakamakaCode = Paths.get(args[2]);
 		else
-			takamakaCode = null;
+			jarOfTakamakaCode = null;
 
 		System.out.println("Starting node " + n + " of " + t);
-		if (takamakaCode != null)
-			System.out.println("Installing " + takamakaCode + " in it");
+		if (jarOfTakamakaCode != null)
+			System.out.println("Installing " + jarOfTakamakaCode + " in it");
 
 		// we delete the blockchain directory
 		deleteRecursively(config.dir);
@@ -77,61 +83,49 @@ public class StartNode {
 
 		copyRecursively(Paths.get(t + "-nodes").resolve("node" + (n - 1)), config.dir.resolve("blocks"));
 
-		if (takamakaCode != null) {
-			try (TendermintBlockchain blockchain = TendermintBlockchain.of(config)) {
-				TransactionReference takamakaCodeReference = blockchain.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"))));
-				// the gamete has both red and green coins, enough for all tests
-				StorageReference gamete = blockchain.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5)));
-				StorageReference manifest = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
-				blockchain.addInitializationTransaction(new InitializationTransactionRequest(takamakaCodeReference, manifest));
+		try (Node blockchain = TendermintBlockchain.of(config)) {
+			if (jarOfTakamakaCode != null) {
+				InitializedNode initializedView = InitializedNode.of(blockchain, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), GREEN, RED);
+				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000));
 
-				try (InitializedNode node = InitializedNode.of(blockchain, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000))) {
-					Random random = new Random();
-					long start = System.currentTimeMillis();
+				Random random = new Random();
+				long start = System.currentTimeMillis();
 
-					for (int i = 0; i < TRANSFERS; i++) {
-						StorageReference from = node.account(random.nextInt(ACCOUNTS));
+				TransactionReference takamakaCode = viewWithAccounts.getTakamakaCode();
 
-						StorageReference to;
-						do {
-							to = node.account(random.nextInt(ACCOUNTS));
-						}
-						while (to == from); // we want a different account than from
+				for (int i = 0; i < TRANSFERS; i++) {
+					StorageReference from = viewWithAccounts.account(random.nextInt(ACCOUNTS));
 
-						int amount = 1 + random.nextInt(10);
-						//System.out.println(amount + ": " + from + " -> " + to);
-						if (i < TRANSFERS - 1)
-							postTransferTransaction(node, from, ZERO, node.getTakamakaCode(), to, amount);
-						else
-							// the last transaction requires to wait until everything is committed
-							addTransferTransaction(node, from, ZERO, node.getTakamakaCode(), to, amount);
+					StorageReference to;
+					do {
+						to = viewWithAccounts.account(random.nextInt(ACCOUNTS));
 					}
+					while (to == from); // we want a different account than from
 
-					long time = System.currentTimeMillis() - start;
-					System.out.println(TRANSFERS + " money transfer transactions in " + time + "ms [" + (TRANSFERS * 1000L / time) + " tx/s]");
-
-					// we compute the sum of the balances of the accounts
-					BigInteger sum = ZERO;
-					for (int i = 0; i < ACCOUNTS; i++)
-						sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(node, node.account(0), _10_000, ZERO, node.getTakamakaCode(), GET_BALANCE, node.account(i))).value);
-
-					// no money got lost in translation
-					System.out.println(sum + " should be " + ACCOUNTS * 200_000);
-
-					while (true) {
-						System.out.println(node.getTakamakaCode());
-						Thread.sleep(1000);
-					}
+					int amount = 1 + random.nextInt(10);
+					//System.out.println(amount + ": " + from + " -> " + to);
+					if (i < TRANSFERS - 1)
+						postTransferTransaction(viewWithAccounts, from, ZERO, takamakaCode, to, amount);
+					else
+						// the last transaction requires to wait until everything is committed
+						addTransferTransaction(viewWithAccounts, from, ZERO, takamakaCode, to, amount);
 				}
+
+				long time = System.currentTimeMillis() - start;
+				System.out.println(TRANSFERS + " money transfer transactions in " + time + "ms [" + (TRANSFERS * 1000L / time) + " tx/s]");
+
+				// we compute the sum of the balances of the accounts
+				BigInteger sum = ZERO;
+				for (int i = 0; i < ACCOUNTS; i++)
+					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), _10_000, ZERO, takamakaCode, GET_BALANCE, viewWithAccounts.account(i))).value);
+
+				// checks that no money got lost in translation
+				System.out.println(sum + " should be " + ACCOUNTS * 200_000);
 			}
-		}
-		else {
-			try (TendermintBlockchain node = TendermintBlockchain.of(config)) {
-				while (true) {
-					System.out.println(node.getTakamakaCode());
-					Thread.sleep(1000);
-				}
+
+			while (true) {
+				System.out.println(blockchain.getTakamakaCode());
+				Thread.sleep(1000);
 			}
 		}
 	}

@@ -295,7 +295,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		TransactionReference reference = referenceOf(request);
 
 		try {
-			logger.info(reference + ": checking start");
+			logger.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
 			request.check();
 			logger.info(reference + ": checking success");
 		}
@@ -328,9 +328,9 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		long start = System.currentTimeMillis();
 
 		TransactionReference reference = referenceOf(request);
-		logger.info(reference + ": delivering start");
 
 		try {
+			logger.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
 			TransactionResponse response = ResponseBuilder.of(reference, request, this).build();
 			expandStore(reference, request, response);
 			logger.info(reference + ": delivering success");
