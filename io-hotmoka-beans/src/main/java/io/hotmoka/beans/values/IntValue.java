@@ -2,6 +2,7 @@ package io.hotmoka.beans.values;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 
 import io.hotmoka.beans.annotations.Immutable;
 
@@ -24,6 +25,17 @@ public final class IntValue extends StorageValue {
 	 */
 	public IntValue(int value) {
 		this.value = value;
+	}
+
+	/**
+	 * Builds a {@code long} value.
+	 * 
+	 * @param value the value
+	 */
+	public IntValue(BigInteger value) {
+		this.value = value.intValue();
+		if (!BigInteger.valueOf(this.value).equals(value))
+			throw new IllegalArgumentException("value is too big for an int");
 	}
 
 	@Override
