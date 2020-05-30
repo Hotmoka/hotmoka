@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -85,7 +86,7 @@ public class StartNode {
 
 		try (Node blockchain = TendermintBlockchain.of(config)) {
 			if (jarOfTakamakaCode != null) {
-				InitializedNode initializedView = InitializedNode.of(blockchain, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), GREEN, RED);
+				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, GREEN, RED);
 				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000));
 
 				Random random = new Random();
@@ -124,7 +125,13 @@ public class StartNode {
 			}
 
 			while (true) {
-				System.out.println(blockchain.getTakamakaCode());
+				try {
+					System.out.println(blockchain.getTakamakaCode());
+				}
+				catch (NoSuchElementException e) {
+					System.out.println("takamakaCode is not set yet");
+				}
+
 				Thread.sleep(1000);
 			}
 		}
