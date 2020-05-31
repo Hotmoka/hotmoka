@@ -59,6 +59,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.NodeWithHistory;
@@ -260,6 +261,16 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
+	}
+
+	/**
+	 * Yields the algorithm used to sign the request with this node.
+	 * 
+	 * @return the SHA256withDSA algorithm of the request (without their signature itself); subclasses may redefine
+	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
+	 */
+	public SignatureAlgorithm<TransactionRequest<?>> requestSignatureAlgorithm() throws NoSuchAlgorithmException {
+		return SignatureAlgorithm.sha256dsa(TransactionRequest::toByteArray);
 	}
 
 	/**

@@ -23,6 +23,11 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	public final StorageReference receiver;
 
 	/**
+	 * The signature of the request.
+	 */
+	private final byte[] signature;
+
+	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
@@ -35,9 +40,27 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	 * @param actuals the actual arguments passed to the method
 	 */
 	public InstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+		this(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, new byte[40], actuals);
+	}
+
+	/**
+	 * Builds the transaction request.
+	 * 
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param receiver the receiver of the call
+	 * @param signature the signature of the request
+	 * @param actuals the actual arguments passed to the method
+	 */
+	InstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, byte[] signature, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
 		this.receiver = receiver;
+		this.signature = signature;
 	}
 
 	@Override
@@ -56,9 +79,16 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	}
 
 	@Override
+	public byte[] getSignature() {
+		return signature.clone();
+	}
+
+	@Override
 	public void into(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
 		super.into(oos);
 		receiver.intoWithoutSelector(oos);
+		writeLength(signature.length, oos);
+		oos.write(signature);
 	}
 }

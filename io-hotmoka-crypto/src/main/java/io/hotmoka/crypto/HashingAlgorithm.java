@@ -29,14 +29,26 @@ public interface HashingAlgorithm<T> {
 	int length();
 
 	/**
-	 * Yields a hashing algorithm for marshallable values, that uses the
-	 * SHA256 hashing algorithm.
+	 * Yields a hashing algorithm that uses the SHA256 hashing algorithm.
+	 * 
+	 * @param <T> the type of values that get hashed
+	 * @param supplier how values get transformed into bytes, before being hashed
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256 algorithm
+	 */
+	static <T> HashingAlgorithm<T> sha256(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+		return new SHA256<>(supplier);
+	}
+
+	/**
+	 * Yields a hashing algorithm for marshallable values, that uses the SHA256 hashing algorithm.
+	 * Values are transformed into bytes by using their {@linkplain Marshallable#toByteArray()} method.
 	 * 
 	 * @param <T> the type of values that get hashed
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256 algorithm
 	 */
 	static <T extends Marshallable> HashingAlgorithm<T> sha256() throws NoSuchAlgorithmException {
-		return new SHA256<>();
+		return new SHA256<>(Marshallable::toByteArray);
 	}
 }

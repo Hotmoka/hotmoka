@@ -4,7 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.InternalFailureException;
-import io.hotmoka.beans.Marshallable;
+import io.hotmoka.crypto.BytesSupplier;
 import io.hotmoka.crypto.HashingAlgorithm;
 
 /**
@@ -12,18 +12,24 @@ import io.hotmoka.crypto.HashingAlgorithm;
  * 
  * @param <T> the type of values that get hashed
  */
-public class SHA256<T extends Marshallable> implements HashingAlgorithm<T>{
+public class SHA256<T> implements HashingAlgorithm<T>{
 
 	private final MessageDigest digest;
 
-	public SHA256() throws NoSuchAlgorithmException {
-		digest = MessageDigest.getInstance("SHA-256");
+	/**
+	 * How values get transformed into bytes, before being hashed.
+	 */
+	private final BytesSupplier<? super T> supplier;
+
+	public SHA256(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+		this.digest = MessageDigest.getInstance("SHA-256");
+		this.supplier = supplier;
 	}
 
 	@Override
 	public byte[] hash(T what) {
 		try {
-			byte[] bytes = what.toByteArray();
+			byte[] bytes = supplier.get(what);
 
 			synchronized (digest) {
 				digest.reset();

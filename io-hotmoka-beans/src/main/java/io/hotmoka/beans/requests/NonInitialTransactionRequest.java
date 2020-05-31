@@ -54,6 +54,14 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		this.nonce = nonce;
 	}
 
+	/**
+	 * Yields the signature of the request. This should be the signature of its byte representation (excluding the signature itself)
+	 * with the private key of the {@linkplain #caller}, or otherwise the signature is illegal and the request will be rejected.
+	 * 
+	 * @return the signature
+	 */
+	public abstract byte[] getSignature();
+
 	@Override
 	public String toString() {
         return getClass().getSimpleName() + ":\n"

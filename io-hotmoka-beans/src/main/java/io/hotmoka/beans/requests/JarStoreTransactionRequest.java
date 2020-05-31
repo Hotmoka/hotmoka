@@ -29,6 +29,11 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	private final TransactionReference[] dependencies;
 
 	/**
+	 * The signature of the request.
+	 */
+	private final byte[] signature;
+
+	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
@@ -40,10 +45,32 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
 	public JarStoreTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
+		this(caller, nonce, gasLimit, gasPrice, classpath, jar, new byte[40], dependencies);
+	}
+
+	/**
+	 * Builds the transaction request.
+	 * 
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} is interpreted
+	 * @param jar the bytes of the jar to install
+	 * @param signature the signature of the request
+	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 */
+	JarStoreTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, byte[] signature, TransactionReference... dependencies) {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.jar = jar.clone();
 		this.dependencies = dependencies;
+		this.signature = signature;
+	}
+
+	@Override
+	public byte[] getSignature() {
+		return signature.clone();
 	}
 
 	@Override
@@ -112,5 +139,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 		oos.writeInt(jar.length);
 		oos.write(jar);
 		intoArray(dependencies, oos);
+		writeLength(signature.length, oos);
+		oos.write(signature);
 	}
 }

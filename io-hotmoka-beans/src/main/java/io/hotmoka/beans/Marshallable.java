@@ -34,7 +34,7 @@ public abstract class Marshallable {
 	 * @throws IOException if some element could not be marshalled
 	 */
 	public static void intoArray(Marshallable[] marshallables, ObjectOutputStream oos) throws IOException {
-		writeLength(marshallables, oos);
+		writeLength(marshallables.length, oos);
 
 		for (Marshallable marshallable: marshallables)
 			marshallable.into(oos);
@@ -48,20 +48,44 @@ public abstract class Marshallable {
 	 * @throws IOException if some element could not be marshalled
 	 */
 	public static void intoArrayWithoutSelector(StorageReference[] references, ObjectOutputStream oos) throws IOException {
-		writeLength(references, oos);
+		writeLength(references.length, oos);
 
 		for (StorageReference reference: references)
 			reference.intoWithoutSelector(oos);
 	}
 
-	private static void writeLength(Marshallable[] marshallables, ObjectOutputStream oos) throws IOException {
-		int length = marshallables.length;
+	/**
+	 * Marshals the given length into the given stream.
+	 * 
+	 * @param length the length
+	 * @param oos the stream
+	 * @throws IOException if the length cannot be marshalled
+	 */
+	protected static void writeLength(int length, ObjectOutputStream oos) throws IOException {
 		if (length < 255)
 			oos.writeByte(length);
 		else {
 			oos.writeByte(255);
 			oos.writeInt(length);
 		}
+	}
+
+	/**
+	 * Reads a length from the given stream.
+	 * 
+	 * @param ois the stream
+	 * @return the length
+	 * @throws IOException if the length cannot be unmarshalled
+	 */
+	protected static int readLength(ObjectInputStream ois) throws IOException {
+		int length = ois.readByte();
+		if (length < 0)
+			length += 256;
+
+		if (length == 255)
+			length = ois.readInt();
+
+		return length;
 	}
 
 	/**
@@ -127,13 +151,7 @@ public abstract class Marshallable {
 	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
 	 */
 	public static <T extends Marshallable> T[] unmarshallingOfArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ObjectInputStream ois) throws IOException, ClassNotFoundException {
-		int length = ois.readByte();
-		if (length < 0)
-			length += 256;
-
-		if (length == 255)
-			length = ois.readInt();
-
+		int length = readLength(ois);
 		T[] result = supplier.apply(length);
 		for (int pos = 0; pos < length; pos++)
 			result[pos] = unmarshaller.from(ois);
