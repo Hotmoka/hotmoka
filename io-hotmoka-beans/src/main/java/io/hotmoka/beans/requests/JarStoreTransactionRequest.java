@@ -3,6 +3,8 @@ package io.hotmoka.beans.requests;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -36,6 +38,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
@@ -43,9 +46,15 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @param classpath the class path where the {@code caller} is interpreted
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @throws SignatureException if the signer cannot sign the request
+	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public JarStoreTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
-		this(caller, nonce, gasLimit, gasPrice, classpath, jar, new byte[40], dependencies);
+	public JarStoreTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath);
+
+		this.jar = jar.clone();
+		this.dependencies = dependencies;
+		this.signature = signer.sign(this);
 	}
 
 	/**
@@ -133,13 +142,11 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
+	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
-		super.into(oos);
+		super.intoWithoutSignature(oos);
 		oos.writeInt(jar.length);
 		oos.write(jar);
 		intoArray(dependencies, oos);
-		writeLength(signature.length, oos);
-		oos.write(signature);
 	}
 }

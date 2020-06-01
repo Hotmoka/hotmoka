@@ -1,13 +1,19 @@
 package io.hotmoka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.SignatureException;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithm;
 
 @Immutable
 public abstract class NonInitialTransactionRequest<R extends NonInitialTransactionResponse> extends TransactionRequest<R> {
@@ -89,11 +95,91 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
+	public final void into(ObjectOutputStream oos) throws IOException {
+		intoWithoutSignature(oos);
+
+		// we add the signature
+		byte[] signature = getSignature();
+		writeLength(signature.length, oos);
+		oos.write(signature);
+	}
+
+	/**
+	 * Marshals this object into the given stream. This method in general
+	 * performs better than standard Java serialization, wrt the size of the marshalled data.
+	 * The difference with {@linkplain #into(ObjectOutputStream)} is that the signature
+	 * is not marshalled into the stream.
+	 * 
+	 * @param oos the stream
+	 * @throws IOException if this object cannot be marshalled
+	 */
+	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
 		caller.intoWithoutSelector(oos);
 		marshal(gasLimit, oos);
 		marshal(gasPrice, oos);
 		classpath.into(oos);
 		marshal(nonce, oos);
+	}
+
+	/**
+	 * Marshals this object into a byte array, without taking its signature into account.
+	 * 
+	 * @return the byte array resulting from marshalling this object
+	 * @throws IOException if this object cannot be marshalled
+	 */
+	public final byte[] toByteArrayWithoutSignature() throws IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			intoWithoutSignature(oos);
+			oos.flush();
+			return baos.toByteArray();
+		}
+	}
+
+	/**
+	 * An object that provides the signature of a request.
+	 */
+	public interface Signer {
+
+		/**
+		 * Computes the signature of the given request.
+		 * 
+		 * @param what the request to sign
+		 * @return the signature of the request
+		 * @throws InvalidKeyException if the private key used for signing is invalid
+		 * @throws SignatureException if the request cannot be signed
+		 */
+		byte[] sign(NonInitialTransactionRequest<?> what) throws InvalidKeyException, SignatureException;
+
+		/**
+		 * Yields a signer for the given algorithm with the given key pair.
+		 * 
+		 * @param signature the signing algorithm
+		 * @param keys the key pair
+		 * @return the signer
+		 */
+		static Signer with(SignatureAlgorithm<NonInitialTransactionRequest<?>> signature, KeyPair keys) {
+			return what -> signature.sign(what, keys.getPrivate());
+		}
+
+		/**
+		 * Yields a signer for the given algorithm with the given private key.
+		 * 
+		 * @param signature the signing algorithm
+		 * @param keys the keys
+		 * @return the signer
+		 */
+		static Signer with(SignatureAlgorithm<NonInitialTransactionRequest<?>> signature, PrivateKey key) {
+			return what -> signature.sign(what, key);
+		}
+
+		/**
+		 * A signer of view requests on behalf of the manifest. Their transactions do not require a verified
+		 * signature, hence this signer provides an empty signature.
+		 * 
+		 * @return the signer
+		 */
+		static Signer onBehalfOfManifest() {
+			return what -> new byte[0];
+		}
 	}
 }

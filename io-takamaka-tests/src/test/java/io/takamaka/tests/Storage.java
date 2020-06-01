@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,40 +43,46 @@ class Storage extends TakamakaTest {
 	 */
 	private StorageReference eoa;
 
+	/**
+	 * The private key of {@linkplain #eoa}.
+	 */
+	private PrivateKey key;
+
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setNode("storage.jar", ALL_FUNDS);
 		eoa = account(0);
+		key = privateKey(0);
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() is an int")
-	void neverInitializedStorageYieldsInt() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference storage = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		StorageValue value = runViewInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
+	void neverInitializedStorageYieldsInt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference storage = addConstructorCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
+		StorageValue value = runViewInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertTrue(value instanceof IntValue);
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() == 0")
-	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference storage = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
+	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference storage = addConstructorCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
+		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertEquals(value.value, 0);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then get() == 13")
-	void set13ThenGet13() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference storage = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		addInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
-		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
+	void set13ThenGet13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference storage = addConstructorCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
+		addInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
+		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertEquals(value.value, 13);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then set(17) then get() == 17")
-	void set13set17ThenGet17() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference storage = addConstructorCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		postInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
-		addInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(17));
-		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
+	void set13set17ThenGet17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference storage = addConstructorCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
+		postInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
+		addInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), SET, storage, new IntValue(17));
+		IntValue value = (IntValue) runViewInstanceMethodCallTransaction(key, eoa, _10_000, BigInteger.ONE, jar(), GET, storage);
 		assertEquals(value.value, 17);
 	}
 }

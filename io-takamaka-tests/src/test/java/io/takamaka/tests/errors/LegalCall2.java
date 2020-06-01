@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,16 +35,16 @@ class LegalCall2 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
-		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall2.jar"), takamakaCode());
+	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall2.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("new C().test(); toString() == \"53331\"")
-	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
-		TransactionReference classpath = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall2.jar"), takamakaCode());
-		StorageReference c = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(C));
-		postInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c);
-		StringValue result = (StringValue) addInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c);
+	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		TransactionReference classpath = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall2.jar"), takamakaCode());
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, classpath, new ConstructorSignature(C));
+		postInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c);
+		StringValue result = (StringValue) addInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(C, "toString", ClassType.STRING), c);
 
 		assertEquals("53331", result.value);
 	}

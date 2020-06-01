@@ -2,7 +2,6 @@ package io.hotmoka.crypto;
 
 import java.security.NoSuchAlgorithmException;
 
-import io.hotmoka.beans.Marshallable;
 import io.hotmoka.crypto.internal.SHA256;
 
 /**
@@ -38,17 +37,5 @@ public interface HashingAlgorithm<T> {
 	 */
 	static <T> HashingAlgorithm<T> sha256(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		return new SHA256<>(supplier);
-	}
-
-	/**
-	 * Yields a hashing algorithm for marshallable values, that uses the SHA256 hashing algorithm.
-	 * Values are transformed into bytes by using their {@linkplain Marshallable#toByteArray()} method.
-	 * 
-	 * @param <T> the type of values that get hashed
-	 * @return the algorithm
-	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256 algorithm
-	 */
-	static <T extends Marshallable> HashingAlgorithm<T> sha256() throws NoSuchAlgorithmException {
-		return new SHA256<>(Marshallable::toByteArray);
 	}
 }

@@ -7,6 +7,8 @@ import static io.hotmoka.beans.Coin.panarea;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,23 +44,23 @@ class AbstractFail extends TakamakaTest {
 	void createAbstractFail() throws TransactionException, CodeExecutionException {
 		throwsTransactionExceptionWithCause(InstantiationException.class, () ->
 			// cannot instantiate an abstract class
-			addConstructorCallTransaction(account(0), _20_000, panarea(1), jar(), new ConstructorSignature(ABSTRACT_FAIL))
+			addConstructorCallTransaction(privateKey(0), account(0), _20_000, panarea(1), jar(), new ConstructorSignature(ABSTRACT_FAIL))
 		);
 	}
 
 	@Test @DisplayName("new AbstractFailImpl()")
-	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		addConstructorCallTransaction(account(0), _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		addConstructorCallTransaction(privateKey(0), account(0), _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 	}
 
 	@Test @DisplayName("new AbstractFailImpl().method() yields an AbstractFailImpl")
-	void createAbstractFailImplThenCallAbstractMethod() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference abstractfail = addConstructorCallTransaction(account(0), _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+	void createAbstractFailImplThenCallAbstractMethod() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 
 		StorageReference result = (StorageReference) addInstanceMethodCallTransaction
-			(account(0), _20_000, panarea(1), jar(), new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
+			(privateKey(0), account(0), _20_000, panarea(1), jar(), new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
 
-		String className = ((StringValue) runViewInstanceMethodCallTransaction(account(0), _20_000, panarea(0), jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", ClassType.STRING), result)).value;
+		String className = ((StringValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, panarea(0), jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", ClassType.STRING), result)).value;
 
 		assertEquals("io.takamaka.tests.abstractfail.AbstractFailImpl", className);
 	}

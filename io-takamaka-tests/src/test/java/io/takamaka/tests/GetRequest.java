@@ -4,6 +4,8 @@
 package io.takamaka.tests;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,8 +37,8 @@ class GetRequest extends TakamakaTest {
 	}
 
 	@Test @DisplayName("getRequestAt works")
-	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException {
-		StorageReference abstractfail = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
 		TransactionRequest<?> request = getRequestAt(abstractfail.transaction);
 		Assertions.assertTrue(request instanceof ConstructorCallTransactionRequest);
 		Assertions.assertEquals(account(0), ((ConstructorCallTransactionRequest) request).caller);

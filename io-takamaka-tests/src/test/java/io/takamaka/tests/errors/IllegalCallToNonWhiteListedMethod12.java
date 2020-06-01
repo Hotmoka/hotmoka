@@ -1,6 +1,8 @@
 package io.takamaka.tests.errors;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,11 +29,11 @@ class IllegalCallToNonWhiteListedMethod12 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new ExternallyOwnedAccount().hashCode()")
-	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference eoa = addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(ClassType.EOA));
+	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference eoa = addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(ClassType.EOA));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addInstanceMethodCallTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa)
+			addInstanceMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa)
 		);
 	}
 }

@@ -3,6 +3,8 @@ package io.hotmoka.beans.requests;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -30,6 +32,7 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
@@ -38,9 +41,14 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
+	 * @throws SignatureException if the signer cannot sign the request
+	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public InstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		this(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, new byte[40], actuals);
+	public InstanceMethodCallTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
+
+		this.receiver = receiver;
+		this.signature = signer.sign(this);
 	}
 
 	/**
@@ -84,11 +92,9 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
+	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
-		super.into(oos);
+		super.intoWithoutSignature(oos);
 		receiver.intoWithoutSelector(oos);
-		writeLength(signature.length, oos);
-		oos.write(signature);
 	}
 }

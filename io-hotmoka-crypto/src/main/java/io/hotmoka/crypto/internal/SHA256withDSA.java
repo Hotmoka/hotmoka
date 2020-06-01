@@ -1,6 +1,8 @@
 package io.hotmoka.crypto.internal;
 
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -12,7 +14,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A signature algorithm that hashes data with SHA256 and then
- * sign them with the DSA algorithm. It uses a key size of 2048.
+ * sign them with the DSA algorithm.
  * 
  * @param <T> the type of values that get signed
  */
@@ -24,14 +26,25 @@ public class SHA256withDSA<T> implements SignatureAlgorithm<T> {
 	private final Signature signature;
 
 	/**
+	 * The key pair generator.
+	 */
+	private final KeyPairGenerator keyPairGen;
+
+	/**
 	 * How values get transformed into bytes, before being hashed.
 	 */
 	private final BytesSupplier<? super T> supplier;
 
-
 	public SHA256withDSA(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		this.signature = Signature.getInstance("SHA256withDSA");
+		this.keyPairGen = KeyPairGenerator.getInstance("DSA");
+		this.keyPairGen.initialize(2048);
 		this.supplier = supplier;
+	}
+
+	@Override
+	public KeyPair getKeyPair() {
+		return keyPairGen.generateKeyPair();
 	}
 
 	@Override

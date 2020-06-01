@@ -12,12 +12,4 @@
     <version>1.0</version>
   </parent>
 
-  <dependencies>
-	<dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-beans</artifactId>
-        <version>1.0</version>
-    </dependency>
-  </dependencies>
-
 </project>

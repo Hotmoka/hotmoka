@@ -7,6 +7,9 @@ import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -38,12 +41,14 @@ class Bombing extends TakamakaTest {
 	}
 
 	@Test @DisplayName(TRANSFERS + " random transfers between accounts")
-	void randomTranfers() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void randomTranfers() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		Random random = new Random();
 		long start = System.currentTimeMillis();
 
 		for (int i = 0; i < TRANSFERS; i++) {
-			StorageReference from = account(random.nextInt(ACCOUNTS));
+			int num = random.nextInt(ACCOUNTS);
+			StorageReference from = account(num);
+			PrivateKey key = privateKey(num);
 
 			StorageReference to;
 			do {
@@ -54,10 +59,10 @@ class Bombing extends TakamakaTest {
 			int amount = 1 + random.nextInt(10);
 			//System.out.println(amount + ": " + from + " -> " + to);
 			if (i < TRANSFERS - 1)
-				postTransferTransaction(from, ZERO, takamakaCode(), to, amount);
+				postTransferTransaction(key, from, ZERO, takamakaCode(), to, amount);
 			else
 				// the last transaction requires to wait until everything is committed
-				addTransferTransaction(from, ZERO, takamakaCode(), to, amount);
+				addTransferTransaction(key, from, ZERO, takamakaCode(), to, amount);
 		}
 
 		long time = System.currentTimeMillis() - start;
@@ -66,7 +71,7 @@ class Bombing extends TakamakaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(i))).value);
+			sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, ZERO, takamakaCode(), GET_BALANCE, account(i))).value);
 
 		// no money got lost in translation
 		assertEquals(sum, BigInteger.valueOf(ACCOUNTS).multiply(_10_000));

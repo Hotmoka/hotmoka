@@ -3,7 +3,6 @@ package io.hotmoka.crypto.internal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BytesSupplier;
 import io.hotmoka.crypto.HashingAlgorithm;
 
@@ -37,7 +36,7 @@ public class SHA256<T> implements HashingAlgorithm<T>{
 			}
 		}
 		catch(Exception e) {
-			throw InternalFailureException.of(e);
+			throw new IllegalArgumentException(e);
 		}
 	}
 

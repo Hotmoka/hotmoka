@@ -23,7 +23,7 @@ class IllegalCallToEntry2 extends TakamakaTest {
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationException(() ->
-			addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltoentry2.jar"), takamakaCode())
+			addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltoentry2.jar"), takamakaCode())
 		);
 	}
 }

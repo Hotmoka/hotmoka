@@ -4,6 +4,8 @@
 package io.takamaka.tests;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +30,7 @@ class Allocations extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new Allocations()")
-	void createAllocations() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		addConstructorCallTransaction(account(0), _20_000_000, BigInteger.ONE, jar(), new ConstructorSignature(new ClassType("io.takamaka.tests.allocations.Allocations")));
+	void createAllocations() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		addConstructorCallTransaction(privateKey(0), account(0), _20_000_000, BigInteger.ONE, jar(), new ConstructorSignature(new ClassType("io.takamaka.tests.allocations.Allocations")));
 	}
 }

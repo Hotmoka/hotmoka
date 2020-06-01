@@ -1,5 +1,6 @@
 package io.hotmoka.nodes;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
@@ -13,12 +14,14 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * A node of the Hotmoka network, that provides the storage
@@ -48,6 +51,14 @@ public interface Node extends AutoCloseable {
 	 * @throws NoSuchElementException if no manifest has been set for this node
 	 */
 	StorageReference getManifest() throws NoSuchElementException;
+
+	/**
+	 * Yields the algorithm used to sign non-initial requests with this node.
+	 * 
+	 * @return the SHA256withDSA algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
+	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
+	 */
+	SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException;
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.

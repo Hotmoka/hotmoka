@@ -6,6 +6,8 @@ package io.takamaka.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -46,74 +48,74 @@ class WTSC2020 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("two investors do not get their investment back yet")
-	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		addInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 
 		// no money back yet
 		assertEquals(balance0.value, BigInteger.valueOf(19_990_000));
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
-	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		postInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		addInstanceMethodCallTransaction(account(2), _20_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 
 		// the money is back!
 		assertEquals(balance0.value, BigInteger.valueOf(20_006_666));
 	}
 
 	@Test @DisplayName("three investors then check most frequent investor class")
-	void mostFrequentInvestorClass() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void mostFrequentInvestorClass() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		postInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		postInstanceMethodCallTransaction(account(2), _20_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(1) invests again and becomes the most frequent investor
-		addInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks which is the most frequent investor class
-		StringValue result = (StringValue) runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
+		StringValue result = (StringValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
 
 		assertEquals(ClassType.TEOA.name, result.value);
 	}
 
 	@Disabled
 	@Test @DisplayName("three investors then check most frequent investor and fails")
-	void mostFrequentInvestor() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void mostFrequentInvestor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
-		StorageReference pyramid = addConstructorCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 
 		// account(1) becomes the second investor
-		postInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(2) becomes the third investor
-		postInstanceMethodCallTransaction(account(2), _20_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(1) invests again and becomes the most frequent investor
-		addInstanceMethodCallTransaction(account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(1), account(1), _10_000, BigInteger.ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks who is the most frequent investor
-		runViewInstanceMethodCallTransaction(account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR, pyramid);
+		runViewInstanceMethodCallTransaction(privateKey(0), account(0), _10_000, BigInteger.ONE, jar(), MOST_FREQUENT_INVESTOR, pyramid);
 	}
 }

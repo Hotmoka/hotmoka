@@ -23,7 +23,7 @@ class InconsistentPayable1 extends TakamakaTest {
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationException(() ->
-			addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("inconsistentpayable1.jar"), takamakaCode())
+			addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("inconsistentpayable1.jar"), takamakaCode())
 		);
 	}
 }

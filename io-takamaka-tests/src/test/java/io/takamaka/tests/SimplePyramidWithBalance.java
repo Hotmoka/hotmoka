@@ -6,6 +6,8 @@ package io.takamaka.tests;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,21 +43,21 @@ class SimplePyramidWithBalance extends TakamakaTest {
 	}
 
 	@Test @DisplayName("two investors do not get investment back yet")
-	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference pyramid = addConstructorCallTransaction(account(0), _50_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		postInstanceMethodCallTransaction(account(1), _50_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(account(0), _50_000, BigInteger.ZERO, jar(), WITHDRAW, pyramid);
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _50_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ZERO, jar(), WITHDRAW, pyramid);
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
-	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference pyramid = addConstructorCallTransaction(account(0), _50_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		postInstanceMethodCallTransaction(account(1), _50_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		postInstanceMethodCallTransaction(account(2), _50_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(account(0), _50_000, BigInteger.ZERO, jar(), WITHDRAW, pyramid);
-		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(account(0), _50_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
+	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		postInstanceMethodCallTransaction(privateKey(2), account(2), _50_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ZERO, jar(), WITHDRAW, pyramid);
+		BigIntegerValue balance0 = (BigIntegerValue) runViewInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ZERO, jar(), GET_BALANCE, account(0));
 		assertTrue(balance0.value.compareTo(BigInteger.valueOf(201_000)) > 0);
 	}
 }

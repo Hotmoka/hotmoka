@@ -2,6 +2,8 @@ package io.takamaka.tests.errors;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,14 +27,14 @@ class LegalCall5 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
-		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
+	void installJar() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("new C().foo()")
-	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
-		TransactionReference jar = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
+	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
 
-		addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, jar, new VoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall5.C"), "foo"));
+		addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar, new VoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall5.C"), "foo"));
 	}
 }

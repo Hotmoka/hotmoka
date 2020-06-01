@@ -3,9 +3,12 @@
  */
 package io.takamaka.tests;
 
+import static io.hotmoka.beans.Coin.panarea;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,51 +37,51 @@ class JavaCollections extends TakamakaTest {
 	}
 
 	@Test @DisplayName("HashMapTests.testToString1() == [how, are, hello, you, ?]")
-	void toString1OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString1OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StringValue toString = (StringValue) runViewStaticMethodCallTransaction
-			(account(0), _200_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING));
+			(privateKey(0), account(0), _200_000, panarea(1), jar(), new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING));
 		assertEquals("[how, are, hello, you, ?]", toString.value);
 	}
 
 	@Test @DisplayName("HashMapTests.testToString2() == [how, are, hello, you, ?]")
-	void toString2OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString2OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StringValue toString = (StringValue) runViewStaticMethodCallTransaction
-			(account(0), _200_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString2", ClassType.STRING));
+			(privateKey(0), account(0), _200_000, panarea(1), jar(), new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString2", ClassType.STRING));
 		assertEquals("[how, are, hello, you, ?]", toString.value);
 	}
 
 	@Test @DisplayName("HashMapTests.testToString3() fails with a run-time white-listing violation")
 	void toString3OnHashMap() throws TransactionException, CodeExecutionException {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			runViewStaticMethodCallTransaction(account(0), _200_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString3", ClassType.STRING))
+			runViewStaticMethodCallTransaction(privateKey(0), account(0), _200_000, panarea(1), jar(), new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString3", ClassType.STRING))
 		);
 	}
 
 	@Test @DisplayName("HashMapTests.testToString4() == [how, are, hello, you, ?]")
-	void toString4OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString4OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StringValue toString = (StringValue) runViewStaticMethodCallTransaction
-			(account(0), _200_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString4", ClassType.STRING));
+			(privateKey(0), account(0), _200_000, panarea(1), jar(), new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString4", ClassType.STRING));
 		assertEquals("[are, io.takamaka.tests.javacollections.C@2a, hello, you, ?]", toString.value);
 	}
 
 	@Test @DisplayName("HashSetTests.testToString1() == [how, are, hello, you, ?]")
-	void toString1OnHashSet() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString1OnHashSet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StringValue toString = (StringValue) runViewStaticMethodCallTransaction
-			(account(0), _200_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(HASH_SET_TESTS, "testToString1", ClassType.STRING));
+			(privateKey(0), account(0), _200_000, panarea(1), jar(), new NonVoidMethodSignature(HASH_SET_TESTS, "testToString1", ClassType.STRING));
 		assertEquals("[how, are, hello, you, ?]", toString.value);
 	}
 
 	@Test @DisplayName("HashSetTests.testToString2() == [how, are, hello, you, ?]")
 	void toString2OnHashSet() throws TransactionException, CodeExecutionException {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			runViewStaticMethodCallTransaction(account(0), _200_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(HASH_SET_TESTS, "testToString2", ClassType.STRING))
+			runViewStaticMethodCallTransaction(privateKey(0), account(0), _200_000, panarea(1), jar(), new NonVoidMethodSignature(HASH_SET_TESTS, "testToString2", ClassType.STRING))
 		);
 	}
 
 	@Test @DisplayName("HashSetTests.testToString3() == [how, are, hello, you, ?]")
-	void toString3OnHashSet() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString3OnHashSet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StringValue toString = (StringValue) runViewStaticMethodCallTransaction
-			(account(0), _200_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(HASH_SET_TESTS, "testToString3", ClassType.STRING));
+			(privateKey(0), account(0), _200_000, panarea(1), jar(), new NonVoidMethodSignature(HASH_SET_TESTS, "testToString3", ClassType.STRING));
 		assertEquals("[how, are, io.takamaka.tests.javacollections.C@2a, hello, you, ?]", toString.value);
 	}
 }

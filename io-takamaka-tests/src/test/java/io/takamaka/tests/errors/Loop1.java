@@ -2,6 +2,8 @@ package io.takamaka.tests.errors;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,15 +27,15 @@ class Loop1 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, IOException, TransactionRejectedException {
-		addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop1.jar"), takamakaCode());
+	void installJar() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop1.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("install jar then call to Loop.loop() fails")
-	void callLoop() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException {
-		TransactionReference loop = addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop1.jar"), takamakaCode());
+	void callLoop() throws TransactionException, IOException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		TransactionReference loop = addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("loop1.jar"), takamakaCode());
 
 		TakamakaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
-			addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, loop, new VoidMethodSignature("io.takamaka.tests.errors.loop1.Loop", "loop")));
+			addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, loop, new VoidMethodSignature("io.takamaka.tests.errors.loop1.Loop", "loop")));
 	}
 }

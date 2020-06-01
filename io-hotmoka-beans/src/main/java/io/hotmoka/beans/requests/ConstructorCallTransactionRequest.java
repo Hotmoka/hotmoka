@@ -3,6 +3,8 @@ package io.hotmoka.beans.requests;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 import java.util.stream.Collectors;
 
 import io.hotmoka.beans.annotations.Immutable;
@@ -32,6 +34,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
@@ -39,9 +42,14 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param constructor the constructor that must be called
 	 * @param actuals the actual arguments passed to the constructor
+	 * @throws SignatureException if the signer cannot sign the request
+	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public ConstructorCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
-		this(caller, nonce, gasLimit, gasPrice, classpath, constructor, new byte[40], actuals);
+	public ConstructorCallTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
+
+		this.constructor = constructor;
+		this.signature = signer.sign(this);
 	}
 
 	/**
@@ -91,11 +99,9 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
+	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
-		super.into(oos);
+		super.intoWithoutSignature(oos);
 		constructor.into(oos);
-		writeLength(signature.length, oos);
-		oos.write(signature);
 	}
 }

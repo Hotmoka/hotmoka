@@ -14,6 +14,8 @@ import io.hotmoka.tendermint.TendermintBlockchain;
  */
 public class Main {
 
+	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
+
 	/**
 	 * Initial green stake.
 	 */
@@ -29,7 +31,7 @@ public class Main {
 
 		try (Node blockchain = TendermintBlockchain.of(config)) {
 			InitializedNode initializedView = InitializedNode.of(blockchain, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), GREEN, RED);
-			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000));
+			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			System.out.println("account #0: " + viewWithAccounts.account(0));
 		}

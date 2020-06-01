@@ -6,6 +6,8 @@ package io.takamaka.tests;
 import static io.hotmoka.beans.types.BasicTypes.INT;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,43 +53,43 @@ class RemotePurchase extends TakamakaTest {
 	@Test @DisplayName("new Purchase(21)")
 	void oddDeposit() throws TransactionException, CodeExecutionException {
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(21))
+			addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(21))
 		);
 	}
 
 	@Test @DisplayName("new Purchase(20)")
-	void evenDeposit() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+	void evenDeposit() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18)")
-	void buyerCheats() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference purchase = addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+	void buyerCheats() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addInstanceMethodCallTransaction(buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(18))
+			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(18))
 		);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20)")
-	void buyerHonest() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference purchase = addConstructorCallTransaction(seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
-		addInstanceMethodCallTransaction(buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+	void buyerHonest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+		addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmReceived()")
-	void confirmReceptionBeforePaying() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference purchase = addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+	void confirmReceptionBeforePaying() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addInstanceMethodCallTransaction(buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase)
+			addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase)
 		);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20) and then purchase.confirmReceived()")
-	void buyerPaysAndConfirmReception() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference purchase = addConstructorCallTransaction(seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
-		postInstanceMethodCallTransaction(buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
-		addInstanceMethodCallTransaction(buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase);
+	void buyerPaysAndConfirmReception() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+		postInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+		addInstanceMethodCallTransaction(privateKey(1), buyer, _10_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase);
 	}
 }

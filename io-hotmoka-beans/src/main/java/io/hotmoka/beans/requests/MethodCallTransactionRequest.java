@@ -63,8 +63,8 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
-		super.into(oos);
+	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
+		super.intoWithoutSignature(oos);
 		method.into(oos);
 	}
 }

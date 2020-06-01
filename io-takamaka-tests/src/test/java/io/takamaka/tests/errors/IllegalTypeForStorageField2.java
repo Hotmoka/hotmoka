@@ -31,7 +31,7 @@ class IllegalTypeForStorageField2 extends TakamakaTest {
 	void installJar() throws TransactionException, CodeExecutionException, IOException {
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			addConstructorCallTransaction
-				(account(0), _20_000, BigInteger.ONE, jar(),
+				(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
 				new ConstructorSignature("io.takamaka.tests.errors.illegaltypeforstoragefield2.C", ClassType.OBJECT),
 				new EnumValue("io.takamaka.tests.errors.illegaltypeforstoragefield2.MyEnum", "FIRST"))
 		);

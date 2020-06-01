@@ -20,7 +20,7 @@ class IllegalCallToNonWhiteListedMethod2 extends TakamakaTest {
 	@Test @DisplayName("install jar")
 	void installJar() {
 		throwsVerificationException(() ->
-			addJarStoreTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltononwhitelistedmethod2.jar"), takamakaCode())
+			addJarStoreTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), bytesOf("illegalcalltononwhitelistedmethod2.jar"), takamakaCode())
 		);
 	}
 }

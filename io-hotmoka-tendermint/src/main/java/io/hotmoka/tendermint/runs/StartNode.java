@@ -9,6 +9,9 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +24,8 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.requests.TransferTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -28,6 +33,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.CodeSupplier;
 import io.hotmoka.nodes.views.InitializedNode;
@@ -37,6 +43,7 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
 
 public class StartNode {
+	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 	private static final BigInteger _10_000 = BigInteger.valueOf(10_000);
 	private static final int TRANSFERS = 1500;
 	private static final int ACCOUNTS = 4;
@@ -56,6 +63,7 @@ public class StartNode {
 	 * The nonce of each externally owned account used in the test.
 	 */
 	private final static Map<StorageReference, BigInteger> nonces = new HashMap<>();
+	private static SignatureAlgorithm<NonInitialTransactionRequest<?>> signature;
 
 	public static void main(String[] args) throws Exception {
 		Config config = new Config.Builder().setDelete(false).build();
@@ -87,7 +95,8 @@ public class StartNode {
 		try (Node blockchain = TendermintBlockchain.of(config)) {
 			if (jarOfTakamakaCode != null) {
 				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, GREEN, RED);
-				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000), BigInteger.valueOf(200_000));
+				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000, _200_000);
+				signature = blockchain.signatureAlgorithmForRequests();
 
 				Random random = new Random();
 				long start = System.currentTimeMillis();
@@ -95,7 +104,9 @@ public class StartNode {
 				TransactionReference takamakaCode = viewWithAccounts.getTakamakaCode();
 
 				for (int i = 0; i < TRANSFERS; i++) {
-					StorageReference from = viewWithAccounts.account(random.nextInt(ACCOUNTS));
+					int num = random.nextInt(ACCOUNTS);
+					StorageReference from = viewWithAccounts.account(num);
+					PrivateKey key = viewWithAccounts.privateKey(num);
 
 					StorageReference to;
 					do {
@@ -106,10 +117,10 @@ public class StartNode {
 					int amount = 1 + random.nextInt(10);
 					//System.out.println(amount + ": " + from + " -> " + to);
 					if (i < TRANSFERS - 1)
-						postTransferTransaction(viewWithAccounts, from, ZERO, takamakaCode, to, amount);
+						postTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
 					else
 						// the last transaction requires to wait until everything is committed
-						addTransferTransaction(viewWithAccounts, from, ZERO, takamakaCode, to, amount);
+						addTransferTransaction(viewWithAccounts, from, key, ZERO, takamakaCode, to, amount);
 				}
 
 				long time = System.currentTimeMillis() - start;
@@ -118,7 +129,7 @@ public class StartNode {
 				// we compute the sum of the balances of the accounts
 				BigInteger sum = ZERO;
 				for (int i = 0; i < ACCOUNTS; i++)
-					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), _10_000, ZERO, takamakaCode, GET_BALANCE, viewWithAccounts.account(i))).value);
+					sum = sum.add(((BigIntegerValue) runViewInstanceMethodCallTransaction(viewWithAccounts, viewWithAccounts.account(0), viewWithAccounts.privateKey(0), _10_000, ZERO, takamakaCode, GET_BALANCE, viewWithAccounts.account(i))).value);
 
 				// checks that no money got lost in translation
 				System.out.println(sum + " should be " + ACCOUNTS * 200_000);
@@ -140,35 +151,36 @@ public class StartNode {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	private static CodeSupplier<StorageValue> postTransferTransaction(Node node, StorageReference caller, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException {
-		BigInteger nonce = getNonceOf(node, caller, classpath);
-		return node.postInstanceMethodCallTransaction(new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch));
+	private static CodeSupplier<StorageValue> postTransferTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, InvalidKeyException, SignatureException {
+		BigInteger nonce = getNonceOf(node, caller, key, classpath);
+		return node.postInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, nonce, gasPrice, classpath, receiver, howMuch));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	private static void addTransferTransaction(Node node, StorageReference caller, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		BigInteger nonce = getNonceOf(node, caller, classpath);
-		node.addInstanceMethodCallTransaction(new TransferTransactionRequest(caller, nonce, gasPrice, classpath, receiver, howMuch));
+	private static void addTransferTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
+		BigInteger nonce = getNonceOf(node, caller, key, classpath);
+		node.addInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, nonce, gasPrice, classpath, receiver, howMuch));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		return node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, BigInteger.ZERO, gasLimit, gasPrice, classpath, method, receiver, actuals));
+	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		return node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, ZERO, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Gets the nonce of the given account. It calls the {@code Account.nonce()} method.
 	 * 
 	 * @param account the account
+	 * @param key the private key of the account
 	 * @param classpath the path where the execution must be performed
 	 * @return the nonce
 	 * @throws TransactionException if the nonce cannot be found
 	 */
-	private static BigInteger getNonceOf(Node node, StorageReference account, TransactionReference classpath) throws TransactionRejectedException {
+	private static BigInteger getNonceOf(Node node, StorageReference account, PrivateKey key, TransactionReference classpath) throws TransactionRejectedException {
 		try {
 			BigInteger nonce = nonces.get(account);
 			if (nonce != null)
@@ -176,7 +188,7 @@ public class StartNode {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(account, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+					(Signer.with(signature, key), account, ZERO, BigInteger.valueOf(10_000), ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;

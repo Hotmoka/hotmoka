@@ -153,7 +153,7 @@ class State implements AutoCloseable {
      */
     State(String dir) throws NoSuchAlgorithmException {
     	this.env = Environments.newInstance(dir);
-    	this.hashingForNodes = HashingAlgorithm.sha256();
+    	this.hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
 
     	// enforces that all stores exist
     	recordTime(() ->

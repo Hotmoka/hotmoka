@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -23,6 +28,8 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -34,6 +41,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.takamaka.code.constants.Constants;
@@ -60,6 +68,11 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	private final StorageReference[] accounts;
 
 	/**
+	 * The private keys of the accounts created during initialization.
+	 */
+	private final PrivateKey[] privateKeys;
+
+	/**
 	 * The method of red/green contracts to send red coins.
 	 */
 	private final static VoidMethodSignature RECEIVE_RED = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
@@ -78,6 +91,8 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * Creates a decorated node by storing into it a jar and creating initial accounts.
 	 * 
 	 * @param parent the node that gets decorated
+	 * @param privateKeyOfGamete the private key of the gamete, that is needed to sign requests for initializing the accounts;
+	 *                           the gamete must have enough coins to initialize the required accounts
 	 * @param jar the path of a jar that must be further installed in blockchain. This might be {@code null}
 	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
 	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
@@ -86,28 +101,35 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
+	 * @throws SignatureException if some request could not be signed
+	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public NodeWithAccountsImpl(Node parent, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+	public NodeWithAccountsImpl(Node parent, PrivateKey privateKeyOfGamete, Path jar, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
+		this.accounts = new StorageReference[redGreen ? funds.length / 2 : funds.length];
+		this.privateKeys = new PrivateKey[accounts.length];
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		StorageReference manifest = parent.getManifest();
+		StorageReference manifest = getManifest();
+		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = signatureAlgorithmForRequests();
+		Signer signerOnBehalfOfGamete = Signer.with(signature, privateKeyOfGamete);
 
 		// we get the nonce of the manifest account
 		BigInteger nonce = ((BigIntegerValue) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), manifest))).value;
+			(Signer.onBehalfOfManifest(), manifest, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), manifest))).value;
 
 		// we call its getGamete() method
 		StorageReference gamete = (StorageReference) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, nonce, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), manifest));
+			(Signer.onBehalfOfManifest(), manifest, nonce, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), manifest));
 
 		// we get the nonce of the gamete
 		nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), gamete))).value;
+			(signerOnBehalfOfGamete, gamete, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), gamete))).value;
 
 		JarSupplier jarSupplier;
 		if (jar != null) {
-			jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(gamete, nonce, BigInteger.valueOf(1_000_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
+			jarSupplier = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfGamete, gamete, nonce, BigInteger.valueOf(1_000_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
 			nonce = nonce.add(ONE);
 		}
 		else
@@ -118,26 +140,28 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		List<CodeSupplier<StorageReference>> accounts = new ArrayList<>();
 
 		if (redGreen)
-			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE))
+			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {
+				KeyPair keys = signature.getKeyPair();
+				privateKeys[(i - 1) / 2] = keys.getPrivate();
 				// the constructor provides the green coins
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
+					(signerOnBehalfOfGamete, gamete, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
+			}
 		else
-			for (BigInteger fund: funds) {
+			for (int i = 0; i < funds.length; i++, nonce = nonce.add(ONE)) {
+				KeyPair keys = signature.getKeyPair();
+				privateKeys[i] = keys.getPrivate();
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(gamete, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(fund))));
-
-				nonce = nonce.add(ONE);
+					(signerOnBehalfOfGamete, gamete, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
 			}
 
 		int i = 0;
-		this.accounts = new StorageReference[redGreen ? funds.length / 2 : funds.length];
 		for (CodeSupplier<StorageReference> account: accounts) {
 			this.accounts[i] = account.get();
 
 			if (redGreen) {
 				// we add the red coins
-				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(gamete, nonce, gas, ZERO, takamakaCode,
+				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signerOnBehalfOfGamete, gamete, nonce, gas, ZERO, takamakaCode,
 					RECEIVE_RED, this.accounts[i], new BigIntegerValue(funds[i * 2])));
 
 				nonce = nonce.add(ONE);
@@ -157,6 +181,12 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	@Override
 	public StorageReference account(int i) {
 		return accounts[i];
+	}
+
+
+	@Override
+	public PrivateKey privateKey(int i) {
+		return privateKeys[i];
 	}
 
 	@Override
@@ -257,5 +287,10 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	@Override
 	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
 		parent.addInitializationTransaction(request);
+	}
+
+	@Override
+	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		return parent.signatureAlgorithmForRequests();
 	}
 }

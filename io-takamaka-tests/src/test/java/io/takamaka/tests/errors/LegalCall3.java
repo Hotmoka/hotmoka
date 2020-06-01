@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,8 +30,8 @@ class LegalCall3 extends TakamakaTest {
 	}
 
 	@Test @DisplayName("C.test() == false")
-	void callTest() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException {
-		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(account(0), _20_000, BigInteger.ONE, jar(),
+	void callTest() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(new ClassType("io.takamaka.tests.errors.legalcall3.C"), "test", BasicTypes.BOOLEAN));
 
 		assertFalse(result.value);

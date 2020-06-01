@@ -3,6 +3,8 @@ package io.hotmoka.beans.requests;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -29,9 +31,13 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param actuals the actual arguments passed to the method
+	 * @throws SignatureException if the signer cannot sign the request
+	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public StaticMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
-		this(caller, nonce, gasLimit, gasPrice, classpath, method, new byte[40], actuals);
+	public StaticMethodCallTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
+
+		this.signature = signer.sign(this);
 	}
 
 	/**
@@ -58,11 +64,9 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	}
 
 	@Override
-	public void into(ObjectOutputStream oos) throws IOException {
+	public void intoWithoutSignature(ObjectOutputStream oos) throws IOException {
 		oos.writeByte(SELECTOR);
-		super.into(oos);
-		writeLength(signature.length, oos);
-		oos.write(signature);
+		super.intoWithoutSignature(oos);
 	}
 
 	@Override

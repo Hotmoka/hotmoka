@@ -1,11 +1,13 @@
 package io.hotmoka.crypto;
 
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
 
+import io.hotmoka.crypto.internal.Empty;
 import io.hotmoka.crypto.internal.SHA256withDSA;
 
 /**
@@ -14,6 +16,14 @@ import io.hotmoka.crypto.internal.SHA256withDSA;
  * @param <T> the type of values that get signed
  */
 public interface SignatureAlgorithm<T> {
+
+	/**
+	 * Yields a pair of keys (private/public) that can be used with
+	 * this signature algorithm.
+	 * 
+	 * @return the pair of keys
+	 */
+	KeyPair getKeyPair();
 
 	/**
 	 * Yields the signature of the given value, by using the given private key.
@@ -49,5 +59,15 @@ public interface SignatureAlgorithm<T> {
 	 */
 	static <T> SignatureAlgorithm<T> sha256dsa(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		return new SHA256withDSA<>(supplier);
+	}
+
+	/**
+	 * Yields an empty signature algorithm that signs everything with an empty array of bytes.
+	 * 
+	 * @param <T> the type of values that get signed
+	 * @return the algorithm
+	 */
+	static <T> SignatureAlgorithm<T> empty() {
+		return new Empty<>();
 	}
 }

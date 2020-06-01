@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +40,7 @@ class CrowdFundingSimplified extends TakamakaTest {
 	/**
 	 * The first object, that holds all funds initially.
 	 */
-	private StorageReference gamete;
+	private StorageReference account0;
 
 	/**
 	 * TYhe beneficiary of the crowd funding.
@@ -63,17 +65,17 @@ class CrowdFundingSimplified extends TakamakaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setNode("crowdfunding.jar", ALL_FUNDS, BigInteger.ZERO, BigInteger.valueOf(10_000_000L), BigInteger.valueOf(10_000_000L));
-		gamete = account(0);
+		account0 = account(0);
 		beneficiary = account(1);
 		funder1 = account(2);
 		funder2 = account(3);
-		crowdFunding = addConstructorCallTransaction(gamete, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED);
+		crowdFunding = addConstructorCallTransaction(privateKey(0), account0, _10_000, BigInteger.ONE, jar(), CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED);
 	}
 
 	@Test @DisplayName("new CrowdFundingSimplified().newCampaign(beneficiary, 50) != null")
-	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
@@ -81,24 +83,24 @@ class CrowdFundingSimplified extends TakamakaTest {
 	}
 
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
-	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
 		postInstanceMethodCallTransaction
-			(funder1, _10_000, BigInteger.ONE, jar(),
+			(privateKey(2), funder1, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
 		postInstanceMethodCallTransaction
-			(funder2, _10_000, BigInteger.ONE, jar(),
+			(privateKey(3), funder2, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign);
 
@@ -106,24 +108,24 @@ class CrowdFundingSimplified extends TakamakaTest {
 	}
 
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
-	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
 		postInstanceMethodCallTransaction
-			(funder1, _10_000, BigInteger.ONE, jar(),
+			(privateKey(2), funder1, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
 		postInstanceMethodCallTransaction
-			(funder2, _10_000, BigInteger.ONE, jar(),
+			(privateKey(3), funder2, _10_000, BigInteger.ONE, jar(),
 			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
-			(gamete, _10_000, BigInteger.ONE, jar(),
+			(privateKey(0), account0, _10_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign);
 

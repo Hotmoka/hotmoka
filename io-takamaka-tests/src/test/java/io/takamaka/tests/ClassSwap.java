@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,6 +50,11 @@ class ClassSwap extends TakamakaTest {
 	private StorageReference account;
 
 	/**
+	 * The private key of {@linkplain #account}.
+	 */
+	private PrivateKey key;
+
+	/**
 	 * The classpath for the class C whose method get() yields 13.
 	 */
 	private TransactionReference classpathC13;
@@ -60,40 +68,41 @@ class ClassSwap extends TakamakaTest {
 	void beforeEach() throws Exception {
 		setNode(ALL_FUNDS);
 		account = account(0);
+		key = privateKey(0);
 
 		JarSupplier c13 = postJarStoreTransaction
-			(account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode());
+			(key, account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c13.jar")), takamakaCode());
 
 		TransactionReference c17 = addJarStoreTransaction
-			(account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c17.jar")), takamakaCode());
+			(key, account, _20_000, BigInteger.ONE, takamakaCode(), Files.readAllBytes(Paths.get("jars/c17.jar")), takamakaCode());
 
 		classpathC13 = c13.get();
 		classpathC17 = c17;
 	}
 
 	@Test @DisplayName("c13 new/get works in its classpath")
-	void testC13() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference c13 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
-		IntValue get = (IntValue) addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, GET, c13);
+	void testC13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference c13 = addConstructorCallTransaction(key, account, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
+		IntValue get = (IntValue) addInstanceMethodCallTransaction(key, account, _10_000, BigInteger.ONE, classpathC13, GET, c13);
 
 		assertSame(13, get.value);
 	}
 
 	@Test @DisplayName("c17 new/get works in its classpath")
-	void testC17() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference c17 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
-		IntValue get = (IntValue) addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, GET, c17);
+	void testC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference c17 = addConstructorCallTransaction(key, account, _10_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
+		IntValue get = (IntValue) addInstanceMethodCallTransaction(key, account, _10_000, BigInteger.ONE, classpathC17, GET, c17);
 
 		assertSame(17, get.value);
 	}
 
 	@Test @DisplayName("c13 new/get fails if classpath changed")
-	void testC13SwapC17() throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		StorageReference c13 = addConstructorCallTransaction(account, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
+	void testC13SwapC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		StorageReference c13 = addConstructorCallTransaction(key, account, _10_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 
 		// the following call should fail since c13 was created from another jar
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
-			addInstanceMethodCallTransaction(account, _10_000, BigInteger.ONE, classpathC17, GET, c13)
+			addInstanceMethodCallTransaction(key, account, _10_000, BigInteger.ONE, classpathC17, GET, c13)
 		);
 	}
 }

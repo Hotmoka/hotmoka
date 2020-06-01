@@ -18,6 +18,11 @@
         <artifactId>io-takamaka-code-constants</artifactId>
         <version>1.0</version>
     </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-hotmoka-crypto</artifactId>
+        <version>1.0</version>
+    </dependency>
   </dependencies>
 
 </project>

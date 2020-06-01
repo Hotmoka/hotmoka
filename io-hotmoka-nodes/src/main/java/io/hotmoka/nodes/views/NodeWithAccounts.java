@@ -3,6 +3,10 @@ package io.hotmoka.nodes.views;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
 import java.util.Optional;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -34,6 +38,14 @@ public interface NodeWithAccounts extends Node {
 	StorageReference account(int i);
 
 	/**
+	 * Yields the private key for controlling the {@code i}th account.
+	 * 
+	 * @param i the account number
+	 * @return its private key
+	 */
+	PrivateKey privateKey(int i);
+
+	/**
 	 * Yields a decorated node initialized with the given jar and a set of accounts.
 	 * 
 	 * @param parent the node to decorate
@@ -44,9 +56,12 @@ public interface NodeWithAccounts extends Node {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
+	 * @throws SignatureException if some request could not be signed
+	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static NodeWithAccounts of(Node parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new NodeWithAccountsImpl(parent, jar, false, funds);
+	static NodeWithAccounts of(Node parent, PrivateKey privateKeyOfGamete, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new NodeWithAccountsImpl(parent, privateKeyOfGamete, jar, false, funds);
 	}
 
 	/**
@@ -60,9 +75,12 @@ public interface NodeWithAccounts extends Node {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
+	 * @throws SignatureException if some request could not be signed
+	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static NodeWithAccounts ofRedGreen(Node parent, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new NodeWithAccountsImpl(parent, jar, true, funds);
+	static NodeWithAccounts ofRedGreen(Node parent, PrivateKey privateKeyOfGamete, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new NodeWithAccountsImpl(parent, privateKeyOfGamete, jar, true, funds);
 	}
 
 	/**
@@ -75,9 +93,12 @@ public interface NodeWithAccounts extends Node {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
+	 * @throws SignatureException if some request could not be signed
+	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static NodeWithAccounts of(Node parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new NodeWithAccountsImpl(parent, null, false, funds);
+	static NodeWithAccounts of(Node parent, PrivateKey privateKeyOfGamete, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new NodeWithAccountsImpl(parent, privateKeyOfGamete, null, false, funds);
 	}
 
 	/**
@@ -90,8 +111,11 @@ public interface NodeWithAccounts extends Node {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
+	 * @throws SignatureException if some request could not be signed
+	 * @throws InvalidKeyException if some key used for signing transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static NodeWithAccounts ofRedGreen(Node parent, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		return new NodeWithAccountsImpl(parent, null, true, funds);
+	static NodeWithAccounts ofRedGreen(Node parent, PrivateKey privateKeyOfGamete, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new NodeWithAccountsImpl(parent, privateKeyOfGamete, null, true, funds);
 	}
 }

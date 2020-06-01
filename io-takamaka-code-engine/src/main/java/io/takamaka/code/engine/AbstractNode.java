@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.LocalTransactionReference;
@@ -42,6 +43,7 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -249,7 +251,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 * @throws NoSuchAlgorithmException if the required hashing algorithm is not available in the Java installation
 	 */
 	protected HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests() throws NoSuchAlgorithmException {
-		return HashingAlgorithm.sha256();
+		return HashingAlgorithm.sha256(Marshallable::toByteArray);
 	}
 
 	@Override
@@ -263,14 +265,10 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		}
 	}
 
-	/**
-	 * Yields the algorithm used to sign the request with this node.
-	 * 
-	 * @return the SHA256withDSA algorithm of the request (without their signature itself); subclasses may redefine
-	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
-	 */
-	public SignatureAlgorithm<TransactionRequest<?>> requestSignatureAlgorithm() throws NoSuchAlgorithmException {
-		return SignatureAlgorithm.sha256dsa(TransactionRequest::toByteArray);
+	@Override
+	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		// we do not take into account the signature itself
+		return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**

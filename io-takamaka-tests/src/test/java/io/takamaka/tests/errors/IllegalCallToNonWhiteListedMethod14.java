@@ -23,7 +23,7 @@ class IllegalCallToNonWhiteListedMethod14 extends TakamakaTest {
 	@Test @DisplayName("new Random()")
 	void testNonWhiteListedCall() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addConstructorCallTransaction(account(0), _20_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(Random.class.getName()))
+			addConstructorCallTransaction(privateKey(0), account(0), _20_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(Random.class.getName()))
 		);
 	}
 }

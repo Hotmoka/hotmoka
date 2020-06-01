@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
@@ -17,6 +21,8 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -25,6 +31,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.takamaka.code.constants.Constants;
@@ -38,7 +45,12 @@ public class InitializedNodeImpl implements InitializedNode {
 	/**
 	 * The node that is decorated.
 	 */
-	protected final Node parent;
+	private final Node parent;
+
+	/**
+	 * The keys generated for signing requests on behalf of the gamete.
+	 */
+	private final KeyPair keysOfGamete;
 
 	/**
 	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
@@ -51,22 +63,33 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
 	 * @throws IOException if the jar file cannot be accessed
+	 * @throws SignatureException if some initialization request could not be signed
+	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+	public InitializedNodeImpl(Node parent, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
 
 		// we install the jar containing the basic Takamaka classes
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCode)));
+
+		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = parent.signatureAlgorithmForRequests();
+		this.keysOfGamete = signature.getKeyPair();
 
 		// we create a gamete with both red and green coins
 		StorageReference gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount));
 
 		// we create the manifest
 		StorageReference manifest = parent.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
+			(Signer.with(signature, keysOfGamete), gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
 
 		// we install the manifest and initialize the node
 		parent.addInitializationTransaction(new InitializationTransactionRequest(takamakaCodeReference, manifest));
+	}
+
+	@Override
+	public KeyPair keysOfGamete() {
+		return keysOfGamete;
 	}
 
 	@Override
@@ -167,5 +190,10 @@ public class InitializedNodeImpl implements InitializedNode {
 	@Override
 	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
 		parent.addInitializationTransaction(request);
+	}
+
+	@Override
+	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		return parent.signatureAlgorithmForRequests();
 	}
 }
