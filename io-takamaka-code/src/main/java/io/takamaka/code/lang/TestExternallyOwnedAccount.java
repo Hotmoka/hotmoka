@@ -14,32 +14,45 @@ public class TestExternallyOwnedAccount extends ExternallyOwnedAccount {
 
 	/**
 	 * Creates an externally owned contract with no funds.
+	 * 
+	 * @param publicKey the Base64-encoded public key of the account
 	 */
-	public TestExternallyOwnedAccount() {}
+	public TestExternallyOwnedAccount(String publicKey) {
+		super(publicKey);
+	}
 
 	/**
 	 * Creates an externally owned contract with the given initial fund.
 	 * 
 	 * @param initialAmount the initial fund
+	 * @param publicKey the Base64-encoded public key of the account
 	 */
 	@Payable @Entry
-	public TestExternallyOwnedAccount(int initialAmount) {}
+	public TestExternallyOwnedAccount(int initialAmount, String publicKey) {
+		super(publicKey);
+	}
 
 	/**
 	 * Creates an externally owned contract with the given initial fund.
 	 * 
 	 * @param initialAmount the initial fund
+	 * @param publicKey the Base64-encoded public key of the account
 	 */
 	@Payable @Entry
-	public TestExternallyOwnedAccount(long initialAmount) {}
+	public TestExternallyOwnedAccount(long initialAmount, String publicKey) {
+		super(publicKey);
+	}
 
 	/**
 	 * Creates an externally owned contract with the given initial fund.
 	 * 
 	 * @param initialAmount the initial fund
+	 * @param publicKey the Base64-encoded public key of the account
 	 */
 	@Payable @Entry
-	public TestExternallyOwnedAccount(BigInteger initialAmount) {}
+	public TestExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {
+		super(publicKey);
+	}
 
 	@Override
 	public String toString() {

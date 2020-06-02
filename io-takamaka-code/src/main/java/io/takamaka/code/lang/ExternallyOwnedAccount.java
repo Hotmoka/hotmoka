@@ -17,33 +17,53 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	private BigInteger nonce = BigInteger.ZERO;
 
 	/**
-	 * Creates an externally owned contract with no funds.
+	 * The Base64-encoded public key of the account, that can be used to check
+	 * signatures of requests signed on its behalf.
 	 */
-	public ExternallyOwnedAccount() {}
+	@SuppressWarnings("unused")
+	private final String publicKey; // accessed by reflection
 
 	/**
-	 * Creates an externally owned contract with the given initial fund.
+	 * Creates an externally owned account with no funds.
 	 * 
-	 * @param initialAmount the initial fund
+	 * @param publicKey the Base64-encoded public key of the account
 	 */
-	@Payable @Entry
-	public ExternallyOwnedAccount(int initialAmount) {}
+	public ExternallyOwnedAccount(String publicKey) {
+		this.publicKey = publicKey;
+	}
 
 	/**
-	 * Creates an externally owned contract with the given initial fund.
+	 * Creates an externally owned account with the given initial fund.
 	 * 
 	 * @param initialAmount the initial fund
+	 * @param publicKey the Base64-encoded public key of the account
 	 */
 	@Payable @Entry
-	public ExternallyOwnedAccount(long initialAmount) {}
+	public ExternallyOwnedAccount(int initialAmount, String publicKey) {
+		this.publicKey = publicKey;
+	}
 
 	/**
-	 * Creates an externally owned contract with the given initial fund.
+	 * Creates an externally owned account with the given initial fund.
 	 * 
 	 * @param initialAmount the initial fund
+	 * @param publicKey the Base64-encoded public key of the account
 	 */
 	@Payable @Entry
-	public ExternallyOwnedAccount(BigInteger initialAmount) {}
+	public ExternallyOwnedAccount(long initialAmount, String publicKey) {
+		this.publicKey = publicKey;
+	}
+
+	/**
+	 * Creates an externally owned account with the given initial fund.
+	 * 
+	 * @param initialAmount the initial fund
+	 * @param publicKey the Base64-encoded public key of the account
+	 */
+	@Payable @Entry
+	public ExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {
+		this.publicKey = publicKey;
+	}
 
 	@Override
 	public String toString() {

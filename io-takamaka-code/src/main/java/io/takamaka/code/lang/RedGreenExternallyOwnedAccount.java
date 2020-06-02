@@ -21,33 +21,52 @@ public class RedGreenExternallyOwnedAccount extends RedGreenPayableContract impl
 	private BigInteger nonce = BigInteger.ZERO;
 
 	/**
+	 * The Base64-encoded public key of the account.
+	 */
+	@SuppressWarnings("unused")
+	private final String publicKey; // accessed by reflection
+
+	/**
 	 * Creates an externally owned contract with no funds.
+	 * 
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	public RedGreenExternallyOwnedAccount() {}
+	public RedGreenExternallyOwnedAccount(String publicKey) {
+		this.publicKey = publicKey;
+	}
 
 	/**
 	 * Creates an externally owned contract with the given initial green funds.
 	 * 
 	 * @param initialAmount the initial green funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	@Payable @Entry
-	public RedGreenExternallyOwnedAccount(int initialAmount) {}
+	public RedGreenExternallyOwnedAccount(int initialAmount, String publicKey) {
+		this.publicKey = publicKey;
+	}
 
 	/**
 	 * Creates an externally owned contract with the given initial green funds.
 	 * 
 	 * @param initialAmount the initial green funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	@Payable @Entry
-	public RedGreenExternallyOwnedAccount(long initialAmount) {}
+	public RedGreenExternallyOwnedAccount(long initialAmount, String publicKey) {
+		this.publicKey = publicKey;
+	}
 
 	/**
 	 * Creates an externally owned contract with the given initial green funds.
 	 * 
 	 * @param initialAmount the initial green funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	@Payable @Entry
-	public RedGreenExternallyOwnedAccount(BigInteger initialAmount) {}
+	public RedGreenExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {
+		this.publicKey = publicKey;
+	}
 
 	@Override
 	public String toString() {

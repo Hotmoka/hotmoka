@@ -13,6 +13,8 @@ public final class Manifest extends ExternallyOwnedAccount {
 	public final RedGreenExternallyOwnedAccount gamete;
 
 	public Manifest(RedGreenExternallyOwnedAccount gamete) {
+		super("");
+
 		this.gamete = gamete;
 	}
 

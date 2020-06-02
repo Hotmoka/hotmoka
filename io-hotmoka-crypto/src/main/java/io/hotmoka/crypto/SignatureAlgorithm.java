@@ -3,9 +3,11 @@ package io.hotmoka.crypto;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.crypto.internal.Empty;
 import io.hotmoka.crypto.internal.SHA256withDSA;
@@ -48,6 +50,18 @@ public interface SignatureAlgorithm<T> {
 	 * @throws SignatureException if the value cannot be signed
 	 */
 	boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException;
+
+	/**
+	 * Yields a public key from that can be used with this signature, from
+	 * its encoded version as a byte array.
+	 * 
+	 * @param encoded the encoded version of the public key
+	 * @return the public key
+	 * @throws NoSuchAlgorithmException if the key algorithm does not exist in the Java installation
+	 * @throws NoSuchProviderException if the key provider does not exist in the Java installation
+	 * @throws InvalidKeySpecException if the {@code encoded} key does not match the expected specification
+	 */
+	PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException;
 
 	/**
 	 * Yields a signature algorithm that uses the SHA256 hashing algorithm and then the DSA algorithm.

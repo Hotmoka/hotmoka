@@ -360,7 +360,7 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param value to value to set for the nonce of the account
 	 */
 	public final void setNonceOf(Object object, BigInteger value) {
-		Class<? extends Object> clazz = object.getClass();
+		Class<?> clazz = object.getClass();
 
 		try {
 			if (getExternallyOwnedAccount().isAssignableFrom(clazz))

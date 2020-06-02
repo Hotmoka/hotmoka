@@ -88,7 +88,6 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				if (hasAnnotation(constructorJVM, Constants.RED_PAYABLE_NAME))
 					callerMustBeRedGreenExternallyOwnedAccount();
 		
-				//ConstructorThread thread = new ConstructorThread(constructorJVM, deserializedActuals);
 				Object result;
 				try {
 					result = constructorJVM.newInstance(deserializedActuals);

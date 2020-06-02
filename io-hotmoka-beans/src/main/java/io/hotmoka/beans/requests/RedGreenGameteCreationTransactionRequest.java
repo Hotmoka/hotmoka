@@ -35,32 +35,41 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 	public final BigInteger redInitialAmount;
 
 	/**
+	 * The Base64-encoded public key that will be assigned to the gamete.
+	 */
+	public final String publicKey;
+
+	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}
 	 * @param initialAmount the amount of green coins provided to the gamete
 	 * @param redInitialAmount the amount of red coins provided to the gamete
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	public RedGreenGameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount) {
+	public RedGreenGameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
 		this.classpath = classpath;
 		this.initialAmount = initialAmount;
 		this.redInitialAmount = redInitialAmount;
+		this.publicKey = publicKey;
 	}
 
 	@Override
 	public String toString() {
         return getClass().getSimpleName() + ":\n"
         	+ "  class path: " + classpath + "\n"
-        	+ "  initialAmount: " + initialAmount
-        	+ "  redInitialAmount: " + redInitialAmount;
+        	+ "  initialAmount: " + initialAmount + "\n"
+        	+ "  redInitialAmount: " + redInitialAmount + "\n"
+        	+ "  publicKey: " + publicKey;
 	}
 
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof RedGreenGameteCreationTransactionRequest) {
 			RedGreenGameteCreationTransactionRequest otherCast = (RedGreenGameteCreationTransactionRequest) other;
-			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount) && redInitialAmount.equals(otherCast.redInitialAmount);
+			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount) && redInitialAmount.equals(otherCast.redInitialAmount)
+				&& publicKey.equals(otherCast.publicKey);
 		}
 		else
 			return false;
@@ -68,7 +77,7 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 
 	@Override
 	public int hashCode() {
-		return classpath.hashCode() ^ initialAmount.hashCode() ^ redInitialAmount.hashCode();
+		return classpath.hashCode() ^ initialAmount.hashCode() ^ redInitialAmount.hashCode() ^ publicKey.hashCode();
 	}
 
 	@Override
@@ -77,6 +86,7 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 		classpath.into(oos);
 		marshal(initialAmount, oos);
 		marshal(redInitialAmount, oos);
+		oos.writeUTF(publicKey);
 	}
 
 	@Override

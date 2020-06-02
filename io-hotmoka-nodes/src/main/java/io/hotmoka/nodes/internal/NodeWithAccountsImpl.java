@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -41,6 +42,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.NodeWithAccounts;
@@ -80,12 +82,12 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	/**
 	 * The constructor of an externally owned account.
 	 */
-	private final static ConstructorSignature TEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER);
+	private final static ConstructorSignature TEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER, ClassType.STRING);
 
 	/**
 	 * The constructor of an externally owned account with red/green funds.
 	 */
-	private final static ConstructorSignature TRGEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER);
+	private final static ConstructorSignature TRGEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER, ClassType.STRING);
 
 	/**
 	 * Creates a decorated node by storing into it a jar and creating initial accounts.
@@ -143,16 +145,18 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[(i - 1) / 2] = keys.getPrivate();
+				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				// the constructor provides the green coins
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfGamete, gamete, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
+					(signerOnBehalfOfGamete, gamete, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
 			}
 		else
 			for (int i = 0; i < funds.length; i++, nonce = nonce.add(ONE)) {
 				KeyPair keys = signature.getKeyPair();
 				privateKeys[i] = keys.getPrivate();
+				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfGamete, gamete, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]))));
+					(signerOnBehalfOfGamete, gamete, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
 			}
 
 		int i = 0;

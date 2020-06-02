@@ -16,32 +16,45 @@ public class TestRedGreenExternallyOwnedAccount extends RedGreenExternallyOwnedA
 
 	/**
 	 * Creates an externally owned contract with no funds.
+	 *
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	public TestRedGreenExternallyOwnedAccount() {}
+	public TestRedGreenExternallyOwnedAccount(String publicKey) {
+		super(publicKey);
+	}
 
 	/**
 	 * Creates an externally owned contract with the given initial green funds.
 	 * 
 	 * @param initialAmount the initial green funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	@Payable @Entry
-	public TestRedGreenExternallyOwnedAccount(int initialAmount) {}
+	public TestRedGreenExternallyOwnedAccount(int initialAmount, String publicKey) {
+		super(publicKey);
+	}
 
 	/**
 	 * Creates an externally owned contract with the given initial green funds.
 	 * 
 	 * @param initialAmount the initial green funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	@Payable @Entry
-	public TestRedGreenExternallyOwnedAccount(long initialAmount) {}
+	public TestRedGreenExternallyOwnedAccount(long initialAmount, String publicKey) {
+		super(publicKey);
+	}
 
 	/**
 	 * Creates an externally owned contract with the given initial green funds.
 	 * 
 	 * @param initialAmount the initial green funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	@Payable @Entry
-	public TestRedGreenExternallyOwnedAccount(BigInteger initialAmount) {}
+	public TestRedGreenExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {
+		super(publicKey);
+	}
 
 	@Override
 	public String toString() {

@@ -10,9 +10,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 
@@ -98,9 +101,11 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap().put(k,v) then get(k) yields v")
-	void putThenGet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void putThenGet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		CodeSupplier<StorageReference> map = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
-		StorageReference eoa = addConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		KeyPair keys = signature().getKeyPair();
+		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		StorageReference eoa = addConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 		addInstanceMethodCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map.get(), eoa, ONE);
 		BigIntegerValue get = (BigIntegerValue) runViewInstanceMethodCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa);
 
@@ -108,10 +113,14 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap().put(k1,v) then get(k2) yields null")
-	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		CodeSupplier<StorageReference> map = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
-		CodeSupplier<StorageReference> eoa1 = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		CodeSupplier<StorageReference> eoa2 = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		KeyPair keys1 = signature().getKeyPair();
+		String publicKey1 = Base64.getEncoder().encodeToString(keys1.getPublic().getEncoded());
+		CodeSupplier<StorageReference> eoa1 = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey1));
+		KeyPair keys2 = signature().getKeyPair();
+		String publicKey2 = Base64.getEncoder().encodeToString(keys2.getPublic().getEncoded());
+		CodeSupplier<StorageReference> eoa2 = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map.get(), eoa1.get(), ONE);
 		StorageValue get = (StorageValue) runViewInstanceMethodCallTransaction
 			(key, account0, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "get", ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa2.get());
@@ -120,10 +129,14 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap().put(k1,v) then get(k2, _default) yields default")
-	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		CodeSupplier<StorageReference> map = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
-		CodeSupplier<StorageReference> eoa1 = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
-		CodeSupplier<StorageReference> eoa2 = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		KeyPair keys1 = signature().getKeyPair();
+		String publicKey1 = Base64.getEncoder().encodeToString(keys1.getPublic().getEncoded());
+		CodeSupplier<StorageReference> eoa1 = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey1));
+		KeyPair keys2 = signature().getKeyPair();
+		String publicKey2 = Base64.getEncoder().encodeToString(keys2.getPublic().getEncoded());
+		CodeSupplier<StorageReference> eoa2 = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map.get(), eoa1.get(), ONE);
 		StorageValue get = (StorageValue) runViewInstanceMethodCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP, "getOrDefault", ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT), map.get(), eoa2.get(), TWO);
 
@@ -131,12 +144,15 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys then size is 100")
-	void put100RandomThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void put100RandomThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		CodeSupplier<StorageReference> map = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		CodeSupplier<?> accounts[] = new CodeSupplier<?>[100];
-		for (int i = 0; i < 100; i++)
-			accounts[i] = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		for (int i = 0; i < 100; i++) {
+			KeyPair keys = signature().getKeyPair();
+			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			accounts[i] = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
+		}
 
 		Random random = new Random();
 		VoidMethodSignature put = STORAGE_MAP_PUT;
@@ -152,9 +168,11 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 times the same key then size is 1")
-	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		CodeSupplier<StorageReference> map = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
-		StorageReference eoa = addConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		KeyPair keys = signature().getKeyPair();
+		String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+		StorageReference eoa = addConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
 
 		Random random = new Random();
 		CodeSupplier<StorageValue> future = null;
@@ -209,12 +227,15 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys then remove the last then size is 99")
-	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		CodeSupplier<StorageReference> map = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		CodeSupplier<?> accounts[] = new CodeSupplier<?>[100];
-		for (int i = 0; i < 100; i++)
-			accounts[i] = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		for (int i = 0; i < 100; i++) {
+			KeyPair keys = signature().getKeyPair();
+			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			accounts[i] = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
+		}
 
 		Random random = new Random();
 		int i = 0;
@@ -233,12 +254,15 @@ class StorageMap extends TakamakaTest {
 	}
 
 	@Test @DisplayName("new StorageMap() put 100 storage keys and checks contains after each put")
-	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException {
+	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException, TransactionRejectedException, InterruptedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		CodeSupplier<StorageReference> map = postConstructorCallTransaction(key, account0, _20_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_MAP);
 
 		CodeSupplier<?> accounts[] = new CodeSupplier<?>[100];
-		for (int i = 0; i < 100; i++)
-			accounts[i] = postConstructorCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA));
+		for (int i = 0; i < 100; i++) {
+			KeyPair keys = signature().getKeyPair();
+			String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+			accounts[i] = postConstructorCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
+		}
 
 		List<CodeSupplier<?>> results = new ArrayList<>();
 

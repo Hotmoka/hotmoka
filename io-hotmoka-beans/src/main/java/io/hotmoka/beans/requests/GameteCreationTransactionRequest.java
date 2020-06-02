@@ -29,29 +29,37 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	public final BigInteger initialAmount;
 
 	/**
+	 * The Base64-encoded public key that will be assigned to the gamete.
+	 */
+	public final String publicKey;
+
+	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
 	 *                  have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}
 	 * @param initialAmount the amount of coin provided to the gamete
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	public GameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount) {
+	public GameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, String publicKey) {
 		this.classpath = classpath;
 		this.initialAmount = initialAmount;
+		this.publicKey = publicKey;
 	}
 
 	@Override
 	public String toString() {
         return getClass().getSimpleName() + ":\n"
         	+ "  class path: " + classpath + "\n"
-        	+ "  initialAmount: " + initialAmount;
+        	+ "  initialAmount: " + initialAmount + "\n"
+        	+ "  publicKey: " + publicKey;
 	}
 
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof GameteCreationTransactionRequest) {
 			GameteCreationTransactionRequest otherCast = (GameteCreationTransactionRequest) other;
-			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount);
+			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount) && publicKey.equals(otherCast.publicKey);
 		}
 		else
 			return false;
@@ -59,7 +67,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public int hashCode() {
-		return classpath.hashCode() ^ initialAmount.hashCode();
+		return classpath.hashCode() ^ initialAmount.hashCode() ^ publicKey.hashCode();
 	}
 
 	@Override
@@ -67,6 +75,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 		oos.writeByte(SELECTOR);
 		classpath.into(oos);
 		marshal(initialAmount, oos);
+		oos.writeUTF(publicKey);
 	}
 
 	@Override

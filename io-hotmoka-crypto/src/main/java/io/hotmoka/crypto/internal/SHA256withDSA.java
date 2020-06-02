@@ -1,13 +1,17 @@
 package io.hotmoka.crypto.internal;
 
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 
 import io.hotmoka.crypto.BytesSupplier;
 import io.hotmoka.crypto.SignatureAlgorithm;
@@ -81,5 +85,12 @@ public class SHA256withDSA<T> implements SignatureAlgorithm<T> {
 			this.signature.update(bytes);
 			return this.signature.verify(signature);
 		}
+	}
+
+	@Override
+	public PublicKey publicKeyFromEncoded(byte[] encoded) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encoded);
+		KeyFactory keyFactory = KeyFactory.getInstance("DSA", "SUN");
+		return keyFactory.generatePublic(pubKeySpec);
 	}
 }

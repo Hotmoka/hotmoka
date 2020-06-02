@@ -41,7 +41,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 					throw new TransactionRejectedException("cannot run a " + GameteCreationTransactionRequest.class.getSimpleName() + " in an already initialized node");
 
 				// we create an initial gamete ExternallyOwnedContract and we fund it with the initial amount
-				Object gamete = classLoader.getExternallyOwnedAccount().getDeclaredConstructor().newInstance();
+				Object gamete = classLoader.getExternallyOwnedAccount().getConstructor(String.class).newInstance(request.publicKey);
 				classLoader.setBalanceOf(gamete, request.initialAmount);
 				return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));	
 			}

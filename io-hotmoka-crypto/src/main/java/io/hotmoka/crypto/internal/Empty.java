@@ -17,8 +17,9 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 public class Empty<T> implements SignatureAlgorithm<T> {
 	private final static byte[] EMPTY = new byte[0];
 
-	@SuppressWarnings("serial")
-	private final KeyPair dummyKeys = new KeyPair(new PublicKey() {
+	private final KeyPair dummyKeys = new KeyPair(
+	new PublicKey() {
+		private static final long serialVersionUID = 1L;
 		
 		@Override
 		public String getFormat() {
@@ -36,6 +37,7 @@ public class Empty<T> implements SignatureAlgorithm<T> {
 		}
 	},
 	new PrivateKey() {
+		private static final long serialVersionUID = 1L;
 		
 		@Override
 		public String getFormat() {
@@ -69,5 +71,27 @@ public class Empty<T> implements SignatureAlgorithm<T> {
 	@Override
 	public boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
 		return Arrays.equals(EMPTY, signature);
+	}
+
+	@Override
+	public PublicKey publicKeyFromEncoded(byte[] encoded) {
+		return new PublicKey() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getFormat() {
+				return "empty";
+			}
+			
+			@Override
+			public byte[] getEncoded() {
+				return EMPTY;
+			}
+			
+			@Override
+			public String getAlgorithm() {
+				return "empty";
+			}
+		};
 	}
 }

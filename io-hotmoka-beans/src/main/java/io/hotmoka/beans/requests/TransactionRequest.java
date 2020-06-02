@@ -52,7 +52,8 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		case GameteCreationTransactionRequest.SELECTOR: {
 			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger initialAmount = unmarshallBigInteger(ois);
-			return new GameteCreationTransactionRequest(classpath, initialAmount);
+			String publicKey = ois.readUTF();
+			return new GameteCreationTransactionRequest(classpath, initialAmount, publicKey);
 		}
 		case InitializationTransactionRequest.SELECTOR: {
 			TransactionReference classpath = TransactionReference.from(ois);
@@ -110,8 +111,9 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			TransactionReference classpath = TransactionReference.from(ois);
 			BigInteger initialAmount = unmarshallBigInteger(ois);
 			BigInteger redInitialAmount = unmarshallBigInteger(ois);
+			String publicKey = ois.readUTF();
 
-			return new RedGreenGameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount);
+			return new RedGreenGameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount, publicKey);
 		}
 		case StaticMethodCallTransactionRequest.SELECTOR: {
 			StorageReference caller = StorageReference.from(ois);

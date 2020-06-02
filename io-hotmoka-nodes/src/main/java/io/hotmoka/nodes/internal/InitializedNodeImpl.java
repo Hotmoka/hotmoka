@@ -8,6 +8,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
@@ -77,11 +78,24 @@ public class InitializedNodeImpl implements InitializedNode {
 		this.keysOfGamete = signature.getKeyPair();
 
 		// we create a gamete with both red and green coins
-		StorageReference gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount));
+		String publicKeyBase64Encoded = Base64.getEncoder().encodeToString(keysOfGamete.getPublic().getEncoded());
+		StorageReference gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyBase64Encoded));
 
 		// we create the manifest
-		StorageReference manifest = parent.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-			(Signer.with(signature, keysOfGamete), gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete));
+		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
+			(Signer.with(signature, keysOfGamete), gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete);
+
+		/*byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyBase64Encoded);
+		PublicKey pk;
+		try {
+			pk = signature.publicKeyFromEncoded(publicKeyEncoded);
+		}
+		catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
+			throw new SignatureException(e);
+		}*/
+		//byte[] signatureOfRequest = request.getSignature();
+		//System.out.println("signature corretta: " + signature.verify(request, pk, signatureOfRequest));
+		StorageReference manifest = parent.addConstructorCallTransaction(request);
 
 		// we install the manifest and initialize the node
 		parent.addInitializationTransaction(new InitializationTransactionRequest(takamakaCodeReference, manifest));
