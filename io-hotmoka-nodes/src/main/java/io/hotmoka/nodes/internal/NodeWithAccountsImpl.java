@@ -117,16 +117,12 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = signatureAlgorithmForRequests();
 		Signer signerOnBehalfOfGamete = Signer.with(signature, privateKeyOfGamete);
 
-		// we get the nonce of the manifest account
-		BigInteger nonce = ((BigIntegerValue) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(Signer.onBehalfOfManifest(), manifest, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), manifest))).value;
-
-		// we call its getGamete() method
+		// we call the getGamete() method of the manifest; this is a call to a @View method, hence the nonce is irrelevant
 		StorageReference gamete = (StorageReference) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(Signer.onBehalfOfManifest(), manifest, nonce, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), manifest));
+			(Signer.onBehalfOfManifest(), manifest, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), manifest));
 
 		// we get the nonce of the gamete
-		nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		BigInteger nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signerOnBehalfOfGamete, gamete, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), gamete))).value;
 
 		JarSupplier jarSupplier;

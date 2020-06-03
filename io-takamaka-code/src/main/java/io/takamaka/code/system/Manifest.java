@@ -12,8 +12,17 @@ import io.takamaka.code.lang.View;
 public final class Manifest extends ExternallyOwnedAccount {
 	public final RedGreenExternallyOwnedAccount gamete;
 
-	public Manifest(RedGreenExternallyOwnedAccount gamete) {
-		super("");
+	/**
+	 * Creates a manifest.
+	 * 
+	 * @param gamete the gamete of the node having this manifest;
+	 *               this is an account that holds all initial coins
+	 * @param publicKey the public key of the manifest. Since the manifest
+	 *                  is not expected to hold coins, this key is probably
+	 *                  useless, but must be set as for every account
+	 */
+	public Manifest(RedGreenExternallyOwnedAccount gamete, String publicKey) {
+		super(publicKey);
 
 		this.gamete = gamete;
 	}

@@ -3,10 +3,21 @@ package io.takamaka.code.engine.internal.transactions;
 import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -16,6 +27,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractNode;
@@ -24,6 +36,7 @@ import io.takamaka.code.engine.AbstractNode;
  * The creator of the response for a non-initial transaction. Non-initial transactions consume gas.
  */
 public abstract class NonInitialResponseBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
+	private final static Logger logger = LoggerFactory.getLogger(NonInitialResponseBuilder.class);
 
 	/**
 	 * The cost model of the node for which the transaction is being built.
@@ -125,9 +138,15 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 */
 		private BigInteger gasConsumedForStorage = BigInteger.ZERO;
 
+		/**
+		 * True if and only if this is a view transaction.
+		 */
+		private final boolean isView;
+
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
 				this.gas = request.gasLimit;
+				this.isView = NonInitialResponseBuilder.this instanceof ViewResponseBuilder;
 
 				chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 				chargeGasForStorage(sizeCalculator.sizeOfRequest(request));
@@ -135,17 +154,44 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 				this.deserializedCaller = deserializer.deserialize(request.caller);
 
-				if (!(NonInitialResponseBuilder.this instanceof ViewResponseBuilder))
-					callerAndRequestMustAgreeOnNonce();
-
+				signatureMustBeValid();
+				callerAndRequestMustAgreeOnNonce();
 				sellAllGasToCaller();
-
-				if (!(NonInitialResponseBuilder.this instanceof ViewResponseBuilder))
-					increaseNonceOfCaller();
+				increaseNonceOfCaller();
 			}
 			catch (Throwable t) {
 				throw wrapAsTransactionRejectedException(t);
 			}
+		}
+
+		/**
+		 * Checks that the request is signed with the private key of the caller.
+		 * 
+		 * @throws NoSuchAlgorithmException if the Java installation has not the signature algorithm available
+		 * @throws InvalidKeySpecException if the public key specification is invalid
+		 * @throws NoSuchProviderException if the signature provider is missing in the Java installation
+		 * @throws SignatureException if the signature cannot be verified
+		 * @throws InvalidKeyException if the public key is invalid
+		 * @throws TransactionRejectedException if the request is not signed with the private key of the caller 
+		 */
+		private void signatureMustBeValid() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, SignatureException, TransactionRejectedException {
+			if (isView)
+				try {
+					if (node.getManifest().equals(request.caller)) {
+						logger.info(reference + ": signature verification skipped for view call from manifest");
+						return;
+					}
+				}
+				catch (NoSuchElementException e) {
+					// the manifest is not even set yet
+				}
+
+			String publicKeyEncodedBase64 = classLoader.getPublicKeyOf(deserializedCaller);
+			byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
+			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.signatureAlgorithmForRequests();
+			PublicKey publicKey = signature.publicKeyFromEncoded(publicKeyEncoded);
+			if (!signature.verify(request, publicKey, request.getSignature()))
+				throw new TransactionRejectedException(reference + ": signature is invalid");
 		}
 
 		/**
@@ -306,16 +352,20 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @throws TransactionRejectedException if the nonce of the caller is not equal to that in {@code request}
 		 */
 		private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
-			BigInteger expected = classLoader.getNonceOf(deserializedCaller);
-			if (!expected.equals(request.nonce))
-				throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
+			// calls to @View methods do not check the nonce
+			if (!isView) {
+				BigInteger expected = classLoader.getNonceOf(deserializedCaller);
+				if (!expected.equals(request.nonce))
+					throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
+			}
 		}
 
 		/**
 		 * Sets the nonce to the value successive to that in the request.
 		 */
 		private void increaseNonceOfCaller() {
-			classLoader.setNonceOf(deserializedCaller, request.nonce.add(BigInteger.ONE));
+			if (!isView)
+				classLoader.setNonceOf(deserializedCaller, request.nonce.add(BigInteger.ONE));
 		}
 
 		/**

@@ -32,6 +32,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
@@ -78,23 +79,17 @@ public class InitializedNodeImpl implements InitializedNode {
 		this.keysOfGamete = signature.getKeyPair();
 
 		// we create a gamete with both red and green coins
-		String publicKeyBase64Encoded = Base64.getEncoder().encodeToString(keysOfGamete.getPublic().getEncoded());
-		StorageReference gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyBase64Encoded));
+		String publicKeyOfGameteBase64Encoded = Base64.getEncoder().encodeToString(keysOfGamete.getPublic().getEncoded());
+		StorageReference gamete = parent.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyOfGameteBase64Encoded));
 
 		// we create the manifest
+		KeyPair keysOfManifest = signature.getKeyPair();
+		String publicKeyOfManifestBase64Encoded = Base64.getEncoder().encodeToString(keysOfManifest.getPublic().getEncoded());
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(Signer.with(signature, keysOfGamete), gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference, new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA), gamete);
+			(Signer.with(signature, keysOfGamete), gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference,
+			new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA, ClassType.STRING),
+			gamete, new StringValue(publicKeyOfManifestBase64Encoded));
 
-		/*byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyBase64Encoded);
-		PublicKey pk;
-		try {
-			pk = signature.publicKeyFromEncoded(publicKeyEncoded);
-		}
-		catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeySpecException e) {
-			throw new SignatureException(e);
-		}*/
-		//byte[] signatureOfRequest = request.getSignature();
-		//System.out.println("signature corretta: " + signature.verify(request, pk, signatureOfRequest));
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 
 		// we install the manifest and initialize the node

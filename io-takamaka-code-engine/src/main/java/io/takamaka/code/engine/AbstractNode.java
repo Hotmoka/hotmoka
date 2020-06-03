@@ -304,7 +304,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		TransactionReference reference = referenceOf(request);
 
 		try {
-			logger.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
+			logger.info(reference + ": checking start");
 			request.check();
 			logger.info(reference + ": checking success");
 		}
@@ -339,7 +339,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		TransactionReference reference = referenceOf(request);
 
 		try {
-			logger.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
+			logger.info(reference + ": delivering start");
 			TransactionResponse response = ResponseBuilder.of(reference, request, this).build();
 			expandStore(reference, request, response);
 			logger.info(reference + ": delivering success");
@@ -505,44 +505,42 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
 
+	/**
+	 * Posts the given request.
+	 * 
+	 * @param request the request
+	 * @return the reference of the request
+	 */
+	private TransactionReference postRequest(TransactionRequest<?> request) {
+		TransactionReference reference = referenceOf(request);
+		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
+		createSemaphore(reference);
+		postTransaction(request);
+
+		return reference;
+	}
+
 	@Override
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = referenceOf(request);
-			createSemaphore(reference);
-			postTransaction(request);
+			TransactionReference reference = postRequest(request);
 			return ((JarStoreInitialTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference);
 		});
 	}
 
 	@Override
 	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
-		wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = referenceOf(request);
-			createSemaphore(reference);
-			postTransaction(request);
-			return waitForResponse(reference); // result unused
-		});
+		wrapInCaseOfExceptionSimple(() -> waitForResponse(postRequest(request))); // result unused
 	}
 
 	@Override
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = referenceOf(request);
-			createSemaphore(reference);
-			postTransaction(request);
-			return ((GameteCreationTransactionResponse) waitForResponse(reference)).getOutcome();
-		});
+		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) waitForResponse(postRequest(request))).getOutcome());
 	}
 
 	@Override
 	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = referenceOf(request);
-			createSemaphore(reference);
-			postTransaction(request);
-			return ((GameteCreationTransactionResponse) waitForResponse(reference)).getOutcome();
-		});
+		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) waitForResponse(postRequest(request))).getOutcome());
 	}
 
 	@Override
@@ -567,20 +565,30 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 
 	@Override
 	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> ResponseBuilder.ofView(referenceOf(request), request, this).build().getOutcome());
+		return wrapInCaseOfExceptionFull(() -> {
+			TransactionReference reference = referenceOf(request);
+			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
+			StorageValue result = ResponseBuilder.ofView(reference, request, this).build().getOutcome();
+			logger.info(reference + ": running success");
+			return result;
+		});
 	}
 
 	@Override
 	public final StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> ResponseBuilder.ofView(referenceOf(request), request, this).build().getOutcome());
+		return wrapInCaseOfExceptionFull(() -> {
+			TransactionReference reference = referenceOf(request);
+			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
+			StorageValue result = ResponseBuilder.ofView(reference, request, this).build().getOutcome();
+			logger.info(reference + ": running success");
+			return result;
+		});
 	}
 
 	@Override
 	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = referenceOf(request);
-			createSemaphore(reference);
-			postTransaction(request);
+			TransactionReference reference = postRequest(request);
 			return jarSupplierFor(() -> ((JarStoreTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference));
 		});
 	}
@@ -588,9 +596,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	@Override
 	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = referenceOf(request);
-			createSemaphore(reference);
-			postTransaction(request);
+			TransactionReference reference = postRequest(request);
 			return codeSupplierFor(() -> ((ConstructorCallTransactionResponse) waitForResponse(reference)).getOutcome());
 		});
 	}
@@ -598,9 +604,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	@Override
 	public final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = referenceOf(request);
-			createSemaphore(reference);
-			postTransaction(request);
+			TransactionReference reference = postRequest(request);
 			return codeSupplierFor(() -> ((MethodCallTransactionResponse) waitForResponse(reference)).getOutcome());
 		});
 	}
@@ -608,9 +612,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	@Override
 	public final CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = referenceOf(request);
-			createSemaphore(reference);
-			postTransaction(request);
+			TransactionReference reference = postRequest(request);
 			return codeSupplierFor(() -> ((MethodCallTransactionResponse) waitForResponse(reference)).getOutcome());
 		});
 	}

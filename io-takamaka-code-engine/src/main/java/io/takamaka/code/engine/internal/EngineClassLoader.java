@@ -90,6 +90,16 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	private final Field redGreenExternallyOwnedAccountNonce;
 
 	/**
+	 * Field {@link io.takamaka.code.lang.ExternallyOwnedAccount#publicKey}.
+	 */
+	private final Field externallyOwnedAccountPublicKey;
+
+	/**
+	 * Field {@link io.takamaka.code.lang.RedGreenExternallyOwnedAccount#publicKey}.
+	 */
+	private final Field redGreenExternallyOwnedAccountPublicKey;
+
+	/**
 	 * Field {@link io.takamaka.code.lang.Storage#storageReference}.
 	 */
 	private final Field storageReference;
@@ -172,6 +182,10 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		this.externallyOwnedAccountNonce.setAccessible(true); // it was private
 		this.redGreenExternallyOwnedAccountNonce = getRedGreenExternallyOwnedAccount().getDeclaredField("nonce");
 		this.redGreenExternallyOwnedAccountNonce.setAccessible(true); // it was private
+		this.externallyOwnedAccountPublicKey = getExternallyOwnedAccount().getDeclaredField("publicKey");
+		this.externallyOwnedAccountPublicKey.setAccessible(true); // it was private
+		this.redGreenExternallyOwnedAccountPublicKey = getRedGreenExternallyOwnedAccount().getDeclaredField("publicKey");
+		this.redGreenExternallyOwnedAccountPublicKey.setAccessible(true); // it was private
 		this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 		this.storageReference.setAccessible(true); // it was private
 		this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
@@ -320,6 +334,28 @@ public class EngineClassLoader implements TakamakaClassLoader {
 		}
 		catch (IllegalArgumentException | IllegalAccessException e) {
 			throw new IllegalStateException("cannot read the nonce of an account of class " + clazz.getName());
+		}
+	}
+
+	/**
+	 * Yields the value of the {@code publicKey} field of the given account in RAM.
+	 * 
+	 * @param object the account
+	 * @return the value of the field
+	 */
+	public final String getPublicKeyOf(Object object) {
+		Class<? extends Object> clazz = object.getClass();
+
+		try {
+			if (getExternallyOwnedAccount().isAssignableFrom(clazz))
+				return (String) externallyOwnedAccountPublicKey.get(object);
+			else if (getRedGreenExternallyOwnedAccount().isAssignableFrom(clazz))
+				return (String) redGreenExternallyOwnedAccountPublicKey.get(object);
+			else
+				throw new IllegalArgumentException("unknown account class " + clazz);
+		}
+		catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new IllegalStateException("cannot read the public key of an account of class " + clazz.getName());
 		}
 	}
 
