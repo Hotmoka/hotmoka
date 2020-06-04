@@ -47,7 +47,7 @@ import io.hotmoka.nodes.NodeWithHistory;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.takamaka.code.constants.Constants;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractNodeWithHistory;
 import io.takamaka.code.verification.VerificationException;
 
 public abstract class TakamakaTest {
@@ -82,7 +82,7 @@ public abstract class TakamakaTest {
 	 */
 	private final Map<StorageReference, BigInteger> nonces = new HashMap<>();
 
-	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
+	private final static Logger logger = LoggerFactory.getLogger(AbstractNodeWithHistory.class);
 
 	@BeforeEach
 	void logTestName(TestInfo testInfo) {

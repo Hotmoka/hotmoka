@@ -26,7 +26,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.memory.Config;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractNodeWithHistory;
 import io.takamaka.code.engine.StateTransaction;
 
 /**
@@ -35,7 +35,7 @@ import io.takamaka.code.engine.StateTransaction;
  * really a blockchain, since there is no peer-to-peer network, nor mining,
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
-public class MemoryBlockchainImpl extends AbstractNode<Config> implements MemoryBlockchain {
+public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implements MemoryBlockchain {
 
 	/**
 	 * The mempool where transaction requests are stored and eventually executed.

@@ -23,7 +23,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.PatriciaTrie;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractNodeWithHistory;
 import io.takamaka.code.engine.StateTransaction;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
@@ -304,7 +304,7 @@ class State implements AutoCloseable {
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	void expand(AbstractNode<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	void expand(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		new StateTransaction(node, reference, request, response) {
 
 			@Override

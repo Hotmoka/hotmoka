@@ -64,7 +64,6 @@ import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.GasCostModel;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.NodeWithHistory;
 import io.takamaka.code.engine.internal.AbstractNodeProxyForEngine;
 import io.takamaka.code.engine.internal.Deserializer;
@@ -74,8 +73,8 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
  * A generic implementation of a node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
-public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyForEngine implements Node {
-	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
+public abstract class AbstractNodeWithHistory<C extends Config> extends AbstractNodeProxyForEngine implements NodeWithHistory {
+	private final static Logger logger = LoggerFactory.getLogger(AbstractNodeWithHistory.class);
 
 	/**
 	 * The configuration of the node.
@@ -83,9 +82,19 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	public final C config;
 
 	/**
+	 * The cache for the {@linkplain #getRequestAt(TransactionReference)} method.
+	 */
+	private final LRUCache<TransactionReference, TransactionRequest<?>> getRequestAtCache;
+
+	/**
 	 * The cache for the {@linkplain #getResponseAt(TransactionReference)} method.
 	 */
 	private final LRUCache<TransactionReference, TransactionResponse> getResponseAtCache;
+
+	/**
+	 * A cache for {@linkplain #getHistory(StorageReference)}.
+	 */
+	private final LRUCache<StorageReference, TransactionReference[]> historyCache;
 
 	/**
 	 * A map that provides a semaphore for each currently executing transaction.
@@ -128,11 +137,13 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * 
 	 * @param config the configuration of the node
 	 */
-	protected AbstractNode(C config) {
+	protected AbstractNodeWithHistory(C config) {
 		try {
 			this.config = config;
 			this.hashingForRequests = hashingForRequests();
+			this.getRequestAtCache = new LRUCache<>(config.requestCacheSize);
 			this.getResponseAtCache = new LRUCache<>(config.responseCacheSize);
+			this.historyCache = new LRUCache<>(config.historyCacheSize);
 
 			if (config.delete) {
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
@@ -148,6 +159,20 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	/**
+	 * Yields the history of the given object, that is,
+	 * the references to the transactions that provide information about
+	 * its current state, in reverse chronological order (from newest to oldest).
+	 * If the node has some form of commit, this history must include also
+	 * transactions executed but not yet committed.
+	 * 
+	 * @param object the object whose update history must be looked for
+	 * @return the transactions that compose the history of {@code object}, as an ordered stream
+	 *         (from newest to oldest). If {@code object} has currently no history, it yields an
+	 *         empty stream, but never throw an exception
+	 */
+	protected abstract Stream<TransactionReference> getHistory(StorageReference object);
+
+	/**
 	 * Determines if the transaction with the given reference has been committed.
 	 * If this mode has no form of commit, then answer true, always.
 	 * 
@@ -155,6 +180,31 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * @return true if and only if {@code reference} has been committed already
 	 */
 	protected abstract boolean isCommitted(TransactionReference reference);
+
+	/**
+	 * Yields the request that generated the transaction with the given reference.
+	 * If this node has some form of commit, then this method is called only when
+	 * the transaction has been already committed.
+	 * The successful result of this method is wrapped into a cache and used to implement
+	 * {@linkplain #getRequestAt(TransactionReference)}.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the request
+	 */
+	protected abstract TransactionRequest<?> getRequest(TransactionReference reference);
+
+	/**
+	 * Yields the response generated for the request for the given transaction.
+	 * If this node has some form of commit, then this method is called only when
+	 * the transaction has been already committed.
+	 * The successful result of this method is wrapped into a cache and used to implement
+	 * {@linkplain #getResponseAt(TransactionReference)}.
+	 * 
+	 * @param reference the reference to the transaction
+	 * @return the response
+	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
+	 */
+	protected abstract TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException;
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
@@ -334,6 +384,128 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	@Override
+	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
+		try {
+			if (!isCommitted(reference))
+				throw new NoSuchElementException("unknown transaction reference " + reference);
+
+			return getRequestAtCache.computeIfAbsent(reference, this::getRequest);
+		}
+		catch (NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public final TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+		try {
+			if (!isCommitted(reference))
+				throw new NoSuchElementException("unknown transaction reference " + reference);
+
+			return getResponseAtCache.computeIfAbsent(reference, this::getResponse);
+		}
+		catch (TransactionRejectedException | NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	/**
+	 * Yields the class tag of the object with the given storage reference.
+	 * 
+	 * @param reference the storage reference
+	 * @return the class tag, if any
+	 * @throws NoSuchElementException if the class tag could not be found
+	 */
+	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
+		try {
+			// we go straight to the transaction that created the object
+			TransactionResponse response;
+			try {
+				response = getResponseAt(reference.transaction);
+			}
+			catch (TransactionRejectedException e) {
+				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
+			}
+
+			if (!(response instanceof TransactionResponseWithUpdates))
+				throw new NoSuchElementException("transaction reference " + reference.transaction + " does not contain updates");
+
+			return ((TransactionResponseWithUpdates) response).getUpdates()
+					.filter(update -> update instanceof ClassTag && update.object.equals(reference))
+					.map(update -> (ClassTag) update)
+					.findFirst().get();
+		}
+		catch (NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
+		try {
+			ClassTag classTag = getClassTag(reference);
+			EngineClassLoader classLoader = new EngineClassLoader(classTag.jar, this);
+			Deserializer deserializer = new Deserializer(this, classLoader);
+			return deserializer.getLastUpdates(reference);
+		}
+		catch (NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	/**
+	 * Yields the most recent update for the given non-{@code final} field,
+	 * of lazy type, of the object with the given storage reference.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param field the field whose update is being looked for
+	 * @param chargeForCPU a function called to charge CPU costs
+	 * @return the update
+	 */
+	public final UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
+		for (TransactionReference transaction: getHistoryWithCache(storageReference, this::getHistory).collect(Collectors.toList())) {
+			Optional<UpdateOfField> update = getLastUpdateFor(storageReference, field, transaction, chargeForCPU);
+			if (update.isPresent())
+				return update.get();
+		}
+
+		throw new DeserializationError("did not find the last update for " + field + " of " + storageReference);
+	}
+
+	/**
+	 * Yields the most recent update for the given {@code final} field,
+	 * of lazy type, of the object with the given storage reference.
+	 * Its implementation can be identical to
+	 * that of {@link #getLastLazyUpdateToNonFinalField(StorageReference, FieldSignature, Consumer<BigInteger>)},
+	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param field the field whose update is being looked for
+	 * @param chargeForCPU a function called to charge CPU costs
+	 * @return the update
+	 */
+	public final UpdateOfField getLastLazyUpdateToFinalField(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
+		// accesses directly the transaction that created the object
+		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
+	}
+
+	@Override
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = postRequest(request);
@@ -431,6 +603,17 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	/**
+	 * A cached version of {@linkplain #getHistory(StorageReference)}.
+	 * 
+	 * @param object the object whose history must be looked for
+	 * @return the transactions that compose the history of {@code object}, as an ordered stream
+	 *         (from newest to oldest)
+	 */
+	public final Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
+		return getHistoryWithCache(object, this::getHistory);
+	}
+
+	/**
 	 * Posts the given request.
 	 * 
 	 * @param request the request
@@ -484,6 +667,32 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	/**
+	 * A cached version of {@linkplain #getHistory(StorageReference)}.
+	 * 
+	 * @param object the object whose history must be looked for
+	 * @param getHistory the function to call in case of cache miss
+	 * @return the transactions that compose the history of {@code object}, as an ordered stream
+	 *         (from newest to oldest)
+	 */
+	Stream<TransactionReference> getHistoryWithCache(StorageReference object, Function<StorageReference, Stream<TransactionReference>> getHistory) {
+		TransactionReference[] result = historyCache.computeIfAbsentNoException(object, reference -> getHistory.apply(reference).toArray(TransactionReference[]::new));
+		return result != null ? Stream.of(result) : Stream.empty();
+	}
+
+	/**
+	 * A cached version of {@linkplain #setHistory(StorageReference, Stream).
+	 * 
+	 * @param object the object whose history is set
+	 * @param history the stream that will become the history of the object,
+	 *                replacing its previous history
+	 */
+	void setHistoryWithCache(StorageReference object, List<TransactionReference> history, BiConsumer<StorageReference, Stream<TransactionReference>> setHistory) {
+		TransactionReference[] historyAsArray = history.toArray(new TransactionReference[history.size()]);
+		setHistory.accept(object, history.stream());
+		historyCache.put(object, historyAsArray);
+	}
+
+	/**
 	 * Creates a semaphore for those who will wait for the result of the given request.
 	 * 
 	 * @param reference the reference of the transaction for the request
@@ -523,7 +732,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 
 			for (int attempt = 1, delay = config.pollingDelay; attempt <= Math.max(1, config.maxPollingAttempts); attempt++, delay = delay * 110 / 100)
 				try {
-					return pollResponseAt(reference);
+					return getResponseAt(reference);
 				}
 				catch (NoSuchElementException e) {
 					Thread.sleep(delay);
@@ -541,20 +750,30 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	/**
-	 * Yields the response just generated for the request for the given transaction.
-	 * If this node has some form of commit, then this method can only succeed
-	 * or yield a {@linkplain TransactionRejectedException} only
-	 * when the transaction has been definitely committed in this node.
-	 * After returning the response, the node is allowed to remove the response
-	 * from its memory, if it does not need it anymore, for instance, if it has
-	 * no form of history.
+	 * Yields the update to the given field of the object at the given reference,
+	 * generated during a given transaction.
 	 * 
-	 * @param reference the reference of the transaction
-	 * @return the response
-	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
-	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param transaction the reference to the transaction
+	 * @param chargeForCPU the code to run to charge gas for CPU execution
+	 * @return the update, if any. If the field of {@code object} was not modified during
+	 *         the {@code transaction}, this method returns an empty optional
 	 */
-	protected abstract TransactionResponse pollResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
+	private Optional<UpdateOfField> getLastUpdateFor(StorageReference object, FieldSignature field, TransactionReference transaction, Consumer<BigInteger> chargeForCPU) {
+		chargeForCPU.accept(getGasCostModel().cpuCostForGettingResponseAt(transaction));
+
+		TransactionResponse response = getResponseUncommittedAt(transaction);
+
+		if (response instanceof TransactionResponseWithUpdates)
+			return ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof UpdateOfField)
+				.map(update -> (UpdateOfField) update)
+				.filter(update -> update.object.equals(object) && update.getField().equals(field))
+				.findFirst();
+	
+		return Optional.empty();
+	}
 
 	/**
 	 * Translates an array of bytes into a hexadecimal string.

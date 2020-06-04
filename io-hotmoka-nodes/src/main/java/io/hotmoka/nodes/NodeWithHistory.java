@@ -9,13 +9,9 @@ import io.hotmoka.beans.responses.TransactionResponse;
 
 /**
  * A node of the Hotmoka network, that provides the storage
- * facilities for the execution of Takamaka code.
- * Calls to code in the node can be added, run or posted.
- * Posted calls are executed, eventually, and their value can be retrieved
- * through the future returned by the calls. Added calls are shorthand
- * for posting a call and waiting until the value of their future is
- * available. Run calls are only available for view methods, without side-effects.
- * They execute immediately and never modify the store of the node.
+ * facilities for the execution of Takamaka code. It remembers the history
+ * of the transactions, in the sense that it is possible to query the
+ * request and the response at each transaction reference.
  */
 public interface NodeWithHistory extends Node {
 

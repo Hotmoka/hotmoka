@@ -17,7 +17,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractNodeWithHistory;
 
 /**
  * An implementation of a blockchain working over the Tendermint generic blockchain engine.
@@ -25,7 +25,7 @@ import io.takamaka.code.engine.AbstractNode;
  * checks and delivers such requests, by calling the ABCI interface. This blockchain keeps
  * its state in a transactional database implemented by the {@linkplain State} class.
  */
-public class TendermintBlockchainImpl extends AbstractNode<Config> implements TendermintBlockchain {
+public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> implements TendermintBlockchain {
 	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
 
 	/**

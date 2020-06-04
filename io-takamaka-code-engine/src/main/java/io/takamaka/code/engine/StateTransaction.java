@@ -31,7 +31,7 @@ public abstract class StateTransaction {
 	/**
 	 * The node that is performing the transaction.
 	 */
-	private final AbstractNode<?> node;
+	private final AbstractNodeWithHistory<?> node;
 
 	/**
 	 * This constructor implements a generic algorithm that updates
@@ -46,7 +46,7 @@ public abstract class StateTransaction {
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
 	 */
-	protected StateTransaction(AbstractNode<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	protected StateTransaction(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		this.node = node;
 
 		beginTransaction();

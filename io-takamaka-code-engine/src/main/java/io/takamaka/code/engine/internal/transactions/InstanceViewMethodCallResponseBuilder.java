@@ -3,7 +3,7 @@ package io.takamaka.code.engine.internal.transactions;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractNodeWithHistory;
 
 /**
  * The builder of the response for a transaction that executes an instance method of Takamaka code
@@ -19,7 +19,7 @@ public class InstanceViewMethodCallResponseBuilder extends InstanceMethodCallRes
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceViewMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	public InstanceViewMethodCallResponseBuilder(TransactionReference reference, InstanceMethodCallTransactionRequest request, AbstractNodeWithHistory<?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 }

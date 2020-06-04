@@ -7,7 +7,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.responses.InitialTransactionResponse;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractNodeWithHistory;
 
 /**
  * The creator of the response for an initial transaction. Initial transactions do not consume gas.
@@ -22,7 +22,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractNode<?> node) throws TransactionRejectedException {
+	protected InitialResponseBuilder(TransactionReference reference, Request request, AbstractNodeWithHistory<?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 

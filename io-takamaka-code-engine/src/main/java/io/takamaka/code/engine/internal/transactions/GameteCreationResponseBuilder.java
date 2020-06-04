@@ -6,7 +6,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.takamaka.code.engine.AbstractNode;
+import io.takamaka.code.engine.AbstractNodeWithHistory;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
@@ -22,7 +22,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
+	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, AbstractNodeWithHistory<?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 
