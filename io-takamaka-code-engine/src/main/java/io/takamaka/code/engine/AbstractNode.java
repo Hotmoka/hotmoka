@@ -65,15 +65,15 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.NodeWithHistory;
+import io.takamaka.code.engine.internal.AbstractNodeProxyForEngine;
 import io.takamaka.code.engine.internal.Deserializer;
 import io.takamaka.code.engine.internal.EngineClassLoader;
-import io.takamaka.code.engine.internal.transactions.AbstractNodeWithCache;
 
 /**
  * A generic implementation of a node.
  * Specific implementations can subclass this and implement the abstract template methods.
  */
-public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCache implements NodeWithHistory {
+public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyForEngine implements NodeWithHistory {
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNode.class);
 
 	/**
@@ -255,7 +255,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	}
 
 	@Override
-	public final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
+	protected final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
 		try {
 			return getResponseAtCache.computeIfAbsent(reference, this::getResponseUncommitted);
 		}
@@ -263,12 +263,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 			logger.error("unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	@Override
-	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		// we do not take into account the signature itself
-		return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	/**
@@ -376,6 +370,12 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	public GasCostModel getGasCostModel() {
 		return defaultGasCostModel;
+	}
+
+	@Override
+	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		// we do not take into account the signature itself
+		return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
 	}
 
 	@Override
@@ -505,21 +505,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
 	}
 
-	/**
-	 * Posts the given request.
-	 * 
-	 * @param request the request
-	 * @return the reference of the request
-	 */
-	private TransactionReference postRequest(TransactionRequest<?> request) {
-		TransactionReference reference = referenceOf(request);
-		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
-		createSemaphore(reference);
-		postTransaction(request);
-
-		return reference;
-	}
-
 	@Override
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
@@ -626,6 +611,21 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeWithCac
 	 */
 	public final Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
 		return getHistoryWithCache(object, this::getHistory);
+	}
+
+	/**
+	 * Posts the given request.
+	 * 
+	 * @param request the request
+	 * @return the reference of the request
+	 */
+	private TransactionReference postRequest(TransactionRequest<?> request) {
+		TransactionReference reference = referenceOf(request);
+		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
+		createSemaphore(reference);
+		postTransaction(request);
+	
+		return reference;
 	}
 
 	/**

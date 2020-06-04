@@ -414,7 +414,7 @@ public class Deserializer {
 	 */
 	private TransactionResponse getResponseAndCharge(TransactionReference transaction) {
 		chargeGasForCPU.accept(node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		return node.getResponseUncommittedAt(transaction);
+		return ((AbstractNodeProxyForEngine) node).getResponseUncommittedAt(transaction);
 	}
 
 	/**
