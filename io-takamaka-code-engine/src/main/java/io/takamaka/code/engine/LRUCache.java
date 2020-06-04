@@ -167,7 +167,7 @@ public final class LRUCache<K, V> {
 	 * @param supplier the supplier that produces the value to put in cache
 	 * @return the current (old or computed) value in cache for {@¢ode key} at the end of the method
 	 */
-	public synchronized V computeIfAbsent(K key, ValueSupplier<K,V> supplier) throws Exception {
+	public V computeIfAbsent(K key, ValueSupplier<K,V> supplier) throws Exception {
 		V old = get(key);
 		if (old == null) {
 			V _new = supplier.supply(key);
@@ -188,7 +188,7 @@ public final class LRUCache<K, V> {
 	 * @param supplier the supplier that produces the value to put in cache
 	 * @return the current (old or computed) value in cache for {@¢ode key} at the end of the method
 	 */
-	public synchronized V computeIfAbsentNoException(K key, Function<K,V> supplier) {
+	public V computeIfAbsentNoException(K key, Function<K,V> supplier) {
 		V old = get(key);
 		if (old == null) {
 			V _new = supplier.apply(key);

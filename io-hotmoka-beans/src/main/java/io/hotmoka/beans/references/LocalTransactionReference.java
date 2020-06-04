@@ -34,7 +34,7 @@ public final class LocalTransactionReference extends TransactionReference {
 
 	@Override
 	public String toString() {
-		return hash.toLowerCase();
+		return hash;
 	}
 
 	@Override

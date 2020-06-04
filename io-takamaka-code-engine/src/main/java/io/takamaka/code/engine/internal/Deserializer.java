@@ -86,7 +86,7 @@ public class Deserializer {
 	 * then the fields for the same class, ordered by name and then by the
 	 * {@code toString()} of their type.
 	 */
-	private final Comparator<Update> updateComparator = new Comparator<Update>() {
+	private final Comparator<Update> updateComparator = new Comparator<>() {
 
 		@Override
 		public int compare(Update update1, Update update2) {

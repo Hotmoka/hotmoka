@@ -27,13 +27,7 @@ public abstract class AbstractNodeWithCache {
 	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
 	 */
 	protected final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
-		EngineClassLoader result = cache.get(classpath);
-		if (result == null) {
-			result = new EngineClassLoader(classpath, this);
-			cache.put(classpath, result);
-		}
-
-		return result;
+		return cache.computeIfAbsent(classpath, _classpath -> new EngineClassLoader(_classpath, this));
 	}
 
 	/**
