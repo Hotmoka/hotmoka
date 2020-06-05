@@ -55,7 +55,7 @@ public interface Node extends AutoCloseable {
 	/**
 	 * Yields the algorithm used to sign non-initial requests with this node.
 	 * 
-	 * @return the SHA256withDSA algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
+	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
 	SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException;

@@ -80,6 +80,154 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 		}
 	}
 
+	@Override
+	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
+		try {
+			if (!isCommitted(reference))
+				throw new NoSuchElementException("unknown transaction reference " + reference);
+	
+			return getRequestAtCache.computeIfAbsent(reference, this::getRequest);
+		}
+		catch (NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public final TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+		try {
+			if (!isCommitted(reference))
+				throw new NoSuchElementException("unknown transaction reference " + reference);
+	
+			return getResponseAtCache.computeIfAbsent(reference, this::getResponse);
+		}
+		catch (TransactionRejectedException | NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
+		try {
+			// we go straight to the transaction that created the object
+			TransactionResponse response;
+			try {
+				response = getResponseAt(reference.transaction);
+			}
+			catch (TransactionRejectedException e) {
+				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
+			}
+	
+			if (!(response instanceof TransactionResponseWithUpdates))
+				throw new NoSuchElementException("transaction reference " + reference.transaction + " does not contain updates");
+	
+			return ((TransactionResponseWithUpdates) response).getUpdates()
+					.filter(update -> update instanceof ClassTag && update.object.equals(reference))
+					.map(update -> (ClassTag) update)
+					.findFirst().get();
+		}
+		catch (NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
+		try {
+			ClassTag classTag = getClassTag(reference);
+			EngineClassLoader classLoader = new EngineClassLoader(classTag.jar, this);
+			return getLastUpdates(reference, false, classLoader, __ -> {});
+		}
+		catch (NoSuchElementException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			logger.error("unexpected exception", e);
+			throw InternalFailureException.of(e);
+		}
+	}
+
+	@Override
+	protected final TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarUncommittedAt(TransactionReference reference) throws IllegalArgumentException {
+		TransactionResponse response = getResponseUncommittedAt(reference);
+		if (!(response instanceof TransactionResponseWithInstrumentedJar))
+			throw new IllegalArgumentException("the transaction " + reference + " did not install a jar in store");
+	
+		return (TransactionResponseWithInstrumentedJar) response;
+	}
+
+	@Override
+	protected final Stream<Update> getLastUpdates(StorageReference object, boolean onlyEager, EngineClassLoader classLoader, Consumer<BigInteger> chargeGasForCPU) {
+		TransactionReference transaction = object.transaction;
+	
+		chargeGasForCPU.accept(getGasCostModel().cpuCostForGettingResponseAt(transaction));
+		TransactionResponse response = getResponseUncommittedAt(transaction);
+		if (!(response instanceof TransactionResponseWithUpdates))
+			throw new DeserializationError("Storage reference " + object + " does not contain updates");
+	
+		Predicate<Update> selector = onlyEager ? Update::isEager : (__ -> true);
+	
+		Set<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update.object.equals(object))
+				.filter(selector)
+				.collect(Collectors.toSet());
+	
+		Optional<ClassTag> classTag = updates.stream()
+				.filter(update -> update instanceof ClassTag)
+				.map(update -> (ClassTag) update)
+				.findAny();
+	
+		if (!classTag.isPresent())
+			throw new DeserializationError("No class tag found for " + object);
+	
+		// we drop updates to non-final fields
+		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader, onlyEager);
+		Iterator<Update> it = updates.iterator();
+		while (it.hasNext())
+			if (updatesNonFinalField(it.next(), allFields))
+				it.remove();
+	
+		// the updates set contains the updates to final fields now:
+		// we must still collect the latest updates to non-final fields
+		collectUpdatesFor(object, updates, allFields.size(), selector, chargeGasForCPU);
+	
+		return updates.stream();
+	}
+
+	@Override
+	protected final UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
+		for (TransactionReference transaction: getHistoryWithCache(storageReference, this::getHistory).collect(Collectors.toList())) {
+			Optional<UpdateOfField> update = getLastUpdateFor(storageReference, field, transaction, chargeForCPU);
+			if (update.isPresent())
+				return update.get();
+		}
+	
+		throw new DeserializationError("did not find the last update for " + field + " of " + storageReference);
+	}
+
+	@Override
+	protected final UpdateOfField getLastLazyUpdateToFinalField(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
+		// accesses directly the transaction that created the object
+		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
+	}
+
+	@Override
+	protected final TransactionResponse pollResponseComputedFor(TransactionReference reference) throws TransactionRejectedException {
+		return getResponseAt(reference);
+	}
+
 	/**
 	 * Yields the history of the given object, that is,
 	 * the references to the transactions that provide information about
@@ -131,160 +279,12 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 */
 	protected abstract TransactionResponse getResponseUncommitted(TransactionReference reference);
 
-	@Override
-	protected final TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarUncommittedAt(TransactionReference reference) throws IllegalArgumentException {
-		TransactionResponse response = getResponseUncommittedAt(reference);
-		if (!(response instanceof TransactionResponseWithInstrumentedJar))
-			throw new IllegalArgumentException("the transaction " + reference + " did not install a jar in store");
-
-		return (TransactionResponseWithInstrumentedJar) response;
-	}
-
-	@Override
-	protected final Stream<Update> getLastUpdates(StorageReference object, boolean onlyEager, EngineClassLoader classLoader, Consumer<BigInteger> chargeGasForCPU) {
-		TransactionReference transaction = object.transaction;
-	
-		chargeGasForCPU.accept(getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		TransactionResponse response = getResponseUncommittedAt(transaction);
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new DeserializationError("Storage reference " + object + " does not contain updates");
-	
-		Predicate<Update> selector = onlyEager ? Update::isEager : (__ -> true);
-	
-		Set<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update.object.equals(object))
-				.filter(selector)
-				.collect(Collectors.toSet());
-	
-		Optional<ClassTag> classTag = updates.stream()
-				.filter(update -> update instanceof ClassTag)
-				.map(update -> (ClassTag) update)
-				.findAny();
-	
-		if (!classTag.isPresent())
-			throw new DeserializationError("No class tag found for " + object);
-	
-		// we drop updates to non-final fields
-		Set<Field> allFields = collectAllFieldsOf(classTag.get().className, classLoader, onlyEager);
-		Iterator<Update> it = updates.iterator();
-		while (it.hasNext())
-			if (updatesNonFinalField(it.next(), allFields))
-				it.remove();
-	
-		// the updates set contains the updates to final fields now:
-		// we must still collect the latest updates to non-final fields
-		collectUpdatesFor(object, updates, allFields.size(), selector, chargeGasForCPU);
-	
-		return updates.stream();
-	}
-
-	@Override
-	public final TransactionRequest<?> getRequestAt(TransactionReference reference) throws NoSuchElementException {
-		try {
-			if (!isCommitted(reference))
-				throw new NoSuchElementException("unknown transaction reference " + reference);
-
-			return getRequestAtCache.computeIfAbsent(reference, this::getRequest);
-		}
-		catch (NoSuchElementException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
-	public final TransactionResponse getResponseAt(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-		try {
-			if (!isCommitted(reference))
-				throw new NoSuchElementException("unknown transaction reference " + reference);
-
-			return getResponseAtCache.computeIfAbsent(reference, this::getResponse);
-		}
-		catch (TransactionRejectedException | NoSuchElementException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
-	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
-		try {
-			// we go straight to the transaction that created the object
-			TransactionResponse response;
-			try {
-				response = getResponseAt(reference.transaction);
-			}
-			catch (TransactionRejectedException e) {
-				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
-			}
-
-			if (!(response instanceof TransactionResponseWithUpdates))
-				throw new NoSuchElementException("transaction reference " + reference.transaction + " does not contain updates");
-
-			return ((TransactionResponseWithUpdates) response).getUpdates()
-					.filter(update -> update instanceof ClassTag && update.object.equals(reference))
-					.map(update -> (ClassTag) update)
-					.findFirst().get();
-		}
-		catch (NoSuchElementException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
-	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
-		try {
-			ClassTag classTag = getClassTag(reference);
-			EngineClassLoader classLoader = new EngineClassLoader(classTag.jar, this);
-			return getLastUpdates(reference, false, classLoader, __ -> {});
-		}
-		catch (NoSuchElementException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
-	}
-
-	@Override
-	public final UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
-		for (TransactionReference transaction: getHistoryWithCache(storageReference, this::getHistory).collect(Collectors.toList())) {
-			Optional<UpdateOfField> update = getLastUpdateFor(storageReference, field, transaction, chargeForCPU);
-			if (update.isPresent())
-				return update.get();
-		}
-
-		throw new DeserializationError("did not find the last update for " + field + " of " + storageReference);
-	}
-
-	@Override
-	public final UpdateOfField getLastLazyUpdateToFinalField(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU) {
-		// accesses directly the transaction that created the object
-		return getLastUpdateFor(object, field, object.transaction, chargeForCPU).orElseThrow(() -> new DeserializationError("Did not find the last update for " + field + " of " + object));
-	}
-
 	/**
-	 * A cached version of {@linkplain #getHistory(StorageReference)}.
+	 * A cached version of {@linkplain #getResponseUncommitted(TransactionReference)}.
 	 * 
-	 * @param object the object whose history must be looked for
-	 * @return the transactions that compose the history of {@code object}, as an ordered stream
-	 *         (from newest to oldest)
+	 * @param reference the reference of the transaction, possibly not yet committed
+	 * @return the response of the transaction
 	 */
-	public final Stream<TransactionReference> getHistoryWithCache(StorageReference object) {
-		return getHistoryWithCache(object, this::getHistory);
-	}
-
 	final TransactionResponse getResponseUncommittedAt(TransactionReference reference) {
 		try {
 			return getResponseAtCache.computeIfAbsent(reference, this::getResponseUncommitted);
@@ -319,11 +319,6 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 		TransactionReference[] historyAsArray = history.toArray(new TransactionReference[history.size()]);
 		setHistory.accept(object, history.stream());
 		historyCache.put(object, historyAsArray);
-	}
-
-	@Override
-	protected final TransactionResponse pollResponseComputedFor(TransactionReference reference) throws TransactionRejectedException {
-		return getResponseAt(reference);
 	}
 
 	/**
@@ -410,7 +405,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 */
 	private void collectUpdatesFor(StorageReference object, Set<Update> updates, int fields, Predicate<Update> selector, Consumer<BigInteger> chargeGasForCPU) {
 		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
-		getHistoryWithCache(object).forEachOrdered(transaction -> {
+		getHistoryWithCache(object, this::getHistory).forEachOrdered(transaction -> {
 			if (updates.size() <= fields)
 				addUpdatesFor(object, transaction, selector, chargeGasForCPU, updates);
 		});
@@ -455,7 +450,7 @@ public abstract class AbstractNodeWithHistory<C extends Config> extends Abstract
 	 * @param onlyEager true if and only if only the eager fields must be collected
 	 * @return the fields
 	 */
-	private Set<Field> collectAllFieldsOf(String className, EngineClassLoader classLoader, boolean onlyEager) {
+	private static Set<Field> collectAllFieldsOf(String className, EngineClassLoader classLoader, boolean onlyEager) {
 		Set<Field> bag = new HashSet<>();
 		Class<?> storage = classLoader.getStorage();
 

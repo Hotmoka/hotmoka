@@ -2,7 +2,6 @@ package io.takamaka.code.engine;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,7 +18,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +45,6 @@ import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
@@ -137,15 +133,16 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 		return defaultGasCostModel;
 	}
 
+	/**
+	 * Yields the algorithm used to sign non-initial requests with this node.
+	 * 
+	 * @return the SHA256withDSA algorithm for signing non-initial requests (without their signature itself); subclasses may redefine
+	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
+	 */
 	@Override
 	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		// we do not take into account the signature itself
 		return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
-	}
-
-	@Override
-	public final TransactionReference getTakamakaCode() throws NoSuchElementException {
-		return getClassTag(getManifest()).jar;
 	}
 
 	@Override
@@ -155,71 +152,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 
 		logger.info("Time spent checking requests: " + checkTime + "ms");
 		logger.info("Time spent delivering requests: " + deliverTime + "ms");
-	}
-
-	/**
-	 * Expands the store of this node with a transaction.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
-	 */
-	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
-
-	/**
-	 * Expands the store of this node with a transaction that could not be delivered since an error occurred.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request
-	 * @param errorMessage an description of why delivering failed
-	 */
-	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage);
-
-	/**
-	 * Post the given request to this node. It will be scheduled, eventually, checked and delivered.
-	 * 
-	 * @param request the request to post
-	 */
-	protected abstract void postTransaction(TransactionRequest<?> request);
-
-	/**
-	 * Yields the most recent update for the given non-{@code final} field,
-	 * of lazy type, of the object with the given storage reference.
-	 * 
-	 * @param storageReference the storage reference
-	 * @param field the field whose update is being looked for
-	 * @param chargeForCPU a function called to charge CPU costs
-	 * @return the update
-	 */
-	public abstract UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU);
-
-	/**
-	 * Yields the most recent update for the given {@code final} field,
-	 * of lazy type, of the object with the given storage reference.
-	 * Its implementation can be identical to
-	 * that of {@link #getLastLazyUpdateToNonFinalField(StorageReference, FieldSignature, Consumer<BigInteger>)},
-	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
-	 * 
-	 * @param storageReference the storage reference
-	 * @param field the field whose update is being looked for
-	 * @param chargeForCPU a function called to charge CPU costs
-	 * @return the update
-	 */
-	public abstract UpdateOfField getLastLazyUpdateToFinalField(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU);
-
-	/**
-	 * Posts the given request.
-	 * 
-	 * @param request the request
-	 * @return the reference of the request
-	 */
-	protected TransactionReference postRequest(TransactionRequest<?> request) {
-		TransactionReference reference = referenceOf(request);
-		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
-		createSemaphore(reference);
-		postTransaction(request);
-	
-		return reference;
 	}
 
 	/**
@@ -241,6 +173,11 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 */
 	public final void submit(Runnable task) {
 		executor.submit(task);
+	}
+
+	@Override
+	public final TransactionReference getTakamakaCode() throws NoSuchElementException {
+		return getClassTag(getManifest()).jar;
 	}
 
 	@Override
@@ -409,16 +346,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	/**
-	 * Yields the reference to the translation that would be originated for the given request.
-	 * 
-	 * @param request the request
-	 * @return the transaction reference
-	 */
-	protected LocalTransactionReference referenceOf(TransactionRequest<?> request) {
-		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
-	}
-
-	/**
 	 * Yields the hashing algorithm that must be used for hashing
 	 * transaction requests into their hash.
 	 * 
@@ -427,6 +354,52 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 */
 	protected HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests() throws NoSuchAlgorithmException {
 		return HashingAlgorithm.sha256(Marshallable::toByteArray);
+	}
+
+	/**
+	 * Expands the store of this node with a transaction.
+	 * 
+	 * @param reference the reference of the request
+	 * @param request the request of the transaction
+	 * @param response the response of the transaction
+	 */
+	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+
+	/**
+	 * Expands the store of this node with a transaction that could not be delivered since an error occurred.
+	 * 
+	 * @param reference the reference of the request
+	 * @param request the request
+	 * @param errorMessage an description of why delivering failed
+	 */
+	protected abstract void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage);
+
+	/**
+	 * Post the given request to this node. It will be scheduled, eventually, checked and delivered.
+	 * 
+	 * @param request the request to post
+	 */
+	protected abstract void postTransaction(TransactionRequest<?> request);
+
+	protected abstract TransactionResponse pollResponseComputedFor(TransactionReference reference) throws TransactionRejectedException;
+
+	/**
+	 * Determines if the transaction with the given reference has been committed.
+	 * If this mode has no form of commit, then answer true, always.
+	 * 
+	 * @param reference the reference
+	 * @return true if and only if {@code reference} has been committed already
+	 */
+	protected abstract boolean isCommitted(TransactionReference reference);
+
+	/**
+	 * Yields the reference to the translation that would be originated for the given request.
+	 * 
+	 * @param request the request
+	 * @return the transaction reference
+	 */
+	private LocalTransactionReference referenceOf(TransactionRequest<?> request) {
+		return new LocalTransactionReference(bytesToHex(hashingForRequests.hash(request)));
 	}
 
 	/**
@@ -440,12 +413,12 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	protected TransactionResponse waitForResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
+	private TransactionResponse waitForResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
 		try {
 			Semaphore semaphore = semaphores.get(reference);
 			if (semaphore != null)
 				semaphore.acquire();
-
+	
 			for (int attempt = 1, delay = config.pollingDelay; attempt <= Math.max(1, config.maxPollingAttempts); attempt++, delay = delay * 110 / 100)
 				try {
 					return pollResponseComputedFor(reference);
@@ -453,7 +426,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 				catch (NoSuchElementException e) {
 					Thread.sleep(delay);
 				}
-
+	
 			throw new TimeoutException("cannot find response for transaction reference " + reference + ": tried " + config.maxPollingAttempts + " times");
 		}
 		catch (TransactionRejectedException | TimeoutException | InterruptedException e) {
@@ -465,16 +438,20 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 		}
 	}
 
-	protected abstract TransactionResponse pollResponseComputedFor(TransactionReference reference) throws TransactionRejectedException;
-
 	/**
-	 * Determines if the transaction with the given reference has been committed.
-	 * If this mode has no form of commit, then answer true, always.
+	 * Posts the given request.
 	 * 
-	 * @param reference the reference
-	 * @return true if and only if {@code reference} has been committed already
+	 * @param request the request
+	 * @return the reference of the request
 	 */
-	protected abstract boolean isCommitted(TransactionReference reference);
+	private TransactionReference postRequest(TransactionRequest<?> request) {
+		TransactionReference reference = referenceOf(request);
+		logger.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
+		createSemaphore(reference);
+		postTransaction(request);
+	
+		return reference;
+	}
 
 	/**
 	 * Translates an array of bytes into a hexadecimal string.

@@ -1,9 +1,14 @@
 package io.takamaka.code.engine.internal.transactions;
 
+import java.math.BigInteger;
 import java.util.NoSuchElementException;
+import java.util.function.Consumer;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.engine.LRUCache;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
@@ -46,4 +51,29 @@ public abstract class AbstractNodeProxyForTransactions {
 	 * @return true if and only if that condition holds
 	 */
 	protected abstract boolean isInitialized();
+
+	/**
+	 * Yields the most recent update for the given non-{@code final} field,
+	 * of lazy type, of the object with the given storage reference.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param field the field whose update is being looked for
+	 * @param chargeForCPU a function called to charge CPU costs
+	 * @return the update
+	 */
+	protected abstract UpdateOfField getLastLazyUpdateToNonFinalField(StorageReference storageReference, FieldSignature field, Consumer<BigInteger> chargeForCPU);
+
+	/**
+	 * Yields the most recent update for the given {@code final} field,
+	 * of lazy type, of the object with the given storage reference.
+	 * Its implementation can be identical to
+	 * that of {@link #getLastLazyUpdateToNonFinalField(StorageReference, FieldSignature, Consumer<BigInteger>)},
+	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
+	 * 
+	 * @param storageReference the storage reference
+	 * @param field the field whose update is being looked for
+	 * @param chargeForCPU a function called to charge CPU costs
+	 * @return the update
+	 */
+	protected abstract UpdateOfField getLastLazyUpdateToFinalField(StorageReference object, FieldSignature field, Consumer<BigInteger> chargeForCPU);
 }
