@@ -75,7 +75,7 @@ public abstract class TakamakaTest {
 	 * with the addition of a jar to test and of some initial accounts,
 	 * recreated before each test.
 	 */
-	private NodeWithAccounts node;
+	protected NodeWithAccounts node;
 
 	/**
 	 * The nonce of each externally owned account used in the test.
