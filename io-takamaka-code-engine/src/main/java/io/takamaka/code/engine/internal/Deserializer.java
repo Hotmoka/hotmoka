@@ -1,30 +1,19 @@
 package io.takamaka.code.engine.internal;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
@@ -46,7 +35,6 @@ import io.hotmoka.nodes.DeserializationError;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.verification.Dummy;
-import io.takamaka.code.verification.IncompleteClasspathError;
 
 /**
  * An implementation of an object that translates storage values into RAM values.
@@ -138,19 +126,6 @@ public class Deserializer {
 	}
 
 	/**
-	 * Builds an object that translates storage values into RAM values.
-	 * 
-	 * @param node the node for which the translation is performed
-	 * @param classLoader the class loader used to load classes from the store of the node
-	 */
-	public Deserializer(AbstractNodeWithHistory<?> node, EngineClassLoader classLoader) {
-		this.node = node;
-		this.storageTypeToClass = new StorageTypeToClass(classLoader);
-		this.classLoader = classLoader;
-		this.chargeGasForCPU = __ -> {};
-	}
-
-	/**
 	 * Deserializes the given storage value into its RAM image.
 	 * 
 	 * @param value the storage value
@@ -160,7 +135,7 @@ public class Deserializer {
 	public Object deserialize(StorageValue value) {
 		if (value instanceof StorageReference)
 			// we use a cache to provide the same value if the same reference gets deserialized twice
-			return cache.computeIfAbsent((StorageReference) value, this::deserializeAnew);
+			return cache.computeIfAbsent((StorageReference) value, this::createStorageObject);
 		else if (value instanceof IntValue)
 			return ((IntValue) value).value;
 		else if (value instanceof BooleanValue)
@@ -201,272 +176,6 @@ public class Deserializer {
 	}
 
 	/**
-	 * Deserializes the given storage reference from the node's store.
-	 * 
-	 * @param reference the storage reference to deserialize
-	 * @return the resulting storage object
-	 */
-	private Object deserializeAnew(StorageReference reference) {
-		try {
-			return createStorageObject(reference);
-		}
-		catch (DeserializationError e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw new DeserializationError(e);
-		}
-	}
-
-	public Stream<Update> getLastEagerUpdates(StorageReference reference) {
-		TransactionReference transaction = reference.transaction;
-	
-		TransactionResponse response = getResponseAndCharge(transaction);
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new DeserializationError("Storage reference " + reference + " does not contain updates");
-	
-		Set<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update.object.equals(reference) && update.isEager())
-				.collect(Collectors.toSet());
-	
-		Optional<ClassTag> classTag = updates.stream()
-				.filter(update -> update instanceof ClassTag)
-				.map(update -> (ClassTag) update)
-				.findAny();
-	
-		if (!classTag.isPresent())
-			throw new DeserializationError("No class tag found for " + reference);
-	
-		// we drop updates to non-final fields
-		Set<Field> allEagerFields = collectEagerFieldsOf(classTag.get().className).collect(Collectors.toSet());
-		Iterator<Update> it = updates.iterator();
-		while (it.hasNext())
-			if (updatesNonFinalField(it.next(), allEagerFields))
-				it.remove();
-	
-		// the updates set contains the updates to eager final fields now:
-		// we must still collect the latest updates to the eager non-final fields
-		collectEagerUpdatesFor(reference, updates, allEagerFields.size());
-
-		return updates.stream();
-	}
-
-	public Stream<Update> getLastUpdates(StorageReference reference) {
-		TransactionReference transaction = reference.transaction;
-	
-		TransactionResponse response = getResponseAndCharge(transaction);
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new DeserializationError("Storage reference " + reference + " does not contain updates");
-	
-		Set<Update> updates = ((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update.object.equals(reference))
-				.collect(Collectors.toSet());
-	
-		Optional<ClassTag> classTag = updates.stream()
-				.filter(update -> update instanceof ClassTag)
-				.map(update -> (ClassTag) update)
-				.findAny();
-	
-		if (!classTag.isPresent())
-			throw new DeserializationError("No class tag found for " + reference);
-	
-		// we drop updates to non-final fields
-		Set<Field> allFields = collectAllFieldsOf(classTag.get().className).collect(Collectors.toSet());
-		Iterator<Update> it = updates.iterator();
-		while (it.hasNext())
-			if (updatesNonFinalField(it.next(), allFields))
-				it.remove();
-	
-		// the updates set contains the updates to final fields now:
-		// we must still collect the latest updates to non-final fields
-		collectUpdatesFor(reference, updates, allFields.size());
-
-		return updates.stream();
-	}
-
-	/**
-	 * Determines if the given update affects a non-{@code final} eager field contained in the given set.
-	 * 
-	 * @param update the update
-	 * @param eagerFields the set of all possible eager fields
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean updatesNonFinalField(Update update, Set<Field> eagerFields) {
-		if (update instanceof UpdateOfField) {
-			FieldSignature sig = ((UpdateOfField) update).getField();
-			StorageType type = sig.type;
-			String name = sig.name;
-			return eagerFields.stream()
-				.anyMatch(field -> !Modifier.isFinal(field.getModifiers()) && hasType(field, type) && field.getName().equals(name));
-		}
-
-		return false;
-	}
-
-	/**
-	 * Determines if the given field has the given storage type.
-	 * 
-	 * @param field the field
-	 * @param type the type
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean hasType(Field field, StorageType type) {
-		Class<?> fieldType = field.getType();
-		if (type instanceof BasicTypes)
-			switch ((BasicTypes) type) {
-			case BOOLEAN: return fieldType == boolean.class;
-			case BYTE: return fieldType == byte.class;
-			case CHAR: return fieldType == char.class;
-			case SHORT: return fieldType == short.class;
-			case INT: return fieldType == int.class;
-			case LONG: return fieldType == long.class;
-			case FLOAT: return fieldType == float.class;
-			case DOUBLE: return fieldType == double.class;
-			default: throw new IllegalStateException("unexpected basic type " + type);
-			}
-		else if (type instanceof ClassType)
-			return ((ClassType) type).name.equals(fieldType.getName());
-		else
-			throw new IllegalStateException("unexpected storage type " + type);
-	}
-
-	/**
-	 * Adds, to the given set, all the latest updates for the fields of eager type of the
-	 * object at the given storage reference.
-	 * 
-	 * @param object the storage reference
-	 * @param updates the set where the latest updates must be added
-	 * @param eagerFields the number of eager fields whose latest update needs to be found
-	 */
-	private void collectEagerUpdatesFor(StorageReference object, Set<Update> updates, int eagerFields) {
-		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
-		node.getHistoryWithCache(object).forEachOrdered(transaction -> {
-			if (updates.size() <= eagerFields)
-				addEagerUpdatesFor(object, transaction, updates);
-		});
-	}
-
-	/**
-	 * Adds, to the given set, all the latest updates for the fields of the
-	 * object at the given storage reference.
-	 * 
-	 * @param object the storage reference
-	 * @param updates the set where the latest updates must be added
-	 * @param fields the number of fields whose latest update needs to be found
-	 */
-	private void collectUpdatesFor(StorageReference object, Set<Update> updates, int fields) {
-		// scans the history of the object; there is no reason to look beyond the total number of fields whose update was expected to be found
-		node.getHistoryWithCache(object).forEachOrdered(transaction -> {
-			if (updates.size() <= fields)
-				addUpdatesFor(object, transaction, updates);
-		});
-	}
-
-	/**
-	 * Adds, to the given set, the updates of fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param transaction the reference to the transaction
-	 * @param updates the set where they must be added
-	 */
-	private void addUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) {
-		TransactionResponse response = getResponseAndCharge(transaction);
-		if (response instanceof TransactionResponseWithUpdates)
-			((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && !isAlreadyIn(update, updates))
-				.forEach(updates::add);
-	}
-
-	/**
-	 * Adds, to the given set, the updates of eager fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param transaction the reference to the transaction
-	 * @param updates the set where they must be added
-	 */
-	private void addEagerUpdatesFor(StorageReference object, TransactionReference transaction, Set<Update> updates) {
-		TransactionResponse response = getResponseAndCharge(transaction);
-		if (response instanceof TransactionResponseWithUpdates)
-			((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update instanceof UpdateOfField && update.object.equals(object) && update.isEager() && !isAlreadyIn(update, updates))
-				.forEach(updates::add);
-	}
-
-	/**
-	 * Determines if the given set of updates contains an update for the
-	 * same object and field as the given update.
-	 * 
-	 * @param update the given update
-	 * @param updates the set
-	 * @return true if and only if that condition holds
-	 */
-	private static boolean isAlreadyIn(Update update, Set<Update> updates) {
-		return updates.stream().anyMatch(update::isForSamePropertyAs);
-	}
-
-	/**
-	 * Yields the response that generated the given transaction and charges for that operation.
-	 * 
-	 * @param transaction the reference to the transaction
-	 * @return the response
-	 */
-	private TransactionResponse getResponseAndCharge(TransactionReference transaction) {
-		chargeGasForCPU.accept(node.getGasCostModel().cpuCostForGettingResponseAt(transaction));
-		return ((AbstractNodeProxyForEngine) node).getResponseUncommittedAt(transaction);
-	}
-
-	/**
-	 * Collect the instance fields of eager type in the given class or in its superclasses.
-	 * 
-	 * @param className the name of the class
-	 * @return the fields
-	 */
-	private Stream<Field> collectEagerFieldsOf(String className) {
-		Set<Field> bag = new HashSet<>();
-		Class<?> storage = classLoader.getStorage();
-
-		try {
-			// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
-			for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
-				Stream.of(clazz.getDeclaredFields())
-					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())
-						&& classLoader.isEagerlyLoaded(field.getType()))
-					.forEach(bag::add);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
-
-		return bag.stream();
-	}
-
-	/**
-	 * Collect the instance fields in the given class or in its superclasses.
-	 * 
-	 * @param className the name of the class
-	 * @return the fields
-	 */
-	private Stream<Field> collectAllFieldsOf(String className) {
-		Set<Field> bag = new HashSet<>();
-		Class<?> storage = classLoader.getStorage();
-
-		try {
-			// fields added in class storage by instrumentation by Takamaka itself are not considered, since they are transient
-			for (Class<?> clazz = classLoader.loadClass(className); clazz != storage; clazz = clazz.getSuperclass())
-				Stream.of(clazz.getDeclaredFields())
-					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
-					.forEach(bag::add);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
-
-		return bag.stream();
-	}
-
-	/**
 	 * Creates a storage object in RAM.
 	 * 
 	 * @param reference the reference of the object inside the node's store
@@ -482,9 +191,9 @@ public class Deserializer {
 			// that receives the storage reference of the object
 			formals.add(Object.class);
 			actuals.add(reference);
-
+	
 			// we set the value for eager fields only; other fields will be loaded lazily
-			Stream<Update> updates = getLastEagerUpdates(reference);
+			Stream<Update> updates = ((AbstractNodeProxyForEngine) node).getLastUpdates(reference, true, classLoader, chargeGasForCPU);
 			// we process the updates in the same order they have in the deserialization constructor
 			for (Update update: updates.collect(Collectors.toCollection(() -> new TreeSet<>(updateComparator))))
 				if (update instanceof ClassTag)
@@ -497,23 +206,23 @@ public class Deserializer {
 	
 			if (classTag == null)
 				throw new DeserializationError("No class tag found for " + reference);
-
+	
 			Class<?> clazz = classLoader.loadClass(classTag.className);
 			TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))
 				throw new DeserializationError("Class " + classTag.className + " was instantiated from jar at " + expected + " not from jar at " + actual);
-
+	
 			// we add the fictitious argument that avoids name clashes
 			formals.add(Dummy.class);
 			actuals.add(null);
-
+	
 			Constructor<?> constructor = clazz.getConstructor(formals.toArray(new Class<?>[formals.size()]));
-
+	
 			// the instrumented constructor is public, but the class might well be non-public;
 			// hence we must force accessibility
 			constructor.setAccessible(true);
-
+	
 			return constructor.newInstance(actuals.toArray(new Object[actuals.size()]));
 		}
 		catch (DeserializationError e) {

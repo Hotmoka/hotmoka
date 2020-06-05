@@ -14,7 +14,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.takamaka.code.instrumentation.InstrumentationConstants;
@@ -231,18 +230,14 @@ public class EngineClassLoader implements TakamakaClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @throws Exception if some jar cannot be accessed
 	 */
-	private void addJars(TransactionReference classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractNodeProxyForEngine node) throws Exception {
+	private void addJars(TransactionReference classpath, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractNodeProxyForEngine node) {
 		if (jars.size() > MAX_DEPENDENCIES)
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + MAX_DEPENDENCIES);
 
 		if (jars.stream().mapToLong(bytes -> bytes.length).sum() > MAX_SIZE_OF_DEPENDENCIES)
 			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + MAX_SIZE_OF_DEPENDENCIES + " bytes");
 
-		TransactionResponse response = node.getResponseUncommittedAt(classpath);
-		if (!(response instanceof TransactionResponseWithInstrumentedJar))
-			throw new IllegalStateException("expected a jar store response at " + classpath);
-
-		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = (TransactionResponseWithInstrumentedJar) response;
+		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = node.getResponseWithInstrumentedJarUncommittedAt(classpath);
 
 		// we consider its dependencies as well, recursively
 		for (TransactionReference dependency: responseWithInstrumentedJar.getDependencies().toArray(TransactionReference[]::new))
