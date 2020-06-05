@@ -4,7 +4,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
-import io.takamaka.code.engine.AbstractNodeWithHistory;
+import io.takamaka.code.engine.AbstractNode;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
 /**
@@ -20,7 +20,7 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, AbstractNodeWithHistory<?> node) throws TransactionRejectedException {
+	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, AbstractNode<?> node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 
