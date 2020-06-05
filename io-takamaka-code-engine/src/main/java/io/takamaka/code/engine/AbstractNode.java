@@ -1,8 +1,13 @@
 package io.takamaka.code.engine;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,17 +24,33 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.GasCostModel;
@@ -93,6 +114,13 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 		try {
 			this.config = config;
 			this.hashingForRequests = hashingForRequests();
+
+			if (config.delete) {
+				deleteRecursively(config.dir);  // cleans the directory where the node's data live
+				Files.createDirectories(config.dir);
+			}
+
+			addShutdownHook();
 		}
 		catch (Exception e) {
 			logger.error("failed to create the node", e);
@@ -213,6 +241,103 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 */
 	public final void submit(Runnable task) {
 		executor.submit(task);
+	}
+
+	@Override
+	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> {
+			TransactionReference reference = postRequest(request);
+			return ((JarStoreInitialTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference);
+		});
+	}
+
+	@Override
+	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
+		wrapInCaseOfExceptionSimple(() -> waitForResponse(postRequest(request))); // result unused
+	}
+
+	@Override
+	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) waitForResponse(postRequest(request))).getOutcome());
+	}
+
+	@Override
+	public final StorageReference addRedGreenGameteCreationTransaction(RedGreenGameteCreationTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) waitForResponse(postRequest(request))).getOutcome());
+	}
+
+	@Override
+	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
+		return wrapInCaseOfExceptionMedium(() -> postJarStoreTransaction(request).get());
+	}
+
+	@Override
+	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> postConstructorCallTransaction(request).get());
+	}
+
+	@Override
+	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> postInstanceMethodCallTransaction(request).get());
+	}
+
+	@Override
+	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> postStaticMethodCallTransaction(request).get());
+	}
+
+	@Override
+	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> {
+			TransactionReference reference = referenceOf(request);
+			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
+			StorageValue result = ResponseBuilder.ofView(reference, request, this).build().getOutcome();
+			logger.info(reference + ": running success");
+			return result;
+		});
+	}
+
+	@Override
+	public final StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return wrapInCaseOfExceptionFull(() -> {
+			TransactionReference reference = referenceOf(request);
+			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
+			StorageValue result = ResponseBuilder.ofView(reference, request, this).build().getOutcome();
+			logger.info(reference + ": running success");
+			return result;
+		});
+	}
+
+	@Override
+	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> {
+			TransactionReference reference = postRequest(request);
+			return jarSupplierFor(() -> ((JarStoreTransactionResponse) waitForResponse(reference)).getOutcomeAt(reference));
+		});
+	}
+
+	@Override
+	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> {
+			TransactionReference reference = postRequest(request);
+			return codeSupplierFor(() -> ((ConstructorCallTransactionResponse) waitForResponse(reference)).getOutcome());
+		});
+	}
+
+	@Override
+	public final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> {
+			TransactionReference reference = postRequest(request);
+			return codeSupplierFor(() -> ((MethodCallTransactionResponse) waitForResponse(reference)).getOutcome());
+		});
+	}
+
+	@Override
+	public final CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> {
+			TransactionReference reference = postRequest(request);
+			return codeSupplierFor(() -> ((MethodCallTransactionResponse) waitForResponse(reference)).getOutcome());
+		});
 	}
 
 	/**
@@ -343,6 +468,15 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	protected abstract TransactionResponse pollResponseComputedFor(TransactionReference reference) throws TransactionRejectedException;
 
 	/**
+	 * Determines if the transaction with the given reference has been committed.
+	 * If this mode has no form of commit, then answer true, always.
+	 * 
+	 * @param reference the reference
+	 * @return true if and only if {@code reference} has been committed already
+	 */
+	protected abstract boolean isCommitted(TransactionReference reference);
+
+	/**
 	 * Translates an array of bytes into a hexadecimal string.
 	 * 
 	 * @param bytes the bytes
@@ -378,5 +512,134 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 		Semaphore semaphore = semaphores.remove(reference);
 		if (semaphore != null)
 			semaphore.release();
+	}
+
+	/**
+	 * Deletes the given directory, recursively.
+	 * 
+	 * @param dir the directory to delete
+	 * @throws IOException if the directory or some of its subdirectories cannot be deleted
+	 */
+	private static void deleteRecursively(Path dir) throws IOException {
+		if (Files.exists(dir))
+			Files.walk(dir)
+				.sorted(Comparator.reverseOrder())
+				.map(Path::toFile)
+				.forEach(File::delete);
+	}
+
+	/**
+	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM terminates.
+	 */
+	private void addShutdownHook() {
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			try {
+				close();
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}));
+	}
+
+	private static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
+		try {
+			return what.call();
+		}
+		catch (TransactionRejectedException e) {
+			throw e;
+		}
+		catch (InternalFailureException e) {
+			if (e.getCause() != null) {
+				logger.error("transaction rejected", e.getCause());
+				throw new TransactionRejectedException(e.getCause());
+			}
+
+			logger.error("transaction rejected", e);
+			throw new TransactionRejectedException(e);
+		}
+		catch (Throwable t) {
+			logger.error("transaction rejected", t);
+			throw new TransactionRejectedException(t);
+		}
+	}
+
+	private static <T> T wrapInCaseOfExceptionMedium(Callable<T> what) throws TransactionRejectedException, TransactionException {
+		try {
+			return what.call();
+		}
+		catch (TransactionRejectedException | TransactionException e) {
+			throw e;
+		}
+		catch (InternalFailureException e) {
+			if (e.getCause() != null) {
+				logger.error("transaction rejected", e.getCause());
+				throw new TransactionRejectedException(e.getCause());
+			}
+
+			logger.error("transaction rejected", e);
+			throw new TransactionRejectedException(e);
+		}
+		catch (Throwable t) {
+			logger.error("transaction rejected", t);
+			throw new TransactionRejectedException(t);
+		}
+	}
+
+	private static <T> T wrapInCaseOfExceptionFull(Callable<T> what) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		try {
+			return what.call();
+		}
+		catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
+			throw e;
+		}
+		catch (InternalFailureException e) {
+			if (e.getCause() != null) {
+				logger.error("transaction rejected", e.getCause());
+				throw new TransactionRejectedException(e.getCause());
+			}
+
+			logger.error("transaction rejected", e);
+			throw new TransactionRejectedException(e);
+		}
+		catch (Throwable t) {
+			logger.error("transaction rejected", t);
+			throw new TransactionRejectedException(t);
+		}
+	}
+
+	/**
+	 * Yields an adaptor of a callable into a jar supplier.
+	 * 
+	 * @param task the callable
+	 * @return the jar supplier
+	 */
+	private JarSupplier jarSupplierFor(Callable<TransactionReference> task) {
+		return new JarSupplier() {
+			private volatile TransactionReference cachedGet;
+
+			@Override
+			public TransactionReference get() throws TransactionRejectedException, TransactionException {
+				return cachedGet != null ? cachedGet : (cachedGet = wrapInCaseOfExceptionMedium(task));
+			}
+		};
+	}
+
+	/**
+	 * Yields an adaptor of a callable into a code supplier.
+	 * 
+	 * @param <W> the return value of the callable
+	 * @param task the callable
+	 * @return the code supplier
+	 */
+	private <W extends StorageValue> CodeSupplier<W> codeSupplierFor(Callable<W> task) {
+		return new CodeSupplier<>() {
+			private volatile W cachedGet;
+
+			@Override
+			public W get() throws TransactionRejectedException, TransactionException {
+				return cachedGet != null ? cachedGet : (cachedGet = wrapInCaseOfExceptionMedium(task));
+			}
+		};
 	}
 }
