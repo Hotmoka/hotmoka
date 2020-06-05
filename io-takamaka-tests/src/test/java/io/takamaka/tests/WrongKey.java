@@ -48,7 +48,7 @@ class WrongKey extends TakamakaTest {
 		PrivateKey key = privateKey(1);
 		StorageReference caller = account(0);
 
-		throwsTransactionRejectedWithCause("invalid transaction signature", () -> {
+		throwsTransactionRejectedWithCause("invalid request signature", () -> {
 			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42)));
 		});
 	}
