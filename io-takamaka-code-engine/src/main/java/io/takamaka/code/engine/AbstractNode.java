@@ -159,7 +159,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * 
 	 * @param <T> the type of the result of the task
 	 * @param task the task
-	 * @return the return value computed by the task
+	 * @return the value computed by the task
 	 */
 	public final <T> Future<T> submit(Callable<T> task) {
 		return executor.submit(task);
@@ -169,7 +169,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * Runs the given task with the executor service of this node.
 	 * 
 	 * @param task the task
-	 * @return the return value computed by the task
 	 */
 	public final void submit(Runnable task) {
 		executor.submit(task);

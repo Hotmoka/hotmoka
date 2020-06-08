@@ -96,7 +96,7 @@ public interface Constants {
 	public final static String ENTRY_NAME = "io.takamaka.code.lang.Entry";
 
 	/**
-	 * The name of the class type for {@link io.takamaka.code.lang.ThrowsException}.
+	 * The name of the class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
 	 */
 	public final static String THROWS_EXCEPTIONS_NAME = "io.takamaka.code.lang.ThrowsExceptions";
 

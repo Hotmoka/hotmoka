@@ -27,7 +27,7 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	 * Determines if a class is an instance of the storage class.
 	 * 
 	 * @param className the name of the class
-	 * @return true if and only if that class extends {@link takamaka.blockchain.runtime.AbstractStorage}
+	 * @return true if and only if that class extends {@link io.takamaka.code.lang.Storage}
 	 */
 	boolean isStorage(String className);
 

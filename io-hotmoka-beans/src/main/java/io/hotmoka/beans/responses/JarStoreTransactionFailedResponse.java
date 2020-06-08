@@ -38,7 +38,6 @@ public class JarStoreTransactionFailedResponse extends JarStoreTransactionRespon
 	 * @param classNameOfCause the fully-qualified class name of the cause exception
 	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
 	 * @param updates the updates resulting from the execution of the transaction
-	 * @param callerBalanceUpdate the update of balance of the caller of the transaction, for paying for the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption

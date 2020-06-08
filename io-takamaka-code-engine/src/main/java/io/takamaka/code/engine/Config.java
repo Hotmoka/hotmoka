@@ -17,7 +17,7 @@ public class Config {
 	public final Path dir;
 
 	/**
-	 * True if and only if {@linkplain #dir} must be deleted when
+	 * True if and only if {@link #dir} must be deleted when
 	 * the node starts. It defaults to true.
 	 */
 	public final boolean delete;
@@ -38,13 +38,13 @@ public class Config {
 	public final int pollingDelay;
 
 	/**
-	 * The size of the cache for the {@linkplain io.hotmoka.nodes.Node#getRequestAt(TransactionReference)} method.
+	 * The size of the cache for the {@link io.hotmoka.nodes.NodeWithHistory#getRequestAt(TransactionReference)} method.
 	 * It defaults to 1,000.
 	 */
 	public final int requestCacheSize;
 
 	/**
-	 * The size of the cache for the {@linkplain io.hotmoka.nodes.Node#getResponseAt(TransactionReference)} method.
+	 * The size of the cache for the {@link io.hotmoka.nodes.NodeWithHistory#getResponseAt(TransactionReference)} method.
 	 * It defaults to 1,000.
 	 */
 	public final int responseCacheSize;
@@ -164,7 +164,7 @@ public class Config {
 		}
 
 		/**
-		 * Sets size of the cache for the {@linkplain io.hotmoka.nodes.Node#getRequestAt(TransactionReference)} method.
+		 * Sets size of the cache for the {@link io.hotmoka.nodes.NodeWithHistory#getRequestAt(TransactionReference)} method.
 		 * It defaults to 1,000.
 		 * 
 		 * @param requestCacheSize the cache size
@@ -176,10 +176,10 @@ public class Config {
 		}
 
 		/**
-		 * Sets size of the cache for the {@linkplain io.hotmoka.nodes.Node#getResponseAt(TransactionReference)} method.
+		 * Sets size of the cache for the {@link io.hotmoka.nodes.NodeWithHistory#getResponseAt(TransactionReference)} method.
 		 * It defaults to 1,000.
 		 * 
-		 * @param builderCacheSize the cache size
+		 * @param responseCacheSize the cache size
 		 * @return this builder
 		 */
 		public T setResponseCacheSize(int responseCacheSize) {

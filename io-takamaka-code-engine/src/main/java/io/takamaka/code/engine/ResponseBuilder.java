@@ -36,8 +36,8 @@ import io.takamaka.code.engine.internal.transactions.StaticViewMethodCallRespons
  * The factory methods can be executed in a thread-safe way, since they do not depend on
  * information in the node's store that might be modified by other transactions.
  * If these factory methods fail, then a node could for instance reject the request.
- * The {@linkplain #build(TransactionReference)} method performs the actual creation of the response and
- * depends on the current store of the node. Hence, {@linkplain #build(TransactionReference)}
+ * The {@link #build()} method performs the actual creation of the response and
+ * depends on the current store of the node. Hence, {@link #build()}
  * is not thread-safe and should be executed only after a lock is taken on the store of the node.
  * 
  * @param <Response> the type of the response of the transaction
@@ -190,7 +190,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	 * Yields the builder of a response for a request of a transaction
 	 * that calls an instance method of an object in the node.
 	 * The goal is to run the method and compute its returned value (if any).
-	 * The method must be annotated as {@linkplain io.hotmoka.code.lang.View}.
+	 * The method must be annotated as {@link io.takamaka.code.lang.View}.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request
@@ -205,7 +205,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	/**
 	 * Yields the builder of a response for a request of a transaction
 	 * that calls a static method. The goal is to run the method and compute its returned value (if any).
-	 * The method must be annotated as {@linkplain io.hotmoka.code.lang.View}.
+	 * The method must be annotated as {@link io.takamaka.code.lang.View}.
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request

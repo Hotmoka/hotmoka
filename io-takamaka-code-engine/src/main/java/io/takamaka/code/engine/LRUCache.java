@@ -142,7 +142,7 @@ public final class LRUCache<K, V> {
 	 * doubly-linked list to indicate that it was recently accessed.
 	 * 
 	 * @param key
-	 * @param value
+	 * @return the value bound to the {@code key}
 	 */
 	public synchronized V get(K key) {
 		Node<K, V> node = map.get(key);
@@ -165,7 +165,7 @@ public final class LRUCache<K, V> {
 	 * 
 	 * @param key the key of the cached value
 	 * @param supplier the supplier that produces the value to put in cache
-	 * @return the current (old or computed) value in cache for {@¢ode key} at the end of the method
+	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
 	 */
 	public V computeIfAbsent(K key, ValueSupplier<K,V> supplier) throws Exception {
 		V old = get(key);
@@ -186,7 +186,7 @@ public final class LRUCache<K, V> {
 	 * 
 	 * @param key the key of the cached value
 	 * @param supplier the supplier that produces the value to put in cache
-	 * @return the current (old or computed) value in cache for {@¢ode key} at the end of the method
+	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
 	 */
 	public V computeIfAbsentNoException(K key, Function<K,V> supplier) {
 		V old = get(key);

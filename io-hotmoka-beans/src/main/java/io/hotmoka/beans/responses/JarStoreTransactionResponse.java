@@ -14,8 +14,6 @@ import io.hotmoka.beans.updates.Update;
 
 /**
  * A response for a transaction that should install a jar in the blockchain.
- * 
- * @param <Outcome> the type of the outcome of the execution having this response
  */
 @Immutable
 public abstract class JarStoreTransactionResponse extends NonInitialTransactionResponse implements TransactionResponseWithGas, TransactionResponseWithUpdates {

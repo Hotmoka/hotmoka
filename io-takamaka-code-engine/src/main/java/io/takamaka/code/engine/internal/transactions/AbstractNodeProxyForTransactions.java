@@ -67,7 +67,7 @@ public abstract class AbstractNodeProxyForTransactions {
 	 * Yields the most recent update for the given {@code final} field,
 	 * of lazy type, of the object with the given storage reference.
 	 * Its implementation can be identical to
-	 * that of {@link #getLastLazyUpdateToNonFinalField(StorageReference, FieldSignature, Consumer<BigInteger>)},
+	 * that of {@link #getLastLazyUpdateToNonFinalField(StorageReference, FieldSignature, Consumer)},
 	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
 	 * 
 	 * @param storageReference the storage reference

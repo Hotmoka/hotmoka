@@ -47,10 +47,10 @@ public abstract class Marshallable {
 	 * @param oos the stream
 	 * @throws IOException if some element could not be marshalled
 	 */
-	public static void intoArrayWithoutSelector(StorageReference[] references, ObjectOutputStream oos) throws IOException {
-		writeLength(references.length, oos);
+	public static void intoArrayWithoutSelector(StorageReference[] marshallables, ObjectOutputStream oos) throws IOException {
+		writeLength(marshallables.length, oos);
 
-		for (StorageReference reference: references)
+		for (StorageReference reference: marshallables)
 			reference.intoWithoutSelector(oos);
 	}
 

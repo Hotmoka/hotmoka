@@ -18,7 +18,7 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must
-	 * have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}.
+	 * have been already installed by a previous transaction.
 	 */
 	public final TransactionReference classpath;
 
@@ -43,7 +43,7 @@ public class RedGreenGameteCreationTransactionRequest extends InitialTransaction
 	 * Builds the transaction request.
 	 * 
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
-	 *                  have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}
+	 *                  have been already installed by a previous transaction
 	 * @param initialAmount the amount of green coins provided to the gamete
 	 * @param redInitialAmount the amount of red coins provided to the gamete
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete

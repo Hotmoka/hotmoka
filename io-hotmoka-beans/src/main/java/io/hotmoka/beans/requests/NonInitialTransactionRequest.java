@@ -165,7 +165,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		 * Yields a signer for the given algorithm with the given private key.
 		 * 
 		 * @param signature the signing algorithm
-		 * @param keys the keys
+		 * @param key the private key
 		 * @return the signer
 		 */
 		static Signer with(SignatureAlgorithm<NonInitialTransactionRequest<?>> signature, PrivateKey key) {

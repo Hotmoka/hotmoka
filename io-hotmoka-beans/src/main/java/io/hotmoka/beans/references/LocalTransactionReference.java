@@ -16,7 +16,7 @@ public final class LocalTransactionReference extends TransactionReference {
 	/**
 	 * Builds a transaction reference.
 	 * 
-	 * @param number the number of the transaction
+	 * @param hash the hash of the transaction
 	 */
 	public LocalTransactionReference(String hash) {
 		this.hash = hash;

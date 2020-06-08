@@ -20,7 +20,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must
-	 * have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}.
+	 * have been already installed by a previous transaction.
 	 */
 	public final TransactionReference classpath;
 
@@ -33,7 +33,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * Builds the transaction request.
 	 * 
 	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
-	 *                  have been already installed by a previous {@link Blockchain#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)}
+	 *                  have been already installed by a previous transaction
 	 * @param manifest the storage reference that must be set as manifest
 	 */
 	public InitializationTransactionRequest(TransactionReference classpath, StorageReference manifest) {

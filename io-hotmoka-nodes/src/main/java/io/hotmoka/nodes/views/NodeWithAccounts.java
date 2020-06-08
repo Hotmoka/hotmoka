@@ -32,8 +32,8 @@ public interface NodeWithAccounts extends Node {
 	 * Yields the {@code i}th account.
 	 * 
 	 * @param i the account number
-	 * @return the reference to the account, in the store of the node. This is a {@link #io.takamaka.code.lang.TestExternallyOwnedAccount}}
-	 *         or a {@link #io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}}
+	 * @return the reference to the account, in the store of the node. This is a {@link io.takamaka.code.lang.TestExternallyOwnedAccount}}
+	 *         or a {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount}}
 	 */
 	StorageReference account(int i);
 

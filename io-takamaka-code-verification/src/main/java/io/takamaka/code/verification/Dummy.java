@@ -5,7 +5,7 @@ package io.takamaka.code.verification;
  * as an extra type added at the end of its signature: {@code m(formals)} becomes
  * {@code m(formals, Contract, Dummy)}, where the {@link io.takamaka.code.lang.Contract}
  * is the caller of the entry. The goal is to avoid signature clashes
- * because of the instrumentation: since {@link io.takamaka.code.instrumentation.Dummy} is not white-listed, it cannot
+ * because of the instrumentation: since this class is not white-listed, it cannot
  * be used by the programmer and the instrumentation cannot lead to signature clashes.
  * The value passed at run time for this parameter will always be {@code null}.
  */
