@@ -12,4 +12,36 @@
     <version>1.0</version>
   </parent>
 
+   <build>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.2.0</version>
+          <configuration>
+            <finalName>io-takamaka-code-1.0</finalName>
+            <additionalJOptions>
+		        <additionalJOption>-Xmaxerrs</additionalJOption>
+        		<additionalJOption>65536</additionalJOption>
+        		<additionalJOption>-Xmaxwarns</additionalJOption>
+        		<additionalJOption>65536</additionalJOption>
+      		</additionalJOptions>
+            <!-- Default configuration for all reports -->
+          </configuration>
+          <executions>
+            <execution>
+              <id>aggregate</id>
+              <goals>
+                <goal>aggregate</goal>
+              </goals>
+              <phase>site</phase>
+              <configuration>
+                <!-- Specific configuration for the aggregate report -->
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </build>
+
 </project>
