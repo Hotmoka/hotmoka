@@ -9,7 +9,7 @@ import java.math.BigInteger;
  * through the {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount#getBalance()}
  * and {@link io.takamaka.code.lang.TestRedGreenExternallyOwnedAccount#getBalanceRed()}
  * methods. Note that {@link io.takamaka.code.lang.Contract#balance()} and
- * {@link io.takamaka.code.lang.Contract#balanceRed()} are
+ * {@link io.takamaka.code.lang.RedGreenContract#balanceRed()} are
  * protected and cannot be accessed freely in tests.
  */
 public class TestRedGreenExternallyOwnedAccount extends RedGreenExternallyOwnedAccount {

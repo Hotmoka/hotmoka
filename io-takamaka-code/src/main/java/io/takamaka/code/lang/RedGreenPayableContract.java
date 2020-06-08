@@ -42,7 +42,7 @@ public abstract class RedGreenPayableContract extends RedGreenContract {
 	 * @param amount the amount of red coins
 	 */
 	@RedPayable @Entry
-	public final void receiverRed(int amount) {}
+	public final void receiveRed(int amount) {}
 
 	/**
 	 * Receives the given amount of red coins from the caller of the method.

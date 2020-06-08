@@ -40,11 +40,6 @@ public abstract class Storage {
 		//this.storageReference = Runtime.getNextStorageReference();
 	}
 
-	/**
-	 * Constructor used for deserialization from blockchain, in instrumented code.
-	 * 
-	 * @param storageReference the reference to deserialize
-	 */
 	// the following constructor gets added by instrumentation
 	/*protected Storage(StorageReference storageReference) {
 		// this object reflects something already in blockchain
