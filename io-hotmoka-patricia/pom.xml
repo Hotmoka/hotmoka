@@ -9,19 +9,19 @@
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>1.0</version>
+    <version>${project.version}</version>
   </parent>
 
   <dependencies>
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-beans</artifactId>
-        <version>1.0</version>
+        <version>${project.version}</version>
     </dependency>
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-crypto</artifactId>
-        <version>1.0</version>
+        <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>

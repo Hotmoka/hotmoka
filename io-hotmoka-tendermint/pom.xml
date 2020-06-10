@@ -9,30 +9,30 @@
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>1.0</version>
+    <version>${project.version}</version>
   </parent>
 
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-tendermint-dependencies</artifactId>
-      <version>1.0</version>
+      <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-nodes</artifactId>
-        <version>1.0</version>
+        <version>${project.version}</version>
     </dependency>
     <dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-takamaka-code-engine</artifactId>
-        <version>1.0</version>
+        <version>${project.version}</version>
     </dependency>
 	<dependency>
         <groupId>io.hotmoka</groupId>
         <artifactId>io-hotmoka-patricia</artifactId>
-        <version>1.0</version>
+        <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.xodus</groupId>

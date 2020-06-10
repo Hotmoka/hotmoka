@@ -1,0 +1,77 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>hotmoka-and-takamaka-assembly</artifactId>
+  <packaging>jar</packaging>
+  <name>Hotmoka and Takamaka assembly</name>
+
+  <parent>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>parent</artifactId>
+    <version>${project.version}</version>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-tendermint</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-hotmoka-memory</artifactId>
+        <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+  <plugins>
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <version>3.3.0</version>
+    <executions>
+        <execution>
+            <id>default-jar</id>
+            <phase>none</phase>
+        </execution>
+    </executions>
+  </plugin>
+  <plugin>
+    <artifactId>maven-install-plugin</artifactId>
+    <version>3.0.0-M1</version>
+    <configuration>
+      <skip>true</skip>
+    </configuration>
+  </plugin>
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-javadoc-plugin</artifactId>
+    <version>3.2.0</version>
+    <configuration>
+      <skip>true</skip>
+    </configuration>
+  </plugin>
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-assembly-plugin</artifactId>
+    <version>3.3.0</version>
+    <executions>
+        <execution>
+            <phase>package</phase>
+            <goals>
+                <goal>single</goal>
+            </goals>
+            <configuration>
+                <descriptorRefs>
+                    <descriptorRef>jar-with-dependencies</descriptorRef>
+                </descriptorRefs>
+            </configuration>
+        </execution>
+    </executions>
+  </plugin>
+  </plugins>
+  </build>
+
+</project>
