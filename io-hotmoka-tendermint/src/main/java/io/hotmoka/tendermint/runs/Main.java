@@ -30,6 +30,7 @@ public class Main {
 		Config config = new Config.Builder().build();
 
 		try (Node blockchain = TendermintBlockchain.of(config)) {
+			// update version number when needed
 			InitializedNode initializedView = InitializedNode.of(blockchain, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar"), GREEN, RED);
 			NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000);
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());

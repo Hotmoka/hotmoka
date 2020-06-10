@@ -1,11 +1,15 @@
 package io.takamaka.tests;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.nodes.GasCostModel;
@@ -21,9 +25,13 @@ import io.takamaka.code.verification.VerifiedJar;
 class DoubleTranslation {
 
 	@Test
-	void translateTwice() throws IOException {
-		Path origin = Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0.0-lambdas.jar");
-		Path classpath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+	void translateTwice() throws IOException, XmlPullParserException {
+		// we access the project.version property from the pom.xml file of the parent project
+		MavenXpp3Reader reader = new MavenXpp3Reader();
+        Model model = reader.read(new FileReader("../pom.xml"));
+        String version = (String) model.getProperties().get("project.version");
+        Path origin = Paths.get("../io-takamaka-examples/target/io-takamaka-examples-" + version + "-lambdas.jar");
+		Path classpath = Paths.get("../io-takamaka-code/target/io-takamaka-code-" + version + ".jar");
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin),

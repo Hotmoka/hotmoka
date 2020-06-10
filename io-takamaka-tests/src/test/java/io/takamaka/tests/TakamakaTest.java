@@ -2,6 +2,7 @@ package io.takamaka.tests;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -14,6 +15,8 @@ import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
@@ -82,6 +85,11 @@ public abstract class TakamakaTest {
 	 */
 	private final Map<StorageReference, BigInteger> nonces = new HashMap<>();
 
+	/**
+	 * The version of the project, as stated in the pom file.
+	 */
+	private final static String version;
+
 	private final static Logger logger = LoggerFactory.getLogger(AbstractNodeWithHistory.class);
 
 	@BeforeEach
@@ -95,13 +103,18 @@ public abstract class TakamakaTest {
 
 	static {
 		try {
-			io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
+			// we access the project.version property from the pom.xml file of the parent project
+			MavenXpp3Reader reader = new MavenXpp3Reader();
+	        Model model = reader.read(new FileReader("../pom.xml"));
+	        version = (String) model.getProperties().get("project.version");
+
+	        io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
 			originalView = io.hotmoka.tendermint.TendermintBlockchain.of(config);
 			//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
 			//originalView = io.hotmoka.memory.MemoryBlockchain.of(config);
 
 			// the gamete has both red and green coins, enough for all tests
-			initializedView = InitializedNode.of(originalView, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar"), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+			initializedView = InitializedNode.of(originalView, Paths.get("../io-takamaka-code/target/io-takamaka-code-" + version + ".jar"), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 			signature = originalView.signatureAlgorithmForRequests();
 		}
 		catch (Exception e) {
@@ -236,7 +249,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected static Path pathOfExample(String fileName) {
-		return Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0.0-" + fileName);
+		return Paths.get("../io-takamaka-examples/target/io-takamaka-examples-" + version + '-' + fileName);
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {

@@ -9,4 +9,6 @@ open module io.takamaka.tests {
 	requires io.takamaka.code.instrumentation;
 	requires io.takamaka.code.engine;
 	requires org.slf4j;
+	requires maven.model;
+	requires plexus.utils;
 }
