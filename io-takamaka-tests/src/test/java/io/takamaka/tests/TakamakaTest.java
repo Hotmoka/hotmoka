@@ -101,7 +101,7 @@ public abstract class TakamakaTest {
 			//originalView = io.hotmoka.memory.MemoryBlockchain.of(config);
 
 			// the gamete has both red and green coins, enough for all tests
-			initializedView = InitializedNode.of(originalView, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+			initializedView = InitializedNode.of(originalView, Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar"), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 			signature = originalView.signatureAlgorithmForRequests();
 		}
 		catch (Exception e) {
@@ -236,7 +236,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected static Path pathOfExample(String fileName) {
-		return Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-" + fileName);
+		return Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0.0-" + fileName);
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {

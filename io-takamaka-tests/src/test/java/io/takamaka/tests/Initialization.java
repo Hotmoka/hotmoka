@@ -31,6 +31,6 @@ class Initialization extends TakamakaTest {
 	void entryFilterFailsWithoutThrowsExceptions() throws CodeExecutionException, TransactionException, TransactionRejectedException, IOException {
 		// the node is already initialized, since a non-initial transaction has been used to create
 		// the account with ALL_FUNDS. Hence an attempt to run an initial transaction will fail
-		throwsTransactionRejectedException(() -> addJarStoreInitialTransaction(Files.readAllBytes(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"))));
+		throwsTransactionRejectedException(() -> addJarStoreInitialTransaction(Files.readAllBytes(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar"))));
 	}
 }

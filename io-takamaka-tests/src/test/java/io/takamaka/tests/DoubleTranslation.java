@@ -22,8 +22,8 @@ class DoubleTranslation {
 
 	@Test
 	void translateTwice() throws IOException {
-		Path origin = Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-lambdas.jar");
-		Path classpath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar");
+		Path origin = Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0.0-lambdas.jar");
+		Path classpath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin),

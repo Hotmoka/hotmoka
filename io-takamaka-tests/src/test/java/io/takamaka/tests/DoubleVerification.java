@@ -20,8 +20,8 @@ class DoubleVerification {
 
 	@Test
 	void verifyTwice() throws IOException {
-		Path origin = Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0-lambdas.jar");
-		Path classpath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar");
+		Path origin = Paths.get("../io-takamaka-examples/target/io-takamaka-examples-1.0.0-lambdas.jar");
+		Path classpath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
     	TakamakaClassLoader classLoader = TakamakaClassLoader.of
