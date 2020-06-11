@@ -516,21 +516,21 @@ transaction request with its private key. Where is that key?
 It turns out that the `InitializedNode` view has a method that allows one
 to read the keys of the gamete. Note that the private key is not in blockchain,
 is only in the view, a Java object in RAM. But wait, where is the gamete actually?
-It is an object stored in blockchain. Its blockchain address is publicly
-published by the manifest of the blockchain. Hence, having that manifest, we can
+It is an object stored in blockchain, not in RAM. Its blockchain address is publicly
+published by the manifest of the blockchain. Namely, having that manifest, we can
 call its `getGamete()` method to get the address of the gamete. The manifest
 itself is available for any Hotmoka node through the `getManifest()` method.
-There is a last problme so solve before we can put everything in code.
-Transaction requests include a nonce, to avoid replaying and guarantee their
+There is a last problem to solve before we can put everything in code.
+Transaction requests include a nonce, to avoid replaying and to guarantee their
 ordering. Hence the request to install a new jar in blockchain must specify
-the nonce of the caller, that is, of the gamete. In order to get that nonce,
-we can call the `nonce()` method of the gamete. But who is the caller of this
-other transaction? The gamete itself... this is possible since the
+the nonce of the caller, that is, the nonce of the gamete. In order to get that nonce,
+we can call the `nonce()` method of the gamete. But which account do we use as caller of this
+other transaction? It turns out we can use the gamete itself... this is possible since the
 `nonce()` method is declared as `@View`. We will see later what this means.
 For now, it is relevant to know that calls to `@View` methods can be run
-with any nonce, since it is not used nor checked.
+with any nonce, since it is not used nor checked. We just use zero for it then.
 
-The result is the following. It initializes a new blockchain and installs
+The result is the following code. It initializes a new blockchain and installs
 `family-0.0.1-SNAPSHOT.jar` in it:
 
 ```java
@@ -581,33 +581,56 @@ public class Main {
       // we get a reference to the manifest
       StorageReference manifest = blockchain.getManifest();
 
-      // we ask the signing algorithm to use for requests
+      // we get the signing algorithm to use for requests
       SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = blockchain.signatureAlgorithmForRequests();
 
       // we create a signer that signs with the private key of the gamete
       Signer signerOnBehalfOfGamete = Signer.with(signature, initialized.keysOfGamete().getPrivate());
 
-      // we call the getGamete() method of the manifest; this is a call to a @View method, hence the nonce is irrelevant
-      StorageReference gamete = (StorageReference) blockchain.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-        (Signer.onBehalfOfManifest(), manifest, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode,
-        new NonVoidMethodSignature("io.takamaka.code.system.Manifest", "getGamete", ClassType.RGEOA), manifest));
+      // we call the getGamete() method of the manifest; this is a call to a @View method,
+      // hence the nonce is irrelevant and we handly use zero for it
+      StorageReference gamete = (StorageReference) blockchain.runViewInstanceMethodCallTransaction
+        (new InstanceMethodCallTransactionRequest
+        (Signer.onBehalfOfManifest(), // the signer object, that uses the private key of the payer
+	manifest, // payer
+	ZERO, // nonce: irrevant for calls to a @View method
+	BigInteger.valueOf(10_000), // gas limit
+	ZERO, // gas price
+	takamakaCode, // classpath for the execution of the transaction
+        new NonVoidMethodSignature("io.takamaka.code.system.Manifest", "getGamete", ClassType.RGEOA), // method
+	manifest)); // receiver of the method call
 
-      // we get the nonce of the gamete: we use the same gamete as caller and an arbitrary nonce (ZERO in the code)
-      // since we are running a @View method of the gamete
-      BigInteger nonce = ((BigIntegerValue) blockchain.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-        (signerOnBehalfOfGamete, gamete, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode,
-        new NonVoidMethodSignature("io.takamaka.code.lang.Account", "nonce", ClassType.BIG_INTEGER), gamete))).value;
+      // we get the nonce of the gamete: we use the same gamete as caller and an arbitrary nonce
+      // (ZERO in the code) since we are running a @View method of the gamete
+      BigInteger nonce = ((BigIntegerValue) blockchain.runViewInstanceMethodCallTransaction
+        (new InstanceMethodCallTransactionRequest
+        (signerOnBehalfOfGamete, // the signer object, that uses the private key of the payer
+	gamete, // payer
+	ZERO, // nonce: irrevant for calls to a @View method
+	BigInteger.valueOf(10_000), // gas limit
+	ZERO, // gas price
+	takamakaCode, // classpath for the execution of the transaction
+        new NonVoidMethodSignature("io.takamaka.code.lang.Account", "nonce", ClassType.BIG_INTEGER), // method
+	gamete))) // receiver of the method call
+	.value;
 
       // we install family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay for that
       TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest
-        (signerOnBehalfOfGamete, gamete, nonce, BigInteger.valueOf(1_000_000_000), ZERO, takamakaCode, Files.readAllBytes(familyPath), takamakaCode));
+        (signerOnBehalfOfGamete, // the signer object, that uses the private key of the payer
+	gamete, // payer
+	nonce, // nonce of the payer: relevant since this is not a call to a@View method!
+	BigInteger.valueOf(1_000_000_000), // gas limit
+	ZERO, // gas price
+	takamakaCode, // classpath for the execution of the transaction
+	Files.readAllBytes(familyPath), // bytes of the jar to install
+	takamakaCode)); // dependencies of the jar that is being installed
 
       System.out.println("manifest: " + manifest);
       System.out.println("gamete: " + gamete);
       System.out.println("nonce of gamete: " + nonce);
       System.out.println("family-0.0.1-SNAPSHOT.jar stored at: " + family);
 
-      // we increase to nonce, ready for further transactions having the gamete as caller
+      // we increase to nonce, ready for further transactions having the gamete as payer
       nonce = nonce.add(ONE);
     }
   }
