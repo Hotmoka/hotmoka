@@ -3,6 +3,9 @@
 Takamaka is a Java framework for writing smart contracts.
 This tutorial explains how Takamaka code is written and
 executed in blockchain.
+Takamaka is included in the Hotmoka project, a framework
+for collaborating nodes, whose goal is to unify the programming
+model of blockchain and internet of things.
 
 # Table of Contents
 1. [Introduction](#introduction)
@@ -48,9 +51,6 @@ to deal with the storage of objects in blockchain: this is completely
 transparent to them. This makes Takamaka completely different from other
 attempts at using Java for writing smart contracts, where programmers
 must use specific method calls to persist data on blockchain.
-Takamaka is included in the Hotmoka project, a framework
-for collaborating nodes, whose goal is to unify the programming
-model of blockchain and internet of things.
 
 Writing smart contracts in Java entails that programmers
 do not have to learn yet another programming language.
@@ -82,38 +82,56 @@ compile, package, test and install the Hotmoka jars:
 mvn install
 ```
 
-All tests should pass and all projects should be successfully installed:
+If you want to generate the JavaDocs as well, you can use the following
+Maven incantation instead:
+
+```shell
+JAVA_HOME=/usr/lib/jvm/default-java mvn clean install javadoc:aggregate-jar
+```
+
+using the correct path inside your computer, pointing to your Java installation
+directory.
+
+> If you are not interested in running the tests, append `-DskipTests` after
+> the word `install`.
+
+In both cases, all tests should pass and all projects should be successfully installed:
 
 ```
-[INFO] Reactor Summary for HotMoka Project 1.0:
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for Hotmoka and Takamaka Parent 1.0.0:
 [INFO] 
-[INFO] HotMoka Project .................................... SUCCESS [  0.670 s]
-[INFO] io-takamaka-code ................................... SUCCESS [  2.705 s]
-[INFO] io-takamaka-code-constants ......................... SUCCESS [  0.119 s]
-[INFO] io-takamaka-code-whitelisting ...................... SUCCESS [  0.141 s]
-[INFO] io-takamaka-code-verification ...................... SUCCESS [  0.206 s]
-[INFO] io-hotmoka-beans ................................... SUCCESS [  0.260 s]
-[INFO] io-hotmoka-nodes ................................... SUCCESS [  0.149 s]
-[INFO] io-takamaka-code-instrumentation ................... SUCCESS [  0.219 s]
-[INFO] io-takamaka-code-engine ............................ SUCCESS [  0.138 s]
-[INFO] io-takamaka-code-tools ............................. SUCCESS [  0.146 s]
-[INFO] io-hotmoka-memory .................................. SUCCESS [  0.130 s]
-[INFO] io-takamaka-examples ............................... SUCCESS [  2.050 s]
-[INFO] io-takamaka-tests .................................. SUCCESS [05:17 min]
+[INFO] Hotmoka and Takamaka Parent ........................ SUCCESS [  0.329 s]
+[INFO] io-takamaka-code ................................... SUCCESS [  3.969 s]
+[INFO] io-takamaka-code-constants ......................... SUCCESS [  0.150 s]
+[INFO] io-takamaka-code-whitelisting ...................... SUCCESS [  0.650 s]
+[INFO] io-takamaka-code-verification ...................... SUCCESS [  1.405 s]
+[INFO] io-hotmoka-crypto .................................. SUCCESS [  0.144 s]
+[INFO] io-hotmoka-beans ................................... SUCCESS [  1.133 s]
+[INFO] io-hotmoka-nodes ................................... SUCCESS [  0.184 s]
+[INFO] io-hotmoka-patricia ................................ SUCCESS [  0.156 s]
+[INFO] io-takamaka-code-instrumentation ................... SUCCESS [  0.722 s]
+[INFO] io-takamaka-code-engine ............................ SUCCESS [  1.014 s]
+[INFO] io-takamaka-code-tools ............................. SUCCESS [  0.227 s]
+[INFO] io-hotmoka-memory .................................. SUCCESS [  0.184 s]
+[INFO] io-hotmoka-tendermint-dependencies ................. SUCCESS [  5.453 s]
+[INFO] io-hotmoka-tendermint .............................. SUCCESS [  6.796 s]
+[INFO] io-takamaka-examples ............................... SUCCESS [  2.392 s]
+[INFO] io-takamaka-tests .................................. SUCCESS [01:39 min]
+[INFO] Hotmoka and Takamaka assembly ...................... SUCCESS [  2.243 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  05:24 min
-[INFO] Finished at: 2020-03-11T18:05:26+01:00
+[INFO] Total time:  02:07 min
+[INFO] Finished at: 2020-06-11T11:06:59+02:00
 [INFO] ------------------------------------------------------------------------
 ```
 
-> If you want to see and edit the Hotmoka project, it is well possible
-> to import it inside the Eclipse IDE. This is not needed, instead, for
-> running the examples in the next sections. If you want to install the
-> Hotmoka project inside Eclipse,
-> use the File &rarr; Import &rarr; Existing Maven Projects menu item and import
-> the Maven project contained in the `hotmoka` directory that you cloned from
+> If you want to see and edit the sources of the Hotmoka project, it is well possible
+> to import them inside the Eclipse IDE (this is not needed, instead, for
+> running the examples in the next sections of this tutorial). For that,
+> use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
+> the parent Maven project contained in the `hotmoka` directory that you cloned from
 > GitHub. This should create, inside Eclipse, 
 > also its submodule projects. You should see this inside Eclipse's project explorer:
 >
