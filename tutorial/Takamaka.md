@@ -60,7 +60,7 @@ features from the latest versions of Java, such as streams and lambda
 expressions.
 
 There are, of course, limitations to the kind of code that can
-be run inside a blockchain. The most important limitation is
+be run inside a blockchain. The most limitation is
 deterministic behavior, as we will see later.
 
 # Installation <a name="installation">
@@ -79,7 +79,7 @@ then `cd` to the `hotmoka` directory and
 compile, package, test and install the Hotmoka jars:
 
 ```shell
-mvn install
+mvn clean install
 ```
 
 If you want to generate the JavaDocs as well, you can use the following
@@ -89,8 +89,8 @@ Maven incantation instead:
 JAVA_HOME=/usr/lib/jvm/default-java mvn clean install javadoc:aggregate-jar
 ```
 
-using the correct path inside your computer, pointing to your Java installation
-directory.
+placing, after `JAVA_HOME=`, the correct path inside your computer, pointing to your
+Java installation directory.
 
 > If you are not interested in running the tests, append `-DskipTests` after
 > the word `install`.
@@ -159,15 +159,24 @@ call the `toString()` method on that instance in blockchain.
 
 Let us hence create a Maven project `family` inside Eclipse,
 in the same directory where the `hotmoka` project was cloned.
+For that, in the Eclipse's Maven wizard specify the options
+*Create a simple project (skip archetype selection)*
+and deselect the *Use default Workspace directory* option,
+using a subdirectory `family` of the `hotmoka` project as *Location*
+instead.
+Do not add the project to any working set. Use `io.hotmoka`
+as Group Id and `family` as Artifact Id.
 
 > The reason to use that same directory is only to simplify
-> cross-access to the compile jars, without using machine-dependent
+> cross-access to the compiled jar containing the runtime
+> classes of the smart contracts, without using machine-dependent
 > absolute paths to the local Maven repository.
+> The Group Id can be changed as you prefer, but we will stick
+> to `io.hotmoka` to show the exact files that you will see in Eclipse.
 
-If you have installed the Hotmoka project, the Hotmoka and Takamaka
-jars have been installed inside your local Maven repository, hence it is
-possible to refer to them in the `pom.xml` of our project,
-that should look as follows:
+By clicking *Finish* in the Eclipse's Maven wizard, you should see
+a new Maven project in the Eclipse's explorer.
+Replace its `pom.xml` file with the code that follows:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -190,17 +199,39 @@ that should look as follows:
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+	  <release>9</release>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
 ```
 
-As you can see, we are importing the dependency `io-takamaka-code.jar`,
+> We are using `1.0.0` here, as version of the Hotmoka and Takamaka
+> projects. Replace, if needed, this with the current version of such projects,
+> as printed during their compilation with Maven.
+
+As you can see, we are importing the dependency `io-takamaka-code`,
 that contains the Takamaka base development classes.
+If you have installed the Hotmoka project, this
+jar has been installed inside your local Maven repository, hence it is
+possible to refer to it in the `pom.xml` of our project
+and everything should compile without errors.
 Be sure to use Java 9 or later, by setting the right version in the
-build path of the project, if needed. The result should look
+build path of the project, if needed (the current Eclipse's Maven
+wizard creates Java 5 projects). The result should look
 similar to the following, in Eclipse:
 
 ![The `family` Eclipse project](pics/family.png "The family Eclipse project")
@@ -209,16 +240,16 @@ Create a `module-info.java` file inside `src/main/java`, to state that this proj
 on the module containing the runtime classes of Takamaka, needed for development:
 
 ```java
-module family {
-  requires io.takamaka.code;
-}
+	module family {
+	  requires io.takamaka.code;
+	}
 ```
 
-Create a package `io.takamaka.tests.family` inside `src/main/java`. Inside that package,
+Create a package `io.takamaka.family` inside `src/main/java`. Inside that package,
 create a Java source `Person.java`, by copying and pasting the following code:
 
 ```java
-package io.takamaka.tests.family;
+package io.takamaka.family;
 
 public class Person {
   private final String name;
@@ -274,15 +305,19 @@ The next step is to install that jar in blockchain, use it to create an instance
 of `Person` and call `toString()` on that instance. For that, we need a running
 blockchain node.
 
-> Future versions of this document will show how to use a test network, instead of running a local simulation of a node.
+> We will perform this process first with a simulation of a blockchain, that is simpler
+> and faster, and subsequently with a real blockchain.
 
 Let us hence create another Eclipse Maven project
-`blockchain`, in the same directory where the `hotmoka` project was cloned.
+`blockchain`, in the same directory where the `hotmoka` project was cloned,
+exactly as we did for the `family` project above.
 Specify Java 9 (or later) in its build path.
 This project will start
 a local simulation of a blockchain node, actually working over the disk memory
-of our local machine. That blockchain simulation in memory requires other jars of Hotmoka and Takamaka.
-Use the following `pom.xml` for this project:
+of our local machine. Hence this project depends on the jar that implements
+that blockchain simulation in memory, that is an example of a Hotmoka node.
+This is specified in the following `pom.xml`, that we will copy inside
+the `blockchain` project, replacing that generated by Eclipse:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -318,7 +353,7 @@ Use the following `pom.xml` for this project:
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-memory</artifactId>
-      <version>1.0</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
 
@@ -326,8 +361,9 @@ Use the following `pom.xml` for this project:
 ```
 
 It specifies as dependency the `io-hotmoka-memory` module, that contains
-the disk memory simulation of a blockchain. It has been installed when we packaged
-the Hotmoka project, before.
+a Hotmoka node that implements
+a disk memory simulation of a blockchain. It has been installed in our
+local Maven repository previously, when we packaged the Hotmoka project.
 
 Leave directory `src/test/java` empty, by deleting its content, if not already empty.
 
@@ -344,33 +380,114 @@ module blockchain {
 ```
 
 Create a package
-`io.takamaka.tests.family` inside `src` and add the following class `Main.java`
+`io.takamaka.family` inside `src` and add the following class `Main.java`
 inside it:
 
 ```java
-package io.takamaka.tests.family;
+package io.takamaka.family;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.file.Paths;
-
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.nodes.CodeExecutionException;
 
 public class Main {
-  private final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
 
-  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _200_000, _200_000);
+  public static void main(String[] args) throws Exception {
+    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+
+    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+      // the blockchain is closed automatically at the end of this block
+    }
+  }
+}
+```
+As you can see, this class simply creates an instance of the blockchain on disk memory.
+The blockchain is an `AutoCloseable` Hotmoka node, hence it is placed inside a
+try with resource that guarantees its release at the end of the `try` block.
+The `config` parameter allows us to provide some initialization options to the
+blockchain. We have used its default values here.
+
+Like every Hotmoka node, the observable state of the blockchain can only evolve through
+*transactions*, that modify its state in an atomic way.
+
+An important point is that this blockchain is completely empty after creation. It does not contain
+data, but it does not contain code either. It is not even possible
+to invoke static methods of the standard Java library, since the invocation of code in a Hotmoka
+node requires to identify an object, the *caller*, ie. an instance of
+`io.takamaka.code.lang.ExternallyOwnedAccount` that pays for the execution
+of the transaction that runs the code. But also that class is not
+installed in blockchain yet. Hence, we cannot actually run any transaction
+on this brand new blockchain. To solve this problem, Hotmoka nodes can execute
+*initial* transactions that do not require any caller. In that sense, they
+are executed *for free*. Thus, what we need is to run a sequence of initial
+transactions that perform the following tasks:
+
+1. install `io.takamaka.code-1.0.0.jar` inside the blockchain. That jar contains
+   the `io.takamaka.code.lang.ExternallyOwnedAccount` class and many other classes
+   that we will use for programming our smart contracts;
+2. create an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
+   stored inside the blockchain, that holds all money initially provided to the blockchain.
+   This object is called *gamete* and can be used later to fund other accounts;
+3. creates an object of class `io.takamaka.code.system.Manifest`, that is used to publish
+   information about the node. For instance, it tells who is the gamete of the node;
+4. state that the blockchain has been initialized. After this statement, no more
+   initial transactions can be run with this blockchain (they would be rejected).
+
+It is interesting to know that this initialization process exists, but users
+of a Hotmoka node are very unlikely interested in its detail.
+Hence, we do not discuss it further and, instead, use a node decorator
+that performs, for us, the above transactions, effectively initializing a node
+that still needs initialization:
+
+```java
+package io.takamaka.family;
+
+import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.views.InitializedNode;
+
+public class Main {
+
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
+
+  public static void main(String[] args) throws Exception {
+    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+
+    // the path of the packaged runtime Takamaka classes
+    Path takamakaCode = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+
+    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+      InitializedNode initialized = InitializedNode.of(blockchain, takamakaCode, GREEN_AMOUNT, RED_AMOUNT);
+    }
   }
 }
 ```
 
-As you can see, this class simply creates an instance of the blockchain on disk memory.
-It requires to initialize that blockchain, by installing the base classes for Takamaka,
+The code above initializes the blockchain, by installing the base classes for Takamaka,
 that we had previously packaged inside the project `io-takamaka-code`
 (this is why we put this new project inside the directory of the Hotmoka project).
+It is important to observe that both `blockchain` and `initialized` are views of the
+same Hotmoka node. Hence, if we run this class, both get initialized and both will contain
+the `io-takamaka-code-1.0.0.jar` archive and a new object, the gamete, initialized
+with the given amounts of green and red coins.
+
+If you run this class from inside Eclipse and refresh the `blockchain` project
+(click on it and push the F5 key),
+you will see that a new directory `chain` appeared, that contains a block `b0`.
+Inside that block, there are four transactions, corresponding
+to the four steps above, that initialize a Hotmoka node:
+
+![The `chain` directory appeared](pics/blockchain2.png "The chain directory appeared")
+
+Each transaction is specified by a request and a corresponding
+response. They are kept in serialized form (`request` and `response`) but are also
+reported in textual form (`request.txt` and `response.txt`). Such textual
+representations do not exist in a real blockchain, but are useful here, for debugging
+or learning purposes. We do not investigate further the content of the `chain` directory,
+for now. Later, when we will run our own transactions, we will see these files in more detail.
+
 This class then creates two accounts, funded with
 200,000 units of coin each. We will use later such accounts
 to run blockchain transactions. They will be available as `blockchain.account(0)`
@@ -384,24 +501,6 @@ mvn package
 ```
 
 A `blockchain-0.0.1-SNAPSHOT.jar` file should appear inside the `target` directory.
-
-So, what is the static method `MemoryBlockchain.of()` doing here? Basically, it is
-initializing a directory, named `chain`, and it is running a few initial transactions
-that install `io-takamaka-code-1.0.jar` in blockchain and then
-create two accounts. You can see the result if you run class
-`io.takamaka.tests.family.Main`, refresh the `blockchain` project (click on it and push the F5 key)
-and inspect the `chain` directory that should have appeared:
-
-![The `chain` directory appeared](pics/blockchain2.png "The chain directory appeared")
-
-Inside this `chain` directory, you can see that a block has been created (`b0`) inside which
-four transactions (`t0`, `t1`, `t2` and `t3`) have been executed, that create and fund
-our two initial accounts. Each transaction is specified by a request and a corresponding
-response. They are kept in serialized form (`request` and `response`) but are also
-reported in textual form (`request.txt` and `response.txt`). Such textual
-representations would not be kept in a real blockchain, but are useful here, for debugging
-or learning purposes. We do not investigate further the content of the `chain` directory,
-for now. Later, when we will run our own transactions, we will see these files in more detail.
 
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
