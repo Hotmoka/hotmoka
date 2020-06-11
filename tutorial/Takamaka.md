@@ -79,7 +79,7 @@ then `cd` to the `hotmoka` directory and
 compile, package, test and install the Hotmoka jars:
 
 ```shell
-mvn install
+mvn clean install
 ```
 
 If you want to generate the JavaDocs as well, you can use the following
@@ -89,8 +89,8 @@ Maven incantation instead:
 JAVA_HOME=/usr/lib/jvm/default-java mvn clean install javadoc:aggregate-jar
 ```
 
-using the correct path inside your computer, pointing to your Java installation
-directory.
+placing, after `JAVA_HOME=`, the correct path inside your computer, pointing to your
+Java installation directory.
 
 > If you are not interested in running the tests, append `-DskipTests` after
 > the word `install`.
@@ -159,15 +159,24 @@ call the `toString()` method on that instance in blockchain.
 
 Let us hence create a Maven project `family` inside Eclipse,
 in the same directory where the `hotmoka` project was cloned.
+For that, in the Eclipse's Maven wizard specify the options
+*Create a simple project (skip archetype selection)*
+and deselect the *Use default Workspace directory* option,
+using a subdirectory `family` of the `hotmoka` project as *Location*
+instead.
+Do not add the project to any working set. Use `io.hotmoka`
+as Group Id and `family` as Artifact Id.
 
 > The reason to use that same directory is only to simplify
-> cross-access to the compile jars, without using machine-dependent
+> cross-access to the compiled jar containing the runtime
+> classes of the smart contracts, without using machine-dependent
 > absolute paths to the local Maven repository.
+> The Group Id can be changed as you prefer, but we will stick
+> to `io.hotmoka` to show the exact files that you will see in Eclipse.
 
-If you have installed the Hotmoka project, the Hotmoka and Takamaka
-jars have been installed inside your local Maven repository, hence it is
-possible to refer to them in the `pom.xml` of our project,
-that should look as follows:
+By clicking *Finish* in the Eclipse's Maven wizard, you should see
+a new Maven project in the Eclipse's explorer.
+Replace its `pom.xml` file with the code that follows:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -190,17 +199,39 @@ that should look as follows:
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+	  <release>9</release>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
 ```
 
-As you can see, we are importing the dependency `io-takamaka-code.jar`,
+> We are using `1.0.0` here, as version of the Hotmoka and Takamaka
+> projects. Replace, if needed, this with the current version of such projects,
+> as printed during their compilation with Maven.
+
+As you can see, we are importing the dependency `io-takamaka-code`,
 that contains the Takamaka base development classes.
+If you have installed the Hotmoka project, this
+jar has been installed inside your local Maven repository, hence it is
+possible to refer to it in the `pom.xml` of our project
+and everything should compile without errors.
 Be sure to use Java 9 or later, by setting the right version in the
-build path of the project, if needed. The result should look
+build path of the project, if needed (the current Eclipse's Maven
+wizard creates Java 5 projects). The result should look
 similar to the following, in Eclipse:
 
 ![The `family` Eclipse project](pics/family.png "The family Eclipse project")
@@ -209,16 +240,16 @@ Create a `module-info.java` file inside `src/main/java`, to state that this proj
 on the module containing the runtime classes of Takamaka, needed for development:
 
 ```java
-module family {
-  requires io.takamaka.code;
-}
+	module family {
+	  requires io.takamaka.code;
+	}
 ```
 
-Create a package `io.takamaka.tests.family` inside `src/main/java`. Inside that package,
+Create a package `io.takamaka.family` inside `src/main/java`. Inside that package,
 create a Java source `Person.java`, by copying and pasting the following code:
 
 ```java
-package io.takamaka.tests.family;
+package io.takamaka.family;
 
 public class Person {
   private final String name;
