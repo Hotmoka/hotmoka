@@ -456,10 +456,10 @@ public class Main {
     io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
-    Path takamakaCode = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+    Path takamakaCodePath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
 
     try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
-      InitializedNode initialized = InitializedNode.of(blockchain, takamakaCode, GREEN_AMOUNT, RED_AMOUNT);
+      InitializedNode initialized = InitializedNode.of(blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
     }
   }
 }
@@ -493,16 +493,126 @@ This class then creates two accounts, funded with
 to run blockchain transactions. They will be available as `blockchain.account(0)`
 and `blockchain.account(1)`, respectively.
 
-Package the project into a jar, by running the following shell command inside
-the directory of the project:
-
-```shell
-mvn package
-```
-
-A `blockchain-0.0.1-SNAPSHOT.jar` file should appear inside the `target` directory.
-
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
+
+The previous section has shown how we can create a brand new blockchain and
+initialize it with the runtime Takamaka classes and a gamete. Our goal was to
+use that blockchain to store an instance of the `Person` class. For that, the
+bytecode of that class must be stored into blockchain first. This can be
+accomplished with a transaction that stores a jar in blockchain.
+Namely, we will run a transaction that stores `family-0.0.1-SNAPSHOT.jar`
+inside the blockchain, so that we can later refer to it and call
+the constructor of `Person`. This will not be an initial transaction
+(the node has been already definitely initialized). Hence, it must be
+payed by an externally owned account. The only such account that we have
+available by now is the gamete that has been created during initialization.
+
+Let us hence use that gamete as caller of a transaction that stores
+`family-0.0.1-SNAPSHOT.jar` in blockchain. This seems like a very easy task,
+but actually hides many smaller problems. First of all, who will pay for the
+transaction? There is only one account with funds at the moment and that
+is the gamete. So the gamete will pay, but then it must sign the
+transaction request with its private key. Where is that key?
+It turns out that the `InitializedNode` view has a method that allows one
+to read the keys of the gamete. Note that the private key is not in blockchain,
+is only in the view, a Java object in RAM. But wait, where is the gamete actually?
+It is an object stored in blockchain. Its blockchain address is publicly
+published by the manifest of the blockchain. Hence, having that manifest, we can
+call its `getGamete()` method to get the address of the gamete. The manifest
+itself is available for any Hotmoka node through the `getManifest()` method.
+There is a last problme so solve before we can put everything in code.
+Transaction requests include a nonce, to avoid replaying and guarantee their
+ordering. Hence the request to install a new jar in blockchain must specify
+the nonce of the caller, that is, of the gamete. In order to get that nonce,
+we can call the `nonce()` method of the gamete. But who is the caller of this
+other transaction? The gamete itself... this is possible since the
+`nonce()` method is declared as `@View`. We will see later what this means.
+For now, it is relevant to know that calls to `@View` methods can be run
+with any nonce, since it is not used nor checked.
+
+The result is the following. It initializes a new blockchain and installs
+`family-0.0.1-SNAPSHOT.jar` in it:
+
+```java
+package io.takamaka.family;
+
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
+
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.views.InitializedNode;
+
+public class Main {
+
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
+
+  public static void main(String[] args) throws Exception {
+    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+
+    // the path of the packaged runtime Takamaka classes
+    Path takamakaCodePath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+
+    // the path of the user jar to install
+    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+
+    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+      // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
+      InitializedNode initialized = InitializedNode.of(blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+
+      // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
+      TransactionReference takamakaCode = blockchain.getTakamakaCode();
+
+      // we get a reference to the manifest
+      StorageReference manifest = blockchain.getManifest();
+
+      // we ask the signing algorithm to use for requests
+      SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = blockchain.signatureAlgorithmForRequests();
+
+      // we create a signer that signs with the private key of the gamete
+      Signer signerOnBehalfOfGamete = Signer.with(signature, initialized.keysOfGamete().getPrivate());
+
+      // we call the getGamete() method of the manifest; this is a call to a @View method, hence the nonce is irrelevant
+      StorageReference gamete = (StorageReference) blockchain.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+        (Signer.onBehalfOfManifest(), manifest, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode,
+        new NonVoidMethodSignature("io.takamaka.code.system.Manifest", "getGamete", ClassType.RGEOA), manifest));
+
+      // we get the nonce of the gamete: we use the same gamete as caller and an arbitrary nonce (ZERO in the code)
+      // since we are running a @View method of the gamete
+      BigInteger nonce = ((BigIntegerValue) blockchain.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+        (signerOnBehalfOfGamete, gamete, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode,
+        new NonVoidMethodSignature("io.takamaka.code.lang.Account", "nonce", ClassType.BIG_INTEGER), gamete))).value;
+
+      // we install family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay for that
+      TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest
+        (signerOnBehalfOfGamete, gamete, nonce, BigInteger.valueOf(1_000_000_000), ZERO, takamakaCode, Files.readAllBytes(familyPath), takamakaCode));
+
+      System.out.println("manifest: " + manifest);
+      System.out.println("gamete: " + gamete);
+      System.out.println("nonce of gamete: " + nonce);
+      System.out.println("family-0.0.1-SNAPSHOT.jar stored at: " + family);
+
+      // we increase to nonce, ready for further transactions having the gamete as caller
+      nonce = nonce.add(ONE);
+    }
+  }
+}
+```
 
 Let us consider the `blockchain` project. The `Person` class of the `family` project
 is not in its build path nor in its class or module path at run time.
