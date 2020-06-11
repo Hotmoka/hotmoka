@@ -530,6 +530,13 @@ other transaction? It turns out we can use the gamete itself... this is possible
 For now, it is relevant to know that calls to `@View` methods can be run
 with any nonce, since it is not used nor checked. We just use zero for it then.
 
+A final consideration is related to gas. As in Ethereum, transactions are payed
+in terms of gas consumed for their execution. In the following, we will use
+zero as gas when running calls to `@View` methods. This is because such calls
+do not actually modify the state of the node and are executed locally, on the
+node that receives the request of the transaction. Hence, they can be considered
+as *free*.
+
 The result is the following code. It initializes a new blockchain and installs
 `family-0.0.1-SNAPSHOT.jar` in it:
 
@@ -618,9 +625,9 @@ public class Main {
       TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest
         (signerOnBehalfOfGamete, // the signer object, that uses the private key of the payer
 	gamete, // payer
-	nonce, // nonce of the payer: relevant since this is not a call to a@View method!
-	BigInteger.valueOf(1_000_000_000), // gas limit
-	ZERO, // gas price
+	nonce, // nonce of the payer: relevant since this is not a call to a @View method!
+	BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
+	ONE, // gas price: the bigger, the quicker
 	takamakaCode, // classpath for the execution of the transaction
 	Files.readAllBytes(familyPath), // bytes of the jar to install
 	takamakaCode)); // dependencies of the jar that is being installed
@@ -635,6 +642,14 @@ public class Main {
     }
   }
 }
+```
+
+The execution of this class should print something like this on the screen:
+```
+manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
+gamete: 597517e13e8a9919f39a186f19f12644ee41f8e0bd6a564d6b02b4e856c51ff5#0
+nonce of gamete: 1
+family-0.0.1-SNAPSHOT.jar stored at: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad13182bf622
 ```
 
 Let us consider the `blockchain` project. The `Person` class of the `family` project
