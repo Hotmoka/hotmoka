@@ -108,10 +108,10 @@ public abstract class TakamakaTest {
 	        Model model = reader.read(new FileReader("../pom.xml"));
 	        version = (String) model.getProperties().get("project.version");
 
-	        io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-			originalView = io.hotmoka.tendermint.TendermintBlockchain.of(config);
-			//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-			//originalView = io.hotmoka.memory.MemoryBlockchain.of(config);
+	        //io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
+			//originalView = io.hotmoka.tendermint.TendermintBlockchain.of(config);
+			io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+			originalView = io.hotmoka.memory.MemoryBlockchain.of(config);
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of(originalView, Paths.get("../io-takamaka-code/target/io-takamaka-code-" + version + ".jar"), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
