@@ -5,11 +5,12 @@
   <artifactId>io-hotmoka-beans</artifactId>
   <packaging>jar</packaging>
   <name>io-hotmoka-beans</name>
+  <version>${project.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>${project.version}</version>
+    <version>dev</version>
   </parent>
 
   <dependencies>

@@ -5,11 +5,12 @@
   <artifactId>io-takamaka-code</artifactId>
   <packaging>jar</packaging>
   <name>io-takamaka-code</name>
+  <version>${project.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>${project.version}</version>
+    <version>dev</version>
   </parent>
 
    <build>
@@ -19,7 +20,7 @@
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>3.2.0</version>
           <configuration>
-            <finalName>io-takamaka-code-1.0</finalName>
+            <finalName>io-takamaka-code-${project.version}</finalName>
             <additionalJOptions>
 		        <additionalJOption>-Xmaxerrs</additionalJOption>
         		<additionalJOption>65536</additionalJOption>

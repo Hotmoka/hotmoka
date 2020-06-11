@@ -5,11 +5,12 @@
   <artifactId>io-takamaka-examples</artifactId>
   <packaging>jar</packaging>
   <name>io-takamaka-examples</name>
+  <version>${project.version}</version>
 
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
-    <version>${project.version}</version>
+    <version>dev</version>
   </parent>
 
   <dependencies>

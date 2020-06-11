@@ -13,7 +13,7 @@
     <groupId>io.hotmoka</groupId>
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
-    <version>${project.version}</version>
+    <version>dev</version>
     <name>Hotmoka and Takamaka Parent</name>
 
     <modules>
