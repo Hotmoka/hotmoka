@@ -60,7 +60,7 @@ features from the latest versions of Java, such as streams and lambda
 expressions.
 
 There are, of course, limitations to the kind of code that can
-be run inside a blockchain. The most important limitation is
+be run inside a blockchain. The most limitation is
 deterministic behavior, as we will see later.
 
 # Installation <a name="installation">
@@ -400,35 +400,41 @@ public class Main {
 }
 ```
 As you can see, this class simply creates an instance of the blockchain on disk memory.
-The blockchain is an `AutoCloseable` object, hence it is placed inside a
+The blockchain is an `AutoCloseable` Hotmoka node, hence it is placed inside a
 try with resource that guarantees its release at the end of the `try` block.
 The `config` parameter allows us to provide some initialization options to the
 blockchain. We have used its default values here.
 
-The important point is that this blockchain is completely empty after creation. It does not contain
+Like every Hotmoka node, the observable state of the blockchain can only evolve through
+*transactions*, that modify its state in an atomic way.
+
+An important point is that this blockchain is completely empty after creation. It does not contain
 data, but it does not contain code either. It is not even possible
-to invoke static methods of the standard Java library, since invocations of code in a Hotmoka
-node require to identify an object, the *caller*, that is an instance of
-`io.takamaka.code.lang.ExternallyOwnedAccount` and that pays for the execution
+to invoke static methods of the standard Java library, since the invocation of code in a Hotmoka
+node requires to identify an object, the *caller*, ie. an instance of
+`io.takamaka.code.lang.ExternallyOwnedAccount` that pays for the execution
 of the transaction that runs the code. But also that class is not
-installed in blockchain yet. To solve this problem, Hotmoka nodes can execute
+installed in blockchain yet. Hence, we cannot actually run any transaction
+on this brand new blockchain. To solve this problem, Hotmoka nodes can execute
 *initial* transactions that do not require any caller. In that sense, they
-are executed *for free*. What we need is hence to run a sequence of initial
+are executed *for free*. Thus, what we need is to run a sequence of initial
 transactions that perform the following tasks:
 
 1. install `io.takamaka.code-1.0.0.jar` inside the blockchain. That jar contains
    the `io.takamaka.code.lang.ExternallyOwnedAccount` class and many other classes
    that we will use for programming our smart contracts;
-2. create an initial object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
+2. create an object of class `io.takamaka.code.lang.ExternallyOwnedAccount`,
    stored inside the blockchain, that holds all money initially provided to the blockchain.
    This object is called *gamete* and can be used later to fund other accounts;
-3. state that the blockchain has been initialized. After this statement, no more
+3. creates an object of class `io.takamaka.code.system.Manifest`, that is used to publish
+   information about the node. For instance, it tells who is the gamete of the node;
+4. state that the blockchain has been initialized. After this statement, no more
    initial transactions can be run with this blockchain (they would be rejected).
 
 It is interesting to know that this initialization process exists, but users
-of a Hotmoka node are very unlikely interested in the detail of this process.
-Hence, we do not go into further detail and, instead, use a node decorator
-that performs, for us, the above transactions, hence initializing a node
+of a Hotmoka node are very unlikely interested in its detail.
+Hence, we do not discuss it further and, instead, use a node decorator
+that performs, for us, the above transactions, effectively initializing a node
 that still needs initialization:
 
 ```java
@@ -464,7 +470,23 @@ that we had previously packaged inside the project `io-takamaka-code`
 (this is why we put this new project inside the directory of the Hotmoka project).
 It is important to observe that both `blockchain` and `initialized` are views of the
 same Hotmoka node. Hence, if we run this class, both get initialized and both will contain
-the `io-takamaka-code-1.0.0.jar` archive and a new object, the gamete.
+the `io-takamaka-code-1.0.0.jar` archive and a new object, the gamete, initialized
+with the given amounts of green and red coins.
+
+If you run this class from inside Eclipse and refresh the `blockchain` project
+(click on it and push the F5 key),
+you will see that a new directory `chain` appeared, that contains a block `b0`.
+Inside that block, there are four transactions, corresponding
+to the four steps above, that initialize a Hotmoka node:
+
+![The `chain` directory appeared](pics/blockchain2.png "The chain directory appeared")
+
+Each transaction is specified by a request and a corresponding
+response. They are kept in serialized form (`request` and `response`) but are also
+reported in textual form (`request.txt` and `response.txt`). Such textual
+representations do not exist in a real blockchain, but are useful here, for debugging
+or learning purposes. We do not investigate further the content of the `chain` directory,
+for now. Later, when we will run our own transactions, we will see these files in more detail.
 
 This class then creates two accounts, funded with
 200,000 units of coin each. We will use later such accounts
@@ -479,24 +501,6 @@ mvn package
 ```
 
 A `blockchain-0.0.1-SNAPSHOT.jar` file should appear inside the `target` directory.
-
-So, what is the static method `MemoryBlockchain.of()` doing here? Basically, it is
-initializing a directory, named `chain`, and it is running a few initial transactions
-that install `io-takamaka-code-1.0.jar` in blockchain and then
-create two accounts. You can see the result if you run class
-`io.takamaka.tests.family.Main`, refresh the `blockchain` project (click on it and push the F5 key)
-and inspect the `chain` directory that should have appeared:
-
-![The `chain` directory appeared](pics/blockchain2.png "The chain directory appeared")
-
-Inside this `chain` directory, you can see that a block has been created (`b0`) inside which
-four transactions (`t0`, `t1`, `t2` and `t3`) have been executed, that create and fund
-our two initial accounts. Each transaction is specified by a request and a corresponding
-response. They are kept in serialized form (`request` and `response`) but are also
-reported in textual form (`request.txt` and `response.txt`). Such textual
-representations would not be kept in a real blockchain, but are useful here, for debugging
-or learning purposes. We do not investigate further the content of the `chain` directory,
-for now. Later, when we will run our own transactions, we will see these files in more detail.
 
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
