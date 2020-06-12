@@ -605,7 +605,7 @@ public class Main {
 	ZERO, // nonce: irrevant for calls to a @View method
 	BigInteger.valueOf(10_000), // gas limit
 	ZERO, // gas price
-	takamakaCode, // classpath for the execution of the transaction
+	takamakaCode, // class path for the execution of the transaction
         new NonVoidMethodSignature("io.takamaka.code.system.Manifest", "getGamete", ClassType.RGEOA), // method
 	manifest)); // receiver of the method call
 
@@ -618,7 +618,7 @@ public class Main {
 	ZERO, // nonce: irrevant for calls to a @View method
 	BigInteger.valueOf(10_000), // gas limit
 	ZERO, // gas price
-	takamakaCode, // classpath for the execution of the transaction
+	takamakaCode, // class path for the execution of the transaction
         new NonVoidMethodSignature("io.takamaka.code.lang.Account", "nonce", ClassType.BIG_INTEGER), // method
 	gamete))) // receiver of the method call
 	.value;
@@ -630,7 +630,7 @@ public class Main {
 	nonce, // nonce of the payer: relevant since this is not a call to a @View method!
 	BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
 	ONE, // gas price: the bigger, the quicker
-	takamakaCode, // classpath for the execution of the transaction
+	takamakaCode, // class path for the execution of the transaction
 	Files.readAllBytes(familyPath), // bytes of the jar to install
 	takamakaCode)); // dependencies of the jar that is being installed
 
@@ -653,6 +653,9 @@ gamete: 597517e13e8a9919f39a186f19f12644ee41f8e0bd6a564d6b02b4e856c51ff5#0
 nonce of gamete: 1
 family-0.0.1-SNAPSHOT.jar stored at: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad13182bf622
 ```
+
+> Different runs will print different values, since the key pair of the
+> gamete will vary randomly.
 
 The `addJarStoreTransaction()` method executes a new transaction on the node, whose goal
 is to install a jar inside it. The jar is provided as a sequence of bytes
@@ -776,13 +779,13 @@ import io.hotmoka.beans.values.StringValue;
   public static void main(String[] args) throws Exception {
     ....
 
-      // create a new public/private key pair
+      // create a new public/private key pair to control the new account
       KeyPair keys = signature.getKeyPair();
 
       // transform the public key in string, Base64 encoded
       String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 
-      // call the constructor io.takamaka.code.lang.ExternallyOwnedAcccount(BigInteger funds, String publicKey)
+      // call constructor io.takamaka.code.lang.ExternallyOwnedAccount(BigInteger funds, String publicKey)
       StorageReference account = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
         (signerOnBehalfOfGamete, // the signer object, that uses the private key of the payer
 	gamete, // payer
@@ -794,13 +797,90 @@ import io.hotmoka.beans.values.StringValue;
         // signature of the constructor to call
         new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccount", ClassType.BIG_INTEGER, ClassType.STRING),
 
-        // actual arguments passed to the constructor
+        // actual arguments passed to the constructor: we fund it with 100,000 units of green coin
         new BigIntegerValue(BigInteger.valueOf(100_000)), new StringValue(publicKey)));
 
       System.out.println("account: " + account);
 
    ....
 ```
+As you can see, the code creates a pair of public and private key that will be used
+to control the new account. The public key, Based64-encoded as a string, is passed as actual
+argument to the constructor of the account, together with its initial funds.
+The payer that runs the constructor is the gamete, hence the transaction is signed
+with its signer.
+
+> In this example, who controls the gamete is creating a pair of public and private key
+> for the new account.
+> Note that only the public key is used to initialize the account.
+> This is to show, in code, how transactions work. However, in practice, the future
+> owner of the new account will generate the public and private keys and
+> provide the public key only to the owner of the gamete. She will keep the private key
+> secret and use it later to sign transactions on behalf of the new account.
+
+If you run the `main()` method, modified as above, it should print something like:
+
+```
+manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
+gamete: 597517e13e8a9919f39a186f19f12644ee41f8e0bd6a564d6b02b4e856c51ff5#0
+nonce of gamete: 1
+family-0.0.1-SNAPSHOT.jar stored at: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad13182bf622
+account: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
+```
+
+showing that a new account has been created in blockchain, at storage address
+`bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0`. If you refresh
+the `chain` folder, you will see that a new block has been created, with a sixth
+transaction inside it. Its `request.txt` file shows that this is the transaction
+we used to call the constructor for creating a new account:
+
+```
+ConstructorCallTransactionRequest:
+  caller: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
+  nonce: 2
+  gas limit: 10000
+  gas price: 1
+  class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
+  constructor: io.takamaka.code.lang.ExternallyOwnedAccount(java.math.BigInteger,java.lang.String)
+  actuals:
+    100000
+    MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWHz79NgbnQ1GpxBgzObgJ58KuHF...
+```
+
+Its corresponding `response.txt` file reports the storage address of the new account object
+and enumerates the initial values of its fields, as updates:
+
+```
+ConstructorCallTransactionSuccessfulResponse:
+  gas consumed for CPU execution: 292
+  gas consumed for RAM allocation: 637
+  gas consumed for storage consumption: 1378
+  updates:
+    <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0.class|io.takamaka.code.lang.ExternallyOwnedAccount|@a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c>
+    <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99895563>
+    <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|100000>
+    <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0|io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|0>
+    <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0|io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce:java.math.BigInteger|3>
+    <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0|io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String|MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWHz79NgbnQ1GpxBgzObgJ58KuHF...>
+  new object: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
+  events:
+```
+
+Note, among the updates, that its balance has been set to 100,000, its nonce has been initialized to 0
+and its public key has been set to the Base64 encoded string provided as last argument to the constructor.
+Moreover, the first update states that the new object has class `io.takamaka.code.lang.ExternallyOwnedAccount`
+of the jar stored at the transaction `a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c`
+(that is, `io-takamaka-code-1.0.0.jar`).
+
+> In comparison to Ethereum, we observe that accounts are just objects in Takamaka,
+> of class `io.takamaka.code.lang.ExternallyOwnedAccount`. They are not special in any way,
+> but for the fact that transactions require an account as payer and a signature
+> on their behalf, that must be valid or the transaction will be rejected.
+> Moreover, note that accounts are identified as storage reference, like any
+> other object in blockchain. They are not identified by a value derived from their
+> public key, as in Etehreum. Instead, the public key is stored in the object, as
+> a `final` field named `publicKey`. Hence, it is not sent at each transaction,
+> which reduces their size.
 
 ## A Transaction that Creates an Object of our Program <a name="constructor-transaction"></a>
 
