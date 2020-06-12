@@ -3,15 +3,14 @@ package io.hotmoka.nodes.internal;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
@@ -29,25 +28,22 @@ import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.views.NodeWithAccounts;
+import io.hotmoka.nodes.views.NodeWithJars;
 import io.takamaka.code.constants.Constants;
 
 /**
- * A decorator of a node, that creates some initial accounts in it.
+ * A decorator of a node, that installs some jars in the node.
  */
-public class NodeWithAccountsImpl implements NodeWithAccounts {
+public class NodeWithJarsImpl implements NodeWithJars {
 
 	/**
 	 * The node that is decorated.
@@ -55,79 +51,59 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	private final Node parent;
 
 	/**
-	 * The accounts created during initialization.
+	 * The references to the jars installed in the node.
 	 */
-	private final StorageReference[] accounts;
+	private final TransactionReference[] jars;
 
 	/**
-	 * The private keys of the accounts created during initialization.
-	 */
-	private final PrivateKey[] privateKeys;
-
-	/**
-	 * The method of red/green contracts to send red coins.
-	 */
-	private final static VoidMethodSignature RECEIVE_RED = new VoidMethodSignature(ClassType.RGPAYABLE_CONTRACT, "receiveRed", ClassType.BIG_INTEGER);
-
-	/**
-	 * The constructor of an externally owned account.
-	 */
-	private final static ConstructorSignature TEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TEOA, ClassType.BIG_INTEGER, ClassType.STRING);
-
-	/**
-	 * The constructor of an externally owned account with red/green funds.
-	 */
-	private final static ConstructorSignature TRGEOA_CONSTRUCTOR = new ConstructorSignature(ClassType.TRGEOA, ClassType.BIG_INTEGER, ClassType.STRING);
-
-	/**
-	 * Creates a decorated node by creating initial accounts.
-	 * The transactions get payed by the gamete.
+	 * Installs the given set of jars in the parent node and
+	 * creates a view that provides access to a set of previously installed jars.
+	 * The gamete pays for the transactions.
 	 * 
-	 * @param parent the node that gets decorated
+	 * @param parent the node to decorate
 	 * @param privateKeyOfGamete the private key of the gamete, that is needed to sign requests for initializing the accounts;
-	 *                           the gamete must have enough coins to initialize the required accounts
-	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
-	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
-	 *              they must be understood in pairs, each pair for the red/green initial funds of each account (red before green)
-	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
-	 * @throws TransactionException if some transaction that creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
+	 *                           the gamete must have enough coins to those transactions
+	 * @param jars the jars to install in the node
+	 * @return a decorated view of {@code parent}
+	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
+	 * @throws TransactionException if some transaction that installs the jars fails
+	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
+	 * @throws IOException if the jar file cannot be accessed
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public NodeWithAccountsImpl(Node parent, PrivateKey privateKeyOfGamete, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public NodeWithJarsImpl(Node parent, PrivateKey privateKeyOfGamete, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		// we use the gamete as payer
 		this(parent,
 			(StorageReference) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(Signer.onBehalfOfManifest(), parent.getManifest(), ZERO, BigInteger.valueOf(10_000), ZERO,
 					parent.getTakamakaCode(), new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), parent.getManifest())),
-			privateKeyOfGamete, redGreen, funds);
+			privateKeyOfGamete, jars);
 	}
 
 	/**
-	 * Creates a decorated node by creating initial accounts.
-	 * The transactions get payer by a given account.
+	 * Installs the given set of jars in the parent node and
+	 * creates a view that provides access to a set of previously installed jars.
+	 * The given account pays for the transactions.
 	 * 
-	 * @param parent the node that gets decorated
+	 * @param parent the node to decorate
 	 * @param payer the account that pays for the transactions that initialize the new accounts
 	 * @param privateKeyOfPayer the private key of the account that pays for the transactions.
-	 *                          It will be used to sign requests for initializing the accounts;
-	 *                          the account must have enough coins to initialize the required accounts
-	 * @param redGreen true if red/green accounts must be created; if false, normal externally owned accounts are created
-	 * @param funds the initial funds of the accounts that are created; if {@code redGreen} is true,
-	 *              they must be understood in pairs, each pair for the red/green initial funds of each account (red before green)
-	 * @throws TransactionRejectedException if some transaction that creates the accounts is rejected
-	 * @throws TransactionException if some transaction that creates the accounts fails
-	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
+	 *                          It will be used to sign requests for installing the jars;
+	 *                          the account must have enough coins for those transactions
+	 * @param jars the jars to install in the node
+	 * @return a decorated view of {@code parent}
+	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
+	 * @throws TransactionException if some transaction that installs the jars fails
+	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
+	 * @throws IOException if the jar file cannot be accessed
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public NodeWithAccountsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, boolean redGreen, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public NodeWithJarsImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
-		this.accounts = new StorageReference[redGreen ? funds.length / 2 : funds.length];
-		this.privateKeys = new PrivateKey[accounts.length];
 
 		TransactionReference takamakaCode = getTakamakaCode();
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = signatureAlgorithmForRequests();
@@ -137,59 +113,27 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		BigInteger nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signerOnBehalfOfPayer, payer, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
 
-		// we create the accounts
-		BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
-		List<CodeSupplier<StorageReference>> accounts = new ArrayList<>();
-
-		if (redGreen)
-			for (int i = 1; i < funds.length; i += 2, nonce = nonce.add(ONE)) {
-				KeyPair keys = signature.getKeyPair();
-				privateKeys[(i - 1) / 2] = keys.getPrivate();
-				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-				// the constructor provides the green coins
-				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
-			}
-		else
-			for (int i = 0; i < funds.length; i++, nonce = nonce.add(ONE)) {
-				KeyPair keys = signature.getKeyPair();
-				privateKeys[i] = keys.getPrivate();
-				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
-				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
-			}
-
-		int i = 0;
-		for (CodeSupplier<StorageReference> account: accounts) {
-			this.accounts[i] = account.get();
-
-			if (redGreen) {
-				// we add the red coins
-				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signerOnBehalfOfPayer, payer, nonce, gas, ZERO, takamakaCode,
-					RECEIVE_RED, this.accounts[i], new BigIntegerValue(funds[i * 2])));
-
-				nonce = nonce.add(ONE);
-			}
-
-			i++;
+		JarSupplier[] jarSuppliers = new JarSupplier[jars.length];
+		int pos = 0;
+		for (Path jar: jars) {
+			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, BigInteger.valueOf(1_000_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
+			nonce = nonce.add(ONE);
+			pos++;
 		}
+
+		// we wait for them
+		pos = 0;
+		this.jars = new TransactionReference[jarSuppliers.length];
+		for (JarSupplier jarSupplier: jarSuppliers)
+			this.jars[pos++] = jarSupplier.get();
 	}
 
 	@Override
-	public StorageReference account(int i) {
-		if (i < 0 || i >= accounts.length)
+	public TransactionReference jar(int i) {
+		if (i < 0 || i >= jars.length)
 			throw new NoSuchElementException();
 
-		return accounts[i];
-	}
-
-
-	@Override
-	public PrivateKey privateKey(int i) {
-		if (i < 0 || i >= privateKeys.length)
-			throw new NoSuchElementException();
-
-		return privateKeys[i];
+		return jars[i];
 	}
 
 	@Override

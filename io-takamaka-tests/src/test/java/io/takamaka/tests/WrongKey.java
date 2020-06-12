@@ -42,14 +42,14 @@ class WrongKey extends TakamakaTest {
 
 	@Test @DisplayName("constructor call with wrong key fails")
 	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.signatureAlgorithmForRequests();
+		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = nodeWithAccountsView.signatureAlgorithmForRequests();
 
 		// key 1 for account 0 !
 		PrivateKey key = privateKey(1);
 		StorageReference caller = account(0);
 
 		throwsTransactionRejectedWithCause("invalid request signature", () -> {
-			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42)));
+			nodeWithAccountsView.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42)));
 		});
 	}
 }
