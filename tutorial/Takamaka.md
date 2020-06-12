@@ -870,19 +870,21 @@ ConstructorCallTransactionSuccessfulResponse:
   events:
 ```
 
-Note, among the updates, that its balance has been set to 100,000, its nonce has been initialized to 0
+Note, among the updates, that the balance of the new account
+has been set to 100,000, its nonce has been initialized to 0
 and its public key has been set to the Base64 encoded string provided as last argument to the constructor.
 Moreover, the first update states that the new object has class `io.takamaka.code.lang.ExternallyOwnedAccount`
 of the jar stored at the transaction `a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c`
 (that is, `io-takamaka-code-1.0.0.jar`).
 
-> In comparison to Ethereum, we observe that accounts are just objects in Takamaka,
+> In comparison to Ethereum, we observe that accounts are just normal
+> objects in Takamaka,
 > of class `io.takamaka.code.lang.ExternallyOwnedAccount`. They are not special in any way,
 > but for the fact that transactions require an account as payer and a signature
 > on their behalf, that must be valid or the transaction will be rejected.
-> Moreover, note that accounts are identified as storage reference, like any
+> Moreover, note that accounts are identified with a storage reference, like any
 > other object in blockchain. They are not identified by a value derived from their
-> public key, as in Etehreum. Instead, the public key is stored in the object, as
+> public key, as in Etehreum. Instead, the public key is stored inside the object, as
 > a `final` field named `publicKey`. Hence, it is not sent at each transaction,
 > which reduces their size.
 
