@@ -649,7 +649,7 @@ public class Main {
 The execution of this class should print something like this on the screen:
 ```
 manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
-gamete: 597517e13e8a9919f39a186f19f12644ee41f8e0bd6a564d6b02b4e856c51ff5#0
+gamete: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
 nonce of gamete: 1
 family-0.0.1-SNAPSHOT.jar stored at: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad13182bf622
 ```
@@ -754,13 +754,13 @@ We state again that our goal is to create an instance of the `Person` class
 whose bytecode is inside `family-0.0.1-SNAPSHOT.jar`, that is now installed
 in blockchain at the transaction reference `family`. We could do that
 by letting the gamete pay for the creation of a `Person`. However,
-we will follow a longer path, that corresponds to the reality in blockchain,
+we will follow a longer procedure, that corresponds to the reality in blockchain,
 where who starts the blockchain is the only one who has
 access to the gamete and uses it to fund
 other accounts, that are in control of users to run transactions or fund other
-accounts further.
+accounts in turn.
 
-Let us show how a new account can be created and funded by the gamete.
+Hence, let us show how a new account can be created and funded by the gamete.
 In the next section, we will later use that account to create a `Person`.
 
 Modify the `main()` method of the previous section with the addition
@@ -800,30 +800,34 @@ import io.hotmoka.beans.values.StringValue;
         // actual arguments passed to the constructor: we fund it with 100,000 units of green coin
         new BigIntegerValue(BigInteger.valueOf(100_000)), new StringValue(publicKey)));
 
+      System.out.println("manifest: " + manifest);
+      System.out.println("gamete: " + gamete);
+      System.out.println("nonce of gamete: " + nonce);
+      System.out.println("family-0.0.1-SNAPSHOT.jar stored at: " + family);
       System.out.println("account: " + account);
 
    ....
 ```
-As you can see, the code creates a pair of public and private key that will be used
+As you can see, the code creates a pair of public and private keys that will be used
 to control the new account. The public key, Based64-encoded as a string, is passed as actual
 argument to the constructor of the account, together with its initial funds.
 The payer that runs the constructor is the gamete, hence the transaction is signed
 with its signer.
 
-> In this example, who controls the gamete is creating a pair of public and private key
+> In this example, who controls the gamete is creating a pair of public and private keys
 > for the new account.
-> Note that only the public key is used to initialize the account.
+> Note that only the public key is needed, to initialize the account.
 > This is to show, in code, how transactions work. However, in practice, the future
-> owner of the new account will generate the public and private keys and
-> provide the public key only to the owner of the gamete. She will keep the private key
+> owner of the new account will generate the public and private keys offline and
+> only provide the public key to the owner of the gamete. She will keep the private key
 > secret and use it later to sign transactions on behalf of the new account.
 
 If you run the `main()` method, modified as above, it should print something like:
 
 ```
 manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
-gamete: 597517e13e8a9919f39a186f19f12644ee41f8e0bd6a564d6b02b4e856c51ff5#0
-nonce of gamete: 1
+gamete: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
+nonce of gamete: 2
 family-0.0.1-SNAPSHOT.jar stored at: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad13182bf622
 account: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
 ```
