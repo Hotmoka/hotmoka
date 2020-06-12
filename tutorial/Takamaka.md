@@ -753,12 +753,54 @@ in blockchain at the transaction reference `family`. We could do that
 by letting the gamete pay for the creation of a `Person`. However,
 we will follow a longer path, that corresponds to the reality in blockchain,
 where who starts the blockchain is the only one who has
-access to the gamete and use it to fund
+access to the gamete and uses it to fund
 other accounts, that are in control of users to run transactions or fund other
 accounts further.
 
 Let us show how a new account can be created and funded by the gamete.
+In the next section, we will later use that account to create a `Person`.
 
+Modify the `main()` method of the previous section with the addition
+of these instructions:
+
+```java
+...
+import java.security.KeyPair;
+import java.util.Base64;
+
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.values.StringValue;
+....
+
+  public static void main(String[] args) throws Exception {
+    ....
+
+      // create a new public/private key pair
+      KeyPair keys = signature.getKeyPair();
+
+      // transform the public key in string, Base64 encoded
+      String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+
+      // call the constructor io.takamaka.code.lang.ExternallyOwnedAcccount(BigInteger funds, String publicKey)
+      StorageReference account = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+        (signerOnBehalfOfGamete, // the signer object, that uses the private key of the payer
+	gamete, // payer
+	nonce, // nonce of the payer, relevant
+        BigInteger.valueOf(10_000), // gas limit: enough for the creation of an account
+	ONE, // gas price: the bigger, the quicker
+	takamakaCode, // class path for the execution of the transaction
+
+        // signature of the constructor to call
+        new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccount", ClassType.BIG_INTEGER, ClassType.STRING),
+
+        // actual arguments passed to the constructor
+        new BigIntegerValue(BigInteger.valueOf(100_000)), new StringValue(publicKey)));
+
+      System.out.println("account: " + account);
+
+   ....
+```
 
 ## A Transaction that Creates an Object of our Program <a name="constructor-transaction"></a>
 
