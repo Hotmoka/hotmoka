@@ -671,56 +671,76 @@ a single dependency: `io-takamaka-code-1.0.0.jar`. This means that when, below, 
 `family-0.0.1-SNAPSHOT.jar` in a class path, this will indirectly include its dependency
 `io-takamaka-code-1.0.0.jar` as well.
 
-Run the `Main` class again, refresh the `blockchain` project and see that the `chain` directory
+Refresh the `blockchain` project and see how the `chain` directory
 is one transaction longer now:
 
 ![A new transaction appeared in the `chain` directory](pics/blockchain3.png "A new transaction appeared in the chain directory")
 
-The new `t4` transaction reports a `request` that corresponds to the request that we have
+The fifth new transaction reports a `request` that corresponds to the request that we have
 coded in the `Main` class. Namely, its textual representation `request.txt` is:
 
 ```
 JarStoreTransactionRequest:
-  caller: 0.2#0
-  gas limit: 100000
+  caller: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
+  nonce: 1
+  gas limit: 1000000
   gas price: 1
-  class path: 0.0 non recursively resolved
-  dependencies: [0.0 non recursively resolved]
-  jar: 504b0304140008080800e8946c50000000000000000000000000140004004d4554412d494e462f4d414e4946455
+  class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
+  dependencies: [a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c]
+  jar: 504b03040a0000000000196dcb50000000000000000000000000090000004d4554412d494e462f504b03040a000...
 ```
 
 The interesting point here is that objects, such as the caller account
-`blockchain.account(0)`, are represented as _storage references_ such as `0.2#0`. You can
-see a storage reference as a machine-independent, deterministic pointer to an object contained
-in the blockchain. Also the `io-takamaka-code-1.0.jar` is represented with an internal representation.
-Namely, `0.0` is a _transaction reference_, that is, a reference to the transaction that installed
-`io-takamaka-code-1.0.jar` in the blockchain: transaction 0 of block 0. The jar is the hexadecimal
+`gamete`, are represented as _storage references_ such as `c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0`. You can
+think at a storage reference as a machine-independent, deterministic pointer to an object contained
+in blockchain. Also the dependency `io-takamaka-code-1.0.0.jar` is represented
+with an internal representation.
+Namely, `a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c` is
+a _transaction reference_, that is, a reference to the transaction that installed
+`io-takamaka-code-1.0.0.jar` in blockchain. Note that, in this case, it coincides
+with the class path of the transaction. The jar in the request is the hexadecimal
 representation of its byte sequence.
 
-Let us have a look at the `response.txt` file, which is the textual representation of the outcome of
-the transaction:
+Let us have a look at the `response.txt` file, that
+is the textual representation of the outcome of the transaction:
 
 ```
 JarStoreTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 152
-  gas consumed for RAM allocation: 555
-  gas consumed for storage consumption: 1471
+  gas consumed for CPU execution: 168
+  gas consumed for RAM allocation: 585
+  gas consumed for storage consumption: 1377
   updates:
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|197822>
-  instrumented jar: 504b030414000808080020826d5000000000000000000000000025000400696f2f74616b616d616b
+    <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99997870>
+    <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0|io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce:java.math.BigInteger|2>
+  instrumented jar: 504b0304140008080800000021000000000000000000000000001f000d00696f2f74616b616d616b...
 ```
 
 The first bits of information tell us that the transaction costed some units of gas, split between
 CPU, RAM and blockchain storage space. We had accepted to spend up to
-100,000 units of gas, hence the transaction could complete correctly. The response reports also the hexadecimal representation
-of a jar, which is named _instrumented_. This is because what gets installed in blockchain is not exactly the jar sent
-with the transaction request, but an instrumentation of that, which adds features that are specific to Takamaka code.
-For instance, the instrumented code will charge gas during its execution. Finally, the response reports _updates_. These are
-state changes occurred during the execution of the transaction. In order terms, updates are the side-effects of the transaction,
-i.e., the fields of the objects modified by the transaction. In this case, the balance of the payer of the transaction
-`0.2#0` has been reduced to 197,822, since it payed for the gas (we initially funded that account with 200,000 units of coin).
+1,000,000 units of gas, hence the transaction could complete correctly.
+The response reports also the hexadecimal representation
+of a jar, named _instrumented_. This is because what gets installed in blockchain is not exactly the jar sent
+with the transaction request, but an instrumentation of that, that adds features specific to Takamaka code.
+For instance, the instrumented code will charge gas during its execution.
+Finally, the response reports _updates_. These are
+state changes occurred during the execution of the transaction.
+In other terms, updates are the side-effects of the transaction,
+i.e., the fields of the objects modified by the transaction.
+In this case, the balance of the gamete
+has been reduced to 99,997,870, since it payed for the gas
+(we have initially funded that gamete with 100,000,000 units of coin).
 
-> The actual amount of gas consumed by this transaction, the bytes of the jars and the final balance of the payer might change in future versions of Takamaka.
+> The actual amount of gas consumed by this transaction, the bytes of the jars
+> and the final balance of the payer might change in different versions of Takamaka.
+
+Before concluding this section, we observe that the two calls to
+`runViewInstanceMethodCallTransaction` have not generated any entry among the
+transactions recorded in the `chain` folder. As we said before, that method
+runs `@View` methods, that induce no updates and that can hence be executed
+by a single node, without need of consensus with the other nodes. The advantage
+is that we do not pay for those transactions and do not need to compute a
+correct nonce for them. The drawback is that those transactions are not
+checked by consensus, hence we have to trust the node we ask.
 
 ## A Transaction that Invokes a Constructor <a name="constructor-transaction"></a>
 
