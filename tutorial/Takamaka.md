@@ -13,7 +13,8 @@ model of blockchain and internet of things.
 3. [A First Takamaka Program](#first-program)
     - [Creation of a Blockchain in Memory](#memory-blockchain)
     - [A Transaction that Stores a Jar in Blockchain](#jar-transaction)
-    - [A Transaction that Invokes a Constructor](#constructor-transaction)
+    - [A Transaction that Creates an Account](#account-creation)
+    - [A Transaction that Creates an Object of our Program](#constructor-transaction)
     - [A Transaction that Invokes a Method](#method-transaction)
     - [Storage Types and Constraints on Storage Classes](#storage-types)
 4. [The Notion of Smart Contract](#smart-contracts)
@@ -728,13 +729,15 @@ In other terms, updates are the side-effects of the transaction,
 i.e., the fields of the objects modified by the transaction.
 In this case, the balance of the gamete
 has been reduced to 99,997,870, since it payed for the gas
-(we have initially funded that gamete with 100,000,000 units of coin).
+(we have initially funded that gamete with 100,000,000 units of coin)
+and its nonce has been incremented to 2, since the gamete has been
+used to run another transaction.
 
 > The actual amount of gas consumed by this transaction, the bytes of the jars
 > and the final balance of the payer might change in different versions of Takamaka.
 
 Before concluding this section, we observe that the two calls to
-`runViewInstanceMethodCallTransaction` have not generated any entry among the
+`runViewInstanceMethodCallTransaction()` have not generated any entry among the
 transactions recorded in the `chain` folder. As we said before, that method
 runs `@View` methods, that induce no updates and that can hence be executed
 by a single node, without need of consensus with the other nodes. The advantage
@@ -742,7 +745,22 @@ is that we do not pay for those transactions and do not need to compute a
 correct nonce for them. The drawback is that those transactions are not
 checked by consensus, hence we have to trust the node we ask.
 
-## A Transaction that Invokes a Constructor <a name="constructor-transaction"></a>
+## A Transaction that Creates an Account <a name="account-creation"></a>
+
+We state again that our goal is to create an instance of the `Person` class
+whose bytecode is inside `family-0.0.1-SNAPSHOT.jar`, that is now installed
+in blockchain at the transaction reference `family`. We could do that
+by letting the gamete pay for the creation of a `Person`. However,
+we will follow a longer path, that corresponds to the reality in blockchain,
+where who starts the blockchain is the only one who has
+access to the gamete and use it to fund
+other accounts, that are in control of users to run transactions or fund other
+accounts further.
+
+Let us show how a new account can be created and funded by the gamete.
+
+
+## A Transaction that Creates an Object of our Program <a name="constructor-transaction"></a>
 
 We are now in condition to call the constructor of `Person` and create an instance of that class in blockchain.
 First of all, we must create the class path where the constructor will run. Since the class `Person` is inside
