@@ -11,7 +11,7 @@ model of blockchain and internet of things.
 1. [Introduction](#introduction)
 2. [Installation](#installation)
 3. [A First Takamaka Program](#first-program)
-    - [Create a Test Blockchain](#memory-blockchain)
+    - [Creation of a Blockchain in Memory](#memory-blockchain)
     - [A Transaction that Stores a Jar in Blockchain](#jar-transaction)
     - [A Transaction that Invokes a Constructor](#constructor-transaction)
     - [A Transaction that Invokes a Method](#method-transaction)
@@ -299,7 +299,7 @@ The result should look as the following:
 
 ![The `family` Eclipse project, exported in jar](pics/family_jar.png "The family Eclipse project, exported in jar")
 
-## Create a Test Blockchain <a name="memory-blockchain"></a>
+## Creation of a Blockchain in Memory <a name="memory-blockchain"></a>
 
 The next step is to install that jar in blockchain, use it to create an instance
 of `Person` and call `toString()` on that instance. For that, we need a running
@@ -311,8 +311,7 @@ blockchain node.
 Let us hence create another Eclipse Maven project
 `blockchain`, in the same directory where the `hotmoka` project was cloned,
 exactly as we did for the `family` project above.
-Specify Java 9 (or later) in its build path.
-This project will start
+Specify Java 9 (or later) in its build path. This project will start
 a local simulation of a blockchain node, actually working over the disk memory
 of our local machine. Hence this project depends on the jar that implements
 that blockchain simulation in memory, that is an example of a Hotmoka node.
@@ -495,47 +494,49 @@ and `blockchain.account(1)`, respectively.
 
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
-The previous section has shown how we can create a brand new blockchain and
+The previous section has shown how to create a brand new blockchain and
 initialize it with the runtime Takamaka classes and a gamete. Our goal was to
-use that blockchain to store an instance of the `Person` class. For that, the
-bytecode of that class must be stored into blockchain first. This can be
-accomplished with a transaction that stores a jar in blockchain.
-Namely, we will run a transaction that stores `family-0.0.1-SNAPSHOT.jar`
-inside the blockchain, so that we can later refer to it and call
+use that blockchain to store an instance of the `Person` class.
+That class is not in the build path of the `blockchain` project,
+nor in its class or module path at run time.
+If we want to call the constructor of `Person`, that class must somehow be accessible.
+In order to make `Person` accessible, we must run a transaction that installs
+`family-0.0.1-SNAPSHOT.jar` inside the blockchain, so that we can later refer to it and call
 the constructor of `Person`. This will not be an initial transaction
 (the node has been already definitely initialized). Hence, it must be
-payed by an externally owned account. The only such account that we have
-available by now is the gamete that has been created during initialization.
+payed by an externally owned account. The only such account, that is
+available by now, is the gamete that has been created during initialization.
 
 Let us hence use that gamete as caller of a transaction that stores
 `family-0.0.1-SNAPSHOT.jar` in blockchain. This seems like a very easy task,
-but actually hides many smaller problems. First of all, who will pay for the
-transaction? There is only one account with funds at the moment and that
-is the gamete. So the gamete will pay, but then it must sign the
+but actually hides many smaller problems. We have said that the
+gamete must pay for that transaction. Then it must sign the
 transaction request with its private key. Where is that key?
 It turns out that the `InitializedNode` view has a method that allows one
 to read the keys of the gamete. Note that the private key is not in blockchain,
-is only in the view, a Java object in RAM. But wait, where is the gamete actually?
+but only in the view, that is a Java object in RAM. But wait, where is the gamete actually?
 It is an object stored in blockchain, not in RAM. Its blockchain address is publicly
-published by the manifest of the blockchain. Namely, having that manifest, we can
-call its `getGamete()` method to get the address of the gamete. The manifest
+published by the manifest of the blockchain, another object stored in blockchain,
+not in RAM. Namely, having that manifest, we can
+call its `getGamete()` method to get the address of the gamete. The blockchain address
+of the manifest
 itself is available for any Hotmoka node through the `getManifest()` method.
-There is a last problem to solve before we can put everything in code.
+There is a last problem to solve before we can put everything in place.
 Transaction requests include a nonce, to avoid replaying and to guarantee their
 ordering. Hence the request to install a new jar in blockchain must specify
 the nonce of the caller, that is, the nonce of the gamete. In order to get that nonce,
 we can call the `nonce()` method of the gamete. But which account do we use as caller of this
-other transaction? It turns out we can use the gamete itself... this is possible since the
+other transaction? It turns out that we can use the gamete itself... this is possible since the
 `nonce()` method is declared as `@View`. We will see later what this means.
 For now, it is relevant to know that calls to `@View` methods can be run
-with any nonce, since it is not used nor checked. We just use zero for it then.
+with any nonce, that is not used nor checked. Let us just use zero for the nonce then.
 
 A final consideration is related to gas. As in Ethereum, transactions are payed
 in terms of gas consumed for their execution. In the following, we will use
 zero as gas when running calls to `@View` methods. This is because such calls
 do not actually modify the state of the node and are executed locally, on the
 node that receives the request of the transaction. Hence, they can be considered
-as *free*.
+as run *for free*.
 
 The result is the following code. It initializes a new blockchain and installs
 `family-0.0.1-SNAPSHOT.jar` in it:
@@ -652,60 +653,23 @@ nonce of gamete: 1
 family-0.0.1-SNAPSHOT.jar stored at: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad13182bf622
 ```
 
-Let us consider the `blockchain` project. The `Person` class of the `family` project
-is not in its build path nor in its class or module path at run time.
-If we want to call the constructor of `Person`, that class must somehow be accessible.
-In order to make `Person` accessible, we must install
-`family-0.0.1-SNAPSHOT.jar` inside the blockchain, so that we can later refer to it and call
-the constructor of `Person`. Let us hence modify the `io.takamaka.tests.family.Main.java`
-file in order to run a transaction that installs that jar inside the blockchain:
-
-```java
-package io.takamaka.tests.family;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.nodes.CodeExecutionException;
-
-public class Main {
-  private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
-  private final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
-
-  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _200_000, _200_000);
-
-    TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
-      blockchain.account(0), // this account pays for the transaction
-      _100_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
-      Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar")), // bytes containing the jar to install
-      blockchain.takamakaCode() // dependency
-    ));
-  }
-}
-```
-
-The `addJarStoreTransaction()` method expands the blockchain with a new transaction, whose goal
-is to install a jar inside the blockchain. The jar is provided as a sequence of bytes
+The `addJarStoreTransaction()` method executes a new transaction on the node, whose goal
+is to install a jar inside it. The jar is provided as a sequence of bytes
 (`Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar"))`, assuming that the
 `family` project is a sibling of the project `blockchain`). This transaction, as any
-Takamaka transaction, must be payed. The payer is specified as `blockchain.account(0)`, that is,
-the first of the two accounts created at the moment of creation of the blockchain.
-It is specified that the transaction can cost up to 100,000 units of gas and that gas can be sold
-at one coin per unit of gas. The transaction request
-specifies that its class path is `blockchain.takamakaCode()`: this is the reference to a jar
-installed in the blockchain at its creation time and containing `io-takamaka-code-1.0.jar`, that is,
-the basic classes of Takamaka. Finally, the request specifies that `family-0.0.1-SNAPSHOT.jar` has only
-a single dependency: `io-takamaka-code-1.0.jar`. This means that when, below, we will refer to
-`family-0.0.1-SNAPSHOT.jar` in a class path, this will indirectly include its dependency `io-takamaka-code-1.0.jar`.
+non-initial transaction, must be payed. The payer is the `gamete`. We use the
+`nonce` that has been computed by the call to method
+`runViewInstanceMethodCallTransaction()` on the `gamete` object
+that has been computed by another, previous call to `runViewInstanceMethodCallTransaction()`
+on the `manifest` object.
+The request passed to `addJarStoreTransaction()` specifies that the transaction can cost up
+to 1,000,000 units of gas, that can be bought at one coin per unit of gas at most. The request
+specifies that its class path is `blockchain.getTakamakaCode()`: this is the reference to the
+`io-takamaka-code-1.0.0.jar` installed by the `InitializedNode` decorator.
+Finally, the request specifies that `family-0.0.1-SNAPSHOT.jar` has only
+a single dependency: `io-takamaka-code-1.0.0.jar`. This means that when, below, we will refer to
+`family-0.0.1-SNAPSHOT.jar` in a class path, this will indirectly include its dependency
+`io-takamaka-code-1.0.0.jar` as well.
 
 Run the `Main` class again, refresh the `blockchain` project and see that the `chain` directory
 is one transaction longer now:
