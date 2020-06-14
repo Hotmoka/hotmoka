@@ -14,6 +14,7 @@ model of blockchain and internet of things.
     - [Creation of a Blockchain in Memory](#memory-blockchain)
     - [A Transaction that Stores a Jar in Blockchain](#jar-transaction)
     - [A Transaction that Creates an Account](#account-creation)
+    - [Using Views to Simplify the Code](#using-views)
     - [A Transaction that Creates an Object of our Program](#constructor-transaction)
     - [A Transaction that Invokes a Method](#method-transaction)
     - [Storage Types and Constraints on Storage Classes](#storage-types)
@@ -887,6 +888,87 @@ of the jar stored at the transaction `a060e7288df17bc918e4d87edfb1c2d7611a9e9089
 > public key, as in Etehreum. Instead, the public key is stored inside the object, as
 > a `final` field named `publicKey`. Hence, it is not sent at each transaction,
 > which reduces their size.
+
+## Using Views to Simplify the Code <a name="using-views"></a>
+
+The previous sections have shown in detail how to install `family-0.0.1-SNAPSHOT.jar`
+in the node and create an account. The code has immediately become large and repetitive.
+If we would like to install more jars and create more accounts, the code would become
+still larger. Fortunately, such frequent, repetitive operations can be simplified
+by using *views*, that is, node decorators that run transactions on the node and
+yield the node itself, decorated with an interface that lets one access the effects
+of such transactions. For instance, there is a view for installing one or more jars
+in a node and another view to create one or more accounts, each funded with its own
+initial amount of coins. Such decorators allow one to specify who will pay for
+the transactions: the gamete or a specific already existing account.
+
+Below, we see how the code of the previous sections can be hugely simplified with
+the use of such views. We have decided to let the gamete pay for the transactions:
+
+```java
+package io.takamaka.family;
+
+import static java.math.BigInteger.ZERO;
+
+import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.nodes.views.NodeWithAccounts;
+import io.hotmoka.nodes.views.NodeWithJars;
+
+public class Main {
+
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
+
+  public static void main(String[] args) throws Exception {
+    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+
+    // the path of the packaged runtime Takamaka classes
+    Path takamakaCodePath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+
+    // the path of the user jar to install
+    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
+
+    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+      // first view: store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
+      InitializedNode initialized = InitializedNode.of(blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+
+      // second view: store family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay for that
+      NodeWithJars nodeWithJars = NodeWithJars.of(blockchain, initialized.keysOfGamete().getPrivate(), familyPath);
+
+      // third view: create two accounts, the first with 100,000 units of green coin
+      // and the second with 200,000 units of green coin
+      NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of(blockchain, initialized.keysOfGamete().getPrivate(), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
+
+      System.out.println("manifest: " + blockchain.getManifest());
+      System.out.println("family-0.0.1-SNAPSHOT.jar stored at: " + nodeWithJars.jar(0));
+      System.out.println("account #0: " + nodeWithAccounts.account(0) + "\n  with private key " + nodeWithAccounts.privateKey(0));
+      System.out.println("account #1: " + nodeWithAccounts.account(1) + "\n  with private key " + nodeWithAccounts.privateKey(1));
+    }
+  }
+}
+```
+
+If you run the previous class, it should print something like this on the screen:
+
+```
+manifest: 46c18a08b5cc870c0774f2f89c72537a3864da62f1b6f108abb80fb6dc17ec1f#0
+family-0.0.1-SNAPSHOT.jar stored at: 7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32
+account #0: ac2be47edf792c9d1dc1beefaede3f55212013f5054fc15e9098b18536d7034b#0
+  with private key sun.security.provider.DSAPrivateKey@fff7eafd
+account #1: 3f375abcb75bc4f641816d4b27b0d7bbb9f5d0cd9710ed5da1a8f642beb14d30#0
+  with private key sun.security.provider.DSAPrivateKey@fff46044
+```
+
+As we have already said, views are the same object, just seen through different lenses
+(Java interfaces). Hence, further transactions can be run on
+`blockchain` or `initialized` or `nodeWithJars` or `nodeWithAccounts`, with the same
+effects. Moreover, it is not necessary to close all such nodes: closing `blockchain` at
+the end of the try-with-resource will actually close all of them, since they are the same object.
 
 ## A Transaction that Creates an Object of our Program <a name="constructor-transaction"></a>
 
