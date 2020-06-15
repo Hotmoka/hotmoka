@@ -975,8 +975,8 @@ the end of the try-with-resource will actually close all of them, since they are
 We are now in condition to call the constructor of `Person` and create an instance of that class in blockchain.
 First of all, we must identify the class path where the constructor will run. Since the class `Person` is inside
 the `family-0.0.1-SNAPSHOT.jar` archive, the class path is simply `family`, if you refer to the
-extensive code that does not use the views, or `nodeWithJars.jar(0)` if you refer to the version
-of the code in the previous section, simplified by using the views. In both cases, that jar was installed
+extensive code that does not use views, or `nodeWithJars.jar(0)` if you refer to the version
+of the code in the previous section, simplified by using views. In both cases, that jar was installed
 in blockchain with `io-takamaka-code-1.0.0.jar` as dependency. Hence, if we run some code with
 `nodeWithJars.jar(0)` as class path, also `io-takamaka-code-1.0.0.jar` will be in the class path,
 recursively. This is important when, very soon, we will use some support classes that
@@ -1089,9 +1089,10 @@ with corresponsing static methods in `io.hotmoka.beans.Coin`.
 Let us run the `Main` class now. The result is disappointing:
 
 ```
-Exception in thread "main" io.hotmoka.beans.TransactionException: java.lang.IllegalArgumentException: an object of class io.takamaka.family.Person cannot be kept in store since it does not implement i
-o.takamaka.code.lang.Storage
-	at io.hotmoka.beans/io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse.getOutcome(ConstructorCallTransactionFailedResponse.java:109)
+Exception in thread "main" io.hotmoka.beans.TransactionException: java.lang.IllegalArgumentException:
+  an object of class io.takamaka.family.Person cannot be kept in store
+  since it does not implement io.takamaka.code.lang.Storage
+    at io.hotmoka.beans/io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse.getOutcome(ConstructorCallTransactionFailedResponse.java:109)
     at io.takamaka.code.engine/io.takamaka.code.engine.AbstractNode.lambda$14(AbstractNode.java:259)
     at io.takamaka.code.engine/io.takamaka.code.engine.AbstractNode.wrapInCaseOfExceptionMedium(AbstractNode.java:545)
     at io.takamaka.code.engine/io.takamaka.code.engine.AbstractNode.access$0(AbstractNode.java:543)
@@ -1122,10 +1123,10 @@ ConstructorCallTransactionFailedResponse:
 ```
 
 Note that the transaction costed a lot: all 10,000 gas units have been withdrawn from the
-balance of the contract, that remained with 90,000 panas at the end! This is a sort
+balance of the contract, that remained with 90,000 panas (*panareas*) at the end! This is a sort
 of penalty for running a transaction that fails. The rationale is that this penalty should
 discourage potential denial-of-service attacks, when a huge number of failing transactions are thrown
-at a blockchain. At least, this attack will cost a lot.
+at a blockchain. At least, that attack will cost a lot.
 
 But we still have not understood why the transaction failed. The reason is in the exception
 message: `an object of class io.takamaka.family.Person cannot be kept in store since it does not implement io.takamaka.code.lang.Storage`.
@@ -1229,7 +1230,7 @@ the new object has class `io.takamaka.family.Person` that comes from the class p
 <db724f565222ef8b3da0ba3196a72a10af614ba12fc04b05c87298da4bda33e2#0.class|io.takamaka.family.Person|@7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32>
 ```
 
-> Compared the Ethereum, where contracts and accounts where just *addresses*,
+> Compared the Solidity, where contracts and accounts are just untyped *addresses*,
 > objects (and hence accounts) are strongly-typed in Takamaka.
 > This means that they are tagged with their run-time type, in a boxed representation,
 > so that it is possible to check that they are used correctly, in accordance
@@ -1237,11 +1238,12 @@ the new object has class `io.takamaka.family.Person` that comes from the class p
 
 These triples that we see in the `response.txt` file
 are called _updates_, since they describe how the blockchain was
-updated to cope with the creation of a new object. We can say that the
+updated to reflect the creation of a new object. We can say that the
 creation of an object, or the modification of an object, is just the
 addition of new updates into blockchain.
 
-So where is this new `Person` object, actually? Well, it exists in blockchain only.
+So where is this new `Person` object, actually? Well, it exists in blockchain only,
+as a set of updates.
 It did exist in RAM during the execution of the constructor. But, at the end
 of the constructor,
 it was deallocated from RAM and serialized in blockchain, in the form
@@ -1253,7 +1255,7 @@ has been returned to the caller of `addConstructorCallTransaction()`:
 StorageReference albert = blockchain.addConstructorCallTransaction(...)
 ```
 
-and can be used later to invoke methods on the object or to pass the object
+and can be used later to invoke methods on that object or to pass it
 as a parameter of methods or constructors: when that will occur, the object
 will be deserialized from its updates in blockchain and recreated in RAM.
 All this is automatic: programmers do not need to care about that.
