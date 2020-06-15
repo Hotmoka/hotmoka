@@ -18,6 +18,7 @@ model of blockchain and internet of things.
     - [A Transaction that Creates an Object of our Program](#constructor-transaction)
     - [A Transaction that Invokes a Method](#method-transaction)
     - [Storage Types and Constraints on Storage Classes](#storage-types)
+    - [Transactions Can Be Added, Posted and Run](#transactions)
 4. [The Notion of Smart Contract](#smart-contracts)
     - [A Simple Ponzi Scheme Contract](#simple-ponzi)
     - [The `@Entry` and `@Payable` Annotations](#entry-payable)
@@ -1329,6 +1330,7 @@ public class Main {
       ));
 
       StorageValue s = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+
         // signer on behalf of the second account
         Signer.with(blockchain.signatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
 
@@ -1403,7 +1405,8 @@ MethodCallTransactionSuccessfulResponse:
   events:
 ```
 
-Note that, this time, the payer is `73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0`
+Note that, this time, the payer is
+the second account `73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0`
 and, consequently, it is its balance and its nonce
 that have been updated during the transaction.
 
@@ -1474,8 +1477,8 @@ methods can receive arguments. Constructors yield a reference to a new
 object, freshly allocated; methods might yield a returned value, if they are
 not declared as `void`. This means that there is a bidirectional
 exchange of data from outside the blockchain to inside it, and back. But not any
-kind of data can be exchanged. Namely, only _storage values_ can be exchanged,
-that belong to the so called _storage types_. Storage values are
+kind of data can be exchanged. Namely, only _storage values_ can be exchanged
+and kept in blockchai. They belong to the so called _storage types_. Storage values are
 
 1. primitive values of Java (characters, bytes, shorts, integers, longs, floats,
 doubles and booleans), or
@@ -1521,6 +1524,80 @@ We will see later how to overcome these limitations.
 > Other objects, thet needn't be kept in blockchain but are useful for
 > the implementation of Takamaka code, can be defined in a completely free way
 > and used in code that runs in the blockchain.
+
+## Transactions Can Be Added, Posted and Run <a name="transactions"></a>
+
+We have executed transactions on a Hotmoka node through methods
+such as `addJarStoreTransaction()`, `addConstructorCallTransaction()`
+or `addInstanceMethodCallTransaction()`. These methods, whose name
+starts with `add`,
+are *synchronous*, meaning that they block until the transaction is not
+executed (or failed). If they are invoked on a node with a notion of
+commit, such as a blockchain, then they guarantee to block until
+the transaction is actually committed.
+In many cases, these methods are the right choice, since we immediately need
+their result, before continuing with the execution of the
+subsequent statements. In many other cases, however,
+it is unnecessary to wait until the transaction has completed
+its execution and has been committed. In those cases, it can
+be faster to execute a transaction through a method whose name
+starts with `post`, such as
+`postJarStoreTransaction()`, `postConstructorCallTransaction()`
+or `postInstanceMethodCallTransaction()`. These methods are called
+*asynchronous*, since they terminate
+immediately, without waiting for the outcome of the transaction
+they trigger. Hence they cannot return their outcome immediately
+but return a *future*
+instead, whose `get()` value, if and when invoked, will block
+until the outcome of the transaction is finally available.
+
+For instance, instead of the inefficient:
+
+```java
+StorageValue s = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+  Signer.with(blockchain.signatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
+  nodeWithAccounts.account(1),
+  ZERO,
+  BigInteger.valueOf(10_000),
+  panarea(1),
+  nodeWithJars.jar(0),
+  new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING),
+  albert
+));
+
+// code that does not use s
+// .....
+```
+
+one can write the more efficient:
+
+```java
+CodeSupplier<StorageValue> future = blockchain.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+  Signer.with(blockchain.signatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
+  nodeWithAccounts.account(1),
+  ZERO,
+  BigInteger.valueOf(10_000),
+  panarea(1),
+  nodeWithJars.jar(0),
+  new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING),
+  albert
+));
+
+// code that does not use s
+// .....
+
+StorageValue s = future.get();
+```
+
+There is a third way to execute a transaction. Namely, calls to methods
+annotated as `@View` can be performed through the
+`runInstanceMethodCallTransaction()` (for instance methods) and
+`runStaticMethodCallTransaction()` (for static methods).
+As we have hinted before, these executions are performed
+locally, on the node they are addressed, and not add a transaction
+that must be replicated in each node of the network, for consensus.
+These executions are free and do not require a correct nonce, which is
+a great simplification.
 
 # The Notion of Smart Contract <a name="smart-contracts"></a>
 
