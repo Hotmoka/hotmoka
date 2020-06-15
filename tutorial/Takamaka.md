@@ -1074,7 +1074,7 @@ specified as `BigInteger.ONE` but we used the static method of `io.hotmoka.beans
 to generate a `BigInteger` corresponding to the smallest coin unit of Hotmoka nodes, a *panarea*.
 Namely, the following units of coin exist:
 
-| Value (in pana) | Exponent           | Name | Short Name |
+| Value (in panas) | Exponent           | Name | Short Name |
 | --------------------- |:-------------:| ----- | ----- |
 | 1      | 1 | panarea | pana |
 | 1,000  | 10<sup>3</sup> | alicudi | ali |
@@ -1085,7 +1085,7 @@ Namely, the following units of coin exist:
 | 1,000,000,000,000,000,000 | 10<sup>18</sup> | lipari | lipa |
 | 1,000,000,000,000,000,000,000 | 10<sup>21</sup> | takamaka | taka |
 
-with corresponsing static methods in `io.hotmoka.beans.Coin`.
+with corresponding static methods in `io.hotmoka.beans.Coin`.
 
 Let us run the `Main` class now. The result is disappointing:
 
