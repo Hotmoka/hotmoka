@@ -1531,14 +1531,15 @@ We have executed transactions on a Hotmoka node through methods
 such as `addJarStoreTransaction()`, `addConstructorCallTransaction()`
 or `addInstanceMethodCallTransaction()`. These methods, whose name
 starts with `add`,
-are *synchronous*, meaning that they block until the transaction is not
-executed (or failed). If they are invoked on a node with a notion of
-commit, such as a blockchain, then they guarantee to block until
+are *synchronous*, meaning that they block until the transaction is
+executed (or fails). If they are invoked on a node with a notion of
+commit, such as a blockchain, they guarantee to block until
 the transaction is actually committed.
-In many cases, these methods are the right choice, since we immediately need
-their result, before continuing with the execution of the
-subsequent statements. In many other cases, however,
-it is unnecessary to wait until the transaction has completed
+In many cases, when we immediately need the result of the transactions
+before continuing with the execution of the
+subsequent statements,
+these methods are the right choice. In many other cases, however,
+it is unnecessary to wait until a transaction has completed
 its execution and has been committed. In those cases, it can
 be faster to execute a transaction through a method whose name
 starts with `post`, such as
@@ -1594,7 +1595,7 @@ annotated as `@View` can be performed through the
 `runInstanceMethodCallTransaction()` (for instance methods) and
 `runStaticMethodCallTransaction()` (for static methods).
 As we have hinted before, these executions are performed
-locally, on the node they are addressed, and not add a transaction
+locally, on the node they are addressed to, and not add a transaction
 that must be replicated in each node of the network, for consensus.
 These executions are free and do not require a correct nonce, which is
 a great simplification.
