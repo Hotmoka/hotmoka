@@ -1276,21 +1276,19 @@ using `albert` as _receiver_ of `toString()`.
 The code is the following now:
 
 ```java
-ackage io.takamaka.tests.family;
+package io.takamaka.family;
 
+import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.types.BasicTypes.INT;
+import static java.math.BigInteger.ZERO;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.references.Classpath;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
@@ -1299,55 +1297,74 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.nodes.CodeExecutionException;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.nodes.views.NodeWithAccounts;
+import io.hotmoka.nodes.views.NodeWithJars;
 
 public class Main {
-  private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
-  private final static BigInteger _200_000 = BigInteger.valueOf(200_000L);
-  private final static ClassType PERSON = new ClassType("io.takamaka.tests.family.Person");
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
+  private final static ClassType PERSON = new ClassType("io.takamaka.family.Person");
 
-  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _200_000, _200_000);
+  public static void main(String[] args) throws Exception {
+    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    Path takamakaCodePath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+    Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    TransactionReference family = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
-      blockchain.account(0), // this account pays for the transaction
-      _100_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
-      Files.readAllBytes(Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar")), // bytes containing the jar to install
-      blockchain.takamakaCode() // dependency
-    ));
+    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+      InitializedNode initialized = InitializedNode.of(blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+      NodeWithJars nodeWithJars = NodeWithJars.of(blockchain, initialized.keysOfGamete().getPrivate(), familyPath);
+      NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of(blockchain, initialized.keysOfGamete().getPrivate(), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
 
-    Classpath classpath = new Classpath(family, true);
+      // call the constructor of Person and store in albert the new object in blockchain
+      StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+        Signer.with(blockchain.signatureAlgorithmForRequests(), nodeWithAccounts.privateKey(0)),
+        nodeWithAccounts.account(0),
+        ZERO,
+        BigInteger.valueOf(10_000),
+        panarea(1),
+        nodeWithJars.jar(0),
+        new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT),
+        new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879)
+      ));
 
-    StorageReference albert = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
-      blockchain.account(0), // this account pays for the transaction
-      _100_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
-      new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT), // constructor Person(String,int,int,int)
-      new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879) // actual arguments
-    ));
+      StorageValue s = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+        // signer on behalf of the second account
+        Signer.with(blockchain.signatureAlgorithmForRequests(), nodeWithAccounts.privateKey(1)),
 
-    StorageValue s = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-      blockchain.account(1), // this account pays for the transaction
-      _100_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
-      new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING), // method String Person.toString()
-      albert // receiver of toString()
-    ));
+        // the second account pays for the transaction
+        nodeWithAccounts.account(1),
 
-    // prints the result of the call
-    System.out.println(s);
+        // nonce: we know this is the first transaction with nodeWithAccounts.account(1)
+        ZERO,
+
+        // gas provided to the transaction
+        BigInteger.valueOf(10_000),
+
+        // gas price
+        panarea(1),
+
+        // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.0.jar
+        nodeWithJars.jar(0),
+
+        // method to call: String Person.toString()
+        new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING),
+
+        // receiver of the method to call
+        albert
+      ));
+
+      // print the result of the call
+      System.out.println(s);
+    }
   }
 }
 ```
 
 Look at the call to `addInstanceMethodCallTransaction()` appended at its end.
-This time, we let the second account `blockchain.account(1)` pay for the transaction.
-We specify to resolve method `Person.toString()` using `albert` as receiver
-(the type `ClassType.STRING` is instead the return type of the method) and
+This time, we let the second account `nodeWithAccounts.account(1)` pay for the transaction.
+We require to resolve method `Person.toString()` using `albert` as receiver
+(the type `ClassType.STRING` is the return type of the method) and
 to run the resolved method. The result is stored in
 `s`, that we subsequently print on the standard output.
 If you run class `Main`, you will see the following on the screen:
@@ -1357,35 +1374,38 @@ Albert Einstein (14/4/1879)
 ```
 
 After refreshing the `chain` directory, you will see that a new transaction
-`chain/b1/t1` appeared, whose `request.txt` describes the transaction that we have
+`chain/b1/3-...` appeared, whose `request.txt` describes the transaction that we have
 requested:
 
 ```
 InstanceMethodCallTransactionRequest:
-  caller: 0.3#0
-  gas limit: 100000
+  caller: 73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0
+  nonce: 0
+  gas limit: 10000
   gas price: 1
-  class path: 0.4 recursively revolved
-  method: java.lang.String io.takamaka.tests.family.Person.toString()
+  class path: 7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32
+  method: java.lang.String io.takamaka.family.Person.toString()
   actuals:
-  receiver: 1.0#0
+  receiver: 5720eca1714361a94bf5912b437cae3e546a1e07917a4a9f71d487cda673eb61#0
 ```
 
 while the `response.txt` file reports the outcome of the transaction:
 
 ```
 MethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 282
-  gas consumed for RAM allocation: 620
-  gas consumed for storage consumption: 419
+  gas consumed for CPU execution: 257
+  gas consumed for RAM allocation: 645
+  gas consumed for storage consumption: 468
   updates:
-    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198679>
+    <73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|198630>
+    <73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0|io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|1>
   returned value: Albert Einstein (14/4/1879)
   events:
 ```
 
-Note that, this time, the payer is `0.3#0` and, consequently, it is its balance
-that has been updated to pay for the consumed gas.
+Note that, this time, the payer is `73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0`
+and, consequently, it is its balance and its nonce
+that have been updated during the transaction.
 
 > This `response.txt` could be surprising: by looking at the code
 > of method `toString()` of `Person`, you can see that it computes a string
@@ -1410,7 +1430,7 @@ call is resolved and the resolved method is then invoked. If
 such resolved method is not found (for instance, if we tried to call `tostring` instead
 of `toString`), then `addInstanceMethodCallTransaction()` would end up in
 a failed transaction. Moreover, the usual resolution mechanism of Java methods applies.
-If, for instance, we called
+If, for instance, we invoked
 `new NonVoidMethodSignature(ClassType.OBJECT, "toString", ClassType.STRING)`
 instead of
 `new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING)`,
@@ -1424,14 +1444,17 @@ methods with parameters. If a `toString(int)` method existed in `Person`,
 then we could call it and pass 2019 as its argument, by writing:
 
 ```java
-blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-  blockchain.account(1), // this account pays for the transaction
-  _100_000, // gas provided to the transaction
-  BigInteger.ONE, // gas price
-  classpath, // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.jar
-  new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING, INT), // method String Person.toString(int)
-  albert, // receiver of toString(int)
-  new IntValue(2019) // actual argument(s)
+StorageValue s = blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+  ...
+
+  // method to call: String Person.toString(int)
+  new NonVoidMethodSignature(PERSON, "toString", ClassType.STRING, INT),
+
+  // receiver of the method to call
+  albert,
+  
+  // actual argument(s)
+  new IntValue(2019)
 ));
 ```
 
