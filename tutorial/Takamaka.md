@@ -19,6 +19,7 @@ model of blockchain and internet of things.
     - [A Transaction that Invokes a Method](#method-transaction)
     - [Storage Types and Constraints on Storage Classes](#storage-types)
     - [Transactions Can Be Added, Posted and Run](#transactions)
+    - [Running on a Real Blockchain](#tendermint)
 4. [The Notion of Smart Contract](#smart-contracts)
     - [A Simple Ponzi Scheme Contract](#simple-ponzi)
     - [The `@Entry` and `@Payable` Annotations](#entry-payable)
@@ -389,13 +390,14 @@ inside it:
 package io.takamaka.family;
 
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.Node;
 
 public class Main {
 
   public static void main(String[] args) throws Exception {
     io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
 
-    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+    try (Node blockchain = MemoryBlockchain.of(config)) {
       // the blockchain is closed automatically at the end of this block
     }
   }
@@ -447,6 +449,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
 public class Main {
@@ -460,7 +463,7 @@ public class Main {
     // the path of the packaged runtime Takamaka classes
     Path takamakaCodePath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
 
-    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+    try (Node blockchain = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of(blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
     }
   }
@@ -566,6 +569,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 
 public class Main {
@@ -582,7 +586,7 @@ public class Main {
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+    try (Node blockchain = MemoryBlockchain.of(config)) {
       // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
       InitializedNode initialized = InitializedNode.of(blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
@@ -916,6 +920,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
@@ -934,7 +939,7 @@ public class Main {
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+    try (Node blockchain = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
       InitializedNode initialized = InitializedNode.of(blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
@@ -1009,6 +1014,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
@@ -1023,7 +1029,7 @@ public class Main {
     Path takamakaCodePath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+    try (Node blockchain = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of(blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
       NodeWithJars nodeWithJars = NodeWithJars.of(blockchain, initialized.keysOfGamete().getPrivate(), familyPath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of(blockchain, initialized.keysOfGamete().getPrivate(), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
@@ -1298,6 +1304,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.memory.MemoryBlockchain;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
 import io.hotmoka.nodes.views.NodeWithJars;
@@ -1312,7 +1319,7 @@ public class Main {
     Path takamakaCodePath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (MemoryBlockchain blockchain = MemoryBlockchain.of(config)) {
+    try (Node blockchain = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of(blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
       NodeWithJars nodeWithJars = NodeWithJars.of(blockchain, initialized.keysOfGamete().getPrivate(), familyPath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of(blockchain, initialized.keysOfGamete().getPrivate(), BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
@@ -1599,6 +1606,209 @@ locally, on the node they are addressed to, and not add a transaction
 that must be replicated in each node of the network, for consensus.
 These executions are free and do not require a correct nonce, which is
 a great simplification.
+
+## Running on a Real Blockchain <a name="tendermint"></a>
+
+Up to now, we have run are experiments on a node returned
+by the `MemoryBlockchain.of(config)` call. It is an instance
+of `MemoryBlockchain` itself, that implements
+`io.hotmoka.nodes.Node`. It is not an actual blockchain,
+since transactions are not duplicated on a network, on which
+consensus is imposed. Instead, it is meant for testing
+and easy experimentation, which is exactly what we are doing
+in this tutorial. In particular, a `MemoryBlockchain` is very
+handy because it allows one to inspect, very easily, the requests sent to
+the node and the corresponding responses.
+
+However, running our experiments on a real blockchain is very easy as well.
+We only have to change the implementation of the `Node`. Instead
+of `MemoryBlockchain`, we will select an implementation that corresponds
+to a node of a real blockchain, that can be duplicated and run a consensus
+algorithm. For instance, let us use a `Node` built over the Tendermint
+generic blockchain. [Tendermint](https://tendermint.com) is a
+Byzantine-fault tolerant engine for building blockchains, that
+replicates a finite-state machine on a network of nodes across the world.
+The Hotmoka node that we are going to create is just one such
+finite-state machine, often referred to as a *Tendermint app*.
+Since we are going to build over the core of Tendermint, this must be
+installed on our machine, or experiments will fail. Out Hotmoka node
+works with Tendermint version 0.32.11, that can be downloaded in executable
+form from [https://github.com/tendermint/tendermint/releases/tag/v0.32.11](https://github.com/tendermint/tendermint/releases/tag/v0.32.11).
+Be sure that you download that executable and install it on a place that is
+found from the command-line path of your computer. This means that,
+if you run the following command from a shell:
+
+```shell
+tendermint version
+```
+
+the answer must be
+
+```
+0.32.11-d85e2e52
+```
+
+or similar, as long as the version is 0.32.11. Our Hotmoka node is known
+to work on both Windows and Linux machines.
+
+Assuming that you have correctly installed the Tendermint executable in
+your machine, we can now use it in our experiments. For that,
+make the following changes to the `blockchain` Eclipse project:
+
+1. delete `module-info.java` (since the Tendermint jars are
+   not yet Java 9-modularized)
+2. modify the `pom.xml` file by replacing its dependency:
+   ```xml
+   <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-tendermint</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+   </dependencies>
+   ```
+3. use the `TendermintBlockchain` class instead of `MemoryBlockchain`
+   in `Main.java`:
+
+```java
+...
+import io.hotmoka.tendermint.TendermintBlockchain;
+...
+public class Main {
+  ...
+    io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
+    ...
+    try (Node blockchain = TendermintBlockchain.of(config)) {
+      ...
+    }
+  ...
+}
+```
+
+4. you might need to update the Maven dependencies of the project:
+   right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
+
+After these changes, run the `Main.java` class. The result should always be to print
+```
+Albert Einstein (14/4/1879)
+```
+on the standard output, but a bit slower than before.
+
+As you can see, the interface of the nodes is the same, hence we have easily
+swapped from a `MemoryBlockchain` to a `TendermintBlockchain` by programming
+against their common `Node` interface.
+
+If you refresh the `blockchain`
+project, you will see that the `chain` folder contains two subfolders now: `blocks`
+is where the Tendermint executable stores the blocks of the chain;
+`state` is where the Hotmoka-Tendermint app stores the state, containing the
+storage objects created in blockchain, such as our `Person` object.
+
+There are two log files that can be useful,
+to inspect what occurs in a our Hotmoka-Tendermint app.
+Namely, `tendermint.log` contains the log of Tendermint itself. It can be interesting
+to inspect when and which blocks are committed:
+
+```
+I[2020-06-16|11:46:00.113] Version info                                 module=main software=0.32.11 block=10 p2p=7
+I[2020-06-16|11:46:00.248] Starting Node                                module=main impl=Node
+I[2020-06-16|11:46:00.364] Started node                                 module=main nodeInfo="{ProtocolVersion:{P2P:7 Block:10 App:0} ID_:6615dcd76f7ecd1bde824c45f316c719b6bfe55c ListenAddr:tcp://0.0.0.0:26656 Network:test-chain-ZCf6sk Version:0.32.11 Channels:4020212223303800 Moniker:penelope Other:{TxIndex:on RPCAddress:tcp://127.0.0.1:26657}}"
+I[2020-06-16|11:46:04.597] Executed block                               module=state height=1 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:04.657] Committed state                              module=state height=1 txs=1 appHash=E83360360FFB3ED031F3BE959C7A2E910746BAB978A4C2AD4B43CBC0A92E7B1B
+I[2020-06-16|11:46:05.377] Executed block                               module=state height=2 validTxs=0 invalidTxs=0
+I[2020-06-16|11:46:05.441] Committed state                              module=state height=2 txs=0 appHash=E83360360FFB3ED031F3BE959C7A2E910746BAB978A4C2AD4B43CBC0A92E7B1B
+I[2020-06-16|11:46:06.891] Executed block                               module=state height=3 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:06.952] Committed state                              module=state height=3 txs=1 appHash=AF1922814829499E6CF86896F4D0D26F40C86048075EA3C25560438D58C0B43A
+I[2020-06-16|11:46:08.361] Executed block                               module=state height=4 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:08.419] Committed state                              module=state height=4 txs=1 appHash=5CE206F5A2A9746938C0C9947932B574BC7D111C9383A56F1BCA7767F319CF3F
+I[2020-06-16|11:46:09.755] Executed block                               module=state height=5 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:09.872] Committed state                              module=state height=5 txs=1 appHash=0D6B721249491EFBFB16D65AE8CE6BC0AE5CA80C510F3CF7988D842E5B34320D
+I[2020-06-16|11:46:11.325] Executed block                               module=state height=6 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:11.385] Committed state                              module=state height=6 txs=1 appHash=CC0A576AE70BA7F4A5623A79FF4BD0FB21333E162618AB524EA625793C347641
+I[2020-06-16|11:46:12.688] Executed block                               module=state height=7 validTxs=2 invalidTxs=0
+I[2020-06-16|11:46:12.744] Committed state                              module=state height=7 txs=2 appHash=EB414879912DE5892705C8B39915A6BD0180302618FE470A6B8295DC9AC7D3C9
+I[2020-06-16|11:46:14.065] Executed block                               module=state height=8 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:14.124] Committed state                              module=state height=8 txs=1 appHash=69A8154C118E355E4868CFA5448F9791387769C065AD027B49968F8DE7BA5915
+I[2020-06-16|11:46:15.501] Executed block                               module=state height=9 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:15.568] Committed state                              module=state height=9 txs=1 appHash=4876BD29DDF546C890DE69DAF985D74A3FBCDAAD4BF46727883E3992966A5F11
+I[2020-06-16|11:46:15.715] captured terminated, exiting...              module=main 
+I[2020-06-16|11:46:15.715] Stopping Node                                module=main impl=Node
+I[2020-06-16|11:46:15.715] Stopping Node                                module=main 
+E[2020-06-16|11:46:15.715] Not stopping BlockPool -- have not been started yet module=blockchain impl=BlockPool
+E[2020-06-16|11:46:15.789] Stopped accept routine, as transport is closed module=p2p numPeers=0
+I[2020-06-16|11:46:15.789] Closing rpc listener                         module=main listener="&{Listener:0xc0004e4d60 sem:0xc00010f620 closeOnce:{done:0 m:{state:0 sema:0}} done:0xc00010f680}"
+```
+Instead, `hotmoka.log` is the Hotmoka log, that reports events such as processing of transactions:
+```
+INFO: No roots found: the database is empty [16-06-2020 11:45:58]
+INFO: Exodus environment created: chain/state [16-06-2020 11:45:58]
+INFO: The Tendermint process is up and running [16-06-2020 11:46:00]
+INFO: a18c0aebf58cdc6b1c9de40baea748f9507638744ee21226ede2be1e94f2be72: posting (JarStoreInitialTransactionRequest) [16-06-2020 11:46:00]
+INFO: a18c0aebf58cdc6b1c9de40baea748f9507638744ee21226ede2be1e94f2be72: checking start [16-06-2020 11:46:00]
+INFO: a18c0aebf58cdc6b1c9de40baea748f9507638744ee21226ede2be1e94f2be72: checking success [16-06-2020 11:46:00]
+INFO: a18c0aebf58cdc6b1c9de40baea748f9507638744ee21226ede2be1e94f2be72: delivering start [16-06-2020 11:46:01]
+INFO: a18c0aebf58cdc6b1c9de40baea748f9507638744ee21226ede2be1e94f2be72: delivering success [16-06-2020 11:46:04]
+INFO: 3cbaa29c910cf30f7279abd8114fd8ab8bf981ed5aba082f979e679cf73a0ed6: posting (RedGreenGameteCreationTransactionRequest) [16-06-2020 11:46:04]
+INFO: 3cbaa29c910cf30f7279abd8114fd8ab8bf981ed5aba082f979e679cf73a0ed6: checking start [16-06-2020 11:46:04]
+INFO: 3cbaa29c910cf30f7279abd8114fd8ab8bf981ed5aba082f979e679cf73a0ed6: checking success [16-06-2020 11:46:04]
+INFO: 3cbaa29c910cf30f7279abd8114fd8ab8bf981ed5aba082f979e679cf73a0ed6: checking start [16-06-2020 11:46:05]
+INFO: 3cbaa29c910cf30f7279abd8114fd8ab8bf981ed5aba082f979e679cf73a0ed6: checking success [16-06-2020 11:46:05]
+INFO: 3cbaa29c910cf30f7279abd8114fd8ab8bf981ed5aba082f979e679cf73a0ed6: delivering start [16-06-2020 11:46:06]
+INFO: 3cbaa29c910cf30f7279abd8114fd8ab8bf981ed5aba082f979e679cf73a0ed6: delivering success [16-06-2020 11:46:06]
+INFO: 6ed545147b4b6839223441fe6aca422d8538f0d87006e9cf7c5a5d0bb594d5b5: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:07]
+INFO: 6ed545147b4b6839223441fe6aca422d8538f0d87006e9cf7c5a5d0bb594d5b5: checking start [16-06-2020 11:46:07]
+INFO: 6ed545147b4b6839223441fe6aca422d8538f0d87006e9cf7c5a5d0bb594d5b5: checking success [16-06-2020 11:46:07]
+INFO: 6ed545147b4b6839223441fe6aca422d8538f0d87006e9cf7c5a5d0bb594d5b5: delivering start [16-06-2020 11:46:08]
+INFO: 6ed545147b4b6839223441fe6aca422d8538f0d87006e9cf7c5a5d0bb594d5b5: delivering success [16-06-2020 11:46:08]
+INFO: 618cac915470130f5791b850ae7c630d326cb397dcdf445859667e51a1cb1bfc: posting (InitializationTransactionRequest) [16-06-2020 11:46:08]
+INFO: 618cac915470130f5791b850ae7c630d326cb397dcdf445859667e51a1cb1bfc: checking start [16-06-2020 11:46:08]
+INFO: 618cac915470130f5791b850ae7c630d326cb397dcdf445859667e51a1cb1bfc: checking success [16-06-2020 11:46:08]
+INFO: 618cac915470130f5791b850ae7c630d326cb397dcdf445859667e51a1cb1bfc: delivering start [16-06-2020 11:46:09]
+INFO: 6ed545147b4b6839223441fe6aca422d8538f0d87006e9cf7c5a5d0bb594d5b5#0: set as manifest [16-06-2020 11:46:09]
+INFO: the node has been initialized [16-06-2020 11:46:09]
+INFO: 618cac915470130f5791b850ae7c630d326cb397dcdf445859667e51a1cb1bfc: delivering success [16-06-2020 11:46:09]
+INFO: 3d95328cc438d544cac8e206a02eddc8721982cb0f2c74abeaff5949b94f7882: running start (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:10]
+INFO: 3d95328cc438d544cac8e206a02eddc8721982cb0f2c74abeaff5949b94f7882: signature verification skipped for view call from manifest [16-06-2020 11:46:10]
+INFO: 3d95328cc438d544cac8e206a02eddc8721982cb0f2c74abeaff5949b94f7882: running success [16-06-2020 11:46:10]
+INFO: dcb06c637dbf832745a6e38f181d0058e7128920429687f27d7f74ab38b26422: running start (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:10]
+INFO: dcb06c637dbf832745a6e38f181d0058e7128920429687f27d7f74ab38b26422: running success [16-06-2020 11:46:10]
+INFO: e89f49244820495a4634c8c7a35a3afa39a8de5bf918af9f12897f0b17fd2772: posting (JarStoreTransactionRequest) [16-06-2020 11:46:10]
+INFO: e89f49244820495a4634c8c7a35a3afa39a8de5bf918af9f12897f0b17fd2772: checking start [16-06-2020 11:46:10]
+INFO: e89f49244820495a4634c8c7a35a3afa39a8de5bf918af9f12897f0b17fd2772: checking success [16-06-2020 11:46:10]
+INFO: e89f49244820495a4634c8c7a35a3afa39a8de5bf918af9f12897f0b17fd2772: delivering start [16-06-2020 11:46:11]
+INFO: e89f49244820495a4634c8c7a35a3afa39a8de5bf918af9f12897f0b17fd2772: delivering success [16-06-2020 11:46:11]
+INFO: 3d95328cc438d544cac8e206a02eddc8721982cb0f2c74abeaff5949b94f7882: running start (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:11]
+INFO: 3d95328cc438d544cac8e206a02eddc8721982cb0f2c74abeaff5949b94f7882: signature verification skipped for view call from manifest [16-06-2020 11:46:11]
+INFO: 3d95328cc438d544cac8e206a02eddc8721982cb0f2c74abeaff5949b94f7882: running success [16-06-2020 11:46:11]
+INFO: 90f433e3be1114f15f42247e8fdd840e90cc5e65df447003505c688fec7252b3: running start (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:11]
+INFO: 90f433e3be1114f15f42247e8fdd840e90cc5e65df447003505c688fec7252b3: running success [16-06-2020 11:46:11]
+INFO: 080f8fc3ab23a3441130e30b57aea62ca8cbe2f8eb01e1ab994d88a52f73cbb4: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:11]
+INFO: 080f8fc3ab23a3441130e30b57aea62ca8cbe2f8eb01e1ab994d88a52f73cbb4: checking start [16-06-2020 11:46:11]
+INFO: 080f8fc3ab23a3441130e30b57aea62ca8cbe2f8eb01e1ab994d88a52f73cbb4: checking success [16-06-2020 11:46:11]
+INFO: cebcaf9e47203f97b550f5377949f574e0a3c4aa6f6a3fa97582b669001f366b: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:11]
+INFO: cebcaf9e47203f97b550f5377949f574e0a3c4aa6f6a3fa97582b669001f366b: checking start [16-06-2020 11:46:11]
+INFO: cebcaf9e47203f97b550f5377949f574e0a3c4aa6f6a3fa97582b669001f366b: checking success [16-06-2020 11:46:11]
+INFO: 080f8fc3ab23a3441130e30b57aea62ca8cbe2f8eb01e1ab994d88a52f73cbb4: delivering start [16-06-2020 11:46:12]
+INFO: 080f8fc3ab23a3441130e30b57aea62ca8cbe2f8eb01e1ab994d88a52f73cbb4: delivering success [16-06-2020 11:46:12]
+INFO: cebcaf9e47203f97b550f5377949f574e0a3c4aa6f6a3fa97582b669001f366b: delivering start [16-06-2020 11:46:12]
+INFO: cebcaf9e47203f97b550f5377949f574e0a3c4aa6f6a3fa97582b669001f366b: delivering success [16-06-2020 11:46:12]
+INFO: 43a85dc183bae1c7e08919bb0834fe5cc0f45795f64eff183ee419d83f8892aa: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:12]
+INFO: 43a85dc183bae1c7e08919bb0834fe5cc0f45795f64eff183ee419d83f8892aa: checking start [16-06-2020 11:46:12]
+INFO: 43a85dc183bae1c7e08919bb0834fe5cc0f45795f64eff183ee419d83f8892aa: checking success [16-06-2020 11:46:12]
+INFO: 43a85dc183bae1c7e08919bb0834fe5cc0f45795f64eff183ee419d83f8892aa: delivering start [16-06-2020 11:46:14]
+INFO: 43a85dc183bae1c7e08919bb0834fe5cc0f45795f64eff183ee419d83f8892aa: delivering success [16-06-2020 11:46:14]
+INFO: 9ed330f46a271d1de5733b4d654c5ca9c96881d55f5e053594c42d093e6f41fd: posting (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:14]
+INFO: 9ed330f46a271d1de5733b4d654c5ca9c96881d55f5e053594c42d093e6f41fd: checking start [16-06-2020 11:46:14]
+INFO: 9ed330f46a271d1de5733b4d654c5ca9c96881d55f5e053594c42d093e6f41fd: checking success [16-06-2020 11:46:14]
+INFO: 9ed330f46a271d1de5733b4d654c5ca9c96881d55f5e053594c42d093e6f41fd: delivering start [16-06-2020 11:46:15]
+INFO: 9ed330f46a271d1de5733b4d654c5ca9c96881d55f5e053594c42d093e6f41fd: delivering success [16-06-2020 11:46:15]
+INFO: Time spent checking requests: 10ms [16-06-2020 11:46:15]
+INFO: Time spent delivering requests: 2908ms [16-06-2020 11:46:15]
+INFO: The Tendermint process has been shut down [16-06-2020 11:46:15]
+INFO: Store get cache hit rate: 0.0% [16-06-2020 11:46:15]
+INFO: Exodus log cache hit rate: 18.1% [16-06-2020 11:46:15]
+INFO: Time spent in state procedures: 146ms [16-06-2020 11:46:15]
+```
 
 # The Notion of Smart Contract <a name="smart-contracts"></a>
 
