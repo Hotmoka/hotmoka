@@ -131,21 +131,22 @@ In both cases, all tests should pass and all projects should be successfully ins
 [INFO] ------------------------------------------------------------------------
 ```
 
-> If you want to see and edit the sources of the Hotmoka project, it is well possible
-> to import them inside the Eclipse IDE (this is not needed, instead, for
-> running the examples in the next sections of this tutorial). For that,
-> use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
-> the parent Maven project contained in the `hotmoka` directory that you cloned from
-> GitHub. This should create, inside Eclipse, 
-> also its submodule projects. You should see this inside Eclipse's project explorer:
->
-> ![The Eclipse projects of Hotmoka](pics/projects.png "The Eclipse projects of Hotmoka")
->
-> You can compile, package, test and install the Hotmoka jars inside
-> Eclipse itself, by right-clicking on the `parent` project and selecting
-> `Run As` and then the `Mavel install` target. You can also run the tests inside
-> the Eclipse JUnit runner, by right clicking on the `io-takamaka-tests` subproject
-> and selecting `Run As` and then the `JUnit Test` target.
+If you want to see and edit the sources of the Hotmoka project, it is well possible
+to import them inside the Eclipse IDE (this is not needed, instead, for
+running the examples in the next sections of this tutorial). For that,
+use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
+the parent Maven project contained in the `hotmoka` directory that you cloned from
+GitHub. This should create, inside Eclipse, 
+also its submodule projects.
+You should see this inside Eclipse's project explorer:
+
+![The Eclipse projects of Hotmoka](pics/projects.png "The Eclipse projects of Hotmoka")
+
+You can compile, package, test and install the Hotmoka jars inside
+Eclipse itself, by right-clicking on the `parent` project and selecting
+`Run As` and then the `Mavel install` target. You can also run the tests inside
+the Eclipse JUnit runner, by right clicking on the `io-takamaka-tests` subproject
+and selecting `Run As` and then the `JUnit Test` target.
 
 # A First Takamaka Program <a name="first-program"></a>
 

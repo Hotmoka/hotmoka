@@ -1,0 +1,17 @@
+% mystylefile.pandoc
+\usepackage{tcolorbox}
+\newtcolorbox{myquote}{colback=red!5!white, colframe=red!75!black}
+% redefine the 'quote' environment to use this 'myquote' environment
+\renewenvironment{quote}{\begin{myquote}}{\end{myquote}}
+
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\@verbatim}
+  {\verbatim@font}
+  {\verbatim@font\small}
+  {}{}
+\makeatother
+  
+\usepackage{sectsty}
+\chapterfont{\clearpage}
+\renewenvironment{Shaded}{\begin{snugshade}\small}{\end{snugshade}}
