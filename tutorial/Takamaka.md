@@ -1628,8 +1628,8 @@ algorithm. For instance, let us use a `Node` built over the Tendermint
 generic blockchain. [Tendermint](https://tendermint.com) is a
 Byzantine-fault tolerant engine for building blockchains, that
 replicates a finite-state machine on a network of nodes across the world.
-The Hotmoka node that we are going to create is just one such
-finite-state machine, often referred to as a *Tendermint app*.
+The finite-state machine is oftern referred to as a *Tendermint app*.
+The Hotmoka node that we are going to create is just one such app.
 Since we are going to build over the core of Tendermint, this must be
 installed on our machine, or experiments will fail. Out Hotmoka node
 works with Tendermint version 0.32.11, that can be downloaded in executable
@@ -1809,6 +1809,10 @@ INFO: Store get cache hit rate: 0.0% [16-06-2020 11:46:15]
 INFO: Exodus log cache hit rate: 18.1% [16-06-2020 11:46:15]
 INFO: Time spent in state procedures: 146ms [16-06-2020 11:46:15]
 ```
+
+In the following, you can continue our experiments with this Tendermint-based
+blockchain, or you can swap back to the previous `MemoryBlockchain`.
+The results will be the same, hence choose which you prefer.
 
 # The Notion of Smart Contract <a name="smart-contracts"></a>
 
