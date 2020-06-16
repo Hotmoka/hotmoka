@@ -588,7 +588,8 @@ public class Main {
     io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
 
     // the path of the packaged runtime Takamaka classes
-    Path takamakaCodePath = Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+    Path takamakaCodePath = Paths.get
+      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
 
     // the path of the user jar to install
     Path familyPath = Paths.get
@@ -617,7 +618,7 @@ public class Main {
       // hence the nonce is irrelevant and we handly use zero for it
       StorageReference gamete = (StorageReference) blockchain
         .runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-          (Signer.onBehalfOfManifest(), // an object that signs with the private key of the payer
+          (Signer.onBehalfOfManifest(), // an object that signs with the payer's private key
           manifest, // payer
           ZERO, // nonce: irrevant for calls to a @View method
           BigInteger.valueOf(10_000), // gas limit
@@ -635,7 +636,7 @@ public class Main {
       // a @View method of the gamete
       BigInteger nonce = ((BigIntegerValue) blockchain
         .runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-          (signerOnBehalfOfGamete, // an object that signs with the private key of the payer
+          (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
           ZERO, // nonce: irrevant for calls to a @View method
           BigInteger.valueOf(10_000), // gas limit
@@ -649,12 +650,12 @@ public class Main {
           gamete))) // receiver of the method call
         .value;
 
-      // we install family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay for that
+      // we install family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay
       TransactionReference family = blockchain
         .addJarStoreTransaction(new JarStoreTransactionRequest
-          (signerOnBehalfOfGamete, // an object that signs with the private key of the payer
+          (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
-          nonce, // nonce of the payer: relevant since this is not a call to a @View method!
+          nonce, // payer's nonce: relevant since this is not a call to a @View method!
           BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
           ONE, // gas price: the bigger, the quicker
           takamakaCode, // class path for the execution of the transaction
@@ -678,7 +679,7 @@ The execution of this class should print something like this on the screen:
 manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
 gamete: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
 nonce of gamete: 1
-family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad13182bf622
+family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad...
 ```
 
 > Different runs will print different values, since the key pair of the
@@ -718,7 +719,7 @@ JarStoreTransactionRequest:
   gas price: 1
   class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
   dependencies: [a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c]
-  jar: 504b03040a0000000000196dcb50000000000000000000000000090000004d4554412d494e462...
+  jar: 504b03040a0000000000196dcb50000000000000000000000000090000004d4554412d494...
 ```
 
 Note that objects, such as the caller account
@@ -743,8 +744,9 @@ JarStoreTransactionSuccessfulResponse:
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
       |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99997870>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce:java.math.BigInteger|2>
-  instrumented jar: 504b0304140008080800000021000000000000000000000000001f000d00696f...
+      |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
+        :java.math.BigInteger|2>
+  instrumented jar: 504b0304140008080800000021000000000000000000000000001f000d006...
 ```
 
 The first bits of information tell us that the transaction costed some units of gas, split between
@@ -811,13 +813,14 @@ import io.hotmoka.beans.values.StringValue;
       KeyPair keys = signature.getKeyPair();
 
       // transform the public key in string, Base64 encoded
-      String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
+      String publicKey = Base64.getEncoder().encodeToString
+        (keys.getPublic().getEncoded());
 
       // call constructor io.takamaka.code.lang.ExternallyOwnedAccount
       // with arguments (BigInteger funds, String publicKey)
       StorageReference account = blockchain
         .addConstructorCallTransaction(new ConstructorCallTransactionRequest
-          (signerOnBehalfOfGamete, // an object that signs with the private key of the payer
+          (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
           nonce, // nonce of the payer, relevant
           BigInteger.valueOf(10_000), // gas limit: enough for the creation of an account
@@ -860,7 +863,7 @@ If you run the `main()` method, modified as above, it should print something lik
 manifest: 7d86cb8b8fc905bd7ea4cde5d1003f495e521b25ed3e864ce7c2d41cf67bf524#0
 gamete: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
 nonce of gamete: 2
-family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad13182bf622
+family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad...
 account: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
 ```
 
@@ -882,7 +885,7 @@ ConstructorCallTransactionRequest:
                          (java.math.BigInteger,java.lang.String)
   actuals:
     100000
-    MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWHz79Ngbn...
+    MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWHz79N...
 ```
 
 Its corresponding `response.txt` file reports the storage address of the new account object
@@ -903,11 +906,12 @@ ConstructorCallTransactionSuccessfulResponse:
       |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|0>
     <bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
       |io.takamaka.code.lang.ExternallyOwnedAccount.publicKey:java.lang.String
-      |MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWHz79...>
+      |MIIDQjCCAjUGByqGSM44BAEwggIoAoIBAQCPeTXZuarpv6vtiHrPSVG28y7FnjuvNxjo6sSWH...>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
       |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|99895563>
     <c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
-      |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce:java.math.BigInteger|3>
+      |io.takamaka.code.lang.RedGreenExternallyOwnedAccount.nonce
+        :java.math.BigInteger|3>
   new object: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
   events:
 ```
@@ -1005,7 +1009,7 @@ If you run the previous class, it should print something like this on the screen
 
 ```
 manifest: 46c18a08b5cc870c0774f2f89c72537a3864da62f1b6f108abb80fb6dc17ec1f#0
-family-0.0.1-SNAPSHOT.jar: 7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32
+family-0.0.1-SNAPSHOT.jar: 7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e3...
 account #0: ac2be47edf792c9d1dc1beefaede3f55212013f5054fc15e9098b18536d7034b#0
   with private key sun.security.provider.DSAPrivateKey@fff7eafd
 account #1: 3f375abcb75bc4f641816d4b27b0d7bbb9f5d0cd9710ed5da1a8f642beb14d30#0
@@ -1092,7 +1096,8 @@ public class Main {
           // the first account pays for the transaction
           nodeWithAccounts.account(0),
 
-          // nonce: we know this is the first transaction with nodeWithAccounts.account(0)
+          // nonce: we know this is the first transaction
+	  // with nodeWithAccounts.account(0)
           ZERO,
 
           // gas provided to the transaction
@@ -1101,14 +1106,16 @@ public class Main {
           // gas price
           panarea(1),
 
-          // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.0.jar
+          // reference to family-0.0.1-SNAPSHOT.jar
+          // and its dependency io-takamaka-code-1.0.0.jar
           nodeWithJars.jar(0),
 
           // constructor Person(String,int,int,int)
           new ConstructorSignature(PERSON, ClassType.STRING, INT, INT, INT),
 
           // actual arguments
-          new StringValue("Albert Einstein"), new IntValue(14), new IntValue(4), new IntValue(1879)
+          new StringValue("Albert Einstein"), new IntValue(14),
+          new IntValue(4), new IntValue(1879)
         ));
     }
   }
@@ -1418,7 +1425,8 @@ public class Main {
           // the second account pays for the transaction
           nodeWithAccounts.account(1),
 
-          // nonce: we know this is the first transaction with nodeWithAccounts.account(1)
+          // nonce: we know this is the first transaction
+          // with nodeWithAccounts.account(1)
           ZERO,
 
           // gas provided to the transaction
@@ -1427,7 +1435,8 @@ public class Main {
           // gas price
           panarea(1),
 
-          // reference to family-0.0.1-SNAPSHOT.jar and its dependency io-takamaka-code-1.0.0.jar
+          // reference to family-0.0.1-SNAPSHOT.jar
+          // and its dependency io-takamaka-code-1.0.0.jar
           nodeWithJars.jar(0),
 
           // method to call: String Person.toString()
@@ -1792,9 +1801,9 @@ Namely, `tendermint.log` contains the log of Tendermint itself. It can be intere
 to inspect when and which blocks are committed:
 
 ```
-I[2020-06-16|11:46:00.113] Version info, module=main software=0.32.11 block=10 p2p=7
-I[2020-06-16|11:46:00.248] Starting Node, module=main impl=Node
-I[2020-06-16|11:46:00.364] Started node, module=main nodeInfo=
+I[2020-06-16|11:46:00.113] Version info, software=0.32.11 block=10 p2p=7
+I[2020-06-16|11:46:00.248] Starting Node, impl=Node
+I[2020-06-16|11:46:00.364] Started node, nodeInfo=
   "{ProtocolVersion:{P2P:7 Block:10 App:0}
    ID_:6615dcd76f7ecd1bde824c45f316c719b6bfe55c
    ListenAddr:tcp://0.0.0.0:26656
@@ -1803,32 +1812,32 @@ I[2020-06-16|11:46:00.364] Started node, module=main nodeInfo=
    Channels:4020212223303800
    Moniker:penelope
    Other:{TxIndex:on RPCAddress:tcp://127.0.0.1:26657}}"
-I[2020-06-16|11:46:04.597] Executed block, module=state height=1 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:04.657] Committed state, module=state height=1 txs=1 appHash=E83360...
-I[2020-06-16|11:46:05.377] Executed block, module=state height=2 validTxs=0 invalidTxs=0
-I[2020-06-16|11:46:05.441] Committed state, module=state height=2 txs=0 appHash=E83360...
-I[2020-06-16|11:46:06.891] Executed block, module=state height=3 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:06.952] Committed state, module=state height=3 txs=1 appHash=AF1922...
-I[2020-06-16|11:46:08.361] Executed block, module=state height=4 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:08.419] Committed state, module=state height=4 txs=1 appHash=5CE206...
-I[2020-06-16|11:46:09.755] Executed block, module=state height=5 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:09.872] Committed state, module=state height=5 txs=1 appHash=0D6B72...
-I[2020-06-16|11:46:11.325] Executed block, module=state height=6 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:11.385] Committed state, module=state height=6 txs=1 appHash=CC0A57...
-I[2020-06-16|11:46:12.688] Executed block, module=state height=7 validTxs=2 invalidTxs=0
-I[2020-06-16|11:46:12.744] Committed state, module=state height=7 txs=2 appHash=EB4148...
-I[2020-06-16|11:46:14.065] Executed block, module=state height=8 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:14.124] Committed state, module=state height=8 txs=1 appHash=69A815...
-I[2020-06-16|11:46:15.501] Executed block, module=state height=9 validTxs=1 invalidTxs=0
-I[2020-06-16|11:46:15.568] Committed state, module=state height=9 txs=1 appHash=4876BD...
-I[2020-06-16|11:46:15.715] captured terminated, exiting..., module=main 
-I[2020-06-16|11:46:15.715] Stopping Node, module=main impl=Node
-I[2020-06-16|11:46:15.715] Stopping Node, module=main 
+I[2020-06-16|11:46:04.597] Executed block, height=1 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:04.657] Committed state, height=1 txs=1 appHash=E83360...
+I[2020-06-16|11:46:05.377] Executed block, height=2 validTxs=0 invalidTxs=0
+I[2020-06-16|11:46:05.441] Committed state, height=2 txs=0 appHash=E83360...
+I[2020-06-16|11:46:06.891] Executed block, height=3 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:06.952] Committed state, height=3 txs=1 appHash=AF1922...
+I[2020-06-16|11:46:08.361] Executed block, height=4 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:08.419] Committed state, height=4 txs=1 appHash=5CE206...
+I[2020-06-16|11:46:09.755] Executed block, height=5 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:09.872] Committed state, height=5 txs=1 appHash=0D6B72...
+I[2020-06-16|11:46:11.325] Executed block, height=6 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:11.385] Committed state, height=6 txs=1 appHash=CC0A57...
+I[2020-06-16|11:46:12.688] Executed block, height=7 validTxs=2 invalidTxs=0
+I[2020-06-16|11:46:12.744] Committed state, height=7 txs=2 appHash=EB4148...
+I[2020-06-16|11:46:14.065] Executed block, height=8 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:14.124] Committed state, height=8 txs=1 appHash=69A815...
+I[2020-06-16|11:46:15.501] Executed block, height=9 validTxs=1 invalidTxs=0
+I[2020-06-16|11:46:15.568] Committed state, height=9 txs=1 appHash=4876BD...
+I[2020-06-16|11:46:15.715] captured terminated, exiting...
+I[2020-06-16|11:46:15.715] Stopping Node, impl=Node
+I[2020-06-16|11:46:15.715] Stopping Node
 E[2020-06-16|11:46:15.715] Not stopping BlockPool
-  -- have not been started yet module=blockchain impl=BlockPool
+  -- have not been started yet impl=BlockPool
 E[2020-06-16|11:46:15.789] Stopped accept routine,
-  as transport is closed module=p2p numPeers=0
-I[2020-06-16|11:46:15.789] Closing rpc listener, module=main listener=
+  as transport is closed numPeers=0
+I[2020-06-16|11:46:15.789] Closing rpc listener, listener=
   "&{Listener:0xc0004e4d60
    sem:0xc00010f620
    closeOnce:{done:0 m:{state:0 sema:0}}
@@ -1847,7 +1856,8 @@ INFO: a18c0a...: checking start [16-06-2020 11:46:00]
 INFO: a18c0a...: checking success [16-06-2020 11:46:00]
 INFO: a18c0a...: delivering start [16-06-2020 11:46:01]
 INFO: a18c0a...: delivering success [16-06-2020 11:46:04]
-INFO: 3cbaa2...: posting (RedGreenGameteCreationTransactionRequest) [16-06-2020 11:46:04]
+INFO: 3cbaa2...: posting (RedGreenGameteCreationTransactionRequest)
+      [16-06-2020 11:46:04]
 INFO: 3cbaa2...: checking start [16-06-2020 11:46:04]
 INFO: 3cbaa2...: checking success [16-06-2020 11:46:04]
 INFO: 3cbaa2...: checking start [16-06-2020 11:46:05]
@@ -1866,41 +1876,29 @@ INFO: 618cac...: delivering start [16-06-2020 11:46:09]
 INFO: 6ed545...#0: set as manifest [16-06-2020 11:46:09]
 INFO: the node has been initialized [16-06-2020 11:46:09]
 INFO: 618cac...: delivering success [16-06-2020 11:46:09]
-INFO: 3d9532...: running start (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:10]
-INFO: 3d9532...: signature verification skipped for view call from manifest [16-06-2020 11:46:10]
+INFO: 3d9532...: running start (InstanceMethodCallTransactionRequest)
+      [16-06-2020 11:46:10]
+INFO: 3d9532...: signature verification skipped for view call from manifest
+      [16-06-2020 11:46:10]
 INFO: 3d9532...: running success [16-06-2020 11:46:10]
-INFO: dcb06c...: running start (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:10]
+INFO: dcb06c...: running start (InstanceMethodCallTransactionRequest)
+      [16-06-2020 11:46:10]
 INFO: dcb06c...: running success [16-06-2020 11:46:10]
 INFO: e89f49...: posting (JarStoreTransactionRequest) [16-06-2020 11:46:10]
 INFO: e89f49...: checking start [16-06-2020 11:46:10]
 INFO: e89f49...: checking success [16-06-2020 11:46:10]
 INFO: e89f49...: delivering start [16-06-2020 11:46:11]
 INFO: e89f49...: delivering success [16-06-2020 11:46:11]
-INFO: 3d9532...: running start (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:11]
-INFO: 3d9532...: signature verification skipped for view call from manifest [16-06-2020 11:46:11]
+INFO: 3d9532...: running start (InstanceMethodCallTransactionRequest)
+      [16-06-2020 11:46:11]
+INFO: 3d9532...: signature verification skipped for view call from manifest
+      [16-06-2020 11:46:11]
 INFO: 3d9532...: running success [16-06-2020 11:46:11]
-INFO: 90f433...: running start (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:11]
+INFO: 90f433...: running start (InstanceMethodCallTransactionRequest)
+      [16-06-2020 11:46:11]
 INFO: 90f433...: running success [16-06-2020 11:46:11]
-INFO: 080f8f...: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:11]
-INFO: 080f8f...: checking start [16-06-2020 11:46:11]
-INFO: 080f8f...: checking success [16-06-2020 11:46:11]
-INFO: cebcaf...: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:11]
-INFO: cebcaf...: checking start [16-06-2020 11:46:11]
-INFO: cebcaf...: checking success [16-06-2020 11:46:11]
-INFO: 080f8f...: delivering start [16-06-2020 11:46:12]
-INFO: 080f8f...: delivering success [16-06-2020 11:46:12]
-INFO: cebcaf...: delivering start [16-06-2020 11:46:12]
-INFO: cebcaf...: delivering success [16-06-2020 11:46:12]
-INFO: 43a85d...: posting (ConstructorCallTransactionRequest) [16-06-2020 11:46:12]
-INFO: 43a85d...: checking start [16-06-2020 11:46:12]
-INFO: 43a85d...: checking success [16-06-2020 11:46:12]
-INFO: 43a85d...: delivering start [16-06-2020 11:46:14]
-INFO: 43a85d...: delivering success [16-06-2020 11:46:14]
-INFO: 9ed330...: posting (InstanceMethodCallTransactionRequest) [16-06-2020 11:46:14]
-INFO: 9ed330...: checking start [16-06-2020 11:46:14]
-INFO: 9ed330...: checking success [16-06-2020 11:46:14]
-INFO: 9ed330...: delivering start [16-06-2020 11:46:15]
-INFO: 9ed330...: delivering success [16-06-2020 11:46:15]
+...
+...
 INFO: Time spent checking requests: 10ms [16-06-2020 11:46:15]
 INFO: Time spent delivering requests: 2908ms [16-06-2020 11:46:15]
 INFO: The Tendermint process has been shut down [16-06-2020 11:46:15]
