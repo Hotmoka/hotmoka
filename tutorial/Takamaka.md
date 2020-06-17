@@ -2041,7 +2041,8 @@ public class SimplePonzi extends Contract {
   public void invest(Contract investor, BigInteger amount) {
     // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) >= 0, () -> "you must invest at least " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) >= 0,
+      () -> "you must invest at least " + minimumInvestment);
 
     // document new investor
     currentInvestor = investor;
@@ -2094,7 +2095,7 @@ reasons, that we will overcome in this section:
 Let us rewrite `SimplePonzi.java` in the following way:
 
 ```java
-package io.takamaka.tests.ponzi;
+package io.takamaka.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2112,7 +2113,8 @@ public class SimplePonzi extends Contract {
   public @Entry void invest(BigInteger amount) {
     // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) >= 0, () -> "you must invest at least " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) >= 0,
+      () -> "you must invest at least " + minimumInvestment);
 
     // document new investor
     currentInvestor = caller();
@@ -2124,10 +2126,10 @@ public class SimplePonzi extends Contract {
 The difference with the previous version of `SimplePonzi.java`
 is that the `investor` argument of `invest()` has disappeared.
 At its place, `invest()` has been annotated as `@Entry`. This annotation
-**restricts** the possible uses of method `invest()`. Namely, it can be
-called  from another contract *c* or from an external wallet,
+**restricts** the possible uses of method `invest()`. Namely, it can
+only be called from another contract object *c* or from an external wallet,
 with a paying contract *c*, that pays for a transaction that runs
-`invest()`. In both cases, the contract *c* is available, inside
+`invest()`. In both cases, the instance of contract *c* is available, inside
 `invest()`, as `caller()`. This is, indeed, saved, in the above code,
 into `currentInvestor`.
 
@@ -2145,7 +2147,8 @@ into `currentInvestor`.
 > calls another method *m*, then `caller()` is **not** available inside *m*
 > and must be passed as an explicit parameter to *m*, if needed there.
 
-The use of `@Entry` solves the first problem. However, there is still no money
+The use of `@Entry` solves the first problem: if a contract invest in the game,
+then it is the caller of `invest()`. However, there is still no money
 transfer in this version of `SimplePonzi.java`. What we still miss is to require
 the caller of `invest()` to actually pay for the `amount` units of coin.
 Since `@Entry` guarantees that the caller of `invest()` is a contract and since
@@ -2154,7 +2157,7 @@ must be charged `amount` coins at the moment of calling `invest()`.
 This can be achieved with the `@Payable` annotation, that we apply to `invest()`:
 
 ```java
-package io.takamaka.tests.ponzi;
+package io.takamaka.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2173,7 +2176,8 @@ public class SimplePonzi extends Contract {
   public @Payable @Entry void invest(BigInteger amount) {
     // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) >= 0, () -> "you must invest at least " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) >= 0,
+      () -> "you must invest at least " + minimumInvestment);
 
     // document new investor
     currentInvestor = caller();
@@ -2183,7 +2187,7 @@ public class SimplePonzi extends Contract {
 ```
 
 When a contract calls `invest()` now, that contract will be charged `amount` coins,
-automatically. These coins will be automatically transferred to the
+automatically. This means tha these coins will be automatically transferred to the
 balance of the instance of `SimplePonzi` that receives the call.
 If the balance of the calling contract is too low for that, the call
 will be automatically rejected with an insufficient funds exception. The caller
