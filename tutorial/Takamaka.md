@@ -181,7 +181,9 @@ as Group Id and `family` as Artifact Id.
 
 By clicking *Finish* in the Eclipse's Maven wizard, you should see
 a new Maven project in the Eclipse's explorer.
-Replace its `pom.xml` file with the code that follows:
+Currently, Eclipse creates a default `pom.xml` file that uses Java 5
+and has no depdencies. Replace hence
+the content of the `pom.xml` file with the code that follows:
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -225,9 +227,16 @@ Replace its `pom.xml` file with the code that follows:
 </project>
 ```
 
+that specifies to use Java 9 and provides the dependency that we need.
+
 > We are using `1.0.0` here, as version of the Hotmoka and Takamaka
 > projects. Replace, if needed, this with the current version of such projects,
 > as printed during their compilation with Maven.
+
+Since the `pom.xml` file has changed, the `family` project might
+show an error. To solve it,
+you might need to update the Maven dependencies of the project:
+right-click on the `family` project &rarr; Maven &rarr; Update Project...
 
 As you can see, we are importing the dependency `io-takamaka-code`,
 that contains the Takamaka base development classes.
@@ -235,10 +244,7 @@ If you have installed the Hotmoka project, this
 jar has been installed inside your local Maven repository, hence it is
 possible to refer to it in the `pom.xml` of our project
 and everything should compile without errors.
-Be sure to use Java 9 or later, by setting the right version in the
-build path of the project, if needed (the current Eclipse's Maven
-wizard creates Java 5 projects). The result should look
-similar to the following, in Eclipse:
+The result in Eclipse should look similar to the following:
 
 ![The `family` Eclipse project](pics/family.png "The family Eclipse project")
 
@@ -246,9 +252,9 @@ Create a `module-info.java` file inside `src/main/java`, to state that this proj
 on the module containing the runtime classes of Takamaka, needed for development:
 
 ```java
-	module family {
-	  requires io.takamaka.code;
-	}
+module family {
+  requires io.takamaka.code;
+}
 ```
 
 Create a package `io.takamaka.family` inside `src/main/java`. Inside that package,
@@ -319,7 +325,7 @@ blockchain node.
 Let us hence create another Eclipse Maven project
 `blockchain`, in the same directory where the `hotmoka` project was cloned,
 exactly as we did for the `family` project above.
-Specify Java 9 (or later) in its build path. This project will start
+We will specify Java 9 (or later) in its build path. This project will start
 a local simulation of a blockchain node, actually working over the disk memory
 of our local machine. Hence this project depends on the jar that implements
 that blockchain simulation in memory, that is an example of a Hotmoka node.
@@ -374,6 +380,11 @@ It specifies as dependency the `io-hotmoka-memory` module, that contains
 a Hotmoka node that implements
 a disk memory simulation of a blockchain. It has been installed in our
 local Maven repository previously, when we packaged the Hotmoka project.
+
+Since we modified the file `pom.xml`, Eclipse might show an error
+for the `blockchain` project. To fix it,
+you might need to update the Maven dependencies of the project:
+right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
 
 Leave directory `src/test/java` empty, by deleting its content, if not already empty.
 
@@ -1775,7 +1786,9 @@ public class Main {
 }
 ```
 
-> You might need to update the Maven dependencies of the project:
+> Since we modified the `pom.xml` file,
+> Eclipse might show an error for the `blockchain` project. To fix it,
+> update the Maven dependencies of the project:
 > right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
 
 After these changes, run the `Main.java` class. It should still print
@@ -1928,13 +1941,15 @@ Contracts are allowed to hold and transfer money to other contracts. Hence,
 traditionally, smart contracts are divided into those that hold money
 but have no code (*externally owned accounts*), and those that,
 instead, contain code (*smart contracts*).
-The formers are typically controlled by an external agent (a wallet or
-a human) while the latters are typically controlled by their code.
+The formers are typically controlled by an external agent (a wallet,
+a human or a software application, on his behalf)
+while the latters are typically controlled by their code.
 Takamaka implements both alternatives as instances of the abstract library class
-`io.takamaka.code.lang.Contract` (inside `io-takamaka-code-1.0.jar`). That class extends
-`io.takamaka.code.lang.Storage`, hence its instances can be kept in blockchain.
+`io.takamaka.code.lang.Contract` (inside `io-takamaka-code-1.0.0.jar`). That class extends
+`io.takamaka.code.lang.Storage`, hence its instances can be kept inthe store
+of the node.
 The Takamaka library defines subclasses of `io.takamaka.code.lang.Contract`, that
-we will investigate later. Programmers can define their own subclasses.
+we will investigate later. Programmers can define their own subclasses as well.
 
 This chapter presents a simple smart contract, whose goal is to
 enforce a Ponzi investment scheme: each investor pays back the previous investor,
@@ -1958,7 +1973,8 @@ the project inside the `hotmoka` directory, as a sibling of `family` and
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                        http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
@@ -1976,9 +1992,22 @@ the project inside the `hotmoka` directory, as a sibling of `family` and
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+	  <release>9</release>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
 ```
@@ -1991,11 +2020,11 @@ module ponzi {
 }
 ```
 
-Create package `io.takamaka.tests.ponzi` inside `src` and add
+Create package `io.takamaka.ponzi` inside `src` and add
 class the following `SimplePonzi.java` source inside that package:
 
 ```java
-package io.takamaka.tests.ponzi;
+package io.takamaka.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2021,12 +2050,12 @@ public class SimplePonzi extends Contract {
 }
 ```
 
-> This code is only a starting point of our discussion, not yet functional.
+> This code is only the starting point of our discussion and is not yet functional.
 > The real final version of this contract will appear at the end of this section.
 
 Look at the code of `SimplePonzi.java` above. The contract has a single
 method, named `invest`. This method lets a new `investor` invest
-a given `amount` of coins. This amount must be at least 10% more than
+a given `amount` of coins. This amount must be at least 10% higher than
 the current investment. The expression `amount.compareTo(minimumInvestment) >= 0`
 is a comparison between two Java `BigInteger`s and should be read as the
 more familiar `amount >= minimumInvestment`: the latter cannot be
@@ -2035,7 +2064,7 @@ to work on reference types.
 The static method `io.takamaka.code.lang.Takamaka.require()` can be used to require
 some precondition to hold. The `require(condition, message)` call throws an
 exception if `condition` does not hold, with the given `message`.
-If the new investment is at least 10% larger than the current, it will be
+If the new investment is at least 10% higher than the current one, it will be
 saved in the state of the contract, together with the new investor.
 
 > You might wonder why we have written
