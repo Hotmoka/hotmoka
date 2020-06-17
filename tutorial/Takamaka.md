@@ -2204,10 +2204,12 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 
 ## Payable Contracts <a name="payable-contracts"></a>
 
-The `SimplePonzi.java` class is not ready yet. Namely, investors have to pay
+The `SimplePonzi.java` class is not ready yet. Namely, the code
+of that class specifies that investors have to pay
 an always increasing amount of money to replace the current investor.
-However, this one never gets the previous investment back, plus the 10% award
-(at least). Money keeps flowing inside the `SimplePonzi` contract and remains
+However, in the current version of the code,
+the replaced investor never gets his previous investment back, plus the 10% award
+(at least): money keeps flowing inside the `SimplePonzi` contract and remains
 stuck there, forever. The code needs an apparently simple change: just add a single line
 before the update of the new current investor. That line should send
 `amount` units of coin back to `currentInvestor`, before it gets replaced:
@@ -2239,7 +2241,7 @@ This limitation is a deliberate design choice of Takamaka.
 > can be called for sending money to a contract. A problem with Solidity's approach
 > is that the balance of a contract is not fully controlled by its
 > payable methods, since money can always flow in through the fallback
-> function (and others, more surprising ways).
+> function (and also through others, more surprising ways).
 > This led to software bugs, when a contract found itself
 > richer then expected, which violated some (wrong) invariants about
 > its state. For more information, see Antonopoulos and Wood,
@@ -2249,7 +2251,7 @@ So how do we send money back to `currentInvestor`? The solution is to
 restrict the kind of contracts that can take part in the Ponzi scheme.
 Namely, we limit the game to contracts that implement class
 `io.takamaka.code.lang.PayableContract`, a subclass of `io.takamaka.code.lang.Contract`
-that, yes, does have a `receive()` method. This is not really a restriction,
+that, yes, does have a payable `receive()` method. This is not really a restriction,
 since the typical players of our Ponzi contract are externally
 owned accounts, that are instances of `PayableContract`.
 
@@ -2263,7 +2265,7 @@ Let us hence apply the following small changes to our `SimplePonzi.java` class:
 The result is the following:
 
 ```java
-package io.takamaka.tests.ponzi;
+package io.takamaka.ponzi;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -2283,7 +2285,8 @@ public class SimplePonzi extends Contract {
   public @Payable @Entry(PayableContract.class) void invest(BigInteger amount) {
     // new investments must be at least 10% greater than current
     BigInteger minimumInvestment = currentInvestment.multiply(_11).divide(_10);
-    require(amount.compareTo(minimumInvestment) >= 0, () -> "you must invest at least " + minimumInvestment);
+    require(amount.compareTo(minimumInvestment) >= 0,
+      () -> "you must invest at least " + minimumInvestment);
 
     // document new investor
     currentInvestor.receive(amount);
@@ -2320,7 +2323,8 @@ both undesirable:
    way to know that the proposed investment was not enough.
 
 Hence, it would be nice and fair to provide investors with a way of accessing
-the `currentInvestment`. This is actually a piece of cake: just add
+the value in the `currentInvestment` field.
+This is actually a piece of cake: just add
 this method to `SimplePonzi.java`:
 
 ```java
@@ -2331,15 +2335,15 @@ public BigInteger getCurrentInvestment() {
 
 This solution is perfectly fine but can be improved. Written this way,
 an investor that wants to call `getCurrentInvestment()` must run a
-blockchain transaction through the `addInstanceMethodCallTransaction()`
-method of the blockchain, creating a new transaction that ends up in
-blockchain. That transaction will cost gas, hence its side-effect will
+Hotmoka transaction through the `addInstanceMethodCallTransaction()`
+method of the node, creating a new transaction that ends up in
+the store of the node. That transaction will cost gas, hence its side-effect will
 be to reduce the balance of the calling investor. But the goal of the caller
-was just to access information in blockchain, not to modify any through
-side-effects. The balance reduction is, indeed, the only
+was just to access information in the store of the node, not to modify the store through
+side-effects. The balance reduction for the caller is, indeed, the only
 side-effect of that call! In cases like this, Takamaka allows one to
 specify that a method is expected to have no side-effects on the visible
-state of the blockchain, but for the change of the balance of the caller.
+state of the node, but for the change of the balance of the caller.
 This is possible through the `@View` annotation. Import that
 class in the Java source and edit the declaration of `getCurrentInvestment()`
 as follows:
@@ -2353,16 +2357,19 @@ public @View BigInteger getCurrentInvestment() {
 ```
 
 An investor can now call that method through another API method of the
-blockchain, called `runInstanceMethodCallTransaction()`, that does not expand the
-blockchain, but yields the response of the transaction, including the
+node, called `runInstanceMethodCallTransaction()`, that does not expand the
+store of the node, but yields the response of the transaction, including the
 returned value of the call. If method
 `getCurrentInvestment()` had side-effects beyond that on the balance of
-the caller, then the execution will fail with a run-time exception.
+the caller (and on its nonce), then the execution will fail with a run-time exception.
 Note that the execution of a `@View` method still requires gas,
 but that gas is given back at the end of the call.
 The advantage of `@View` is hence that of allowing the execution
-of `getCurrentInvestment()` for free and without expanding the blockchain
-with useless transactions, that do not modify its state.
+of `getCurrentInvestment()` for free and without expanding the store of the node
+with useless transactions, that do not modify its state. Moreover,
+transactions run through `runInstanceMethodCallTransaction()` do not need
+a correct nonce, hence any constant value, such as zero, can be used for the
+nonce. This simplifies the call.
 
 > The annotation `@View` is checked at run time if a transaction calls the
 > `@View` method from outside the blockchain, directly. It is not checked if,
