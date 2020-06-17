@@ -2402,10 +2402,10 @@ of the contract.
 The abstract subclass `PayableContract` is meant for contracts that
 can receive coins from other contracts, through their final
 `receive()` methods. A concrete subclass is `ExternallyOwnedAccount`, that is,
-payable contracts that can be used to pay for a blockchain transaction.
+a payable contract that can be used to pay for a transaction.
 They are typically controlled by humans, through a wallet, but can be
 subclassed and instantiated freely in Takamaka code. Their constructors
-allow to build an externally owned account and fund it with an initial
+allow one to build an externally owned account and fund it with an initial
 amount of coins. As we have seen in sections
 [A Transaction that Stores a Jar in Blockchain](#jar-transaction),
 [A Transaction that Invokes a Constructor](#constructor-transaction) and
@@ -2414,9 +2414,17 @@ blockchain methods that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
 `ExternallyOwnedAccount`, or an exception will be thrown. In our examples
 that use a blockchain in disk memory, the expressions
-`blockchain.account(0)` and `blockchain.account(1)` actually refer to
+`nodeWithAccounts.account(0)` and `nodeWithAccounts.account(1)` actually refer to
 `ExternallyOwnedAccount`s created during initialization transactions triggered
-inside the constructor of the blockchain.
+inside the `InitializedNode.of()` method.
+`ExternallyOwnedAccount`s have a private field `nonce` that can be accessed through
+their public `@View` method `nonce()`: it yields a `BigInteger`
+that specifies the next nonce to use for the next transaction having that
+account as caller and is automatically increased after each such transaction.
+Moreover, `ExternallyOwnedAccounts` hold their public key in their
+private `publicKey` field, that cannot be accessed programmatically.
+It is the key used to verify the signature of the transactions
+having that account as caller.
 
 ## Red/Green Contracts <a name="red-green-contracts"></a>
 
