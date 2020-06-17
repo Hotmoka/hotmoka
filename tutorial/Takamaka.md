@@ -2021,7 +2021,7 @@ module ponzi {
 ```
 
 Create package `io.takamaka.ponzi` inside `src` and add
-class the following `SimplePonzi.java` source inside that package:
+the following `SimplePonzi.java` source inside that package:
 
 ```java
 package io.takamaka.ponzi;
@@ -2351,9 +2351,9 @@ as follows:
 ```java
 import io.takamaka.code.lang.View;
 ...
-public @View BigInteger getCurrentInvestment() {
-  return currentInvestment;
-}
+  public @View BigInteger getCurrentInvestment() {
+    return currentInvestment;
+  }
 ```
 
 An investor can now call that method through another API method of the
@@ -2382,8 +2382,8 @@ nonce. This simplifies the call.
 
 ## The Hierarchy of Contracts <a name="hierarchy-contracts"></a>
 
-The figure below shows the hierarchy of contract classes in Takamaka.
-The topmost `io.takamaka.code.lang.Contract` is an abstract class that
+The figure below shows the hierarchy of Takamaka contract classes.
+The topmost abstract class `io.takamaka.code.lang.Contract`
 extends `io.takamaka.code.lang.Storage`, since contracts are meant to be
 stored in blockchain (as well as other classes that are not contracts,
 such as our first `Person` example):
@@ -2430,8 +2430,8 @@ having that account as caller.
 
 Takamaka includes contract classes with double balance. They have the
 normal (_green_) balance and an extra, stable _red_ balance.
-Such red/green contracts are implemented by class
-`io.takamaka.code.lang.RedGreenContract`, with subclass
+Such red/green contracts are implemented by the abstract class
+`io.takamaka.code.lang.RedGreenContract`, having a subclass
 `io.takamaka.code.lang.RedGreenPayableContract`, further
 subclassed by `io.takamaka.code.lang.RedGreenExternallyOwnedAccount`.
 That is, such contracts have the ability to keep an extra red balance,
