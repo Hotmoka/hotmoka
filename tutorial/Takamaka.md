@@ -2843,9 +2843,9 @@ Exception in thread "main"
 This exception states that a transaction failed because some
 investor invested less than 1,000 units of coin. Note that the
 exception message reports the cause (a `require` failed)
-and the message includes the program line in the source
-code of the contract where the exception occurred:
-line 27 of `GradualPonzi.java`, which is
+and includes the source program line
+of the contract where the exception occurred:
+line 27 of `GradualPonzi.java`, that is
 
 ```java
 require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
