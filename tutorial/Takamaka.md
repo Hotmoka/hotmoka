@@ -2420,7 +2420,7 @@ inside the `InitializedNode.of()` method.
 `ExternallyOwnedAccount`s have a private field `nonce` that can be accessed through
 their public `@View` method `nonce()`: it yields a `BigInteger`
 that specifies the next nonce to use for the next transaction having that
-account as caller and is automatically increased after each such transaction.
+account as caller. This nonce gets automatically increased after each such transaction.
 Moreover, `ExternallyOwnedAccounts` hold their public key in their
 private `publicKey` field, that cannot be accessed programmatically.
 It is the key used to verify the signature of the transactions
@@ -2449,7 +2449,7 @@ The `@RedPayable` annotation states that the
 `distributeRed()` method transfers red coins when called.
 
 ```java
-package io.takamaka.tests.redgreendistributor;
+package io.takamaka.redgreendistributor;
 
 import java.math.BigInteger;
 
