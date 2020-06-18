@@ -136,13 +136,13 @@ class Tendermint implements AutoCloseable {
 			else if (tx_result.data != null && !tx_result.data.isEmpty())
 				return Optional.of(new String(Base64.getDecoder().decode(tx_result.data)));
 			else
-				// there is no HOtmoka error in this transaction
+				// there is no Hotmoka error in this transaction
 				return Optional.empty();
 		}
 	}
 
 	/**
-	 * Yields the Hotmoka request specified in the Tendermint result for the Tendermint
+	 * Yields the Hotmoka request specified in the Tendermint result for the Hotmoka
 	 * transaction with the given hash.
 	 * 
 	 * @param hash the hash of the transaction to look for

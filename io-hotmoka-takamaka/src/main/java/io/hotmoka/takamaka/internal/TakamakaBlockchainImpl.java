@@ -1,4 +1,4 @@
-package io.hotmoka.tendermint.internal;
+package io.hotmoka.takamaka.internal;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -7,16 +7,14 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.tendermint.Config;
-import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.takamaka.Config;
+import io.hotmoka.takamaka.TakamakaBlockchain;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
 
 /**
@@ -25,23 +23,18 @@ import io.takamaka.code.engine.AbstractNodeWithHistory;
  * checks and delivers such requests, by calling the ABCI interface. This blockchain keeps
  * its state in a transactional database implemented by the {@linkplain State} class.
  */
-public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> implements TendermintBlockchain {
-	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
-
-	/**
-	 * The GRPC server that runs the ABCI process.
-	 */
-	private final Server abci;
-
-	/**
-	 * A proxy to the Tendermint process.
-	 */
-	private final Tendermint tendermint;
+public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> implements TakamakaBlockchain {
+	private final static Logger logger = LoggerFactory.getLogger(TakamakaBlockchainImpl.class);
 
 	/**
 	 * The transactional state where blockchain data is persisted.
 	 */
 	private final State state;
+
+	/**
+	 * A proxy to the Takamaka process.
+	 */
+	private final Takamaka takamaka;
 
 	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
@@ -59,14 +52,12 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	 * 
 	 * @param config the configuration of the blockchain
 	 */
-	public TendermintBlockchainImpl(Config config) {
+	public TakamakaBlockchainImpl(Config config) {
 		super(config);
 
 		try {
 			this.state = new State(config.dir + "/state");
-			this.abci = ServerBuilder.forPort(config.abciPort).addService(new ABCI(this)).build();
-			this.abci.start();
-			this.tendermint = new Tendermint(this);
+			this.takamaka = new Takamaka(this);
 		}
 		catch (Exception e) {
 			logger.error("failed creating the Tendermint blockchain", e);
@@ -87,13 +78,8 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 		if (!closed) { // avoid double close
 			super.close();
 
-			if (tendermint != null)
-				tendermint.close();
-
-			if (abci != null && !abci.isShutdown()) {
-				abci.shutdown();
-				abci.awaitTermination();
-			}
+			if (takamaka != null)
+				takamaka.close();
 
 			if (state != null)
 				state.close();
@@ -124,7 +110,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	@Override
 	protected boolean isCommitted(TransactionReference reference) {
 		try {
-			return tendermint.getRequest(reference.getHash()).isPresent();
+			return takamaka.getRequest(reference.getHash()).isPresent();
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
@@ -135,7 +121,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	@Override
 	protected TransactionRequest<?> getRequest(TransactionReference reference) {
 		try {
-			return tendermint.getRequest(reference.getHash()).get();
+			return takamaka.getRequest(reference.getHash()).get();
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception " + e);
@@ -146,7 +132,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	@Override
 	protected TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException {
 		try {
-			Optional<String> error = tendermint.getErrorMessage(reference.getHash());
+			Optional<String> error = takamaka.getErrorMessage(reference.getHash());
 			if (error.isPresent())
 				throw new TransactionRejectedException(error.get());
 			else
@@ -177,8 +163,9 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	@Override
 	protected void postTransaction(TransactionRequest<?> request) {
 		try {
-			String response = tendermint.broadcastTxAsync(request);
-			tendermint.checkBroadcastTxResponse(response);
+			// TODO
+			//String response = tendermint.broadcastTxAsync(request);
+			//tendermint.checkBroadcastTxResponse(response);
 		}
 		catch (Exception e) {
 			logger.error("unexpected exception", e);
@@ -198,7 +185,8 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		// nothing to do, since Tendermint keeps the error message inside the blockchain, in the field "data" of its transactions
+		// TODO?
+		// nothing to do, since Takamaka keeps the error message inside the blockchain
 	}
 
 	/**

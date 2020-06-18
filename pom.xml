@@ -31,6 +31,7 @@
       <module>io-hotmoka-memory</module>
       <module>io-hotmoka-tendermint-dependencies</module>
       <module>io-hotmoka-tendermint</module>
+      <module>io-hotmoka-takamaka</module>
       <module>io-takamaka-examples</module>
       <module>io-takamaka-tests</module>
       <module>hotmoka-and-takamaka-assembly</module>
