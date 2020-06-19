@@ -415,8 +415,8 @@ public class Main {
   public static void main(String[] args) throws Exception {
     io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
 
-    try (Node blockchain = MemoryBlockchain.of(config)) {
-      // the blockchain is closed automatically at the end of this block
+    try (Node node = MemoryBlockchain.of(config)) {
+      // the node is closed automatically at the end of this block
     }
   }
 }
@@ -481,9 +481,9 @@ public class Main {
     Path takamakaCodePath = Paths.get
       ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
 
-    try (Node blockchain = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
     }
   }
 }
@@ -492,7 +492,7 @@ public class Main {
 The code above initializes the blockchain, by installing the base classes for Takamaka,
 that we had previously packaged inside the project `io-takamaka-code`
 (this is why we put this new project inside the directory of the Hotmoka project).
-It is important to observe that both `blockchain` and `initialized` are views of the
+It is important to observe that both `node` and `initialized` are views of the
 same Hotmoka node. Hence, if we run this class, both get initialized and both will contain
 the `io-takamaka-code-1.0.0.jar` archive and a new object, the gamete, initialized
 with the given amounts of green and red coins.
@@ -511,11 +511,6 @@ reported in textual form (`request.txt` and `response.txt`). Such textual
 representations do not exist in a real blockchain, but are useful here, for debugging
 or learning purposes. We do not investigate further the content of the `chain` directory,
 for now. Later, when we will run our own transactions, we will see these files in more detail.
-
-This class then creates two accounts, funded with
-200,000 units of coin each. We will use later such accounts
-to run blockchain transactions. They will be available as `blockchain.account(0)`
-and `blockchain.account(1)`, respectively.
 
 ## A Transaction that Stores a Jar in Blockchain <a name="jar-transaction"></a>
 
@@ -606,20 +601,20 @@ public class Main {
     Path familyPath = Paths.get
       ("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (Node blockchain = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.of(config)) {
       // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
       InitializedNode initialized = InitializedNode.of
-        (blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
-      TransactionReference takamakaCode = blockchain.getTakamakaCode();
+      TransactionReference takamakaCode = node.getTakamakaCode();
 
       // we get a reference to the manifest
-      StorageReference manifest = blockchain.getManifest();
+      StorageReference manifest = node.getManifest();
 
       // we get the signing algorithm to use for requests
       SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
-        = blockchain.signatureAlgorithmForRequests();
+        = node.signatureAlgorithmForRequests();
 
       // we create a signer that signs with the private key of the gamete
       Signer signerOnBehalfOfGamete = Signer.with
@@ -627,7 +622,7 @@ public class Main {
 
       // we call the getGamete() method of the manifest; this is a call to a @View method,
       // hence the nonce is irrelevant and we handly use zero for it
-      StorageReference gamete = (StorageReference) blockchain
+      StorageReference gamete = (StorageReference) node
         .runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
           (Signer.onBehalfOfManifest(), // an object that signs with the payer's private key
           manifest, // payer
@@ -645,7 +640,7 @@ public class Main {
       // we get the nonce of the gamete: we use the same gamete as caller and
       // an arbitrary nonce (ZERO in the code) since we are running
       // a @View method of the gamete
-      BigInteger nonce = ((BigIntegerValue) blockchain
+      BigInteger nonce = ((BigIntegerValue) node
         .runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
@@ -662,7 +657,7 @@ public class Main {
         .value;
 
       // we install family-0.0.1-SNAPSHOT.jar in blockchain: the gamete will pay
-      TransactionReference family = blockchain
+      TransactionReference family = node
         .addJarStoreTransaction(new JarStoreTransactionRequest
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
@@ -707,7 +702,7 @@ that has been computed by another, previous call to `runViewInstanceMethodCallTr
 on the `manifest` object.
 The request passed to `addJarStoreTransaction()` specifies that the transaction can cost up
 to 1,000,000 units of gas, that can be bought at one coin per unit of gas at most. The request
-specifies that its class path is `blockchain.getTakamakaCode()`: this is the reference to the
+specifies that its class path is `node.getTakamakaCode()`: this is the reference to the
 `io-takamaka-code-1.0.0.jar` installed by the `InitializedNode` decorator.
 Finally, the request specifies that `family-0.0.1-SNAPSHOT.jar` has only
 a single dependency: `io-takamaka-code-1.0.0.jar`. This means that when, below, we will refer to
@@ -770,7 +765,7 @@ For instance, the instrumented code will charge gas during its execution.
 Finally, the response reports _updates_. These are
 state changes occurred during the execution of the transaction.
 In other terms, updates are the side-effects of the transaction,
-i.e., the fields of the objects modified by the transaction.
+ie., the fields of the objects modified by the transaction.
 In this case, the balance of the gamete
 has been reduced to 99,997,870, since it payed for the gas
 (we have initially funded that gamete with 100,000,000 units of coin)
@@ -829,7 +824,7 @@ import io.hotmoka.beans.values.StringValue;
 
       // call constructor io.takamaka.code.lang.ExternallyOwnedAccount
       // with arguments (BigInteger funds, String publicKey)
-      StorageReference account = blockchain
+      StorageReference account = node
         .addConstructorCallTransaction(new ConstructorCallTransactionRequest
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
@@ -990,22 +985,22 @@ public class Main {
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (Node blockchain = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (blockchain, initialized.keysOfGamete().getPrivate(), familyPath);
+        (node, initialized.keysOfGamete().getPrivate(), familyPath);
 
       // third view: create two accounts, the first with 100,000 units of green coin
       // and the second with 200,000 units of green coin
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (blockchain, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
 
-      System.out.println("manifest: " + blockchain.getManifest());
+      System.out.println("manifest: " + node.getManifest());
       System.out.println("family-0.0.1-SNAPSHOT.jar: " + nodeWithJars.jar(0));
       System.out.println("account #0: " + nodeWithAccounts.account(0) +
                          "\n  with private key " + nodeWithAccounts.privateKey(0));
@@ -1029,8 +1024,8 @@ account #1: 3f375abcb75bc4f641816d4b27b0d7bbb9f5d0cd9710ed5da1a8f642beb14d30#0
 
 As we have already said, views are the same object, just seen through different lenses
 (Java interfaces). Hence, further transactions can be run on
-`blockchain` or `initialized` or `nodeWithJars` or `nodeWithAccounts`, with the same
-effects. Moreover, it is not necessary to close all such nodes: closing `blockchain` at
+`node` or `initialized` or `nodeWithJars` or `nodeWithAccounts`, with the same
+effects. Moreover, it is not necessary to close all such nodes: closing `node` at
 the end of the try-with-resource will actually close all of them, since they are the same object.
 
 ## A Transaction that Creates an Object of our Program <a name="constructor-transaction"></a>
@@ -1087,21 +1082,21 @@ public class Main {
       ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (Node blockchain = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (blockchain, initialized.keysOfGamete().getPrivate(), familyPath);
+        (node, initialized.keysOfGamete().getPrivate(), familyPath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (blockchain, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
 
       // call the constructor of Person and store in albert the new object in blockchain
-      StorageReference albert = blockchain.addConstructorCallTransaction
+      StorageReference albert = node.addConstructorCallTransaction
         (new ConstructorCallTransactionRequest(
 
           // signer on behalf of the first account
-          Signer.with(blockchain.signatureAlgorithmForRequests(),
+          Signer.with(node.signatureAlgorithmForRequests(),
                       nodeWithAccounts.privateKey(0)),
 
           // the first account pays for the transaction
@@ -1322,7 +1317,7 @@ can be found at the jar installed at transaction
 > Compared the Solidity, where contracts and accounts are just untyped *addresses*,
 > objects (and hence accounts) are strongly-typed in Takamaka.
 > This means that they are tagged with their run-time type, in a boxed representation,
-> so that it is possible to check that they are used correctly, i.e., in accordance
+> so that it is possible to check that they are used correctly, ie., in accordance
 > with the declared type of variables.
 
 These triples that we see in the `response.txt` file
@@ -1341,7 +1336,7 @@ Its storage reference `db724f565222ef8b3da0ba3196a72a10af614ba12fc04b05c87298da4
 has been returned to the caller of `addConstructorCallTransaction()`:
 
 ```java
-StorageReference albert = blockchain.addConstructorCallTransaction(...)
+StorageReference albert = node.addConstructorCallTransaction(...)
 ```
 
 and can be used later to invoke methods on that object or to pass it
@@ -1402,19 +1397,19 @@ public class Main {
       ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
     Path familyPath = Paths.get("../family/target/family-0.0.1-SNAPSHOT.jar");
 
-    try (Node blockchain = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (blockchain, initialized.keysOfGamete().getPrivate(), familyPath);
+        (node, initialized.keysOfGamete().getPrivate(), familyPath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (blockchain, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.keysOfGamete().getPrivate(),
         BigInteger.valueOf(100_000), BigInteger.valueOf(200_000));
 
       // call the constructor of Person and store in albert the new object in blockchain
-      StorageReference albert = blockchain
+      StorageReference albert = node
         .addConstructorCallTransaction(new ConstructorCallTransactionRequest(
-          Signer.with(blockchain.signatureAlgorithmForRequests(),
+          Signer.with(node.signatureAlgorithmForRequests(),
             nodeWithAccounts.privateKey(0)),
           nodeWithAccounts.account(0),
           ZERO,
@@ -1426,11 +1421,11 @@ public class Main {
           new IntValue(4), new IntValue(1879)
         ));
 
-      StorageValue s = blockchain
+      StorageValue s = node
         .addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
 
           // signer on behalf of the second account
-          Signer.with(blockchain.signatureAlgorithmForRequests(),
+          Signer.with(node.signatureAlgorithmForRequests(),
                       nodeWithAccounts.privateKey(1)),
 
           // the second account pays for the transaction
@@ -1551,7 +1546,7 @@ methods with parameters. If a `toString(int)` method existed in `Person`,
 then we could call it and pass 2019 as its argument, by writing:
 
 ```java
-StorageValue s = blockchain.addInstanceMethodCallTransaction
+StorageValue s = node.addInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest(
     ...
 
@@ -1660,9 +1655,9 @@ until the outcome of the transaction is finally available.
 For instance, instead of the inefficient:
 
 ```java
-StorageValue s = blockchain.addInstanceMethodCallTransaction
+StorageValue s = node.addInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest(
-    Signer.with(blockchain.signatureAlgorithmForRequests(),
+    Signer.with(node.signatureAlgorithmForRequests(),
                 nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
@@ -1680,9 +1675,9 @@ StorageValue s = blockchain.addInstanceMethodCallTransaction
 one can write the more efficient:
 
 ```java
-CodeSupplier<StorageValue> future = blockchain.postInstanceMethodCallTransaction
+CodeSupplier<StorageValue> future = node.postInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest(
-    Signer.with(blockchain.signatureAlgorithmForRequests(),
+    Signer.with(node.signatureAlgorithmForRequests(),
                 nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
@@ -1779,7 +1774,7 @@ public class Main {
   ...
     io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
     ...
-    try (Node blockchain = TendermintBlockchain.of(config)) {
+    try (Node node = TendermintBlockchain.of(config)) {
       ...
     }
   ...
@@ -2757,28 +2752,28 @@ public class Main {
       ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
     Path ponziPath = Paths.get("../ponzi/target/ponzi-0.0.1-SNAPSHOT.jar");
 
-    try (Node blockchain = MemoryBlockchain.of(config)) {
+    try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (blockchain, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the Ponzi contracts in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
-        (blockchain, initialized.keysOfGamete().getPrivate(), ponziPath);
+        (node, initialized.keysOfGamete().getPrivate(), ponziPath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
-        (blockchain, initialized.keysOfGamete().getPrivate(),
+        (node, initialized.keysOfGamete().getPrivate(),
         _1_000_000, _1_000_000, _1_000_000);
 
       StorageReference player1 = nodeWithAccounts.account(0);
       StorageReference player2 = nodeWithAccounts.account(1);
       StorageReference player3 = nodeWithAccounts.account(2);
       SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
-        = blockchain.signatureAlgorithmForRequests();
+        = node.signatureAlgorithmForRequests();
       Signer signerForPlayer1 = Signer.with(signature, nodeWithAccounts.privateKey(0));
       Signer signarerForPlayer2 = Signer.with(signature, nodeWithAccounts.privateKey(1));
       Signer signerForPlayer3 = Signer.with(signature, nodeWithAccounts.privateKey(2));
       TransactionReference classpath = nodeWithJars.jar(0);
 
       // create the Ponzi contract: player1 becomes its first investor
-      StorageReference gradualPonzi = blockchain.addConstructorCallTransaction
+      StorageReference gradualPonzi = node.addConstructorCallTransaction
         (new ConstructorCallTransactionRequest(
           signerForPlayer1,
           player1, // player1 pays for the transaction
@@ -2789,7 +2784,7 @@ public class Main {
           new ConstructorSignature(GRADUAL_PONZI))); /// GradualPonzi()
 
       // let player2 invest 1200
-      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
         signarerForPlayer2,
         player2, // player2 pays for the transaction
         ZERO, // nonce for player2
@@ -2801,7 +2796,7 @@ public class Main {
         new BigIntegerValue(BigInteger.valueOf(1_200)))); // the investment
 
       // let player3 invest 1500
-      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
         signerForPlayer3,
         player3, // player3 pays for the transaction
         ZERO, // nonce of player3
@@ -2813,7 +2808,7 @@ public class Main {
         new BigIntegerValue(BigInteger.valueOf(1_500)))); // the investment
 
       // let player1 invest 900, but it is too little and it runs into an exception
-      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+      node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
         signerForPlayer1,
         player1, // player1 pays for the transaction
      	ONE, // nonce of player1
@@ -2981,7 +2976,8 @@ the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi` an
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+    http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
@@ -2999,9 +2995,22 @@ the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi` an
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <release>9</release>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
 ```
@@ -3014,11 +3023,11 @@ module tictactoe {
 }
 ```
 
-Create package `io.takamaka.tests.tictactoe` inside `src` and add
+Create package `io.takamaka.tictactoe` inside `src` and add
 the following `TicTacToe.java` source inside that package:
 
 ```java
-package io.takamaka.tests.tictactoe;
+package io.takamaka.tictactoe;
 
 import static io.takamaka.code.lang.Takamaka.require;
 import static java.util.stream.Collectors.joining;
@@ -3113,8 +3122,9 @@ public class TicTacToe extends Contract {
 ```
 
 The internal enumeration `Tile` represents the three alternatives that can be
-put in the tic-tac-toe board. It has a `toString()` method, that yields the
-usual representation for such alternatives, and a `nextTurn()` method, that
+put in the tic-tac-toe board. It overrides the default
+`toString()` implementation, to yield the
+usual representation for such alternatives; its `nextTurn()` method
 alternates between cross and circle.
 
 > The `Tile` enumeration has been defined as `static` since it needn't
@@ -3129,7 +3139,7 @@ alternates between cross and circle.
 The board of the game is represented as a `new StorageArray<Tile>(9, Tile.EMPTY)`, whose
 elements are indexed from 0 to 8 (inclusive) and are initialized to `Tile.EMPTY`.
 It is also possible to construct the array as `new StorageArray<Tile>(9)`, but then
-its elements would be the default value `null` and the array would need to be initialized
+its elements would hold the default value `null` and the array would need to be initialized
 inside a constructor for `TicTacToe`:
 
 ```java
@@ -3143,7 +3153,7 @@ at indexes (x,y), respectively. They transform the bidimensional conceptual repr
 of the board into its internal monodimensional representation. Since `at()` is `public`,
 we defensively check the validity of the indexes there.
 
-Method `play()` is the heart of the contract. It is called by the contracts
+Method `play()` is the heart of the contract. It is called by the accounts
 that play the game, hence is an `@Entry`. It is also annotated as
 `@Payable(PayableContract.class)` since players must bet money for
 taking part in the game, at least for the first two moves. The first
@@ -3213,19 +3223,18 @@ a couple of drawbacks that make it still incomplete. Namely:
 2. if the game ends in a draw, money gets stuck in the `TicTacToe` contract
    instance, for ever and ever.
 
-Copy hence the following improved version of the `TicTacToe` contract,
-inside package `io.takamaka.tests.tictactoe` of the `tictactoe` project.
-It solves
-both problems at once. The policy is very simple: we impose a minimum
+Replace hence the previous version of `TicTacToe.java` with the following
+improved version. This new version solves
+both problems at once. The policy is very simple: it imposes a minimum
 bet, in order to avoid free games; if a winner emerges,
-then we forward him only 90% of the jackpot; the remaing 10% goes to the
+then it forwards him only 90% of the jackpot; the remaing 10% goes to the
 creator of the `TicTacToe` contract. If, instead, the game ends in a draw,
-we forward the whole jackpot to the creator. The modified contract
-is reported below. Note that we added an `@Entry` constructor, that takes
+it forwards the whole jackpot to the creator.
+Note that we added an `@Entry` constructor, that takes
 note of the `creator` of the game:
 
 ```java
-package io.takamaka.tests.tictactoe;
+package io.takamaka.tictactoe;
 
 import static io.takamaka.code.lang.Takamaka.require;
 import static java.util.stream.Collectors.joining;
@@ -3262,7 +3271,8 @@ public class TicTacToe extends Contract {
   private static final long MINIMUM_BET = 100L;
 
   private final StorageArray<Tile> board = new StorageArray<>(9, Tile.EMPTY);
-  private PayableContract creator, crossPlayer, circlePlayer;
+  private final PayableContract creator;
+  private PayableContract crossPlayer, circlePlayer;
   private Tile turn = Tile.CROSS; // cross plays first
   private boolean gameOver;
 
@@ -3342,13 +3352,9 @@ public class TicTacToe extends Contract {
 > it is unlikely that users will want to invest huge quantities of money in this
 > game. This gives us the opportunity to discuss why the computation of the
 > previous bet has been written as
-> ```java
-> long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue()
-> ```
+> `long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue()`
 > instead of the simpler
-> ```java
-> long previousBet = balance().longValue() - amount
-> ```
+> `long previousBet = balance().longValue() - amount`.
 > The reason is that, when that line is executed, both players have aleady payed
 > their bet, that accumulates in the balance of the `TicTacToe` contract.
 > Each single bet is a `long`, but their sum could overflow the size of a `long`.
@@ -3360,50 +3366,52 @@ public class TicTacToe extends Contract {
 > we first multiply by 9 and **then** divide by 10. This reduces the
 > approximation inherent to integer division. For instance, if the jackpot
 > (`balance()`) were 209, we have (with Java's left-to-right evaluation)
-> ```math
+> `
 > 209*9/10=1881/10=188
-> ```
+> `
 > while
-> ```math
-> 209/10*9=20*9=180.
-> ```
+> `
+> 209/10*9=20*9=180
+> `.
 
 ### Running the Tic-Tac-Toe Contract <a name="running-the-tic-tac-toe-contract"></a>
 
 Let us play with the `TicTacToe` contract. Go inside the `tictactoe` project
-and run the `mvn install` command. A file
+and run the `mvn package` command. A file
 `tictactoe-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 
 In the `blokchain` project that we have already created, add a package
-`io.takamaka.tests.tictactoe` and, inside it, create a `Main.java` class
+`io.takamaka.tictactoe` and, inside it, create a `Main.java` class
 that contains the following code. It creates a test blockchain in
 disk memory and runs a few transactions to:
 
-1. install `tictactoe-0.0.1-SNAPSHOT.jar` in blockchain
-2. create an instance of `TicTacToe` in blockchain
-3. let two players play, alternately, until the first player wins
-4. call `toString()` on the `TicTacToe` contract and print the result
-5. let the second player continue playing.
+1. install `ponzi-0.0.1-SNAPSHOT.jar` in blockchain
+2. create a creator and two players (that is, accounts)
+3. create an instance of `TicTacToe` in blockchain
+4. let the two players play, alternately, until the first player wins
+5. call `toString()` on the `TicTacToe` contract and print the result
+6. let the second player continue playing.
 
 The last transaction fails with an exception, since the game is over at that point.
 
 ```java
-package io.takamaka.tests.tictactoe;
+package io.takamaka.tictactoe;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
 import static io.hotmoka.beans.types.BasicTypes.LONG;
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.TWO;
+import static java.math.BigInteger.ZERO;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -3412,118 +3420,160 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.nodes.CodeExecutionException;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.nodes.views.NodeWithAccounts;
+import io.hotmoka.nodes.views.NodeWithJars;
 
 public class Main {
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
   private final static BigInteger _50_000 = BigInteger.valueOf(50_000L);
-  private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
   private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
-  private static final ClassType TIC_TAC_TOE = new ClassType("io.takamaka.tests.tictactoe.TicTacToe");
+  private static final ClassType TIC_TAC_TOE
+    = new ClassType("io.takamaka.tictactoe.TicTacToe");
+
+  // method void TicTacToe.play(long, int, int)
+  private static final VoidMethodSignature TIC_TAC_TOE_PLAY
+    = new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT);
+
   private static final IntValue _1 = new IntValue(1);
   private static final IntValue _2 = new IntValue(2);
   private static final IntValue _3 = new IntValue(3);
   private static final LongValue _0L = new LongValue(0L);
   private static final LongValue _100L = new LongValue(100L);
 
-  public static void main(String[] args) throws IOException, TransactionException, CodeExecutionException {
-    // creation of a test blockchain in memory with three accounts
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _100_000, _1_000_000, _1_000_000);
+  public static void main(String[] args) throws Exception {
+    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    Path takamakaCodePath = Paths.get
+      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+    Path tictactoePath = Paths.get("../tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar");
 
-    StorageReference creator = blockchain.account(0);
-    StorageReference player1 = blockchain.account(1);
-    StorageReference player2 = blockchain.account(2);
+    try (Node node = MemoryBlockchain.of(config)) {
+      InitializedNode initialized = InitializedNode.of
+        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+      // install the jar of the TicTacToe contract in the node
+      NodeWithJars nodeWithJars = NodeWithJars.of
+        (node, initialized.keysOfGamete().getPrivate(), tictactoePath);
+      NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
+        (node, initialized.keysOfGamete().getPrivate(),
+        _1_000_000, _1_000_000, _1_000_000);
 
-    // installation in blockchain of the jar of the TicTacToe contract
-    TransactionReference tictactoe = blockchain.addJarStoreTransaction(new JarStoreTransactionRequest(
-      creator, // this account pays for the transaction
-      _50_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      blockchain.takamakaCode(), // reference to a jar in the blockchain that includes the basic Takamaka classes
-      Files.readAllBytes(Paths.get("../tictactoe/target/tictactoe-0.0.1-SNAPSHOT.jar")), // bytes containing the jar to install
-      blockchain.takamakaCode()
-    ));
+      StorageReference creator = nodeWithAccounts.account(0);
+      StorageReference player1 = nodeWithAccounts.account(1);
+      StorageReference player2 = nodeWithAccounts.account(2);
+	  SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+	    = node.signatureAlgorithmForRequests();
+	  Signer signerForCreator = Signer.with(signature, nodeWithAccounts.privateKey(0));
+      Signer signerForPlayer1 = Signer.with(signature, nodeWithAccounts.privateKey(1));
+      Signer signerForPlayer2 = Signer.with(signature, nodeWithAccounts.privateKey(2));
+      TransactionReference classpath = nodeWithJars.jar(0);
 
-    Classpath classpath = new Classpath(tictactoe, true);
+      // creation of the TicTacToe contract
+      StorageReference ticTacToe = node
+        .addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+          signerForCreator, // signer of the payer
+          creator, // payer of the transaction
+          ZERO, // nonce of the payer
+          _50_000, // gas provided to the transaction
+          ONE, // gas price
+          classpath,
+          new ConstructorSignature(TIC_TAC_TOE))); /// TicTacToe()
 
-    // creation of the TicTacToe contract
-    StorageReference ticTacToe = blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
-      creator, // this account pays for the transaction
-      _50_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath,
-      new ConstructorSignature(TIC_TAC_TOE))); /// TicTacToe()
+      // player1 plays at (1,1) and bets 100
+      node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+        signerForPlayer1, // signer of the payer
+        player1, // payer
+        ZERO, // nonce of the payer
+        _50_000, // gas provided to the transaction
+        ONE, // gas price
+        classpath,
 
-    // player1 plays at (1,1)
-    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-      player1, // this account pays for the transaction
-      _50_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath,
-      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
-      ticTacToe, // receiver of the call
-      _100L, _1, _1)); // actual parameters
+        // void TicTacToe.play(long, int, int)
+        TIC_TAC_TOE_PLAY,
 
-    // player2 plays at (2,1)
-    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-      player2, // this account pays for the transaction
-      _50_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath,
-      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
-      ticTacToe, // receiver of the call
-      _100L, _2, _1)); // actual parameters
+        ticTacToe, // receiver of the call
+        _100L, _1, _1)); // actual parameters
 
-    // player1 plays at (1,2)
-    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-      player1, // this account pays for the transaction
-      _50_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath,
-      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
-      ticTacToe, // receiver of the call
-      _0L, _1, _2)); // actual parameters
+      // player2 plays at (2,1) and bets 100
+      node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+        signerForPlayer2, // signer of the payer
+        player2, // this account pays for the transaction
+        ZERO, // nonce of the payer
+        _50_000, // gas provided to the transaction
+        ONE, // gas price
+        classpath,
+        TIC_TAC_TOE_PLAY, // void TicTacToe.play(long, int, int)
+        ticTacToe, // receiver of the call
+        _100L, _2, _1)); // actual parameters
 
-    // player2 plays at (2,2)
-    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-      player2, // this account pays for the transaction
-      _50_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath,
-      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
-      ticTacToe, // receiver of the call
-      _0L, _2, _2)); // actual parameters
+      // player1 plays at (1,2)
+      node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+        signerForPlayer1, // signer of the payer
+        player1, // this account pays for the transaction
+        ONE, // nonce of the payer
+        _50_000, // gas provided to the transaction
+        ONE, // gas price
+        classpath,
+        TIC_TAC_TOE_PLAY, // method to call
+        ticTacToe, // receiver of the call
+        _0L, _1, _2)); // actual parameters
 
-    // player1 plays at (1,3)
-    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-      player1, // this account pays for the transaction
-      _50_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath,
-      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
-      ticTacToe, // receiver of the call
-      _0L, _1, _3)); // actual parameters
+      // player2 plays at (2,2)
+      node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+        signerForPlayer2, // signer of the payer
+        player2, // this account pays for the transaction
+        ONE, // nonce of the payer
+        _50_000, // gas provided to the transaction
+        ONE, // gas price
+        classpath,
+        TIC_TAC_TOE_PLAY, // method to call
+        ticTacToe, // receiver of the call
+        _0L, _2, _2)); // actual parameters
 
-    // player1 calls toString() on the TicTacToe contract
-    StringValue toString = (StringValue) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-      player1, // this account pays for the transaction
-      _50_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath,
-      new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING), // String TicTacToe.toString()
-      ticTacToe)); // receiver of the call
+      // player1 plays at (1,3)
+      node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+        signerForPlayer1, // signer of the payer
+        player1, // this account pays for the transaction
+        TWO, // nonce of the payer
+        _50_000, // gas provided to the transaction
+        ONE, // gas price
+        classpath,
+        TIC_TAC_TOE_PLAY, // method to call
+        ticTacToe, // receiver of the call
+        _0L, _1, _3)); // actual parameters
 
-    System.out.println(toString);
+      // player1 calls toString() on the TicTacToe contract
+      StringValue toString = (StringValue) node.addInstanceMethodCallTransaction
+        (new InstanceMethodCallTransactionRequest(
+          signerForPlayer1, // signer of the payer
+          player1, // this account pays for the transaction
+          BigInteger.valueOf(3), // nonce of the payer
+          _50_000, // gas provided to the transaction
+          ONE, // gas price
+          classpath,
 
-    // the game is over, but player2 continues playing and will get an exception
-    blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-      player2, // this account pays for the transaction
-      _50_000, // gas provided to the transaction
-      BigInteger.ONE, // gas price
-      classpath,
-      new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT), // void TicTacToe.play(long, int, int)
-      ticTacToe, // receiver of the call
-      _0L, _2, _3)); // actual parameters
+          // method String TicTacToe.toString()
+          new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
+
+          ticTacToe)); // receiver of the call
+
+      System.out.println(toString);
+
+      // the game is over, but player2 continues playing and will get an exception
+      node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+        signerForPlayer2, // signer of the payer
+        player2, // this account pays for the transaction
+        TWO, // nonce of the payer
+        _50_000, // gas provided to the transaction
+        ONE, // gas price
+        classpath,
+        TIC_TAC_TOE_PLAY, // void TicTacToe.play(long, int, int)
+        ticTacToe, // receiver of the call
+        _0L, _2, _3)); // actual parameters
+    }
   }
 }
 ```
@@ -3536,49 +3586,50 @@ X|O|
 X|O| 
 -----
 X| | 
-Exception in thread "main" io.hotmoka.beans.TransactionException: io.takamaka.code.lang.RequirementViolationException: the game is over
-        at io.takamaka.code.engine/io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder.wrapAsTransactionException(Unknown Source)
-        at io.takamaka.code.engine/io.takamaka.code.engine.internal.transactions.InstanceMethodCallTransactionBuilder.<init>(Unknown Source)
-        at io.takamaka.code.engine/io.takamaka.code.engine.Transaction.mkFor(Unknown Source)
-        at io.takamaka.code.engine/io.takamaka.code.engine.AbstractSequentialNode.lambda$addInstanceMethodCallTransaction$9(Unknown Source)
-        at io.takamaka.code.engine/io.takamaka.code.engine.AbstractSequentialNode.wrapWithCodeInCaseOfException(Unknown Source)
-        at io.takamaka.code.engine/io.takamaka.code.engine.AbstractSequentialNode.addInstanceMethodCallTransaction(Unknown Source)
-        at io.takamaka.tests/io.takamaka.tests.tictactoe.Main.main(Main.java:129)
-Caused by: io.takamaka.code.lang.RequirementViolationException: the game is over
-        at io.takamaka.code.lang.Takamaka.require(Takamaka.java:24)
-        at io.takamaka.tests.tictactoe.TicTacToe.play(TicTacToe.java:56)
-        at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-        at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-        at java.base/java.lang.reflect.Method.invoke(Method.java:567)
-        at io.takamaka.code.engine/io.takamaka.code.engine.internal.transactions.InstanceMethodCallTransactionBuilder$MethodThread.body(Unknown Source)
-        at io.takamaka.code.engine/io.takamaka.code.engine.internal.transactions.AbstractTransactionBuilder$TakamakaThread.run(Unknown Source)
+Exception in thread "main"
+  io.hotmoka.beans.TransactionException:
+  io.takamaka.code.lang.RequirementViolationException:
+  the game is over@TicTacToe.java:57
 ```
 
 The exception, as we said, is expected since we have instructed the contract
 to behave that way when the game is over but somebody tries to continue playing.
 
 It is interesting to have a look at the response of the transaction
-`b2/t1/response.txt` when the first player wins:
+`b2/3-.../response.txt`, when the first player wins:
 
 ```
 VoidMethodCallTransactionSuccessfulResponse:
-  gas consumed for CPU execution: 3857
-  gas consumed for RAM allocation: 2811
-  gas consumed for storage consumption: 866
+  gas consumed for CPU execution: 2854
+  gas consumed for RAM allocation: 2623
+  gas consumed for storage consumption: 911
   updates:
-    <0.2#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|71082>
-    <0.3#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|978487>
-    <1.1#0|io.takamaka.code.lang.Contract.balance:java.math.BigInteger|0>
-    <1.1#0|io.takamaka.tests.tictactoe.TicTacToe.gameOver:boolean|true>
-    <1.1#8|io.takamaka.code.util.StorageArray$Node.value:java.lang.Object|io.takamaka.tests.tictactoe.TicTacToe$Tile.CROSS>
+    <734089ecee982a080b0a869d450095b3881cb4142a52e0142400eeb6ba66eb69#0
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|0>
+    <734089ecee982a080b0a869d450095b3881cb4142a52e0142400eeb6ba66eb69#0
+      |io.takamaka.tictactoe.TicTacToe.gameOver:boolean|true>
+    <734089ecee982a080b0a869d450095b3881cb4142a52e0142400eeb6ba66eb69#8
+      |io.takamaka.code.util.StorageArray$Node.value:java.lang.Object
+      |io.takamaka.tictactoe.TicTacToe$Tile.CROSS>
+    <8a801c87d85bfd49f06a9fa7b42579743ff5282c65790586a354fee7d848d086#0
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|975457>
+    <f92c07f8abef9d71fa7d88acfb21c1e934222935307adf61adb3dce57f4a37f5#0
+      |io.takamaka.code.lang.ExternallyOwnedAccount.nonce:java.math.BigInteger|3>
+    <f92c07f8abef9d71fa7d88acfb21c1e934222935307adf61adb3dce57f4a37f5#0
+      |io.takamaka.code.lang.Contract.balance:java.math.BigInteger|980647>
   events:
 ```
 
-You can see that the balances of the creator `0.2#0`
-and of the first player `0.3#0` are updated,
-as well as that of the contract `1.1#0`, that is emptied of all money and
-reaches a balance of 0. Moreover, the `gameOver` boolean is set to true.
+The balances of
+`8a801c87d85bfd49f06a9fa7b42579743ff5282c65790586a354fee7d848d086#0`
+(the creator) 
+and of
+`f92c07f8abef9d71fa7d88acfb21c1e934222935307adf61adb3dce57f4a37f5#0`
+(the first player) are updated,
+as well as that of the `TicTacToe` contract, held at storage reference
+`734089ecee982a080b0a869d450095b3881cb4142a52e0142400eeb6ba66eb69#0`,
+that is emptied of all money and
+reaches 0. Moreover, the `gameOver` boolean field of the latter is set to true.
 
 ### Specialized Storage Array Classes <a name="specialized-storage-array-classes">
 
@@ -3630,11 +3681,11 @@ not needed in Takamaka. Nevertheless, there are still situations when
 maps are useful in Takamaka code, as we show below.
 
 Java has many implementations of maps, that can be used in Takamaka.
-However, they are not storage ojects and consequently cannot be
-stored in blockchain. This section describes the
+However, they are not storage objects and consequently cannot be
+stored in a Hotmoka node. This section describes the
 `io.takamaka.code.util.StorageMap<K, V>` class, that extends `Storage` and
-whose instances can then be held in blockchain, if keys `K` and
-values `V` are types that can be stored in blockchain.
+whose instances can then be held in the store of a node, if keys `K` and
+values `V` are types that can be stored in a node as well.
 
 We refer to the JavaDoc of `StorageMap` for a full description of its methods,
 that are similar to those of traditional Java maps. Here, we just observe
@@ -3651,7 +3702,7 @@ returned value, as in Java maps. Please refer to their JavaDoc).
 
 Instances of `StorageMap<K, V>` keep keys in increasing order. Namely, if
 type `K` has a natural order, that order is used. Otherwise, keys
-(that must then be storage objects) are kept ordered by increasing storage
+(that must be storage objects) are kept ordered by increasing storage
 reference. Consequently, methods `K min()` and `K max()` yield the
 minimal and the maximal key of a map. Method `List<K> keyList()` yields the
 ordered list of the keys of a map; method `Stream<K> keys()` yields the
@@ -4753,7 +4804,7 @@ Takamaka verifies the following dynamic constraints:
 1. every `@Payable` or `@RedPayable` constructor or method is passed a non-`null` and
    non-negative amount of funds;
 2. a call to a `@Payable` or `@RedPayable` constructor or method succeeds only if the caller
-   has enough funds to pay for the call (i.e., the amount first parameter of
+   has enough funds to pay for the call (ie., the amount first parameter of
    the method or constructor);
 3. a call to an `@Entry(C.class)` constructor or method succeeds only if
    the caller is an instance of `C` and is not the receiver of the call;
