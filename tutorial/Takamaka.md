@@ -3268,7 +3268,7 @@ public class TicTacToe extends Contract {
     }
   }
 
-  private static final long MINIMUM_BET = 100L;
+  private final static long MINIMUM_BET = 100L;
 
   private final StorageArray<Tile> board = new StorageArray<>(9, Tile.EMPTY);
   private final PayableContract creator;
@@ -3432,18 +3432,18 @@ public class Main {
   public final static BigInteger RED_AMOUNT = ZERO;
   private final static BigInteger _50_000 = BigInteger.valueOf(50_000L);
   private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
-  private static final ClassType TIC_TAC_TOE
+  private final static ClassType TIC_TAC_TOE
     = new ClassType("io.takamaka.tictactoe.TicTacToe");
 
   // method void TicTacToe.play(long, int, int)
-  private static final VoidMethodSignature TIC_TAC_TOE_PLAY
+  private final static VoidMethodSignature TIC_TAC_TOE_PLAY
     = new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT);
 
-  private static final IntValue _1 = new IntValue(1);
-  private static final IntValue _2 = new IntValue(2);
-  private static final IntValue _3 = new IntValue(3);
-  private static final LongValue _0L = new LongValue(0L);
-  private static final LongValue _100L = new LongValue(100L);
+  private final static IntValue _1 = new IntValue(1);
+  private final static IntValue _2 = new IntValue(2);
+  private final static IntValue _3 = new IntValue(3);
+  private final static LongValue _0L = new LongValue(0L);
+  private final static LongValue _100L = new LongValue(100L);
 
   public static void main(String[] args) throws Exception {
     io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
@@ -4147,7 +4147,7 @@ the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi`, `
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-    http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                        http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
@@ -4171,13 +4171,13 @@ the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi`, `
 
   <build>
     <plugins>
-	  <plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-	    <version>3.8.1</version>
-		<configuration>
-		  <release>9</release>
-		</configuration>
+        <version>3.8.1</version>
+          <configuration>
+            <release>9</release>
+          </configuration>
       </plugin>
     </plugins>
   </build>
@@ -4204,28 +4204,27 @@ Go now to the `blockchain` Eclipse project and create a new
 `Main.java` class inside that package:
 
 ```java
-package io.takamaka.tests.auction;
+package io.takamaka.auction;
 
 import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
 import static io.hotmoka.beans.types.BasicTypes.BYTE;
 import static io.hotmoka.beans.types.BasicTypes.INT;
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.references.Classpath;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -4235,222 +4234,303 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.nodes.CodeExecutionException;
+import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.views.InitializedNode;
+import io.hotmoka.nodes.views.NodeWithAccounts;
+import io.hotmoka.nodes.views.NodeWithJars;
 
 public class Main {
 
   /**
    * The number of bids placed by the players.
    */
-  private static final int NUM_BIDS = 100;
+  public final static int NUM_BIDS = 100;
 
   /**
    * The bidding time of the experiment (in milliseconds).
    */
-  private static final int BIDDING_TIME = 40_000;
+  public final static int BIDDING_TIME = 40_000;
 
   /**
    * The reveal time of the experiment (in millisecond).
    */
-  private static final int REVEAL_TIME = 60_000;
+  public final static int REVEAL_TIME = 60_000;
 
-  private static final BigInteger _100_000 = BigInteger.valueOf(100_000);
-  private static final BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
-  private static final BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
+  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
+  public final static BigInteger RED_AMOUNT = ZERO;
+
+  private final static BigInteger _100_000 = BigInteger.valueOf(100_000);
+  private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
+  private final static BigInteger _10_000_000 = BigInteger.valueOf(10_000_000);
 
   // useful constants that refer to classes, constructors or methods
-  private static final ClassType BLIND_AUCTION = new ClassType("io.takamaka.tests.auction.BlindAuction");
-  private static final ConstructorSignature CONSTRUCTOR_BLIND_AUCTION = new ConstructorSignature(BLIND_AUCTION, INT, INT);
-  private static final ConstructorSignature CONSTRUCTOR_BYTES32 = new ConstructorSignature
-          (ClassType.BYTES32,
-          BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
-        BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE);
-  private static final ConstructorSignature CONSTRUCTOR_STORAGE_LIST = new ConstructorSignature(ClassType.STORAGE_LIST);
-  private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("io.takamaka.tests.auction.BlindAuction$RevealedBid"),
+  private final static ClassType BLIND_AUCTION
+    = new ClassType("io.takamaka.auction.BlindAuction");
+  private final static ConstructorSignature CONSTRUCTOR_BLIND_AUCTION
+    = new ConstructorSignature(BLIND_AUCTION, INT, INT);
+  private final static ConstructorSignature CONSTRUCTOR_BYTES32
+    = new ConstructorSignature(ClassType.BYTES32,
+     BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
+     BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
+     BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
+     BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE);
+  private final static ConstructorSignature CONSTRUCTOR_STORAGE_LIST
+    = new ConstructorSignature(ClassType.STORAGE_LIST);
+  private final static ConstructorSignature CONSTRUCTOR_REVEALED_BID
+    = new ConstructorSignature(
+        new ClassType("io.takamaka.auction.BlindAuction$RevealedBid"),
         ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32);
-  private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
-  private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
-  private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
-  private static final MethodSignature GET_BALANCE = new NonVoidMethodSignature(new ClassType("io.takamaka.code.lang.TestExternallyOwnedAccount"), "getBalance", ClassType.BIG_INTEGER);
-  private static final MethodSignature ADD = new VoidMethodSignature(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
+  private final static MethodSignature BID = new VoidMethodSignature
+    (BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32);
+  private final static MethodSignature REVEAL = new VoidMethodSignature
+    (BLIND_AUCTION, "reveal", ClassType.STORAGE_LIST);
+  private final static MethodSignature AUCTION_END = new NonVoidMethodSignature
+    (BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
+  private final static MethodSignature ADD = new VoidMethodSignature
+	(ClassType.STORAGE_LIST, "add", ClassType.OBJECT);
 
-  public static void main(String[] args) throws NoSuchAlgorithmException, TransactionException, IOException, CodeExecutionException {
-    // the hashing algorithm used to hide the bids
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+  //the hashing algorithm used to hide the bids
+  private final MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-    // create a blockchain with four accounts
-    MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
-    StorageReference beneficiary = blockchain.account(0);
+  // the time when bids started being placed
+  private final long start;
 
-    // install the auction jar in blockchain
-    TransactionReference auctionJar = blockchain.addJarStoreTransaction
-          (new JarStoreTransactionRequest(beneficiary, _100_000, BigInteger.ONE, blockchain.takamakaCode(),
-          Files.readAllBytes(Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar")), blockchain.takamakaCode()));
+  private final NodeWithAccounts nodeWithAccounts;
+  private final TransactionReference classpath;
+  private final Signer[] signers = new Signer[4];
+  private final BigInteger[] nonces = { ZERO, ZERO, ZERO, ZERO };
 
-    Classpath classpath = new Classpath(auctionJar, true);
+  public static void main(String[] args) throws Exception {
+    new Main();
+  }
 
-    /**
-     * Class used to keep in memory the bids placed by each player,
-     * that will be revealed at the end.
-     */
-    class BidToReveal {
-      private final int player;
-      private final BigInteger value;
-      private final boolean fake;
-      private final byte[] salt;
+  private Main() throws Exception {
+    io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+    Path takamakaCodePath = Paths.get
+      ("../io-takamaka-code/target/io-takamaka-code-1.0.0.jar");
+    Path auctionPath = Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar");
 
-      private BidToReveal(int player, BigInteger value, boolean fake, byte[] salt) {
-        this.player = player;
-        this.value = value;
-        this.fake = fake;
-        this.salt = salt;
-      }
+    try (Node node = MemoryBlockchain.of(config)) {
+      InitializedNode initialized = InitializedNode.of
+        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+      NodeWithJars nodeWithJars = NodeWithJars.of
+        (node, initialized.keysOfGamete().getPrivate(), auctionPath);
+      this.nodeWithAccounts = NodeWithAccounts.of
+        (node, initialized.keysOfGamete().getPrivate(),
+        _10_000_000, _10_000_000, _10_000_000, _10_000_000);
+
+      SignatureAlgorithm<NonInitialTransactionRequest<?>> signature
+	    = node.signatureAlgorithmForRequests();
+
+      for (int pos = 0; pos < 4; pos++)
+    	  signers[pos] = Signer.with(signature, nodeWithAccounts.privateKey(pos));
+
+      this.classpath = nodeWithJars.jar(0);
 
       /**
-       * Creates in blockchain a revealed bid corresponding to this object.
-       * 
-       * @return the storage reference to the freshly created revealed bid
+       * Class used to keep in memory the bids placed by each player,
+       * that will be revealed at the end.
        */
-      private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException {
-        return blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-          (blockchain.account(player), _100_000, BigInteger.ONE,
-           classpath, CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), new BooleanValue(fake), createBytes32(player, salt, blockchain, classpath)));
-      }
-    }
+      class BidToReveal {
+        private final int player;
+        private final BigInteger value;
+        private final boolean fake;
+        private final byte[] salt;
 
-    // create the auction contract in blockchain
-    StorageReference auction = blockchain.addConstructorCallTransaction
-      (new ConstructorCallTransactionRequest(beneficiary, _100_000, BigInteger.ONE,
-       classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
-
-    long start = System.currentTimeMillis();
-    List<BidToReveal> bids = new ArrayList<>();
-    BigInteger maxBid = BigInteger.ZERO;
-    StorageReference expectedWinner = null;
-    Random random = new Random();
-    int i = 1;
-
-    // generate NUM_BIDS random bids
-    while (i <= NUM_BIDS) {
-      int player = 1 + random.nextInt(3);
-      BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
-      BigInteger value = BigInteger.valueOf(random.nextInt(1000));
-      boolean fake = random.nextBoolean();
-      byte[] salt = new byte[32];
-      random.nextBytes(salt); // random 32 bytes of salt for each bid
-
-      // create a Bytes32 hash of the bid in blockchain
-      StorageReference bytes32 = codeAsBytes32(player, value, fake, salt, blockchain, classpath, digest);
-
-      // keep note of the best bid, to verify the result at the end
-      if (!fake && deposit.compareTo(value) >= 0)
-        if (expectedWinner == null || value.compareTo(maxBid) > 0) {
-          maxBid = value;
-          expectedWinner = blockchain.account(player);
+        private BidToReveal(int player, BigInteger value, boolean fake, byte[] salt) {
+          this.player = player;
+          this.value = value;
+          this.fake = fake;
+          this.salt = salt;
         }
-        else if (value.equals(maxBid))
-          // we do not allow ex aequos, since the winner would depend on the fastest player to reveal
-          continue;
 
-      // store the explicit bid in memory, not yet in blockchain, since it would be visible there
-      bids.add(new BidToReveal(player, value, fake, salt));
+        /**
+         * Creates in store a revealed bid corresponding to this object.
+         * 
+         * @return the storage reference to the freshly created revealed bid
+         */
+        private StorageReference intoBlockchain() throws Exception {
+          StorageReference bytes32 = createBytes32(player, salt);
 
-      // place a hashed bid in blockchain
-      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-        (blockchain.account(player), _100_000, BigInteger.ONE,
-         classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
+          return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
+            (signers[player], nodeWithAccounts.account(player), getNonceAndIncrement(player),
+             _100_000, ONE, classpath, CONSTRUCTOR_REVEALED_BID,
+             new BigIntegerValue(value), new BooleanValue(fake), bytes32));
+        }
+      }
 
-      i++;
+      // create the auction contract in the store of the node
+      StorageReference auction = node.addConstructorCallTransaction
+        (new ConstructorCallTransactionRequest(signers[0], nodeWithAccounts.account(0),
+         getNonceAndIncrement(0), _100_000, ONE,
+         classpath, CONSTRUCTOR_BLIND_AUCTION,
+         new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
+
+      this.start = System.currentTimeMillis();
+
+      List<BidToReveal> bids = new ArrayList<>();
+      BigInteger maxBid = BigInteger.ZERO;
+      StorageReference expectedWinner = null;
+      Random random = new Random();
+
+      int i = 1;
+      while (i <= NUM_BIDS) { // generate NUM_BIDS random bids
+        int player = 1 + random.nextInt(3);
+        BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
+        BigInteger value = BigInteger.valueOf(random.nextInt(1000));
+        boolean fake = random.nextBoolean();
+        byte[] salt = new byte[32];
+        random.nextBytes(salt); // random 32 bytes of salt for each bid
+
+        // create a Bytes32 hash of the bid in the store of the node
+        StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
+
+        // keep note of the best bid, to verify the result at the end
+        if (!fake && deposit.compareTo(value) >= 0)
+          if (expectedWinner == null || value.compareTo(maxBid) > 0) {
+            maxBid = value;
+            expectedWinner = nodeWithAccounts.account(player);
+          }
+          else if (value.equals(maxBid))
+            // we do not allow ex aequos, since the winner
+            // would depend on the fastest player to reveal
+            continue;
+
+        // keep the explicit bid in memory, not yet in the node,
+        // since it would be visible there
+        bids.add(new BidToReveal(player, value, fake, salt));
+
+        // place a hashed bid in the node instead
+        node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+          (signers[player], nodeWithAccounts.account(player),
+           getNonceAndIncrement(player),
+           _100_000, ONE, classpath, BID,
+           auction, new BigIntegerValue(deposit), bytes32));
+
+        i++;
+      }
+
+      // wait until the bidding phase is over
+      waitUntil(BIDDING_TIME + 5000);
+
+      // create a storage list for each of the players;
+      // the first element is unused, since player 0 is the beneficiary
+      // and has no bids to reveal
+      StorageReference[] lists = new StorageReference[4];
+      for (int player = 1; player <= 3; player++)
+        lists[player] = node.addConstructorCallTransaction
+          (new ConstructorCallTransactionRequest
+            (signers[player], nodeWithAccounts.account(player),
+            getNonceAndIncrement(player),
+            _100_000, ONE, classpath, CONSTRUCTOR_STORAGE_LIST));
+
+      // create the revealed bids in the store of the node;
+      // this is safe now, since the bidding time is over
+      for (BidToReveal bid: bids) {
+    	StorageReference bidInBlockchain = bid.intoBlockchain();
+        node.addInstanceMethodCallTransaction
+          (new InstanceMethodCallTransactionRequest
+            (signers[bid.player], nodeWithAccounts.account(bid.player),
+            getNonceAndIncrement(bid.player),
+            _100_000, ONE, classpath, ADD,
+            lists[bid.player], bidInBlockchain));
+      }
+
+      // reveal the bids of each player
+      for (int player = 1; player <= 3; player++)
+        node.addInstanceMethodCallTransaction
+          (new InstanceMethodCallTransactionRequest
+            (signers[player], nodeWithAccounts.account(player),
+            getNonceAndIncrement(player),
+            _1_000_000, ONE, classpath, REVEAL,
+            auction, lists[player]));
+
+      // wait until the reveal phase is over
+      waitUntil(BIDDING_TIME + REVEAL_TIME + 5000);
+
+      // end the auction and get the winner according to the contract
+      StorageValue winner = node.addInstanceMethodCallTransaction
+        (new InstanceMethodCallTransactionRequest
+        (signers[0], nodeWithAccounts.account(0), getNonceAndIncrement(0),
+        _100_000, ONE, classpath, AUCTION_END, auction));
+
+      // the winner is normally a StorageReference,
+      // but it could be a NullValue if all bids were fake
+      if (winner instanceof NullValue)
+        winner = null;
+
+      // show that the contract computes the correct winner
+      System.out.println("expected winner: " + expectedWinner);
+      System.out.println("actual winner: " + winner);
     }
-
-    // wait until the bidding phase is over
-    waitUntil(BIDDING_TIME + 5000, start, blockchain, classpath);
-
-    // create a storage list for each of the players
-    StorageReference[] lists = {
-      null, // unused, since player 0 is the beneficiary and has no bids to reveal
-      blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(1), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST)),
-      blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(2), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST)),
-      blockchain.addConstructorCallTransaction(new ConstructorCallTransactionRequest(blockchain.account(3), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_STORAGE_LIST))
-    };
-
-    // create the revealed bids in blockchain; this is safe now, since the bidding time is over
-    for (BidToReveal bid: bids)
-      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-        (blockchain.account(bid.player), _100_000, BigInteger.ONE, classpath, ADD, lists[bid.player], bid.intoBlockchain()));
-
-    // reveal the bids of each player
-    for (int player = 1; player <= 3; player++)
-      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-        (blockchain.account(player), _1_000_000, BigInteger.ONE, classpath, REVEAL, auction, lists[player]));
-
-    // wait until the reveal phase is over
-    waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start, blockchain, classpath);
-
-    // end the auction and get the winner according to the contract
-    StorageReference winner = (StorageReference) blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-      (beneficiary, _100_000, BigInteger.ONE, classpath, AUCTION_END, auction));
-
-    // show that the contract computes the correct winner
-    System.out.println("expected winner: " + expectedWinner);
-    System.out.println("actual winner: " + winner);
   }
 
   /**
-   * Waits for some time.
+   * Waits until a specific time.
    * 
-   * @param duration the time to wait
-   * @param start the beginning of the waiting time
+   * @param duration the time until to wait
    */
-  private static void waitUntil(long duration, long start, MemoryBlockchain blockchain, Classpath classpath) throws TransactionException, CodeExecutionException {
-    while (System.currentTimeMillis() - start < duration) {
-      sleep(100);
-      // we need to perform dummy transactions, otherwise the blockchain time does not progress
-      blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-        (blockchain.account(0), _100_000, BigInteger.ONE, classpath, GET_BALANCE, blockchain.account(0)));
+  private void waitUntil(long duration) {
+    try {
+      Thread.sleep(start + duration - System.currentTimeMillis());
     }
+    catch (InterruptedException e) {}
   }
 
   /**
-   * Hashes a bid and put it in blockchain in hashed form.
+   * Yields the nonce of the given player and increments it.
    */
-  private static StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt, MemoryBlockchain blockchain, Classpath classpath, MessageDigest digest) throws TransactionException, CodeExecutionException {
+  private BigInteger getNonceAndIncrement(int player) {
+    BigInteger nonce = nonces[player];
+    nonces[player] = nonce.add(ONE);
+    return nonce;
+  }
+
+  /**
+   * Hashes a bid and put it in the store of the node, in hashed form.
+   */
+  private StorageReference codeAsBytes32
+      (int player, BigInteger value, boolean fake, byte[] salt)
+      throws Exception {
+
     digest.reset();
     digest.update(value.toByteArray());
     digest.update(fake ? (byte) 0 : (byte) 1);
     digest.update(salt);
     byte[] hash = digest.digest();
-    return createBytes32(player, hash, blockchain, classpath);
+    return createBytes32(player, hash);
   }
 
   /**
-   * Creates a Bytes32 object in blockchain.
+   * Creates a Bytes32 object in the store of the node.
    */
-  private static StorageReference createBytes32(int player, byte[] hash, MemoryBlockchain blockchain, Classpath classpath) throws TransactionException, CodeExecutionException {
-    return blockchain.addConstructorCallTransaction
-      (new ConstructorCallTransactionRequest(blockchain.account(player), _100_000, BigInteger.ONE, classpath, CONSTRUCTOR_BYTES32,
-      new ByteValue(hash[0]), new ByteValue(hash[1]), new ByteValue(hash[2]), new ByteValue(hash[3]),
-      new ByteValue(hash[4]), new ByteValue(hash[5]), new ByteValue(hash[6]), new ByteValue(hash[7]),
-      new ByteValue(hash[8]), new ByteValue(hash[9]), new ByteValue(hash[10]), new ByteValue(hash[11]),
-      new ByteValue(hash[12]), new ByteValue(hash[13]), new ByteValue(hash[14]), new ByteValue(hash[15]),
-      new ByteValue(hash[16]), new ByteValue(hash[17]), new ByteValue(hash[18]), new ByteValue(hash[19]),
-      new ByteValue(hash[20]), new ByteValue(hash[21]), new ByteValue(hash[22]), new ByteValue(hash[23]),
-      new ByteValue(hash[24]), new ByteValue(hash[25]), new ByteValue(hash[26]), new ByteValue(hash[27]),
-      new ByteValue(hash[28]), new ByteValue(hash[29]), new ByteValue(hash[30]), new ByteValue(hash[31])));
-  }
-
-  /**
-   * Sleeps for some time.
-   * 
-   * @param milliseconds the time to sleep for
-   */
-  private static void sleep(long milliseconds) {
-    try {
-      Thread.sleep(milliseconds);
-    }
-    catch (InterruptedException e) {}
+  private StorageReference createBytes32(int player, byte[] hash) throws Exception {
+    return nodeWithAccounts.addConstructorCallTransaction
+      (new ConstructorCallTransactionRequest(
+        signers[player],
+        nodeWithAccounts.account(player),
+        getNonceAndIncrement(player), _100_000, ONE, classpath, CONSTRUCTOR_BYTES32,
+        new ByteValue(hash[0]), new ByteValue(hash[1]),
+        new ByteValue(hash[2]), new ByteValue(hash[3]),
+        new ByteValue(hash[4]), new ByteValue(hash[5]),
+        new ByteValue(hash[6]), new ByteValue(hash[7]),
+        new ByteValue(hash[8]), new ByteValue(hash[9]),
+        new ByteValue(hash[10]), new ByteValue(hash[11]),
+        new ByteValue(hash[12]), new ByteValue(hash[13]),
+        new ByteValue(hash[14]), new ByteValue(hash[15]),
+        new ByteValue(hash[16]), new ByteValue(hash[17]),
+        new ByteValue(hash[18]), new ByteValue(hash[19]),
+        new ByteValue(hash[20]), new ByteValue(hash[21]),
+        new ByteValue(hash[22]), new ByteValue(hash[23]),
+        new ByteValue(hash[24]), new ByteValue(hash[25]),
+        new ByteValue(hash[26]), new ByteValue(hash[27]),
+        new ByteValue(hash[28]), new ByteValue(hash[29]),
+        new ByteValue(hash[30]), new ByteValue(hash[31])));
   }
 }
 ```
@@ -4460,41 +4540,35 @@ The code specifies that the test will place 100 random bids, that the bidding ph
 lasts 40 seconds and that the reveal phase lasts 60 seconds:
 
 ```java
-private static final int NUM_BIDS = 100;
-private static final int BIDDING_TIME = 40_000;
-private static final int REVEAL_TIME = 60_000;
+public final static int NUM_BIDS = 100;
+public final static int BIDDING_TIME = 40_000;
+public final static int REVEAL_TIME = 60_000;
 ```
 
 Some constant signatures follow,
 that will simplify the call to methods and constructors later.
-The `main` method creates a `blockchain` with four accounts
-
-```java
-MemoryBlockchain blockchain = MemoryBlockchain.of(Paths.get("../io-takamaka-code/target/io-takamaka-code-1.0.jar"), _10_000_000, _10_000_000, _10_000_000, _10_000_000);
-```
-
-and installs the `auction.jar` archive in it:
-
-```java
-TransactionReference auctionJar = blockchain.addJarStoreTransaction
-  (new JarStoreTransactionRequest(beneficiary, _100_000, BigInteger.ONE, blockchain.takamakaCode(),
-  Files.readAllBytes(Paths.get("../auction/target/auction-0.0.1-SNAPSHOT.jar")), blockchain.takamakaCode()));
-```
+The constructor of `Main` creates a Hotmoka node,
+installs `auction-0.0.1-SNAPSHOT.jar` in it and creates
+four accounts. It stores the node
+in the field `nodeWithAccounts`.
 
 A method-local class `BidToReveal` is used to keep track of the bids placed
 during the test, in clear. Initially, bids are kept in
-memory, not in blockchain, and only their hashes will be stored in blockchain.
-Then `main` method creates an `auction` contract in blockchain:
+memory, not in the store of the node, and only their hashes are stored in
+the node. Then constructor of `Main` creates an `auction` contract in blockchain:
 
 ```java
-StorageReference auction = blockchain.addConstructorCallTransaction
-  (new ConstructorCallTransactionRequest(beneficiary, _100_000, BigInteger.ONE,
-   classpath, CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
+StorageReference auction = node.addConstructorCallTransaction
+  (new ConstructorCallTransactionRequest(signers[0], nodeWithAccounts.account(0),
+  getNonceAndIncrement(0), _100_000, ONE,
+  classpath, CONSTRUCTOR_BLIND_AUCTION,
+  new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
 ```
 
 and starts a loop that generates 100 (`NUM_BIDS`) random bids:
 
 ```java
+int i = 1;
 while (i <= NUM_BIDS) {
   int player = 1 + random.nextInt(3);
   BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
@@ -4510,7 +4584,7 @@ Each random bid is hashed (including a random salt) and a `Bytes32` object
 is created in blockchain, containing that hash:
 
 ```java
-StorageReference bytes32 = codeAsBytes32(player, value, fake, salt, blockchain, classpath, digest);
+StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
 ```
 
 The bid, in clear, is added to a list `bids` that, at the end of the loop,
@@ -4520,12 +4594,12 @@ will contain all bids:
 bids.add(new BidToReveal(player, value, fake, salt));
 ```
 
-The hash is used instead to place a bid in blockchain:
+The hash is used instead to place a bid in the node:
 
 ```java
-blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-  (blockchain.account(player), _100_000, BigInteger.ONE,
-   classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
+node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+  (signers[player], nodeWithAccounts.account(player), getNonceAndIncrement(player),
+  _100_000, ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
 ```
 
 The loop takes also care of keeping track of the best bidder, that placed
@@ -4536,7 +4610,7 @@ computed by the smart contract (they should coincide):
 if (!fake && deposit.compareTo(value) >= 0)
   if (expectedWinner == null || value.compareTo(maxBid) > 0) {
     maxBid = value;
-    expectedWinner = blockchain.account(player);
+    expectedWinner = nodeWithAccounts.account(player);
   }
   else if (value.equals(maxBid))
     continue;
@@ -4547,57 +4621,55 @@ is equal to the best bid seen so far. This avoids having two bidders
 that place the same bid: the smart contract will consider as winner
 the first bidder that reveals its bids. To avoid this tricky case, we prefer
 to assume that the best bid is unique. This is just a simplification of the
-`main` method, since the smart contract perfectly deals with that case.
+testing code, since the smart contract perfectly deals with that case.
 
-After all bids have been placed, the `main` method waits until the end of
+After all bids have been placed, the constructor of `Main` waits until the end of
 the bidding time:
 
 ```java
-waitUntil(BIDDING_TIME + 5000, start, blockchain, classpath);
+waitUntil(BIDDING_TIME + 5000);
 ```
 
 with a safe distance of five seconds.
 
-> You can see that the implementation of `waitUntil` triggers dummy
-> transactions during the wait. This is because the time of a blockchain
-> transaction is that of the block where it occurs. In a real blockchain,
-> transactions arrive continuously, hence the time of the blockchain progresses.
-> In this simulation, we are the only producers of transactions and we need
-> to keep the blockchain active to let its time progress.
-
-The `main` method then creates a storage list in blockchain for
-each bidder and populates it with the bids to reveal:
+Then the constructor of `Main` creates a storage list in the store
+of the node, for
+each bidder, and populates it with the bids to reveal:
 
 ```java
-for (BidToReveal bid: bids)
-  blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-    (blockchain.account(bid.player), _100_000, BigInteger.ONE, classpath, ADD,
-     lists[bid.player], bid.intoBlockchain()));
+for (BidToReveal bid: bids) {
+  StorageReference bidInBlockchain = bid.intoBlockchain();
+  node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+    (signers[bid.player], nodeWithAccounts.account(bid.player), getNonceAndIncrement(bid.player),
+    _100_000, ONE, classpath, ADD, lists[bid.player], bidInBlockchain));
+}
 ```
 
-The bids are in blockchain now, in clear, but the bidding time is over, so
-they cannot be used to guess a winning bid anymore. Then `main` reveals the
-bids of each player:
+The bids are in the node now, in clear, but the bidding time is over, so
+they cannot be used to guess a winning bid anymore. Then the constructor
+reveals the bids of each player:
 
 ```java
 for (int player = 1; player <= 3; player++)
-  blockchain.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-    (blockchain.account(player), _1_000_000, BigInteger.ONE, classpath, REVEAL, auction, lists[player]));
+  node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+    (signers[player], nodeWithAccounts.account(player), getNonceAndIncrement(player),
+    _1_000_000, ONE, classpath, REVEAL, auction, lists[player]));
 ```
 
 and waits until the end of the reveal phase, with a security distance of five seconds:
 
 ```java
-waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start, blockchain, classpath);
+waitUntil(BIDDING_TIME + REVEAL_TIME + 5000);
 ```
 
-After that, `main` signals that the auction is over and asks the winner to the
-smart contract:
+After that, the code signals that the auction is over and asks the
+smart contract about the winner:
 
 ```java
-StorageReference winner = (StorageReference) blockchain.addInstanceMethodCallTransaction
+StorageValue winner = node.addInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest
-    (beneficiary, _100_000, BigInteger.ONE, classpath, AUCTION_END, auction));
+    (signers[0], nodeWithAccounts.account(0), getNonceAndIncrement(0),
+    _100_000, ONE, classpath, AUCTION_END, auction));
 ```
 
 The final `System.out.println`s allow the tester to verify that the smart contract
@@ -4605,8 +4677,8 @@ actually computes the right winner, since they will always print the identical s
 object (different at each run, in general), such as:
 
 ```
-expected winner: 0.3#0
-actual winner: 0.3#0
+expected winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#0
+actual winner: 22ad14b0f5bc10037840180fd61096df6f64f91d3881ff4d34c022c75415236d#0
 ```
 
 # Code Verification <a name="code-verification"></a>
