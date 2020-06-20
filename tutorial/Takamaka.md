@@ -3731,14 +3731,14 @@ If not, the bid is considered invalid. Bidders can even place fake offers
 on purpose, in order to confuse other bidders.
 
 The following is a Takamaka contract that implements
-a blind auction is shown below. Since each bidder may place more bids and since such bids
+a blind auction. Since each bidder may place more bids and since such bids
 must be kept in storage until reveal time, this code uses a map
 from bidders to lists of bids. This smart contract has been inspired
 by a similar Solidity contract available
 <a href="https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2">here</a>.
 
 ```java
-package io.takamaka.tests.auction;
+package io.takamaka.auction;
 
 import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.now;
@@ -3760,7 +3760,7 @@ import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageMap;
 
 /**
- * A contract for a simple auction. This class is derived from the Solidity code shown at
+ * A contract for a simple auction. This class is derived from the Solidity code at
  * https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2
  * In this contract, bidders place bids together with a hash. At the end of
  * the bidding period, bidders are expected to reveal if and which of their bids
@@ -3877,17 +3877,20 @@ public class BlindAuction extends Contract {
   }
 
   /**
-   * Places a blinded bid the given hash.
-   * The sent money is only refunded if the bid is correctly
+   * Places a blinded bid with the given hash.
+   * The money sent is only refunded if the bid is correctly
    * revealed in the revealing phase. The bid is valid if the
    * money sent together with the bid is at least "value" and
    * "fake" is not true. Setting "fake" to true and sending
    * not the exact amount are ways to hide the real bid but
    * still make the required deposit. The same bidder can place multiple bids.
    */
-  public @Payable @Entry(PayableContract.class) void bid(BigInteger amount, Bytes32 hash) {
+  public @Payable @Entry(PayableContract.class) void bid
+      (BigInteger amount, Bytes32 hash) {
+
     onlyBefore(biddingEnd);
-    bids.computeIfAbsent((PayableContract) caller(), StorageList::new).add(new Bid(hash, amount));
+    bids.computeIfAbsent((PayableContract) caller(), StorageList::new)
+      .add(new Bid(hash, amount));
   }
 
   /**
@@ -3897,15 +3900,19 @@ public class BlindAuction extends Contract {
    * @param revealedBids the revealed bids
    * @throws NoSuchAlgorithmException if the hashing algorithm is not available
    */
-  public @Entry(PayableContract.class) void reveal(StorageList<RevealedBid> revealedBids) throws NoSuchAlgorithmException {
+  public @Entry(PayableContract.class) void reveal
+    (StorageList<RevealedBid> revealedBids) throws NoSuchAlgorithmException {
+
     onlyAfter(biddingEnd);
     onlyBefore(revealEnd);
     PayableContract bidder = (PayableContract) caller();
     StorageList<Bid> bids = this.bids.get(bidder);
     require(bids != null, "No bids to reveal");
-    require(revealedBids != null && revealedBids.size() == bids.size(), () -> "Expecting " + bids.size() + " revealed bids");
+    require(revealedBids != null && revealedBids.size() == bids.size(),
+      () -> "Expecting " + bids.size() + " revealed bids");
 
-    // any other hashing algorithm will do, as long as both bidder and auction contract use the same
+    // any other hashing algorithm will do, as long as
+    // both the bidder and the auction contract use the same
     MessageDigest digest = MessageDigest.getInstance("SHA-256");
     Iterator<Bid> it = bids.iterator();
     revealedBids.stream()
@@ -3943,16 +3950,21 @@ public class BlindAuction extends Contract {
    * @param digest the hashing algorithm
    * @return the amount to refund
    */
-  private BigInteger refundFor(PayableContract bidder, Bid bid, RevealedBid revealed, MessageDigest digest) {
+  private BigInteger refundFor(PayableContract bidder, Bid bid,
+      RevealedBid revealed, MessageDigest digest) {
+
     if (!bid.matches(revealed, digest))
       // the bid was not actually revealed: no refund
       return BigInteger.ZERO;
-    else if (!revealed.fake && bid.deposit.compareTo(revealed.value) >= 0 && placeBid(bidder, revealed.value))
-      // the bid was correctly revealed and is the best up to now: only the difference between promised and provided is refunded;
+    else if (!revealed.fake && bid.deposit.compareTo(revealed.value) >= 0
+        && placeBid(bidder, revealed.value))
+      // the bid was correctly revealed and is the best up to now:
+      // only the difference between promised and provided is refunded;
       // the rest might be refunded later if a better bid will be revealed
       return bid.deposit.subtract(revealed.value);
     else
-      // the bid was correctly revealed and is not the best one: it is fully refunded
+      // the bid was correctly revealed and is not the best one:
+      // it is fully refunded
       return bid.deposit;
   }
 
@@ -3998,8 +4010,8 @@ This information will be stored in blockchain at bidding time, hence
 it is known to all other participants. An instance of `Bid` contains
 the `deposit` payed at time of placing the bid. This is not necessarily
 the real value of the offer but must be at least as large as the real offer,
-or otherwise the bid will be considered invalid at reveal time. Instances
-of `Bid` contain a `hash` made up of 32 bytes. As already said, this will
+or otherwise the bid will be considered as invalid at reveal time. Instances
+of `Bid` contain a `hash` consisting of 32 bytes. As already said, this will
 be recomputed at reveal time and matched against the result.
 Since arrays cannot be stored in blockchain, we use storage class
 `io.takamaka.code.util.Bytes32` here, a library class that holds 32 bytes, as a
@@ -4035,7 +4047,7 @@ machine that runs the contract, that remains deterministic.
 
 Method `bid()` allows a caller (the bidder) to place a bid during the bidding phase.
 An instance of `Bid` is created and added to a list, specific to each
-bidder. Here is where our map comes to our help. Namely, field
+bidder. Here is where our map comes to help. Namely, field
 `bids` hold a `StorageMap<PayableContract, StorageList<Bid>>`,
 that can be held in blockchain since it is a storage map between storage keys
 and storage values. Method `bid()` computes an empty list of bids if it is the
@@ -4071,19 +4083,20 @@ _events_, such as:
 event(new AuctionEnd(winner, highestBid));
 ```
 
-Events are milestones that are saved in blockchain and can be queried
-from outside. Observers, external to the blockchain, can use events
-to trigger actions when they appear in blockchain. In terms of the
+Events are milestones that are saved in the store of a Hotmoka node
+and can be queried
+from outside. Observers, external to the node, can use events
+to trigger actions when they occur. In terms of the
 Takamaka language, events are generated through the
 `io.takamaka.code.lang.Takamaka.event(Event event)` method, that receives a parameter
 of type `io.takamaka.code.lang.Event`. The latter is simply an abstract class that
 extends `Storage`. Hence, events will
-be stored in blockchain as part of the transaction that generated that event.
+be stored in the node as part of the transaction that generated that event.
 
 In our example, the `BlindAuction` class uses two events, that are defined as
 
 ```java
-package io.takamaka.tests.auction;
+package io.takamaka.auction;
 
 import java.math.BigInteger;
 
@@ -4104,7 +4117,7 @@ public class BidIncrease extends Event {
 and
 
 ```java
-package io.takamaka.tests.auction;
+package io.takamaka.auction;
 
 import java.math.BigInteger;
 
@@ -4133,7 +4146,8 @@ the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi`, `
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+    http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.hotmoka</groupId>
@@ -4151,9 +4165,22 @@ the project inside the `hotmoka` directory, as a sibling of `family`, `ponzi`, `
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>1.0</version>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+	  <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+	    <version>3.8.1</version>
+		<configuration>
+		  <release>9</release>
+		</configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
 ```
@@ -4166,14 +4193,14 @@ module auction {
 }
 ```
 
-Create package `io.takamaka.tests.auction` inside `src` and add
+Create package `io.takamaka.auction` inside `src` and add
 the above `BlindAuction.java`, `BidIncrease.java`
 and `AuctionEnd.java` sources inside that package.
 Go inside the `auction` project and
 run `mvn package`. A file `auction-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 
 Go now to the `blockchain` Eclipse project and create a new
-`io.takamaka.tests.auction` package inside `src`. Add the following
+`io.takamaka.auction` package inside `src`. Add the following
 `Main.java` class inside that package:
 
 ```java
