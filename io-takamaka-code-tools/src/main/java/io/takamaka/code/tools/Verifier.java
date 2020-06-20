@@ -69,7 +69,7 @@ public class Verifier {
 		Options options = new Options();
 		options.addOption(Option.builder("app").desc("verify the given application jars").hasArgs().argName("JARS").required().build());
 		options.addOption(Option.builder("lib").desc("use the given library jars").hasArgs().argName("JARS").build());
-		options.addOption(Option.builder("init").desc("verify as during blockchain initialization").build());
+		options.addOption(Option.builder("init").desc("verify as before node initialization").build());
 
 		return options;
 	}

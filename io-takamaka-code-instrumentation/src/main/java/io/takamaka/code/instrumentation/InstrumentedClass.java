@@ -2,7 +2,6 @@ package io.takamaka.code.instrumentation;
 
 import org.apache.bcel.classfile.JavaClass;
 
-import io.hotmoka.nodes.GasCostModel;
 import io.takamaka.code.instrumentation.internal.InstrumentedClassImpl;
 import io.takamaka.code.verification.VerifiedClass;
 

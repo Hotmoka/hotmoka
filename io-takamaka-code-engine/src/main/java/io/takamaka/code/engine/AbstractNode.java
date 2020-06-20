@@ -49,9 +49,9 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.nodes.GasCostModel;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.AbstractNodeProxyForEngine;
+import io.takamaka.code.instrumentation.GasCostModel;
 
 /**
  * A generic implementation of a node.

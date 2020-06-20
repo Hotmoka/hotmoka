@@ -12,7 +12,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.nodes.GasCostModel;
+import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.TakamakaClassLoader;
 import io.takamaka.code.verification.VerifiedJar;

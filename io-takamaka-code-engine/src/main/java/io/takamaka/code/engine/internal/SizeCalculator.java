@@ -65,8 +65,8 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.nodes.GasCostModel;
 import io.takamaka.code.engine.internal.transactions.AbstractResponseBuilder;
+import io.takamaka.code.instrumentation.GasCostModel;
 
 /**
  * An object that knows about the size of objects when stored in the node's store.

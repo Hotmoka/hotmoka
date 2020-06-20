@@ -12,7 +12,7 @@ import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.nodes.GasCostModel;
+import io.takamaka.code.instrumentation.GasCostModel;
 import io.takamaka.code.instrumentation.InstrumentedClass;
 import io.takamaka.code.instrumentation.InstrumentedJar;
 import io.takamaka.code.verification.VerificationException;
