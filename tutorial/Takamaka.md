@@ -1,12 +1,3 @@
-# Takamaka: Smart Contracts in Java
-
-Takamaka is a Java framework for writing smart contracts.
-This tutorial explains how Takamaka code is written and
-executed in blockchain.
-Takamaka is included in the Hotmoka project, a framework
-for collaborating nodes, whose goal is to unify the programming
-model of blockchain and internet of things.
-
 # Table of Contents
 1. [Introduction](#introduction)
 2. [Installation](#installation)
@@ -55,6 +46,9 @@ to deal with the storage of objects in blockchain: this is completely
 transparent to them. This makes Takamaka completely different from other
 attempts at using Java for writing smart contracts, where programmers
 must use specific method calls to persist data on blockchain.
+Takamaka is included in the Hotmoka project, a framework
+for collaborating nodes, whose goal is to unify the programming
+model of blockchain and internet of things.
 
 Writing smart contracts in Java entails that programmers
 do not have to learn yet another programming language.
@@ -872,7 +866,6 @@ nonce of gamete: 2
 family-0.0.1-SNAPSHOT.jar: 4c5977f8f621cfeca03b903ab3a69b2cbf1ea76ca1138a312900ad...
 account: bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0
 ```
-
 showing that a new account has been created in blockchain and can be
 referenced with the storage address
 `bf611f33d602daa1917984c8a4a52c372b38adf404cebb7c0649e9d239869440#0`. If you refresh

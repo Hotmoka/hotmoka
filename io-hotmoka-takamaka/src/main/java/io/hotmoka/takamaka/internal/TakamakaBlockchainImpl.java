@@ -186,7 +186,7 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
 		// TODO?
-		// nothing to do, since Takamaka keeps the error message inside the blockchain
+		// I think we should add another Merkle-Patricia trie for error messages
 	}
 
 	/**

@@ -1,4 +1,11 @@
 % mystylefile.pandoc
+\usepackage[Lenny]{fncychap}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\leftmark}
+\fancyhead[LO]{\rightmark}
 \usepackage{tcolorbox}
 \newtcolorbox{myquote}{colback=red!5!white, colframe=red!75!black}
 \newtcolorbox{myverbatim}{colback=green!5!white, colframe=green!75!black}
