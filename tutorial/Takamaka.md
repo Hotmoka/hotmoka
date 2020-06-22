@@ -37,7 +37,7 @@
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
     - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
 
-[References](#references)
+7. [References](#references)
 
 # Introduction <a name="introduction"></a>
 
@@ -1964,8 +1964,8 @@ enforce a Ponzi investment scheme: each investor pays back the previous investor
 with at least a 10% reward; as long as new
 investors keep coming, each investor gets at least a 10% reward; the last
 investor, instead, will never see his/her investment back.
-The contract has been inspired by a similar Ethereum contract
-(see page 145 of [[IyerD08]](#IyerD08)).
+The contract has been inspired by a similar Ethereum contract, shown
+at page 145 of [[IyerD08]](#IyerD08).
 
 We will develop the contract in successive versions, in order to highlight
 the meaning of each language feature of Takamaka.
@@ -2251,8 +2251,8 @@ This limitation is a deliberate design choice of Takamaka.
 > function (and also through others, more surprising ways).
 > This led to software bugs, when a contract found itself
 > richer then expected, which violated some (wrong) invariants about
-> its state. For more information, see Antonopoulos and Wood,
-> *Mastering Ethereum*, page 181 (*Unexpected Ether*), 2019, O'Reilly Media, Inc.
+> its state. For more information, see page 181 of
+> [[AntonopoulosW19]](#AntonopoulosW19) (*Unexpected Ether*).
 
 So how do we send money back to `currentInvestor`? The solution is to
 restrict the kind of contracts that can take part in the Ponzi scheme.
@@ -2557,7 +2557,7 @@ not just of the current one as in `SimplePonzi.java`. This requires a
 list of investors, of unbounded size. An implementation of this gradual
 Ponzi contract is reported below and has been
 inspired by a similar Ethereum contract from Iyer and Dannen,
-*Building Games with Ethereum Smart Contracts*, page 150, Apress 2018:
+shown at page 150 of [[IyerD08]](#IyerD08).
 
 ```java
 package io.takamaka.ponzi;
@@ -5133,6 +5133,11 @@ Verification failed because of errors, no instrumented jar was generated
 ```
 
 # References <a name="references">
+
+<a id="AntonopoulosW19">[AntonopoulosW19]</a>
+Antonopoulos, A. M. and Wood, G. (2019).
+Mastering Ethereum: Building Smart Contracts and DApps.
+O'Reilly Media.
 
 <a id="IyerD08">[IyerD08]</a>
 Iyer, K. and Dannen, C. (2018).
