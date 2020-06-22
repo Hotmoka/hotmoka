@@ -37,6 +37,8 @@
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
     - [Command-Line Verification and Instrumentation](#command-line-verification-and-instrumentation)
 
+[References](#references)
+
 # Introduction <a name="introduction"></a>
 
 Takamaka is a Java framework for writing smart contracts.
@@ -5130,7 +5132,7 @@ io/takamaka/family/Person.java:35:
 Verification failed because of errors, no instrumented jar was generated
 ```
 
-# References
+# References <a name="references">
 
 <a id="IyerD08">[IyerD08]</a>
 Iyer, K. and Dannen, C. (2018).
