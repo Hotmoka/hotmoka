@@ -1,3 +1,8 @@
+---
+output: html_document
+bibliography: references.bib  
+---
+
 # Table of Contents
 1. [Introduction](#introduction)
 2. [Installation](#installation)
@@ -1963,8 +1968,7 @@ with at least a 10% reward; as long as new
 investors keep coming, each investor gets at least a 10% reward; the last
 investor, instead, will never see his/her investment back.
 The contract has been inspired by a similar Ethereum contract
-from Iyer and Dannen,
-*Building Games with Ethereum Smart Contracts*, page 145, Apress 2018.
+(see page 145 of [@IyerD08]).
 
 We will develop the contract in successive versions, in order to highlight
 the meaning of each language feature of Takamaka.
@@ -5130,3 +5134,5 @@ io/takamaka/family/Person.java:35:
 
 Verification failed because of errors, no instrumented jar was generated
 ```
+
+# References
