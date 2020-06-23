@@ -185,17 +185,7 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		// TODO?
-		// I think we should add another Merkle-Patricia trie for error messages
-	}
-
-	/**
-	 * Yields the number of commits already performed with this blockchain.
-	 * 
-	 * @return the number of commits
-	 */
-	long getNumberOfCommits() {
-		return state.getNumberOfCommits();
+		state.expand(this, reference, request, errorMessage);
 	}
 
 	/**

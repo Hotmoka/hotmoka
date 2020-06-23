@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.UncheckedIOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
@@ -71,7 +72,12 @@ class State implements AutoCloseable {
 	/**
 	 * The store that holds the Merkle-Patricia trie of the responses to the transactions.
 	 */
-	private Store patricia;
+	private Store patriciaForResponses;
+
+	/**
+	 * The store that holds the Merkle-Patricia trie of the errors to the transactions.
+	 */
+	private Store patriciaForErrors;
 
 	/**
 	 * The store that holds the history of each storage reference, ie, a list of
@@ -90,15 +96,15 @@ class State implements AutoCloseable {
 	 */
 	private long stateTime;
 
-    /**
-     * The key used inside {@linkplain #info} to keep the number of commits executed over this state.
-     */
-    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 0);
-
-    /**
+	/**
      * The key used inside {@linkplain #info} to keep the hash of the root of the Patricia trie of the responses.
      */
-    private final static ByteIterable ROOT = ArrayByteIterable.fromByte((byte) 1);
+    private final static ByteIterable ROOT_RESPONSES = ArrayByteIterable.fromByte((byte) 0);
+
+    /**
+     * The key used inside {@linkplain #info} to keep the hash of the root of the Patricia trie of the errors.
+     */
+    private final static ByteIterable ROOT_ERRORS = ArrayByteIterable.fromByte((byte) 1);
 
     /**
      * The key used inside {@linkplain #info} to keep the storage reference of the manifest of the node.
@@ -158,7 +164,8 @@ class State implements AutoCloseable {
     	// enforces that all stores exist
     	recordTime(() ->
     		env.executeInTransaction(txn -> {
-    			patricia = env.openStore("patricia", StoreConfig.WITHOUT_DUPLICATES, txn);
+    			patriciaForResponses = env.openStore("patricia_responses", StoreConfig.WITHOUT_DUPLICATES, txn);
+    			patriciaForErrors = env.openStore("patricia_errors", StoreConfig.WITHOUT_DUPLICATES, txn);
     			history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
     			info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
     		})
@@ -197,10 +204,6 @@ class State implements AutoCloseable {
 	 */
     void commitTransaction() {
     	recordTime(() -> {
-    		// we increase the number of commits performed over this state
-    		ByteIterable numberOfCommitsAsByteIterable = info.get(txn, COMMIT_COUNT);
-    		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytesUnsafe()));
-    		info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(numberOfCommits + 1).getBytes()));
     		if (!txn.commit())
     			logger.info("Block transaction commit failed");
     	});
@@ -215,7 +218,7 @@ class State implements AutoCloseable {
 	Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		return recordTime(() -> env.computeInReadonlyTransaction(txn -> {
 			try {
-				return Optional.of(getTrie(txn).get(reference));
+				return Optional.of(getTrieForResponses(txn).get(reference));
 			}
 			catch (NoSuchElementException e) {
 				return Optional.empty();
@@ -225,7 +228,7 @@ class State implements AutoCloseable {
 
 	/**
 	 * Yields the response of the transaction having the given reference.
-	 * The response if returned also when it is in the current transaction, not yet committed.
+	 * The response is returned also when it is in the current transaction, not yet committed.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response, if any
@@ -240,7 +243,7 @@ class State implements AutoCloseable {
 
 		return recordTime(() -> {
 			try {
-				return Optional.of(getTrie(txn).get(reference));
+				return Optional.of(getTrieForResponses(txn).get(reference));
 			}
 			catch (NoSuchElementException e) {
 				return Optional.empty();
@@ -263,16 +266,6 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Yields the number of commits already performed over this state.
-	 * 
-	 * @return the number of commits
-	 */
-	long getNumberOfCommits() {
-		ByteIterable numberOfCommitsAsByteIterable = getFromInfo(COMMIT_COUNT);
-		return numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytesUnsafe()));
-	}
-
-	/**
 	 * Yields the manifest installed when the node is initialized.
 	 * 
 	 * @return the manifest
@@ -288,7 +281,7 @@ class State implements AutoCloseable {
 	 * @return the hash. If the state is currently empty, it yields an array of a single, 0 byte
 	 */
 	byte[] getHash() {
-		ByteIterable hashOfTrieRoot = getFromInfo(ROOT);
+		ByteIterable hashOfTrieRoot = getFromInfo(ROOT_RESPONSES);
 		if (hashOfTrieRoot == null)
 			return new byte[0];
 		else
@@ -313,7 +306,7 @@ class State implements AutoCloseable {
 
 			@Override
 			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-				recordTime(() -> getTrie(txn).put(reference, response));
+				recordTime(() -> getTrieForResponses(txn).put(reference, response));
 				// the request is inside the blockchain itself, is not kept in state
 			}
 
@@ -346,33 +339,47 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Yields the Merkle-Patricia trie for this state.
+	 * Expands this state with the result of a failed Hotmoka transaction. This method
+	 * is called during the construction of a block, hence {@linkplain #txn} exists and is not yet committed.
+	 * 
+	 * @param node the node having this state
+	 * @param reference the reference of the request
+	 * @param request the request of the transaction
+	 * @param errorMessage the error generated by the transaction
+	 */
+	void expand(AbstractNodeWithHistory<?> node, TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+		recordTime(() -> getTrieForErrors(txn).put(reference, new MarshallableString(errorMessage)));
+		// the request is inside the blockchain itself, is not kept in state
+	}
+
+	/**
+	 * Yields the Merkle-Patricia trie for the responses in this state.
 	 * 
 	 * @param txn the transaction for which the trie is being built
 	 * @return the trie
 	 */
-	private PatriciaTrie<TransactionReference, TransactionResponse> getTrie(Transaction txn) {
+	private PatriciaTrie<TransactionReference, TransactionResponse> getTrieForResponses(Transaction txn) {
 		KeyValueStore keyValueStore = new KeyValueStore() {
 	
 			@Override
 			public byte[] getRoot() {
-				ByteIterable root = info.get(txn, ROOT);
+				ByteIterable root = info.get(txn, ROOT_RESPONSES);
 				return root == null ? null : root.getBytesUnsafe();
 			}
 	
 			@Override
 			public void setRoot(byte[] root) {
-				info.put(txn, ROOT, new ArrayByteIterable(root));
+				info.put(txn, ROOT_RESPONSES, new ArrayByteIterable(root));
 			}
 	
 			@Override
 			public void put(byte[] key, byte[] value) {
-				patricia.put(txn, new ArrayByteIterable(key), new ArrayByteIterable(value));
+				patriciaForResponses.put(txn, new ArrayByteIterable(key), new ArrayByteIterable(value));
 			}
 	
 			@Override
 			public byte[] get(byte[] key) throws NoSuchElementException {
-				ByteIterable result = patricia.get(txn, new ArrayByteIterable(key));
+				ByteIterable result = patriciaForResponses.get(txn, new ArrayByteIterable(key));
 				if (result == null)
 					throw new NoSuchElementException("no Merkle-Patricia trie node");
 				else
@@ -381,6 +388,61 @@ class State implements AutoCloseable {
 		};
 
 		return PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+	}
+
+	private static class MarshallableString extends Marshallable {
+		private final String string;
+
+		private MarshallableString(String string) {
+			this.string = string;
+		}
+
+		@Override
+		public void into(ObjectOutputStream oos) throws IOException {
+			oos.writeUTF(string);
+		}
+
+		private final static MarshallableString from(ObjectInputStream ois) throws IOException {
+			return new MarshallableString(ois.readUTF());
+		}
+	}
+
+	/**
+	 * Yields the Merkle-Patricia trie for the errors in this state.
+	 * 
+	 * @param txn the transaction for which the trie is being built
+	 * @return the trie
+	 */
+	private PatriciaTrie<TransactionReference, MarshallableString> getTrieForErrors(Transaction txn) {
+		KeyValueStore keyValueStore = new KeyValueStore() {
+	
+			@Override
+			public byte[] getRoot() {
+				ByteIterable root = info.get(txn, ROOT_ERRORS);
+				return root == null ? null : root.getBytesUnsafe();
+			}
+	
+			@Override
+			public void setRoot(byte[] root) {
+				info.put(txn, ROOT_ERRORS, new ArrayByteIterable(root));
+			}
+	
+			@Override
+			public void put(byte[] key, byte[] value) {
+				patriciaForErrors.put(txn, new ArrayByteIterable(key), new ArrayByteIterable(value));
+			}
+	
+			@Override
+			public byte[] get(byte[] key) throws NoSuchElementException {
+				ByteIterable result = patriciaForErrors.get(txn, new ArrayByteIterable(key));
+				if (result == null)
+					throw new NoSuchElementException("no Merkle-Patricia trie node");
+				else
+					return result.getBytesUnsafe();
+			}
+		};
+
+		return PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, MarshallableString::from);
 	}
 
 	/**
