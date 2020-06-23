@@ -1,5 +1,8 @@
 package io.hotmoka.takamaka.internal;
 
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -102,6 +105,25 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 		return manifest.get();
 	}
 
+	/**
+	 * Executes the given requests, in the order of the stream,
+	 * assuming the given value as current time. Typically, the
+	 * requests are the group of smart contract requests contained in a block
+	 * whose timestamp if {@code now}.
+	 * 
+	 * @param now the time to use for the current time
+	 * @param requests the requests to execute, in the order of the stream
+	 * @return the hash of the state at the end of the execution of the requests
+	 */
+	public byte[] processGroup(long now, Stream<byte[]> requests) {
+		state.beginTransaction();
+		this.now = now;
+		requests.forEachOrdered(this::processSingleRequest);
+		state.commitTransaction();
+
+		return state.getHash();
+	}
+
 	@Override
 	protected boolean isInitialized() {
 		return state.getManifest().isPresent();
@@ -185,34 +207,38 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 
 	@Override
 	protected void expandStore(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		state.expand(this, reference, request, errorMessage);
+		state.expand(this, reference, request, trimmedMessage(errorMessage));
 	}
 
-	/**
-	 * Starts a new block, at the given time.
-	 * This is called by the ABCI when it needs to create a new block.
+	 /**
+	 * Executes a request.
 	 * 
-	 * @param now the time when the block is being created
+	 * @param bytes the bytes of the request
 	 */
-	void beginBlock(long now) {
-		state.beginTransaction();
-		this.now = now;
+	private void processSingleRequest(byte[] bytes) {
+		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+			TransactionRequest<?> request = TransactionRequest.from(ois);
+			checkTransaction(request);
+			deliverTransaction(request);
+		}
+		catch (Throwable t) {
+			// checkTransaction()/deliverTransaction() already
+			// expand the state with an error if there is an exception
+		}
 	}
 
 	/**
-	 * Commits the current block.
-	 * This is called by the ABCI when it needs to commit the current block.
-	 */
-	void commitBlock() {
-		state.commitTransaction();
-	}
+     * Yields the error message in a format that can be put in the errors trie.
+     * The message is trimmed, to avoid overflow, and Base64-encoded.
+     *
+     * @param errorMessage the error message that is processed
+     * @return the resulting message
+     */
+    private String trimmedMessage(String errorMessage) {
+		int length = errorMessage.length();
+		if (length > config.maxErrorLength)
+			errorMessage = errorMessage.substring(0, config.maxErrorLength) + "...";
 
-	/**
-	 * Yields the hash of the state.
-	 * 
-	 * @return the hash
-	 */
-	byte[] getStateHash() {
-		return state.getHash();
-	}
+		return Base64.getEncoder().encodeToString(errorMessage.getBytes());
+    }
 }

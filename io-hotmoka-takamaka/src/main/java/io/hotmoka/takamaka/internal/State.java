@@ -276,16 +276,23 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Yields the hash of this state.
+	 * Yields the hash of this state, that is the sequence of the hash of the
+	 * root trie for responses and the hash of the root trie for errors.
 	 * 
-	 * @return the hash. If the state is currently empty, it yields an array of a single, 0 byte
+	 * @return the hash
 	 */
 	byte[] getHash() {
-		ByteIterable hashOfTrieRoot = getFromInfo(ROOT_RESPONSES);
-		if (hashOfTrieRoot == null)
-			return new byte[0];
-		else
-			return hashOfTrieRoot.getBytesUnsafe();
+		byte[] result = new byte[64];
+		ByteIterable hashOfTrieForResponsesRoot = getFromInfo(ROOT_RESPONSES);
+		ByteIterable hashOfTrieForErrorsRoot = getFromInfo(ROOT_ERRORS);
+
+		if (hashOfTrieForResponsesRoot != null)
+			System.arraycopy(hashOfTrieForResponsesRoot.getBytesUnsafe(), 0, result, 0, 32);
+
+		if (hashOfTrieForErrorsRoot != null)
+			System.arraycopy(hashOfTrieForErrorsRoot.getBytesUnsafe(), 0, result, 32, 32);
+
+		return result;
 	}
 
 	/**
