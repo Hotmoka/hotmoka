@@ -141,7 +141,7 @@ You should see this inside Eclipse's project explorer:
 You can compile, package, test and install the Hotmoka jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
 `Run As` and then the `Mavel install` target. You can also run the tests inside
-the Eclipse JUnit runner, by right clicking on the `io-takamaka-tests` subproject
+the Eclipse JUnit runner, by right-clicking on the `io-takamaka-tests` subproject
 and selecting `Run As` and then the `JUnit Test` target.
 
 # A First Takamaka Program <a name="first-program"></a>
@@ -244,7 +244,9 @@ The result in Eclipse should look similar to the following:
 
 ![The `family` Eclipse project](pics/family.png "The family Eclipse project")
 
-Create a `module-info.java` file inside `src/main/java`, to state that this project depends
+Create a `module-info.java` file inside `src/main/java`
+(right-click on the `family` project &rarr; Configure &arr; Create module-info.java &arr; Create),
+to state that this project depends
 on the module containing the runtime classes of Takamaka, needed for development:
 
 ```java
@@ -397,7 +399,7 @@ module blockchain {
 ```
 
 Create a package
-`io.takamaka.family` inside `src` and add the following class `Main.java`
+`io.takamaka.family` inside `src/main/java` and add the following class `Main.java`
 inside it:
 
 ```java
@@ -2027,7 +2029,7 @@ module ponzi {
 }
 ```
 
-Create package `io.takamaka.ponzi` inside `src` and add
+Create package `io.takamaka.ponzi` inside `src/main/java` and add
 the following `SimplePonzi.java` source inside that package:
 
 ```java
@@ -3017,7 +3019,7 @@ module tictactoe {
 }
 ```
 
-Create package `io.takamaka.tictactoe` inside `src` and add
+Create package `io.takamaka.tictactoe` inside `src/main/java` and add
 the following `TicTacToe.java` source inside that package:
 
 ```java
@@ -4187,14 +4189,14 @@ module auction {
 }
 ```
 
-Create package `io.takamaka.auction` inside `src` and add
+Create package `io.takamaka.auction` inside `src/main/java` and add
 the above `BlindAuction.java`, `BidIncrease.java`
 and `AuctionEnd.java` sources inside that package.
 Go inside the `auction` project and
 run `mvn package`. A file `auction-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 
 Go now to the `blockchain` Eclipse project and create a new
-`io.takamaka.auction` package inside `src`. Add the following
+`io.takamaka.auction` package inside `src/main/java`. Add the following
 `Main.java` class inside that package:
 
 ```java
