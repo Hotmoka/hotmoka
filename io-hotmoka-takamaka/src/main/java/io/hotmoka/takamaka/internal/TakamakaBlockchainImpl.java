@@ -115,13 +115,27 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	 * @param requests the requests to execute, in the order of the stream
 	 * @return the hash of the state at the end of the execution of the requests
 	 */
-	public byte[] processGroup(long now, Stream<byte[]> requests) {
+	public byte[] doGroup(long now, Stream<byte[]> requests) {
 		state.beginTransaction();
 		this.now = now;
 		requests.forEachOrdered(this::processSingleRequest);
 		state.commitTransaction();
 
 		return state.getHash();
+	}
+
+	/**
+	 * Undoes the effects of the given requests, in the inverse order of the stream.
+	 * Typically, the requests are the group of smart contract requests contained
+	 * in a block that is being abandoned, for coming back to its previous block, where
+	 * the state of the has was the given one.
+	 * 
+	 * @param requests the requests to undo, in the opposite order of the stream
+	 * @param previousHash the hash of the state to reset after undoing the requests
+	 */
+	public void undoGroup(Stream<byte[]> requests, byte[] previousHash) {
+		state.removeRequestsFromHistory(requests);
+		state.setHash(previousHash);
 	}
 
 	@Override

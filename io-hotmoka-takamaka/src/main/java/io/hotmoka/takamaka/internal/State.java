@@ -296,6 +296,34 @@ class State implements AutoCloseable {
 	}
 
 	/**
+	 * Sets the hash of this state, hence resetting the responses trie and the
+	 * errors trie to a previous position.
+	 * 
+	 * @param hash the hash where the state is reset to
+	 */
+	void setHash(byte[] hash) {
+		byte[] hashOfTrieForResponsesRoot = new byte[32];
+		byte[] hashOfTrieForErrorsRoot = new byte[32];
+		System.arraycopy(hash, 0, hashOfTrieForResponsesRoot, 0, 32);
+		System.arraycopy(hash, 32, hashOfTrieForErrorsRoot, 0, 32);
+
+		recordTime(() -> env.executeInTransaction(txn -> {
+			info.put(txn, ROOT_RESPONSES, new ArrayByteIterable(hashOfTrieForResponsesRoot));
+			info.put(txn, ROOT_ERRORS, new ArrayByteIterable(hashOfTrieForErrorsRoot));
+		}));
+	}
+
+	/**
+	 * Removes the given requests from the histories of this state.
+	 * 
+	 * @param requests the requests to remove, in reverse stream order
+	 */
+	void removeRequestsFromHistory(Stream<byte[]> requests) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
 	 * Expands this state with the result of a successful Hotmoka transaction. This method
 	 * is called during the construction of a block, hence {@linkplain #txn} exists and is not yet committed.
 	 * 
