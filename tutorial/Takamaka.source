@@ -139,7 +139,7 @@ the parent Maven project contained in the `hotmoka` directory that you cloned fr
 GitHub. This should create, inside Eclipse, also its submodule projects.
 You should see, inside Eclipse's project explorer, something like Figure @fig:projects.
 
-![The Eclipse projects of Hotmoka.](pics/projects.png "The Eclipse projects of Hotmoka."){#fig:projects}
+![Figure @fig:projects. The Eclipse projects of Hotmoka.](pics/projects.png "Figure @fig:projects. The Eclipse projects of Hotmoka.")
 
 You can compile, package, test and install the Hotmoka jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
@@ -246,7 +246,7 @@ and everything should compile without errors.
 The result in Eclipse should look similar to that
 shown in Figure @fig:family.
 
-![The `family` Eclipse project.](pics/family.png "The family Eclipse project."){#fig:family}
+![Figure @fig:family. The `family` Eclipse project.](pics/family.png "Figure @fig:family. The family Eclipse project.")
 
 Create a `module-info.java` file inside `src/main/java`
 (right-click on the `family` project &rarr; Configure &arr; Create module-info.java &arr; Create),
@@ -313,7 +313,7 @@ All such files can be removed from the jar, to reduce the gas cost of their
 installation in blockchain, but we do not care about this optimization here.
 The result should look as in Figure @fig:family_jar:
 
-![The `family` Eclipse project, exported in jar.](pics/family_jar.png "The family Eclipse project, exported in jar."){#fig:family_jar}
+![Figure @fig:family_jar. The `family` Eclipse project, exported in jar.](pics/family_jar.png "Figure @fig:family_jar. The family Eclipse project, exported in jar.")
 
 ## Creation of a Blockchain in Memory <a name="memory-blockchain"></a>
 
@@ -392,7 +392,7 @@ Leave directory `src/test/java` empty, by deleting its content, if not already e
 
 The result should look like as in Figure @fig:blockchain1.
 
-![The `blockchain` Eclipse project.](pics/blockchain1.png "The blockchain Eclipse project."){#fig:blockchain1}
+![Figure @fig:blockchain1. The `blockchain` Eclipse project.](pics/blockchain1.png "Figure @fig:blockchain1. The blockchain Eclipse project.")
 
 Create a `module-info.java` inside `src/main/java`, containing:
 
@@ -506,7 +506,7 @@ Inside that block, there are four transactions, corresponding
 to the four steps above, that initialize a Hotmoka node
 (see Figure @fig:blockchain2).
 
-![The `chain` directory appeared.](pics/blockchain2.png "The chain directory appeared."){#fig:blockchain2}
+![Figure @fig:blockchain2. The `chain` directory appeared.](pics/blockchain2.png "Figure @fig:blockchain2. The chain directory appeared.")
 
 Each transaction is specified by a request and a corresponding
 response. They are kept in serialized form (`request` and `response`) but are also
@@ -715,7 +715,7 @@ a single dependency: `io-takamaka-code-1.0.0.jar`. This means that when, below, 
 Refresh the `blockchain` project and see how the `chain` directory
 is one transaction longer now (see Figure @fig:blockchain3).
 
-![A new transaction appeared in the `chain` directory.](pics/blockchain3.png "A new transaction appeared in the chain directory."){#fig:blockchain3}
+![Figure @fig:blockchain3. A new transaction appeared in the `chain` directory.](pics/blockchain3.png "Figure @fig:blockchain3. A new transaction appeared in the chain directory.")
 
 The fifth new transaction reports a `request` that corresponds to the request that we have
 coded in the `Main` class. Namely, its textual representation `request.txt` is:
@@ -2400,22 +2400,19 @@ nonce. This simplifies the call.
 
 ## The Hierarchy of Contracts <a name="hierarchy-contracts"></a>
 
-The figure below shows the hierarchy of Takamaka contract classes.
+Figure @fig:contract_hierarchy shows the hierarchy of Takamaka contract classes.
 The topmost abstract class `io.takamaka.code.lang.Contract`
 extends `io.takamaka.code.lang.Storage`, since contracts are meant to be
 stored in blockchain (as well as other classes that are not contracts,
-such as our first `Person` example):
-
-<p align="center">
-  <img width="600" height="700" src="pics/contracts.png" alt="The hierarchy of contracts">
-</p>
-
+such as our first `Person` example).
 Programmers typically extend `Contract` to define their own contracts.
 This is the case, for instance, of our `SimplePonzi` class.
 Class `Contract` provides two final protected methods: `caller()` can
 be used inside an `@Entry` method or constructor to access the calling
 contract and `balance()` can be used to access the private `balance` field
 of the contract.
+
+![Figure @fig:contract_hierarchy. The hierarchy of contract classes.](pics/contracts.png "Figure @fig:contract_hierarchy. The hierarchy of contract classes.")
 
 The abstract subclass `PayableContract` is meant for contracts that
 can receive coins from other contracts, through their final
@@ -2941,25 +2938,20 @@ Next section shows an example of use for `StorageArray<T>`.
 Tic-tac-toe is a two-players game where players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
 player who places three crosses or three circles on the same row,
-column or diagonal. For instance, in the following board the player of
-the cross wins:
+column or diagonal. For instance, in Figure @fig:cross_wins the player of
+the cross wins.
 
-<p align="center">
-  <img width="200" height="200" src="pics/tictactoe_wins.png" alt="Cross wins">
-</p>
+![Figure @fig:cross_wins. Cross wins.](pics/tictactoe_wins.png "Figure @fig:cross_wins. Cross wins."){ width=30% }
 
-There are games that end up in a draw, when the board is full but nobody won:
+There are games that end up in a draw, when the board is full but nobody won,
+as in Figure @fig:tictactoe_draw.
 
-<p align="center">
-  <img width="250" height="250" src="pics/tictactoe_draw.png" alt="A draws">
-</p>
+![Figure @fig:tictactoe_draw. A draw.](pics/tictactoe_draw.png "Figure @fig:tictactoe_draw. A draw."){ width=35% }
 
 A natural representation of the tic-tac-toe board is a bidimensional array
-where indexes are distributed as follows:
+where indexes are distributed, as shown in Figure @fig:tictactoe_grid.
 
-<p align="center">
-  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Tic-tac-toe grid">
-</p>
+![Figure @fig:tictactoe_grid. A bidimensional representation of the game.](pics/tictactoe_grid.png "Figure @fig:tictactoe_grid. A bidimensional representation of the game."){ width=35% }
 
 This can be implemented as `StorageArray<StorageArray<Tile>>`, where `Tile` is
 an enumeration of the three possible tiles (empty, cross, circle). This is
@@ -2968,9 +2960,7 @@ to use the previous diagram as a conceptual representation of the board
 shown to the users, but use, internally,
 a monodimensional array of nine tiles, distributed as follows:
 
-<p align="center">
-  <img width="250" height="250" src="pics/tictactoe_grid_linear.png" alt="Tic-tac-toe linear grid">
-</p>
+![Figure @fig:tictactoe_linear. A linear representation of the game.](pics/tictactoe_grid_linear.png "Figure @fig:tictactoe_linear. A linear representation of the game."){ width=30% }
 
 which can be implemented as a `StorageArray<Tile>`. There will be functions
 for translating the conceptual representation into the internal one.
@@ -3669,13 +3659,10 @@ can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 Moreover, they exist in two flavors: immutable and mutable.
 
-Below we show the hierarchy of the specialized classes for arrays of bytes,
-available in Takamaka:
+![Figure @fig:array_hierarchy. Specialized byte array classes.](pics/bytes.png "Figure @fig:array_hierarchy. Specialized byte array classes.")
 
-<p align="center">
-  <img width="850" height="700" src="pics/bytes.png" alt="Specialized Byte Array Classes">
-</p>
-
+Figure @fig:array_hierarchy shows the hierarchy of the specialized classes for arrays of bytes,
+available in Takamaka.
 Green classes are immutable. Red classes and red interfaces are mutable.
 Class `Bytes` allows one to create byte arrays of any length,
 specified at construction time.

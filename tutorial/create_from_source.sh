@@ -1,5 +1,23 @@
 #!/bin/bash
-pandoc Takamaka.source --from=markdown --filter pandoc-fignos -o Takamaka.md
+
+# generate the Markdown version
+cp Takamaka.source Takamaka.md
+
+# place figure references. I miss Latex...
+sed -i 's/@fig:projects/1/g' Takamaka.md
+sed -i 's/@fig:family_jar/3/g' Takamaka.md
+sed -i 's/@fig:family/2/g' Takamaka.md
+sed -i 's/@fig:blockchain1/4/g' Takamaka.md
+sed -i 's/@fig:blockchain2/5/g' Takamaka.md
+sed -i 's/@fig:blockchain3/6/g' Takamaka.md
+sed -i 's/@fig:contract_hierarchy/7/g' Takamaka.md
+sed -i 's/@fig:cross_wins/8/g' Takamaka.md
+sed -i 's/@fig:tictactoe_draw/9/g' Takamaka.md
+sed -i 's/@fig:tictactoe_grid/10/g' Takamaka.md
+sed -i 's/@fig:tictactoe_linear/11/g' Takamaka.md
+sed -i 's/@fig:array_hierarchy/12/g' Takamaka.md
+
+# generate the PDF version now
 pandoc Takamaka.md -o Takamaka.tex --include-in-header mystylefile.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
 sed -i 's/\\begin{verbatim}/\\begin{myverbatim}\n\\begin{verbatim}/g' Takamaka.tex
 sed -i 's/\\end{verbatim}/\\end{verbatim}\n\\end{myverbatim}/g' Takamaka.tex
