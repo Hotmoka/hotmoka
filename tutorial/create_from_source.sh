@@ -16,9 +16,12 @@ sed -i 's/@fig:tictactoe_draw/9/g' Takamaka.md
 sed -i 's/@fig:tictactoe_grid/10/g' Takamaka.md
 sed -i 's/@fig:tictactoe_linear/11/g' Takamaka.md
 sed -i 's/@fig:array_hierarchy/12/g' Takamaka.md
+cp Takamaka.md temp.md
+sed -i "/^\[PDFonly]:/d" Takamaka.md
+sed -i "s/\[Markdownonly]://g" Takamaka.md
 
 # generate the PDF version now
-cp Takamaka.md temp.md
+sed -i "/^\[Markdownonly]:/d" temp.md
 sed -i "s/\[PDFonly]://g" temp.md
 pandoc temp.md -o Takamaka.tex --include-in-header mystylefile.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
 rm temp.md
