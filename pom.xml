@@ -4,8 +4,8 @@
 
     <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <maven.compiler.source>9</maven.compiler.source>
-      <maven.compiler.target>9</maven.compiler.target>
+      <maven.compiler.source>11</maven.compiler.source>
+      <maven.compiler.target>11</maven.compiler.target>
       <failOnMissingWebXml>false</failOnMissingWebXml>
       <project.version>1.0.0</project.version>
     </properties>
@@ -44,7 +44,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
 		  <version>3.8.1</version>
 		  <configuration>
-		    <release>9</release>
+		    <release>11</release>
 		  </configuration>
         </plugin>
 		<plugin>
@@ -68,7 +68,7 @@
           <version>3.2.0</version>
           <configuration>
             <finalName>hotmoka-and-takamaka-assembly-${project.version}</finalName>
-            <!-- We remove these manually, since this project is currently not a Java 9 project that understands internal packages by itself -->
+            <!-- We remove these manually, since this project is currently not a Java >= 9 project that understands internal packages by itself -->
             <excludePackageNames>io.hotmoka.tendermint.internal:io.hotmoka.tendermint.internal.beans</excludePackageNames>
             <additionalJOptions>
 		        <additionalJOption>-Xmaxerrs</additionalJOption>
