@@ -30,8 +30,6 @@
           <protocArtifact>com.google.protobuf:protoc:3.11.4:exe:${os.detected.classifier}</protocArtifact>
           <pluginId>grpc-java</pluginId>
           <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.28.0:exe:${os.detected.classifier}</pluginArtifact>
-          <includeMavenTypes>direct</includeMavenTypes>
-          <includeStdTypes>true</includeStdTypes>
         </configuration>
         <executions>
           <execution>
