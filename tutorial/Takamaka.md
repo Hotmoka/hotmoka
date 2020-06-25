@@ -2941,17 +2941,27 @@ player who places three crosses or three circles on the same row,
 column or diagonal. For instance, in Figure 8 the player of
 the cross wins.
 
-![Figure 8. Cross wins.](pics/tictactoe_wins.png "Figure 8. Cross wins."){ width=30% }
+<p align="center"><img width="200" height="200" src="pics/tictactoe_wins.png" alt="Figure 8. Cross wins."></p>
+
+[PDFonly] ![Figure 8. Cross wins.](pics/tictactoe_wins.png "Figure 8. Cross wins."){ width=30% }
 
 There are games that end up in a draw, when the board is full but nobody won,
 as in Figure 9.
 
-![Figure 9. A draw.](pics/tictactoe_draw.png "Figure 9. A draw."){ width=35% }
+<p align="center">
+  <img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure 9. A draw.">
+</p>
+
+[PDFonly] ![Figure 9. A draw.](pics/tictactoe_draw.png "Figure 9. A draw."){ width=35% }
 
 A natural representation of the tic-tac-toe board is a bidimensional array
 where indexes are distributed, as shown in Figure 10.
 
-![Figure 10. A bidimensional representation of the game.](pics/tictactoe_grid.png "Figure 10. A bidimensional representation of the game."){ width=35% }
+<p align="center">
+  <img width="250" height="250" src="pics/tictactoe_grid.png" alt="Figure 10. A bidimensional representation of the game.">
+</p>
+
+[PDFonly] ![Figure 10. A bidimensional representation of the game.](pics/tictactoe_grid.png "Figure 10. A bidimensional representation of the game."){ width=35% }
 
 This can be implemented as `StorageArray<StorageArray<Tile>>`, where `Tile` is
 an enumeration of the three possible tiles (empty, cross, circle). This is
@@ -2960,7 +2970,11 @@ to use the previous diagram as a conceptual representation of the board
 shown to the users, but use, internally,
 a monodimensional array of nine tiles, distributed as follows:
 
-![Figure 11. A linear representation of the game.](pics/tictactoe_grid_linear.png "Figure 11. A linear representation of the game."){ width=30% }
+<p align="center">
+  <img width="250" height="250" src="pics/tictactoe_grid_linear.png" alt="Figure 11. A linear representation of the game.">
+</p>
+
+[PDFonly] ![Figure 11. A linear representation of the game.](pics/tictactoe_grid_linear.png "Figure 11. A linear representation of the game."){ width=30% }
 
 which can be implemented as a `StorageArray<Tile>`. There will be functions
 for translating the conceptual representation into the internal one.

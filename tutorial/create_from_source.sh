@@ -18,7 +18,10 @@ sed -i 's/@fig:tictactoe_linear/11/g' Takamaka.md
 sed -i 's/@fig:array_hierarchy/12/g' Takamaka.md
 
 # generate the PDF version now
-pandoc Takamaka.md -o Takamaka.tex --include-in-header mystylefile.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
+cp Takamaka.md temp.md
+sed -i "s/\[PDFonly]//g" temp.md
+pandoc temp.md -o Takamaka.tex --include-in-header mystylefile.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
+rm temp.md
 sed -i 's/\\begin{verbatim}/\\begin{myverbatim}\n\\begin{verbatim}/g' Takamaka.tex
 sed -i 's/\\end{verbatim}/\\end{verbatim}\n\\end{myverbatim}/g' Takamaka.tex
 sed -i 's/103 \& alicudi/$10^3$ \& alicudi/g' Takamaka.tex
