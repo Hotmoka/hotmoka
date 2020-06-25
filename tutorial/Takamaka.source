@@ -137,9 +137,9 @@ running the examples in the next sections of this tutorial). For that,
 use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
 the parent Maven project contained in the `hotmoka` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
-You should see this inside Eclipse's project explorer:
+You should see, inside Eclipse's project explorer, something like Figure @fig:projects.
 
-![The Eclipse projects of Hotmoka](pics/projects.png "The Eclipse projects of Hotmoka")
+![The Eclipse projects of Hotmoka.](pics/projects.png "The Eclipse projects of Hotmoka."){#fig:projects}
 
 You can compile, package, test and install the Hotmoka jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
@@ -244,9 +244,9 @@ jar has been installed inside your local Maven repository, hence it is
 possible to refer to it in the `pom.xml` of our project
 and everything should compile without errors.
 The result in Eclipse should look similar to that
-shown in Figure 2.
+shown in Figure @fig:family.
 
-![The `family` Eclipse project](pics/family.png "The family Eclipse project")
+![The `family` Eclipse project.](pics/family.png "The family Eclipse project."){#fig:family}
 
 Create a `module-info.java` file inside `src/main/java`
 (right-click on the `family` project &rarr; Configure &arr; Create module-info.java &arr; Create),
@@ -311,9 +311,9 @@ and any resources in the jar; the same compiled
 `module-info.class` is irrelevant in the jar.
 All such files can be removed from the jar, to reduce the gas cost of their
 installation in blockchain, but we do not care about this optimization here.
-The result should look as the following:
+The result should look as in Figure @fig:family_jar:
 
-![The `family` Eclipse project, exported in jar](pics/family_jar.png "The family Eclipse project, exported in jar")
+![The `family` Eclipse project, exported in jar.](pics/family_jar.png "The family Eclipse project, exported in jar."){#fig:family_jar}
 
 ## Creation of a Blockchain in Memory <a name="memory-blockchain"></a>
 
@@ -390,9 +390,9 @@ right-click on the `blockchain` project &rarr; Maven &rarr; Update Project...
 
 Leave directory `src/test/java` empty, by deleting its content, if not already empty.
 
-The result should look like the following:
+The result should look like as in Figure @fig:blockchain1.
 
-![The `blockchain` Eclipse project](pics/blockchain1.png "The blockchain Eclipse project")
+![The `blockchain` Eclipse project.](pics/blockchain1.png "The blockchain Eclipse project."){#fig:blockchain1}
 
 Create a `module-info.java` inside `src/main/java`, containing:
 
@@ -503,9 +503,10 @@ If you run this class from inside Eclipse and refresh the `blockchain` project
 (click on it and push the F5 key),
 you will see that a new directory `chain` appeared, that contains a block `b0`.
 Inside that block, there are four transactions, corresponding
-to the four steps above, that initialize a Hotmoka node:
+to the four steps above, that initialize a Hotmoka node
+(see Figure @fig:blockchain2).
 
-![The `chain` directory appeared](pics/blockchain2.png "The chain directory appeared")
+![The `chain` directory appeared.](pics/blockchain2.png "The chain directory appeared."){#fig:blockchain2}
 
 Each transaction is specified by a request and a corresponding
 response. They are kept in serialized form (`request` and `response`) but are also
@@ -712,9 +713,9 @@ a single dependency: `io-takamaka-code-1.0.0.jar`. This means that when, below, 
 `io-takamaka-code-1.0.0.jar` as well.
 
 Refresh the `blockchain` project and see how the `chain` directory
-is one transaction longer now:
+is one transaction longer now (see Figure @fig:blockchain3).
 
-![A new transaction appeared in the `chain` directory](pics/blockchain3.png "A new transaction appeared in the chain directory")
+![A new transaction appeared in the `chain` directory.](pics/blockchain3.png "A new transaction appeared in the chain directory."){#fig:blockchain3}
 
 The fifth new transaction reports a `request` that corresponds to the request that we have
 coded in the `Main` class. Namely, its textual representation `request.txt` is:
