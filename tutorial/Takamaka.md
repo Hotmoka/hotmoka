@@ -243,7 +243,8 @@ If you have installed the Hotmoka project, this
 jar has been installed inside your local Maven repository, hence it is
 possible to refer to it in the `pom.xml` of our project
 and everything should compile without errors.
-The result in Eclipse should look similar to the following:
+The result in Eclipse should look similar to that
+shown in Figure 2.
 
 ![The `family` Eclipse project](pics/family.png "The family Eclipse project")
 
@@ -3097,7 +3098,7 @@ public class TicTacToe extends Contract {
         require(crossPlayer != player, "you cannot play against yourself");
         long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
         require(amount >= previousBet,
-	  () -> "you must bet at least " + previousBet + " coins");
+          () -> "you must bet at least " + previousBet + " coins");
         circlePlayer = player;
       }
       else
@@ -3114,14 +3115,16 @@ public class TicTacToe extends Contract {
     return gameOver =
       rangeClosed(1, 3).allMatch(_y -> at(x, _y) == turn) || // column x
       rangeClosed(1, 3).allMatch(_x -> at(_x, y) == turn) || // row y
-      (x == y && rangeClosed(1, 3).allMatch(_x -> at(_x, _x) == turn)) || // first diagonal
-      (x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // second diagonal
+      (x == y && rangeClosed(1, 3).allMatch(_x -> at(_x, _x) == turn)) || // 1st diagonal
+      (x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // 2nd
   }
 
   @Override
   public @View String toString() {
     return rangeClosed(1, 3)
-      .mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
+      .mapToObj(y -> rangeClosed(1, 3)
+                     .mapToObj(x -> at(x, y).toString())
+                     .collect(joining("|")))
       .collect(joining("\n-----\n"));
   }
 }
