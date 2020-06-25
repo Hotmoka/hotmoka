@@ -19,7 +19,7 @@ sed -i 's/@fig:array_hierarchy/12/g' Takamaka.md
 
 # generate the PDF version now
 cp Takamaka.md temp.md
-sed -i "s/\[PDFonly]//g" temp.md
+sed -i "s/\[PDFonly]://g" temp.md
 pandoc temp.md -o Takamaka.tex --include-in-header mystylefile.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
 rm temp.md
 sed -i 's/\\begin{verbatim}/\\begin{myverbatim}\n\\begin{verbatim}/g' Takamaka.tex
