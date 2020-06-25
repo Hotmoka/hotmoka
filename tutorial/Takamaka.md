@@ -69,7 +69,10 @@ Takamaka is part of the Hotmoka project. The compiled jars
 of the Hotmoka and Takamaka projects are not yet available
 on a public repository such as Maven Central. Hence, the simplest
 way for using Takamaka is to clone and install the Hotmoka project inside
-your local Maven repository. For that, clone the Hotmoka project:
+your local Maven repository. You need Java JDK version at least 11 for
+compiling the Hotmoka project.
+
+Clone the project with:
 
 ```shell
 git clone git@github.com:spoto/hotmoka.git
@@ -99,31 +102,32 @@ In both cases, all tests should pass and all projects should be successfully ins
 
 ```
 [INFO] ------------------------------------------------------------------------
-[INFO] Reactor Summary for Hotmoka and Takamaka Parent 1.0.0:
+[INFO] Reactor Summary:
 [INFO] 
-[INFO] Hotmoka and Takamaka Parent ........................ SUCCESS [  0.329 s]
-[INFO] io-takamaka-code ................................... SUCCESS [  3.969 s]
-[INFO] io-takamaka-code-constants ......................... SUCCESS [  0.150 s]
-[INFO] io-takamaka-code-whitelisting ...................... SUCCESS [  0.650 s]
-[INFO] io-takamaka-code-verification ...................... SUCCESS [  1.405 s]
-[INFO] io-hotmoka-crypto .................................. SUCCESS [  0.144 s]
-[INFO] io-hotmoka-beans ................................... SUCCESS [  1.133 s]
-[INFO] io-hotmoka-nodes ................................... SUCCESS [  0.184 s]
-[INFO] io-hotmoka-patricia ................................ SUCCESS [  0.156 s]
-[INFO] io-takamaka-code-instrumentation ................... SUCCESS [  0.722 s]
-[INFO] io-takamaka-code-engine ............................ SUCCESS [  1.014 s]
-[INFO] io-takamaka-code-tools ............................. SUCCESS [  0.227 s]
-[INFO] io-hotmoka-memory .................................. SUCCESS [  0.184 s]
-[INFO] io-hotmoka-tendermint-dependencies ................. SUCCESS [  5.453 s]
-[INFO] io-hotmoka-tendermint .............................. SUCCESS [  6.796 s]
-[INFO] io-takamaka-examples ............................... SUCCESS [  2.392 s]
-[INFO] io-takamaka-tests .................................. SUCCESS [01:39 min]
-[INFO] Hotmoka and Takamaka assembly ...................... SUCCESS [  2.243 s]
+[INFO] Hotmoka and Takamaka Parent dev .................... SUCCESS [  9.209 s]
+[INFO] io-takamaka-code 1.0.0 ............................. SUCCESS [  2.197 s]
+[INFO] io-takamaka-code-constants 1.0.0 ................... SUCCESS [  0.077 s]
+[INFO] io-takamaka-code-whitelisting 1.0.0 ................ SUCCESS [  0.545 s]
+[INFO] io-takamaka-code-verification 1.0.0 ................ SUCCESS [  0.657 s]
+[INFO] io-hotmoka-crypto 1.0.0 ............................ SUCCESS [  0.099 s]
+[INFO] io-hotmoka-beans 1.0.0 ............................. SUCCESS [  0.573 s]
+[INFO] io-hotmoka-nodes 1.0.0 ............................. SUCCESS [  0.134 s]
+[INFO] io-hotmoka-patricia 1.0.0 .......................... SUCCESS [  0.093 s]
+[INFO] io-takamaka-code-instrumentation 1.0.0 ............. SUCCESS [  0.456 s]
+[INFO] io-takamaka-code-engine 1.0.0 ...................... SUCCESS [  0.583 s]
+[INFO] io-takamaka-code-tools 1.0.0 ....................... SUCCESS [  0.108 s]
+[INFO] io-hotmoka-memory 1.0.0 ............................ SUCCESS [  0.136 s]
+[INFO] io-hotmoka-tendermint-dependencies 1.0.0 ........... SUCCESS [  3.190 s]
+[INFO] io-hotmoka-tendermint 1.0.0 ........................ SUCCESS [  4.975 s]
+[INFO] io-hotmoka-takamaka 1.0.0 .......................... SUCCESS [  0.460 s]
+[INFO] io-takamaka-examples 1.0.0 ......................... SUCCESS [  1.954 s]
+[INFO] io-takamaka-tests 1.0.0 ............................ SUCCESS [01:39 min]
+[INFO] Hotmoka and Takamaka assembly 1.0.0 ................ SUCCESS [  2.274 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  02:07 min
-[INFO] Finished at: 2020-06-11T11:06:59+02:00
+[INFO] Total time:  02:08 min
+[INFO] Finished at: 2020-06-25T11:32:02+02:00
 [INFO] ------------------------------------------------------------------------
 ```
 
@@ -132,8 +136,7 @@ to import them inside the Eclipse IDE (this is not needed, instead, for
 running the examples in the next sections of this tutorial). For that,
 use the File &rarr; Import &rarr; Existing Maven Projects menu item in Eclipse and import
 the parent Maven project contained in the `hotmoka` directory that you cloned from
-GitHub. This should create, inside Eclipse, 
-also its submodule projects.
+GitHub. This should create, inside Eclipse, also its submodule projects.
 You should see this inside Eclipse's project explorer:
 
 ![The Eclipse projects of Hotmoka](pics/projects.png "The Eclipse projects of Hotmoka")
@@ -226,7 +229,7 @@ the content of the `pom.xml` file with the code that follows:
 that specifies to use Java 11 and provides the dependency that we need.
 
 > We are using `1.0.0` here, as version of the Hotmoka and Takamaka
-> projects. Replace, if needed, this with the current version of such projects,
+> projects. Replace that, if needed, with the current version of such projects,
 > as printed during their compilation with Maven.
 
 Since the `pom.xml` file has changed, the `family` project might
@@ -729,8 +732,8 @@ JarStoreTransactionRequest:
 Note that objects, such as the caller account
 `gamete`, are represented here as _storage references_ such as `c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0`. You can
 think at a storage reference as a machine-independent, deterministic pointer to an object contained
-in blockchain. Also the dependency `io-takamaka-code-1.0.0.jar` is represented
-as a _transaction referebce_ `a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c`,
+in the store of the node. Also the dependency `io-takamaka-code-1.0.0.jar` is represented
+as a _transaction reference_ `a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c`,
 that is, a reference to the transaction that installed
 `io-takamaka-code-1.0.0.jar` in the node. Note that, in this case, it coincides
 with the class path of the transaction. The jar in the request is the hexadecimal
@@ -757,7 +760,8 @@ The first bits of information tell us that the transaction costed some units of 
 CPU, RAM and blockchain storage space. We had accepted to spend up to
 1,000,000 units of gas, hence the transaction could complete correctly.
 The response reports also the hexadecimal representation
-of a jar, named _instrumented_. This is because what gets installed in blockchain is not exactly the jar sent
+of a jar, named _instrumented_. This is because what gets installed in the store of the node
+is not exactly the jar sent
 with the transaction request, but an instrumentation of that, that adds features specific to Takamaka code.
 For instance, the instrumented code will charge gas during its execution.
 Finally, the response reports _updates_. These are
@@ -933,7 +937,7 @@ of the jar stored at the transaction `a060e7288df17bc918e4d87edfb1c2d7611a9e9089
 > on their behalf, that must be valid or the transaction will be rejected.
 > Moreover, note that accounts are identified with a storage reference, like any
 > other object in blockchain. They are not identified by a value derived from their
-> public key, as in Etehreum. Instead, the public key is stored inside the object, as
+> public key, as in Ethereum. Instead, the public key is stored inside the object, as
 > a `final` field named `publicKey`. Hence, it is not sent at each transaction,
 > which reduces their size.
 
@@ -1192,13 +1196,13 @@ message: `an object of class io.takamaka.family.Person cannot be kept in store s
 Takamaka requires
 that all objects stored in blockchain extend the `io.takamaka.code.lang.Storage` class. That superclass
 provides all the machinery needed in order to keep track of updates to such objects and persist them
-in blockchain, automatically.
+in the store of the node, automatically.
 
 > Do not get confused here. Takamaka does **not** require all objects to extend
 > `io.takamaka.code.lang.Storage`. You can use objects that do not extend that superclass in your
 > Takamaka code, both instances of your classes and instances of library classes
 > from the `java.*` hierarchy, for instance. What Takamaka does require, instead, is that objects
-> _that must be kept in blockchain_ do extend `io.takamaka.code.lang.Storage`. This
+> _that must be kept in the store of a node_ do extend `io.takamaka.code.lang.Storage`. This
 > must be the case, for instance, for objects created by the constructor invoked through the
 > `addConstructorCallTransaction()` method.
 
@@ -1215,8 +1219,8 @@ public class Person extends Storage {
 ```
 
 > Extending `io.takamaka.code.lang.Storage` is all a programmer needs to do in order to let instances
-> of a class be stored in blockchain. There is no explicit method to call to keep track
-> of updates to such objects and persist them in blockchain:
+> of a class be stored in a node. There is no explicit method to call to keep track
+> of updates to such objects and persist them in the store of the node:
 > Takamaka will automatically deal with them.
 
 Regenerate `family-0.0.1-SNAPSHOT.jar`, by running `mvn package` again,
@@ -1224,7 +1228,7 @@ since class `Person` has changed.
 Run again the `io.takamaka.family.Main` class.
 
 > We can use the `io.takamaka.code.lang.Storage` class and we can run the resulting compiled code
-> since that class is inside `io-takamaka-code-1.0.0.jar`, which has been included, in blockchain, in the
+> since that class is inside `io-takamaka-code-1.0.0.jar`, that has been included in the
 > class path as a dependency of `family-0.0.1-SNAPSHOT.jar`.
 
 This time, the execution should
@@ -1323,11 +1327,11 @@ updated to reflect the creation of a new object. We can say that the
 creation of an object, or the modification of an object, is just the
 addition of new updates into blockchain.
 
-So where is this new `Person` object, actually? Well, it does exist in blockchain only,
+So where is this new `Person` object, actually? Well, it does exist in thes tore of the node only,
 as a set of updates.
 It did exist in RAM during the execution of the constructor. But, at the end
 of the constructor,
-it was deallocated from RAM and serialized in blockchain, in the form
+it was deallocated from RAM and serialized in store, in the form
 of the above set of updates.
 Its storage reference `db724f565222ef8b3da0ba3196a72a10af614ba12fc04b05c87298da4bda33e2#0`
 has been returned to the caller of `addConstructorCallTransaction()`:
@@ -1338,14 +1342,15 @@ StorageReference albert = node.addConstructorCallTransaction(...)
 
 and can be used later to invoke methods on that object or to pass it
 as a parameter of methods or constructors: when that will occur, the object
-will be deserialized from its updates in blockchain and recreated in RAM.
+will be deserialized from its updates in store and recreated in RAM.
 All this is automatic: programmers do not need to care about that.
+They do not need do declare variables as `memory` and `store` for instance.
 
 ## A Transaction that Invokes a Method <a name="method-transaction"></a>
 
 In our `Main` class, variable `albert` holds a machine-independent reference
 to an object of class `Person`,
-that has just been created in blockchain. Let us invoke the
+that has just been created in the store of the node. Let us invoke the
 `toString()` method on that object now. For that, we run a transaction
 using `albert` as _receiver_ of `toString()`.
 
@@ -1515,11 +1520,11 @@ that have been updated during the transaction.
 > calls to its `concat()` methods, finalized with a call to `StringBuilder.toString()`.
 > So, why are those updates
 > not reported in `response.txt`? Simply because they are not updates
-> to the state of the blockchain but rather updates to a `StringBuilder` object,
+> to the store of the node but rather updates to a `StringBuilder` object,
 > local to the activation of `Person.toString()`, that dies at its end and
 > is not accessible anymore afterwards. In other terms, the updates reported in
 > the `response.txt` files are those observable outside the method or constructor, to
-> objects that existed before the call or that are returned by the
+> objects that existed in store before the call or that are returned by the
 > method or constructor itself.
 
 As we have shown, method `addInstanceMethodCallTransaction()` can be used to
@@ -1569,13 +1574,13 @@ a request similar to that for `addInstanceMethodCallTransaction()`, but without 
 ## Storage Types and Constraints on Storage Classes <a name="storage-types"></a>
 
 We have seen how to invoke a constructor of a class to build an object in
-blockchain or to invoke a method on an object in blockchain. Both constructors and
+the store of a node or to invoke a method on an object in the store of a node. Both constructors and
 methods can receive arguments. Constructors yield a reference to a new
 object, freshly allocated; methods might yield a returned value, if they are
 not declared as `void`. This means that there is a bidirectional
-exchange of data from outside the blockchain to inside it, and back. But not any
+exchange of data from outside the node to inside it, and back. But not any
 kind of data can be exchanged. Namely, only _storage values_ can be exchanged
-and kept in blockchai. They belong to the so called _storage types_. Storage values are
+and kept in the store of a node. They belong to the so called _storage types_. Storage values are
 
 1. primitive values of Java (characters, bytes, shorts, integers, longs, floats,
 doubles and booleans), or
@@ -1585,7 +1590,7 @@ doubles and booleans), or
 5. a few special reference values: `java.math.BigInteger`s and `java.lang.String`s.
 
 Storage values cross the
-blockchain boundary inside wrapper objects. For instance the integer 2,019
+node's boundary inside wrapper objects. For instance the integer 2,019
 is first wrapped into `new IntValue(2019)` and then passed
 as a parameter of a method or constructor. In our previous example,
 when we called `Person.toString()`, the result `s` was actually a wrapper
@@ -1594,18 +1599,18 @@ is automatic: our class `Person` does not show that machinery.
 
 What should be retained of the above discussion is that constructors and
 methods of Takamaka classes, if we want them to be called from outside the
-blockchain, must receive storage values as parameters and must return storage
+node, must receive storage values as parameters and must return storage
 values (if they are not `void` methods). A method that expects a parameter of
 type `java.util.HashSet`, for instance, can be defined and called
-from inside the Takamaka code, but cannot be called from outside the blockchain,
+from inside the Takamaka code, but cannot be called from outside the node,
 such as, for instance, from our `Main` class or from a wallet.
 
 We conclude this section with a formal definition of storage objects.
-We have already said that storage objects can be kept in blockchain
+We have already said that storage objects can be kept in the store of a node
 and their class must extend
 `io.takamaka.code.lang.Storage`. But there are extra constraints. Namely,
 fields of a storage objects are part of the representation of such
-objects and must, themselves, be kept in blockchain. Hence, a storage object:
+objects and must, themselves, be kept in store. Hence, a storage object:
 1. has a class that extends (directly or indirectly) `io.takamaka.code.lang.Storage`, and
 2. is such that all its fields hold storage values (primitives, storage objects, `null`,
 elements of `enum`s without instance non-transient fields, a `java.math.BigInteger` or a `java.lang.String`).
@@ -1618,9 +1623,9 @@ the following are examples of what is **not** allowed in a field of a storage ob
 We will see later how to overcome these limitations.
 
 > Again, we stress that such limitations only apply to storage objects.
-> Other objects, thet needn't be kept in blockchain but are useful for
+> Other objects, thet needn't be kept in the store of a node but are useful for
 > the implementation of Takamaka code, can be defined in a completely free way
-> and used in code that runs in the blockchain.
+> and used in code that runs in the node.
 
 ## Transactions Can Be Added, Posted and Run <a name="transactions"></a>
 
@@ -1688,6 +1693,7 @@ CodeSupplier<StorageValue> future = node.postInstanceMethodCallTransaction
 // code that does not use s
 // .....
 
+// the following is needed only if s is used later
 StorageValue s = future.get();
 ```
 
@@ -1696,8 +1702,9 @@ annotated as `@View` can be performed through the
 `runInstanceMethodCallTransaction()` (for instance methods) and
 `runStaticMethodCallTransaction()` (for static methods).
 As we have hinted before, these executions are performed
-locally, on the node they are addressed to, and not add a transaction
-that must be replicated in each node of the network, for consensus.
+locally, on the node they are addressed to, and do not add a transaction
+that must be replicated in each node of the network, for consensus, and
+that costs gas for storage.
 These executions are free and do not require a correct nonce, which is
 a great simplification.
 
@@ -1719,10 +1726,10 @@ We only have to change the implementation of the `Node`. Instead
 of `MemoryBlockchain`, we will select an implementation that corresponds
 to a node of a real blockchain, that can be duplicated and run a consensus
 algorithm. For instance, let us use a `Node` built over the Tendermint
-generic blockchain. [Tendermint](https://tendermint.com) is a
+generic blockchain. [[Tendermint]](#tendermint) is a
 Byzantine-fault tolerant engine for building blockchains, that
 replicates a finite-state machine on a network of nodes across the world.
-The finite-state machine is oftern referred to as a *Tendermint app*.
+The finite-state machine is often referred to as a *Tendermint app*.
 The Hotmoka node that we are going to create is just one such app.
 Since we are going to build over the core of Tendermint, this must be
 installed on our machine, or experiments will fail. Out Hotmoka node
@@ -1788,7 +1795,7 @@ After these changes, run the `Main.java` class. It should still print
 Albert Einstein (14/4/1879)
 ```
 on the standard output, but it will take more time then before, since it spawns a real
-blockchain node.
+blockchain node this time.
 
 As you can see, the interface of the nodes is the same, hence we have easily
 swapped from a `MemoryBlockchain` to a `TendermintBlockchain` by programming
@@ -2060,7 +2067,7 @@ public class SimplePonzi extends Contract {
 }
 ```
 
-> This code is only the starting point of our discussion and is not yet functional.
+> This code is only the starting point of our discussion and is not functional yet.
 > The real final version of this contract will appear at the end of this section.
 
 Look at the code of `SimplePonzi.java` above. The contract has a single
@@ -2505,7 +2512,7 @@ public class Distributor extends RedGreenContract {
 
 In [Storage Types and Constraints on Storage Classes](#storage-types),
 we said that storage objects must obey to some constraints.
-The strongest is that their fields of reference type can only hold
+The strongest is that their fields of reference type, in turn, can only hold
 storage objects. In particular, arrays are not allowed there. This can
 be problematic, in particular for contracts that deal with a variable,
 potentially unbound number of other contracts.
@@ -2611,7 +2618,7 @@ and sent back to each of them. Note that Takamaka allows programmers to use
 Java 8 lambdas and streams.
 Old fashioned Java programmers, who don't feel at home with such treats,
 can exploit the fact that
-lists are iterable and replace the single line `forEachOrdered()` call
+lists are iterable and replace the single-line `forEachOrdered()` call
 with a more traditional (but gas-hungrier):
 
 ```java
@@ -2645,7 +2652,9 @@ contract that receives his investment back has a
 fallback function redefined in such a way to re-enter the paying contract and
 re-execute the distribution of the investment.
 As it is well known, such an attack has made some people rich and other
-desperate. Even if such a frightening scenario does not occur,
+desperate. You can find more detail
+at page 173 of [[AntonopoulosW19]](#AntonopoulosW19).
+Even if such a frightening scenario does not occur,
 paying previous investors immediately back is discouraged in Solidity
 also for other reasons. Namely, the contract that receives his
 investment back might have a redefined fallback function that
@@ -2668,7 +2677,7 @@ requires costy inter-contract calls.
 With this technique, previous investors are
 now required to withdraw their balance explicitly and voluntarily,
 through a call to some `widthdraw()` function.
-This leads to the *withdrawing pattern* used for writing Solidity contracts.
+This leads to the *withdrawing pattern*, widely used for writing Solidity contracts.
 
 We have not used the withdrawing pattern in `GradualPonzi.java`. In general,
 there is no need for such pattern in Takamaka, at least not for simple
@@ -2677,10 +2686,10 @@ contracts like `GradualPonzi.java`. The reason is that the
 fallback function of Solidity) are `final` in Takamaka and very cheap
 in terms of gas. In particular, inter-contract calls are not
 especially expensive in Takamaka, since they are just a method
-invocation in Java bytecode (one bytecode instruction). They are not new transactions.
+invocation in Java bytecode (one bytecode instruction). They are *not* new transactions.
 They are actually cheaper than
 updating a map of balances. Moroever, avoiding the `widthdraw()` transactions
-means reducing the overall number of blockchain transactions.
+means reducing the overall number of transactions.
 Hence, the withdrawing pattern is both
 useless in Takamaka and more expensive than paying back previous contracts
 immediately.
@@ -2696,9 +2705,9 @@ A file `ponzi-0.0.1-SNAPSHOT.jar` should appear inside `target`.
 Go now to the `blockchain` project and create a package `io.takamaka.ponzi`
 inside it. Copy the following code as `Main.java`. Its goal is to
 
-1. install `ponzi-0.0.1-SNAPSHOT.jar` in blockchain
+1. install `ponzi-0.0.1-SNAPSHOT.jar` in the node
 2. create three players (that is, accounts)
-3. let the first player create an instance of `GradualPonzi` in blockchain
+3. let the first player create an instance of `GradualPonzi` in the node
    and become the first investor of the contract
 4. let the other two players invest, in sequence, in the `GradualPonzi` contract
 5. let the first player try to invest again in the contract, this time
@@ -2899,7 +2908,7 @@ used internally to represent the nodes of the list.
 ## Storage Arrays <a name="storage_arrays"></a>
 
 Arrays are an ordered sequence of elements, with constant-time access
-to such elements, for reading and writing. The size of the arrays is typically
+to such elements, both for reading and for writing. The size of the arrays is typically
 fixed, although there are programming languages with limited forms
 of dynamic arrays.
 
@@ -3087,7 +3096,8 @@ public class TicTacToe extends Contract {
       if (circlePlayer == null) {
         require(crossPlayer != player, "you cannot play against yourself");
         long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
-        require(amount >= previousBet, () -> "you must bet at least " + previousBet + " coins");
+        require(amount >= previousBet,
+	  () -> "you must bet at least " + previousBet + " coins");
         circlePlayer = player;
       }
       else
@@ -3294,7 +3304,8 @@ public class TicTacToe extends Contract {
 
     if (turn == Tile.CROSS)
       if (crossPlayer == null) {
-        require(amount >= MINIMUM_BET, () -> "you must bet at least " + MINIMUM_BET + " coins");
+        require(amount >= MINIMUM_BET,
+          () -> "you must bet at least " + MINIMUM_BET + " coins");
         crossPlayer = player;
       }
       else
@@ -3303,7 +3314,8 @@ public class TicTacToe extends Contract {
       if (circlePlayer == null) {
         require(crossPlayer != player, "you cannot play against yourself");
         long previousBet = balance().subtract(BigInteger.valueOf(amount)).longValue();
-        require(amount >= previousBet, () -> "you must bet at least " + previousBet + " coins");
+        require(amount >= previousBet,
+          () -> "you must bet at least " + previousBet + " coins");
         circlePlayer = player;
     }
     else
@@ -3312,7 +3324,8 @@ public class TicTacToe extends Contract {
     set(x, y, turn);
     if (isGameOver(x, y)) {
       // 90% goes to the winner
-      player.receive(balance().multiply(BigInteger.valueOf(9L)).divide(BigInteger.valueOf(10L)));
+      player.receive(balance().multiply(BigInteger.valueOf(9L))
+                              .divide(BigInteger.valueOf(10L)));
       // the rest goes to the creator of the game
       creator.receive(balance());
     }
@@ -3327,8 +3340,8 @@ public class TicTacToe extends Contract {
     return gameOver =
       rangeClosed(1, 3).allMatch(_y -> at(x, _y) == turn) || // column x
       rangeClosed(1, 3).allMatch(_x -> at(_x, y) == turn) || // row y
-      (x == y && rangeClosed(1, 3).allMatch(_x -> at(_x, _x) == turn)) || // first diagonal
-      (x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // second diagonal
+      (x == y && rangeClosed(1, 3).allMatch(_x -> at(_x, _x) == turn)) || // 1st diagonal
+      (x + y == 4 && rangeClosed(1, 3).allMatch(_x -> at(_x, 4 - _x) == turn)); // 2nd
   }
 
   private boolean isDraw() {
@@ -3338,7 +3351,9 @@ public class TicTacToe extends Contract {
   @Override
   public @View String toString() {
     return rangeClosed(1, 3)
-      .mapToObj(y -> rangeClosed(1, 3).mapToObj(x -> at(x, y).toString()).collect(joining("|")))
+      .mapToObj(y -> rangeClosed(1, 3)
+                     .mapToObj(x -> at(x, y).toString())
+                     .collect(joining("|")))
       .collect(joining("\n-----\n"));
   }
 }
@@ -3381,9 +3396,9 @@ In the `blokchain` project that we have already created, add a package
 that contains the following code. It creates a test blockchain in
 disk memory and runs a few transactions to:
 
-1. install `ponzi-0.0.1-SNAPSHOT.jar` in blockchain
+1. install `ponzi-0.0.1-SNAPSHOT.jar` in the node
 2. create a creator and two players (that is, accounts)
-3. create an instance of `TicTacToe` in blockchain
+3. create an instance of `TicTacToe` in the node
 4. let the two players play, alternately, until the first player wins
 5. call `toString()` on the `TicTacToe` contract and print the result
 6. let the second player continue playing.
@@ -3619,7 +3634,7 @@ VoidMethodCallTransactionSuccessfulResponse:
 The balances of
 `8a801c87d85bfd49f06a9fa7b42579743ff5282c65790586a354fee7d848d086#0`
 (the creator) 
-and of
+and
 `f92c07f8abef9d71fa7d88acfb21c1e934222935307adf61adb3dce57f4a37f5#0`
 (the first player) are updated,
 as well as that of the `TicTacToe` contract, held at storage reference
@@ -3730,8 +3745,7 @@ The following is a Takamaka contract that implements
 a blind auction. Since each bidder may place more bids and since such bids
 must be kept in storage until reveal time, this code uses a map
 from bidders to lists of bids. This smart contract has been inspired
-by a similar Solidity contract available
-<a href="https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2">here</a>.
+by a similar Solidity contract [[BlindAuction]](#blind-auction).
 
 ```java
 package io.takamaka.auction;
@@ -4190,7 +4204,7 @@ module auction {
 ```
 
 Create package `io.takamaka.auction` inside `src/main/java` and add
-the above `BlindAuction.java`, `BidIncrease.java`
+the `BlindAuction.java`, `BidIncrease.java`
 and `AuctionEnd.java` sources inside that package.
 Go inside the `auction` project and
 run `mvn package`. A file `auction-0.0.1-SNAPSHOT.jar` should appear inside `target`.
@@ -4354,7 +4368,8 @@ public class Main {
           StorageReference bytes32 = createBytes32(player, salt);
 
           return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
-            (signers[player], nodeWithAccounts.account(player), getNonceAndIncrement(player),
+            (signers[player], nodeWithAccounts.account(player),
+             getNonceAndIncrement(player),
              _100_000, ONE, classpath, CONSTRUCTOR_REVEALED_BID,
              new BigIntegerValue(value), new BooleanValue(fake), bytes32));
         }
@@ -4542,7 +4557,7 @@ public final static int REVEAL_TIME = 60_000;
 ```
 
 Some constant signatures follow,
-that will simplify the call to methods and constructors later.
+that simplify the calls to methods and constructors later.
 The constructor of `Main` creates a Hotmoka node,
 installs `auction-0.0.1-SNAPSHOT.jar` in it and creates
 four accounts. It stores the node
@@ -4577,7 +4592,7 @@ while (i <= NUM_BIDS) {
 ```
 
 Each random bid is hashed (including a random salt) and a `Bytes32` object
-is created in blockchain, containing that hash:
+is created in the store of the node, containing that hash:
 
 ```java
 StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
@@ -4636,8 +4651,9 @@ each bidder, and populates it with the bids to reveal:
 for (BidToReveal bid: bids) {
   StorageReference bidInBlockchain = bid.intoBlockchain();
   node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-    (signers[bid.player], nodeWithAccounts.account(bid.player), getNonceAndIncrement(bid.player),
-    _100_000, ONE, classpath, ADD, lists[bid.player], bidInBlockchain));
+    (signers[bid.player], nodeWithAccounts.account(bid.player),
+     getNonceAndIncrement(bid.player),
+     _100_000, ONE, classpath, ADD, lists[bid.player], bidInBlockchain));
 }
 ```
 
@@ -4707,15 +4723,16 @@ Moreover, the JVM executes run-time checks as well: for instance, class casts
 are checked at run time, as well as pointer dereferences and
 array stores. Violations result in exceptions. For a thorough discussion,
 we refer the interested
-reader to the [official documentation about Java bytecode class verification](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.9).
+reader to the official documentation about Java bytecode class
+verification [[JVM-Verification]](#jvm-verification).
 
 ## Takamaka Bytecode Verification <a name="takamaka-bytecode-verification"></a>
 
 Takamaka verifies extra constraints, that are not checked as part of the
-standard JVM bytecode verification. Such constraints are mainly related to
-the correct use of Takamaka annotations and contracts. Such extra constraints
-are either static or dynamic. Static constraints are checked when a
-jar is installed into blockchain, hence only once for each node.
+standard JVM bytecode verification. Such extra constraints are mainly related to
+the correct use of Takamaka annotations and contracts, and are
+in part static and in part dynamic. Static constraints are checked when a
+jar is installed into the store of a node, hence only once for each node of a network.
 If a static constraint
 is violated, the transaction that tries to install a jar fails with
 an exception. Dynamic constraints
@@ -4724,7 +4741,7 @@ violated, the transaction that runs the code fails with an exception.
 
 Below, remember that `@Entry` is shorthand for `@Entry(Contract.class)`.
 Moreover, note that the constraints related
-to overridden methods follow by Liskov's principle.
+to overridden methods follow by Liskov's principle [[LiskovW94]](#LiskovW94).
 
 Takamaka verifies the following static constraints:
 
@@ -4961,7 +4978,7 @@ installed in a Hotmoka node.
 
 > This section shows how to use this utility
 > from command-line. It is also possible to run it from inside Eclipse,
-> by creating run configurations. You have examples inside the
+> by creating run configurations. There are examples inside the
 > `launch_configurations` folder of the `io-takamaka-code-tools` project.
 
 Create then a directory with three subdirectories: `mods` will contain
@@ -5141,7 +5158,23 @@ Antonopoulos, A. M. and Wood, G. (2019).
 Mastering Ethereum: Building Smart Contracts and DApps.
 O'Reilly Media.
 
+<a id="BlindAuction">[BlindAuction]</a>
+<a href="https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2">
+https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2</a>.
+
 <a id="IyerD08">[IyerD08]</a>
 Iyer, K. and Dannen, C. (2018).
 Building Games with Ethereum Smart Contracts: Intermediate Projects for Solidity Developers.
 Apress.
+
+<a id="JVM-Verification">[JVM-Verification]</a>
+<a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.9">https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.9</a>.
+
+<a id="LiskovW94">[LiskovW94]</a>
+Liskov, B. and Wing, J. M. (1994).
+A Behavioral Notion of Subtyping.
+_ACM Transactions on Programming Languages and Systems_,
+16(6):1811-1841.
+
+<a id="Tendermint">[Tendermint]</a>
+<a href="https://tendermint.com">https://tendermint.com</a>.

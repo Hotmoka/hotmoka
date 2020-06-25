@@ -11,5 +11,7 @@ sed -i 's/1018 \& lipari/$10^{18}$ \& lipari/g' Takamaka.tex
 sed -i 's/1021 \& takamaka/$10^{21}$ \& takamaka/g' Takamaka.tex
 sed -i 's/\\chapterfont{\\clearpage}//g' Takamaka.tex
 sed -i 's/\\usepackage{sectsty}//g' Takamaka.tex
+sed -i 's/\\chapter{Table of Contents}/\\begin{comment}\\chapter{Table of Contents}/g' Takamaka.tex
+sed -i 's/\\hypertarget{introduction}/\\end{comment}\n\n\\hypertarget{introduction}/g' Takamaka.tex
 pdflatex Takamaka.tex
 
