@@ -18,3 +18,9 @@ tictactoe/
 how_it_works/takamaka.pdf
 doc/
 target/
+
+# IntelliJ
+out/
+.idea_modules/
+.idea/
+*.iml
