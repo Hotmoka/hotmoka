@@ -131,7 +131,7 @@ In both cases, all tests should pass and all projects should be successfully ins
 [INFO] ------------------------------------------------------------------------
 ```
 
- <p align="center"><img width="500" src="pics/projects.png" alt="Figure 1. Cross wins."></p>
+ <p align="center"><img width="450" src="pics/projects.png" alt="Figure 1. The Eclipse projects of Hotmoka."></p>
 
 
 If you want to see and edit the sources of the Hotmoka project, it is well possible
@@ -247,7 +247,7 @@ and everything should compile without errors.
 The result in Eclipse should look similar to that
 shown in Figure 2.
 
- <p align="center"><img width="350" src="pics/family.png" alt="Figure 2. The family Eclipse project."></p>
+ <p align="center"><img width="280" src="pics/family.png" alt="Figure 2. The family Eclipse project."></p>
 
 
 Create a `module-info.java` file inside `src/main/java`
@@ -315,7 +315,7 @@ All such files can be removed from the jar, to reduce the gas cost of their
 installation in blockchain, but we do not care about this optimization here.
 The result should look as in Figure 3:
 
- <p align="center"><img width="350" src="pics/family_jar.png" alt="Figure 3. The family Eclipse project, exported in jar."></p>
+ <p align="center"><img width="300" src="pics/family_jar.png" alt="Figure 3. The family Eclipse project, exported in jar."></p>
 
 
 ## Creation of a Blockchain in Memory <a name="memory-blockchain"></a>
@@ -395,7 +395,7 @@ Leave directory `src/test/java` empty, by deleting its content, if not already e
 
 The result should look like as in Figure 4.
 
- <p align="center"><img width="350" src="pics/blockchain1.png" alt="Figure 4. The blockchain Eclipse project."></p>
+ <p align="center"><img width="300" src="pics/blockchain1.png" alt="Figure 4. The blockchain Eclipse project."></p>
 
 
 Create a `module-info.java` inside `src/main/java`, containing:
@@ -720,7 +720,7 @@ a single dependency: `io-takamaka-code-1.0.0.jar`. This means that when, below, 
 Refresh the `blockchain` project and see how the `chain` directory
 is one transaction longer now (see Figure 6).
 
- <p align="center"><img width="450" src="pics/blockchain3.png" alt="Figure 6. A new transaction appeared in the chain directory."></p>
+ <p align="center"><img width="550" src="pics/blockchain3.png" alt="Figure 6. A new transaction appeared in the chain directory."></p>
 
 
 The fifth new transaction reports a `request` that corresponds to the request that we have
@@ -2418,7 +2418,7 @@ be used inside an `@Entry` method or constructor to access the calling
 contract and `balance()` can be used to access the private `balance` field
 of the contract.
 
- <p align="center"><img width="400" src="pics/contracts.png" alt=""Figure 7. The hierarchy of contract classes."></p>
+ <p align="center"><img width="500" src="pics/contracts.png" alt=""Figure 7. The hierarchy of contract classes."></p>
 
 
 The abstract subclass `PayableContract` is meant for contracts that
