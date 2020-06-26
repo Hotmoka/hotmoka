@@ -131,7 +131,7 @@ In both cases, all tests should pass and all projects should be successfully ins
 [INFO] ------------------------------------------------------------------------
 ```
 
-[Markdownonly]: <p align="center"><img width="600" height="600" src="pics/projects.png" alt="Figure @fig:projects. Cross wins."></p>
+[Markdownonly]: <p align="center"><img width="500" src="pics/projects.png" alt="Figure @fig:projects. Cross wins."></p>
 
 [PDFonly]: ![Figure @fig:projects. The Eclipse projects of Hotmoka.](pics/projects.png "Figure @fig:projects. The Eclipse projects of Hotmoka."){ width=60% }
 
@@ -248,7 +248,7 @@ and everything should compile without errors.
 The result in Eclipse should look similar to that
 shown in Figure @fig:family.
 
-[Markdownonly]: <p align="center"><img width="450" height="450" src="pics/family.png" alt="Figure @fig:family. The family Eclipse project."></p>
+[Markdownonly]: <p align="center"><img width="350" src="pics/family.png" alt="Figure @fig:family. The family Eclipse project."></p>
 
 [PDFonly]: ![Figure @fig:family. The `family` Eclipse project.](pics/family.png "Figure @fig:family. The family Eclipse project."){ width=40% }
 
@@ -317,7 +317,7 @@ All such files can be removed from the jar, to reduce the gas cost of their
 installation in blockchain, but we do not care about this optimization here.
 The result should look as in Figure @fig:family_jar:
 
-[Markdownonly]: <p align="center"><img width="500" src="pics/family_jar.png" alt="Figure @fig:family_jar. The family Eclipse project, exported in jar."></p>
+[Markdownonly]: <p align="center"><img width="350" src="pics/family_jar.png" alt="Figure @fig:family_jar. The family Eclipse project, exported in jar."></p>
 
 [PDFonly]: ![Figure @fig:family_jar. The `family` Eclipse project, exported in jar.](pics/family_jar.png "Figure @fig:family_jar. The family Eclipse project, exported in jar."){ width=40% }
 
@@ -398,7 +398,7 @@ Leave directory `src/test/java` empty, by deleting its content, if not already e
 
 The result should look like as in Figure @fig:blockchain1.
 
-[Markdownonly]: <p align="center"><img width="150" height="150" src="pics/blockchain1.png" alt="Figure @fig:blockchain1. The blockchain Eclipse project."></p>
+[Markdownonly]: <p align="center"><img width="350" src="pics/blockchain1.png" alt="Figure @fig:blockchain1. The blockchain Eclipse project."></p>
 
 [PDFonly]: ![Figure @fig:blockchain1. The `blockchain` Eclipse project.](pics/blockchain1.png "Figure @fig:blockchain1. The blockchain Eclipse project."){ width=40% }
 
@@ -514,7 +514,7 @@ Inside that block, there are four transactions, corresponding
 to the four steps above, that initialize a Hotmoka node
 (see Figure @fig:blockchain2).
 
-[Markdownonly]: <p align="center"><img width="250" height="150" src="pics/blockchain2.png" alt="Figure @fig:blockchain2. The chain directory appeared."></p>
+[Markdownonly]: <p align="center"><img width="600" src="pics/blockchain2.png" alt="Figure @fig:blockchain2. The chain directory appeared."></p>
 
 [PDFonly]: ![Figure @fig:blockchain2. The `chain` directory appeared.](pics/blockchain2.png "Figure @fig:blockchain2. The chain directory appeared."){ width=90% }
 
@@ -725,7 +725,7 @@ a single dependency: `io-takamaka-code-1.0.0.jar`. This means that when, below, 
 Refresh the `blockchain` project and see how the `chain` directory
 is one transaction longer now (see Figure @fig:blockchain3).
 
-[Markdownonly]: <p align="center"><img width="250" height="200" src="pics/blockchain3.png" alt="Figure @fig:blockchain3. A new transaction appeared in the chain directory."></p>
+[Markdownonly]: <p align="center"><img width="450" src="pics/blockchain3.png" alt="Figure @fig:blockchain3. A new transaction appeared in the chain directory."></p>
 
 [PDFonly]: ![Figure @fig:blockchain3. A new transaction appeared in the `chain` directory.](pics/blockchain3.png "Figure @fig:blockchain3. A new transaction appeared in the chain directory."){ width=90% }
 
@@ -2424,9 +2424,9 @@ be used inside an `@Entry` method or constructor to access the calling
 contract and `balance()` can be used to access the private `balance` field
 of the contract.
 
-[Markdownonly]: <p align="center"><img width="250" height="350" src="pics/contracts.png" alt=""Figure @fig:contract_hierarchy. The hierarchy of contract classes."></p>
+[Markdownonly]: <p align="center"><img width="400" src="pics/contracts.png" alt=""Figure @fig:contract_hierarchy. The hierarchy of contract classes."></p>
 
-![Figure @fig:contract_hierarchy. The hierarchy of contract classes.](pics/contracts.png "Figure @fig:contract_hierarchy. The hierarchy of contract classes."){ width=85% }
+[PDFonly]: ![Figure @fig:contract_hierarchy. The hierarchy of contract classes.](pics/contracts.png "Figure @fig:contract_hierarchy. The hierarchy of contract classes."){ width=85% }
 
 The abstract subclass `PayableContract` is meant for contracts that
 can receive coins from other contracts, through their final
@@ -2962,9 +2962,7 @@ the cross wins.
 There are games that end up in a draw, when the board is full but nobody won,
 as in Figure @fig:tictactoe_draw.
 
-<p align="center">
-  <img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure @fig:tictactoe_draw. A draw.">
-</p>
+[Markdownonly]: <p align="center"><img width="250" height="250" src="pics/tictactoe_draw.png" alt="Figure @fig:tictactoe_draw. A draw."></p>
 
 [PDFonly]: ![Figure @fig:tictactoe_draw. A draw.](pics/tictactoe_draw.png "Figure @fig:tictactoe_draw. A draw."){ width=35% }
 
@@ -2985,7 +2983,7 @@ shown to the users, but use, internally,
 a monodimensional array of nine tiles, distributed as follows:
 
 <p align="center">
-  <img width="250" height="250" src="pics/tictactoe_grid_linear.png" alt="Figure @fig:tictactoe_linear. A linear representation of the game.">
+  <img width="220" src="pics/tictactoe_grid_linear.png" alt="Figure @fig:tictactoe_linear. A linear representation of the game.">
 </p>
 
 [PDFonly]: ![Figure @fig:tictactoe_linear. A linear representation of the game.](pics/tictactoe_grid_linear.png "Figure @fig:tictactoe_linear. A linear representation of the game."){ width=30% }
@@ -3687,7 +3685,9 @@ can have their length specified at construction time, or fixed to
 a constant (for best optimization and minimal gas consumption).
 Moreover, they exist in two flavors: immutable and mutable.
 
-![Figure @fig:array_hierarchy. Specialized byte array classes.](pics/bytes.png "Figure @fig:array_hierarchy. Specialized byte array classes.")
+[Markdownonly]: <p align="center"><img width="600" src="pics/bytes.png" alt="Figure @fig:array_hierarchy. Specialized byte array classes."></p>
+
+[PDFonly]: ![Figure @fig:array_hierarchy. Specialized byte array classes.](pics/bytes.png "Figure @fig:array_hierarchy. Specialized byte array classes.")
 
 Figure @fig:array_hierarchy shows the hierarchy of the specialized classes for arrays of bytes,
 available in Takamaka.
