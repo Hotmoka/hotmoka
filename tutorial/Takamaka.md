@@ -131,7 +131,7 @@ In both cases, all tests should pass and all projects should be successfully ins
 [INFO] ------------------------------------------------------------------------
 ```
 
- <p align="center"><img width="200" height="200" src="pics/projects.png" alt="Figure 1. Cross wins."></p>
+ <p align="center"><img width="600" height="600" src="pics/projects.png" alt="Figure 1. Cross wins."></p>
 
 
 If you want to see and edit the sources of the Hotmoka project, it is well possible
@@ -247,7 +247,7 @@ and everything should compile without errors.
 The result in Eclipse should look similar to that
 shown in Figure 2.
 
- <p align="center"><img width="150" height="150" src="pics/family.png" alt="Figure 2. The family Eclipse project."></p>
+ <p align="center"><img width="450" height="450" src="pics/family.png" alt="Figure 2. The family Eclipse project."></p>
 
 
 Create a `module-info.java` file inside `src/main/java`
@@ -315,7 +315,7 @@ All such files can be removed from the jar, to reduce the gas cost of their
 installation in blockchain, but we do not care about this optimization here.
 The result should look as in Figure 3:
 
- <p align="center"><img width="150" height="150" src="pics/family_jar.png" alt="Figure 3. The family Eclipse project, exported in jar."></p>
+ <p align="center"><img width="500" src="pics/family_jar.png" alt="Figure 3. The family Eclipse project, exported in jar."></p>
 
 
 ## Creation of a Blockchain in Memory <a name="memory-blockchain"></a>

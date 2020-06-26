@@ -131,7 +131,7 @@ In both cases, all tests should pass and all projects should be successfully ins
 [INFO] ------------------------------------------------------------------------
 ```
 
-[Markdownonly]: <p align="center"><img width="200" height="200" src="pics/projects.png" alt="Figure @fig:projects. Cross wins."></p>
+[Markdownonly]: <p align="center"><img width="600" height="600" src="pics/projects.png" alt="Figure @fig:projects. Cross wins."></p>
 
 [PDFonly]: ![Figure @fig:projects. The Eclipse projects of Hotmoka.](pics/projects.png "Figure @fig:projects. The Eclipse projects of Hotmoka."){ width=60% }
 
@@ -248,7 +248,7 @@ and everything should compile without errors.
 The result in Eclipse should look similar to that
 shown in Figure @fig:family.
 
-[Markdownonly]: <p align="center"><img width="150" height="150" src="pics/family.png" alt="Figure @fig:family. The family Eclipse project."></p>
+[Markdownonly]: <p align="center"><img width="450" height="450" src="pics/family.png" alt="Figure @fig:family. The family Eclipse project."></p>
 
 [PDFonly]: ![Figure @fig:family. The `family` Eclipse project.](pics/family.png "Figure @fig:family. The family Eclipse project."){ width=40% }
 
@@ -317,7 +317,7 @@ All such files can be removed from the jar, to reduce the gas cost of their
 installation in blockchain, but we do not care about this optimization here.
 The result should look as in Figure @fig:family_jar:
 
-[Markdownonly]: <p align="center"><img width="150" height="150" src="pics/family_jar.png" alt="Figure @fig:family_jar. The family Eclipse project, exported in jar."></p>
+[Markdownonly]: <p align="center"><img width="500" src="pics/family_jar.png" alt="Figure @fig:family_jar. The family Eclipse project, exported in jar."></p>
 
 [PDFonly]: ![Figure @fig:family_jar. The `family` Eclipse project, exported in jar.](pics/family_jar.png "Figure @fig:family_jar. The family Eclipse project, exported in jar."){ width=40% }
 
