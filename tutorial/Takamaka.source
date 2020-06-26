@@ -46,7 +46,7 @@ swept the computer industry
 as a revolution, providing, for the first time, a reliable technology
 for building trust over an inherently untrusted computing
 infrastructure, such as a distributed network of computers.
-Trust immediately translated into value and Bitcoin became
+Trust immediately translated into money and Bitcoin became
 an investment target, exactly at the moment of one of the worst
 economical turmoil of recent times. Central(-_ized_) banks,
 fighting against the crisis, looked like dinosaurs in comparison
@@ -69,7 +69,7 @@ that becomes an agreement between parties, thanks to
 the underlying consensus enforced by the blockchain.
 
 Solidity looks familiar to most programmers. Conditionals, loops and
-structures are there since half a century. Programmers
+structures are there since more than half a century. Programmers
 assumed that they _knew_ Solidity. However, the intricacies of
 its semantics made learning Solidity harder than expected.
 Finding good Solidity programmers is still difficult and
@@ -81,7 +81,8 @@ It is ungenerous to blame Solidity for all recent attacks to smart contracts
 in blockchain. That mainly happened because of the same success of Solidity,
 that made it the natural target of the attacks. Moreover, once the
 Pandora's box of Turing equivalence has been opened, you cannot expect anymore to
-keep the devils at bay, ie. to decide and understand, exactly, what your code will do at run time.
+keep the devils at bay, that is, to be able to
+decide and understand, exactly, what your code will do at run time.
 And this holds for every programming language, past, present or future.
 
 I must confess that my first encounter with Solidity
@@ -103,23 +104,21 @@ a monument to clarity;
 nor why types are weak in Solidity, so that contracts are held in `address`
 variables, whose actual type is unknown and cannot be easily
 enforced at run time [[CrafaPZ19]](#CrafaPZ19), with all consequent
-programming monsters, such as unchecked casts.
+programming monsters, such as unchecked casts. It seems that the evolution
+of programming languages has brought us back to C's `void *` type.
 
 Hence, when I first met people from Ailia SA in fall 2018, I was not surprised
 to realize that they were looking for a new way of programming smart contracts
 over the new blockchain that they were developing. I must thank them and our useful
 discussions, that pushed me to dive in blockchain technology and
-study many programming languages for blockchain. The result of those discussions
+study many programming languages for smart contracts. The result
 is Takamaka, a Java framework for writing smart contracts.
 This means that it allows programmers to use a subset of Java for writing code
 that can be installed and run in blockchain. Programmers will not have
 to deal with the storage of objects in blockchain: this is completely
 transparent to them. This makes Takamaka completely different from other
 attempts at using Java for writing smart contracts, where programmers
-must use specific method calls to persist data to blockchain.
-Takamaka is included in the Hotmoka project, a framework
-for collaborating nodes, whose long-term goal is to unify the programming
-model of blockchain and internet of things.
+must use explicit method calls to persist data to blockchain.
 
 Writing smart contracts in Java entails that programmers
 do not have to learn yet another programming language.
@@ -127,18 +126,23 @@ Moreover, they can use a well-understood and stable development
 platform, together with all its modern tools. Programmers can use
 features from the latest versions of Java, such as streams and lambda
 expressions.
-
 There are, of course, limitations to the kind of code that can
 be run inside a blockchain. The most important limitation is
 that programmers can only call a portion of the huge Java library,
 whose behavior is deterministic and whose methods are guaranteed
 to terminate.
 
+Takamaka is included in the Hotmoka project, a framework
+for collaborating nodes, whose long-term goal is to unify the programming
+model of blockchain and internet of things.
+The more scientific aspects of Takamaka have been published
+in the last years [[Spoto19]](#Spoto19)[[Spoto20]](#Spoto20).
+
 **Acknowledgments**.
 I must thank the people at Ailia SA, in particular Giovanni Antino, Mario Carlini
 and Iris Dimni, who decided to invest in this project and who are building the
 first blockchain that can be programmed in Takamaka. My thank goes also to all students and
-colleages who have read and proof-checked this document and its examples, finding
+colleagues who have read and proof-checked this document and its examples, finding
 bugs and inconsistencies; in particular to
 Dinu Berinde, Luca Olivieri and Fabio Tagliaferro.
 
@@ -5276,7 +5280,7 @@ https://solidity.readthedocs.io/en/v0.5.9/solidity-by-example.html#id2</a>.
 <a id="CrafaPZ19">[CrafaPZ19]</a>
 Crafa, S., Di Pirro, M. and Zucca, E. (2019).
 Is Solidity Solid Enough?
-_International Workshop on Financial Cryptography and Data Security (VOTING17)_
+_3rd Workshop on Trusted Smart Contracts (WTSC19)_.
 
 <a id="IyerD08">[IyerD08]</a>
 Iyer, K. and Dannen, C. (2018).
@@ -5296,6 +5300,16 @@ _ACM Transactions on Programming Languages and Systems_,
 Nakamoto, S. (2008).
 Bitcoin: A Peer-to-Peer Electronic Cash System.
 Available at <a href="https://bitcoin.org/bitcoin.pdf">https://bitcoin.org/bitcoin.pdf</a>.
+
+<a id="Spoto19">[Spoto19]</a>
+Spoto, F. (2019).
+A Java Framework for Smart Contracts.
+_3rd Workshop on Trusted Smart Contracts (WTSC19)_.
+
+<a id="Spoto20">[Spoto20]</a>
+Spoto, F. (2020).
+Enforcing Determinism of Java Smart Contracts.
+_4th Workshop on Trusted Smart Contracts (WTSC20)_.
 
 <a id="Tendermint">[Tendermint]</a>
 <a href="https://tendermint.com">https://tendermint.com</a>.

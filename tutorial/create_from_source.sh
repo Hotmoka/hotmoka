@@ -38,5 +38,11 @@ sed -i 's/\\chapterfont{\\clearpage}//g' Takamaka.tex
 sed -i 's/\\usepackage{sectsty}//g' Takamaka.tex
 sed -i 's/\\chapter{Table of Contents}/\\begin{comment}\\chapter{Table of Contents}/g' Takamaka.tex
 sed -i 's/\\hypertarget{introduction}/\\end{comment}\n\n\\hypertarget{introduction}/g' Takamaka.tex
+
+# delete the \begin{document}
+sed -i 's/\\begin{document}//g' Takamaka.tex
+# plave \begin{document} before \BgThispage
+sed -i 's/\\BgThispage/\\begin{document}\n\\BgThispage/g' Takamaka.tex
+
 pdflatex Takamaka.tex
 
