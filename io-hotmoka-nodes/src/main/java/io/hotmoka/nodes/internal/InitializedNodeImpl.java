@@ -36,7 +36,6 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
-import io.takamaka.code.constants.Constants;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.
@@ -59,6 +58,8 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * 
 	 * @param parent the node to decorate
 	 * @param takamakaCode the jar containing the basic Takamaka classes
+	 * @param manifestClassName the name of the class of the manifest set for the node
+	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
@@ -69,7 +70,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public InitializedNodeImpl(Node parent, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		this.parent = parent;
 
 		// we install the jar containing the basic Takamaka classes
@@ -87,8 +88,8 @@ public class InitializedNodeImpl implements InitializedNode {
 		String publicKeyOfManifestBase64Encoded = Base64.getEncoder().encodeToString(keysOfManifest.getPublic().getEncoded());
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(Signer.with(signature, keysOfGamete), gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference,
-			new ConstructorSignature(Constants.MANIFEST_NAME, ClassType.RGEOA, ClassType.STRING),
-			gamete, new StringValue(publicKeyOfManifestBase64Encoded));
+			new ConstructorSignature(manifestClassName, ClassType.RGEOA, ClassType.STRING, ClassType.STRING),
+			gamete, new StringValue(publicKeyOfManifestBase64Encoded), new StringValue(chainId));
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 

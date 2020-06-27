@@ -33,6 +33,8 @@ public interface InitializedNode extends Node {
 	 * 
 	 * @param parent the node to decorate
 	 * @param takamakaCode the jar containing the basic Takamaka classes
+	 * @param manifestClassName the name of the class of the manifest set for the node
+	 * @param chainId the initial chainId set for the node, inside its manifest
 	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @return a decorated view of {@code parent}
@@ -44,7 +46,7 @@ public interface InitializedNode extends Node {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static InitializedNode of(Node parent, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new InitializedNodeImpl(parent, takamakaCode, greenAmount, redAmount);
+	static InitializedNode of(Node parent, Path takamakaCode, String manifestClassName, String chainId, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new InitializedNodeImpl(parent, takamakaCode, manifestClassName, chainId, greenAmount, redAmount);
 	}
 }

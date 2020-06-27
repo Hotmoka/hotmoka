@@ -120,7 +120,9 @@ public abstract class TakamakaTest {
 			originalView = io.hotmoka.memory.MemoryBlockchain.of(config);
 
 			// the gamete has both red and green coins, enough for all tests
-			initializedView = InitializedNode.of(originalView, Paths.get("../io-takamaka-code/target/io-takamaka-code-" + version + ".jar"), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
+			initializedView = InitializedNode.of
+				(originalView, Paths.get("../io-takamaka-code/target/io-takamaka-code-" + version + ".jar"),
+				Constants.MANIFEST_NAME, TakamakaTest.class.getName(), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 			signature = originalView.signatureAlgorithmForRequests();
 		}
 		catch (Exception e) {

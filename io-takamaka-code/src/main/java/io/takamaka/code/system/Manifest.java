@@ -13,6 +13,11 @@ public final class Manifest extends ExternallyOwnedAccount {
 	public final RedGreenExternallyOwnedAccount gamete;
 
 	/**
+	 * The initial chainId of the node having this manifest.
+	 */
+	private String chainId;
+
+	/**
 	 * Creates a manifest.
 	 * 
 	 * @param gamete the gamete of the node having this manifest;
@@ -20,11 +25,13 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 * @param publicKey the public key of the manifest. Since the manifest
 	 *                  is not expected to hold coins, this key is probably
 	 *                  useless, but must be set as for every account
+	 * @param chainId the initial chainId of the node having this manifest
 	 */
-	public Manifest(RedGreenExternallyOwnedAccount gamete, String publicKey) {
+	public Manifest(RedGreenExternallyOwnedAccount gamete, String publicKey, String chainId) {
 		super(publicKey);
 
 		this.gamete = gamete;
+		this.chainId = chainId;
 	}
 
 	/**
@@ -35,5 +42,23 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 */
 	public @View RedGreenExternallyOwnedAccount getGamete() {
 		return gamete;
+	}
+
+	/**
+	 * Yields the current chain identifier for the node having this manifest.
+	 * 
+	 * @return the chain identifier
+	 */
+	public @View String getChainId() {
+		return chainId;
+	}
+
+	/**
+	 * Changes the chain identifier of the node having this manifest.
+	 * 
+	 * @param newChainId the new chain identifier of the node
+	 */
+	public void setChainId(String newChainId) {
+		throw new UnsupportedOperationException("this manifest does not allow one to change the node's chain identifier");
 	}
 }
