@@ -234,8 +234,11 @@ class State implements AutoCloseable {
 		// this method uses the last updates to the state, possibly also consequence of
 		// transactions inside the current block; however, it might be called also when
 		// a block has been committed and the next is not yet started; this can occur for
-		// runView transaction methods, that are not transactions inside blocks
-		if (txn.isFinished())
+		// runView transaction methods, that are not transactions inside blocks.
+		// Moreover, txn might be null if the first transaction that gets executed
+		// with a state is a runView transaction and no new node has been created yet.
+		// This might happen for instance upon node recreation
+		if (txn == null || txn.isFinished())
 			return getResponse(reference);
 
 		return recordTime(() -> {

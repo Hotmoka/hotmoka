@@ -98,7 +98,7 @@ public interface NodeWithAccounts extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static NodeWithAccounts of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new NodeWithAccountsImpl(parent, privateKeyOfPayer, false, funds);
+		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, false, funds);
 	}
 
 	/**
@@ -120,6 +120,6 @@ public interface NodeWithAccounts extends Node {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static NodeWithAccounts ofRedGreen(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path jar, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new NodeWithAccountsImpl(parent, privateKeyOfPayer, true, funds);
+		return new NodeWithAccountsImpl(parent, payer, privateKeyOfPayer, true, funds);
 	}
 }

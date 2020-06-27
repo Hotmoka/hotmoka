@@ -45,8 +45,6 @@ class ABCI extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 	 */
 	private final TendermintBlockchainImpl node;
 
-	//private final static Logger logger = LoggerFactory.getLogger(ABCI.class);
-
     /**
      * Builds the Tendermint ABCI interface that executes Takamaka transactions.
      * 
