@@ -51,7 +51,6 @@ import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.internal.AbstractNodeProxyForEngine;
-import io.takamaka.code.instrumentation.GasCostModel;
 
 /**
  * A generic implementation of a node.
@@ -92,11 +91,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	private final HashingAlgorithm<? super TransactionRequest<?>> hashingForRequests;
 
 	/**
-	 * The default gas model of the node.
-	 */
-	private final static GasCostModel defaultGasCostModel = GasCostModel.standard();
-
-	/**
 	 * The array of hexadecimal digits.
 	 */
 	private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
@@ -122,15 +116,6 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 			logger.error("failed to create the node", e);
 			throw InternalFailureException.of(e);
 		}
-	}
-
-	/**
-	 * Yields the gas cost model of this node.
-	 * 
-	 * @return the default gas cost model. Subclasses may redefine
-	 */
-	public GasCostModel getGasCostModel() {
-		return defaultGasCostModel;
 	}
 
 	/**
