@@ -10,7 +10,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.crypto.internal.Empty;
-import io.hotmoka.crypto.internal.SHA256withDSA;
+import io.hotmoka.crypto.internal.SHA256DSA;
 
 /**
  * An algorithm that signs values and verifies such signatures back.
@@ -72,7 +72,7 @@ public interface SignatureAlgorithm<T> {
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256withDSA algorithm
 	 */
 	static <T> SignatureAlgorithm<T> sha256dsa(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
-		return new SHA256withDSA<>(supplier);
+		return new SHA256DSA<>(supplier);
 	}
 
 	/**

@@ -106,7 +106,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = signatureAlgorithmForRequests();
+		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 
 		// we get the nonce of the payer
@@ -159,11 +159,6 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	@Override
 	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		return parent.getState(reference);
-	}
-
-	@Override
-	public long getNow() {
-		return parent.getNow();
 	}
 
 	@Override
@@ -237,7 +232,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	}
 
 	@Override
-	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		return parent.signatureAlgorithmForRequests();
+	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		return parent.getSignatureAlgorithmForRequests();
 	}
 }

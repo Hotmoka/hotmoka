@@ -130,7 +130,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		this.privateKeys = new PrivateKey[accounts.length];
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = signatureAlgorithmForRequests();
+		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 
 		// we get the nonce of the payer
@@ -218,11 +218,6 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	}
 
 	@Override
-	public long getNow() {
-		return parent.getNow();
-	}
-
-	@Override
 	public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return parent.addJarStoreInitialTransaction(request);
 	}
@@ -293,7 +288,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 	}
 
 	@Override
-	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		return parent.signatureAlgorithmForRequests();
+	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		return parent.getSignatureAlgorithmForRequests();
 	}
 }

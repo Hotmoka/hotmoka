@@ -8,6 +8,7 @@ import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.takamaka.code.constants.Constants;
 
 /**
  * The signature of a field of a class.
@@ -34,6 +35,11 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	 * The field that holds the nonce in red/green externally owned accounts.
 	 */
 	public final static FieldSignature RGEOA_NONCE_FIELD = new FieldSignature(ClassType.RGEOA, "nonce", ClassType.BIG_INTEGER);
+
+	/**
+	 * The field of the manifest that holds the chain identifier of the node.
+	 */
+	public final static FieldSignature MANIFEST_CHAIN_ID = new FieldSignature(Constants.MANIFEST_NAME, "chainId", ClassType.STRING);
 
 	/**
 	 * The class of the field.

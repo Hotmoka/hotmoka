@@ -103,17 +103,13 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	}
 
 	@Override
-	public long getNow() {
-		return now;
+	protected StorageReference getManifestUncommitted() throws NoSuchElementException {
+		return state.getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException {
-		Optional<StorageReference> manifest = state.getManifest();
-		if (!manifest.isPresent() && !isCommitted(manifest.get().transaction))
-			throw new NoSuchElementException("no manifest set for this node");
-	
-		return manifest.get();
+	protected long getNow() {
+		return now;
 	}
 
 	@Override

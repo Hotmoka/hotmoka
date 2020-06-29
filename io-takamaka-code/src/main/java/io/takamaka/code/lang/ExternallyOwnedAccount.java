@@ -27,8 +27,12 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * Creates an externally owned account with no funds.
 	 * 
 	 * @param publicKey the Base64-encoded public key of the account
+	 * @throws NullPointerException if {@code publicKey} is null
 	 */
 	public ExternallyOwnedAccount(String publicKey) {
+		if (publicKey == null)
+			throw new NullPointerException("cannot set the public key to null");
+
 		this.publicKey = publicKey;
 	}
 

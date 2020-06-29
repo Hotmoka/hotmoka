@@ -27,6 +27,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.OutOfGasError;
 import io.takamaka.code.engine.AbstractNode;
@@ -156,6 +157,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 				signatureMustBeValid();
 				callerAndRequestMustAgreeOnNonce();
+				requestMustHaveCorrectChainId();
 				sellAllGasToCaller();
 				increaseNonceOfCaller();
 			}
@@ -177,7 +179,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		private void signatureMustBeValid() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, InvalidKeyException, SignatureException, TransactionRejectedException {
 			if (isView)
 				try {
-					if (node.getManifest().equals(request.caller)) {
+					if (node.getManifestUncommitted().equals(request.caller)) {
 						logger.info(reference + ": signature verification skipped for view call from manifest");
 						return;
 					}
@@ -188,7 +190,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 			String publicKeyEncodedBase64 = classLoader.getPublicKeyOf(deserializedCaller);
 			byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
-			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.signatureAlgorithmForRequests();
+			SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
 			PublicKey publicKey = signature.publicKeyFromEncoded(publicKeyEncoded);
 			if (!signature.verify(request, publicKey, request.getSignature()))
 				throw new TransactionRejectedException("invalid request signature");
@@ -357,6 +359,31 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				BigInteger expected = classLoader.getNonceOf(deserializedCaller);
 				if (!expected.equals(request.nonce))
 					throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce + " but the account contains " + expected);
+			}
+		}
+
+		/**
+		 * Checks if the node has the same chain identifier as the request.
+		 * 
+		 * @throws TransactionRejectedException if the node and the request have different chain identifiers
+		 */
+		private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
+			// calls to @View methods do not check the chain identifier
+			if (!isView) {
+				String chainIdOfNode;
+
+				try {
+					StorageReference manifest = node.getManifestUncommitted();
+					chainIdOfNode = (String) deserializeLastLazyUpdateFor(manifest, FieldSignature.MANIFEST_CHAIN_ID);
+				}
+				catch (NoSuchElementException e) {
+					// the manifest has not been set yet: requests can be executed if their
+					// chain identifier is null
+					chainIdOfNode = null;
+				}
+
+				// TODO
+				//System.out.println("the request must have chain id: " + chainIdOfNode);
 			}
 		}
 

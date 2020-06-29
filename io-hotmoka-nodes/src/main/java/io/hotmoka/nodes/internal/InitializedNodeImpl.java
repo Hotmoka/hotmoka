@@ -76,7 +76,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we install the jar containing the basic Takamaka classes
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCode)));
 
-		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = parent.signatureAlgorithmForRequests();
+		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = parent.getSignatureAlgorithmForRequests();
 		this.keysOfGamete = signature.getKeyPair();
 
 		// we create a gamete with both red and green coins
@@ -125,11 +125,6 @@ public class InitializedNodeImpl implements InitializedNode {
 	@Override
 	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		return parent.getState(reference);
-	}
-
-	@Override
-	public long getNow() {
-		return parent.getNow();
 	}
 
 	@Override
@@ -203,7 +198,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
-		return parent.signatureAlgorithmForRequests();
+	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+		return parent.getSignatureAlgorithmForRequests();
 	}
 }

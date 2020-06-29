@@ -212,13 +212,12 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 		/**
 		 * Yields the latest value for the given field, of lazy type, of the object with the given storage reference.
-		 * The field is {@code final}. Conceptually, this method looks for the value of the field
-		 * in the transaction where the reference was created.
+		 * The field is not {@code final}. Conceptually, this method looks for the value of the field
+		 * in the last transaction where the reference was updated.
 		 * 
 		 * @param reference the storage reference
 		 * @param field the field, of lazy type
 		 * @return the value of the field
-		 * @throws Exception if the look up fails
 		 */
 		public final Object deserializeLastLazyUpdateFor(StorageReference reference, FieldSignature field) {
 			return deserializer.deserialize(node.getLastLazyUpdateToNonFinalField(reference, field, this::chargeGasForCPU).getValue());

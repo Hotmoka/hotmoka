@@ -37,6 +37,9 @@ public interface Node extends AutoCloseable {
 
 	/**
 	 * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.
+	 * If this node has some form of commit, then this method returns a reference
+	 * only if the installation of the jar with the Takamaka base classes has been
+	 * already committed.
 	 * 
 	 * @throws NoSuchElementException if the node has not been initialized yet
 	 */
@@ -46,6 +49,8 @@ public interface Node extends AutoCloseable {
 	 * Yields the manifest installed in the store of the node. The manifest is an object of type
 	 * {@code io.takamaka.code.system.Manifest} that contains some information about the node,
 	 * useful for the users of the node.
+	 * If this node has some form of commit, then this method returns a reference
+	 * only if the installation of the manifest has been already committed.
 	 * 
 	 * @return the reference to the node
 	 * @throws NoSuchElementException if no manifest has been set for this node
@@ -53,19 +58,14 @@ public interface Node extends AutoCloseable {
 	StorageReference getManifest() throws NoSuchElementException;
 
 	/**
-	 * Yields the algorithm used to sign non-initial requests with this node.
-	 * 
-	 * @return the algorithm
-	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
-	 */
-	SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException;
-
-	/**
 	 * Yields the class tag of the object with the given storage reference.
+	 * If this method succeeds and this node has some form of commit, then the transaction
+	 * of the storage reference has been definitely committed in this node.
 	 * 
 	 * @param reference the storage reference
 	 * @return the class tag, if any
-	 * @throws NoSuchElementException if the class tag could not be found
+	 * @throws NoSuchElementException if there is no object with that reference or
+	 *                                if the class tag could not be found
 	 */
 	ClassTag getClassTag(StorageReference reference) throws NoSuchElementException;
 
@@ -82,12 +82,12 @@ public interface Node extends AutoCloseable {
 	Stream<Update> getState(StorageReference reference) throws NoSuchElementException;
 
 	/**
-	 * Yields the UTC time that must be used for a transaction, if it is executed
-	 * with this node in this moment.
+	 * Yields the algorithm used to sign non-initial requests with this node.
 	 * 
-	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
-	long getNow();
+	SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException;
 
 	/**
 	 * Expands the store of this node with a transaction that

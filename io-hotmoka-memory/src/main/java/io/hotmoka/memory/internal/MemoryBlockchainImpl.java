@@ -101,7 +101,7 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException {
+	protected StorageReference getManifestUncommitted() throws NoSuchElementException {
 		StorageReference result = manifest.get();
 		if (result != null)
 			return result;
@@ -110,14 +110,14 @@ public class MemoryBlockchainImpl extends AbstractNodeWithHistory<Config> implem
 	}
 
 	@Override
-	public long getNow() {
-		return System.currentTimeMillis();
-	}
-
-	@Override
 	public void close() throws Exception {
 		mempool.stop();
 		super.close();
+	}
+
+	@Override
+	protected long getNow() {
+		return System.currentTimeMillis();
 	}
 
 	@Override

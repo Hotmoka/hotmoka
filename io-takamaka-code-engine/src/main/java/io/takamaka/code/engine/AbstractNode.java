@@ -125,9 +125,18 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 	 */
 	@Override
-	public SignatureAlgorithm<NonInitialTransactionRequest<?>> signatureAlgorithmForRequests() throws NoSuchAlgorithmException {
+	public SignatureAlgorithm<NonInitialTransactionRequest<?>> getSignatureAlgorithmForRequests() throws NoSuchAlgorithmException {
 		// we do not take into account the signature itself
 		return SignatureAlgorithm.sha256dsa(NonInitialTransactionRequest::toByteArrayWithoutSignature);
+	}
+
+	@Override
+	public final StorageReference getManifest() throws NoSuchElementException {
+		StorageReference manifest = getManifestUncommitted();
+		if (isCommitted(manifest.transaction))
+			return manifest;
+		else
+			throw new NoSuchElementException("no manifest set for this node");
 	}
 
 	@Override

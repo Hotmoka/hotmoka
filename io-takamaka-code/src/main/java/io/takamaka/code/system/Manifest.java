@@ -26,9 +26,16 @@ public final class Manifest extends ExternallyOwnedAccount {
 	 *                  is not expected to hold coins, this key is probably
 	 *                  useless, but must be set as for every account
 	 * @param chainId the initial chainId of the node having this manifest
+	 * @throws NullPointerException if any parameter is null
 	 */
 	public Manifest(RedGreenExternallyOwnedAccount gamete, String publicKey, String chainId) {
 		super(publicKey);
+
+		if (gamete == null)
+			throw new NullPointerException("cannot set the gamete to null");
+
+		if (chainId == null)
+			throw new NullPointerException("cannot set the chain identifier to null");
 
 		this.gamete = gamete;
 		this.chainId = chainId;

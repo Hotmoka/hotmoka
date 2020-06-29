@@ -9,6 +9,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.nodes.Node;
 import io.takamaka.code.engine.LRUCache;
 import io.takamaka.code.engine.internal.EngineClassLoader;
 
@@ -16,7 +17,7 @@ import io.takamaka.code.engine.internal.EngineClassLoader;
  * The methods of an abstract node that are only used inside this package.
  * By using this proxy class, we avoid to define them as public.
  */
-public abstract class AbstractNodeProxyForTransactions {
+public abstract class AbstractNodeProxyForTransactions implements Node {
 
 	/**
 	 * The cache.
@@ -34,6 +35,25 @@ public abstract class AbstractNodeProxyForTransactions {
 	protected final EngineClassLoader getCachedClassLoader(TransactionReference classpath) throws Exception {
 		return cache.computeIfAbsent(classpath, this::mkClassLoader);
 	}
+
+	/**
+	 * Yields the UTC time that must be used for a transaction, if it is executed
+	 * with this node in this moment.
+	 * 
+	 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
+	 */
+	protected abstract long getNow();
+
+	/**
+	 * Yields the manifest installed in the store of the node, also when the node has a notion
+	 * of commit and the installation of the manifest has not yet been committed.
+	 * The manifest is an object of type {@code io.takamaka.code.system.Manifest} that contains
+	 * some information about the node, useful for the users of the node.
+	 * 
+	 * @return the reference to the node
+	 * @throws NoSuchElementException if no manifest has been set for this node
+	 */
+	protected abstract StorageReference getManifestUncommitted() throws NoSuchElementException;
 
 	/**
 	 * Creates a new class loader for the given class path.

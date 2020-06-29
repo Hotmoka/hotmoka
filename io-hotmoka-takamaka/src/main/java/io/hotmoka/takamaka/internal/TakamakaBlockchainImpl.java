@@ -92,17 +92,8 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 	}
 
 	@Override
-	public long getNow() {
-		return now;
-	}
-
-	@Override
-	public StorageReference getManifest() throws NoSuchElementException {
-		Optional<StorageReference> manifest = state.getManifest();
-		if (!manifest.isPresent() && !isCommitted(manifest.get().transaction))
-			throw new NoSuchElementException("no manifest set for this node");
-	
-		return manifest.get();
+	protected StorageReference getManifestUncommitted() throws NoSuchElementException {
+		return state.getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
 	}
 
 	/**
@@ -126,6 +117,11 @@ public class TakamakaBlockchainImpl extends AbstractNodeWithHistory<Config> impl
 
 	public void checkOut(byte[] stateHash) {
 		//TODO
+	}
+
+	@Override
+	protected long getNow() {
+		return now;
 	}
 
 	@Override

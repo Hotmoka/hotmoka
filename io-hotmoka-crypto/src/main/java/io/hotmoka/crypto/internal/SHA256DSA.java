@@ -22,7 +22,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
  * 
  * @param <T> the type of values that get signed
  */
-public class SHA256withDSA<T> implements SignatureAlgorithm<T> {
+public class SHA256DSA<T> implements SignatureAlgorithm<T> {
 
 	/**
 	 * The actual signing algorithm.
@@ -39,7 +39,7 @@ public class SHA256withDSA<T> implements SignatureAlgorithm<T> {
 	 */
 	private final BytesSupplier<? super T> supplier;
 
-	public SHA256withDSA(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	public SHA256DSA(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		this.signature = Signature.getInstance("SHA256withDSA");
 		this.keyPairGen = KeyPairGenerator.getInstance("DSA");
 		this.keyPairGen.initialize(2048);

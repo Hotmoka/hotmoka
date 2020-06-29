@@ -540,7 +540,8 @@ transactions that perform the following tasks:
    stored inside the blockchain, that holds all money initially provided to the blockchain.
    This object is called *gamete* and can be used later to fund other accounts;
 3. creates an object of class `io.takamaka.code.system.Manifest`, that is used to publish
-   information about the node. For instance, it tells who is the gamete of the node;
+   information about the node. For instance, it tells who is the gamete of the node and
+   which is its chain identifier;
 4. state that the blockchain has been initialized. After this statement, no more
    initial transactions can be run with this blockchain (they would be rejected).
 
@@ -574,15 +575,25 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath,
+        "io.takamaka.code.system.Manifest", "test", GREEN_AMOUNT, RED_AMOUNT);
     }
   }
 }
 ```
 
-The code above initializes the blockchain, by installing the base classes for Takamaka,
+The code above initializes the node, performing steps
+1-4 above. It installs the base classes for Takamaka,
 that we had previously packaged inside the project `io-takamaka-code`
 (this is why we put this new project inside the directory of the Hotmoka project).
+It gives the node a manifest of class `io.takamaka.code.system.Manifest`
+and sets `test` as its chain identifier.
+
+> The chain identifier is used to avoid replaying of transactions across distinct networks.
+> That is, a transaction sent to a network must specify the same chain identifier as
+> the nodes of the network, or otherwise it will be rejected. Chain identifiers
+> are particularly important if a network splits in teo or more subnetworks.
+
 It is important to observe that both `node` and `initialized` are views of the
 same Hotmoka node. Hence, if we run this class, both get initialized and both will contain
 the `io-takamaka-code-1.0.0.jar` archive and a new object, the gamete, initialized
@@ -697,7 +708,8 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // we store io-takamaka-code-1.0.0.jar and create the manifest and the gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
+        GREEN_AMOUNT, RED_AMOUNT);
 
       // we get a reference to where io-takamaka-code-1.0.0.jar has been stored
       TransactionReference takamakaCode = node.getTakamakaCode();
@@ -1082,7 +1094,8 @@ public class Main {
     try (Node node = MemoryBlockchain.of(config)) {
       // first view: store io-takamaka-code-1.0.0.jar and create manifest and gamete
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
+        GREEN_AMOUNT, RED_AMOUNT);
 
       // second view: store family-0.0.1-SNAPSHOT.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
@@ -1178,7 +1191,8 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
+        GREEN_AMOUNT, RED_AMOUNT);
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.keysOfGamete().getPrivate(), familyPath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
@@ -1494,7 +1508,8 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
+        GREEN_AMOUNT, RED_AMOUNT);
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.keysOfGamete().getPrivate(), familyPath);
       NodeWithAccounts nodeWithAccounts = NodeWithAccounts.of
@@ -2850,7 +2865,8 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
+        GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the Ponzi contracts in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.keysOfGamete().getPrivate(), ponziPath);
@@ -3558,7 +3574,8 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
+        GREEN_AMOUNT, RED_AMOUNT);
       // install the jar of the TicTacToe contract in the node
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.keysOfGamete().getPrivate(), tictactoePath);
@@ -4419,7 +4436,8 @@ public class Main {
 
     try (Node node = MemoryBlockchain.of(config)) {
       InitializedNode initialized = InitializedNode.of
-        (node, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+        (node, takamakaCodePath, "io.takamaka.code.system.Manifest", "test",
+        GREEN_AMOUNT, RED_AMOUNT);
       NodeWithJars nodeWithJars = NodeWithJars.of
         (node, initialized.keysOfGamete().getPrivate(), auctionPath);
       this.nodeWithAccounts = NodeWithAccounts.of

@@ -123,7 +123,7 @@ public abstract class TakamakaTest {
 			initializedView = InitializedNode.of
 				(originalView, Paths.get("../io-takamaka-code/target/io-takamaka-code-" + version + ".jar"),
 				Constants.MANIFEST_NAME, TakamakaTest.class.getName(), BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
-			signature = originalView.signatureAlgorithmForRequests();
+			signature = originalView.getSignatureAlgorithmForRequests();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -168,7 +168,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected final SignatureAlgorithm<NonInitialTransactionRequest<?>> signature() throws NoSuchAlgorithmException {
-		return nodeWithAccountsView.signatureAlgorithmForRequests();
+		return nodeWithAccountsView.getSignatureAlgorithmForRequests();
 	}
 
 	protected final TransactionRequest<?> getRequestAt(TransactionReference reference) {
