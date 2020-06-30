@@ -63,7 +63,10 @@ public class StartNode {
 	 * The nonce of each externally owned account used in the test.
 	 */
 	private final static Map<StorageReference, BigInteger> nonces = new HashMap<>();
+
 	private static SignatureAlgorithm<NonInitialTransactionRequest<?>> signature;
+
+	private static String chainId;
 
 	public static void main(String[] args) throws Exception {
 		Config config = new Config.Builder().setDelete(false).build();
@@ -94,7 +97,8 @@ public class StartNode {
 
 		try (Node blockchain = TendermintBlockchain.of(config)) {
 			if (jarOfTakamakaCode != null) {
-				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, Constants.MANIFEST_NAME, StartNode.class.getName(), GREEN, RED);
+				chainId = StartNode.class.getName();
+				InitializedNode initializedView = InitializedNode.of(blockchain, jarOfTakamakaCode, Constants.MANIFEST_NAME, chainId, GREEN, RED);
 				NodeWithAccounts viewWithAccounts = NodeWithAccounts.of(initializedView, initializedView.keysOfGamete().getPrivate(), _200_000, _200_000, _200_000, _200_000);
 				signature = blockchain.getSignatureAlgorithmForRequests();
 
@@ -153,7 +157,7 @@ public class StartNode {
 	 */
 	private static CodeSupplier<StorageValue> postTransferTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, InvalidKeyException, SignatureException {
 		BigInteger nonce = getNonceOf(node, caller, key, classpath);
-		return node.postInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, nonce, gasPrice, classpath, receiver, howMuch));
+		return node.postInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, nonce, chainId, gasPrice, classpath, receiver, howMuch));
 	}
 
 	/**
@@ -161,14 +165,14 @@ public class StartNode {
 	 */
 	private static void addTransferTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
 		BigInteger nonce = getNonceOf(node, caller, key, classpath);
-		node.addInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, nonce, gasPrice, classpath, receiver, howMuch));
+		node.addInstanceMethodCallTransaction(new TransferTransactionRequest(Signer.with(signature, key), caller, nonce, chainId, gasPrice, classpath, receiver, howMuch));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, ZERO, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		return node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, ZERO, null, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
@@ -188,7 +192,7 @@ public class StartNode {
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(Signer.with(signature, key), account, ZERO, BigInteger.valueOf(10_000), ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
+					(Signer.with(signature, key), account, ZERO, null, BigInteger.valueOf(10_000), ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
 
 			nonces.put(account, nonce);
 			return nonce;

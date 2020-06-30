@@ -378,12 +378,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				}
 				catch (NoSuchElementException e) {
 					// the manifest has not been set yet: requests can be executed if their
-					// chain identifier is null
-					chainIdOfNode = null;
+					// chain identifier is the empty string
+					chainIdOfNode = "";
 				}
 
-				// TODO
-				//System.out.println("the request must have chain id: " + chainIdOfNode);
+				if (!chainIdOfNode.equals(request.chainId))
+					throw new TransactionRejectedException("incorrect chain id: the request reports " + request.chainId + " but the node requires " + chainIdOfNode);
 			}
 		}
 

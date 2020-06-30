@@ -9,6 +9,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
@@ -39,25 +40,33 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	public final TransactionReference classpath;
 
 	/**
-	 * The nonce used for transaction ordering and to forbid transaction replay.
+	 * The nonce used for transaction ordering and to forbid transaction replay on the same chain.
+	 * It is relative to the caller.
 	 */
 	public final BigInteger nonce;
+
+	/**
+	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
+	 */
+	public final String chainId;
 
 	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 */
-	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath) {
+	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath) {
 		this.caller = caller;
 		this.gasLimit = gasLimit;
 		this.gasPrice = gasPrice;
 		this.classpath = classpath;
 		this.nonce = nonce;
+		this.chainId = chainId;
 	}
 
 	/**
@@ -73,6 +82,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
         return getClass().getSimpleName() + ":\n"
         	+ "  caller: " + caller + "\n"
         	+ "  nonce: " + nonce + "\n"
+        	+ "  chainId: " + chainId + "\n"
         	+ "  gas limit: " + gasLimit + "\n"
         	+ "  gas price: " + gasPrice + "\n"
         	+ "  class path: " + classpath;
@@ -83,7 +93,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		if (other instanceof NonInitialTransactionRequest) {
 			NonInitialTransactionRequest<?> otherCast = (NonInitialTransactionRequest<?>) other;
 			return caller.equals(otherCast.caller) && gasLimit.equals(otherCast.gasLimit) && gasPrice.equals(otherCast.gasPrice)
-				&& classpath.equals(otherCast.classpath) && nonce.equals(otherCast.nonce);
+				&& classpath.equals(otherCast.classpath) && nonce.equals(otherCast.nonce) && chainId.equals(otherCast.chainId);
 		}
 		else
 			return false;
@@ -91,7 +101,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 
 	@Override
 	public int hashCode() {
-		return caller.hashCode() ^ gasLimit.hashCode() ^ gasPrice.hashCode() ^ classpath.hashCode() ^ nonce.hashCode();
+		return caller.hashCode() ^ gasLimit.hashCode() ^ gasPrice.hashCode() ^ classpath.hashCode() ^ nonce.hashCode() ^ chainId.hashCode();
 	}
 
 	@Override
@@ -119,6 +129,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		marshal(gasPrice, oos);
 		classpath.into(oos);
 		marshal(nonce, oos);
+		oos.writeUTF(chainId);
 	}
 
 	/**
@@ -133,6 +144,20 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 			oos.flush();
 			return baos.toByteArray();
 		}
+	}
+
+	@Override
+	public void check() throws TransactionRejectedException {
+		if (gasLimit.signum() < 0)
+			throw new TransactionRejectedException("gas limit cannot be negative");
+
+		if (gasPrice.signum() < 0)
+			throw new TransactionRejectedException("gas price cannot be negative");
+
+		if (chainId == null)
+			throw new TransactionRejectedException("chain id cannot be null");
+
+		super.check();
 	}
 
 	/**

@@ -29,9 +29,9 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
- * A test for wrong use of keys for signing a transaction.
+ * A test for the wrong use of the chain identifier in a transaction.
  */
-class WrongKey extends TakamakaTest {
+class WrongChainId extends TakamakaTest {
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.takamaka.tests.abstractfail.AbstractFailImpl"), BasicTypes.INT);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
@@ -40,16 +40,15 @@ class WrongKey extends TakamakaTest {
 		setNode("abstractfail.jar", _20_000, _20_000);
 	}
 
-	@Test @DisplayName("constructor call with wrong key fails")
+	@Test @DisplayName("constructor call with wrong chain identifier fails")
 	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = nodeWithAccountsView.getSignatureAlgorithmForRequests();
 
-		// key 1 for account 0 !
-		PrivateKey key = privateKey(1);
+		PrivateKey key = privateKey(0);
 		StorageReference caller = account(0);
 
-		throwsTransactionRejectedWithCause("invalid request signature", () -> {
-			nodeWithAccountsView.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId, _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42)));
+		throwsTransactionRejectedWithCause("incorrect chain id", () -> {
+			nodeWithAccountsView.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signer.with(signature, key), caller, BigInteger.ZERO, chainId + "noise", _20_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42)));
 		});
 	}
 }

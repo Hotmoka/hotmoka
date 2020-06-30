@@ -35,6 +35,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.NodeWithJars;
@@ -77,7 +78,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		// we use the gamete as payer
 		this(parent,
 			(StorageReference) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.onBehalfOfManifest(), parent.getManifest(), ZERO, BigInteger.valueOf(10_000), ZERO,
+				(Signer.onBehalfOfManifest(), parent.getManifest(), ZERO, "", BigInteger.valueOf(10_000), ZERO,
 					parent.getTakamakaCode(), new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), parent.getManifest())),
 			privateKeyOfGamete, jars);
 	}
@@ -111,12 +112,17 @@ public class NodeWithJarsImpl implements NodeWithJars {
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
+			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
+
+		// we get the chainId of the parent
+		String chainId = ((StringValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode,
+			new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getChainId", ClassType.STRING), parent.getManifest()))).value;
 
 		JarSupplier[] jarSuppliers = new JarSupplier[jars.length];
 		int pos = 0;
 		for (Path jar: jars) {
-			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, BigInteger.valueOf(1_000_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
+			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequest(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(1_000_000_000), ZERO, takamakaCode, Files.readAllBytes(jar), takamakaCode));
 			nonce = nonce.add(ONE);
 			pos++;
 		}

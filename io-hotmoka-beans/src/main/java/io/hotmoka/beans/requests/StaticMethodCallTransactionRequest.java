@@ -24,8 +24,10 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
@@ -34,8 +36,8 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public StaticMethodCallTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
+	public StaticMethodCallTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
 
 		this.signature = signer.sign(this);
 	}
@@ -45,6 +47,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains; this can be {@code null}
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
@@ -52,8 +55,8 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * @param signature the signature of the request
 	 * @param actuals the actual arguments passed to the method
 	 */
-	StaticMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, byte[] signature, StorageValue... actuals) {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
+	StaticMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, byte[] signature, StorageValue... actuals) {
+		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
 
 		this.signature = signature;
 	}

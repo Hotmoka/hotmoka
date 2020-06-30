@@ -86,8 +86,9 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the manifest
 		KeyPair keysOfManifest = signature.getKeyPair();
 		String publicKeyOfManifestBase64Encoded = Base64.getEncoder().encodeToString(keysOfManifest.getPublic().getEncoded());
+		// we use "" as chainId, since it is not assigned yet
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(Signer.with(signature, keysOfGamete), gamete, BigInteger.ZERO, BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference,
+			(Signer.with(signature, keysOfGamete), gamete, BigInteger.ZERO, "", BigInteger.valueOf(10_000), BigInteger.ZERO, takamakaCodeReference,
 			new ConstructorSignature(manifestClassName, ClassType.RGEOA, ClassType.STRING, ClassType.STRING),
 			gamete, new StringValue(publicKeyOfManifestBase64Encoded), new StringValue(chainId));
 

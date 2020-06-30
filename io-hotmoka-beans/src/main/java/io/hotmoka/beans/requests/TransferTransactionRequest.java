@@ -54,6 +54,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @param signer the signer of the request
 	 * @param caller the caller, that pays for the transferred coins
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param receiver the receiver of the call
@@ -61,8 +62,8 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public TransferTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, BigInteger howMuch) throws InvalidKeyException, SignatureException {
-		super(signer, caller, nonce, GAS_LIMIT, gasPrice, classpath, receiveBigInteger, receiver, new BigIntegerValue(howMuch));
+	public TransferTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, BigInteger howMuch) throws InvalidKeyException, SignatureException {
+		super(signer, caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveBigInteger, receiver, new BigIntegerValue(howMuch));
 	}
 
 	/**
@@ -70,14 +71,15 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * 
 	 * @param caller the caller, that pays for the transferred coins
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param receiver the receiver of the call
 	 * @param howMuch how much coins must be transferred
 	 * @param signature the signature of the request
 	 */
-	TransferTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, BigInteger howMuch, byte[] signature) {
-		super(caller, nonce, GAS_LIMIT, gasPrice, classpath, receiveBigInteger, receiver, signature, new BigIntegerValue(howMuch));
+	TransferTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, BigInteger howMuch, byte[] signature) {
+		super(caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveBigInteger, receiver, signature, new BigIntegerValue(howMuch));
 	}
 
 	/**
@@ -86,6 +88,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @param signer the signer of the request
 	 * @param caller the caller, that pays for the transferred coins
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param receiver the receiver of the call
@@ -93,8 +96,8 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public TransferTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws InvalidKeyException, SignatureException {
-		super(signer, caller, nonce, GAS_LIMIT, gasPrice, classpath, receiveInt, receiver, new IntValue(howMuch));
+	public TransferTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) throws InvalidKeyException, SignatureException {
+		super(signer, caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveInt, receiver, new IntValue(howMuch));
 	}
 
 	/**
@@ -102,14 +105,15 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * 
 	 * @param caller the caller, that pays for the transferred coins
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param receiver the receiver of the call
 	 * @param howMuch how much coins must be transferred
 	 * @param signature the signature of the request
 	 */
-	TransferTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch, byte[] signature) {
-		super(caller, nonce, GAS_LIMIT, gasPrice, classpath, receiveInt, receiver, signature, new IntValue(howMuch));
+	TransferTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch, byte[] signature) {
+		super(caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveInt, receiver, signature, new IntValue(howMuch));
 	}
 
 	/**
@@ -118,6 +122,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @param signer the signer of the request
 	 * @param caller the caller, that pays for the transferred coins
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param receiver the receiver of the call
@@ -125,8 +130,8 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public TransferTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, long howMuch) throws InvalidKeyException, SignatureException {
-		super(signer, caller, nonce, GAS_LIMIT, gasPrice, classpath, receiveLong, receiver, new LongValue(howMuch));
+	public TransferTransactionRequest(Signer signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, long howMuch) throws InvalidKeyException, SignatureException {
+		super(signer, caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveLong, receiver, new LongValue(howMuch));
 	}
 
 	/**
@@ -134,14 +139,15 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * 
 	 * @param caller the caller, that pays for the transferred coins
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param receiver the receiver of the call
 	 * @param howMuch how much coins must be transferred
 	 * @param signature the signature of the request
 	 */
-	TransferTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, long howMuch, byte[] signature) {
-		super(caller, nonce, GAS_LIMIT, gasPrice, classpath, receiveLong, receiver, signature, new LongValue(howMuch));
+	TransferTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, long howMuch, byte[] signature) {
+		super(caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveLong, receiver, signature, new LongValue(howMuch));
 	}
 
 	@Override
@@ -163,6 +169,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 		marshal(gasPrice, oos);
 		classpath.into(oos);
 		marshal(nonce, oos);
+		oos.writeUTF(chainId);
 		receiver.intoWithoutSelector(oos);
 
 		if (isInt)

@@ -100,8 +100,10 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		// we use the gamete as payer
 		this(parent,
 			(StorageReference) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(Signer.onBehalfOfManifest(), parent.getManifest(), ZERO, BigInteger.valueOf(10_000), ZERO,
-					parent.getTakamakaCode(), new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), parent.getManifest())),
+				(Signer.onBehalfOfManifest(), parent.getManifest(), ZERO,
+				"", // the chainId is irrelevant for runView transactions
+				BigInteger.valueOf(10_000), ZERO,
+				parent.getTakamakaCode(), new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), parent.getManifest())),
 			privateKeyOfGamete, redGreen, funds);
 	}
 
@@ -130,12 +132,20 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 		this.privateKeys = new PrivateKey[accounts.length];
 
 		TransactionReference takamakaCode = getTakamakaCode();
+		StorageReference manifest = getManifest();
 		SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getSignatureAlgorithmForRequests();
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(signerOnBehalfOfPayer, payer, ZERO, BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
+			(signerOnBehalfOfPayer, payer, ZERO,
+			"", // the chainId is irrelevant for runView transactions
+			BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
+
+		// we get the chainId of the parent
+		String chainId = ((StringValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode,
+			new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getChainId", ClassType.STRING), manifest))).value;
 
 		// we create the accounts
 		BigInteger gas = BigInteger.valueOf(10_000); // enough for creating an account
@@ -148,7 +158,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				// the constructor provides the green coins
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode, TRGEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
 			}
 		else
 			for (int i = 0; i < funds.length; i++, nonce = nonce.add(ONE)) {
@@ -156,7 +166,7 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 				privateKeys[i] = keys.getPrivate();
 				String publicKey = Base64.getEncoder().encodeToString(keys.getPublic().getEncoded());
 				accounts.add(postConstructorCallTransaction(new ConstructorCallTransactionRequest
-					(signerOnBehalfOfPayer, payer, nonce, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode, TEOA_CONSTRUCTOR, new BigIntegerValue(funds[i]), new StringValue(publicKey))));
 			}
 
 		int i = 0;
@@ -165,7 +175,8 @@ public class NodeWithAccountsImpl implements NodeWithAccounts {
 
 			if (redGreen) {
 				// we add the red coins
-				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signerOnBehalfOfPayer, payer, nonce, gas, ZERO, takamakaCode,
+				postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(signerOnBehalfOfPayer, payer, nonce, chainId, gas, ZERO, takamakaCode,
 					RECEIVE_RED, this.accounts[i], new BigIntegerValue(funds[i * 2])));
 
 				nonce = nonce.add(ONE);
