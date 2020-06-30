@@ -22,11 +22,11 @@ public class NodeRestServiceImpl extends NetworkService implements NodeRestServi
             Node node = (Node) this.applicationContext.getBean("node");
             assertNodeNotNull(node);
 
-            return response(node.getTakamakaCode());
+            return responseOf(node.getTakamakaCode());
 
         }catch (Exception e) {
             LOGGER.error("getTakamakaCode", e);
-            return exceptionResponse(e);
+            return exceptionResponseOf(e);
         }
     }
 
@@ -37,11 +37,11 @@ public class NodeRestServiceImpl extends NetworkService implements NodeRestServi
             Node node = (Node) this.applicationContext.getBean("node");
             assertNodeNotNull(node);
 
-            return response(node.getManifest());
+            return responseOf(node.getManifest());
 
         } catch (Exception e) {
             LOGGER.error("getManifest", e);
-            return exceptionResponse(e);
+            return exceptionResponseOf(e);
         }
     }
 
@@ -52,11 +52,11 @@ public class NodeRestServiceImpl extends NetworkService implements NodeRestServi
             Node node = (Node) this.applicationContext.getBean("node");
             assertNodeNotNull(node);
 
-           return response(node.getState(node.getManifest()));
+           return responseOf(node.getState(node.getManifest()));
 
         } catch (Exception e) {
             LOGGER.error("getState", e);
-            return exceptionResponse(e);
+            return exceptionResponseOf(e);
         }
     }
 }

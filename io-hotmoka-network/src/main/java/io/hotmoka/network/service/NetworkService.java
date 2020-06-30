@@ -9,11 +9,11 @@ import org.springframework.http.ResponseEntity;
 public class NetworkService {
 
 
-    protected static ResponseEntity<Object> exceptionResponse(Exception e) {
+    protected static ResponseEntity<Object> exceptionResponseOf(Exception e) {
         if (e instanceof NodeNotFoundException)
-            return response(new Error("Node instance not found"), HttpStatus.NOT_FOUND);
+            return responseOf(new Error("Node instance not found"), HttpStatus.NOT_FOUND);
         else
-            return response(new Error("Application crashed..."), HttpStatus.BAD_REQUEST);
+            return responseOf(new Error("Application crashed..."), HttpStatus.BAD_REQUEST);
     }
 
     protected static void assertNodeNotNull(Node node) {
@@ -21,12 +21,12 @@ public class NetworkService {
             throw new NodeNotFoundException();
     }
 
-    protected static ResponseEntity<Object> response(Object o, HttpStatus httpStatus) {
+    protected static ResponseEntity<Object> responseOf(Object o, HttpStatus httpStatus) {
         return new ResponseEntity<>(o, httpStatus);
     }
 
-    protected static ResponseEntity<Object> response(Object o) {
-        return response(o, HttpStatus.OK);
+    protected static ResponseEntity<Object> responseOf(Object o) {
+        return responseOf(o, HttpStatus.OK);
     }
 
 }
