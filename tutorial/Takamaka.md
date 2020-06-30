@@ -592,7 +592,7 @@ and sets `test` as its chain identifier.
 > The chain identifier is used to avoid replaying of transactions across distinct networks.
 > That is, a transaction sent to a network must specify the same chain identifier as
 > the nodes of the network, or otherwise it will be rejected. Chain identifiers
-> are particularly important if a network splits in teo or more subnetworks.
+> are particularly important for network forks.
 
 It is important to observe that both `node` and `initialized` are views of the
 same Hotmoka node. Hence, if we run this class, both get initialized and both will contain
@@ -731,7 +731,8 @@ public class Main {
         .runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
           (Signer.onBehalfOfManifest(), // an object that signs with the payer's private key
           manifest, // payer
-          ZERO, // nonce: irrevant for calls to a @View method
+          ZERO, // nonce: irrelevant for calls to a @View method
+          "test", // chain identifier: irrelevant for calls to a @View method
           BigInteger.valueOf(10_000), // gas limit
           ZERO, // gas price
           takamakaCode, // class path for the execution of the transaction
@@ -749,7 +750,8 @@ public class Main {
         .runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
-          ZERO, // nonce: irrevant for calls to a @View method
+          ZERO, // nonce: irrelevant for calls to a @View method
+          "test", // chain identifier: irrelevant for calls to a @View method
           BigInteger.valueOf(10_000), // gas limit
           ZERO, // gas price
           takamakaCode, // class path for the execution of the transaction
@@ -767,6 +769,7 @@ public class Main {
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
           nonce, // payer's nonce: relevant since this is not a call to a @View method!
+          "test", // chain identifier: relevant since this is not a call to a @View method!
           BigInteger.valueOf(1_000_000), // gas limit: enough for this very small jar
           ONE, // gas price: the bigger, the quicker
           takamakaCode, // class path for the execution of the transaction
@@ -827,6 +830,7 @@ coded in the `Main` class. Namely, its textual representation `request.txt` is:
 JarStoreTransactionRequest:
   caller: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
   nonce: 1
+  chainId: test
   gas limit: 1000000
   gas price: 1
   class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
@@ -936,6 +940,7 @@ import io.hotmoka.beans.values.StringValue;
           (signerOnBehalfOfGamete, // an object that signs with the payer's private key
           gamete, // payer
           nonce, // nonce of the payer, relevant
+          "test", // chain identifier, relevant
           BigInteger.valueOf(10_000), // gas limit: enough for the creation of an account
           ONE, // gas price: the bigger, the quicker
           takamakaCode, // class path for the execution of the transaction
@@ -990,6 +995,7 @@ we used to call the constructor for creating a new account:
 ConstructorCallTransactionRequest:
   caller: c943faf51f9567d7fa2d76770132a633e7e1b771d9f5cb0473e44dc131388385#0
   nonce: 2
+  chainId: "test"
   gas limit: 10000
   gas price: 1
   class path: a060e7288df17bc918e4d87edfb1c2d7611a9e908958561593a205820f23d54c
@@ -1213,6 +1219,9 @@ public class Main {
           // nonce: we know this is the first transaction
 	  // with nodeWithAccounts.account(0)
           ZERO,
+
+          // chain identifier
+          "test",
 
           // gas provided to the transaction
           BigInteger.valueOf(10_000),
@@ -1523,6 +1532,7 @@ public class Main {
             nodeWithAccounts.privateKey(0)),
           nodeWithAccounts.account(0),
           ZERO,
+          "test",
           BigInteger.valueOf(10_000),
           panarea(1),
           nodeWithJars.jar(0),
@@ -1544,6 +1554,9 @@ public class Main {
           // nonce: we know this is the first transaction
           // with nodeWithAccounts.account(1)
           ZERO,
+
+          // chain identifier
+          "test",
 
           // gas provided to the transaction
           BigInteger.valueOf(10_000),
@@ -1589,6 +1602,7 @@ requested:
 InstanceMethodCallTransactionRequest:
   caller: 73816ea7498f119281d83accc56de3f0c42d80689c26a564202a908c1dc91187#0
   nonce: 0
+  chainId: test
   gas limit: 10000
   gas price: 1
   class path: 7ca9a691db154d26bfe3c2a8fe7bc4c59f971a0edff5e8755c7e36976813ea32
@@ -1771,6 +1785,7 @@ StorageValue s = node.addInstanceMethodCallTransaction
                 nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
+    "test",
     BigInteger.valueOf(10_000),
     panarea(1),
     nodeWithJars.jar(0),
@@ -1791,6 +1806,7 @@ CodeSupplier<StorageValue> future = node.postInstanceMethodCallTransaction
                 nodeWithAccounts.privateKey(1)),
     nodeWithAccounts.account(1),
     ZERO,
+    "test",
     BigInteger.valueOf(10_000),
     panarea(1),
     nodeWithJars.jar(0),
@@ -2890,6 +2906,7 @@ public class Main {
           signerForPlayer1,
           player1, // player1 pays for the transaction
           ZERO, // nonce for player1
+          "test", // chain identifier
           _20_000, // gas provided to the transaction
           ONE, // gas price
           classpath,
@@ -2900,6 +2917,7 @@ public class Main {
         signarerForPlayer2,
         player2, // player2 pays for the transaction
         ZERO, // nonce for player2
+        "test", // chain identifier
         _20_000, // gas provided to the transaction
         ONE, // gas price
         classpath,
@@ -2911,6 +2929,7 @@ public class Main {
       node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
         signerForPlayer3,
         player3, // player3 pays for the transaction
+        "test", // chain identifier
         ZERO, // nonce of player3
         _20_000, // gas provided to the transaction
         ONE, // gas price
@@ -2924,6 +2943,7 @@ public class Main {
         signerForPlayer1,
         player1, // player1 pays for the transaction
      	ONE, // nonce of player1
+        "test", // chain identifier
         _20_000, // gas provided to the transaction
         ONE, // gas price
         classpath,
@@ -3599,6 +3619,7 @@ public class Main {
           signerForCreator, // signer of the payer
           creator, // payer of the transaction
           ZERO, // nonce of the payer
+          "test", // chain identifier
           _50_000, // gas provided to the transaction
           ONE, // gas price
           classpath,
@@ -3609,6 +3630,7 @@ public class Main {
         signerForPlayer1, // signer of the payer
         player1, // payer
         ZERO, // nonce of the payer
+        "test", // chain identifier
         _50_000, // gas provided to the transaction
         ONE, // gas price
         classpath,
@@ -3624,6 +3646,7 @@ public class Main {
         signerForPlayer2, // signer of the payer
         player2, // this account pays for the transaction
         ZERO, // nonce of the payer
+        "test", // chain identifier
         _50_000, // gas provided to the transaction
         ONE, // gas price
         classpath,
@@ -3636,6 +3659,7 @@ public class Main {
         signerForPlayer1, // signer of the payer
         player1, // this account pays for the transaction
         ONE, // nonce of the payer
+        "test", // chain identifier
         _50_000, // gas provided to the transaction
         ONE, // gas price
         classpath,
@@ -3648,6 +3672,7 @@ public class Main {
         signerForPlayer2, // signer of the payer
         player2, // this account pays for the transaction
         ONE, // nonce of the payer
+        "test", // chain identifier
         _50_000, // gas provided to the transaction
         ONE, // gas price
         classpath,
@@ -3660,6 +3685,7 @@ public class Main {
         signerForPlayer1, // signer of the payer
         player1, // this account pays for the transaction
         TWO, // nonce of the payer
+        "test", // chain identifier
         _50_000, // gas provided to the transaction
         ONE, // gas price
         classpath,
@@ -3673,6 +3699,7 @@ public class Main {
           signerForPlayer1, // signer of the payer
           player1, // this account pays for the transaction
           BigInteger.valueOf(3), // nonce of the payer
+          "test", // chain identifier
           _50_000, // gas provided to the transaction
           ONE, // gas price
           classpath,
@@ -3689,6 +3716,7 @@ public class Main {
         signerForPlayer2, // signer of the payer
         player2, // this account pays for the transaction
         TWO, // nonce of the payer
+        "test", // chain identifier
         _50_000, // gas provided to the transaction
         ONE, // gas price
         classpath,
@@ -4479,7 +4507,7 @@ public class Main {
 
           return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest
             (signers[player], nodeWithAccounts.account(player),
-             getNonceAndIncrement(player),
+             getNonceAndIncrement(player), "test",
              _100_000, ONE, classpath, CONSTRUCTOR_REVEALED_BID,
              new BigIntegerValue(value), new BooleanValue(fake), bytes32));
         }
@@ -4488,7 +4516,7 @@ public class Main {
       // create the auction contract in the store of the node
       StorageReference auction = node.addConstructorCallTransaction
         (new ConstructorCallTransactionRequest(signers[0], nodeWithAccounts.account(0),
-         getNonceAndIncrement(0), _100_000, ONE,
+         getNonceAndIncrement(0), "test", _100_000, ONE,
          classpath, CONSTRUCTOR_BLIND_AUCTION,
          new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
 
@@ -4529,7 +4557,7 @@ public class Main {
         // place a hashed bid in the node instead
         node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
           (signers[player], nodeWithAccounts.account(player),
-           getNonceAndIncrement(player),
+           getNonceAndIncrement(player), "test",
            _100_000, ONE, classpath, BID,
            auction, new BigIntegerValue(deposit), bytes32));
 
@@ -4547,7 +4575,7 @@ public class Main {
         lists[player] = node.addConstructorCallTransaction
           (new ConstructorCallTransactionRequest
             (signers[player], nodeWithAccounts.account(player),
-            getNonceAndIncrement(player),
+            getNonceAndIncrement(player), "test",
             _100_000, ONE, classpath, CONSTRUCTOR_STORAGE_LIST));
 
       // create the revealed bids in the store of the node;
@@ -4557,7 +4585,7 @@ public class Main {
         node.addInstanceMethodCallTransaction
           (new InstanceMethodCallTransactionRequest
             (signers[bid.player], nodeWithAccounts.account(bid.player),
-            getNonceAndIncrement(bid.player),
+            getNonceAndIncrement(bid.player), "test",
             _100_000, ONE, classpath, ADD,
             lists[bid.player], bidInBlockchain));
       }
@@ -4567,7 +4595,7 @@ public class Main {
         node.addInstanceMethodCallTransaction
           (new InstanceMethodCallTransactionRequest
             (signers[player], nodeWithAccounts.account(player),
-            getNonceAndIncrement(player),
+            getNonceAndIncrement(player), "test",
             _1_000_000, ONE, classpath, REVEAL,
             auction, lists[player]));
 
@@ -4578,7 +4606,7 @@ public class Main {
       StorageValue winner = node.addInstanceMethodCallTransaction
         (new InstanceMethodCallTransactionRequest
         (signers[0], nodeWithAccounts.account(0), getNonceAndIncrement(0),
-        _100_000, ONE, classpath, AUCTION_END, auction));
+        "test", _100_000, ONE, classpath, AUCTION_END, auction));
 
       // the winner is normally a StorageReference,
       // but it could be a NullValue if all bids were fake
@@ -4635,7 +4663,8 @@ public class Main {
       (new ConstructorCallTransactionRequest(
         signers[player],
         nodeWithAccounts.account(player),
-        getNonceAndIncrement(player), _100_000, ONE, classpath, CONSTRUCTOR_BYTES32,
+        getNonceAndIncrement(player), "test",
+        _100_000, ONE, classpath, CONSTRUCTOR_BYTES32,
         new ByteValue(hash[0]), new ByteValue(hash[1]),
         new ByteValue(hash[2]), new ByteValue(hash[3]),
         new ByteValue(hash[4]), new ByteValue(hash[5]),
@@ -4681,7 +4710,7 @@ the node. Then constructor of `Main` creates an `auction` contract in blockchain
 ```java
 StorageReference auction = node.addConstructorCallTransaction
   (new ConstructorCallTransactionRequest(signers[0], nodeWithAccounts.account(0),
-  getNonceAndIncrement(0), _100_000, ONE,
+  getNonceAndIncrement(0), "test", _100_000, ONE,
   classpath, CONSTRUCTOR_BLIND_AUCTION,
   new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME)));
 ```
@@ -4720,7 +4749,8 @@ The hash is used instead to place a bid in the node:
 ```java
 node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
   (signers[player], nodeWithAccounts.account(player), getNonceAndIncrement(player),
-  _100_000, ONE, classpath, BID, auction, new BigIntegerValue(deposit), bytes32));
+  "test", _100_000, ONE, classpath,
+  BID, auction, new BigIntegerValue(deposit), bytes32));
 ```
 
 The loop takes also care of keeping track of the best bidder, that placed
@@ -4762,7 +4792,7 @@ for (BidToReveal bid: bids) {
   StorageReference bidInBlockchain = bid.intoBlockchain();
   node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
     (signers[bid.player], nodeWithAccounts.account(bid.player),
-     getNonceAndIncrement(bid.player),
+     getNonceAndIncrement(bid.player), "test",
      _100_000, ONE, classpath, ADD, lists[bid.player], bidInBlockchain));
 }
 ```
@@ -4775,7 +4805,7 @@ reveals the bids of each player:
 for (int player = 1; player <= 3; player++)
   node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
     (signers[player], nodeWithAccounts.account(player), getNonceAndIncrement(player),
-    _1_000_000, ONE, classpath, REVEAL, auction, lists[player]));
+    "test", _1_000_000, ONE, classpath, REVEAL, auction, lists[player]));
 ```
 
 and waits until the end of the reveal phase, with a security distance of five seconds:
@@ -4791,7 +4821,7 @@ smart contract about the winner:
 StorageValue winner = node.addInstanceMethodCallTransaction
   (new InstanceMethodCallTransactionRequest
     (signers[0], nodeWithAccounts.account(0), getNonceAndIncrement(0),
-    _100_000, ONE, classpath, AUCTION_END, auction));
+    "test", _100_000, ONE, classpath, AUCTION_END, auction));
 ```
 
 The final `System.out.println`s allow the tester to verify that the smart contract
