@@ -65,7 +65,7 @@ class Tendermint implements AutoCloseable {
 	Tendermint(TendermintBlockchainImpl node) throws IOException, InterruptedException, TimeoutException {
 		this.node = node;
 
-		String tendermintHome = node.config.dir + "/blocks";
+		String tendermintHome = node.config.dir + File.separator + "blocks";
 
 		if (node.config.delete)
 			if (run("tendermint init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
