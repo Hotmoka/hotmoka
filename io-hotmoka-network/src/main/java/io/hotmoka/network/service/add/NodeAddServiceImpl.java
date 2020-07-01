@@ -17,10 +17,10 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     public ResponseEntity<Object> addJarStoreInitialTransaction(TransactionRequestModel transactionRequestModel) {
         return this.map(node -> {
 
-            byte[] jar = Base64.decodeBase64(transactionRequestModel.getJar());
-            if (jar == null)
+            if (transactionRequestModel.getJar() == null)
                 return badRequestOf(new Error("Transaction rejected: Jar missing"));
 
+            byte[] jar = Base64.decodeBase64(transactionRequestModel.getJar());
             try {
                 node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar));
             } catch (TransactionRejectedException e) {
