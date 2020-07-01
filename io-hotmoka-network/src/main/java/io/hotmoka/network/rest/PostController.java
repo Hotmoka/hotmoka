@@ -1,6 +1,6 @@
 package io.hotmoka.network.rest;
 
-import io.hotmoka.network.service.NodeRestService;
+import io.hotmoka.network.service.post.NodePostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostController {
 
     @Autowired
-    private NodeRestService nodeRestService;
+    private NodePostService nodePostService;
 
     @RequestMapping("/jarStoreTransaction")
     public Object jarStoreTransaction() {

@@ -1,4 +1,4 @@
-package io.hotmoka.network.service;
+package io.hotmoka.network.service.get;
 
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfField;
@@ -7,6 +7,7 @@ import io.hotmoka.network.model.State;
 import io.hotmoka.network.model.update.ClassUpdate;
 import io.hotmoka.network.model.update.FieldUpdate;
 import io.hotmoka.network.model.update.Update;
+import io.hotmoka.network.service.NetworkService;
 import io.hotmoka.nodes.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +21,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
-public class NodeRestServiceImpl extends NetworkService implements NodeRestService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(NodeRestServiceImpl.class);
+public class NodeGetServiceImpl extends NetworkService implements NodeGetService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(NodeGetServiceImpl.class);
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -65,7 +66,7 @@ public class NodeRestServiceImpl extends NetworkService implements NodeRestServi
 
             StorageReference manifest = node.getManifest();
             List<Update> updatesJson = node.getState(manifest)
-                    .map(NodeRestServiceImpl::buildUpdateModel)
+                    .map(NodeGetServiceImpl::buildUpdateModel)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 

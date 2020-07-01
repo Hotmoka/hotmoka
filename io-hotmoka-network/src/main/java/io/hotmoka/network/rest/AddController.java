@@ -1,6 +1,6 @@
 package io.hotmoka.network.rest;
 
-import io.hotmoka.network.service.NodeRestService;
+import io.hotmoka.network.service.add.NodeAddService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AddController {
 
     @Autowired
-    private NodeRestService nodeRestService;
+    private NodeAddService nodeAddService;
 
     @RequestMapping("/jarStoreInitialTransaction")
     public Object jarStoreInitialTransaction() {
