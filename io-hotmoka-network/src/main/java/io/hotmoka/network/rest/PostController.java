@@ -14,8 +14,21 @@ public class PostController {
 
     @RequestMapping("/jarStoreTransaction")
     public Object jarStoreTransaction() {
-        return null; // TODO
+        return this.nodePostService.postJarStoreTransaction();
     }
 
-    // TODO: all other post methods
+    @RequestMapping("/constructorCallTransaction")
+    public Object constructorCallTransaction() {
+        return this.nodePostService.postConstructorCallTransaction();
+    }
+
+    @RequestMapping("/instanceMethodCallTransaction")
+    public Object instanceMethodCallTransaction() {
+        return this.nodePostService.postInstanceMethodCallTransaction();
+    }
+    
+    @RequestMapping("/staticMethodCallTransaction")
+    public Object staticMethodCallTransaction() {
+        return this.nodePostService.postStaticMethodCallTransaction();
+    }
 }
