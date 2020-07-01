@@ -26,7 +26,7 @@ public class PostController {
     public Object instanceMethodCallTransaction() {
         return this.nodePostService.postInstanceMethodCallTransaction();
     }
-    
+
     @RequestMapping("/staticMethodCallTransaction")
     public Object staticMethodCallTransaction() {
         return this.nodePostService.postStaticMethodCallTransaction();
