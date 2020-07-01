@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("run")
-public class runController {
+public class RunController {
 
     @Autowired
     private NodeRestService nodeRestService;
