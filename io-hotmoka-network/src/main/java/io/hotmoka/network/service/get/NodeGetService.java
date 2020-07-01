@@ -6,4 +6,5 @@ public interface NodeGetService {
     ResponseEntity<Object> getTakamakaCode();
     ResponseEntity<Object> getManifest();
     ResponseEntity<Object> getState();
+    ResponseEntity<Object> getClassTag();
 }

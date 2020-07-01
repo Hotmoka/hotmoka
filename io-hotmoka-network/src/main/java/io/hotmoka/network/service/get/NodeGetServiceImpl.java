@@ -78,6 +78,22 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
         }
     }
 
+    @Override
+    public ResponseEntity<Object> getClassTag() {
+        try {
+
+            Node node = (Node) this.applicationContext.getBean("node");
+            assertNodeNotNull(node);
+
+            ClassTag classTag = node.getClassTag(node.getManifest());
+            return responseOf(classTag);
+
+        } catch (Exception e) {
+            LOGGER.error("getClassTag", e);
+            return exceptionResponseOf(e);
+        }
+    }
+
 
     /**
      * Build a json update model from an update item {@link io.hotmoka.beans.updates.Update} of a node instance {@link io.hotmoka.nodes.Node}

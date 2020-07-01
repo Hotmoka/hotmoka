@@ -26,4 +26,9 @@ public class GetController {
     public Object getState() {
         return this.nodeGetService.getState();
     }
+
+    @RequestMapping("/classTag")
+    public Object getClassTag() {
+        return this.nodeGetService.getClassTag();
+    }
 }
