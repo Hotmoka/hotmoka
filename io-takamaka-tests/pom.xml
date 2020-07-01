@@ -50,6 +50,11 @@
         <version>${project.version}</version>
     </dependency>
     <dependency>
+        <groupId>io.hotmoka</groupId>
+        <artifactId>io-hotmoka-network</artifactId>
+        <version>${project.version}</version>
+    </dependency>
+    <dependency>
        <groupId>org.junit.jupiter</groupId>
        <artifactId>junit-jupiter-engine</artifactId>
        <version>5.4.2</version>
