@@ -3,10 +3,15 @@ package io.hotmoka.network.service;
 import io.hotmoka.network.exception.NodeNotFoundException;
 import io.hotmoka.network.model.Error;
 import io.hotmoka.nodes.Node;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public class NetworkService {
+
+    @Autowired
+    protected ApplicationContext applicationContext;
 
 
     protected static ResponseEntity<Object> exceptionResponseOf(Exception e) {

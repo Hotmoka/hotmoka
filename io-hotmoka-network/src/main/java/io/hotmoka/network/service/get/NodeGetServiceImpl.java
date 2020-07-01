@@ -11,8 +11,6 @@ import io.hotmoka.network.service.NetworkService;
 import io.hotmoka.nodes.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -23,9 +21,6 @@ import java.util.stream.Collectors;
 @Service
 public class NodeGetServiceImpl extends NetworkService implements NodeGetService {
     private final static Logger LOGGER = LoggerFactory.getLogger(NodeGetServiceImpl.class);
-
-    @Autowired
-    private ApplicationContext applicationContext;
 
     public ResponseEntity<Object> getTakamakaCode() {
 
