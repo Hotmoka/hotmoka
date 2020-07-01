@@ -39,8 +39,25 @@ public class Application {
      * Shutdown the Spring boot application
      */
     public void stop() {
-        LOGGER.info("Stopping NodeService application");
-        SpringApplication.exit(configurableApplicationContext);
+        int times = 3;
+        int counter = 0;
+        int halfMinute = 30000;
+
+        while (counter++ <= times) {
+
+            if (this.configurableApplicationContext != null) {
+                LOGGER.info("Stopping NodeService application");
+                SpringApplication.exit(configurableApplicationContext);
+                break;
+            } else {
+
+                try {
+                    Thread.sleep(halfMinute);
+                } catch (InterruptedException e) {
+                    LOGGER.error("Error stopping NodeService application", e);
+                }
+            }
+        }
     }
 
     public ConfigurableApplicationContext getConfigurableApplicationContext() {
