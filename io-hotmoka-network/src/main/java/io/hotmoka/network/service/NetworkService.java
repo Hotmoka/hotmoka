@@ -28,12 +28,20 @@ public class NetworkService {
             throw new NodeNotFoundException();
     }
 
-    protected static ResponseEntity<Object> responseOf(Object o, HttpStatus httpStatus) {
+    private static ResponseEntity<Object> responseOf(Object o, HttpStatus httpStatus) {
         return new ResponseEntity<>(o, httpStatus);
     }
 
-    protected static ResponseEntity<Object> responseOf(Object o) {
+    protected static ResponseEntity<Object> okResponseOf(Object o) {
         return responseOf(o, HttpStatus.OK);
+    }
+
+    protected static ResponseEntity<Object> badRequestOf(Error error) {
+        return responseOf(error, HttpStatus.BAD_REQUEST);
+    }
+
+    protected static ResponseEntity<Object> noContentResponse() {
+        return ResponseEntity.noContent().build();
     }
 
     /**

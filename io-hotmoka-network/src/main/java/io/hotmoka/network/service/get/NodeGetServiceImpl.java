@@ -20,12 +20,12 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
 
     @Override
     public ResponseEntity<Object> getTakamakaCode() {
-        return this.map(node -> responseOf(node.getTakamakaCode()));
+        return this.map(node -> okResponseOf(node.getTakamakaCode()));
     }
 
     @Override
     public ResponseEntity<Object> getManifest() {
-        return this.map(node -> responseOf(node.getManifest()));
+        return this.map(node -> okResponseOf(node.getManifest()));
     }
 
     @Override
@@ -43,13 +43,13 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
             stateJson.setProgressive(manifest.progressive);
             stateJson.setUpdates(updatesJson);
 
-            return responseOf(stateJson);
+            return okResponseOf(stateJson);
         });
     }
 
     @Override
     public ResponseEntity<Object> getClassTag() {
-        return this.map(node -> responseOf(node.getClassTag(node.getManifest())));
+        return this.map(node -> okResponseOf(node.getClassTag(node.getManifest())));
     }
 
 
