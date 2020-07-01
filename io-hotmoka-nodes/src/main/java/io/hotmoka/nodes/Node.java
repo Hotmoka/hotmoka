@@ -198,7 +198,7 @@ public interface Node extends AutoCloseable {
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code in blockchain,
 	 *                              or that is not allowed to be thrown by the method
 	 */
-	StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Runs a static {@code @@View} method of a class in this node.
@@ -212,7 +212,7 @@ public interface Node extends AutoCloseable {
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code in blockchain,
 	 *                              or that is not allowed to be thrown by the method
 	 */
-	StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Posts a transaction that expands the store of this node with a transaction that installs a jar in it.

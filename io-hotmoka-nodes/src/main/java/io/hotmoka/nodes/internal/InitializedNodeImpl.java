@@ -164,13 +164,13 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return parent.runViewInstanceMethodCallTransaction(request);
+	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return parent.runInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return parent.runViewStaticMethodCallTransaction(request);
+	public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return parent.runStaticMethodCallTransaction(request);
 	}
 
 	@Override

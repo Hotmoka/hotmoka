@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import io.hotmoka.nodes.Node;
 
 /**
- * Simple web service which exposes some REST APIs to access an instance of a node {@link io.hotmoka.nodes.Node}
+ * Simple web service which exposes some REST APIs to access an instance of a {@link io.hotmoka.nodes.Node}.
  */
 public class NodeService {
     private final static Logger LOGGER = LoggerFactory.getLogger(NodeService.class);

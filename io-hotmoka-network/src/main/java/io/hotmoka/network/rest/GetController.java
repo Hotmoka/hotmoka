@@ -6,12 +6,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("node")
-public class NodeRestController {
+@RequestMapping("get")
+public class GetController {
 
     @Autowired
     private NodeRestService nodeRestService;
-
 
     @RequestMapping("/takamakaCode")
     public Object getTakamakaCode() {

@@ -172,7 +172,7 @@ public class StartNode {
 	 * Takes care of computing the next nonce.
 	 */
 	private static StorageValue runViewInstanceMethodCallTransaction(Node node, StorageReference caller, PrivateKey key, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, ZERO, null, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		return node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signer.with(signature, key), caller, ZERO, null, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
@@ -191,7 +191,7 @@ public class StartNode {
 				nonce = nonce.add(BigInteger.ONE);
 			else
 				// we ask the account: 10,000 units of gas should be enough to run the method
-				nonce = ((BigIntegerValue) node.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(Signer.with(signature, key), account, ZERO, null, BigInteger.valueOf(10_000), ZERO, classpath, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), account))).value;
 
 			nonces.put(account, nonce);

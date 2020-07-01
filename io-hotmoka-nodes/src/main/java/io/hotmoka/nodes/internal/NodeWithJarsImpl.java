@@ -77,7 +77,7 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	public NodeWithJarsImpl(Node parent, PrivateKey privateKeyOfGamete, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		// we use the gamete as payer
 		this(parent,
-			(StorageReference) parent.runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(StorageReference) parent.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(Signer.onBehalfOfManifest(), parent.getManifest(), ZERO, "", BigInteger.valueOf(10_000), ZERO,
 					parent.getTakamakaCode(), new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getGamete", ClassType.RGEOA), parent.getManifest())),
 			privateKeyOfGamete, jars);
@@ -111,11 +111,11 @@ public class NodeWithJarsImpl implements NodeWithJars {
 		Signer signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
 
 		// we get the nonce of the payer
-		BigInteger nonce = ((BigIntegerValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode, new NonVoidMethodSignature(Constants.ACCOUNT_NAME, "nonce", ClassType.BIG_INTEGER), payer))).value;
 
 		// we get the chainId of the parent
-		String chainId = ((StringValue) runViewInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signerOnBehalfOfPayer, payer, ZERO, "", BigInteger.valueOf(10_000), ZERO, takamakaCode,
 			new NonVoidMethodSignature(Constants.MANIFEST_NAME, "getChainId", ClassType.STRING), parent.getManifest()))).value;
 
@@ -203,13 +203,13 @@ public class NodeWithJarsImpl implements NodeWithJars {
 	}
 
 	@Override
-	public StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return parent.runViewInstanceMethodCallTransaction(request);
+	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return parent.runInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return parent.runViewStaticMethodCallTransaction(request);
+	public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return parent.runStaticMethodCallTransaction(request);
 	}
 
 	@Override

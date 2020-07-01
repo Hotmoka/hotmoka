@@ -44,7 +44,7 @@ class NetworkFromNode extends TakamakaTest {
 		Config config = new Config.Builder().setPort(8080).setSpringBannerModeOn(false).build();
 		NodeService nodeRestService = new NodeService(config, nodeWithJarsView);
 		nodeRestService.start();
-		String answer = curl(new URL("http://localhost:8080/node/takamakaCode"));
+		String answer = curl(new URL("http://localhost:8080/get/takamakaCode"));
 		nodeRestService.stop();
 		assertEquals("{\"hash\":\"" + nodeWithJarsView.getTakamakaCode().getHash() + "\"}", answer);
 	}

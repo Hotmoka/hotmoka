@@ -217,7 +217,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	@Override
-	public final StorageValue runViewInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public final StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
@@ -228,7 +228,7 @@ public abstract class AbstractNode<C extends Config> extends AbstractNodeProxyFo
 	}
 
 	@Override
-	public final StorageValue runViewStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public final StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			TransactionReference reference = referenceOf(request);
 			logger.info(reference + ": running start (" + request.getClass().getSimpleName() + ')');
