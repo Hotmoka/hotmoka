@@ -1,13 +1,9 @@
 package io.hotmoka.network;
 
-import io.hotmoka.nodes.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import io.hotmoka.nodes.Node;
 
 /**
  * Simple web service which exposes some REST APIs to access an instance of a node {@link io.hotmoka.nodes.Node}
@@ -18,7 +14,6 @@ public class NodeService {
     private final Application application;
     private final Config config;
     private final Node node;
-    private ExecutorService executor;
 
     public NodeService(Config config, Node node) {
         this.config = config;
@@ -34,25 +29,13 @@ public class NodeService {
      * Start the web service
      */
     public void start() {
-        executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> this.application.start(this.config, this.node));
+    	application.start(config, node);
     }
 
     /**
      * Shutdown the web service
      */
     public void stop() {
-        Future<Void> future = this.executor.submit(() -> {
-            this.application.stop();
-            return null;
-        });
-
-        try {
-            future.get();
-        } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error("Errore stopping NodeService", e);
-        } finally {
-            this.executor.shutdown();
-        }
+    	application.stop();
     }
 }

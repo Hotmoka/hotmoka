@@ -9,7 +9,6 @@
     <name>io-hotmoka-network</name>
     <version>${project.version}</version>
 
-
     <parent>
         <artifactId>parent</artifactId>
         <groupId>io.hotmoka</groupId>
@@ -60,6 +59,7 @@
 
     </dependencies>
 
+<!-- 
     <build>
         <plugins>
             <plugin>
@@ -83,5 +83,6 @@
             </plugin>
         </plugins>
     </build>
+    -->
 
 </project>
