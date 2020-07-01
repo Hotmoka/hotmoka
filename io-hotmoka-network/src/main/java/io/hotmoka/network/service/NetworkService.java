@@ -8,6 +8,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.function.Function;
+
 public class NetworkService {
 
     @Autowired
@@ -34,4 +36,22 @@ public class NetworkService {
         return responseOf(o, HttpStatus.OK);
     }
 
+    /**
+     * Map function to map the {@link io.hotmoka.nodes.Node} into a {@link org.springframework.http.ResponseEntity} through the use of a java {@link java.util.function.Function}
+     * @param mapFunction the map function to apply
+     * @return the result of the map function
+     */
+    protected ResponseEntity<Object> map(Function<Node, ResponseEntity<Object>> mapFunction) {
+        try {
+
+            Node node = (Node) this.applicationContext.getBean("node");
+            assertNodeNotNull(node);
+
+            return mapFunction.apply(node);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return exceptionResponseOf(e);
+        }
+    }
 }

@@ -8,9 +8,6 @@ import io.hotmoka.network.model.update.ClassUpdate;
 import io.hotmoka.network.model.update.FieldUpdate;
 import io.hotmoka.network.model.update.Update;
 import io.hotmoka.network.service.NetworkService;
-import io.hotmoka.nodes.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -20,45 +17,21 @@ import java.util.stream.Collectors;
 
 @Service
 public class NodeGetServiceImpl extends NetworkService implements NodeGetService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(NodeGetServiceImpl.class);
 
+    @Override
     public ResponseEntity<Object> getTakamakaCode() {
-
-        try {
-
-            Node node = (Node) this.applicationContext.getBean("node");
-            assertNodeNotNull(node);
-
-            return responseOf(node.getTakamakaCode());
-
-        }catch (Exception e) {
-            LOGGER.error("getTakamakaCode", e);
-            return exceptionResponseOf(e);
-        }
+        return this.map(node -> responseOf(node.getTakamakaCode()));
     }
 
     @Override
     public ResponseEntity<Object> getManifest() {
-        try {
-
-            Node node = (Node) this.applicationContext.getBean("node");
-            assertNodeNotNull(node);
-
-            return responseOf(node.getManifest());
-
-        } catch (Exception e) {
-            LOGGER.error("getManifest", e);
-            return exceptionResponseOf(e);
-        }
+        return this.map(node -> responseOf(node.getManifest()));
     }
 
     @Override
     public ResponseEntity<Object> getState() {
-        try {
 
-            Node node = (Node) this.applicationContext.getBean("node");
-            assertNodeNotNull(node);
-
+        return this.map(node -> {
             StorageReference manifest = node.getManifest();
             List<Update> updatesJson = node.getState(manifest)
                     .map(NodeGetServiceImpl::buildUpdateModel)
@@ -71,34 +44,19 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
             stateJson.setUpdates(updatesJson);
 
             return responseOf(stateJson);
-
-        } catch (Exception e) {
-            LOGGER.error("getState", e);
-            return exceptionResponseOf(e);
-        }
+        });
     }
 
     @Override
     public ResponseEntity<Object> getClassTag() {
-        try {
-
-            Node node = (Node) this.applicationContext.getBean("node");
-            assertNodeNotNull(node);
-
-            ClassTag classTag = node.getClassTag(node.getManifest());
-            return responseOf(classTag);
-
-        } catch (Exception e) {
-            LOGGER.error("getClassTag", e);
-            return exceptionResponseOf(e);
-        }
+        return this.map(node -> responseOf(node.getClassTag(node.getManifest())));
     }
 
 
     /**
-     * Build a json update model from an update item {@link io.hotmoka.beans.updates.Update} of a node instance {@link io.hotmoka.nodes.Node}
+     * Build a json update model from an update item {@link io.hotmoka.beans.updates.Update} of a {@link io.hotmoka.nodes.Node} instance
      * @param updateItem the update from which to build a json model
-     * @return a json model of an update instance {@link io.hotmoka.beans.updates.Update}  of a node {@link io.hotmoka.nodes.Node}
+     * @return a json model of an update instance {@link io.hotmoka.beans.updates.Update}  of a {@link io.hotmoka.nodes.Node}
      */
     private static Update buildUpdateModel(io.hotmoka.beans.updates.Update updateItem) {
         Update updateJson = null;
