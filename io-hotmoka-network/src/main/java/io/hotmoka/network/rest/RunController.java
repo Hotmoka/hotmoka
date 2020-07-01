@@ -14,8 +14,11 @@ public class RunController {
 
     @RequestMapping("/instanceMethodCallTransaction")
     public Object instanceMethodCallTransaction() {
-        return null; // TODO
+        return this.nodeRunService.runInstanceMethodCallTransaction();
     }
 
-    // TODO: all other post methods
+    @RequestMapping("/staticMethodCallTransaction")
+    public Object staticMethodCallTransaction() {
+        return this.nodeRunService.runStaticMethodCallTransaction();
+    }
 }
