@@ -17,37 +17,37 @@ public class AddController {
        return this.nodeAddService.addJarStoreInitialTransaction(transactionRequestModel);
     }
 
-    @RequestMapping("/gameteCreationTransaction")
+    @PostMapping("/gameteCreationTransaction")
     public Object gameteCreationTransaction() {
         return this.nodeAddService.addGameteCreationTransaction();
     }
 
-    @RequestMapping("/redGreenGameteCreationTransaction")
+    @PostMapping("/redGreenGameteCreationTransaction")
     public Object redGreenGameteCreationTransaction() {
         return this.nodeAddService.addRedGreenGameteCreationTransaction();
     }
 
-    @RequestMapping("/initializationTransaction")
+    @PostMapping("/initializationTransaction")
     public Object initializationTransaction() {
         return this.nodeAddService.addInitializationTransaction();
     }
 
-    @RequestMapping("/jarStoreTransaction")
+    @PostMapping("/jarStoreTransaction")
     public Object jarStoreTransaction() {
         return this.nodeAddService.addJarStoreTransaction();
     }
 
-    @RequestMapping("/constructorCallTransaction")
+    @PostMapping("/constructorCallTransaction")
     public Object constructorCallTransaction() {
         return this.nodeAddService.addConstructorCallTransaction();
     }
 
-    @RequestMapping("/instanceMethodCallTransaction")
+    @PostMapping("/instanceMethodCallTransaction")
     public Object instanceMethodCallTransaction() {
         return this.nodeAddService.addInstanceMethodCallTransaction();
     }
 
-    @RequestMapping("/staticMethodCallTransaction")
+    @PostMapping("/staticMethodCallTransaction")
     public Object staticMethodCallTransaction() {
         return this.nodeAddService.addStaticMethodCallTransaction();
     }

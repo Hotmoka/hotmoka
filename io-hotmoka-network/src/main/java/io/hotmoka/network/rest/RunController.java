@@ -2,6 +2,7 @@ package io.hotmoka.network.rest;
 
 import io.hotmoka.network.service.run.NodeRunService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,12 +13,12 @@ public class RunController {
     @Autowired
     private NodeRunService nodeRunService;
 
-    @RequestMapping("/instanceMethodCallTransaction")
+    @PostMapping("/instanceMethodCallTransaction")
     public Object instanceMethodCallTransaction() {
         return this.nodeRunService.runInstanceMethodCallTransaction();
     }
 
-    @RequestMapping("/staticMethodCallTransaction")
+    @PostMapping("/staticMethodCallTransaction")
     public Object staticMethodCallTransaction() {
         return this.nodeRunService.runStaticMethodCallTransaction();
     }
