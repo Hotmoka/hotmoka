@@ -4,7 +4,7 @@ public class FieldUpdate extends Update {
     private String updateType;
     private String definingClass;
     private String value;
-    private String javaType;
+    private String type;
     private String name;
 
     public String getUpdateType() {
@@ -31,12 +31,12 @@ public class FieldUpdate extends Update {
         this.definingClass = definingClass;
     }
 
-    public String getJavaType() {
-        return javaType;
+    public String getType() {
+        return type;
     }
 
-    public void setJavaType(String javaType) {
-        this.javaType = javaType;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getName() {

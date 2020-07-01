@@ -96,7 +96,7 @@ public class NodeRestServiceImpl extends NetworkService implements NodeRestServi
             ((FieldUpdate) updateJson).setUpdateType(updateItem.getClass().getName());
             ((FieldUpdate) updateJson).setValue(((UpdateOfField) updateItem).getValue().toString());
             ((FieldUpdate) updateJson).setDefiningClass(((UpdateOfField) updateItem).getField().definingClass.name);
-            ((FieldUpdate) updateJson).setJavaType(((UpdateOfField) updateItem).getField().type.toString());
+            ((FieldUpdate) updateJson).setType(((UpdateOfField) updateItem).getField().type.toString());
             ((FieldUpdate) updateJson).setName(((UpdateOfField) updateItem).getField().name);
         }
 
