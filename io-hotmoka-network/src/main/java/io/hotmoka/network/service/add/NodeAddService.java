@@ -1,9 +1,10 @@
 package io.hotmoka.network.service.add;
 
+import io.hotmoka.network.model.transaction.TransactionRequestModel;
 import org.springframework.http.ResponseEntity;
 
 public interface NodeAddService {
-    ResponseEntity<Object> addJarStoreInitialTransaction();
+    ResponseEntity<Object> addJarStoreInitialTransaction(TransactionRequestModel transactionRequestModel);
     ResponseEntity<Object> addGameteCreationTransaction();
     ResponseEntity<Object> addRedGreenGameteCreationTransaction();
     ResponseEntity<Object> addInitializationTransaction();
