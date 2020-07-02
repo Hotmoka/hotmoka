@@ -44,19 +44,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>io.hotmoka</groupId>
             <artifactId>io-hotmoka-nodes</artifactId>
             <version>${project.version}</version>
         </dependency>
-
     </dependencies>
     
 </project>
