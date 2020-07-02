@@ -3,6 +3,8 @@ package io.hotmoka.network.service;
 import io.hotmoka.network.exception.NodeNotFoundException;
 import io.hotmoka.network.model.Error;
 import io.hotmoka.nodes.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.function.Function;
 
 public class NetworkService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(NetworkService.class);
 
     @Autowired
     protected ApplicationContext applicationContext;
@@ -58,7 +61,7 @@ public class NetworkService {
             return mapFunction.apply(node);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Error occured during node mapping function", e);
             return exceptionResponseOf(e);
         }
     }

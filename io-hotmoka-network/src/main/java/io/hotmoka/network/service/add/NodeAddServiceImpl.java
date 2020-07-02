@@ -5,9 +5,11 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.model.Error;
 import io.hotmoka.network.model.transaction.TransactionRequestModel;
 import io.hotmoka.network.service.NetworkService;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.Base64;
+
 
 @Service
 public class NodeAddServiceImpl extends NetworkService implements NodeAddService {
@@ -20,7 +22,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             if (transactionRequestModel.getJar() == null)
                 return badRequestOf(new Error("Transaction rejected: Jar missing"));
 
-            byte[] jar = Base64.decodeBase64(transactionRequestModel.getJar());
+            byte[] jar = Base64.getDecoder().decode(transactionRequestModel.getJar());
             try {
                 node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar));
             } catch (TransactionRejectedException e) {
