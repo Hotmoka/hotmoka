@@ -42,11 +42,66 @@
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+		  <version>3.1.0</version>
+		  <configuration>
+		    <failOnError>false</failOnError>
+		    <filesets>
+		      <fileset>
+		        <directory>lib</directory>
+		        <includes>
+		          <include>**/*</include>
+		        </includes>
+		        <followSymlinks>false</followSymlinks>
+		      </fileset>
+		      <fileset>
+		        <directory>modules</directory>
+		        <includes>
+		          <include>**/*</include>
+		        </includes>
+		        <followSymlinks>false</followSymlinks>
+		      </fileset>
+		    </filesets>
+		  </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
 		  <version>3.8.1</version>
 		  <configuration>
 		    <release>11</release>
 		  </configuration>
+        </plugin>
+        <plugin>
+		  <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.1.2</version>
+          <executions>
+            <execution>
+              <id>copy-dependencies</id>
+              <phase>package</phase>
+              <goals>
+                <goal>copy-dependencies</goal>
+              </goals>
+              <configuration>
+                <outputDirectory>${project.parent.basedir}/lib</outputDirectory>
+                <excludeArtifactIds>
+                  io-hotmoka-beans,
+                  io-hotmoka-crypto,
+                  io-hotmoka-memory,
+                  io-hotmoka-nodes,
+                  io-hotmoka-patricia,
+                  io-takamaka-code,
+                  io-takamaka-code-constants,
+                  io-takamaka-code-engine,
+                  io-takamaka-code-instrumentation,
+                  io-takamaka-code-verification,
+                  io-takamaka-code-whitelisting,
+                  it-univr-bcel
+                </excludeArtifactIds>
+              </configuration>
+            </execution>
+          </executions>
         </plugin>
 		<plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -94,24 +149,4 @@
         </plugin>
       </plugins>
     </build>
-
-	<dependencies>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>2.0.0-alpha1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>2.0.0-alpha1</version>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.16</version>
-			<scope>runtime</scope>
-		</dependency>
-	</dependencies>
-
 </project>
