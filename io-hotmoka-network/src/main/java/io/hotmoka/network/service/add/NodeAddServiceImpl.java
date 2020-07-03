@@ -1,12 +1,16 @@
 package io.hotmoka.network.service.add;
 
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.model.Error;
 import io.hotmoka.network.model.transaction.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.model.transaction.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.model.transaction.RGGameteCreationTransactionRequestModel;
+import io.hotmoka.network.model.transaction.TransactionModel;
 import io.hotmoka.network.service.NetworkService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -52,8 +56,12 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addInitializationTransaction() {
-        return null;
+    public ResponseEntity<Object> addInitializationTransaction(TransactionModel request) {
+        return this.map(node -> {
+            StorageReference storageReference = new StorageReference(new LocalTransactionReference(request.getHash()), request.getProgressive());
+            node.addInitializationTransaction(new InitializationTransactionRequest(node.getTakamakaCode(), storageReference));
+            return noContentResponse();
+        });
     }
 
     @Override
