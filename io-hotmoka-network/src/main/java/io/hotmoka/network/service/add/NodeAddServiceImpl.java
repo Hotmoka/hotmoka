@@ -24,12 +24,10 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
             byte[] jar = Base64.getDecoder().decode(transactionRequestModel.getJar());
             try {
-                node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar));
+               return okResponseOf(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar)));
             } catch (TransactionRejectedException e) {
-                return okResponseOf(new Error("Transaction rejected"));
+                return badRequestOf(new Error("Transaction rejected"));
             }
-
-            return noContentResponse();
         });
     }
 
