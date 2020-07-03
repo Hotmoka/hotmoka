@@ -121,10 +121,10 @@ public abstract class TakamakaTest {
 
 	        chainId = TakamakaTest.class.getName();
 
-	        //io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
-			//originalView = io.hotmoka.tendermint.TendermintBlockchain.of(config);
-			io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
-			originalView = io.hotmoka.memory.MemoryBlockchain.of(config);
+	        io.hotmoka.tendermint.Config config = new io.hotmoka.tendermint.Config.Builder().build();
+			originalView = io.hotmoka.tendermint.TendermintBlockchain.of(config);
+			//io.hotmoka.memory.Config config = new io.hotmoka.memory.Config.Builder().build();
+			//originalView = io.hotmoka.memory.MemoryBlockchain.of(config);
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of

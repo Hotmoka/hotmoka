@@ -45,6 +45,7 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.2.0</version>
         <configuration>
+          <!-- we do not document the classes in this project, since they are auto-generated -->
           <skip>true</skip>
         </configuration>
       </plugin>

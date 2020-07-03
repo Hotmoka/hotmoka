@@ -23,16 +23,13 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.PatriciaTrie;
+import io.hotmoka.xodus.ByteIterable;
+import io.hotmoka.xodus.ExodusException;
+import io.hotmoka.xodus.env.Environment;
+import io.hotmoka.xodus.env.Store;
+import io.hotmoka.xodus.env.Transaction;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
 import io.takamaka.code.engine.StateTransaction;
-import jetbrains.exodus.ArrayByteIterable;
-import jetbrains.exodus.ByteIterable;
-import jetbrains.exodus.ExodusException;
-import jetbrains.exodus.env.Environment;
-import jetbrains.exodus.env.Environments;
-import jetbrains.exodus.env.Store;
-import jetbrains.exodus.env.StoreConfig;
-import jetbrains.exodus.env.Transaction;
 
 /**
  * The state of a blockchain built over Tendermint. It is a transactional database that keeps
@@ -93,17 +90,17 @@ class State implements AutoCloseable {
     /**
      * The key used inside {@linkplain #info} to keep the number of commits executed over this state.
      */
-    private final static ByteIterable COMMIT_COUNT = ArrayByteIterable.fromByte((byte) 0);
+    private final static ByteIterable COMMIT_COUNT = ByteIterable.fromByte((byte) 0);
 
     /**
      * The key used inside {@linkplain #info} to keep the hash of the root of the Patricia trie of the responses.
      */
-    private final static ByteIterable ROOT = ArrayByteIterable.fromByte((byte) 1);
+    private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 1);
 
     /**
      * The key used inside {@linkplain #info} to keep the storage reference of the manifest of the node.
      */
-    private final static ByteIterable MANIFEST = ArrayByteIterable.fromByte((byte) 2);
+    private final static ByteIterable MANIFEST = ByteIterable.fromByte((byte) 2);
 
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
@@ -152,15 +149,15 @@ class State implements AutoCloseable {
      * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
      */
     State(String dir) throws NoSuchAlgorithmException {
-    	this.env = Environments.newInstance(dir);
+    	this.env = new Environment(dir);
     	this.hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
 
     	// enforces that all stores exist
     	recordTime(() ->
     		env.executeInTransaction(txn -> {
-    			patricia = env.openStore("patricia", StoreConfig.WITHOUT_DUPLICATES, txn);
-    			history = env.openStore("history", StoreConfig.WITHOUT_DUPLICATES, txn);
-    			info = env.openStore("info", StoreConfig.WITHOUT_DUPLICATES, txn);
+    			patricia = env.openStoreWithoutDuplicates("patricia", txn);
+    			history = env.openStoreWithoutDuplicates("history", txn);
+    			info = env.openStoreWithoutDuplicates("info", txn);
     		})
     	);
     }
@@ -199,8 +196,8 @@ class State implements AutoCloseable {
     	recordTime(() -> {
     		// we increase the number of commits performed over this state
     		ByteIterable numberOfCommitsAsByteIterable = info.get(txn, COMMIT_COUNT);
-    		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytesUnsafe()));
-    		info.put(txn, COMMIT_COUNT, new ArrayByteIterable(Long.toString(numberOfCommits + 1).getBytes()));
+    		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytes()));
+    		info.put(txn, COMMIT_COUNT, ByteIterable.fromBytes(Long.toString(numberOfCommits + 1).getBytes()));
     		if (!txn.commit())
     			logger.info("Block transaction commit failed");
     	});
@@ -272,7 +269,7 @@ class State implements AutoCloseable {
 	 */
 	long getNumberOfCommits() {
 		ByteIterable numberOfCommitsAsByteIterable = getFromInfo(COMMIT_COUNT);
-		return numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytesUnsafe()));
+		return numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytes()));
 	}
 
 	/**
@@ -295,7 +292,7 @@ class State implements AutoCloseable {
 		if (hashOfTrieRoot == null)
 			return new byte[0];
 		else
-			return hashOfTrieRoot.getBytesUnsafe();
+			return hashOfTrieRoot.getBytes();
 	}
 
 	/**
@@ -360,26 +357,26 @@ class State implements AutoCloseable {
 			@Override
 			public byte[] getRoot() {
 				ByteIterable root = info.get(txn, ROOT);
-				return root == null ? null : root.getBytesUnsafe();
+				return root == null ? null : root.getBytes();
 			}
 	
 			@Override
 			public void setRoot(byte[] root) {
-				info.put(txn, ROOT, new ArrayByteIterable(root));
+				info.put(txn, ROOT, ByteIterable.fromBytes(root));
 			}
 	
 			@Override
 			public void put(byte[] key, byte[] value) {
-				patricia.put(txn, new ArrayByteIterable(key), new ArrayByteIterable(value));
+				patricia.put(txn, ByteIterable.fromBytes(key), ByteIterable.fromBytes(value));
 			}
 	
 			@Override
 			public byte[] get(byte[] key) throws NoSuchElementException {
-				ByteIterable result = patricia.get(txn, new ArrayByteIterable(key));
+				ByteIterable result = patricia.get(txn, ByteIterable.fromBytes(key));
 				if (result == null)
 					throw new NoSuchElementException("no Merkle-Patricia trie node");
 				else
-					return result.getBytesUnsafe();
+					return result.getBytes();
 			}
 		};
 
@@ -422,18 +419,18 @@ class State implements AutoCloseable {
 		return result;
 	}
 
-	private static ArrayByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
+	private static ByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
 		try {
-			return new ArrayByteIterable(reference.toByteArrayWithoutSelector()); // more optimized than a normal marshallable
+			return ByteIterable.fromBytes(reference.toByteArrayWithoutSelector()); // more optimized than a normal marshallable
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
 
-	private static ArrayByteIterable intoByteArray(Marshallable[] marshallables) throws UncheckedIOException {
+	private static ByteIterable intoByteArray(Marshallable[] marshallables) throws UncheckedIOException {
 		try {
-			return new ArrayByteIterable(Marshallable.toByteArray(marshallables));
+			return ByteIterable.fromBytes(Marshallable.toByteArray(marshallables));
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -441,7 +438,7 @@ class State implements AutoCloseable {
 	}
 
 	private static <T extends Marshallable> T fromByteArray(Unmarshaller<T> unmarshaller, ByteIterable bytes) throws UncheckedIOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe())))) {
+		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytes())))) {
 			return unmarshaller.from(ois);
 		}
 		catch (IOException e) {
@@ -453,7 +450,7 @@ class State implements AutoCloseable {
 	}
 
 	private static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytesUnsafe())))) {
+		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytes())))) {
 			return Marshallable.unmarshallingOfArray(unmarshaller, supplier, ois);
 		}
 		catch (IOException e) {

@@ -24,6 +24,7 @@ import io.hotmoka.network.NodeService;
  */
 class NetworkFromNode extends TakamakaTest {
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
+	private final Config configNoBanner = new Config.Builder().setPort(8080).setSpringBannerModeOn(false).build();
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -40,8 +41,7 @@ class NetworkFromNode extends TakamakaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
 	void queryTakamakaCode() throws InterruptedException, IOException {
-		Config config = new Config.Builder().setPort(8080).setSpringBannerModeOn(false).build();
-		NodeService nodeRestService = new NodeService(config, nodeWithJarsView);
+		NodeService nodeRestService = new NodeService(configNoBanner, nodeWithJarsView);
 		nodeRestService.start();
 		String answer = curl(new URL("http://localhost:8080/get/takamakaCode"));
 		nodeRestService.stop();
@@ -50,7 +50,7 @@ class NetworkFromNode extends TakamakaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")
 	void addJarStoreInitialTransaction() throws InterruptedException, IOException {
-		NodeService nodeRestService = new NodeService(nodeWithJarsView);
+		NodeService nodeRestService = new NodeService(configNoBanner, nodeWithJarsView);
 		nodeRestService.start();
 		String bodyJson = "{\"jar\": \"UEsDBBQACAgIAPi8Wk8AAAAAAAAAAAAAAAAJAAQATUVUQS1JTkYv/soAAAMAUEsHCAAAAAACAAAAAAAAAFBLAwQUAAgICAD4vFpPAAAAAAAAAAAAAAAAFAAAAE1FVEEtSU5GL01BTklGRVNULk1G803My0xLLS7RDUstKs7Mz7NSMNQz4OVyLkpNLElN0XWqBAoARfRMFDRCk0rzSko1ebl4uQBQSwcI/0lOkzUAAAA2AAAAUEsDBBQACAgIAPi8Wk8AAAAAAAAAAAAAAAAHAAAAQy5jbGFzcz2OT2vCQBDF3yQxaWL815499NamYI5epJdAQRAvSu+rXcK2mkCI4ofqpaAUeugH8ENJXxbpYd7OzM7vzZwvP78AxriL4KEXwkU/wCDArUAOjKnAn5jC1M8C9+HxVeBl5ZsW9Gam0PPddqWrpVpt2HFzXdshMtGi3FVr/WKaDz8bvau9ihHgJkYLPn0zwdCUaa0+1JaRrmmablSRp4u6rFSucc9bPN4mcBqGmcOcFtSQ1ZOtgXbyDUn6nROcLzseUbuEQdwjGhEWtBFfwSHfBmwlRzif/4hvmyG1Y3d1/wBQSwcI0UP7St8AAAAcAQAAUEsBAhQAFAAICAgA+LxaTwAAAAACAAAAAAAAAAkABAAAAAAAAAAAAAAAAAAAAE1FVEEtSU5GL/7KAABQSwECFAAUAAgICAD4vFpP/0lOkzUAAAA2AAAAFAAAAAAAAAAAAAAAAAA9AAAATUVUQS1JTkYvTUFOSUZFU1QuTUZQSwECFAAUAAgICAD4vFpP0UP7St8AAAAcAQAABwAAAAAAAAAAAAAAAAC0AAAAQy5jbGFzc1BLBQYAAAAAAwADALIAAADIAQAAAAA=\"}";
 		String result = post("http://localhost:8080/add/jarStoreInitialTransaction", bodyJson);
@@ -60,7 +60,7 @@ class NetworkFromNode extends TakamakaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction() without a jar")
 	void addJarStoreInitialTransactionWithoutAJar() throws InterruptedException, IOException {
-		NodeService nodeRestService = new NodeService(nodeWithJarsView);
+		NodeService nodeRestService = new NodeService(configNoBanner, nodeWithJarsView);
 		nodeRestService.start();
 		String jar = null;
 		JsonObject bodyJson = new JsonObject();

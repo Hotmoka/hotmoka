@@ -30,6 +30,7 @@
       <module>io-takamaka-code-engine</module>
       <module>io-takamaka-code-tools</module>
       <module>io-hotmoka-memory</module>
+	  <module>io-hotmoka-xodus</module>
       <module>io-hotmoka-tendermint-dependencies</module>
       <module>io-hotmoka-tendermint</module>
       <module>io-hotmoka-takamaka</module>
@@ -56,6 +57,13 @@
 		      </fileset>
 		      <fileset>
 		        <directory>modules</directory>
+		        <includes>
+		          <include>**/*</include>
+		        </includes>
+		        <followSymlinks>false</followSymlinks>
+		      </fileset>
+		      <fileset>
+		        <directory>docs</directory>
 		        <includes>
 		          <include>**/*</include>
 		        </includes>
