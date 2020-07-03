@@ -2,6 +2,7 @@ package io.hotmoka.network.rest;
 
 import io.hotmoka.network.model.transaction.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.model.transaction.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.model.transaction.RGGameteCreationTransactionRequestModel;
 import io.hotmoka.network.service.add.NodeAddService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +25,8 @@ public class AddController {
     }
 
     @PostMapping("/redGreenGameteCreationTransaction")
-    public Object redGreenGameteCreationTransaction() {
-        return this.nodeAddService.addRedGreenGameteCreationTransaction();
+    public Object redGreenGameteCreationTransaction(@RequestBody RGGameteCreationTransactionRequestModel request) {
+        return this.nodeAddService.addRedGreenGameteCreationTransaction(request);
     }
 
     @PostMapping("/initializationTransaction")

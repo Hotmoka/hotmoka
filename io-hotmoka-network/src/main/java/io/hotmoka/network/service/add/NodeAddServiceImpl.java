@@ -2,9 +2,11 @@ package io.hotmoka.network.service.add;
 
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
 import io.hotmoka.network.model.Error;
 import io.hotmoka.network.model.transaction.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.model.transaction.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.model.transaction.RGGameteCreationTransactionRequestModel;
 import io.hotmoka.network.service.NetworkService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -30,19 +32,23 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
     @Override
     public ResponseEntity<Object> addGameteCreationTransaction(GameteCreationTransactionRequestModel request) {
-        return this.map(node ->
-                okResponseOf(node.addGameteCreationTransaction(new GameteCreationTransactionRequest(
-                                node.getTakamakaCode(),
-                                request.getAmount(),
-                                request.getPublicKey()
-                        ))
-                )
-        );
+        return this.map(node -> okResponseOf(node.addGameteCreationTransaction(new GameteCreationTransactionRequest(
+                        node.getTakamakaCode(),
+                        request.getAmount(),
+                        request.getPublicKey()
+                ))
+        ));
     }
 
     @Override
-    public ResponseEntity<Object> addRedGreenGameteCreationTransaction() {
-        return null;
+    public ResponseEntity<Object> addRedGreenGameteCreationTransaction(RGGameteCreationTransactionRequestModel request) {
+        return this.map(node -> okResponseOf(node.addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(
+                    node.getTakamakaCode(),
+                    request.getAmount(),
+                    request.getRedAmount(),
+                    request.getPublicKey()
+                ))
+        ));
     }
 
     @Override
