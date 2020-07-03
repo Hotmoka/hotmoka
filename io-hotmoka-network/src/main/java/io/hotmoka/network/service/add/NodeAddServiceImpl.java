@@ -1,21 +1,19 @@
 package io.hotmoka.network.service.add;
 
 import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.*;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.model.Error;
-import io.hotmoka.network.model.transaction.GameteCreationTransactionRequestModel;
-import io.hotmoka.network.model.transaction.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.model.transaction.RGGameteCreationTransactionRequestModel;
-import io.hotmoka.network.model.transaction.TransactionModel;
+import io.hotmoka.network.model.transaction.*;
 import io.hotmoka.network.service.NetworkService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.security.PrivateKey;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.stream.Stream;
 
 
 @Service
@@ -65,8 +63,31 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addJarStoreTransaction() {
-        return null;
+    public ResponseEntity<Object> addJarStoreTransaction(JarStoreTransactionRequestModel request) {
+
+        return this.map(node -> {
+            SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
+            PrivateKey privateKey = null; // TODO: create this
+            byte[] jar = Base64.getDecoder().decode(request.getJar());
+
+            LocalTransactionReference[] dependencies = Stream.ofNullable(request.getDependencies())
+                    .flatMap(Collection::stream)
+                    .map(transactionModel -> new LocalTransactionReference(transactionModel.getHash()))
+                    .toArray(LocalTransactionReference[]::new);
+
+            return okResponseOf(node.addJarStoreTransaction(new JarStoreTransactionRequest(
+                            NonInitialTransactionRequest.Signer.with(signature, privateKey),
+                            new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive()),
+                            request.getNonce(),
+                            request.getChainId(),
+                            request.getGasLimit(),
+                            request.getGasPrice(),
+                            node.getTakamakaCode(),
+                            jar,
+                            dependencies
+                    ))
+            );
+        });
     }
 
     @Override

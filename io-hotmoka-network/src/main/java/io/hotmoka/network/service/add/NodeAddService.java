@@ -1,17 +1,14 @@
 package io.hotmoka.network.service.add;
 
-import io.hotmoka.network.model.transaction.GameteCreationTransactionRequestModel;
-import io.hotmoka.network.model.transaction.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.model.transaction.RGGameteCreationTransactionRequestModel;
-import io.hotmoka.network.model.transaction.TransactionModel;
+import io.hotmoka.network.model.transaction.*;
 import org.springframework.http.ResponseEntity;
 
 public interface NodeAddService {
-    ResponseEntity<Object> addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel transactionRequestModel);
+    ResponseEntity<Object> addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request);
     ResponseEntity<Object> addGameteCreationTransaction(GameteCreationTransactionRequestModel request);
     ResponseEntity<Object> addRedGreenGameteCreationTransaction(RGGameteCreationTransactionRequestModel request);
     ResponseEntity<Object> addInitializationTransaction(TransactionModel request);
-    ResponseEntity<Object> addJarStoreTransaction();
+    ResponseEntity<Object> addJarStoreTransaction(JarStoreTransactionRequestModel request);
     ResponseEntity<Object> addConstructorCallTransaction();
     ResponseEntity<Object> addInstanceMethodCallTransaction();
     ResponseEntity<Object> addStaticMethodCallTransaction();
