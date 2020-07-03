@@ -1,6 +1,5 @@
 package io.hotmoka.network.service.add;
 
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.model.Error;
 import io.hotmoka.network.model.transaction.TransactionRequestModel;
@@ -20,14 +19,10 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
         return this.map(node -> {
 
             if (transactionRequestModel.getJar() == null)
-                return badRequestOf(new Error("Transaction rejected: Jar missing"));
+                return badRequestResponseOf(new Error("Transaction rejected: Jar missing"));
 
             byte[] jar = Base64.getDecoder().decode(transactionRequestModel.getJar());
-            try {
-               return okResponseOf(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar)));
-            } catch (TransactionRejectedException e) {
-                return badRequestOf(new Error("Transaction rejected"));
-            }
+            return okResponseOf(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar)));
         });
     }
 
