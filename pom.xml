@@ -123,6 +123,8 @@
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>3.2.0</version>
           <configuration>
+            <!-- Default configuration for all reports -->
+            <outputDirectory>docs</outputDirectory>
             <finalName>hotmoka-and-takamaka-assembly-${project.version}</finalName>
             <!-- We remove these manually, since this project is currently not a Java >= 9 project that understands internal packages by itself -->
             <excludePackageNames>io.hotmoka.tendermint.internal:io.hotmoka.tendermint.internal.beans</excludePackageNames>
@@ -132,7 +134,6 @@
         		<additionalJOption>-Xmaxwarns</additionalJOption>
         		<additionalJOption>65536</additionalJOption>
       		</additionalJOptions>
-            <!-- Default configuration for all reports -->
           </configuration>
           <executions>
             <execution>

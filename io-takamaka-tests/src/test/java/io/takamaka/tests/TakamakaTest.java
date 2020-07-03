@@ -128,7 +128,7 @@ public abstract class TakamakaTest {
 
 			// the gamete has both red and green coins, enough for all tests
 			initializedView = InitializedNode.of
-				(originalView, Paths.get("../io-takamaka-code/target/io-takamaka-code-" + version + ".jar"),
+				(originalView, Paths.get("../modules/io-takamaka-code-" + version + ".jar"),
 				Constants.MANIFEST_NAME, chainId, BigInteger.valueOf(999_999_999).pow(5), BigInteger.valueOf(999_999_999).pow(5));
 			signature = originalView.getSignatureAlgorithmForRequests();
 		}
