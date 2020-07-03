@@ -1,11 +1,10 @@
 package io.hotmoka.network.service.add;
 
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.model.Error;
 import io.hotmoka.network.model.transaction.GameteCreationTransactionRequestModel;
-import io.hotmoka.network.model.transaction.TransactionRequestModel;
+import io.hotmoka.network.model.transaction.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.service.NetworkService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,13 +17,13 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
 
     @Override
-    public ResponseEntity<Object> addJarStoreInitialTransaction(TransactionRequestModel transactionRequestModel) {
+    public ResponseEntity<Object> addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
         return this.map(node -> {
 
-            if (transactionRequestModel.getJar() == null)
+            if (request.getJar() == null)
                 return badRequestResponseOf(new Error("Transaction rejected: Jar missing"));
 
-            byte[] jar = Base64.getDecoder().decode(transactionRequestModel.getJar());
+            byte[] jar = Base64.getDecoder().decode(request.getJar());
             return okResponseOf(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar)));
         });
     }

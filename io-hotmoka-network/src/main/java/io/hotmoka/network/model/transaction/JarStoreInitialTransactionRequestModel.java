@@ -1,6 +1,6 @@
 package io.hotmoka.network.model.transaction;
 
-public class TransactionRequestModel {
+public class JarStoreInitialTransactionRequestModel {
     private String jar;
 
     public String getJar() {
