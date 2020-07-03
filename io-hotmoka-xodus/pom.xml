@@ -13,8 +13,28 @@
     <version>dev</version>
   </parent>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <outputDirectory>
+            ../modules
+          </outputDirectory>
+	 	  <archive>
+            <manifestEntries>
+              <Automatic-Module-Name>io.hotmoka.xodus</Automatic-Module-Name>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
-  <dependency>
+    <dependency>
       <groupId>org.jetbrains.xodus</groupId>
       <artifactId>xodus-environment</artifactId>
       <version>1.3.124</version>
