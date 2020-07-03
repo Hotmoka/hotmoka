@@ -1,7 +1,10 @@
 package io.hotmoka.network.service.add;
 
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.model.Error;
+import io.hotmoka.network.model.transaction.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.model.transaction.TransactionRequestModel;
 import io.hotmoka.network.service.NetworkService;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +30,15 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addGameteCreationTransaction() {
-        return null;
+    public ResponseEntity<Object> addGameteCreationTransaction(GameteCreationTransactionRequestModel request) {
+        return this.map(node ->
+                okResponseOf(node.addGameteCreationTransaction(new GameteCreationTransactionRequest(
+                                node.getTakamakaCode(),
+                                request.getAmount(),
+                                request.getPublicKey()
+                        ))
+                )
+        );
     }
 
     @Override
