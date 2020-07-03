@@ -30,7 +30,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
                 return badRequestResponseOf(new Error("Transaction rejected: Jar missing"));
 
             byte[] jar = Base64.getDecoder().decode(request.getJar());
-            return okResponseOf(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar)));
+            return okResponseOf(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, node.getTakamakaCode())));
         });
     }
 
