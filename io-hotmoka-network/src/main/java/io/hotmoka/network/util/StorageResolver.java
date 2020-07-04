@@ -1,12 +1,16 @@
 package io.hotmoka.network.util;
 
 import io.hotmoka.beans.references.LocalTransactionReference;
+import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.*;
 import io.hotmoka.network.model.storage.StorageModel;
 import io.hotmoka.network.model.storage.StorageValueModel;
+import io.hotmoka.network.model.transaction.MethodCallTransactionRequestModel;
 
 import java.math.BigInteger;
 import java.util.Collection;
@@ -16,6 +20,20 @@ import java.util.stream.Stream;
 
 public class StorageResolver {
 
+    public static MethodSignature resolveMethodSignature(MethodCallTransactionRequestModel request){
+
+        if (request.isVoidReturnType())
+            return new VoidMethodSignature(
+                    request.getClassType(),
+                    request.getMethodName(),
+                    resolveStorageTypes(request.getValues()));
+
+        return new NonVoidMethodSignature(
+                request.getClassType(),
+                request.getMethodName(),
+                storageTypeFrom(request.getReturnType()),
+                resolveStorageTypes(request.getValues()));
+    }
 
     public static StorageValue[] resolveStorageValues(List<StorageValueModel> values) {
         return Stream.ofNullable(values)
@@ -38,7 +56,7 @@ public class StorageResolver {
      * @param type the type
      * @return a {@link io.hotmoka.beans.types.StorageType}
      */
-    private static StorageType storageTypeFrom(String type) {
+    public static StorageType storageTypeFrom(String type) {
         switch (type) {
             case "boolean": return BasicTypes.BOOLEAN;
             case "byte": return BasicTypes.BYTE;

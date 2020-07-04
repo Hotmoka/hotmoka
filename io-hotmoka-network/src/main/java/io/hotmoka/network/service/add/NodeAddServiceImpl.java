@@ -126,7 +126,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
             PrivateKey privateKey = null; // TODO
 
-            MethodSignature methodSignature = null;
+            MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
             StorageReference caller = new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive());
             StorageReference receiver = new StorageReference(new LocalTransactionReference(request.getReceiver()), request.getReceiverProgressive());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
@@ -147,8 +147,27 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addStaticMethodCallTransaction() {
-        return null;
+    public ResponseEntity<Object> addStaticMethodCallTransaction(MethodCallTransactionRequestModel request) {
+        return this.map(node -> {
+            SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
+            PrivateKey privateKey = null; // TODO
+
+            MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
+            StorageReference caller = new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive());
+            StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
+
+            return okResponseOf(node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(
+                    NonInitialTransactionRequest.Signer.with(signature, privateKey),
+                    caller,
+                    request.getNonce(),
+                    request.getChainId(),
+                    request.getGasLimit(),
+                    request.getGasPrice(),
+                    node.getTakamakaCode(),
+                    methodSignature,
+                    actuals
+            )));
+        });
     }
 
 }

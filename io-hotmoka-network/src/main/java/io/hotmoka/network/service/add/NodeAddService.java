@@ -12,5 +12,5 @@ public interface NodeAddService {
     ResponseEntity<Object> addJarStoreTransaction(JarStoreTransactionRequestModel request);
     ResponseEntity<Object> addConstructorCallTransaction(ConstructorCallTransactionRequestModel request);
     ResponseEntity<Object> addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request);
-    ResponseEntity<Object> addStaticMethodCallTransaction();
+    ResponseEntity<Object> addStaticMethodCallTransaction(MethodCallTransactionRequestModel request);
 }

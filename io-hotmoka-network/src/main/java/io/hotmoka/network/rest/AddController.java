@@ -49,7 +49,7 @@ public class AddController {
     }
 
     @PostMapping("/staticMethodCallTransaction")
-    public Object staticMethodCallTransaction() {
-        return this.nodeAddService.addStaticMethodCallTransaction();
+    public Object staticMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
+        return this.nodeAddService.addStaticMethodCallTransaction(request);
     }
 }

@@ -5,6 +5,9 @@ import java.math.BigInteger;
 public class MethodCallTransactionRequestModel extends ConstructorCallTransactionRequestModel {
     private String receiver;
     private BigInteger receiverProgressive;
+    private boolean voidReturnType;
+    private String methodName;
+    private String returnType;
 
     public String getReceiver() {
         return receiver;
@@ -20,5 +23,29 @@ public class MethodCallTransactionRequestModel extends ConstructorCallTransactio
 
     public void setReceiverProgressive(BigInteger receiverProgressive) {
         this.receiverProgressive = receiverProgressive;
+    }
+
+    public boolean isVoidReturnType() {
+        return voidReturnType;
+    }
+
+    public void setVoidReturnType(boolean voidReturnType) {
+        this.voidReturnType = voidReturnType;
+    }
+
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public String getReturnType() {
+        return returnType;
+    }
+
+    public void setReturnType(String returnType) {
+        this.returnType = returnType;
     }
 }
