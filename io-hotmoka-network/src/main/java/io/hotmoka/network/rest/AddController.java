@@ -44,8 +44,8 @@ public class AddController {
     }
 
     @PostMapping("/instanceMethodCallTransaction")
-    public Object instanceMethodCallTransaction() {
-        return this.nodeAddService.addInstanceMethodCallTransaction();
+    public Object instanceMethodCallTransaction(@RequestBody MethodCallTransactionRequestModel request) {
+        return this.nodeAddService.addInstanceMethodCallTransaction(request);
     }
 
     @PostMapping("/staticMethodCallTransaction")

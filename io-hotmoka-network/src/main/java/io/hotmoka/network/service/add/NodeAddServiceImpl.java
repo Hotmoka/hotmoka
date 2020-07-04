@@ -3,7 +3,9 @@ package io.hotmoka.network.service.add;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.requests.*;
 import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.model.Error;
 import io.hotmoka.network.model.storage.StorageModel;
@@ -114,8 +116,29 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addInstanceMethodCallTransaction() {
-        return null;
+    public ResponseEntity<Object> addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request) {
+        return this.map(node -> {
+            SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
+            PrivateKey privateKey = null; // TODO
+
+            MethodSignature methodSignature = null;
+            StorageReference caller = new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive());
+            StorageReference receiver = new StorageReference(new LocalTransactionReference(request.getReceiver()), request.getReceiverProgressive());
+            StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
+
+            return okResponseOf(node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+                    NonInitialTransactionRequest.Signer.with(signature, privateKey),
+                    caller,
+                    request.getNonce(),
+                    request.getChainId(),
+                    request.getGasLimit(),
+                    request.getGasPrice(),
+                    node.getTakamakaCode(),
+                    methodSignature,
+                    receiver,
+                    actuals
+            )));
+        });
     }
 
     @Override
