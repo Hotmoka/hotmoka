@@ -61,8 +61,8 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public ResponseEntity<Object> addInitializationTransaction(StorageModel request) {
         return this.map(node -> {
-            StorageReference storageReference = new StorageReference(new LocalTransactionReference(request.getHash()), request.getProgressive());
-            node.addInitializationTransaction(new InitializationTransactionRequest(node.getTakamakaCode(), storageReference));
+            StorageReference manifest = new StorageReference(new LocalTransactionReference(request.getHash()), request.getProgressive());
+            node.addInitializationTransaction(new InitializationTransactionRequest(node.getTakamakaCode(), manifest));
             return noContentResponse();
         });
     }
@@ -75,6 +75,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             PrivateKey privateKey = null; // TODO: create this
             byte[] jar = Base64.getDecoder().decode(request.getJar());
 
+            StorageReference caller = new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive());
             LocalTransactionReference[] dependencies = Stream.ofNullable(request.getDependencies())
                     .flatMap(Collection::stream)
                     .map(storageModel -> new LocalTransactionReference(storageModel.getHash()))
@@ -82,7 +83,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
             return okResponseOf(node.addJarStoreTransaction(new JarStoreTransactionRequest(
                             NonInitialTransactionRequest.Signer.with(signature, privateKey),
-                            new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive()),
+                            caller,
                             request.getNonce(),
                             request.getChainId(),
                             request.getGasLimit(),
@@ -101,16 +102,20 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
             PrivateKey privateKey = null; // TODO
 
+            StorageReference caller = new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive());
+            ConstructorSignature constructor = new ConstructorSignature(request.getClassType(), StorageResolver.resolveStorageTypes(request.getValues()));
+            StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
+
             return okResponseOf(node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
                     NonInitialTransactionRequest.Signer.with(signature, privateKey),
-                    new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive()),
+                    caller,
                     request.getNonce(),
                     request.getChainId(),
                     request.getGasLimit(),
                     request.getGasPrice(),
                     node.getTakamakaCode(),
-                    new ConstructorSignature(request.getClassType(), StorageResolver.resolveStorageTypes(request.getValues())),
-                    StorageResolver.resolveStorageValues(request.getValues())
+                    constructor,
+                    actuals
             )));
         });
     }
