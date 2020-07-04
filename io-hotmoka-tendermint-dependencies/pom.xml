@@ -46,7 +46,7 @@
         <version>3.2.0</version>
         <configuration>
           <outputDirectory>
-            ../modules
+            ../modules/automatic
           </outputDirectory>
 	 	  <archive>
             <manifestEntries>

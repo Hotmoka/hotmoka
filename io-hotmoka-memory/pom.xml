@@ -34,7 +34,7 @@
         <version>3.2.0</version>
         <configuration>
           <outputDirectory>
-            ../modules
+            ../modules/explicit
           </outputDirectory>
         </configuration>
       </plugin>

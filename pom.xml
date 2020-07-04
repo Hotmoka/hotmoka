@@ -48,13 +48,6 @@
 		    <failOnError>false</failOnError>
 		    <filesets>
 		      <fileset>
-		        <directory>lib</directory>
-		        <includes>
-		          <include>**/*</include>
-		        </includes>
-		        <followSymlinks>false</followSymlinks>
-		      </fileset>
-		      <fileset>
 		        <directory>modules</directory>
 		        <includes>
 		          <include>**/*</include>
@@ -85,14 +78,15 @@
           <version>3.1.2</version>
           <executions>
             <execution>
-              <id>copy-dependencies</id>
+              <id>copy-unnamed-module</id>
               <phase>package</phase>
               <goals>
                 <goal>copy-dependencies</goal>
               </goals>
               <configuration>
-                <outputDirectory>${project.parent.basedir}/lib</outputDirectory>
+                <outputDirectory>${project.parent.basedir}/modules/unnamed</outputDirectory>
                 <excludeArtifactIds>
+                  <!-- we exclude all modules built by Maven: their build will put them at the right place -->
                   io-hotmoka-beans,
                   io-hotmoka-crypto,
                   io-hotmoka-memory,
@@ -108,8 +102,58 @@
                   io-takamaka-code-instrumentation,
                   io-takamaka-code-verification,
                   io-takamaka-code-whitelisting,
-                  it-univr-bcel
+
+                  <!-- we exclude all modules that go into the explicit folder -->
+                  it-univr-bcel,
+
+                  <!--  we exclude all modules that go into the automatic folder -->
+                  bcel,
+                  io-hotmoka-tendermint-dependencies,
+                  io-hotmoka-xodus,
+                  commons-cli,
+                  grpc-api,
+                  grpc-stub,
+
+                  <!-- we exclude all modules that are only used for testing -->
+                  junit-jupiter,
+                  junit-jupiter-api,
+                  junit-jupiter-engine,
+                  junit-jupiter-params,
+                  junit-platform-commons,
+                  junit-platform-engine,
+                  maven-model
                 </excludeArtifactIds>
+              </configuration>
+            </execution>
+            <execution>
+              <id>copy-automatic-modules</id>
+              <phase>package</phase>
+              <goals>
+                <goal>copy-dependencies</goal>
+              </goals>
+              <configuration>
+                <outputDirectory>${project.parent.basedir}/modules/automatic</outputDirectory>
+                <includeArtifactIds>
+                  bcel,
+                  io-hotmoka-tendermint-dependencies,
+                  io-hotmoka-xodus,
+                  commons-cli,
+                  grpc-api,
+                  grpc-stub
+                </includeArtifactIds>
+              </configuration>
+            </execution>
+            <execution>
+              <id>copy-explicit-modules</id>
+              <phase>package</phase>
+              <goals>
+                <goal>copy-dependencies</goal>
+              </goals>
+              <configuration>
+                <outputDirectory>${project.parent.basedir}/modules/explicit</outputDirectory>
+                <includeArtifactIds>
+                  it-univr-bcel
+                </includeArtifactIds>
               </configuration>
             </execution>
           </executions>

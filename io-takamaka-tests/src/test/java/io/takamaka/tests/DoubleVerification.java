@@ -29,7 +29,7 @@ class DoubleVerification {
 		Model model = reader.read(new FileReader("../pom.xml"));
 		String version = (String) model.getProperties().get("project.version");
 		Path origin = Paths.get("../io-takamaka-examples/target/io-takamaka-examples-" + version + "-lambdas.jar");
-		Path classpath = Paths.get("../modules/io-takamaka-code-" + version + ".jar");
+		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + version + ".jar");
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
     	TakamakaClassLoader classLoader = TakamakaClassLoader.of
