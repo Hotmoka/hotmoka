@@ -1,5 +1,6 @@
 package io.hotmoka.network.rest;
 
+import io.hotmoka.network.model.storage.StorageModel;
 import io.hotmoka.network.model.transaction.*;
 import io.hotmoka.network.service.add.NodeAddService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class AddController {
     }
 
     @PostMapping("/initializationTransaction")
-    public Object initializationTransaction(@RequestBody TransactionModel request) {
+    public Object initializationTransaction(@RequestBody StorageModel request) {
         return this.nodeAddService.addInitializationTransaction(request);
     }
 
@@ -38,8 +39,8 @@ public class AddController {
     }
 
     @PostMapping("/constructorCallTransaction")
-    public Object constructorCallTransaction() {
-        return this.nodeAddService.addConstructorCallTransaction();
+    public Object constructorCallTransaction(@RequestBody ConstructorCallTransactionRequestModel request) {
+        return this.nodeAddService.addConstructorCallTransaction(request);
     }
 
     @PostMapping("/instanceMethodCallTransaction")

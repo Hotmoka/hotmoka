@@ -1,8 +1,8 @@
-package io.hotmoka.network.model.transaction;
+package io.hotmoka.network.model.storage;
 
 import java.math.BigInteger;
 
-public class TransactionModel {
+public class StorageModel {
     private String hash;
     private BigInteger progressive;
 

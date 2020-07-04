@@ -1,5 +1,7 @@
 package io.hotmoka.network.model.transaction;
 
+import io.hotmoka.network.model.storage.StorageModel;
+
 import java.math.BigInteger;
 import java.util.List;
 
@@ -10,7 +12,7 @@ public class JarStoreTransactionRequestModel extends JarStoreInitialTransactionR
     private String chainId;
     private BigInteger gasLimit;
     private BigInteger gasPrice;
-    private List<TransactionModel> dependencies;
+    private List<StorageModel> dependencies;
 
     public String getCaller() {
         return caller;
@@ -60,11 +62,11 @@ public class JarStoreTransactionRequestModel extends JarStoreInitialTransactionR
         this.gasPrice = gasPrice;
     }
 
-    public List<TransactionModel> getDependencies() {
+    public List<StorageModel> getDependencies() {
         return dependencies;
     }
 
-    public void setDependencies(List<TransactionModel> dependencies) {
+    public void setDependencies(List<StorageModel> dependencies) {
         this.dependencies = dependencies;
     }
 }

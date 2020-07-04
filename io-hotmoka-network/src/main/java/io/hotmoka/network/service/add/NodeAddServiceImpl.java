@@ -2,11 +2,14 @@ package io.hotmoka.network.service.add;
 
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.requests.*;
+import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.model.Error;
+import io.hotmoka.network.model.storage.StorageModel;
 import io.hotmoka.network.model.transaction.*;
 import io.hotmoka.network.service.NetworkService;
+import io.hotmoka.network.util.StorageResolver;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -54,7 +57,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addInitializationTransaction(TransactionModel request) {
+    public ResponseEntity<Object> addInitializationTransaction(StorageModel request) {
         return this.map(node -> {
             StorageReference storageReference = new StorageReference(new LocalTransactionReference(request.getHash()), request.getProgressive());
             node.addInitializationTransaction(new InitializationTransactionRequest(node.getTakamakaCode(), storageReference));
@@ -72,7 +75,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
             LocalTransactionReference[] dependencies = Stream.ofNullable(request.getDependencies())
                     .flatMap(Collection::stream)
-                    .map(transactionModel -> new LocalTransactionReference(transactionModel.getHash()))
+                    .map(storageModel -> new LocalTransactionReference(storageModel.getHash()))
                     .toArray(LocalTransactionReference[]::new);
 
             return okResponseOf(node.addJarStoreTransaction(new JarStoreTransactionRequest(
@@ -91,8 +94,23 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addConstructorCallTransaction() {
-        return null;
+    public ResponseEntity<Object> addConstructorCallTransaction(ConstructorCallTransactionRequestModel request) {
+        return this.map(node -> {
+            SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
+            PrivateKey privateKey = null; // TODO
+
+            return okResponseOf(node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+                    NonInitialTransactionRequest.Signer.with(signature, privateKey),
+                    new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive()),
+                    request.getNonce(),
+                    request.getChainId(),
+                    request.getGasLimit(),
+                    request.getGasPrice(),
+                    node.getTakamakaCode(),
+                    new ConstructorSignature(request.getClassType(), StorageResolver.resolveStorageTypes(request.getValues())),
+                    StorageResolver.resolveStorageValues(request.getValues())
+            )));
+        });
     }
 
     @Override
@@ -104,4 +122,5 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     public ResponseEntity<Object> addStaticMethodCallTransaction() {
         return null;
     }
+
 }
