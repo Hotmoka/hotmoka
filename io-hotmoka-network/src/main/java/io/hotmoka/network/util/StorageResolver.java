@@ -20,6 +20,33 @@ import java.util.stream.Stream;
 
 public class StorageResolver {
 
+    /**
+     * Creates a {@link io.hotmoka.beans.values.StorageReference} for the given hash input
+     * @param hash the hash of the storage reference
+     * @param progressive the progressive
+     * @return a {@link io.hotmoka.beans.values.StorageReference}
+     */
+    public static StorageReference resolveStorageReference(String hash, BigInteger progressive) {
+        return new StorageReference(new LocalTransactionReference(hash), progressive);
+    }
+
+    /**
+     * Creates a {@link io.hotmoka.beans.references.LocalTransactionReference} array from a list of dependencies
+     * @param dependencies the list of dependencies
+     * @return an array of  {@link io.hotmoka.beans.references.LocalTransactionReference}
+     */
+    public static LocalTransactionReference[] resolveJarDependencies(List<StorageModel> dependencies) {
+        return Stream.ofNullable(dependencies)
+                .flatMap(Collection::stream)
+                .map(storageModel -> new LocalTransactionReference(storageModel.getHash()))
+                .toArray(LocalTransactionReference[]::new);
+    }
+
+    /**
+     * Creates a {@link io.hotmoka.beans.signatures.MethodSignature} from a request
+     * @param request the request
+     * @return the {@link io.hotmoka.beans.signatures.MethodSignature}
+     */
     public static MethodSignature resolveMethodSignature(MethodCallTransactionRequestModel request){
 
         if (request.isVoidReturnType())
@@ -35,6 +62,11 @@ public class StorageResolver {
                 resolveStorageTypes(request.getValues()));
     }
 
+    /**
+     * Creates the {@link io.hotmoka.beans.values.StorageValue} array from a list of values
+     * @param values the values
+     * @return an array of {@link io.hotmoka.beans.values.StorageValue}
+     */
     public static StorageValue[] resolveStorageValues(List<StorageValueModel> values) {
         return Stream.ofNullable(values)
                 .flatMap(Collection::stream)
@@ -43,6 +75,11 @@ public class StorageResolver {
                 .toArray(StorageValue[]::new);
     }
 
+    /**
+     * Creates the {@link io.hotmoka.beans.types.StorageType} array from a list of values which have a type
+     * @param values the values
+     * @return an array of {@link io.hotmoka.beans.types.StorageType}
+     */
     public static StorageType[] resolveStorageTypes(List<StorageValueModel> values) {
         return Stream.ofNullable(values)
                 .flatMap(Collection::stream)

@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.security.PrivateKey;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.stream.Stream;
 
 
 @Service
@@ -61,7 +59,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public ResponseEntity<Object> addInitializationTransaction(StorageModel request) {
         return this.map(node -> {
-            StorageReference manifest = new StorageReference(new LocalTransactionReference(request.getHash()), request.getProgressive());
+            StorageReference manifest = StorageResolver.resolveStorageReference(request.getHash(), request.getProgressive());
             node.addInitializationTransaction(new InitializationTransactionRequest(node.getTakamakaCode(), manifest));
             return noContentResponse();
         });
@@ -72,14 +70,11 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
         return this.map(node -> {
             SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
-            PrivateKey privateKey = null; // TODO: create this
-            byte[] jar = Base64.getDecoder().decode(request.getJar());
+            PrivateKey privateKey = null; // TODO
 
-            StorageReference caller = new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive());
-            LocalTransactionReference[] dependencies = Stream.ofNullable(request.getDependencies())
-                    .flatMap(Collection::stream)
-                    .map(storageModel -> new LocalTransactionReference(storageModel.getHash()))
-                    .toArray(LocalTransactionReference[]::new);
+            byte[] jar = Base64.getDecoder().decode(request.getJar());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller(), request.getCallerProgressive());
+            LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
 
             return okResponseOf(node.addJarStoreTransaction(new JarStoreTransactionRequest(
                             NonInitialTransactionRequest.Signer.with(signature, privateKey),
@@ -102,7 +97,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
             PrivateKey privateKey = null; // TODO
 
-            StorageReference caller = new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller(), request.getCallerProgressive());
             ConstructorSignature constructor = new ConstructorSignature(request.getClassType(), StorageResolver.resolveStorageTypes(request.getValues()));
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
 
@@ -127,8 +122,8 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             PrivateKey privateKey = null; // TODO
 
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive());
-            StorageReference receiver = new StorageReference(new LocalTransactionReference(request.getReceiver()), request.getReceiverProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller(), request.getCallerProgressive());
+            StorageReference receiver =  StorageResolver.resolveStorageReference(request.getReceiver(), request.getReceiverProgressive());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
 
             return okResponseOf(node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
@@ -153,7 +148,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             PrivateKey privateKey = null; // TODO
 
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = new StorageReference(new LocalTransactionReference(request.getCaller()), request.getCallerProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller(), request.getCallerProgressive());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
 
             return okResponseOf(node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(
