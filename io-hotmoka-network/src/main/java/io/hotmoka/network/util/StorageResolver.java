@@ -13,9 +13,7 @@ import io.hotmoka.network.model.storage.StorageValueModel;
 import io.hotmoka.network.model.transaction.MethodCallTransactionRequestModel;
 
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class StorageResolver {
@@ -121,16 +119,18 @@ public class StorageResolver {
                 case "char": return new CharValue(((String) value).charAt(0));
                 case "short": return new ShortValue((Short) value);
                 case "int": return new IntValue((Integer) value);
-                case "long": return new LongValue((BigInteger) value);
+                case "long": return new LongValue(Long.valueOf((Integer) value));
                 case "float": return new FloatValue((Float) value);
                 case "double": return new DoubleValue((Double) value);
+                case "java.math.BigInteger": return new BigIntegerValue(BigInteger.valueOf(Long.valueOf((Integer) value)));
+                case "java.lang.String": return new StringValue((String) value);
+                case "null": return NullValue.INSTANCE;
                 default:
-                    if (value == null)
-                        return NullValue.INSTANCE;
-                    else {
-                        StorageModel storageModel = (StorageModel) value;
-                        return new StorageReference(new LocalTransactionReference(storageModel.getHash()), storageModel.getProgressive());
-                    }
+                    if (value instanceof Map) {
+                        HashMap<String, Object> storageModel = (HashMap<String, Object>) value;
+                        return new StorageReference(new LocalTransactionReference((String) storageModel.get("hash")), BigInteger.valueOf(Long.valueOf((Integer) storageModel.get("progressive"))));
+                    } else
+                        throw new TypeNotPresentException("" + type, null);
             }
         } catch (Exception e) {
             e.printStackTrace();
