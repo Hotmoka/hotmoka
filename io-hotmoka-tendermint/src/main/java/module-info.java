@@ -1,5 +1,6 @@
 module io.hotmoka.tendermint {
 	exports io.hotmoka.tendermint;
+	exports io.hotmoka.tendermint.runs;
 	requires io.hotmoka.tendermint.dependencies;
 	requires io.hotmoka.xodus;
 	requires io.hotmoka.nodes;

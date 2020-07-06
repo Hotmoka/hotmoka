@@ -1,6 +1,7 @@
 lib/
 modules/
 docs/
+chain/
 .metadata/
 .recommenders/
 RemoteSystemsTempFiles/

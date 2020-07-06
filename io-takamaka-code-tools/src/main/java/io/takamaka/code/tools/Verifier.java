@@ -22,9 +22,9 @@ import io.takamaka.code.verification.VerifiedJar;
  * A tool that parses and checks a jar. It performs the same verification that
  * Takamaka performs when a jar is added to blockchain.
  * 
- * Use it for instance like this:
+ * Use it for instance like this (after compiling the project):
  * 
- * java io.takamaka.code.tools.Verifier -app test_contracts_dependency.jar -lib takamaka_base.jar
+ * java --module-path modules/explicit:modules/automatic --module io.takamaka.code.tools/io.takamaka.code.tools.Verifier -init -app modules/explicit/io-takamaka-code-1.0.0.jar
  * 
  * The -lib are the dependencies that should already be in blockchain.
  */

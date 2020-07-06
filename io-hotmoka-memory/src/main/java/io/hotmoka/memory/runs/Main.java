@@ -1,4 +1,4 @@
-package io.hotmoka.tendermint.runs;
+package io.hotmoka.memory.runs;
 
 import java.math.BigInteger;
 import java.nio.file.Paths;
@@ -6,15 +6,17 @@ import java.nio.file.Paths;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.views.InitializedNode;
 import io.hotmoka.nodes.views.NodeWithAccounts;
-import io.hotmoka.tendermint.Config;
-import io.hotmoka.tendermint.TendermintBlockchain;
 import io.takamaka.code.constants.Constants;
+import io.hotmoka.memory.Config;
+import io.hotmoka.memory.MemoryBlockchain;
 
 /**
- * An example that shows how to create a brand new Tendermint Hotmoka blockchain.
+ * An example that shows how to create a brand new blockchain in memory.
  * 
  * This class is meant to be run from the parent directory, after building the project,
  * with this command-line:
+ * 
+ * java --module-path modules/explicit:modules/automatic --module io.hotmoka.memory/io.hotmoka.memory.runs.Main
  */
 public class Main {
 
@@ -33,7 +35,7 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		Config config = new Config.Builder().build();
 
-		try (Node blockchain = TendermintBlockchain.of(config)) {
+		try (Node blockchain = MemoryBlockchain.of(config)) {
 			// update version number when needed
 			InitializedNode initializedView = InitializedNode.of
 				(blockchain, Paths.get("modules/explicit/io-takamaka-code-1.0.0.jar"),
