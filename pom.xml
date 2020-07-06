@@ -105,6 +105,7 @@
 
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
+                  gson,
 
                   <!--  we exclude all modules that go into the automatic folder -->
                   bcel,
@@ -113,6 +114,8 @@
                   commons-cli,
                   grpc-api,
                   grpc-stub,
+                  protobuf-java,
+                  plexus-utils,
 
                   <!-- we exclude all modules that are only used for testing -->
                   junit-jupiter,
@@ -139,7 +142,9 @@
                   io-hotmoka-xodus,
                   commons-cli,
                   grpc-api,
-                  grpc-stub
+                  grpc-stub,
+                  protobuf-java,
+                  plexus-utils,
                 </includeArtifactIds>
               </configuration>
             </execution>
@@ -152,7 +157,8 @@
               <configuration>
                 <outputDirectory>${project.parent.basedir}/modules/explicit</outputDirectory>
                 <includeArtifactIds>
-                  it-univr-bcel
+                  it-univr-bcel,
+                  gson
                 </includeArtifactIds>
               </configuration>
             </execution>
