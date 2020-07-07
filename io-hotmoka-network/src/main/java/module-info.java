@@ -8,7 +8,7 @@ module io.hotmoka.network {
     opens io.hotmoka.network.service to spring.core;
     opens io.hotmoka.network.rest to spring.core;
     opens io.hotmoka.network.service.run to spring.beans;
-	requires io.hotmoka.nodes;
+	requires transitive io.hotmoka.nodes;
     requires org.slf4j;
     requires spring.boot;
     requires spring.boot.autoconfigure;

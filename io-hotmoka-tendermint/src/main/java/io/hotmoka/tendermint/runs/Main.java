@@ -44,8 +44,5 @@ public class Main {
 			System.out.println("takamakaCode: " + viewWithAccounts.getTakamakaCode());
 			System.out.println("account #0: " + viewWithAccounts.account(0));
 		}
-		catch (Throwable e) {
-			e.printStackTrace();
-		}
 	}
 }
