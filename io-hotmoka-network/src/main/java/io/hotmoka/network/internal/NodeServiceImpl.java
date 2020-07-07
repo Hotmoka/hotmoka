@@ -2,6 +2,7 @@ package io.hotmoka.network.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -25,8 +26,8 @@ public class NodeServiceImpl implements NodeService {
 	 * @return the network service implementation
 	 */
     public NodeServiceImpl(Config config, Node node) {
-    	Application application = new Application();
-        context = application.start(config, node);
+    	context = SpringApplication.run(Application.class, springArgumentsFor(config));
+    	context.getBeanFactory().registerSingleton("node", node);
         LOGGER.info("Network server for Hotmoka node started");
     }
 
@@ -34,5 +35,18 @@ public class NodeServiceImpl implements NodeService {
     public void close() {
     	SpringApplication.exit(context);
     	LOGGER.info("Network server for Hotmoka node closed");
+    }
+
+    /**
+     * Builds, from the configuration, the array of arguments required by Spring in order to start the application.
+     * 
+     * @param config the configuration
+     * @return the array of arguments required by Spring
+     */
+    private static String[] springArgumentsFor(Config config) {
+    	return new String[] {
+   			"--server.port=" + config.port,
+   			"--spring.main.banner-mode=" + (config.showSpringBanner ? Banner.Mode.CONSOLE : Banner.Mode.OFF)
+    	};
     }
 }
