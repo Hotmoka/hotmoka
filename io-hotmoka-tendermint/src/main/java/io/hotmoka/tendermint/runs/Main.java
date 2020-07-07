@@ -15,6 +15,8 @@ import io.takamaka.code.constants.Constants;
  * 
  * This class is meant to be run from the parent directory, after building the project,
  * with this command-line:
+ * 
+ * java --module-path modules/explicit:modules/automatic --class-path "modules/unnamed/*" --module io.hotmoka.tendermint/io.hotmoka.tendermint.runs.Main
  */
 public class Main {
 

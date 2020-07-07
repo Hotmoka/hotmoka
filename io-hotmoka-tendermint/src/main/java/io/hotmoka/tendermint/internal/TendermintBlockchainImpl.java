@@ -7,8 +7,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -17,6 +15,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.tendermint.Config;
 import io.hotmoka.tendermint.TendermintBlockchain;
+import io.hotmoka.tendermintdependencies.server.Server;
 import io.takamaka.code.engine.AbstractNodeWithHistory;
 
 /**
@@ -64,7 +63,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 
 		try {
 			this.state = new State(config.dir + "/state");
-			this.abci = ServerBuilder.forPort(config.abciPort).addService(new ABCI(this)).build();
+			this.abci = new Server(config.abciPort, new ABCI(this));
 			this.abci.start();
 			this.tendermint = new Tendermint(this);
 		}

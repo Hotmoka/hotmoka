@@ -1,6 +1,7 @@
 module io.hotmoka.tendermint {
 	exports io.hotmoka.tendermint;
 	exports io.hotmoka.tendermint.runs;
+	exports io.hotmoka.tendermint.internal.beans to com.google.gson;
 	requires io.hotmoka.tendermint.dependencies;
 	requires io.hotmoka.xodus;
 	requires io.hotmoka.nodes;
@@ -10,6 +11,5 @@ module io.hotmoka.tendermint {
 	requires com.google.gson;
 	requires com.google.protobuf;
 	requires grpc.stub;
-	requires grpc.api;
 	requires org.slf4j;
 }
