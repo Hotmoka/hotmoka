@@ -115,7 +115,6 @@
                   commons-cli,
                   grpc-stub,
                   protobuf-java,
-                  plexus-utils,
 
                   <!-- we exclude all modules that are only used for testing -->
                   junit-jupiter,
@@ -124,7 +123,8 @@
                   junit-jupiter-params,
                   junit-platform-commons,
                   junit-platform-engine,
-                  maven-model
+                  maven-model,
+                  plexus-utils
                 </excludeArtifactIds>
               </configuration>
             </execution>
@@ -142,8 +142,7 @@
                   io-hotmoka-xodus,
                   commons-cli,
                   grpc-stub,
-                  protobuf-java,
-                  plexus-utils,
+                  protobuf-java
                 </includeArtifactIds>
               </configuration>
             </execution>
