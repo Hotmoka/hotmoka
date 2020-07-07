@@ -39,7 +39,7 @@ public class Main {
 
 	public static void main(String[] args) throws Exception {
 		Config tendermintConfig = new Config.Builder().build();
-		io.hotmoka.network.Config networkConfig = new io.hotmoka.network.Config.Builder().setPort(8080).setSpringBannerModeOn(true).build();
+		io.hotmoka.network.Config networkConfig = new io.hotmoka.network.Config.Builder().setSpringBannerModeOn(true).build();
 
 		// update version number when needed
 		try (Node node = InitializedNode.of

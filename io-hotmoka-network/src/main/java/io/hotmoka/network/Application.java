@@ -1,12 +1,13 @@
 package io.hotmoka.network;
 
-import io.hotmoka.network.util.Utils;
-import io.hotmoka.nodes.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+
+import io.hotmoka.nodes.Node;
 
 /**
  * Simple Spring boot application with Tomcat embedded which exposes some REST APIs to access an instance of a node {@link io.hotmoka.nodes.Node}
@@ -30,10 +31,22 @@ public class Application {
      */
     public void start(Config config, Node node) {
         LOGGER.info("Starting NodeService application");
-        this.configurableApplicationContext = SpringApplication.run(Application.class, Utils.buildSpringArguments(config));
+        this.configurableApplicationContext = SpringApplication.run(Application.class, springArgumentsFor(config));
         this.configurableApplicationContext.getBeanFactory().registerSingleton("node", node);
     }
 
+    /**
+     * Builds, from the configuration, the array of arguments required by Spring in order to start the application.
+     * 
+     * @param config the configuration
+     * @return the array of arguments required by Spring
+     */
+    private static String[] springArgumentsFor(Config config) {
+    	return new String[] {
+   			"--server.port=" + config.port,
+   			"--spring.main.banner-mode=" + (config.showSpringBanner ? Banner.Mode.CONSOLE : Banner.Mode.OFF)
+    	};
+    }
 
     /**
      * Shutdown the Spring boot application
