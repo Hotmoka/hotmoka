@@ -50,6 +50,16 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.hotmoka</groupId>
+            <artifactId>io-hotmoka-tendermint</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.hotmoka</groupId>
+            <artifactId>io-takamaka-code-constants</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>2.0.0-alpha1</version>
@@ -67,4 +77,18 @@
         </dependency>
     </dependencies>
     
+    <build>
+      <plugins>
+		<plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.2.0</version>
+          <configuration>
+            <outputDirectory>
+              ../modules/explicit
+            </outputDirectory>
+          </configuration>
+        </plugin>
+      </plugins>
+    </build>
 </project>

@@ -23,6 +23,7 @@
       <module>io-takamaka-code-verification</module>
       <module>io-hotmoka-beans</module>
       <module>io-hotmoka-nodes</module>
+      <module>io-hotmoka-network</module>
       <module>io-hotmoka-crypto</module>
       <module>io-hotmoka-patricia</module>
       <module>io-takamaka-code-instrumentation</module>
@@ -107,6 +108,12 @@
                   it-univr-bcel,
                   gson,
                   slf4j-api,
+                  jackson-annotations,
+                  jackson-core,
+                  jackson-databind,
+                  jackson-datatype-jdk8,
+                  jackson-datatype-jsr310,
+                  jackson-module-parameter-names,
 
                   <!--  we exclude all modules that go into the automatic folder -->
                   bcel,
@@ -115,6 +122,22 @@
                   commons-cli,
                   grpc-stub,
                   protobuf-java,
+                  spring-aop,
+                  spring-beans,
+                  spring-boot,
+                  spring-boot-autoconfigure,
+                  spring-boot-starter,
+                  spring-boot-starter-json,
+                  spring-boot-starter-tomcat,
+                  spring-boot-starter-web,
+                  spring-context,
+                  spring-core,
+                  spring-expression,
+                  spring-jcl,
+                  spring-web,
+                  spring-webmvc,
+                  tomcat-embed-core,
+                  tomcat-embed-websocket,
 
                   <!-- we exclude all modules that are only used for testing -->
                   junit-jupiter,
@@ -142,7 +165,23 @@
                   io-hotmoka-xodus,
                   commons-cli,
                   grpc-stub,
-                  protobuf-java
+                  protobuf-java,
+                  spring-aop,
+                  spring-beans,
+                  spring-boot,
+                  spring-boot-autoconfigure,
+                  spring-boot-starter,
+                  spring-boot-starter-json,
+                  spring-boot-starter-tomcat,
+                  spring-boot-starter-web,
+                  spring-context,
+                  spring-core,
+                  spring-expression,
+                  spring-jcl,
+                  spring-web,
+                  spring-webmvc,
+                  tomcat-embed-core,
+                  tomcat-embed-websocket
                 </includeArtifactIds>
               </configuration>
             </execution>
@@ -157,7 +196,13 @@
                 <includeArtifactIds>
                   it-univr-bcel,
                   gson,
-                  slf4j-api
+                  slf4j-api,
+                  jackson-annotations,
+                  jackson-core,
+                  jackson-databind,
+                  jackson-datatype-jdk8,
+                  jackson-datatype-jsr310,
+                  jackson-module-parameter-names
                 </includeArtifactIds>
               </configuration>
             </execution>
