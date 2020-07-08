@@ -1,10 +1,11 @@
 package io.hotmoka.network.internal.models.transactions;
 
+import io.hotmoka.network.internal.models.storage.StorageModel;
+
 import java.math.BigInteger;
 
-public class TransactionRequestModel {
-    private String caller;
-    private BigInteger callerProgressive;
+public class TransactionRequestModel extends TransactionModel {
+    private StorageModel caller;
     private BigInteger nonce;
 
     public BigInteger getNonce() {
@@ -15,19 +16,11 @@ public class TransactionRequestModel {
         this.nonce = nonce;
     }
 
-    public String getCaller() {
+    public StorageModel getCaller() {
         return caller;
     }
 
-    public void setCaller(String caller) {
+    public void setCaller(StorageModel caller) {
         this.caller = caller;
-    }
-
-    public BigInteger getCallerProgressive() {
-        return callerProgressive;
-    }
-
-    public void setCallerProgressive(BigInteger callerProgressive) {
-        this.callerProgressive = callerProgressive;
     }
 }

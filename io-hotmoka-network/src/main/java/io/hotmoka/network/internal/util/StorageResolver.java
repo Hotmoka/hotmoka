@@ -1,6 +1,7 @@
 package io.hotmoka.network.internal.util;
 
 import io.hotmoka.beans.references.LocalTransactionReference;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -21,13 +22,22 @@ import java.util.stream.Stream;
 public class StorageResolver {
 
     /**
-     * Creates a {@link io.hotmoka.beans.values.StorageReference} for the given hash input
+     * Creates a {@link io.hotmoka.beans.values.StorageReference} for the given hash reference
      * @param hash the hash of the storage reference
      * @param progressive the progressive
      * @return a {@link io.hotmoka.beans.values.StorageReference}
      */
     public static StorageReference resolveStorageReference(String hash, BigInteger progressive) {
         return new StorageReference(new LocalTransactionReference(hash), progressive);
+    }
+
+    /**
+     * Creates a {@link io.hotmoka.beans.references.TransactionReference} for the given hash reference
+     * @param hash the hash of the storage reference
+     * @return a {@link io.hotmoka.beans.references.TransactionReference}
+     */
+    public static TransactionReference resolveTransactionReference(String hash) {
+        return new LocalTransactionReference(hash);
     }
 
     /**

@@ -6,29 +6,13 @@ import java.util.List;
 import io.hotmoka.network.internal.models.storage.StorageModel;
 
 public class JarStoreTransactionRequestModel extends JarStoreInitialTransactionRequestModel {
-    private String caller;
-    private BigInteger callerProgressive;
+    private String classpath;
+    private StorageModel caller;
     private BigInteger nonce;
     private String chainId;
     private BigInteger gasLimit;
     private BigInteger gasPrice;
-    private List<StorageModel> dependencies;
 
-    public String getCaller() {
-        return caller;
-    }
-
-    public void setCaller(String caller) {
-        this.caller = caller;
-    }
-
-    public BigInteger getCallerProgressive() {
-        return callerProgressive;
-    }
-
-    public void setCallerProgressive(BigInteger callerProgressive) {
-        this.callerProgressive = callerProgressive;
-    }
 
     public BigInteger getNonce() {
         return nonce;
@@ -62,11 +46,19 @@ public class JarStoreTransactionRequestModel extends JarStoreInitialTransactionR
         this.gasPrice = gasPrice;
     }
 
-    public List<StorageModel> getDependencies() {
-        return dependencies;
+    public StorageModel getCaller() {
+        return caller;
     }
 
-    public void setDependencies(List<StorageModel> dependencies) {
-        this.dependencies = dependencies;
+    public void setCaller(StorageModel caller) {
+        this.caller = caller;
+    }
+
+    public String getClasspath() {
+        return classpath;
+    }
+
+    public void setClasspath(String classpath) {
+        this.classpath = classpath;
     }
 }

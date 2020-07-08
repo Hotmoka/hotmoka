@@ -2,7 +2,7 @@ package io.hotmoka.network.internal.models.transactions;
 
 import java.math.BigInteger;
 
-public class GameteCreationTransactionRequestModel {
+public class GameteCreationTransactionRequestModel extends TransactionModel {
     private BigInteger amount;
     private String publicKey;
 

@@ -3,6 +3,8 @@ package io.hotmoka.network.internal.services;
 import java.security.PrivateKey;
 import java.util.Base64;
 
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.network.internal.models.transactions.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -23,12 +25,6 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.internal.models.Error;
 import io.hotmoka.network.internal.models.storage.StorageModel;
-import io.hotmoka.network.internal.models.transactions.ConstructorCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.transactions.GameteCreationTransactionRequestModel;
-import io.hotmoka.network.internal.models.transactions.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.internal.models.transactions.JarStoreTransactionRequestModel;
-import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
-import io.hotmoka.network.internal.models.transactions.RGGameteCreationTransactionRequestModel;
 import io.hotmoka.network.internal.util.StorageResolver;
 import io.hotmoka.nodes.Node;
 
@@ -42,17 +38,18 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 		if (request.getJar() == null)
 			return badRequestResponseOf(new Error("Transaction rejected: Jar missing"));
 
-		byte[] jar = Base64.getDecoder().decode(request.getJar());
 		return wrapExceptions(() -> {
+            byte[] jar = Base64.getDecoder().decode(request.getJar());
 			Node node = getNode();
-			return okResponseOf(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, node.getTakamakaCode()))); // TODO
+
+			return okResponseOf(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, StorageResolver.resolveJarDependencies(request.getDependencies()))));
 		});
 	}
 
     @Override
     public ResponseEntity<Object> addGameteCreationTransaction(GameteCreationTransactionRequestModel request) {
         return wrapExceptions(() -> okResponseOf(getNode().addGameteCreationTransaction(new GameteCreationTransactionRequest(
-                        getNode().getTakamakaCode(), // TODO
+                        StorageResolver.resolveTransactionReference(request.getClasspath()),
                         request.getAmount(),
                         request.getPublicKey()
                 ))
@@ -62,7 +59,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public ResponseEntity<Object> addRedGreenGameteCreationTransaction(RGGameteCreationTransactionRequestModel request) {
         return wrapExceptions(() -> okResponseOf(getNode().addRedGreenGameteCreationTransaction(new RedGreenGameteCreationTransactionRequest(
-                    getNode().getTakamakaCode(), // TODO
+                    StorageResolver.resolveTransactionReference(request.getClasspath()),
                     request.getAmount(),
                     request.getRedAmount(),
                     request.getPublicKey()
@@ -71,10 +68,10 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     }
 
     @Override
-    public ResponseEntity<Object> addInitializationTransaction(StorageModel request) {
+    public ResponseEntity<Object> addInitializationTransaction(InitializationTransactionRequestModel request) {
         return wrapExceptions(() -> {
-            StorageReference manifest = StorageResolver.resolveStorageReference(request.getHash(), request.getProgressive());
-            getNode().addInitializationTransaction(new InitializationTransactionRequest(getNode().getTakamakaCode(), manifest)); // TODO
+            StorageReference manifest = StorageResolver.resolveStorageReference(request.getManifest().getHash(), request.getManifest().getProgressive());
+            getNode().addInitializationTransaction(new InitializationTransactionRequest(StorageResolver.resolveTransactionReference(request.getClasspath()), manifest));
             return noContentResponse();
         });
     }
@@ -86,8 +83,9 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             PrivateKey privateKey = null; // TODO
 
             byte[] jar = Base64.getDecoder().decode(request.getJar());
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller(), request.getCallerProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
+            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
             return okResponseOf(getNode().addJarStoreTransaction(new JarStoreTransactionRequest(
                             NonInitialTransactionRequest.Signer.with(signature, privateKey),
@@ -96,7 +94,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
                             request.getChainId(),
                             request.getGasLimit(),
                             request.getGasPrice(),
-                            getNode().getTakamakaCode(), // TODO
+                            classpath,
                             jar,
                             dependencies
                     ))
@@ -111,9 +109,10 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
             PrivateKey privateKey = null; // TODO
 
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller(), request.getCallerProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
             ConstructorSignature constructor = new ConstructorSignature(request.getClassType(), StorageResolver.resolveStorageTypes(request.getValues()));
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
+            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
             return okResponseOf(node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
                     NonInitialTransactionRequest.Signer.with(signature, privateKey),
@@ -122,7 +121,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
                     request.getChainId(),
                     request.getGasLimit(),
                     request.getGasPrice(),
-                    node.getTakamakaCode(),
+                    classpath,
                     constructor,
                     actuals
             )));
@@ -137,9 +136,10 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             PrivateKey privateKey = null; // TODO
 
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller(), request.getCallerProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
             StorageReference receiver =  StorageResolver.resolveStorageReference(request.getReceiver(), request.getReceiverProgressive());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
+            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
             return okResponseOf(node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
                     NonInitialTransactionRequest.Signer.with(signature, privateKey),
@@ -148,7 +148,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
                     request.getChainId(),
                     request.getGasLimit(),
                     request.getGasPrice(),
-                    node.getTakamakaCode(),
+                    classpath,
                     methodSignature,
                     receiver,
                     actuals
@@ -164,8 +164,9 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
             PrivateKey privateKey = null; // TODO
 
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller(), request.getCallerProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
+            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
             return okResponseOf(node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(
                     NonInitialTransactionRequest.Signer.with(signature, privateKey),
@@ -174,7 +175,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
                     request.getChainId(),
                     request.getGasLimit(),
                     request.getGasPrice(),
-                    node.getTakamakaCode(),
+                    classpath,
                     methodSignature,
                     actuals
             )));
