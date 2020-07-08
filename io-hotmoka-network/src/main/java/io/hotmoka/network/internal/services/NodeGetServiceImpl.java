@@ -7,6 +7,7 @@ import io.hotmoka.network.internal.models.State;
 import io.hotmoka.network.internal.models.updates.ClassUpdate;
 import io.hotmoka.network.internal.models.updates.FieldUpdate;
 import io.hotmoka.network.internal.models.updates.Update;
+import io.hotmoka.nodes.Node;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,38 +21,35 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
 
     @Override
     public ResponseEntity<Object> getTakamakaCode() {
-        return this.map(node -> okResponseOf(node.getTakamakaCode()));
+        return okResponseOf(getNode().getTakamakaCode());
     }
 
     @Override
     public ResponseEntity<Object> getManifest() {
-        return this.map(node -> okResponseOf(node.getManifest()));
+        return okResponseOf(getNode().getManifest());
     }
 
     @Override
     public ResponseEntity<Object> getState() {
+    	Node node = getNode();
+    	StorageReference manifest = node.getManifest(); // TODO
+    	List<Update> updatesJson = node.getState(manifest)
+    			.map(NodeGetServiceImpl::buildUpdateModel)
+    			.filter(Objects::nonNull)
+    			.collect(Collectors.toList());
 
-        return this.map(node -> {
-            StorageReference manifest = node.getManifest();
-            List<Update> updatesJson = node.getState(manifest)
-                    .map(NodeGetServiceImpl::buildUpdateModel)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+    	State stateJson = new State();
+    	stateJson.setTransaction(manifest.transaction.getHash());
+    	stateJson.setProgressive(manifest.progressive);
+    	stateJson.setUpdates(updatesJson);
 
-            State stateJson = new State();
-            stateJson.setTransaction(manifest.transaction.getHash());
-            stateJson.setProgressive(manifest.progressive);
-            stateJson.setUpdates(updatesJson);
-
-            return okResponseOf(stateJson);
-        });
+    	return okResponseOf(stateJson);
     }
 
     @Override
     public ResponseEntity<Object> getClassTag() {
-        return this.map(node -> okResponseOf(node.getClassTag(node.getManifest())));
+        return okResponseOf(getNode().getClassTag(getNode().getManifest())); // TODO
     }
-
 
     /**
      * Build a json update model from an update item {@link io.hotmoka.beans.updates.Update} of a {@link io.hotmoka.nodes.Node} instance

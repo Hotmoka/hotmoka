@@ -1,24 +1,34 @@
 package io.hotmoka.network.internal.services;
 
+import java.util.concurrent.Callable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.network.exception.NodeNotFoundException;
+import io.hotmoka.network.internal.Application;
 import io.hotmoka.network.internal.models.Error;
-import io.hotmoka.network.internal.util.NodeFunction;
 import io.hotmoka.nodes.Node;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 public class NetworkService {
     private final static Logger LOGGER = LoggerFactory.getLogger(NetworkService.class);
 
-    @Autowired
-    protected ApplicationContext applicationContext;
+    private @Autowired Application application;
+
+    /**
+     * Yields the Hotmoka node exposed by the Spring application of this service.
+     * 
+     * @return the Hotmoka node
+     */
+    protected final Node getNode() {
+    	return application.getNode();
+    }
 
     /**
      * Exception handler of the {@link io.hotmoka.nodes.Node} methods
@@ -101,15 +111,11 @@ public class NetworkService {
      * @param nodeFunction the node function to apply
      * @return the result of the node function
      */
-    protected ResponseEntity<Object> map(NodeFunction<Node, ResponseEntity<Object>> nodeFunction) {
+    protected static ResponseEntity<Object> wrapExceptions(Callable<ResponseEntity<Object>> task) {
         try {
-
-            Node node = (Node) this.applicationContext.getBean("node");
-            assertNodeNotNull(node);
-
-            return nodeFunction.apply(node);
-
-        } catch (Exception e) {
+        	return task.call();
+        }
+        catch (Exception e) {
             LOGGER.error("Error occured during node mapping function", e);
             return exceptionResponseOf(e);
         }

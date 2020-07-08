@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import io.hotmoka.network.Config;
@@ -26,6 +27,7 @@ public class NodeServiceImpl implements NodeService {
 	 */
     public NodeServiceImpl(Config config, Node node) {
     	context = SpringApplication.run(Application.class, springArgumentsFor(config));
+    	context.getBean(Application.class).setNode(node);
     	context.getBeanFactory().registerSingleton("node", node);
         LOGGER.info("Network server for Hotmoka node started");
     }

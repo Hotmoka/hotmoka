@@ -19,4 +19,5 @@ module io.hotmoka.network {
 
     // this makes it possible to compile under Eclipse...
     requires static spring.core;
+	requires io.hotmoka.beans;
 }
