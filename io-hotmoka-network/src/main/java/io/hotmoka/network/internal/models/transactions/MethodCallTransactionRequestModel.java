@@ -1,29 +1,13 @@
 package io.hotmoka.network.internal.models.transactions;
 
-import java.math.BigInteger;
+import io.hotmoka.network.internal.models.storage.StorageModel;
 
 public class MethodCallTransactionRequestModel extends ConstructorCallTransactionRequestModel {
-    private String receiver;
-    private BigInteger receiverProgressive;
+    private StorageModel receiver;
     private boolean voidReturnType;
     private String methodName;
     private String returnType;
 
-    public String getReceiver() {
-        return receiver;
-    }
-
-    public void setReceiver(String receiver) {
-        this.receiver = receiver;
-    }
-
-    public BigInteger getReceiverProgressive() {
-        return receiverProgressive;
-    }
-
-    public void setReceiverProgressive(BigInteger receiverProgressive) {
-        this.receiverProgressive = receiverProgressive;
-    }
 
     public boolean isVoidReturnType() {
         return voidReturnType;
@@ -47,5 +31,13 @@ public class MethodCallTransactionRequestModel extends ConstructorCallTransactio
 
     public void setReturnType(String returnType) {
         this.returnType = returnType;
+    }
+
+    public StorageModel getReceiver() {
+        return receiver;
+    }
+
+    public void setReceiver(StorageModel receiver) {
+        this.receiver = receiver;
     }
 }

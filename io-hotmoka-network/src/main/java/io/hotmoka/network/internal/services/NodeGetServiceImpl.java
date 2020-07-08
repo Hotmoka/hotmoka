@@ -23,34 +23,37 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
 
     @Override
     public ResponseEntity<Object> getTakamakaCode() {
-        return okResponseOf(getNode().getTakamakaCode());
+        return wrapExceptions(() -> okResponseOf(getNode().getTakamakaCode()));
     }
 
     @Override
     public ResponseEntity<Object> getManifest() {
-        return okResponseOf(getNode().getManifest());
+        return wrapExceptions(() -> okResponseOf(getNode().getManifest()));
     }
 
     @Override
     public ResponseEntity<Object> getState(StorageModel request) {
-    	Node node = getNode();
-    	StorageReference manifest = StorageResolver.resolveStorageReference(request.getHash(), request.getProgressive());
-    	List<UpdateModel> updatesJson = node.getState(manifest)
-    			.map(NodeGetServiceImpl::buildUpdateModel)
-    			.filter(Objects::nonNull)
-    			.collect(Collectors.toList());
+        return wrapExceptions(() -> {
 
-    	State stateJson = new State();
-    	stateJson.setTransaction(manifest.transaction.getHash());
-    	stateJson.setProgressive(manifest.progressive);
-    	stateJson.setUpdates(updatesJson);
+            Node node = getNode();
+            StorageReference manifest = StorageResolver.resolveStorageReference(request);
+            List<UpdateModel> updatesJson = node.getState(manifest)
+                    .map(NodeGetServiceImpl::buildUpdateModel)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
 
-    	return okResponseOf(stateJson);
+            State stateJson = new State();
+            stateJson.setTransaction(manifest.transaction.getHash());
+            stateJson.setProgressive(manifest.progressive);
+            stateJson.setUpdates(updatesJson);
+
+            return okResponseOf(stateJson);
+        });
     }
 
     @Override
     public ResponseEntity<Object> getClassTag(StorageModel request) {
-        return okResponseOf(getNode().getClassTag(StorageResolver.resolveStorageReference(request.getHash(), request.getProgressive())));
+        return wrapExceptions(() -> okResponseOf(getNode().getClassTag(StorageResolver.resolveStorageReference(request))));
     }
 
     /**

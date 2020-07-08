@@ -26,13 +26,12 @@ public class StorageResolver {
     }
 
     /**
-     * Creates a {@link io.hotmoka.beans.values.StorageReference} for the given hash reference
-     * @param hash the hash of the storage reference
-     * @param progressive the progressive
+     * Creates a {@link io.hotmoka.beans.values.StorageReference} for the given storage model
+     * @param storageModel the storage model which hold hash of the storage reference and the progressive
      * @return a {@link io.hotmoka.beans.values.StorageReference}
      */
-    public static StorageReference resolveStorageReference(String hash, BigInteger progressive) {
-        return new StorageReference(new LocalTransactionReference(hash), progressive);
+    public static StorageReference resolveStorageReference(StorageModel storageModel) {
+        return new StorageReference(new LocalTransactionReference(storageModel.getHash()), storageModel.getProgressive());
     }
 
     /**

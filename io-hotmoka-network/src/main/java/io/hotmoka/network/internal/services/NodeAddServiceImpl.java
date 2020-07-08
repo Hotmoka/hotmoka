@@ -55,7 +55,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public ResponseEntity<Object> addInitializationTransaction(InitializationTransactionRequestModel request) {
         return wrapExceptions(() -> {
-            StorageReference manifest = StorageResolver.resolveStorageReference(request.getManifest().getHash(), request.getManifest().getProgressive());
+            StorageReference manifest = StorageResolver.resolveStorageReference(request.getManifest());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
             getNode().addInitializationTransaction(new InitializationTransactionRequest(classpath, manifest));
 
@@ -69,7 +69,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             byte[] jar = StorageResolver.decodeBase64(request.getJar());
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
@@ -93,7 +93,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
         return wrapExceptions(() -> {
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
             ConstructorSignature constructor = new ConstructorSignature(request.getClassType(), StorageResolver.resolveStorageTypes(request.getValues()));
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
@@ -118,8 +118,8 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
         	MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
-            StorageReference receiver =  StorageResolver.resolveStorageReference(request.getReceiver(), request.getReceiverProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
+            StorageReference receiver =  StorageResolver.resolveStorageReference(request.getReceiver());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
@@ -144,7 +144,7 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 
             byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
-            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
+            StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
