@@ -8,6 +8,8 @@ import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.*;
+import io.hotmoka.network.exception.ReferenceNotFoundException;
+import io.hotmoka.network.exception.TypeNotFoundException;
 import io.hotmoka.network.internal.models.storage.StorageModel;
 import io.hotmoka.network.internal.models.storage.StorageValueModel;
 import io.hotmoka.network.internal.models.transactions.MethodCallTransactionRequestModel;
@@ -68,7 +70,7 @@ public class StorageResolver {
     public static StorageValue[] resolveStorageValues(List<StorageValueModel> values) {
         return Stream.ofNullable(values)
                 .flatMap(Collection::stream)
-                .map(value -> storageValueFrom(value.getType(), value.getValue()))
+                .map(StorageResolver::storageValueFrom)
                 .filter(Objects::nonNull)
                 .toArray(StorageValue[]::new);
     }
@@ -92,49 +94,70 @@ public class StorageResolver {
      * @return a {@link io.hotmoka.beans.types.StorageType}
      */
     public static StorageType storageTypeFrom(String type) {
+
+        if (type == null)
+            throw new TypeNotFoundException("Value type not supplied");
+
         switch (type) {
-            case "boolean": return BasicTypes.BOOLEAN;
-            case "byte": return BasicTypes.BYTE;
-            case "char": return BasicTypes.CHAR;
-            case "short": return BasicTypes.SHORT;
-            case "int": return BasicTypes.INT;
-            case "long": return BasicTypes.LONG;
-            case "float": return BasicTypes.FLOAT;
-            case "double": return BasicTypes.DOUBLE;
-            default: return new ClassType(type);
+            case "boolean":
+                return BasicTypes.BOOLEAN;
+            case "byte":
+                return BasicTypes.BYTE;
+            case "char":
+                return BasicTypes.CHAR;
+            case "short":
+                return BasicTypes.SHORT;
+            case "int":
+                return BasicTypes.INT;
+            case "long":
+                return BasicTypes.LONG;
+            case "float":
+                return BasicTypes.FLOAT;
+            case "double":
+                return BasicTypes.DOUBLE;
+            default:
+                return new ClassType(type);
         }
     }
 
     /**
-     * Creates a {@link io.hotmoka.beans.values.StorageValue} from a given type and value
-     * @param type the type of the value
-     * @param value the value
+     * Creates a {@link io.hotmoka.beans.values.StorageValue} from a given storage value model
+     * @param valueModel the storage value model
      * @return a {@link io.hotmoka.beans.values.StorageValue}
      */
-    private static StorageValue storageValueFrom(String type, Object value) {
-        try {
-            switch (type) {
-                case "boolean": return new BooleanValue((Boolean) value);
-                case "byte": return new ByteValue(Byte.parseByte((String) value));
-                case "char": return new CharValue(((String) value).charAt(0));
-                case "short": return new ShortValue((Short) value);
-                case "int": return new IntValue((Integer) value);
-                case "long": return new LongValue(Long.valueOf((Integer) value));
-                case "float": return new FloatValue((Float) value);
-                case "double": return new DoubleValue((Double) value);
-                case "java.math.BigInteger": return new BigIntegerValue(BigInteger.valueOf(Long.valueOf((Integer) value)));
-                case "java.lang.String": return new StringValue((String) value);
-                case "null": return NullValue.INSTANCE;
-                default:
-                    if (value instanceof Map) {
-                        HashMap<String, Object> storageModel = (HashMap<String, Object>) value;
-                        return new StorageReference(new LocalTransactionReference((String) storageModel.get("hash")), BigInteger.valueOf(Long.valueOf((Integer) storageModel.get("progressive"))));
-                    } else
-                        throw new TypeNotPresentException("" + type, null);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+    private static StorageValue storageValueFrom(StorageValueModel valueModel) {
+
+        if (valueModel.getType() == null)
+            throw new TypeNotFoundException("Value type not supplied");
+
+        switch (valueModel.getType()) {
+            case "boolean":
+                return new BooleanValue(Boolean.parseBoolean(valueModel.getValue()));
+            case "byte":
+                return new ByteValue(Byte.parseByte(valueModel.getValue()));
+            case "char":
+                return new CharValue(valueModel.getValue().charAt(0));
+            case "short":
+                return new ShortValue(Short.parseShort(valueModel.getValue()));
+            case "int":
+                return new IntValue(Integer.parseInt(valueModel.getValue()));
+            case "long":
+                return new LongValue(Long.parseLong(valueModel.getValue()));
+            case "float":
+                return new FloatValue(Float.parseFloat(valueModel.getValue()));
+            case "double":
+                return new DoubleValue(Double.parseDouble(valueModel.getValue()));
+            case "java.math.BigInteger":
+                return new BigIntegerValue(BigInteger.valueOf(Long.parseLong(valueModel.getValue())));
+            case "java.lang.String":
+                return new StringValue(valueModel.getValue());
+            case "null":
+                return NullValue.INSTANCE;
+            default:
+                if (valueModel.getReference() != null) {
+                    return new StorageReference(new LocalTransactionReference(valueModel.getReference().getHash()), valueModel.getReference().getProgressive());
+                } else
+                    throw new ReferenceNotFoundException();
         }
     }
 }

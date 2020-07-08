@@ -1,16 +1,10 @@
 package io.hotmoka.network.internal.models.storage;
 
-public class StorageValueModel extends StorageModel {
-    private Object value;
+public class StorageValueModel {
     private String type;
+    private String value;
+    private StorageModel reference;
 
-    public Object getValue() {
-        return value;
-    }
-
-    public void setValue(Object value) {
-        this.value = value;
-    }
 
     public String getType() {
         return type;
@@ -18,5 +12,21 @@ public class StorageValueModel extends StorageModel {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public StorageModel getReference() {
+        return reference;
+    }
+
+    public void setReference(StorageModel reference) {
+        this.reference = reference;
     }
 }

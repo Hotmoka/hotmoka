@@ -45,7 +45,7 @@ public class NetworkService {
         if (e instanceof CodeExecutionException)
             return badRequestResponseOf(new Error("Code execution error during the transaction"));
 
-        return badRequestResponseOf(new Error("Application crashed..."));
+        return badRequestResponseOf(new Error(e.getMessage()));
     }
 
     /**
