@@ -56,6 +56,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains; this can be {@code null}
@@ -63,10 +64,9 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param constructor the constructor that must be called
-	 * @param signature the signature of the request
 	 * @param actuals the actual arguments passed to the constructor
 	 */
-	ConstructorCallTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, byte[] signature, StorageValue... actuals) {
+	public ConstructorCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, actuals);
 
 		this.constructor = constructor;

@@ -55,6 +55,7 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains; this can be {@code null}
@@ -63,10 +64,9 @@ public class InstanceMethodCallTransactionRequest extends MethodCallTransactionR
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
 	 * @param receiver the receiver of the call
-	 * @param signature the signature of the request
 	 * @param actuals the actual arguments passed to the method
 	 */
-	InstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, byte[] signature, StorageValue... actuals) {
+	public InstanceMethodCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
 
 		this.receiver = receiver;

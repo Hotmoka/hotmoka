@@ -69,6 +69,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	/**
 	 * Builds a request for calling the {@code receive} method of a payable contract in a node.
 	 * 
+	 * @param signature the signature of the request
 	 * @param caller the caller, that pays for the transferred coins
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
@@ -76,10 +77,9 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param receiver the receiver of the call
 	 * @param howMuch how much coins must be transferred
-	 * @param signature the signature of the request
 	 */
-	TransferTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, BigInteger howMuch, byte[] signature) {
-		super(caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveBigInteger, receiver, signature, new BigIntegerValue(howMuch));
+	public TransferTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, BigInteger howMuch) {
+		super(signature, caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveBigInteger, receiver, new BigIntegerValue(howMuch));
 	}
 
 	/**
@@ -103,6 +103,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	/**
 	 * Builds a request for calling the {@code receive} method of a payable contract in a node.
 	 * 
+	 * @param signature the signature of the request
 	 * @param caller the caller, that pays for the transferred coins
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
@@ -110,10 +111,9 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param receiver the receiver of the call
 	 * @param howMuch how much coins must be transferred
-	 * @param signature the signature of the request
 	 */
-	TransferTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch, byte[] signature) {
-		super(caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveInt, receiver, signature, new IntValue(howMuch));
+	public TransferTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, int howMuch) {
+		super(signature, caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveInt, receiver, new IntValue(howMuch));
 	}
 
 	/**
@@ -137,6 +137,7 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	/**
 	 * Builds a request for calling the {@code receive} method of a payable contract in a node.
 	 * 
+	 * @param signature the signature of the request
 	 * @param caller the caller, that pays for the transferred coins
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
@@ -144,10 +145,9 @@ public class TransferTransactionRequest extends InstanceMethodCallTransactionReq
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param receiver the receiver of the call
 	 * @param howMuch how much coins must be transferred
-	 * @param signature the signature of the request
 	 */
-	TransferTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, long howMuch, byte[] signature) {
-		super(caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveLong, receiver, signature, new LongValue(howMuch));
+	public TransferTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasPrice, TransactionReference classpath, StorageReference receiver, long howMuch) {
+		super(signature, caller, nonce, chainId, GAS_LIMIT, gasPrice, classpath, receiveLong, receiver, new LongValue(howMuch));
 	}
 
 	@Override

@@ -48,7 +48,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
 				throw new IOException("signature length mismatch in request");
 
-			return new ConstructorCallTransactionRequest(caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, signature, actuals);
+			return new ConstructorCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
 		}
 		case GameteCreationTransactionRequest.SELECTOR: {
 			TransactionReference classpath = TransactionReference.from(ois);
@@ -76,7 +76,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
 				throw new IOException("signature length mismatch in request");
 
-			return new InstanceMethodCallTransactionRequest(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, signature, actuals);
+			return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
 		case JarStoreInitialTransactionRequest.SELECTOR: {
 			int jarLength = ois.readInt();
@@ -132,7 +132,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
 				throw new IOException("signature length mismatch in request");
 
-			return new StaticMethodCallTransactionRequest(caller, nonce, chainId, gasLimit, gasPrice, classpath, method, signature, actuals);
+			return new StaticMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
 		}
 		case TransferTransactionRequest.SELECTOR_TRANSFER_INT: {
 			StorageReference caller = StorageReference.from(ois);
@@ -147,7 +147,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
 				throw new IOException("signature length mismatch in request");
 
-			return new TransferTransactionRequest(caller, nonce, chainId, gasPrice, classpath, receiver, howMuch, signature);
+			return new TransferTransactionRequest(signature, caller, nonce, chainId, gasPrice, classpath, receiver, howMuch);
 		}
 		case TransferTransactionRequest.SELECTOR_TRANSFER_LONG: {
 			StorageReference caller = StorageReference.from(ois);
@@ -162,7 +162,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
 				throw new IOException("signature length mismatch in request");
 
-			return new TransferTransactionRequest(caller, nonce, chainId, gasPrice, classpath, receiver, howMuch, signature);
+			return new TransferTransactionRequest(signature, caller, nonce, chainId, gasPrice, classpath, receiver, howMuch);
 		}
 		case TransferTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER: {
 			StorageReference caller = StorageReference.from(ois);
@@ -177,7 +177,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
 				throw new IOException("signature length mismatch in request");
 
-			return new TransferTransactionRequest(caller, nonce, chainId, gasPrice, classpath, receiver, howMuch, signature);
+			return new TransferTransactionRequest(signature, caller, nonce, chainId, gasPrice, classpath, receiver, howMuch);
 		}
 		default: throw new IOException("unexpected request selector: " + selector);
 		}
