@@ -3,12 +3,12 @@ package io.hotmoka.network.internal.models;
 import java.math.BigInteger;
 import java.util.List;
 
-import io.hotmoka.network.internal.models.updates.Update;
+import io.hotmoka.network.internal.models.updates.UpdateModel;
 
 public class State {
     private String transaction;
     private BigInteger progressive;
-    private List<Update> updates;
+    private List<UpdateModel> updates;
 
     public BigInteger getProgressive() {
         return progressive;
@@ -26,11 +26,11 @@ public class State {
         this.transaction = transaction;
     }
 
-    public List<Update> getUpdates() {
+    public List<UpdateModel> getUpdates() {
         return updates;
     }
 
-    public void setUpdates(List<Update> updates) {
+    public void setUpdates(List<UpdateModel> updates) {
         this.updates = updates;
     }
 }

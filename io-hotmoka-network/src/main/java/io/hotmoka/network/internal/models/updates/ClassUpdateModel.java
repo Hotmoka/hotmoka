@@ -1,6 +1,6 @@
 package io.hotmoka.network.internal.models.updates;
 
-public class ClassUpdate extends Update {
+public class ClassUpdateModel extends UpdateModel {
     private String className;
     private String jar;
 

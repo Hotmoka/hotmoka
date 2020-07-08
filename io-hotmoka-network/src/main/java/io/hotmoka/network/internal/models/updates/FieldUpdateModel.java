@@ -1,6 +1,6 @@
 package io.hotmoka.network.internal.models.updates;
 
-public class FieldUpdate extends Update {
+public class FieldUpdateModel extends UpdateModel {
     private String updateType;
     private String definingClass;
     private String value;

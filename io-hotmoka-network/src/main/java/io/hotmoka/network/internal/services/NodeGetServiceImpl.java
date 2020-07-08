@@ -4,9 +4,9 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.internal.models.State;
-import io.hotmoka.network.internal.models.updates.ClassUpdate;
-import io.hotmoka.network.internal.models.updates.FieldUpdate;
-import io.hotmoka.network.internal.models.updates.Update;
+import io.hotmoka.network.internal.models.updates.ClassUpdateModel;
+import io.hotmoka.network.internal.models.updates.FieldUpdateModel;
+import io.hotmoka.network.internal.models.updates.UpdateModel;
 import io.hotmoka.nodes.Node;
 
 import org.springframework.http.ResponseEntity;
@@ -33,7 +33,7 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
     public ResponseEntity<Object> getState() {
     	Node node = getNode();
     	StorageReference manifest = node.getManifest(); // TODO
-    	List<Update> updatesJson = node.getState(manifest)
+    	List<UpdateModel> updatesJson = node.getState(manifest)
     			.map(NodeGetServiceImpl::buildUpdateModel)
     			.filter(Objects::nonNull)
     			.collect(Collectors.toList());
@@ -56,22 +56,22 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
      * @param updateItem the update from which to build a json model
      * @return a json model of an update instance {@link io.hotmoka.beans.updates.Update}  of a {@link io.hotmoka.nodes.Node}
      */
-    private static Update buildUpdateModel(io.hotmoka.beans.updates.Update updateItem) {
-        Update updateJson = null;
+    private static UpdateModel buildUpdateModel(io.hotmoka.beans.updates.Update updateItem) {
+        UpdateModel updateJson = null;
 
         if (updateItem instanceof UpdateOfField) {
-            updateJson = new FieldUpdate();
-            ((FieldUpdate) updateJson).setUpdateType(updateItem.getClass().getName());
-            ((FieldUpdate) updateJson).setValue(((UpdateOfField) updateItem).getValue().toString());
-            ((FieldUpdate) updateJson).setDefiningClass(((UpdateOfField) updateItem).getField().definingClass.name);
-            ((FieldUpdate) updateJson).setType(((UpdateOfField) updateItem).getField().type.toString());
-            ((FieldUpdate) updateJson).setName(((UpdateOfField) updateItem).getField().name);
+            updateJson = new FieldUpdateModel();
+            ((FieldUpdateModel) updateJson).setUpdateType(updateItem.getClass().getName());
+            ((FieldUpdateModel) updateJson).setValue(((UpdateOfField) updateItem).getValue().toString());
+            ((FieldUpdateModel) updateJson).setDefiningClass(((UpdateOfField) updateItem).getField().definingClass.name);
+            ((FieldUpdateModel) updateJson).setType(((UpdateOfField) updateItem).getField().type.toString());
+            ((FieldUpdateModel) updateJson).setName(((UpdateOfField) updateItem).getField().name);
         }
 
         if (updateItem instanceof ClassTag) {
-            updateJson = new ClassUpdate();
-            ((ClassUpdate) updateJson).setClassName(((ClassTag) updateItem).className);
-            ((ClassUpdate) updateJson).setJar(((ClassTag) updateItem).jar.getHash());
+            updateJson = new ClassUpdateModel();
+            ((ClassUpdateModel) updateJson).setClassName(((ClassTag) updateItem).className);
+            ((ClassUpdateModel) updateJson).setJar(((ClassTag) updateItem).jar.getHash());
         }
 
         return updateJson;
