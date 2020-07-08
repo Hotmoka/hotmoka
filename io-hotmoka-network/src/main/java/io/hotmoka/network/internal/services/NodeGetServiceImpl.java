@@ -4,9 +4,11 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.internal.models.State;
+import io.hotmoka.network.internal.models.storage.StorageModel;
 import io.hotmoka.network.internal.models.updates.ClassUpdateModel;
 import io.hotmoka.network.internal.models.updates.FieldUpdateModel;
 import io.hotmoka.network.internal.models.updates.UpdateModel;
+import io.hotmoka.network.internal.util.StorageResolver;
 import io.hotmoka.nodes.Node;
 
 import org.springframework.http.ResponseEntity;
@@ -30,9 +32,9 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
     }
 
     @Override
-    public ResponseEntity<Object> getState() {
+    public ResponseEntity<Object> getState(StorageModel request) {
     	Node node = getNode();
-    	StorageReference manifest = node.getManifest(); // TODO
+    	StorageReference manifest = StorageResolver.resolveStorageReference(request.getHash(), request.getProgressive());
     	List<UpdateModel> updatesJson = node.getState(manifest)
     			.map(NodeGetServiceImpl::buildUpdateModel)
     			.filter(Objects::nonNull)
@@ -47,8 +49,8 @@ public class NodeGetServiceImpl extends NetworkService implements NodeGetService
     }
 
     @Override
-    public ResponseEntity<Object> getClassTag() {
-        return okResponseOf(getNode().getClassTag(getNode().getManifest())); // TODO
+    public ResponseEntity<Object> getClassTag(StorageModel request) {
+        return okResponseOf(getNode().getClassTag(StorageResolver.resolveStorageReference(request.getHash(), request.getProgressive())));
     }
 
     /**

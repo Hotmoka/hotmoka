@@ -1,9 +1,8 @@
 package io.hotmoka.network.internal.rest;
 
+import io.hotmoka.network.internal.models.storage.StorageModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import io.hotmoka.network.internal.services.NodeGetService;
 
@@ -24,13 +23,13 @@ public class GetController {
         return this.nodeGetService.getManifest();
     }
 
-    @GetMapping("/state")
-    public Object getState() {
-        return this.nodeGetService.getState();
+    @PostMapping("/state")
+    public Object getState(@RequestBody StorageModel request) {
+        return this.nodeGetService.getState(request);
     }
 
-    @GetMapping("/classTag")
-    public Object getClassTag() {
-        return this.nodeGetService.getClassTag();
+    @PostMapping("/classTag")
+    public Object getClassTag(@RequestBody StorageModel request) {
+        return this.nodeGetService.getClassTag(request);
     }
 }
