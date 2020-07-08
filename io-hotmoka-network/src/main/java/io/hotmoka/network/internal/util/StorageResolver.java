@@ -21,6 +21,10 @@ import java.util.stream.Stream;
 
 public class StorageResolver {
 
+    public static byte[] decodeBase64(String value) {
+        return Base64.getDecoder().decode(value);
+    }
+
     /**
      * Creates a {@link io.hotmoka.beans.values.StorageReference} for the given hash reference
      * @param hash the hash of the storage reference

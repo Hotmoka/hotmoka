@@ -1,32 +1,17 @@
 package io.hotmoka.network.internal.services;
 
-import java.security.PrivateKey;
-import java.util.Base64;
-
-import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.network.internal.models.transactions.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
 import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.RedGreenGameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.*;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.network.internal.models.Error;
-import io.hotmoka.network.internal.models.storage.StorageModel;
+import io.hotmoka.network.internal.models.transactions.*;
 import io.hotmoka.network.internal.util.StorageResolver;
-import io.hotmoka.nodes.Node;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 
 @Service
@@ -39,10 +24,10 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
 			return badRequestResponseOf(new Error("Transaction rejected: Jar missing"));
 
 		return wrapExceptions(() -> {
-            byte[] jar = Base64.getDecoder().decode(request.getJar());
-			Node node = getNode();
+            byte[] jar = StorageResolver.decodeBase64(request.getJar());
+            LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
 
-			return okResponseOf(node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, StorageResolver.resolveJarDependencies(request.getDependencies()))));
+			return okResponseOf(getNode().addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies)));
 		});
 	}
 
@@ -71,7 +56,9 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     public ResponseEntity<Object> addInitializationTransaction(InitializationTransactionRequestModel request) {
         return wrapExceptions(() -> {
             StorageReference manifest = StorageResolver.resolveStorageReference(request.getManifest().getHash(), request.getManifest().getProgressive());
-            getNode().addInitializationTransaction(new InitializationTransactionRequest(StorageResolver.resolveTransactionReference(request.getClasspath()), manifest));
+            TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
+            getNode().addInitializationTransaction(new InitializationTransactionRequest(classpath, manifest));
+
             return noContentResponse();
         });
     }
@@ -79,16 +66,15 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public ResponseEntity<Object> addJarStoreTransaction(JarStoreTransactionRequestModel request) {
         return wrapExceptions(() -> {
-            SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = getNode().getSignatureAlgorithmForRequests();
-            PrivateKey privateKey = null; // TODO
 
-            byte[] jar = Base64.getDecoder().decode(request.getJar());
+            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
+            byte[] jar = StorageResolver.decodeBase64(request.getJar());
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
             LocalTransactionReference[] dependencies = StorageResolver.resolveJarDependencies(request.getDependencies());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
             return okResponseOf(getNode().addJarStoreTransaction(new JarStoreTransactionRequest(
-                            NonInitialTransactionRequest.Signer.with(signature, privateKey),
+                            signature,
                             caller,
                             request.getNonce(),
                             request.getChainId(),
@@ -105,17 +91,15 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public ResponseEntity<Object> addConstructorCallTransaction(ConstructorCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
-        	Node node = getNode();
-            SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
-            PrivateKey privateKey = null; // TODO
 
+            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
             ConstructorSignature constructor = new ConstructorSignature(request.getClassType(), StorageResolver.resolveStorageTypes(request.getValues()));
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
-            return okResponseOf(node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(
-                    NonInitialTransactionRequest.Signer.with(signature, privateKey),
+            return okResponseOf(getNode().addConstructorCallTransaction(new ConstructorCallTransactionRequest(
+                    signature,
                     caller,
                     request.getNonce(),
                     request.getChainId(),
@@ -131,18 +115,16 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public ResponseEntity<Object> addInstanceMethodCallTransaction(MethodCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
-        	Node node = getNode();
-            SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
-            PrivateKey privateKey = null; // TODO
 
-            MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
+            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
+        	MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
             StorageReference receiver =  StorageResolver.resolveStorageReference(request.getReceiver(), request.getReceiverProgressive());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
-            return okResponseOf(node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
-                    NonInitialTransactionRequest.Signer.with(signature, privateKey),
+            return okResponseOf(getNode().addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(
+                    signature,
                     caller,
                     request.getNonce(),
                     request.getChainId(),
@@ -159,17 +141,15 @@ public class NodeAddServiceImpl extends NetworkService implements NodeAddService
     @Override
     public ResponseEntity<Object> addStaticMethodCallTransaction(MethodCallTransactionRequestModel request) {
         return wrapExceptions(() -> {
-        	Node node = getNode();
-            SignatureAlgorithm<NonInitialTransactionRequest<?>> signature = node.getSignatureAlgorithmForRequests();
-            PrivateKey privateKey = null; // TODO
 
+            byte[] signature = StorageResolver.decodeBase64(request.getSignature());
             MethodSignature methodSignature = StorageResolver.resolveMethodSignature(request);
             StorageReference caller = StorageResolver.resolveStorageReference(request.getCaller().getHash(), request.getCaller().getProgressive());
             StorageValue[] actuals = StorageResolver.resolveStorageValues(request.getValues());
             TransactionReference classpath = StorageResolver.resolveTransactionReference(request.getClasspath());
 
-            return okResponseOf(node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(
-                    NonInitialTransactionRequest.Signer.with(signature, privateKey),
+            return okResponseOf(getNode().addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(
+                    signature,
                     caller,
                     request.getNonce(),
                     request.getChainId(),

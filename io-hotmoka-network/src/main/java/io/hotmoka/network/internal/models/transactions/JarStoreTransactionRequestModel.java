@@ -6,6 +6,7 @@ import java.util.List;
 import io.hotmoka.network.internal.models.storage.StorageModel;
 
 public class JarStoreTransactionRequestModel extends JarStoreInitialTransactionRequestModel {
+    private String signature;
     private String classpath;
     private StorageModel caller;
     private BigInteger nonce;
@@ -60,5 +61,13 @@ public class JarStoreTransactionRequestModel extends JarStoreInitialTransactionR
 
     public void setClasspath(String classpath) {
         this.classpath = classpath;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 }
