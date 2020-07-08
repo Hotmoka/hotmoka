@@ -61,6 +61,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	/**
 	 * Builds the transaction request.
 	 * 
+	 * @param signature the signature of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
 	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
@@ -68,10 +69,9 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} is interpreted
 	 * @param jar the bytes of the jar to install
-	 * @param signature the signature of the request
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
-	JarStoreTransactionRequest(StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, byte[] signature, TransactionReference... dependencies) {
+	public JarStoreTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
 		super(caller, nonce, chainId, gasLimit, gasPrice, classpath);
 
 		this.jar = jar.clone();

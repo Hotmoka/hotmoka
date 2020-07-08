@@ -108,7 +108,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			if (signatureLength != ois.readNBytes(signature, 0, signatureLength))
 				throw new IOException("signature length mismatch in request");
 
-			return new JarStoreTransactionRequest(caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, signature, dependencies);
+			return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
 		}
 		case RedGreenGameteCreationTransactionRequest.SELECTOR: {
 			TransactionReference classpath = TransactionReference.from(ois);
