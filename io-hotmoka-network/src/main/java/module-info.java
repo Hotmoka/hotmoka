@@ -1,8 +1,9 @@
 module io.hotmoka.network {
 	exports io.hotmoka.network;
+	exports io.hotmoka.network.internal to spring.beans, spring.context;
 	exports io.hotmoka.network.internal.services to spring.beans;
 	exports io.hotmoka.network.internal.rest to spring.beans, spring.web;
-	opens io.hotmoka.network to spring.core;
+	opens io.hotmoka.network.internal to spring.core;
     opens io.hotmoka.network.internal.services to spring.core;
     opens io.hotmoka.network.internal.rest to spring.core;
 	requires transitive io.hotmoka.nodes;

@@ -6,7 +6,6 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import io.hotmoka.network.Application;
 import io.hotmoka.network.Config;
 import io.hotmoka.network.NodeService;
 import io.hotmoka.nodes.Node;
