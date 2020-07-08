@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.network.exception.NodeNotFoundException;
 import io.hotmoka.network.internal.Application;
 import io.hotmoka.network.internal.models.Error;
 import io.hotmoka.nodes.Node;
@@ -37,9 +36,6 @@ public class NetworkService {
      */
     protected static ResponseEntity<Object> exceptionResponseOf(Exception e) {
 
-        if (e instanceof NodeNotFoundException)
-            return notFoundResponseOf(new Error("Node instance not found"));
-
         if (e instanceof TransactionRejectedException)
             return badRequestResponseOf(new Error("Transaction rejected"));
 
@@ -50,15 +46,6 @@ public class NetworkService {
             return badRequestResponseOf(new Error("Code execution error during the transaction"));
 
         return badRequestResponseOf(new Error("Application crashed..."));
-    }
-
-    /**
-     * Method to assert that a {@link io.hotmoka.nodes.Node} is not null
-     * @param node the node to check
-     */
-    protected static void assertNodeNotNull(Node node) {
-        if (node == null)
-            throw new NodeNotFoundException();
     }
 
     /**
@@ -107,9 +94,9 @@ public class NetworkService {
     }
 
     /**
-     * Map function to map the {@link io.hotmoka.nodes.Node} into a {@link org.springframework.http.ResponseEntity} through the use of a {@link io.hotmoka.network.internal.util.NodeFunction}
-     * @param nodeFunction the node function to apply
-     * @return the result of the node function
+     * Wrap the exceptions that the given task may raise during the execution of the call
+     * @param task the task to call
+     * @return the result of the task
      */
     protected static ResponseEntity<Object> wrapExceptions(Callable<ResponseEntity<Object>> task) {
         try {
