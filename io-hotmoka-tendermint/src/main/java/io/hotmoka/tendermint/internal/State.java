@@ -86,6 +86,11 @@ class State implements AutoCloseable {
 	 */
 	private long stateTime;
 
+	/**
+     * The key used inside {@linkplain info} to keep the root.
+     */
+    private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
+
     /**
      * The key used inside {@linkplain #info} to keep the number of commits executed over this state.
      */
@@ -137,6 +142,11 @@ class State implements AutoCloseable {
     private final HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes;
 
     /**
+     * The root of the trie of the responses.
+     */
+    private byte[] rootOfResponses;
+
+    /**
      * The key/value store for the trie of the responses.
      */
     private KeyValueStoreOnXodus keyValueStoreOfResponses;
@@ -148,6 +158,7 @@ class State implements AutoCloseable {
 
 	/**
      * Creates a state that gets persisted inside the given directory.
+     * It is initialized to the view of the last checked out root.
      * 
      * @param dir the directory where the state is persisted
      * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
@@ -162,8 +173,24 @@ class State implements AutoCloseable {
     			storeOfResponses = env.openStoreWithoutDuplicates("patricia", txn);
     			history = env.openStoreWithoutDuplicates("history", txn);
     			info = env.openStoreWithoutDuplicates("info", txn);
+    	    	ByteIterable root = info.get(txn, ROOT);
+    	    	this.rootOfResponses = root == null ? null : root.getBytes();
     		})
     	);
+    }
+
+    /**
+     * Creates a state that gets persisted inside the given directory.
+     * It is initialized to the view of the given root.
+     * 
+     * @param dir the directory where the state is persisted
+     * @param hash the root to use for the state
+     * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
+     */
+    State(String dir, byte[] hash) throws NoSuchAlgorithmException {
+    	this.env = new Environment(dir);
+    	this.hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
+    	this.rootOfResponses = hash;
     }
 
     @Override
@@ -191,7 +218,7 @@ class State implements AutoCloseable {
      */
     void beginTransaction() {
     	txn = recordTime(env::beginTransaction);
-    	keyValueStoreOfResponses = new KeyValueStoreOnXodus(storeOfResponses, txn);
+    	keyValueStoreOfResponses = new KeyValueStoreOnXodus(storeOfResponses, txn, rootOfResponses);
     	trieOfResponses = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
     }
 
@@ -215,7 +242,8 @@ class State implements AutoCloseable {
     }
 
 	void checkout(byte[] hash) {
-		
+		this.rootOfResponses = hash;
+		recordTime(() -> env.executeInTransaction(txn -> info.put(txn, ROOT, ByteIterable.fromBytes(hash))));
 	}
 
 	/**
@@ -228,7 +256,7 @@ class State implements AutoCloseable {
 		return recordTime(() -> { 
 			return env.computeInReadonlyTransaction(txn -> {
 				PatriciaTrie<TransactionReference, TransactionResponse> trie
-					= PatriciaTrie.of(new KeyValueStoreOnXodus(storeOfResponses, txn), hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+					= PatriciaTrie.of(new KeyValueStoreOnXodus(storeOfResponses, txn, rootOfResponses), hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
 				return trie.get(reference);
 			});
 		});
@@ -295,8 +323,7 @@ class State implements AutoCloseable {
 	 * @return the hash. If the state is currently empty, it yields an array of a single, 0 byte
 	 */
 	byte[] getHash() {
-		byte[] root = recordTime(() -> env.computeInReadonlyTransaction(txn -> new KeyValueStoreOnXodus(storeOfResponses, txn).getRoot()));
-		return root == null ? new byte[0] : root;
+		return rootOfResponses == null ? new byte[0] : rootOfResponses;
 	}
 
 	/**

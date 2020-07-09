@@ -8,29 +8,24 @@ import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
 public class KeyValueStoreOnXodus implements KeyValueStore {
-
 	private final Store store;
 	private final Transaction txn;
+	private byte[] root;
 
-	public KeyValueStoreOnXodus(Store store, Transaction txn) {
+	public KeyValueStoreOnXodus(Store store, Transaction txn, byte[] root) {
 		this.store = store;
 		this.txn = txn;
+		this.root = root;
 	}
-
-	/**
-     * The key used inside the store to keep the root.
-     */
-    private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
 
     @Override
 	public byte[] getRoot() {
-		ByteIterable root = store.get(txn, ROOT);
-		return root == null ? null : root.getBytes();
+    	return root;
 	}
 
 	@Override
 	public void setRoot(byte[] root) {
-		store.put(txn, ROOT, ByteIterable.fromBytes(root));
+		this.root = root;
 	}
 
 	@Override
