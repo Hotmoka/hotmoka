@@ -216,14 +216,7 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> {
-			try {
-				return Optional.of(getTrieForResponses(txn).get(reference));
-			}
-			catch (NoSuchElementException e) {
-				return Optional.empty();
-			}
-		}));
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> getTrieForResponses(txn).get(reference)));
 	}
 
 	/**
@@ -240,15 +233,8 @@ class State implements AutoCloseable {
 		// runView transaction methods, that are not transactions inside blocks
 		if (txn.isFinished())
 			return getResponse(reference);
-
-		return recordTime(() -> {
-			try {
-				return Optional.of(getTrieForResponses(txn).get(reference));
-			}
-			catch (NoSuchElementException e) {
-				return Optional.empty();
-			}
-		});
+		else
+			return recordTime(() -> getTrieForResponses(txn).get(reference));
 	}
 
 	/**

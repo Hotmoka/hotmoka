@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -68,7 +69,7 @@ class State implements AutoCloseable {
 	/**
 	 * The store that holds the Merkle-Patricia trie of the responses to the transactions.
 	 */
-	private Store patricia;
+	private Store trieOfResponses;
 
 	/**
 	 * The store that holds the history of each storage reference, ie, a list of
@@ -155,7 +156,7 @@ class State implements AutoCloseable {
     	// enforces that all stores exist
     	recordTime(() ->
     		env.executeInTransaction(txn -> {
-    			patricia = env.openStoreWithoutDuplicates("patricia", txn);
+    			trieOfResponses = env.openStoreWithoutDuplicates("patricia", txn);
     			history = env.openStoreWithoutDuplicates("history", txn);
     			info = env.openStoreWithoutDuplicates("info", txn);
     		})
@@ -186,7 +187,7 @@ class State implements AutoCloseable {
      * of the execution of the transactions inside a block.
      */
     void beginTransaction() {
-    	txn = recordTime((TimedTask<Transaction>) env::beginTransaction);
+    	txn = recordTime(env::beginTransaction);
     }
 
     /**
@@ -210,14 +211,7 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> {
-			try {
-				return Optional.of(getTrie(txn).get(reference));
-			}
-			catch (NoSuchElementException e) {
-				return Optional.empty();
-			}
-		}));
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> getTrie(txn).get(reference)));
 	}
 
 	/**
@@ -237,15 +231,8 @@ class State implements AutoCloseable {
 		// This might happen for instance upon node recreation
 		if (txn == null || txn.isFinished())
 			return getResponse(reference);
-
-		return recordTime(() -> {
-			try {
-				return Optional.of(getTrie(txn).get(reference));
-			}
-			catch (NoSuchElementException e) {
-				return Optional.empty();
-			}
-		});
+		else
+			return recordTime(() -> getTrie(txn).get(reference));
 	}
 
 	/**
@@ -367,12 +354,12 @@ class State implements AutoCloseable {
 	
 			@Override
 			public void put(byte[] key, byte[] value) {
-				patricia.put(txn, ByteIterable.fromBytes(key), ByteIterable.fromBytes(value));
+				trieOfResponses.put(txn, ByteIterable.fromBytes(key), ByteIterable.fromBytes(value));
 			}
 	
 			@Override
 			public byte[] get(byte[] key) throws NoSuchElementException {
-				ByteIterable result = patricia.get(txn, ByteIterable.fromBytes(key));
+				ByteIterable result = trieOfResponses.get(txn, ByteIterable.fromBytes(key));
 				if (result == null)
 					throw new NoSuchElementException("no Merkle-Patricia trie node");
 				else
@@ -403,18 +390,14 @@ class State implements AutoCloseable {
 		stateTime += (System.currentTimeMillis() - start);
 	}
 
-	private interface TimedTask<T> {
-		T call();
-	}
-
 	/**
 	 * Executes the given task, taking note of the time required for it.
 	 * 
 	 * @param task the task
 	 */
-	private <T> T recordTime(TimedTask<T> task) {
+	private <T> T recordTime(Supplier<T> task) {
 		long start = System.currentTimeMillis();
-		T result = task.call();
+		T result = task.get();
 		stateTime += (System.currentTimeMillis() - start);
 		return result;
 	}

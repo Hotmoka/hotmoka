@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,18 +64,18 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	}
 
 	@Override
-	public Value get(Key key) throws NoSuchElementException {
+	public Optional<Value> get(Key key) throws NoSuchElementException {
 		byte[] hashOfRoot = store.getRoot();
 		if (hashOfRoot == null)
-			throw new NoSuchElementException("no " + key + " in Patricia trie");
+			return Optional.empty();
 
 		try {
 			byte[] hashedKey = hashingForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
-			return getNodeFromHash(hashOfRoot, 0).get(nibblesOfHashedKey, 0);
+			return Optional.of(getNodeFromHash(hashOfRoot, 0).get(nibblesOfHashedKey, 0));
 		}
 		catch (NoSuchElementException e) {
-			throw e;
+			return Optional.empty();
 		}
 		catch (Exception e) {
 			logger.error("error while getting key from Patricia trie", e);

@@ -1,6 +1,6 @@
 package io.hotmoka.patricia;
 
-import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
@@ -16,10 +16,9 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 * Yields the value bound to the given key.
 	 * 
 	 * @param key the key
-	 * @return the value
-	 * @throws NoSuchElementException if the key is not bound in this trie
+	 * @return the value, if any
 	 */
-	Value get(Key key) throws NoSuchElementException;
+	Optional<Value> get(Key key);
 
 	/**
 	 * Binds the given key to the given value. It replaces it
