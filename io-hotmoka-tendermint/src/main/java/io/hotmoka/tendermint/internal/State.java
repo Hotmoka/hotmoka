@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -22,7 +21,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithm;
-import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
@@ -69,7 +67,7 @@ class State implements AutoCloseable {
 	/**
 	 * The store that holds the Merkle-Patricia trie of the responses to the transactions.
 	 */
-	private Store trieOfResponses;
+	private Store storeOfResponses;
 
 	/**
 	 * The store that holds the history of each storage reference, ie, a list of
@@ -91,12 +89,7 @@ class State implements AutoCloseable {
     /**
      * The key used inside {@linkplain #info} to keep the number of commits executed over this state.
      */
-    private final static ByteIterable COMMIT_COUNT = ByteIterable.fromByte((byte) 0);
-
-    /**
-     * The key used inside {@linkplain #info} to keep the hash of the root of the Patricia trie of the responses.
-     */
-    private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 1);
+    private final static ByteIterable COMMIT_COUNT = ByteIterable.fromByte((byte) 1);
 
     /**
      * The key used inside {@linkplain #info} to keep the storage reference of the manifest of the node.
@@ -139,11 +132,21 @@ class State implements AutoCloseable {
     };
 
     /**
-     * The hashing algorithm applied to the nodes of the Merkle-Patricia trie.
+     * The hashing algorithm applied to the nodes of the Merkle-Patricia tries.
      */
     private final HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes;
 
     /**
+     * The key/value store for the trie of the responses.
+     */
+    private KeyValueStoreOnXodus keyValueStoreOfResponses;
+
+	/**
+     * The trie of the responses.
+     */
+	private PatriciaTrie<TransactionReference, TransactionResponse> trieOfResponses;
+
+	/**
      * Creates a state that gets persisted inside the given directory.
      * 
      * @param dir the directory where the state is persisted
@@ -156,7 +159,7 @@ class State implements AutoCloseable {
     	// enforces that all stores exist
     	recordTime(() ->
     		env.executeInTransaction(txn -> {
-    			trieOfResponses = env.openStoreWithoutDuplicates("patricia", txn);
+    			storeOfResponses = env.openStoreWithoutDuplicates("patricia", txn);
     			history = env.openStoreWithoutDuplicates("history", txn);
     			info = env.openStoreWithoutDuplicates("info", txn);
     		})
@@ -188,21 +191,32 @@ class State implements AutoCloseable {
      */
     void beginTransaction() {
     	txn = recordTime(env::beginTransaction);
+    	keyValueStoreOfResponses = new KeyValueStoreOnXodus(storeOfResponses, txn);
+    	trieOfResponses = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
     }
 
     /**
 	 * Commits all data put from last call to {@linkplain #beginTransaction()}.
+	 * 
+	 * @return the hash of the state resulting at the end of its update
 	 */
-    void commitTransaction() {
-    	recordTime(() -> {
+    byte[] commitTransaction() {
+    	return recordTime(() -> {
     		// we increase the number of commits performed over this state
     		ByteIterable numberOfCommitsAsByteIterable = info.get(txn, COMMIT_COUNT);
     		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytes()));
     		info.put(txn, COMMIT_COUNT, ByteIterable.fromBytes(Long.toString(numberOfCommits + 1).getBytes()));
+    		byte[] hash = keyValueStoreOfResponses.getRoot();
     		if (!txn.commit())
     			logger.info("Block transaction commit failed");
+
+    		return hash;
     	});
     }
+
+	void checkout(byte[] hash) {
+		
+	}
 
 	/**
 	 * Yields the response of the transaction having the given reference.
@@ -211,7 +225,13 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> getTrie(txn).get(reference)));
+		return recordTime(() -> { 
+			return env.computeInReadonlyTransaction(txn -> {
+				PatriciaTrie<TransactionReference, TransactionResponse> trie
+					= PatriciaTrie.of(new KeyValueStoreOnXodus(storeOfResponses, txn), hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+				return trie.get(reference);
+			});
+		});
 	}
 
 	/**
@@ -232,7 +252,7 @@ class State implements AutoCloseable {
 		if (txn == null || txn.isFinished())
 			return getResponse(reference);
 		else
-			return recordTime(() -> getTrie(txn).get(reference));
+			return recordTime(() -> trieOfResponses.get(reference));
 	}
 
 	/**
@@ -275,11 +295,8 @@ class State implements AutoCloseable {
 	 * @return the hash. If the state is currently empty, it yields an array of a single, 0 byte
 	 */
 	byte[] getHash() {
-		ByteIterable hashOfTrieRoot = getFromInfo(ROOT);
-		if (hashOfTrieRoot == null)
-			return new byte[0];
-		else
-			return hashOfTrieRoot.getBytes();
+		byte[] root = recordTime(() -> env.computeInReadonlyTransaction(txn -> new KeyValueStoreOnXodus(storeOfResponses, txn).getRoot()));
+		return root == null ? new byte[0] : root;
 	}
 
 	/**
@@ -300,7 +317,7 @@ class State implements AutoCloseable {
 
 			@Override
 			protected void writeInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-				recordTime(() -> getTrie(txn).put(reference, response));
+				recordTime(() -> trieOfResponses.put(reference, response));
 				// the request is inside the blockchain itself, is not kept in state
 			}
 
@@ -330,44 +347,6 @@ class State implements AutoCloseable {
 				recordTime(() -> info.put(txn, MANIFEST, intoByteArray(manifest)));
 			}
 		};
-	}
-
-	/**
-	 * Yields the Merkle-Patricia trie for this state.
-	 * 
-	 * @param txn the transaction for which the trie is being built
-	 * @return the trie
-	 */
-	private PatriciaTrie<TransactionReference, TransactionResponse> getTrie(Transaction txn) {
-		KeyValueStore keyValueStore = new KeyValueStore() {
-	
-			@Override
-			public byte[] getRoot() {
-				ByteIterable root = info.get(txn, ROOT);
-				return root == null ? null : root.getBytes();
-			}
-	
-			@Override
-			public void setRoot(byte[] root) {
-				info.put(txn, ROOT, ByteIterable.fromBytes(root));
-			}
-	
-			@Override
-			public void put(byte[] key, byte[] value) {
-				trieOfResponses.put(txn, ByteIterable.fromBytes(key), ByteIterable.fromBytes(value));
-			}
-	
-			@Override
-			public byte[] get(byte[] key) throws NoSuchElementException {
-				ByteIterable result = trieOfResponses.get(txn, ByteIterable.fromBytes(key));
-				if (result == null)
-					throw new NoSuchElementException("no Merkle-Patricia trie node");
-				else
-					return result.getBytes();
-			}
-		};
-
-		return PatriciaTrie.of(keyValueStore, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
 	}
 
 	/**

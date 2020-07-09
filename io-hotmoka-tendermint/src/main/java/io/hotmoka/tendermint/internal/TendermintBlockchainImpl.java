@@ -221,7 +221,7 @@ public class TendermintBlockchainImpl extends AbstractNodeWithHistory<Config> im
 	 * This is called by the ABCI when it needs to commit the current block.
 	 */
 	void commitBlock() {
-		state.commitTransaction();
+		state.checkout(state.commitTransaction());
 	}
 
 	/**

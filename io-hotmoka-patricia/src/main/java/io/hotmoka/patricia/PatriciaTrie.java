@@ -28,7 +28,6 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 * @param value the value
 	 */
 	void put(Key key, Value value);
-
 		
 	/**
 	 * Yields the Merkle-Patricia trie supported by the underlying store,
