@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -16,14 +15,13 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.HashingAlgorithm;
-import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;
@@ -85,45 +83,6 @@ class State implements AutoCloseable {
 	 */
     private final Store storeOfInfo;
 
-    /**
-	 * The hashing algorithm applied to transaction references when used as
-	 * keys of a Merkle-Patricia trie. Since these keys are transaction references,
-	 * they already hold a hash, as a string. Hence, this algorithm just amounts to extracting
-	 * the bytes from that string.
-	 */
-	private final HashingAlgorithm<TransactionReference> hashingForTransactionReferences = new HashingAlgorithm<>() {
-	
-		@Override
-		public byte[] hash(TransactionReference reference) {
-			return hexStringToByteArray(reference.getHash());
-		}
-	
-		@Override
-		public int length() {
-			return 32; // transaction references are assumed to be SHA256 hashes, hence 32 bytes
-		}
-	
-		/**
-		 * Transforms a hexadecimal string into a byte array.
-		 * 
-		 * @param s the string
-		 * @return the byte array
-		 */
-		private byte[] hexStringToByteArray(String s) {
-		    int len = s.length();
-		    byte[] data = new byte[len / 2];
-		    for (int i = 0; i < len; i += 2)
-		        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
-		
-		    return data;
-		}
-	};
-
-	/**
-	 * The hashing algorithm applied to the nodes of the Merkle-Patricia tries.
-	 */
-	private final HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes;
-
 	/**
      * The key used inside {@linkplain storeOfRoot} to keep the root.
      */
@@ -159,16 +118,15 @@ class State implements AutoCloseable {
 	/**
      * The trie of the responses.
      */
-	private PatriciaTrie<TransactionReference, TransactionResponse> trieOfResponses;
+	private TrieOfResponses trieOfResponses;
 
 	/**
      * Creates a state that gets persisted inside the given directory.
      * It is initialized to the view of the last checked out root.
      * 
      * @param dir the directory where the state is persisted
-     * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
      */
-    State(String dir) throws NoSuchAlgorithmException {
+    State(String dir) {
     	this(dir, (storeOfRoot, txn) -> {
     		ByteIterable root = storeOfRoot.get(txn, ROOT);
     		return root == null ? null : root.getBytes();
@@ -181,9 +139,8 @@ class State implements AutoCloseable {
      * 
      * @param dir the directory where the state is persisted
      * @param hash the root to use for the state
-     * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
      */
-    State(String dir, byte[] hash) throws NoSuchAlgorithmException {
+    State(String dir, byte[] hash) {
     	this(dir, (_storeOfRoot, _txn) -> hash);
     }
 
@@ -210,9 +167,13 @@ class State implements AutoCloseable {
      * in the supporting database if the transaction will later be committed.
      */
     void beginTransaction() {
-    	txn = recordTime(env::beginTransaction);
-    	KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(storeOfResponses, txn, rootOfResponses);
-    	trieOfResponses = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+    	try {
+    		txn = recordTime(env::beginTransaction);
+    		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, rootOfResponses);
+    	}
+    	catch (Exception e) {
+    		throw InternalFailureException.of(e);
+    	}
     }
 
     /**
@@ -293,13 +254,14 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTime(() -> { 
-			return env.computeInReadonlyTransaction(txn -> {
-				PatriciaTrie<TransactionReference, TransactionResponse> trie
-					= PatriciaTrie.of(new KeyValueStoreOnXodus(storeOfResponses, txn, rootOfResponses), hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
-				return trie.get(reference);
-			});
-		});
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> {
+			try {
+				return new TrieOfResponses(storeOfResponses, txn, rootOfResponses).get(reference);
+			}
+			catch (Exception e) {
+				throw InternalFailureException.of(e);
+			}
+		}));
 	}
 
 	/**
@@ -372,11 +334,9 @@ class State implements AutoCloseable {
 	 * 
 	 * @param dir the directory where the state is persisted
 	 * @param rootSupplier the function thatr supplies the root
-	 * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
 	 */
-	private State(String dir, BiFunction<Store, Transaction, byte[]> rootSupplier) throws NoSuchAlgorithmException {
+	private State(String dir, BiFunction<Store, Transaction, byte[]> rootSupplier) {
 		this.env = new Environment(dir);
-		this.hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
 
 		AtomicReference<Store> storeOfRoot = new AtomicReference<>();
 		AtomicReference<Store> storeOfResponses = new AtomicReference<>();

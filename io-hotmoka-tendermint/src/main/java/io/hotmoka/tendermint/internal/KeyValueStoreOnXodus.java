@@ -7,12 +7,12 @@ import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
-public class KeyValueStoreOnXodus implements KeyValueStore {
+class KeyValueStoreOnXodus implements KeyValueStore {
 	private final Store store;
 	private final Transaction txn;
 	private byte[] root;
 
-	public KeyValueStoreOnXodus(Store store, Transaction txn, byte[] root) {
+	KeyValueStoreOnXodus(Store store, Transaction txn, byte[] root) {
 		this.store = store;
 		this.txn = txn;
 		this.root = root;
