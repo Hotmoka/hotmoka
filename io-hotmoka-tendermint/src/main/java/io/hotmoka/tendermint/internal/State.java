@@ -64,6 +64,11 @@ class State implements AutoCloseable {
 	private final Environment env;
 
 	/**
+	 * The store that holds the root of the state.
+	 */
+    private final Store storeOfRoot;
+
+    /**
 	 * The store that holds the Merkle-Patricia trie of the responses to the requests.
 	 */
 	private final Store storeOfResponses;
@@ -120,19 +125,19 @@ class State implements AutoCloseable {
 	private final HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes;
 
 	/**
-     * The key used inside {@linkplain info} to keep the root.
+     * The key used inside {@linkplain storeOfRoot} to keep the root.
      */
     private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
 
     /**
      * The key used inside {@linkplain #storeOfInfo} to keep the number of commits executed over this state.
      */
-    private final static ByteIterable COMMIT_COUNT = ByteIterable.fromByte((byte) 1);
+    private final static ByteIterable COMMIT_COUNT = ByteIterable.fromByte((byte) 0);
 
     /**
      * The key used inside {@linkplain #storeOfInfo} to keep the storage reference of the manifest of the node.
      */
-    private final static ByteIterable MANIFEST = ByteIterable.fromByte((byte) 2);
+    private final static ByteIterable MANIFEST = ByteIterable.fromByte((byte) 1);
 
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
@@ -164,8 +169,8 @@ class State implements AutoCloseable {
      * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
      */
     State(String dir) throws NoSuchAlgorithmException {
-    	this(dir, (info, txn) -> {
-    		ByteIterable root = info.get(txn, ROOT);
+    	this(dir, (storeOfRoot, txn) -> {
+    		ByteIterable root = storeOfRoot.get(txn, ROOT);
     		return root == null ? null : root.getBytes();
     	});
     }
@@ -179,7 +184,7 @@ class State implements AutoCloseable {
      * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
      */
     State(String dir, byte[] hash) throws NoSuchAlgorithmException {
-    	this(dir, (_info, _txn) -> hash);
+    	this(dir, (_storeOfRoot, _txn) -> hash);
     }
 
     @Override
@@ -278,7 +283,7 @@ class State implements AutoCloseable {
      */
 	void checkout(byte[] hash) {
 		this.rootOfResponses = hash;
-		recordTime(() -> env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, ByteIterable.fromBytes(hash))));
+		recordTime(() -> env.executeInTransaction(txn -> storeOfRoot.put(txn, ROOT, ByteIterable.fromBytes(hash))));
 	}
 
 	/**
@@ -372,18 +377,21 @@ class State implements AutoCloseable {
 	private State(String dir, BiFunction<Store, Transaction, byte[]> rootSupplier) throws NoSuchAlgorithmException {
 		this.env = new Environment(dir);
 		this.hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-	
+
+		AtomicReference<Store> storeOfRoot = new AtomicReference<>();
 		AtomicReference<Store> storeOfResponses = new AtomicReference<>();
 		AtomicReference<Store> storeOfHistory = new AtomicReference<>();
 		AtomicReference<Store> storeOfInfo = new AtomicReference<>();
 	
 		recordTime(() -> env.executeInTransaction(txn -> {
+			storeOfRoot.set(env.openStoreWithoutDuplicates("root", txn));
 			storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
 			storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
 			storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
-	    	rootOfResponses = rootSupplier.apply(storeOfInfo.get(), txn);
+	    	rootOfResponses = rootSupplier.apply(storeOfRoot.get(), txn);
 		}));
-	
+
+		this.storeOfRoot = storeOfRoot.get();
 		this.storeOfResponses = storeOfResponses.get();
 		this.storeOfHistory = storeOfHistory.get();
 		this.storeOfInfo = storeOfInfo.get();
