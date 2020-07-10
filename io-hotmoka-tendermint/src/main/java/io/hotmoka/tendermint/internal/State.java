@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.UncheckedIOException;
+import java.math.BigInteger;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -15,7 +16,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
@@ -101,9 +101,14 @@ class State implements AutoCloseable {
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
     /**
-	 * The root of the trie of the responses.
+	 * The root of the trie of the responses. It is an empty array if the trie is empty.
 	 */
-	private byte[] rootOfResponses;
+	private final byte[] rootOfResponses = new byte[32];
+
+	/**
+	 * The root of the trie of the miscellaneous info. It is an empty array if the trie is empty.
+	 */
+	private final byte[] rootOfInfo = new byte[32];
 
 	/**
 	 * The time spent inside the state procedures, for profiling.
@@ -121,6 +126,11 @@ class State implements AutoCloseable {
 	private TrieOfResponses trieOfResponses;
 
 	/**
+	 * The trie for the miscellaneous information.
+	 */
+	private TrieOfInfo trieOfInfo;
+
+	/**
      * Creates a state that gets persisted inside the given directory.
      * It is initialized to the view of the last checked out root.
      * 
@@ -129,7 +139,7 @@ class State implements AutoCloseable {
     State(String dir) {
     	this(dir, (storeOfRoot, txn) -> {
     		ByteIterable root = storeOfRoot.get(txn, ROOT);
-    		return root == null ? null : root.getBytes();
+    		return root == null ? new byte[64] : root.getBytes();
     	});
     }
 
@@ -167,13 +177,9 @@ class State implements AutoCloseable {
      * in the supporting database if the transaction will later be committed.
      */
     void beginTransaction() {
-    	try {
-    		txn = recordTime(env::beginTransaction);
-    		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, rootOfResponses);
-    	}
-    	catch (Exception e) {
-    		throw InternalFailureException.of(e);
-    	}
+    	txn = recordTime(env::beginTransaction);
+    	trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses));
+    	trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo));
     }
 
     /**
@@ -215,6 +221,7 @@ class State implements AutoCloseable {
 			@Override
 			protected void initialize(StorageReference manifest) {
 				recordTime(() -> storeOfInfo.put(txn, MANIFEST, intoByteArray(manifest)));
+				//recordTime(() -> trieOfInfo.setManifest(manifest)); // TODO
 			}
 		};
 	}
@@ -230,21 +237,33 @@ class State implements AutoCloseable {
     		ByteIterable numberOfCommitsAsByteIterable = storeOfInfo.get(txn, COMMIT_COUNT);
     		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytes()));
     		storeOfInfo.put(txn, COMMIT_COUNT, ByteIterable.fromBytes(Long.toString(numberOfCommits + 1).getBytes()));
+
+    		//trieOfInfo.setNumberOfCommits(trieOfInfo.getNumberOfCommits().add(BigInteger.ONE)); //TODO
     		if (!txn.commit())
     			logger.info("Block transaction commit failed");
 
-    		return trieOfResponses.getRoot();
+    		byte[] result = new byte[64];
+
+    		byte[] rootOfResponses = trieOfResponses.getRoot();
+    		if (rootOfResponses != null)
+    			System.arraycopy(rootOfResponses, 0, result, 0, 32);
+
+    		byte[] rootOfInfo = trieOfInfo.getRoot();
+    		if (rootOfInfo != null)
+    			System.arraycopy(rootOfInfo, 0, result, 32, 32);
+
+    		return result;
     	});
     }
 
     /**
      * Resets the state to the given hash.
      * 
-     * @param hash the hash
+     * @param root the hash of the root to reset to
      */
-	void checkout(byte[] hash) {
-		this.rootOfResponses = hash;
-		recordTime(() -> env.executeInTransaction(txn -> storeOfRoot.put(txn, ROOT, ByteIterable.fromBytes(hash))));
+	void checkout(byte[] root) {
+		splitRoots(root);
+		recordTime(() -> env.executeInTransaction(txn -> storeOfRoot.put(txn, ROOT, ByteIterable.fromBytes(root))));
 	}
 
 	/**
@@ -254,14 +273,7 @@ class State implements AutoCloseable {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> {
-			try {
-				return new TrieOfResponses(storeOfResponses, txn, rootOfResponses).get(reference);
-			}
-			catch (Exception e) {
-				throw InternalFailureException.of(e);
-			}
-		}));
+		return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses)).get(reference)));
 	}
 
 	/**
@@ -307,6 +319,14 @@ class State implements AutoCloseable {
 	long getNumberOfCommits() {
 		ByteIterable numberOfCommitsAsByteIterable = getFromInfo(COMMIT_COUNT);
 		return numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytes()));
+
+		//TODO
+		/*
+		if (txn == null || txn.isFinished())
+			return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getNumberOfCommits().longValue()));
+		else
+			return trieOfInfo.getNumberOfCommits().longValue();
+			*/
 	}
 
 	/**
@@ -317,6 +337,14 @@ class State implements AutoCloseable {
 	Optional<StorageReference> getManifest() {
 		ByteIterable manifest = getFromInfo(MANIFEST);
 		return manifest == null ? Optional.empty() : Optional.of(fromByteArray(StorageReference::from, manifest));
+
+		//TODO
+		/*
+		if (txn == null || txn.isFinished())
+			return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
+		else
+			return trieOfInfo.getManifest();
+			*/
 	}
 
 	/**
@@ -325,7 +353,14 @@ class State implements AutoCloseable {
 	 * @return the hash. If the state is currently empty, it yields an array of a single, 0 byte
 	 */
 	byte[] getHash() {
-		return rootOfResponses == null ? new byte[0] : rootOfResponses;
+		if (isEmpty())
+			return new byte[0]; // required by Tendermint as initial, empty application state
+
+		byte[] result = new byte[64];
+		System.arraycopy(rootOfResponses, 0, result, 0, 32);
+		System.arraycopy(rootOfInfo, 0, result, 32, 32);
+
+		return result;
 	}
 
 	/**
@@ -333,7 +368,7 @@ class State implements AutoCloseable {
 	 * It is initialized to the view of the root resulting from the given function.
 	 * 
 	 * @param dir the directory where the state is persisted
-	 * @param rootSupplier the function thatr supplies the root
+	 * @param rootSupplier the function that supplies the root
 	 */
 	private State(String dir, BiFunction<Store, Transaction, byte[]> rootSupplier) {
 		this.env = new Environment(dir);
@@ -348,13 +383,38 @@ class State implements AutoCloseable {
 			storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
 			storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
 			storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
-	    	rootOfResponses = rootSupplier.apply(storeOfRoot.get(), txn);
+			splitRoots(rootSupplier.apply(storeOfRoot.get(), txn));
 		}));
 
 		this.storeOfRoot = storeOfRoot.get();
 		this.storeOfResponses = storeOfResponses.get();
 		this.storeOfHistory = storeOfHistory.get();
 		this.storeOfInfo = storeOfInfo.get();
+	}
+
+	private boolean isEmpty() {
+		for (byte b: rootOfResponses)
+			if (b != (byte) 0)
+				return false;
+	
+		for (byte b: rootOfInfo)
+			if (b != (byte) 0)
+				return false;
+	
+		return true;
+	}
+
+	private static byte[] nullIfEmpty(byte[] hash) {
+		for (byte b: hash)
+			if (b != (byte) 0)
+				return hash;
+	
+		return null;
+	}
+
+	private void splitRoots(byte[] root) {
+		System.arraycopy(root, 0, rootOfResponses, 0, 32);
+		System.arraycopy(root, 32, rootOfInfo, 0, 32);
 	}
 
 	/**

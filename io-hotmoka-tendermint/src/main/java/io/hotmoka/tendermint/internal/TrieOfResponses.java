@@ -1,8 +1,8 @@
 package io.hotmoka.tendermint.internal;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
+import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -60,13 +60,17 @@ class TrieOfResponses implements PatriciaTrie<TransactionReference, TransactionR
 	 * 
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
-	 * @param root the root of the trie to check out
-	 * @throws NoSuchAlgorithmException if the hashing algorithm for the trie nodes does not exist
+	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
 	 */
-	TrieOfResponses(Store store, Transaction txn, byte[] root) throws NoSuchAlgorithmException {
-		KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
-		HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-    	parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+	TrieOfResponses(Store store, Transaction txn, byte[] root) {
+		try {
+			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
+			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
+			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
+		}
+		catch (Exception e) {
+			throw InternalFailureException.of(e);
+		}
 	}
 
 	@Override
