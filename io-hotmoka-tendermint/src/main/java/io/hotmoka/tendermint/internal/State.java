@@ -134,6 +134,11 @@ class State implements AutoCloseable {
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
     /**
+	 * The root of the trie of the responses.
+	 */
+	private byte[] rootOfResponses;
+
+	/**
 	 * The time spent inside the state procedures, for profiling.
 	 */
 	private long stateTime;
@@ -142,16 +147,6 @@ class State implements AutoCloseable {
 	 * The transaction that accumulates all changes from begin of block to commit of block.
 	 */
 	private Transaction txn;
-
-	/**
-     * The root of the trie of the responses.
-     */
-    private byte[] rootOfResponses;
-
-    /**
-     * The key/value store for the trie of the responses.
-     */
-    private KeyValueStoreOnXodus keyValueStoreOfResponses;
 
 	/**
      * The trie of the responses.
@@ -209,7 +204,7 @@ class State implements AutoCloseable {
      */
     void beginTransaction() {
     	txn = recordTime(env::beginTransaction);
-    	keyValueStoreOfResponses = new KeyValueStoreOnXodus(storeOfResponses, txn, rootOfResponses);
+    	KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(storeOfResponses, txn, rootOfResponses);
     	trieOfResponses = PatriciaTrie.of(keyValueStoreOfResponses, hashingForTransactionReferences, hashingForNodes, TransactionResponse::from);
     }
 
@@ -276,11 +271,10 @@ class State implements AutoCloseable {
     		ByteIterable numberOfCommitsAsByteIterable = storeOfInfo.get(txn, COMMIT_COUNT);
     		long numberOfCommits = numberOfCommitsAsByteIterable == null ? 0L : Long.valueOf(new String(numberOfCommitsAsByteIterable.getBytes()));
     		storeOfInfo.put(txn, COMMIT_COUNT, ByteIterable.fromBytes(Long.toString(numberOfCommits + 1).getBytes()));
-    		byte[] hash = keyValueStoreOfResponses.getRoot();
     		if (!txn.commit())
     			logger.info("Block transaction commit failed");
 
-    		return hash;
+    		return trieOfResponses.getRoot();
     	});
     }
 

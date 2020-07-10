@@ -28,7 +28,14 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 * @param value the value
 	 */
 	void put(Key key, Value value);
-		
+
+	/**
+	 * Yields the root of the trie, that can be used as a hash of its content.
+	 * 
+	 * @return the root
+	 */
+	byte[] getRoot();
+
 	/**
 	 * Yields the Merkle-Patricia trie supported by the underlying store,
 	 * using the given hashing algorithm to hash nodes, keys and the values.

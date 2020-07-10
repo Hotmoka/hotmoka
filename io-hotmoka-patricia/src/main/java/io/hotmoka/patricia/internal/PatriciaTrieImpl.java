@@ -105,6 +105,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 	}
 
+	@Override
+	public byte[] getRoot() {
+		return store.getRoot();
+	}
+
 	/**
 	 * Factory method that unmarshals a node from the given stream.
 	 * 
