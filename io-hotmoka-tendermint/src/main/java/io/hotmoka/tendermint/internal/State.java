@@ -33,26 +33,28 @@ import io.takamaka.code.engine.AbstractNodeWithHistory;
 import io.takamaka.code.engine.StateUpdate;
 
 /**
- * The state of a blockchain built over Tendermint. It is a transactional database that keeps
- * information about the state of the objects created by the transactions executed
- * by the blockchain. This state is external to the blockchain and only
- * its hash is stored in blockchain at the end of each block, for consensus.
+ * A historical state of a node. It is a transactional database that keeps
+ * information about the state of the objects created by the requests executed
+ * by the node. This state is external to the node and, typically, only
+ * its hash is stored in the node, if consensus is needed. This state has
+ * the ability of changing its <i>world view</i> by checking out different
+ * hashes of its root. Hence, it can be used to come back in time or change
+ * history branch by simply checking out a different root. Its implementation
+ * is based on Merkle-Patricia tries, supported by JetBrains' Xodus transactional
+ * database.
+ * 
  * The information kept in this state consists of:
  * 
  * <ul>
- * <li> a map from each Hotmoka transaction reference to the response computed for that transaction
- *      (implemented as a Patricia trie supported by a store)
+ * <li> a map from each Hotmoka request reference to the response computed for that request
  * <li> a map from each storage reference to the transaction references that contribute
  *      to provide values to the fields of the storage object at that reference
- * <li> some miscellaneous control information, such as  where the jar with basic
- *      Takamaka classes is installed or the current number of commits
+ *      (this is used by a node to reconstruct the state of the objects in store)
+ * <li> miscellaneous control information, such as where the node's manifest
+ *      is installed or the current number of commits
  * </ul>
  * 
  * This information is added in store by put methods and accessed through get methods.
- * Information between paired begin transaction and commit transaction is committed into
- * the file system.
- * 
- * The implementation of this state uses JetBrains's Xodus transactional database.
  */
 class State implements AutoCloseable {
 
@@ -62,7 +64,7 @@ class State implements AutoCloseable {
 	private final Environment env;
 
 	/**
-	 * The store that holds the Merkle-Patricia trie of the responses to the transactions.
+	 * The store that holds the Merkle-Patricia trie of the responses to the requests.
 	 */
 	private final Store storeOfResponses;
 
@@ -79,9 +81,10 @@ class State implements AutoCloseable {
     private final Store storeOfInfo;
 
     /**
-	 * The hashing algorithm applied to the keys of the Merkle-Patricia trie.
-	 * Since these keys are transaction reference, they are already hashes. Hence,
-	 * this algorithm just amounts to extracting the bytes from the reference.
+	 * The hashing algorithm applied to transaction references when used as
+	 * keys of a Merkle-Patricia trie. Since these keys are transaction references,
+	 * they already hold a hash, as a string. Hence, this algorithm just amounts to extracting
+	 * the bytes from that string.
 	 */
 	private final HashingAlgorithm<TransactionReference> hashingForTransactionReferences = new HashingAlgorithm<>() {
 	
@@ -199,8 +202,7 @@ class State implements AutoCloseable {
 
     /**
      * Starts a transaction. All updates during the transaction are saved
-     * if the transaction will later be committed. This is called at the beginning
-     * of the execution of the transactions inside a block.
+     * in the supporting database if the transaction will later be committed.
      */
     void beginTransaction() {
     	txn = recordTime(env::beginTransaction);
@@ -209,8 +211,8 @@ class State implements AutoCloseable {
     }
 
     /**
-	 * Pushes into state with the result of a successful Hotmoka transaction. This method
-	 * is called during a transaction, between {@link #beginTransaction()} and
+	 * Pushes into state the result of executing a successful Hotmoka request. This method
+	 * is called, possibly many times, during a transaction, between {@link #beginTransaction()} and
 	 * {@link #commitTransaction()}, hence {@linkplain #txn} exists and is not yet committed.
 	 * 
 	 * 
@@ -225,7 +227,6 @@ class State implements AutoCloseable {
 			@Override
 			protected void pushInStore(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 				recordTime(() -> trieOfResponses.put(reference, response));
-				// the request is inside the blockchain itself, is not kept in state
 			}
 	
 			@Override
@@ -253,9 +254,9 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Commits all data put from last call to {@linkplain #beginTransaction()}.
+	 * Commits to the database all data put from the last call to {@linkplain #beginTransaction()}.
 	 * 
-	 * @return the hash of the state resulting at the end of its update
+	 * @return the hash of the state resulting at the end of all updates performed during the transaction
 	 */
     byte[] commitTransaction() {
     	return recordTime(() -> {
@@ -362,9 +363,10 @@ class State implements AutoCloseable {
 
 	/**
 	 * Creates a state that gets persisted inside the given directory.
-	 * It is initialized to the view of the last checked out root.
+	 * It is initialized to the view of the root resulting from the given function.
 	 * 
 	 * @param dir the directory where the state is persisted
+	 * @param rootSupplier the function thatr supplies the root
 	 * @throws NoSuchAlgorithmException if the algorithm for hashing the nodes of the Patricia trie is not available
 	 */
 	private State(String dir, BiFunction<Store, Transaction, byte[]> rootSupplier) throws NoSuchAlgorithmException {
