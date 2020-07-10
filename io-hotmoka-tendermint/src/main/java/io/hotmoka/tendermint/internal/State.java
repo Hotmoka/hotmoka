@@ -88,11 +88,6 @@ class State implements AutoCloseable {
      */
     private final static ByteIterable ROOT = ByteIterable.fromByte((byte) 0);
 
-    /**
-     * The key used inside {@linkplain #storeOfInfo} to keep the storage reference of the manifest of the node.
-     */
-    private final static ByteIterable MANIFEST = ByteIterable.fromByte((byte) 1);
-
     private final static Logger logger = LoggerFactory.getLogger(State.class);
 
     /**
@@ -215,7 +210,7 @@ class State implements AutoCloseable {
 	
 			@Override
 			protected void initialize(StorageReference manifest) {
-				recordTime(() -> storeOfInfo.put(txn, MANIFEST, intoByteArray(manifest)));
+				//recordTime(() -> storeOfInfo.put(txn, MANIFEST, intoByteArray(manifest)));
 				recordTime(() -> trieOfInfo.setManifest(manifest));
 			}
 		};
@@ -320,17 +315,11 @@ class State implements AutoCloseable {
 	 * @return the manifest
 	 */
 	Optional<StorageReference> getManifest() {
-		ByteIterable manifest = getFromInfo(MANIFEST);
-		Optional<StorageReference> result1 = manifest == null ? Optional.empty() : Optional.of(fromByteArray(StorageReference::from, manifest));
-		//Optional<StorageReference> result2;
-
 		//TODO
-		/*if (txn == null || txn.isFinished())
-			result2 = recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
-		else
-			result2 = trieOfInfo.getManifest();*/
-
-		return result1;
+		//if (txn == null || txn.isFinished())
+			return recordTime(() -> env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo)).getManifest()));
+		//else
+			//return trieOfInfo.getManifest();
 	}
 
 	/**
@@ -404,15 +393,6 @@ class State implements AutoCloseable {
 	}
 
 	/**
-	 * Yields the value of the given property in the {@linkplain #storeOfInfo} store.
-	 * 
-	 * @return true if and only if {@code markAsInitialized()} has been already called
-	 */
-	private ByteIterable getFromInfo(ByteIterable key) {
-		return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, key)));
-	}
-
-	/**
 	 * Executes the given task, taking note of the time required for it.
 	 * 
 	 * @param task the task
@@ -450,18 +430,6 @@ class State implements AutoCloseable {
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
-		}
-	}
-
-	private static <T extends Marshallable> T fromByteArray(Unmarshaller<T> unmarshaller, ByteIterable bytes) throws UncheckedIOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(bytes.getBytes())))) {
-			return unmarshaller.from(ois);
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
 		}
 	}
 

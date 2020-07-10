@@ -32,12 +32,12 @@ class TrieOfInfo {
 		public byte[] hash(Byte key) {
 			// we duplicate the value of the byte, since hashing functions
 			// for the keys of a Merkle-Patricia trie must yield an even number of nibbles
-			return new byte[] { key.byteValue(), key.byteValue() };
+			return new byte[] { key.byteValue() };
 		}
 
 		@Override
 		public int length() {
-			return 2;
+			return 1;
 		}
 	};
 
@@ -96,7 +96,7 @@ class TrieOfInfo {
 	 * @return the manifest, if any
 	 */
 	public Optional<StorageReference> getManifest() {
-		Optional<StorageValue> result = parent.get((byte) 1);
+		Optional<StorageValue> result = parent.get((byte) 17);
 		if (result.isPresent())
 			return Optional.of((StorageReference) result.get());
 		else
@@ -109,6 +109,6 @@ class TrieOfInfo {
 	 * @param manifest the manifest to set
 	 */
 	public void setManifest(StorageReference manifest) {
-		parent.put((byte) 1, manifest);
+		parent.put((byte) 17, manifest);
 	}
 }

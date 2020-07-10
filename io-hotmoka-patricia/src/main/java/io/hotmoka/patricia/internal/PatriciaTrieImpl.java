@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -360,7 +359,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		@Override
 		protected Value get(byte[] nibblesOfHashedKey, final int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
 			if (cursor >= nibblesOfHashedKey.length - 1)
-				throw new InternalFailureException("inconsistent key length in Patricia trie");
+				throw new InternalFailureException("inconsistent key length in Patricia trie nibblesOfHashedKey.length = " + nibblesOfHashedKey.length + ", cursor = " + cursor);
 
 			byte selection = nibblesOfHashedKey[cursor];
 			if (children[selection] == null)
@@ -498,6 +497,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				AbstractNode branch = new Branch(children).putInStore();
 
 				if (lengthOfSharedPortion > 0) {
+					// TODO: wrong when the distinct portion is the last character
 					// yield an extension node linked to a branch node with two alternatives
 					byte[] sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(this.sharedNibbles, 0, sharedNibbles, 0, lengthOfSharedPortion);
@@ -598,6 +598,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				AbstractNode branch = new Branch(children).putInStore();
 
 				if (lengthOfSharedPortion > 0) {
+					// TODO: wrong when the distinct portion is the last character
 					// yield an extension node linked to a branch node with two alternatives leaves
 					byte[] sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(keyEnd, 0, sharedNibbles, 0, lengthOfSharedPortion);
